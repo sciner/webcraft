@@ -20,8 +20,8 @@ const ORE_RANDOMS = [
     {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
     {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
     {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
     {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
     {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
     {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
@@ -225,11 +225,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         } else {
 
+            const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
+
+            const has_chunk_cave_lines = neighbour_lines && neighbour_lines.list.length > 0;
             const has_voxel_buildings = this.intersectChunkWithVoxelBuildings(chunk.aabb);
             const has_islands = this.intersectChunkWithIslands(chunk.aabb);
             const has_extruders = this.intersectChunkWithExtruders(chunk.aabb);
-            const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
-            const in_chunk_cave_lines = neighbour_lines && neighbour_lines.list.length > 0;
             const has_spiral_staircaes = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
 
             if(has_spiral_staircaes) {
@@ -281,8 +282,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
 
                         // Caves | Пещеры
-                        if(in_chunk_cave_lines && !in_ocean) {
-                            const line = in_chunk_cave_lines && this.checkIsCaveBlock(xyz, neighbour_lines);
+                        if(has_chunk_cave_lines && !in_ocean) {
+                            const line = this.checkIsCaveBlock(xyz, neighbour_lines);
                             if(line) {
                                 if(line.is_treasure) {
                                     this.drawTreasureRoom(chunk, line, xyz, x, y, z);

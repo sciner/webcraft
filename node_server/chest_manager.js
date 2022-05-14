@@ -20,6 +20,13 @@ export class ChestManager {
      */
     get(pos) {
         let tblock = this.world.getBlock(pos);
+        if(!tblock || tblock.id < 1) {
+            throw 'error_chest_not_found';
+        }
+        const mat = BLOCK.fromId(tblock.id);
+        if(!mat.is_chest || !tblock.extra_data) {
+            throw 'error_block_is_not_chest';
+        }
         return tblock;
     }
 
@@ -27,6 +34,7 @@ export class ChestManager {
     async confirmPlayerAction(player, pos, params) {
 
         const chest = this.get(pos);
+
         if(!('slots' in chest.extra_data)) {
             chest.extra_data.slots = {};
         }
