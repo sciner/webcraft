@@ -196,7 +196,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Maps
         let maps                        = this.maps.generateAround(chunk, chunk.addr, true, true);
         let map                         = maps[4];
-        let cluster                     = chunk.cluster;
+        const cluster                   = chunk.cluster;
+        const ywl                       = map.options.WATER_LINE - chunk.coord.y;
+
         this.caveManager.addSpiral(chunk.addr);
 
         // Ores
@@ -245,10 +247,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
                     const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
                     const dirt_block        = cell.dirt_block_id;
+                    const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
 
                     xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
 
-                    if(!has_voxel_buildings && !has_islands && !has_extruders && chunk.coord.y > value) {
+                    if(!has_ocean_blocks && !has_voxel_buildings && !has_islands && !has_extruders && chunk.coord.y > value) {
                         continue;
                     }
 
@@ -300,8 +303,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
 
                     // `Y` of waterline
-                    let ywl = map.options.WATER_LINE - chunk.coord.y;
-                    if(biome.code == 'OCEAN' && ywl >= 0) {
+                    if(has_ocean_blocks) {
                         temp_vec.set(x, 0, z);
                         for(let y = value; y <= map.options.WATER_LINE; y++) {
                             if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
