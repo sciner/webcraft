@@ -53,7 +53,7 @@
     uniform sampler2D u_normal;
     uniform lowp sampler3D[10] u_lightTex;
     uniform vec3 u_lightSize;
-    
+
     uniform mat4 uModelMatrix;
 
     uniform float u_mipmap;
@@ -278,7 +278,7 @@
 #ifdef local_light_pass
     // local light from hand located object
     // wtf? how now?
-    vec3 delta = u_camera_pos - v_world_pos;
+    vec3 delta = - v_world_pos;
     vec3 dir = normalize(delta);
     float lightDistance = length(dir);
     float rad = u_localLightRadius;
