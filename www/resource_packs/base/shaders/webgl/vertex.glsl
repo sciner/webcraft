@@ -10,8 +10,8 @@ void main() {
     #include<terrain_read_flags_vert>
 
     v_color = vec4(a_color, 1.0);
-    v_uvCenter0 = a_uvCenter;
-    v_uvCenter1 = a_uvCenter;
+    vec2 uvCenter0 = a_uvCenter;
+    vec2 uvCenter1 = a_uvCenter;
     v_animInterp = 0.0;
     v_uvSize = a_uvSize;
 
@@ -31,8 +31,8 @@ void main() {
         float t = ((u_time * v_color.b / 3.) / 1000.);
         float i = floor(t);
 
-        v_uvCenter0.y += (abs(mod(i, disc * 2.) - disc)) / 32.;
-        v_uvCenter1.y += (abs(mod(i + 1.0, disc * 2.) - disc)) / 32.;
+        uvCenter0.y += (abs(mod(i, disc * 2.) - disc)) / 32.;
+        uvCenter1.y += (abs(mod(i + 1.0, disc * 2.) - disc)) / 32.;
         v_animInterp = fract(t);
     }
 
@@ -58,10 +58,9 @@ void main() {
 
     vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 
-    v_texcoord0 = v_uvCenter0 + a_uvSize * a_quad;
-    v_texClamp0 = vec4(v_uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, v_uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
-
-    v_texcoord1_diff = v_uvCenter1 - v_uvCenter0;
+    v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
+    v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
+    v_texcoord1_diff = uvCenter1 - uvCenter0;
 
     if(u_fogOn) {
         if (flagBiome == 0) {
