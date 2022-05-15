@@ -276,11 +276,8 @@
 #endif
 
 #ifdef local_light_pass
-    // local light from hand located object
-    // wtf? how now?
-    vec3 delta = - v_world_pos;
-    vec3 dir = normalize(delta);
-    float lightDistance = length(dir);
+    vec3 dir = normalize(-v_world_pos);
+    float lightDistance = length(v_world_pos);
     float rad = u_localLightRadius;
 
     // max power is 16, we use a radious that half of it
