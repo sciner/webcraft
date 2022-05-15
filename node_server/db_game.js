@@ -69,6 +69,20 @@ export class DBGame {
         );`]});
         migrations.push({version: 3, queries: [`alter table user add column "flags" INTEGER DEFAULT 0`]});
 
+        migrations.push({version: 4, queries: [
+            `ALTER TABLE "main"."world_player" RENAME TO "_world_player_old_20220515";`,
+            `CREATE TABLE "main"."world_player" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "world_id" INTEGER,
+                "user_id" INTEGER,
+                "dt" integer,
+                FOREIGN KEY ("world_id") REFERENCES "world" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+            );`,
+            `INSERT INTO "main"."sqlite_sequence" (name, seq) VALUES ('world_player', '1059');`,
+            `INSERT INTO "main"."world_player" ("id", "world_id", "user_id", "dt") SELECT "id", "world_id", "user_id", "dt" FROM "main"."_world_player_old_20220515";`,
+            `DROP TABLE "main"."_world_player_old_20220515";`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

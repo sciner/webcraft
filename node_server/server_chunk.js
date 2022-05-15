@@ -148,7 +148,7 @@ class MobGenerator {
                 // Обход всех блоков данного чанка
                 for(let block of blockIter) {
                     material = block.material;
-                    if(material.id == BLOCK.GRASS_DIRT.id) {
+                    if(material && material.id == BLOCK.GRASS_DIRT.id) {
                         pos2d.x = block.vec.x;
                         pos2d.z = block.vec.z;
                         vc.set(pos2d, block.vec.y);
