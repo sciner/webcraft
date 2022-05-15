@@ -30,8 +30,10 @@ vec3 sampleAtlassTextureNormal (vec2 texcoord, vec4 texClamp) {
 
     vec3 normal = v_normal;
 
+    float factor = 1.5;
+
     if (data.a > 0.0) {
-        normal = (data.xyz - 0.5) * 2.0;
+        normal = vec3((data.xy - 0.5) * 2.0 * factor, 1.0);
         normal.x *= sign(v_uvSize.x);
         normal.y *= sign(-v_uvSize.y);
 
