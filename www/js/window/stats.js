@@ -81,18 +81,9 @@ export class StatsWindow extends Window {
         
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {
             label_death.text = "Количество смертей: " + cmd.data.death;
-            label_time.text = "Время в игре: " + this.secToStr(cmd.data.time);
+            label_time.text = "Время в игре: " + cmd.data.time_formatted;
             label_pickat.text = "Разбитых блоков: " + cmd.data.pickat;
-            label_distance.text = "Пройдено: " + cmd.data.distance + " м";
+            label_distance.text = "Пройдено: " + cmd.data.distance_formatted;
         });
-    }
-    
-    secToStr(time){
-        let minute = Math.floor(time / 60);
-        let hours = Math.floor(minute / 60);
-        let day = Math.floor(hours / 24);
-        minute %= 60;
-        hours %= 24;
-        return day + " д " + hours + " ч " + minute + " м";
     }
 }
