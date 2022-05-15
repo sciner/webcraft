@@ -120,8 +120,6 @@
     in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in vec2 v_uvCenter0;
-    in vec2 v_uvCenter1;
     in float v_animInterp;
     in float v_lightMode;
     in float v_useFog;
