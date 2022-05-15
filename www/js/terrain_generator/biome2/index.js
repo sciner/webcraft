@@ -283,7 +283,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // Caves | Пещеры
                         if(has_chunk_cave_lines && !in_ocean) {
-                            const line = this.checkIsCaveBlock(xyz, neighbour_lines);
+                            const line = this.checkIsCaveBlock(xyz, neighbour_lines, value);
                             if(line) {
                                 if(line.is_treasure) {
                                     this.drawTreasureRoom(chunk, line, xyz, x, y, z);
@@ -677,7 +677,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     // Проверка не является ли этот блок пещерой
-    checkIsCaveBlock(xyz, neighbour_lines) {
+    checkIsCaveBlock(xyz, neighbour_lines, value) {
         for(let k = neighbour_lines.list.length - 1; k >= 0; k--) {
             const line = neighbour_lines.list[k];
             if(line.is_treasure) {
@@ -686,9 +686,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             } else {
                 let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                let r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
-                if(dist < line.rad + r * 1) {
+                if(dist < line.rad * 1) {
                     return line;
+                }
+                //
+                if(xyz.y < value - 1 || xyz.y > value) {
+                    let r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
+                    if(dist < line.rad + r * 1) {
+                        return line;
+                    }
                 }
             }
         }
