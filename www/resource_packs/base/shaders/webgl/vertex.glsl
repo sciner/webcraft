@@ -38,18 +38,18 @@ void main() {
 
     if (flagNormalUp == 1) {
         v_normalMatrix = uModelMatrix * mat4(
-            vec4(0.0), 
-            vec4(0.0, 0.0, -1.0, 0.0), 
-            vec4(0.0), 
+            vec4(0.0),
+            vec4(0.0, 0.0, -1.0, 0.0),
+            vec4(0.0),
             vec4(vec3(0.0), 1.)
         );
     } else {
         vec3 axisZ = normalize(cross(axisX, axisY));
         // v_normal = axisZ;
         v_normalMatrix = uModelMatrix * mat4(
-            vec4(axisX, 0.0), 
-            vec4(axisY, 0.0), 
-            vec4(axisZ, 0.0), 
+            vec4(axisX, 0.0),
+            vec4(axisY, 0.0),
+            vec4(axisZ, 0.0),
             vec4(vec3(0.0), 1.)
         );
     }
@@ -61,8 +61,7 @@ void main() {
     v_texcoord0 = v_uvCenter0 + a_uvSize * a_quad;
     v_texClamp0 = vec4(v_uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, v_uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
-    v_texcoord1 = v_uvCenter1 + a_uvSize * a_quad;
-    v_texClamp1 = vec4(v_uvCenter1 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, v_uvCenter1 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
+    v_texcoord1_diff = v_uvCenter1 - v_uvCenter0;
 
     if(u_fogOn) {
         if (flagBiome == 0) {

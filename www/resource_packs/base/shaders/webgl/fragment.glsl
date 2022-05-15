@@ -20,9 +20,8 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-vec3 sampleAtlassTextureNormal (vec2 texcoord, vec4 texClamp) {
-    vec2 texCoord = clamp(texcoord, texClamp.xy, texClamp.zw);
-    vec2 texc = texCoord.xy;
+vec3 sampleAtlassTextureNormal (vec2 texcoord, vec2 clamped) {
+    vec2 texc = clamped;
 
     vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_normal, 0)));
 
@@ -43,9 +42,8 @@ vec3 sampleAtlassTextureNormal (vec2 texcoord, vec4 texClamp) {
     return normal;
 }
 
-vec4 sampleAtlassTexture (vec2 texcoord, vec4 texClamp, vec2 biomPos) {
-    vec2 texCoord = clamp(texcoord, texClamp.xy, texClamp.zw);
-    vec2 texc = texCoord.xy;
+vec4 sampleAtlassTexture (vec2 texcoord, vec2 clamped, vec2 biomPos) {
+    vec2 texc = clamped;
 
     vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_texture, 0)));
 
@@ -73,15 +71,15 @@ void main() {
     if(u_fogOn) {
 
         // Read texture
-        vec4 color = 
+        vec4 color =
             mix(
-                sampleAtlassTexture (v_texcoord0, v_texClamp0, biome),
-                sampleAtlassTexture (v_texcoord1, v_texClamp1, biome),
+                sampleAtlassTexture (v_texcoord0, texCoord, biome),
+                sampleAtlassTexture (v_texcoord0 + v_texcoord1_diff, texCoord + v_texcoord1_diff, biome),
                 v_animInterp
             );
 
         // used for light pass
-        vec3 normal = sampleAtlassTextureNormal (v_texcoord0, v_texClamp0);
+        vec3 normal = sampleAtlassTextureNormal (v_texcoord0, texCoord);
 
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
