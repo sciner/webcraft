@@ -37,7 +37,7 @@ void main() {
     }
 
     if (flagNormalUp == 1) {
-        v_normalMatrix = mat4(
+        v_normalMatrix = uModelMatrix * mat4(
             vec4(0.0), 
             vec4(0.0, 0.0, -1.0, 0.0), 
             vec4(0.0), 
@@ -46,7 +46,7 @@ void main() {
     } else {
         vec3 axisZ = normalize(cross(axisX, axisY));
         // v_normal = axisZ;
-        v_normalMatrix = mat4(
+        v_normalMatrix = uModelMatrix * mat4(
             vec4(axisX, 0.0), 
             vec4(axisY, 0.0), 
             vec4(axisZ, 0.0), 
@@ -54,9 +54,7 @@ void main() {
         );
     }
 
-    v_normal = (v_normalMatrix * vec4(0., .0, 1., 0.)).xyz;
-
-    v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
+    v_normal = normalize(v_normalMatrix * vec4(0., .0, 1., 0.)).xyz;
 
     vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 

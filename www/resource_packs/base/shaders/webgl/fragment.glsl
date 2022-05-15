@@ -37,7 +37,7 @@ vec3 sampleAtlassTextureNormal (vec2 texcoord, vec4 texClamp) {
         normal.x *= sign(v_uvSize.x);
         normal.y *= sign(-v_uvSize.y);
 
-        normal = normalize((uModelMatrix * v_normalMatrix * vec4(normal, 0.0))).xyz;
+        normal = normalize((v_normalMatrix * vec4(normal, 0.0))).xyz;
     }
 
     return normal;
