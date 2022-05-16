@@ -20,12 +20,11 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-vec3 sampleAtlassTextureNormal (vec2 texcoord, vec2 clamped) {
-    vec2 texc = clamped;
+vec3 sampleAtlassTextureNormal (vec4 mipData, vec2 texClamped) {
+    vec2 texc = texClamped;
 
-    vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_normal, 0)));
-
-    vec4 data = texture(u_normal, texc * mipData.zw + mipData.xy);
+    mipData.zw *= vec2(textureSize(u_normal, 0) / textureSize(u_texture, 0));
+    vec4 data = texture(u_normal, texClamped * mipData.zw + mipData.xy);
 
     vec3 normal = v_normal;
 
@@ -42,10 +41,8 @@ vec3 sampleAtlassTextureNormal (vec2 texcoord, vec2 clamped) {
     return normal;
 }
 
-vec4 sampleAtlassTexture (vec2 texcoord, vec2 clamped, vec2 biomPos) {
-    vec2 texc = clamped;
-
-    vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_texture, 0)));
+vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
+    vec2 texc = texClamped;
 
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
 
@@ -60,8 +57,8 @@ vec4 sampleAtlassTexture (vec2 texcoord, vec2 clamped, vec2 biomPos) {
 
 void main() {
 
-    vec2 texCoord = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
-    vec2 texc = texCoord.xy;
+    vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
+    vec4 mipData = manual_mip (v_texcoord0, vec2(textureSize(u_texture, 0)));
 
     vec2 biome = v_color.rg * (1. - 0.5 * step(0.5, u_mipmap));
 
@@ -73,13 +70,13 @@ void main() {
         // Read texture
         vec4 color =
             mix(
-                sampleAtlassTexture (v_texcoord0, texCoord, biome),
-                sampleAtlassTexture (v_texcoord0 + v_texcoord1_diff, texCoord + v_texcoord1_diff, biome),
+                sampleAtlassTexture (mipData, texClamped, biome),
+                sampleAtlassTexture (mipData, texClamped + v_texcoord1_diff, biome),
                 v_animInterp
             );
 
         // used for light pass
-        vec3 normal = sampleAtlassTextureNormal (v_texcoord0, texCoord);
+        vec3 normal = sampleAtlassTextureNormal (mipData, texClamped);
 
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
@@ -103,7 +100,7 @@ void main() {
         #include<vignetting_call_func>
 
     } else {
-        outColor = texture(u_texture, texc);
+        outColor = texture(u_texture, texClamped);
         if(outColor.a < 0.1) discard;
         outColor *= v_color;
     }
