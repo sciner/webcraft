@@ -489,6 +489,8 @@ export class Building1 extends Building {
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
+        const has_bed            = this.randoms.double() <= .6;
+        const has_bookcases      = this.randoms.double();
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
@@ -517,6 +519,30 @@ export class Building1 extends Building {
                 rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0},
                 extra_data: {generate: true, params: {source: 'village_house'}}
             });
+        }
+        // Bed
+        if(has_bed) {
+            const color_index = ((this.randoms.double() * 4) | 0);
+            const bed_block_id = 1210 + color_index;
+            const carpet_block_id = 810 + color_index;
+            this.blocks.list.push({move: new Vector(1, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}});
+            this.blocks.list.push({move: new Vector(2, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 3 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}, extra_data: {is_head: true}});
+            this.blocks.list.push({move: new Vector(1, 0, 4), block_id: carpet_block_id, rotate: {x: 0, y: 1, z: 0}});
+        }
+        // Book cases
+        if(has_bookcases < .6) {
+            let bc_start_pos = null;
+            if(has_bookcases < .2) {
+                bc_start_pos = new Vector(3, 0, 4);
+            } else if(has_bookcases < .4) {
+                bc_start_pos = new Vector(-1, 0, 1);
+            }
+            if(bc_start_pos) {
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 0)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 1)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 0)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 1)), block_id: BLOCK.BOOKCASE.id});
+            }
         }
     }
 
