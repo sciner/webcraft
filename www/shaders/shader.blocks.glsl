@@ -89,13 +89,10 @@
     out vec3 v_chunk_pos;
     out vec3 v_position;
     out vec2 v_texcoord0;
-    out vec2 v_texcoord1;
+    out vec2 v_texcoord1_diff;
     out vec4 v_texClamp0;
-    out vec4 v_texClamp1;
     out vec3 v_normal;
     out vec4 v_color;
-    out vec2 v_uvCenter0;
-    out vec2 v_uvCenter1;
     out float v_animInterp;
     out float v_lightMode;
     out float v_useFog;
@@ -110,16 +107,13 @@
     // terrain shader attributes and varings
     in vec3 v_position;
     in vec2 v_texcoord0;
-    in vec2 v_texcoord1;
+    in vec2 v_texcoord1_diff;
     in vec4 v_texClamp0;
-    in vec4 v_texClamp1;
     in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in vec2 v_uvCenter0;
-    in vec2 v_uvCenter1;
     in float v_animInterp;
     in float v_lightMode;
     in float v_useFog;
