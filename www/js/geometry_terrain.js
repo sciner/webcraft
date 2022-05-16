@@ -371,6 +371,7 @@ export default class GeometryTerrain {
             // flags
             newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
+        return newArr;
     }
 
     static strideFloats = 17;

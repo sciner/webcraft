@@ -144,8 +144,13 @@ export class PlayerModel extends MobModel {
             return;
         }
         
-        slot.holder.terrainGeometry = item.buffer;
-        slot.holder.material = item.material;
+        // slot.holder.terrainGeometry = item.buffer;
+        // slot.holder.material = item.material;
+        for(let [_, mesh] of item.mesh_group.meshes.entries()) {
+            slot.holder.terrainGeometry = mesh.buffer;
+            slot.holder.material = mesh.material;
+            break;
+        }
 
         const orient = name === 'LeftArm' ? -1 : 1;
 
