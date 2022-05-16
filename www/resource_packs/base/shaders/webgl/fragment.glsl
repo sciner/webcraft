@@ -20,12 +20,8 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-
-vec4 sampleAtlassTexture (vec2 texcoord, vec4 texClamp, vec2 biomPos) {
-    vec2 texCoord = clamp(texcoord, texClamp.xy, texClamp.zw);
-    vec2 texc = texCoord.xy;
-
-    vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_texture, 0)));
+vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
+    vec2 texc = texClamped;
 
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
 
@@ -40,8 +36,8 @@ vec4 sampleAtlassTexture (vec2 texcoord, vec4 texClamp, vec2 biomPos) {
 
 void main() {
 
-    vec2 texCoord = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
-    vec2 texc = texCoord.xy;
+    vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
+    vec4 mipData = manual_mip (v_texcoord0, vec2(textureSize(u_texture, 0)));
 
     vec2 biome = v_color.rg * (1. - 0.5 * step(0.5, u_mipmap));
 
@@ -51,12 +47,15 @@ void main() {
     if(u_fogOn) {
 
         // Read texture
-        vec4 color = 
-            mix(
-                sampleAtlassTexture (v_texcoord0, v_texClamp0, biome),
-                sampleAtlassTexture (v_texcoord1, v_texClamp1, biome),
+        vec4 color = sampleAtlassTexture (mipData, texClamped, biome);
+
+        if (v_animInterp > 0.0) {
+            color = mix(
+                color,
+                sampleAtlassTexture (mipData, texClamped + v_texcoord1_diff, biome),
                 v_animInterp
             );
+        }
 
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
@@ -80,7 +79,7 @@ void main() {
         #include<vignetting_call_func>
 
     } else {
-        outColor = texture(u_texture, texc);
+        outColor = texture(u_texture, texClamped);
         if(outColor.a < 0.1) discard;
         outColor *= v_color;
     }
