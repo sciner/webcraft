@@ -45,6 +45,25 @@ BIOMES.OCEAN = {
     }
 };
 
+BIOMES.RIVER = {
+    block:      BLOCK.STILL_WATER.id,
+    code:       'OCEAN',
+    color:      '#017bbb',
+    dirt_color: new Color(1012 / 1024, 988 / 1024, 0, 0),
+    title:      'ОКЕАН',
+    max_height: 64,
+    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
+    trees:      {
+        frequency: 0,
+        list: []
+    },
+    plants: {
+        frequency: 0,
+        list: []
+    }
+};
+
 BIOMES.BEACH = {
     block: BLOCK.SAND.id,
     code:       'BEACH',

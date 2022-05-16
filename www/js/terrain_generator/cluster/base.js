@@ -207,10 +207,17 @@ export class ClusterBase {
                             }
                         }
                     } else {
+                        const is_array = Array.isArray(point.block_id);
+                        let ai = 0;
                         for(let k = point.height; k <= 0; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
-                                this.setBlock(chunk, i, y, j, k == point.height ? point.block_id : BLOCK.AIR.id, null);
+                                // this.setBlock(chunk, i, y, j, k == point.height ? point.block_id : BLOCK.AIR.id, null);
+                                let block_id = k == point.height ? point.block_id : BLOCK.AIR.id;
+                                if(is_array) {
+                                    block_id = point.block_id[ai++];
+                                }
+                                this.setBlock(chunk, i, y, j, block_id, null);
                             }
                         }
                     }

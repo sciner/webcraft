@@ -74,7 +74,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
-        this.OCEAN_BIOMES = ['OCEAN', 'BEACH'];
+        this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
     }
 
     async init() {
