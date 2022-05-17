@@ -1,4 +1,4 @@
-import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
+import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
 import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -275,7 +275,7 @@ export class ChunkManager {
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
-                v2.length = 0;
+                v2.clear();
             }
         }
 
@@ -306,7 +306,7 @@ export class ChunkManager {
                 }
                 const rpList = renderList.get(key1);
                 if (!rpList.get(key2)) {
-                    rpList.set(key2, []);
+                    rpList.set(key2, new IvanArray());
                 }
                 const list = rpList.get(key2);
                 list.push(chunk);
@@ -331,10 +331,11 @@ export class ChunkManager {
             if (!list) {
                 continue;
             }
+            const { arr, count } = list;
             const mat = resource_pack.shader.materials[group];
-            for (let i = 0; i < list.length; i += 2) {
-                const chunk = list[i];
-                const vertices = list[i + 1];
+            for (let i = 0; i < count; i += 2) {
+                const chunk = arr[i];
+                const vertices = arr[i + 1];
                 chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
                 if (!chunk.rendered) {
                     this.rendered_chunks.fact++;

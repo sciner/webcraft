@@ -142,6 +142,25 @@ export class Mth {
 
 }
 
+export class IvanArray {
+    constructor() {
+        this.arr = [];
+        this.count = 0;
+    }
+
+    clear() {
+        const { count, arr } = this;
+        this.count = 0;
+        for (let i = 0; i < count; i++) {
+            arr[i] = null;
+        }
+    }
+
+    push(elem) {
+        this.arr[this.count++] = elem;
+    }
+}
+
 // VectorCollector...
 export class VectorCollector {
 
@@ -1616,6 +1635,6 @@ export let md5 = (function() {
         }
         return MD5(binary.join(''));
     }
-    
+
     return MD5Unicode;
 })();
