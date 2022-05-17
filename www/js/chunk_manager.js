@@ -242,6 +242,10 @@ export class ChunkManager {
         this.lightWorker.postMessage(['initRender', { texFormat }]);
     }
 
+    /**
+     * highly optimized
+     * @param render
+     */
     prepareRenderList(render) {
         if (!this.bufferPool) {
             if (render.renderBackend.multidrawExt) {
@@ -271,7 +275,9 @@ export class ChunkManager {
             }
         }
 
-        //
+        /**
+         * please dont re-assign renderList entries
+         */
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
@@ -295,22 +301,26 @@ export class ChunkManager {
             if(chunk.vertices_length === 0) {
                 continue;
             }
-            for(let [key, v] of chunk.vertices) {
-                let key1 = v.resource_pack_id;
-                let key2 = v.material_group;
-                if (!v.buffer) {
-                    continue;
+            for(let i = 0; i < chunk.verticesList.length; i++) {
+                let v = chunk.verticesList[i];
+                let rpl = v.rpl;
+                if (!rpl) {
+                    let key1 = v.resource_pack_id;
+                    let key2 = v.material_group;
+                    if (!v.buffer) {
+                        continue;
+                    }
+                    let rpList = renderList.get(key1);
+                    if (!rpList) {
+                        renderList.set(key1, rpList = new Map());
+                    }
+                    if (!rpList.get(key2)) {
+                        rpList.set(key2, new IvanArray());
+                    }
+                    rpl = v.rpl = rpList.get(key2);
                 }
-                if (!renderList.get(key1)) {
-                    renderList.set(key1, new Map());
-                }
-                const rpList = renderList.get(key1);
-                if (!rpList.get(key2)) {
-                    rpList.set(key2, new IvanArray());
-                }
-                const list = rpList.get(key2);
-                list.push(chunk);
-                list.push(v);
+                rpl.push(chunk);
+                rpl.push(v);
                 chunk.rendered = 0;
             }
         }

@@ -68,6 +68,7 @@ export class Chunk {
         this.buildVerticesInProgress    = false;
         this.vertices_length            = 0;
         this.vertices                   = new Map();
+        this.verticesList               = [];
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
         this.in_frustum                 = false; // в данный момент отрисован на экране
@@ -258,6 +259,7 @@ export class Chunk {
 
         const chunkLightId = this.getDataTextureOffset();
         // Add chunk to renderer
+        this.verticesList.length = 0;
         for(let [key, v] of Object.entries(args.vertices)) {
             if(v.list.length > 0) {
                 let temp = key.split('/');
@@ -277,7 +279,9 @@ export class Chunk {
                     lastBuffer.destroy();
                 }
                 v.buffer.customFlag = false;
+                v.rpl = null;
                 this.vertices.set(key, v);
+                this.verticesList.push(v);
                 delete(v.list);
             }
         }
