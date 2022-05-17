@@ -226,6 +226,9 @@ export class ClusterVilage extends ClusterBase {
     drawBulding(chunk, maps, building) {
         const START_X = chunk.coord.x - this.coord.x;
         const START_Z = chunk.coord.z - this.coord.z;
+        if(building.hidden) {
+            return;
+        }
         for(let i = 0; i < building.size.x; i++) {
             let bx = building.coord.x + i;
             // if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;

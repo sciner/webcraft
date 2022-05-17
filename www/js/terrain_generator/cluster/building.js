@@ -428,6 +428,7 @@ export class Building1 extends Building {
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
         //
         if(cluster.flat) {
             if(seed < .5) {
@@ -467,25 +468,13 @@ export class Building1 extends Building {
             }
         }
         //
-        this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
-        if(this.is_big_building) {
-            // draw fence
-            cluster.addFence(orig_coord, orig_size);
-            //
-            if(this.randoms.double() < .75) {
-                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-11, 0, 6), door_direction + 2);
-                const dx = centerOfHay.x - cluster.coord.x;
-                const dz = centerOfHay.z - cluster.coord.z;
-                this.addHays(dx, dz);
-            }
-        }
-        //
         this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: 1}
         ]);
         // Blocks
         const dir                = this.door_direction;
         const mirror_x           = dir % 2 == 1;
+        const add_hays           = this.randoms.double() <= .75;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
@@ -511,6 +500,18 @@ export class Building1 extends Building {
                 {move: new Vector(0, 3, 4), block_id: BLOCK.OAK_FENCE.id},
                 {move: new Vector(1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
             ]
+        }
+        //
+        if(this.is_big_building) {
+            // draw fence
+            cluster.addFence(orig_coord, orig_size, door_bottom, this.blocks.list);
+            //
+            if(add_hays) {
+                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-11, 0, 6), door_direction + 2);
+                const dx = centerOfHay.x - cluster.coord.x;
+                const dz = centerOfHay.z - cluster.coord.z;
+                this.addHays(dx, dz);
+            }
         }
         if(has_chest) {
             this.blocks.list.push({

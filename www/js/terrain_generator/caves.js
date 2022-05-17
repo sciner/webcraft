@@ -124,7 +124,7 @@ export class Cave {
         }
 
         // Генерируем абсолютную позицию начала пещеры в этом чанке
-        let index = parseInt(aleaRandom.double() * CHUNK_SIZE * .6);
+        let index = parseInt(aleaRandom.double() * CHUNK_SIZE * .7);
 
         // Конвертируем позицию в 3D вектор
         const x = index % CHUNK_SIZE_X;

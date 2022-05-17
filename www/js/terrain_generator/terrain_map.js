@@ -32,6 +32,7 @@ const RIVER_NOISE_SCALE = 4;
 const RIVER_WIDTH = 0.008 * RIVER_SCALE;
 const RIVER_OCTAVE_1 = 512 / RIVER_SCALE;
 const RIVER_OCTAVE_2 = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE;
+const RIVER_OCTAVE_3 = 48 / RIVER_SCALE;
 
 //
 const temp_chunk = {
@@ -124,20 +125,20 @@ export class TerrainMapManager {
         if(biome.code != 'OCEAN') {
             const river_point = this.makeRiverPoint(px, pz);
             if(river_point) {
-                value = -0.127;
-                biome = BIOMES.OCEAN;
-                /*
-                // value = river_point;
-                value = GENERATOR_OPTIONS.WATER_LINE - 5 + river_point * 1;
-                // smooth with clusters
-                if(cluster_max_height) {
-                    value = Math.ceil((value + (cluster_max_height + H)) / 2);
+                if(!biome.is_empty) {
+                    value = -0.127;
+                    biome = BIOMES.OCEAN;
                 } else {
-                    biome = BIOMES.RIVER;
+                    // smooth with clusters
+                    if(cluster_max_height) {
+                        value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
+                    } else {
+                        biome = BIOMES.RIVER;
+                        value = value * biome.max_height + H;
+                    }
+                    value = parseInt(value);
+                    return {value, biome, humidity, equator};
                 }
-                value = parseInt(value);
-                return {value, biome, humidity, equator};
-                */
             }
         }
 
@@ -168,16 +169,13 @@ export class TerrainMapManager {
         if(m < 0) m*= -1;
         m++;
 
-        // let s = this.noisefn(x / 8196, z / 8196) * 8;
-        // if(s < 0) s *= -1;
-        // s = 1 + s/2
         const s = 1;
-        // if(s < 1) s = 1;
 
         const rw = RIVER_WIDTH * m;
         const o1 = RIVER_OCTAVE_1 / s;
-        let value = this.noisefn(x / o1, z / o1) * 0.8 +
-                    this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2
+        let value = this.noisefn(x / o1, z / o1) * 0.7 +
+                    this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2 +
+                    this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
         if(value < 0) {
             value *= -1;
         }

@@ -80,7 +80,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     globalThis.TerrainMapManager = module.TerrainMapManager;
 
     //
-    const CHUNK_RENDER_DIST = 256;
+    const CHUNK_RENDER_DIST = 16;
     const demo_map_seed     = 'undefined';
     const seed              = demo_map_seed | 0; // allow only numeric values
     const world_id          = 'demo';
