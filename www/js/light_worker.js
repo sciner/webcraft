@@ -238,7 +238,9 @@ class LightQueue {
             }
             uint8View[coordBytes + OFFSET_LIGHT] = val;
             uint8View[coordBytes + OFFSET_PREV] = val;
-            chunk.lastID++;
+            if (old !== val) {
+                chunk.lastID++;
+            }
 
             //TODO: copy to neib chunks
 
@@ -482,12 +484,13 @@ class DirLightQueue {
 
             // add to queue for light calc
 
-            const maxVal = Math.max(val, uint8View[coordBytes + OFFSET_LIGHT]);
+            let maxVal = uint8View[coordBytes + OFFSET_LIGHT];
+            if (maxVal < val) {
+                // mxdl-13 not obvious, good for big amount of lights
+                maxVal = uint8View[coordBytes + OFFSET_LIGHT] = val;
+                chunk.lastID++;
+            }
             world.dayLight.add(chunk, coord, maxVal);
-            // mxdl-13 not obvious, good for big amount of lights
-            uint8View[coordBytes + OFFSET_LIGHT] = maxVal;
-            chunk.lastID++;
-
             //TODO: copy to neib chunks
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
@@ -851,7 +854,7 @@ class Chunk {
         let changed = false;
         let pv1, pv2, pv3, pv4, pv5, pv6, pv7, pv8;
         let ind = 0, ind2 = lightChunk.outerLen * elemPerBlock;
-        
+
         this.result_crc_sum = 0;
 
         //
@@ -882,9 +885,9 @@ class Chunk {
                     }
                 }
                 this.result_crc_sum += (
-                    result[ind - 4] + 
-                    result[ind - 3] + 
-                    result[ind - 2] + 
+                    result[ind - 4] +
+                    result[ind - 3] +
+                    result[ind - 2] +
                     result[ind - 1]
                 );
             }
@@ -931,13 +934,13 @@ class Chunk {
                     }
                 }
                 this.result_crc_sum += (
-                    result[ind2 - 8] + 
-                    result[ind2 - 7] + 
-                    result[ind2 - 6] + 
-                    result[ind2 - 5] + 
-                    result[ind2 - 4] + 
-                    result[ind2 - 3] + 
-                    result[ind2 - 2] + 
+                    result[ind2 - 8] +
+                    result[ind2 - 7] +
+                    result[ind2 - 6] +
+                    result[ind2 - 5] +
+                    result[ind2 - 4] +
+                    result[ind2 - 3] +
+                    result[ind2 - 2] +
                     result[ind2 - 1]
                 );
             }
@@ -990,6 +993,9 @@ class Chunk {
         //
         if(changed) {
             this.crc++;
+        } else {
+            // TODO: find out why are there so many calcResults
+            // console.log('WTF');
         }
     }
 }
