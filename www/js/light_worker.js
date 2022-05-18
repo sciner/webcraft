@@ -613,6 +613,7 @@ class Chunk {
         this.sentID = 0;
         this.removed = false;
         this.waveCounter = 0;
+        this.crc = 0;
 
         this.lightChunk = new DataChunk({
             size: args.size,
@@ -847,7 +848,101 @@ class Chunk {
         //TODO: separate multiple cycle
 
         // Light + AO
+        let changed = false;
+        let pv1, pv2, pv3, pv4, pv5, pv6, pv7, pv8;
         let ind = 0, ind2 = lightChunk.outerLen * elemPerBlock;
+        
+        this.result_crc_sum = 0;
+
+        //
+        const addResult1 = (A, A2) => {
+            if (is565) {
+                const prev_value = result[ind];
+                const new_value = (Math.round(A * 31.0 / 15.0) << 11)
+                    + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
+                result[ind++] = new_value;
+                if(prev_value != new_value) {
+                    changed = true;
+                }
+                this.result_crc_sum += new_value;
+            } else {
+                if(!changed) {
+                    pv1 = result[ind + 0];
+                    pv2 = result[ind + 1];
+                    pv3 = result[ind + 2];
+                    pv4 = result[ind + 3];
+                }
+                result[ind++] = Math.round(A * 255.0 / 15.0);
+                result[ind++] = 0;
+                result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+                result[ind++] = 0;
+                if(!changed) {
+                    if(pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
+                        changed = true;
+                    }
+                }
+                this.result_crc_sum += (
+                    result[ind - 4] + 
+                    result[ind - 3] + 
+                    result[ind - 2] + 
+                    result[ind - 1]
+                );
+            }
+        };
+
+        const addResult2 = (A, A2, R, G, B) => {
+            if (is565) {
+                const prev_value = result[ind2];
+                const new_value = (Math.round(R * 31.0 / 4.0) << 11)
+                    + (Math.round(G * 63.0 / 4.0) << 5)
+                    + (Math.round(B * 31.0 / 4.0) << 0);
+                result[ind2++] = new_value
+                if(prev_value != new_value) {
+                    changed = true;
+                }
+                this.result_crc_sum += new_value;
+            } else {
+                if(!changed) {
+                    pv1 = result[ind2 + 0];
+                    pv2 = result[ind2 + 1];
+                    pv3 = result[ind2 + 2];
+                    pv4 = result[ind2 + 3];
+                    pv5 = result[ind2 + 4];
+                    pv6 = result[ind2 + 5];
+                    pv7 = result[ind2 + 6];
+                    pv8 = result[ind2 + 7];
+                }
+                result[ind2++] = Math.round(R * 255.0 / 4.0);
+                result[ind2++] = Math.round(G * 255.0 / 4.0);
+                result[ind2++] = Math.round(B * 255.0 / 4.0);
+                result[ind2++] = 0;
+                result[ind2++] = Math.round(A * 255.0 / 15.0);
+                result[ind2++] = 0;
+                result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+                result[ind2++] = 0;
+                if(!changed) {
+                    if(
+                        pv1 != result[ind2 - 8] || pv2 != result[ind2 - 7] ||
+                        pv3 != result[ind2 - 6] || pv4 != result[ind2 - 5] ||
+                        pv5 != result[ind2 - 4] || pv6 != result[ind2 - 3] ||
+                        pv7 != result[ind2 - 2] || pv8 != result[ind2 - 1]
+                       ) {
+                        changed = true;
+                    }
+                }
+                this.result_crc_sum += (
+                    result[ind2 - 8] + 
+                    result[ind2 - 7] + 
+                    result[ind2 - 6] + 
+                    result[ind2 - 5] + 
+                    result[ind2 - 4] + 
+                    result[ind2 - 3] + 
+                    result[ind2 - 2] + 
+                    result[ind2 - 1]
+                );
+            }
+        };
+
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
@@ -872,16 +967,7 @@ class Chunk {
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A2 = adjustLight(A2);
 
-                    if (is565) {
-                        result[ind++] = (Math.round(A * 31.0 / 15.0) << 11)
-                            + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
-                    } else {
-                        result[ind++] = Math.round(A * 255.0 / 15.0);
-                        result[ind++] = 0;
-                        result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
-                        result[ind++] = 0;
-                    }
-
+                    addResult1(A, A2);
 
                     coord = coord0 - boundY - boundZ + OFFSET_AO;
                     const R1 = uint8View[coord] + uint8View[coord + sy + sz];
@@ -898,17 +984,13 @@ class Chunk {
                     const B2 = uint8View[coord + sx] + uint8View[coord + sz];
                     const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
-                    if (is565) {
-                        result[ind2++] = (Math.round(R * 31.0 / 4.0) << 11)
-                            + (Math.round(G * 63.0 / 4.0) << 5)
-                            + (Math.round(B * 31.0 / 4.0) << 0);
-                    } else {
-                        result[ind2++] = Math.round(R * 255.0 / 4.0);
-                        result[ind2++] = Math.round(G * 255.0 / 4.0);
-                        result[ind2++] = Math.round(B * 255.0 / 4.0);
-                        result[ind2++] = 0;
-                    }
+                    addResult2(A, A2, R, G, B);
                 }
+
+        //
+        if(changed) {
+            this.crc++;
+        }
     }
 }
 
@@ -950,11 +1032,23 @@ function run() {
 
         chunk.calcResult(renderFormat === 'rgb565unorm');
 
-        worker.postMessage(['light_generated', {
-            addr: chunk.addr,
-            lightmap_buffer: chunk.lightResult.buffer,
-            lightID: chunk.lastID
-        }]);
+        // no need to send if no changes
+        if(chunk.crc != chunk.crcO) {
+            chunk.crcO = chunk.crc;
+            const is_zero = (chunk.result_crc_sum == 0 && (
+                (!('result_crc_sumO' in chunk)) ||
+                (chunk.result_crc_sumO == 0)
+            ));
+            chunk.result_crc_sumO = chunk.result_crc_sum;
+            if(!is_zero) {
+                // console.log(8)
+                worker.postMessage(['light_generated', {
+                    addr: chunk.addr,
+                    lightmap_buffer: chunk.lightResult.buffer,
+                    lightID: chunk.lastID
+                }]);
+            }
+        }
 
         endChunks++;
         if (endChunks >= resultLimit) {
