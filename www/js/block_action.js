@@ -683,16 +683,18 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 6. Запрет установки блока на блоки, которые занимает игрок
-        _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
-        if(_createBlockAABB.intersect({
-            x_min: player.pos.x - player.radius / 2,
-            x_max: player.pos.x - player.radius / 2 + player.radius,
-            y_min: player.pos.y,
-            y_max: player.pos.y + player.height,
-            z_min: player.pos.z - player.radius / 2,
-            z_max: player.pos.z - player.radius / 2 + player.radius
-        })) {
-            return resp;
+        if(!matBlock.passable > 0) {
+            _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
+            if(_createBlockAABB.intersect({
+                x_min: player.pos.x - player.radius / 2,
+                x_max: player.pos.x - player.radius / 2 + player.radius,
+                y_min: player.pos.y,
+                y_max: player.pos.y + player.height,
+                z_min: player.pos.z - player.radius / 2,
+                z_max: player.pos.z - player.radius / 2 + player.radius
+            })) {
+                return resp;
+            }
         }
         // 7. Проверка места, куда игрок пытается установить блок(и)
         let new_pos = new Vector(pos);
