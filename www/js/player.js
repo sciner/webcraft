@@ -10,7 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {QuestWindow, StatsWindow, MainMenu} from "./window/index.js";
+import {QuestWindow, StatsWindow, MainMenu, DieWindow} from "./window/index.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -123,6 +123,7 @@ export class Player {
         // Controls
         this.controls               = new PlayerControl();
         // Add listeners for server commands
+        this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
@@ -153,6 +154,9 @@ export class Player {
         //Stats
         this.frmStats = new StatsWindow(this);
         Game.hud.wm.add(this.frmStats);
+        
+        this.frmDie = new DieWindow(10, 10, 352, 332, 'frmDie', null, null, this);
+        Game.hud.wm.add(this.frmDie);
         return true;
     }
 
@@ -607,6 +611,10 @@ export class Player {
             this.lastOnGroundTime = performance.now();
             this.lastBlockPos = this.getBlockPos();
         }
+    }
+    
+    setDie(){
+        Game.hud.wm.getWindow('frmDie').show();
     }
 
 }

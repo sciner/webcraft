@@ -57,6 +57,7 @@ export class ServerClient {
     static CMD_FURNACE_CONTENT          = 95;
     
     static CMD_STATS                    = 96;
+    static CMD_DIE                      = 97;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;

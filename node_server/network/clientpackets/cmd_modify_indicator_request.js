@@ -1,4 +1,5 @@
 import {ServerClient} from "../../../www/js/server_client.js";
+import { CMD_DIE } from "../serverpackets/cmd_die.js";
 
 export class CMD_MODIFY_INDICATOR_REQUEST {
     constructor(player, data){
@@ -18,11 +19,8 @@ export class CMD_MODIFY_INDICATOR_REQUEST {
         }
         
         if (data.indicator == 'live' && player.state.indicators.live.value <= 0) {
-            player.state.stats.death++;
+            new CMD_DIE(player);
             player.state.indicators.live.value = 20;
-            player.world.teleportPlayer(player, {
-                place_id: 'spawn',
-            })
         }
         
         let packets = [{
