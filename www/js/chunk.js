@@ -220,9 +220,9 @@ export class Chunk {
             resource_pack.materials.set(key, texMat);
         }
         mat = texMat;
-        let dist = 0; // Game.player.lerpPos.distance(this.coord);
+        let dist = Game.player.lerpPos.distance(this.coord);
         render.batch.setObjectDrawer(render.chunk);
-        if(this.lightData && dist < 100) {
+        if(this.lightData && dist < 108) {
             // in case light of chunk is SPECIAL
             this.getLightTexture(render);
             if (this.lightTex) {
