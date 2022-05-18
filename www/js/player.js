@@ -433,7 +433,7 @@ export class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height, this.lerpPos.z);
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height - this._height / 16, this.lerpPos.z);
     }
 
     // getBlockPos
