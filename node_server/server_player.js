@@ -75,6 +75,7 @@ export class ServerPlayer extends Player {
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
         this.packet = new Packet();
+        this.is_dead = false;
     }
 
     init(init_info) {
@@ -571,5 +572,4 @@ export class ServerPlayer extends Player {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
     }
-
 }

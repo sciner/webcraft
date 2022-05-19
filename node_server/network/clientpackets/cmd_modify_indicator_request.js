@@ -1,5 +1,6 @@
 import {ServerClient} from "../../../www/js/server_client.js";
 import { CMD_DIE } from "../serverpackets/cmd_die.js";
+import { CMD_ENTITY_INDICATORS } from "../serverpackets/cmd_entity_indicators.js";
 
 export class CMD_MODIFY_INDICATOR_REQUEST {
     constructor(player, data){
@@ -17,18 +18,13 @@ export class CMD_MODIFY_INDICATOR_REQUEST {
                 break;
             }
         }
+
+        new CMD_ENTITY_INDICATORS(player);
         
         if (data.indicator == 'live' && player.state.indicators.live.value <= 0) {
+            player.is_dead = true;
             new CMD_DIE(player);
-            player.state.indicators.live.value = 20;
         }
-        
-        let packets = [{
-            name: ServerClient.CMD_ENTITY_INDICATORS,
-            data: {
-                indicators: player.state.indicators
-            }
-        }];
-        player.world.sendSelected(packets, [player.session.user_id], []);
+
     }
 }

@@ -4,6 +4,7 @@ import {CMD_SYNC_TIME} from "./clientpackets/cmd_sync_time.js";
 import {CMD_PLAYER_STATE} from "./clientpackets/cmd_player_state.js";
 import {CMD_STATS} from "./clientpackets/cmd_stats.js";
 import {CMD_PICKAT_ACTION} from "./clientpackets/cmd_pickat_action.js";
+import { CMD_RESUR } from "./clientpackets/cmd_resur.js";
 
 export class Packet {
     constructor(){
@@ -14,22 +15,26 @@ export class Packet {
             return;
         }
         try {
-            switch(packet.name) {
+            switch (packet.name) {
+
                 case ServerClient.CMD_MODIFY_INDICATOR_REQUEST:
                     new CMD_MODIFY_INDICATOR_REQUEST(player, packet.data);
-                break;
+                    break;
                 case ServerClient.CMD_SYNC_TIME:
                     new CMD_SYNC_TIME(player, packet.data);
-                break;
+                    break;
                 case ServerClient.CMD_PLAYER_STATE:
                     new CMD_PLAYER_STATE(player, packet.data);
-                break;
+                    break;
                 case ServerClient.CMD_STATS:
                     new CMD_STATS(player, packet.data);
-                break;
+                    break;
                 case ServerClient.CMD_PICKAT_ACTION:
                     new CMD_PICKAT_ACTION(player, packet.data);
-                break;
+                    break;
+                case ServerClient.CMD_RESUR:
+                    new CMD_RESUR(player, packet.data);
+                    break;
                 default:
                     console.log(packet.name + " not found code");
             }
