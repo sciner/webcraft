@@ -4,6 +4,22 @@ import compression from "compression";
 import fs from 'fs';
 import {Worker} from "worker_threads";
 import { v4 as uuid } from 'uuid';
+import sqlite3 from 'sqlite3'
+
+// Check version of modules
+const required_versions = {
+    nodejs: 'v17.9.0',
+    sqlite3: '3.38.4' // 5.0.8
+};
+function checkVersion(module_name, current) {
+    const need_version = required_versions[module_name];
+    if(current != need_version) {
+        console.error(`${module_name} required version ${need_version}, but present id ${current}`);
+        process.exit();
+    }
+}
+checkVersion('nodejs', process.version);
+checkVersion('sqlite3', sqlite3.VERSION);
 
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
