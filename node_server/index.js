@@ -14,13 +14,14 @@ const required_versions = {
 function checkVersion(module_name, current) {
     const need_version = required_versions[module_name];
     if(current != need_version) {
-        console.error(`${module_name} required version ${need_version}, but present id ${current}`);
+        console.error(`${module_name} required version ${need_version}, but present is ${current}`);
         process.exit();
     }
 }
 checkVersion('nodejs', process.version);
 checkVersion('sqlite3', sqlite3.VERSION);
 
+// Other imports
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_game.js";
