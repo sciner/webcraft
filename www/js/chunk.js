@@ -1,4 +1,4 @@
-import {Vector} from "./helpers.js";
+import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import {Sphere} from "./frustum.js";
@@ -44,18 +44,23 @@ export class Chunk {
 
     constructor(addr, modify_list, chunkManager) {
 
-        this.addr       = new Vector(addr); // относительные координаты чанка
-        this.key        = this.addr.toChunkKey();
-        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
-        this.coord      = this.addr.mul(this.size);
-        this.seed       = chunkManager.world.info.seed;
-        this.tblocks    = null;
-        this.id         = this.addr.toHash();
+        this.addr                       = new Vector(addr); // относительные координаты чанка
+        this.seed                       = chunkManager.world.info.seed;
 
         // Run webworker method
-        this.modify_list = modify_list || [];
-        chunkManager.postWorkerMessage(['createChunk', this]);
-        this.modify_list = [];
+        chunkManager.postWorkerMessage(['createChunk', [
+            {
+                addr:           this.addr,
+                seed:           this.seed,
+                modify_list:    modify_list || []
+            }
+        ]]);
+
+        //
+        this.tblocks                    = null;
+        this.size                       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
+        this.coord                      = this.addr.mul(this.size);
+        this.id                         = this.addr.toHash();
 
         // Light
         this.lightTex                   = null;
@@ -317,8 +322,9 @@ export class Chunk {
         }
         this.lightTex = null;
         // run webworker method
-        chunkManager.postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
-        chunkManager.postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        chunkManager.destruct_chunks_queue.add(this.addr);
+        // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
+        // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
         const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
         Game.render.meshes.remove(PARTICLE_EFFECTS_ID, Game.render);
@@ -332,9 +338,9 @@ export class Chunk {
         this.buildVerticesInProgress = true;
         // run webworker method
         this.getChunkManager().postWorkerMessage(['buildVertices', {
-            keys: [this.key],
             addrs: [this.addr],
-            offsets: [this.getDataTextureOffset()]}]);
+            offsets: [this.getDataTextureOffset()]
+        }]);
         return true;
     }
 
@@ -415,13 +421,6 @@ export class Chunk {
         if(update_vertices) {
             let set_block_list = [];
             set_block_list.push({
-                /*
-                key:        this.key,
-                addr:       this.addr,
-                x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z,
-                */
                 pos:        new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z),
                 type:       item,
                 is_modify:  is_modify,
@@ -449,21 +448,16 @@ export class Chunk {
                 update_neighbours2.push(update_neighbour.add(new Vector(0, 1, 0)));
             }
             update_neighbours.push(...update_neighbours2);
-            let updated_chunks = [this.key];
+            let updated_chunks = new VectorCollector();
+            updated_chunks.set(this.addr, true);
+            let _chunk_addr = new Vector(0, 0, 0);
             for(var update_neighbour of update_neighbours) {
-                let pos = new Vector(x, y, z).add(this.coord).add(update_neighbour);
-                let chunk_addr = getChunkAddr(pos);
-                let key = chunk_addr.toChunkKey();
+                let pos = new Vector(x, y, z).addSelf(this.coord).addSelf(update_neighbour);
+                _chunk_addr = getChunkAddr(pos, _chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды
-                if(updated_chunks.indexOf(key) < 0) {
-                    updated_chunks.push(key);
+                if(!updated_chunks.has(_chunk_addr)) {
+                    updated_chunks.set(_chunk_addr);
                     set_block_list.push({
-                        /*key:        key,
-                        addr:       chunk_addr,
-                        x:          pos.x,
-                        y:          pos.y,
-                        z:          pos.z,
-                        */
                         pos,
                         type:       null,
                         is_modify:  is_modify,

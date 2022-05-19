@@ -235,12 +235,11 @@ export class VectorCollector {
     }
 
     delete(vec) {
-        if(!this.has(vec)) {
-            return false;
+        if(this.list?.get(vec.x)?.get(vec.y)?.delete(vec.z)) {
+            this.size--;
+            return true;
         }
-        this.size--;
-        this.list.get(vec.x).get(vec.y).delete(vec.z)
-        return true;
+        return false;
     }
 
     has(vec) {

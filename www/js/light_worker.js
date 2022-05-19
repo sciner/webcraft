@@ -1174,10 +1174,12 @@ async function onMessageFunc(e) {
             break;
         }
         case 'destructChunk': {
-            let chunk = world.chunkManager.getChunk(args.addr);
-            if (chunk) {
-                chunk.removed = true;
-                world.chunkManager.delete(chunk);
+            for(let addr of args) {
+                let chunk = world.chunkManager.getChunk(addr);
+                if (chunk) {
+                    chunk.removed = true;
+                    world.chunkManager.delete(chunk);
+                }
             }
             break;
         }

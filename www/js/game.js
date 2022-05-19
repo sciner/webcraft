@@ -279,6 +279,7 @@ export class GameClass {
                     // [F6] (Test light)
                     case KEY.F6: {
                         if(!e.down) {
+                            globalThis.f6Toggled = !globalThis.f6Toggled;
                             this.render.testLightOn = !this.render.testLightOn;
                         }
                         return true;

@@ -521,7 +521,7 @@ export class Renderer {
 
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
-            const power = BLOCK.getLightPower(block);
+            const power = block.light_power_number; // BLOCK.getLightPower(block);
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
             globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
@@ -726,11 +726,6 @@ export class Renderer {
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.fov, this.min, this.max);
         }
-    }
-
-    // refresh...
-    refresh() {
-        this.world.chunkManager.refresh();
     }
 
     // Sets the properties of the perspective projection.

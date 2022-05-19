@@ -250,13 +250,15 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADED);
         // Send requet to worker for create blocks structure
-        this.world.chunks.postWorkerMessage(['createChunk', {
-            update:         true,
-            size:           this.size,
-            coord:          this.coord,
-            addr:           this.addr,
-            modify_list:    Object.fromEntries(this.modify_list)
-        }]);
+        this.world.chunks.postWorkerMessage(['createChunk',
+            [
+                {
+                    update:         true,
+                    addr:           this.addr,
+                    modify_list:    Object.fromEntries(this.modify_list)
+                }
+            ]
+        ]);
         // Разошлем чанк игрокам, которые его запросили
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
@@ -535,9 +537,9 @@ export class ServerChunk {
             }
         }
         // Need unload in worker
-        this.world.chunks.postWorkerMessage(['destructChunk', {
-            addr: this.addr
-        }]);
+        this.world.chunks.postWorkerMessage(['destructChunk',
+            [this.addr]
+        ]);
         //
         this.world.chunks.removeTickingChunk(this.addr);
     }

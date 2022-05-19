@@ -271,12 +271,12 @@ export class FrustumProxy extends Frustum {
 			let geom = geometry_array[i];
 			if(geom instanceof Sphere) {
 				if(this.intersectsSphere(geom)) {
-					in_frustum = true;
+					return true;
 					break;
 				}
 			} else if(geom instanceof Vector) {
 				if(this.containsPoint(geom)) {
-					in_frustum = true;
+					return true;
 					break;
 				}
 			} else {

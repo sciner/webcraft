@@ -111,37 +111,41 @@ async function onMessageFunc(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            let from_cache = world.chunks.has(args.addr);
-            const update = ('update' in args) && args.update;
-            if(update) {
+            for(let item of args) {
+                let from_cache = world.chunks.has(item.addr);
+                const update = ('update' in item) && item.update;
+                if(update) {
+                    if(from_cache) {
+                        world.chunks.delete(item.addr);
+                        from_cache = false;
+                    }
+                }
                 if(from_cache) {
-                    world.chunks.delete(args.addr);
-                    from_cache = false;
+                    let chunk = world.chunks.get(item.addr);
+                    worker.postMessage(['blocks_generated', {
+                        key:            chunk.key,
+                        addr:           chunk.addr,
+                        tblocks:        chunk.tblocks,
+                        ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
+                        map:            chunk.map
+                    }]);
+                } else {
+                    let ci = world.createChunk(item);
+                    const ci2 = {
+                        addr: ci.addr,
+                        key: ci.key,
+                        tblocks: ci.tblocks,
+                        ticking_blocks: ci.ticking_blocks
+                    }
+                    worker.postMessage(['blocks_generated', ci2]);
                 }
-            }
-            if(from_cache) {
-                let chunk = world.chunks.get(args.addr);
-                worker.postMessage(['blocks_generated', {
-                    key:            chunk.key,
-                    addr:           chunk.addr,
-                    tblocks:        chunk.tblocks,
-                    ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
-                    map:            chunk.map
-                }]);
-            } else {
-                let ci = world.createChunk(args);
-                const ci2 = {
-                    addr: ci.addr,
-                    key: ci.key,
-                    tblocks: ci.tblocks,
-                    ticking_blocks: ci.ticking_blocks
-                }
-                worker.postMessage(['blocks_generated', ci2]);
             }
             break;
         }
         case 'destructChunk': {
-            world.destructChunk(args.addr);
+            for(let addr of args) {
+                world.destructChunk(addr);
+            }
             break;
         }
         case 'destroyMap': {

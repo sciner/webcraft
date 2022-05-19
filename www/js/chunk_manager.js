@@ -7,7 +7,7 @@ import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 20;
+const MAX_APPLY_VERTICES_COUNT  = 10;
 export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
@@ -98,6 +98,26 @@ export class ChunkManager {
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         this.timer60fps             = 0;
+
+        const that = this;
+
+        // this.destruct_chunks_queue
+        this.destruct_chunks_queue  = {
+            list: [],
+            add(addr) {
+                this.list.push(addr.clone());
+            },
+            clear: function() {
+                this.list = [];
+            },
+            send: function() {
+                if(this.list.length > 0) {
+                    that.postWorkerMessage(['destructChunk', this.list]);
+                    that.postLightWorkerMessage(['destructChunk', this.list]);
+                    this.clear();
+                }
+            }
+        }
     }
 
     get lightmap_count() {
@@ -231,10 +251,6 @@ export class ChunkManager {
     // toggleUpdateChunks
     toggleUpdateChunks() {
         this.update_chunks = !this.update_chunks;
-    }
-
-    // refresh
-    refresh() {
     }
 
     setLightTexFormat(texFormat) {
@@ -431,6 +447,10 @@ export class ChunkManager {
     // Update
     update(player_pos, delta) {
 
+        // let p = performance.now();
+        // let p2 = performance.now();
+        // const stat = {};
+
         if(!this.update_chunks || !this.worker_inited || !this.nearby) {
             return false;
         }
@@ -452,27 +472,40 @@ export class ChunkManager {
             }
         }
         this.nearby.added.length = j;
+        // stat['Load chunks'] = (performance.now() - p); p = performance.now();
 
         // Delete chunks
-        if(this.nearby.deleted.size > 0) {
-            for(let addr of this.nearby.deleted) {
-                this.removeChunk(addr);
-            }
-            this.nearby.deleted.clear();
+        const deleted_size = this.nearby.deleted.size;
+        for(let addr of this.nearby.deleted) {
+            this.removeChunk(addr);
         }
+        this.destruct_chunks_queue.send();
+        this.nearby.deleted.clear();
+        // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
         // Build dirty chunks
         this.buildDirtyChunks();
+        // stat['Build dirty chunks'] = (performance.now() - p); p = performance.now();
 
         // Prepare render list
         this.rendered_chunks.fact = 0;
         this.prepareRenderList(Game.render);
+        // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
+        // Update torches
         this.timer60fps += delta;
         if(this.timer60fps >= 16.666) {
             this.timer60fps = 0;
             this.torches.update(player_pos);
         }
+        // stat['Update torches'] = (performance.now() - p); p = performance.now();
+
+        // Result
+        //p2 = performance.now() - p2;
+        //if(p2 > 5) {
+        //    stat['Total'] = p2;
+        //    console.table(stat);
+        //}
 
     }
 
@@ -491,9 +524,10 @@ export class ChunkManager {
                         chunk.addr_neighbors.push(chunk.addr.add(c));
                     }
                 }
-                for(let addr of chunk.addr_neighbors) {
-                    if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
-                        if(!this.getChunk(addr)) {
+                for(let i in chunk.addr_neighbors) {
+                    const neighbour_addr = chunk.addr_neighbors[i];
+                    if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
+                        if(!this.getChunk(neighbour_addr)) {
                             ok = false;
                             break;
                         }
