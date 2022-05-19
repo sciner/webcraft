@@ -450,8 +450,15 @@ export class Player {
 
     //
     setPosition(vec) {
+        //
         let pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
+        pc.player_state.pos.copyFrom(vec);
+        pc.player_state.onGround = false;
+        //
+        this.onGround = false;
+        this.lastBlockPos = null;
+        this.lastOnGroundTime = null;
     }
 
     getFlying() {
