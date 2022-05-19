@@ -8,18 +8,20 @@ export {alea, noise};
 
 export class Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
+    constructor(seed, world_id, options) {
         this.voxel_buildings = [];
         this.setSeed(seed);
-        this.world_id = world_id;
-        this.x = 0;
+        this.world_id       = world_id;
+        this.options        = options;
+        this.x              = 0;
         this.xyz_temp       = new Vector(0, 0, 0);
         this.xyz_temp_find  = new Vector(0, 0, 0);
         this.xyz_temp_coord = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
         this.maps = {
-            delete: function() {}
+            delete: function() {},
+            destroyAroundPlayers: function() {}
         };
     }
 

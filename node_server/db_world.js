@@ -379,6 +379,13 @@ export class DBWorld {
                     ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
                 }
             }
+            `UPDATE world_modify AS m
+            SET extra_data = COALESCE((SELECT '{"can_destroy":' || (case when c.slots is null then 'true' when c.slots = '{}' then 'true' else 'false' end) || ',"slots":' || coalesce(c.slots, '{}') || '}' from chest c where m.entity_id = c.entity_id), '{"can_destroy":true,"slots":{}}')
+            WHERE m.block_id = 54 AND m.extra_data IS NULL`
+        ]});
+
+        migrations.push({version: 43, queries: [
+            `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
         ]});
 
         for(let m of migrations) {

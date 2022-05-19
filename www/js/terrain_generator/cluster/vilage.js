@@ -24,8 +24,8 @@ const getAheadMove = (dir) => {
 //
 export class ClusterVilage extends ClusterBase {
 
-    constructor(addr) {
-        super(addr);
+    constructor(clusterManager, addr) {
+        super(clusterManager, addr);
         this.buildings              = new VectorCollector();
         this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
@@ -190,7 +190,7 @@ export class ClusterVilage extends ClusterBase {
                             // if map not smoothed
                             if(!entrance_map.smoothed) {
                                 // generate around maps and smooth current
-                                entrance_map = maps.generateAround(map_addr, true, false)[4];
+                                entrance_map = maps.generateAround(chunk, map_addr, true, false)[4];
                             }
                             const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
                             const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
@@ -215,7 +215,7 @@ export class ClusterVilage extends ClusterBase {
                 }
             }
         }
-        super.fillBlocks(chunk, map);
+        super.fillBlocks(maps, chunk, map);
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;
@@ -226,6 +226,9 @@ export class ClusterVilage extends ClusterBase {
     drawBulding(chunk, maps, building) {
         const START_X = chunk.coord.x - this.coord.x;
         const START_Z = chunk.coord.z - this.coord.z;
+        if(building.hidden) {
+            return;
+        }
         for(let i = 0; i < building.size.x; i++) {
             let bx = building.coord.x + i;
             // if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
@@ -248,7 +251,7 @@ export class ClusterVilage extends ClusterBase {
                             // if map not smoothed
                             if(!bi.smoothed) {
                                 // generate around maps and smooth current
-                                bi = maps.generateAround(map_addr, true, false)[4];
+                                bi = maps.generateAround(chunk, map_addr, true, false)[4];
                             }
                             const entrance_x    = vec.x - bi.chunk.coord.x;
                             const entrance_z    = vec.z - bi.chunk.coord.z;

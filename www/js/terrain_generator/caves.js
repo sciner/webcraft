@@ -110,21 +110,10 @@ class CaveLine {
 // Cave...
 export class Cave {
 
-    // Constructor
-    constructor(lines, seed, addr) {
-
-        if(addr.y < 0 || addr.y > 2) {
-            return;
-        }
-
-        const aleaRandom = new alea(seed + addr.toString());
-
-        if(aleaRandom.double() < .7) {
-            return;
-        }
+    static generateLines(lines, addr, aleaRandom) {
 
         // Генерируем абсолютную позицию начала пещеры в этом чанке
-        let index = parseInt(aleaRandom.double() * CHUNK_SIZE * .6);
+        let index = parseInt(aleaRandom.double() * CHUNK_SIZE * .7);
 
         // Конвертируем позицию в 3D вектор
         const x = index % CHUNK_SIZE_X;
@@ -253,8 +242,18 @@ export class CaveGenerator {
 
     // add
     add(chunk_addr) {
+
+        if(chunk_addr.y < 0 || chunk_addr.y > 2) {
+            return false;
+        }
+
         if(!this.caves.has(chunk_addr)) {
-            new Cave(this.lines, this.seed, chunk_addr);
+            const aleaRandom = new alea(this.seed + chunk_addr.toString());
+            if(aleaRandom.double() < .7) {
+                this.caves.set(chunk_addr, true);
+                return true;
+            }
+            Cave.generateLines(this.lines, chunk_addr, aleaRandom);
             this.caves.set(chunk_addr, true);
             return true;
         }

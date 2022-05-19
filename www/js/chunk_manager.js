@@ -1,10 +1,13 @@
-import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
+import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
 import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
+import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
+import {TrivialGeometryPool} from "./light/GeometryPool.js";
+import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 20;
+const MAX_APPLY_VERTICES_COUNT  = 10;
 export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
@@ -33,7 +36,12 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+
         this.lightPool = null;
+        this.lightTexFormat         = 'rgba8unorm';
+
+        this.bufferPool = null;
+        this.chunkDataTexture = new ChunkDataTexture();
 
         // Torches
         this.torches = {
@@ -91,6 +99,25 @@ export class ChunkManager {
         this.sort_chunk_by_frustum  = false;
         this.timer60fps             = 0;
 
+        const that = this;
+
+        // this.destruct_chunks_queue
+        this.destruct_chunks_queue  = {
+            list: [],
+            add(addr) {
+                this.list.push(addr.clone());
+            },
+            clear: function() {
+                this.list = [];
+            },
+            send: function() {
+                if(this.list.length > 0) {
+                    that.postWorkerMessage(['destructChunk', this.list]);
+                    that.postLightWorkerMessage(['destructChunk', this.list]);
+                    this.clear();
+                }
+            }
+        }
     }
 
     get lightmap_count() {
@@ -226,11 +253,23 @@ export class ChunkManager {
         this.update_chunks = !this.update_chunks;
     }
 
-    // refresh
-    refresh() {
+    setLightTexFormat(texFormat) {
+        this.lightTexFormat = texFormat;
+        this.lightWorker.postMessage(['initRender', { texFormat }]);
     }
 
+    /**
+     * highly optimized
+     * @param render
+     */
     prepareRenderList(render) {
+        if (!this.bufferPool) {
+            if (render.renderBackend.multidrawExt) {
+                 this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+            } else {
+                this.bufferPool = new TrivialGeometryPool(render.renderBackend);
+            }
+        }
 
         const chunk_render_dist = Game.player.state.chunk_render_dist;
         const player_chunk_addr = Game.player.chunkAddr;
@@ -252,11 +291,13 @@ export class ChunkManager {
             }
         }
 
-        //
+        /**
+         * please dont re-assign renderList entries
+         */
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
-                v2.length = 0;
+                v2.clear();
             }
         }
 
@@ -271,25 +312,31 @@ export class ChunkManager {
                     chunk.applyVertices();
                 }
             }
-            if(this.vertices_length == 0) {
-                return;    
+            // actualize light
+            chunk.prepareRender(render.renderBackend);
+            if(chunk.vertices_length === 0) {
+                continue;
             }
-            for(let [key, v] of chunk.vertices) {
-                let key1 = v.resource_pack_id;
-                let key2 = v.material_group;
-                if (!v.buffer) {
-                    continue;
+            for(let i = 0; i < chunk.verticesList.length; i++) {
+                let v = chunk.verticesList[i];
+                let rpl = v.rpl;
+                if (!rpl) {
+                    let key1 = v.resource_pack_id;
+                    let key2 = v.material_group;
+                    if (!v.buffer) {
+                        continue;
+                    }
+                    let rpList = renderList.get(key1);
+                    if (!rpList) {
+                        renderList.set(key1, rpList = new Map());
+                    }
+                    if (!rpList.get(key2)) {
+                        rpList.set(key2, new IvanArray());
+                    }
+                    rpl = v.rpl = rpList.get(key2);
                 }
-                if (!renderList.get(key1)) {
-                    renderList.set(key1, new Map());
-                }
-                const rpList = renderList.get(key1);
-                if (!rpList.get(key2)) {
-                    rpList.set(key2, []);
-                }
-                const list = rpList.get(key2);
-                list.push(chunk);
-                list.push(v);
+                rpl.push(chunk);
+                rpl.push(v);
                 chunk.rendered = 0;
             }
         }
@@ -310,10 +357,11 @@ export class ChunkManager {
             if (!list) {
                 continue;
             }
+            const { arr, count } = list;
             const mat = resource_pack.shader.materials[group];
-            for (let i = 0; i < list.length; i += 2) {
-                const chunk = list[i];
-                const vertices = list[i + 1];
+            for (let i = 0; i < count; i += 2) {
+                const chunk = arr[i];
+                const vertices = arr[i + 1];
                 chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
                 if (!chunk.rendered) {
                     this.rendered_chunks.fact++;
@@ -358,6 +406,7 @@ export class ChunkManager {
             let chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.addr, chunk);
+            this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
             this.poses_need_update = true;
@@ -398,15 +447,18 @@ export class ChunkManager {
     // Update
     update(player_pos, delta) {
 
+        // let p = performance.now();
+        // let p2 = performance.now();
+        // const stat = {};
+
         if(!this.update_chunks || !this.worker_inited || !this.nearby) {
             return false;
         }
 
         // Load chunks
         let can_add = CHUNKS_ADD_PER_UPDATE;
-
         let j = 0;
-        for (let i=0;i<this.nearby.added.length;i++) {
+        for (let i = 0; i < this.nearby.added.length; i++) {
             const item = this.nearby.added[i];
             if (!this.nearby.deleted.has(item.addr)) {
                 if (can_add > 0) {
@@ -420,16 +472,49 @@ export class ChunkManager {
             }
         }
         this.nearby.added.length = j;
+        // stat['Load chunks'] = (performance.now() - p); p = performance.now();
 
         // Delete chunks
-        if(this.nearby.deleted.size > 0) {
-            for(let addr of this.nearby.deleted) {
-                this.removeChunk(addr);
-            }
-            this.nearby.deleted.clear();
+        const deleted_size = this.nearby.deleted.size;
+        for(let addr of this.nearby.deleted) {
+            this.removeChunk(addr);
         }
+        this.destruct_chunks_queue.send();
+        this.nearby.deleted.clear();
+        // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
         // Build dirty chunks
+        this.buildDirtyChunks();
+        // stat['Build dirty chunks'] = (performance.now() - p); p = performance.now();
+
+        // Prepare render list
+        this.rendered_chunks.fact = 0;
+        this.prepareRenderList(Game.render);
+        // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
+
+        // Update torches
+        this.timer60fps += delta;
+        if(this.timer60fps >= 16.666) {
+            this.timer60fps = 0;
+            this.torches.update(player_pos);
+        }
+        // stat['Update torches'] = (performance.now() - p); p = performance.now();
+
+        // Result
+        //p2 = performance.now() - p2;
+        //if(p2 > 5) {
+        //    stat['Total'] = p2;
+        //    console.table(stat);
+        //}
+
+    }
+
+    // Build dirty chunks
+    buildDirtyChunks() {
+        if(!this.chunk_added) {
+            return;
+        }
+        this.chunk_added = false;
         for(let chunk of this.chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 let ok = true;
@@ -439,9 +524,10 @@ export class ChunkManager {
                         chunk.addr_neighbors.push(chunk.addr.add(c));
                     }
                 }
-                for(let addr of chunk.addr_neighbors) {
-                    if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
-                        if(!this.getChunk(addr)) {
+                for(let i in chunk.addr_neighbors) {
+                    const neighbour_addr = chunk.addr_neighbors[i];
+                    if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
+                        if(!this.getChunk(neighbour_addr)) {
                             ok = false;
                             break;
                         }
@@ -452,13 +538,6 @@ export class ChunkManager {
                 }
             }
         }
-
-        this.timer60fps += delta;
-        if(this.timer60fps >= 16.666) {
-            this.timer60fps = 0;
-            this.torches.update(player_pos);
-        }
-
     }
 
     // Возвращает блок по абслютным координатам

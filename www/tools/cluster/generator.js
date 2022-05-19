@@ -54,7 +54,7 @@ class Sandbox {
                 (Math.random() * 999) | 0
             );
             let tm = performance.now();
-            this.cluster = new ClusterVilage(addr);
+            this.cluster = new ClusterVilage({}, addr);
             if(this.cluster.is_empty) {
                 vec = null;
             } else {

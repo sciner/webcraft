@@ -279,6 +279,7 @@ export class GameClass {
                     // [F6] (Test light)
                     case KEY.F6: {
                         if(!e.down) {
+                            globalThis.f6Toggled = !globalThis.f6Toggled;
                             this.render.testLightOn = !this.render.testLightOn;
                         }
                         return true;
@@ -310,14 +311,6 @@ export class GameClass {
                             } else {
                                 player.teleport('random', null);
                             }
-                        }
-                        return true;
-                        break;
-                    }
-                    // F9 (toggleNight | Under rain)
-                    case KEY.F9: {
-                        if(!e.down) {
-                            this.render.toggleNight();
                         }
                         return true;
                         break;

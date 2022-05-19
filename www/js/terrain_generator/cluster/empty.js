@@ -3,8 +3,8 @@ import {ClusterBase} from "./base.js";
 //
 export class ClusterEmpty extends ClusterBase {
 
-    constructor(addr) {
-        super(addr);
+    constructor(clusterManager, addr) {
+        super(clusterManager, addr);
         this.max_height  = 1;
         this.is_empty = true;
     }

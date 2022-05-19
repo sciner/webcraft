@@ -1,4 +1,4 @@
-import {DIRECTION_BIT, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
+import {DIRECTION_BIT, NORMALS, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
@@ -294,7 +294,7 @@ class DestroyBlocks {
     }
 
     //
-    add(block, pos) {
+    add(block, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
@@ -325,12 +325,14 @@ class DestroyBlocks {
             }
         }
         // Drop block if need
-        dropBlock(player, block, resp, false);
+        if(!no_drop) {
+            dropBlock(player, block, resp, false);
+        }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
             let part = block.material[cn];
             if(part) {
-                let connected_pos = block.posworld.add(part.offset_pos);
+                const connected_pos = block.posworld.add(part.offset_pos);
                 if(!cv.has(connected_pos)) {
                     let block_connected = world.getBlock(connected_pos);
                     if(block_connected.id == part.id) {
@@ -338,6 +340,12 @@ class DestroyBlocks {
                     }
                 }
             }
+        }
+        // Удаляем второй блок кровати
+        if(block.material.tags.indexOf('bed') >= 0) {
+            const connected_pos = new Vector(pos).addByCardinalDirectionSelf(new Vector(0, 0, 1), block.rotate.x + 2);
+            let block_connected = world.getBlock(connected_pos);
+            this.add(block_connected, connected_pos, true);
         }
         // Destroy chain blocks to down
         if(block.material.destroy_to_down) {
@@ -675,16 +683,18 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 6. Запрет установки блока на блоки, которые занимает игрок
-        _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
-        if(_createBlockAABB.intersect({
-            x_min: player.pos.x - player.radius / 2,
-            x_max: player.pos.x - player.radius / 2 + player.radius,
-            y_min: player.pos.y,
-            y_max: player.pos.y + player.height,
-            z_min: player.pos.z - player.radius / 2,
-            z_max: player.pos.z - player.radius / 2 + player.radius
-        })) {
-            return resp;
+        if(!matBlock.passable > 0) {
+            _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
+            if(_createBlockAABB.intersect({
+                x_min: player.pos.x - player.radius / 2,
+                x_max: player.pos.x - player.radius / 2 + player.radius,
+                y_min: player.pos.y,
+                y_max: player.pos.y + player.height,
+                z_min: player.pos.z - player.radius / 2,
+                z_max: player.pos.z - player.radius / 2 + player.radius
+            })) {
+                return resp;
+            }
         }
         // 7. Проверка места, куда игрок пытается установить блок(и)
         let new_pos = new Vector(pos);
@@ -705,6 +715,24 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
         }
+        const pushed_blocks = [];
+        // Если этот блок кровать
+        if(matBlock.tags.indexOf('bed') >= 0) {
+            const new_rotate = orientation.add(new Vector(2, 0, 0));
+            new_rotate.x %= 4;
+            const next_block = {
+                pos: new_pos.clone().addByCardinalDirectionSelf(new Vector(0, 0, 1), orientation.x + 2),
+                item: {
+                    id: matBlock.id,
+                    rotate: new_rotate,
+                    extra_data: {is_head: true}
+                },
+                action_id: ServerClient.BLOCK_ACTION_CREATE
+            };
+            pushed_blocks.push(next_block);
+            check_poses.push(next_block.pos);
+        }
+        // Проверяем, что все блоки можем установить
         for(let cp of check_poses) {
             let cp_block = world.getBlock(cp);
             if(!BLOCK.canReplace(cp_block.id, cp_block.extra_data, matBlock.id)) {
@@ -822,18 +850,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
             // Create entity
-            switch(matBlock.id) {
-                case BLOCK.CHEST.id:
-                case BLOCK.CHARGING_STATION.id: {
-                    new_item.rotate = orientation; // rotate_orig;
-                    resp.create_chest = {pos: new Vector(pos), item: new_item};
-                    resp.decrement = true;
-                    if(matBlock.sound) {
-                        resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
-                    }
-                    return resp;
-                    break;
+            if(matBlock.is_chest) {
+                new_item.rotate = orientation; // rotate_orig;
+                resp.create_chest = {pos: new Vector(pos), item: new_item};
+                resp.decrement = true;
+                if(matBlock.sound) {
+                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                 }
+                return resp;
+            }
+            //
+            switch(matBlock.id) {
                 case BLOCK.PAINTING.id: {
                     const painting = await createPainting(e, world, pos);
                     if(painting) {
@@ -872,146 +899,131 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     pushBlock(next_params);
                 }
             };
-            //
-            /*if(replaceBlock) {
-                // Replace block
-                if(matBlock.item || matBlock.is_entity) {
-                    if(matBlock.is_entity) {
-                        pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                        resp.decrement = true;
-                    }
-                } else {
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+            // Create block
+            // Посадить растения можно только на блок земли
+            if(matBlock.planting) {
+                let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
+                if(!underBlock) {
+                    return resp;
+                }
+                if([BLOCK.GRASS_DIRT.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
+                    return resp;
+                }
+                // Посадить семена можно только на вспаханную землю
+                const is_seeds = !!matBlock.seeds;
+                if(is_seeds && [BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
+                    return resp;
+                }
+            }
+            // Можно поставить только на полный (непрозрачный блок, снизу)
+            if(matBlock.tags.indexOf('set_only_fullface') >= 0) {
+                let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
+                if(!underBlock || underBlock.material.transparent) {
+                    return resp;
+                }
+            }
+            if(matBlock.is_mushroom_block) {
+                const neighbours = getBlockNeighbours(world, pos);
+                let t = 0;
+                if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
+                if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
+                if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
+                if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
+                if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
+                if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
+                let extra_data = t ? {t: t} : null;
+                pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                return resp;
+            }
+            if(matBlock.item || matBlock.is_entity) {
+                if(matBlock.is_entity) {
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     resp.decrement = true;
+                    let b = BLOCK.fromId(matBlock.id);
+                    if(b.sound) {
+                        resp.play_sound.push({tag: b.sound, action: 'place', pos: new Vector(pos)});
+                    }
+                }
+            } else {
+                if(['ladder'].indexOf(matBlock.style) >= 0) {
+                    // Лианы можно ставить на блоки с прозрачностью
+                    if(world_material.transparent && world_material.style != 'default') {
+                        return resp;
+                    }
+                    if(pos.n.y == 0) {
+                        if(pos.n.z != 0) {
+                            // z
+                        } else {
+                            // x
+                        }
+                    } else {
+                        let cardinal_direction = orientation.x;
+                        let ok = false;
+                        for(let i = 0; i < 4; i++) {
+                            let pos2 = new Vector(pos.x, pos.y, pos.z);
+                            let cd = cardinal_direction + i;
+                            if(cd > 4) cd -= 4;
+                            // F R B L
+                            switch(cd) {
+                                case ROTATE.S: {
+                                    pos2 = pos2.add(new Vector(0, 0, 1));
+                                    break;
+                                }
+                                case ROTATE.W: {
+                                    pos2 = pos2.add(new Vector(1, 0, 0));
+                                    break;
+                                }
+                                case ROTATE.N: {
+                                    pos2 = pos2.add(new Vector(0, 0, -1));
+                                    break;
+                                }
+                                case ROTATE.E: {
+                                    pos2 = pos2.add(new Vector(-1, 0, 0));
+                                    break;
+                                }
+                            }
+                            let cardinal_block = world.getBlock(pos2);
+                            if(cardinal_block.transparent && !(matBlock.tags.indexOf('anycardinal') >= 0)) {
+                                cardinal_direction = cd;
+                                ok = true;
+                                break;
+                            }
+                        }
+                        if(!ok) {
+                            return resp;
+                        }
+                    }
+                }
+                const is_sign = matBlock.tags.indexOf('sign') >= 0;
+                if(is_sign) {
+                    if(orientation.y != 0) {
+                        orientation.x = player.rotate.z / 90;
+                    }
+                    let block_pos = new Vector(pos);
+                    resp.open_window = {
+                        id: 'frmEditSign',
+                        args: {pos: block_pos}
+                    };
+                }
+                if(replaceBlock && world_material.next_part) {
+                    let part = world_material.next_part;
+                    if(part) {
+                        let connected_pos = new Vector(pos).add(part.offset_pos);
+                        let block_connected = world.getBlock(connected_pos);
+                        if(block_connected.id == part.id) {
+                            destroyBlocks.add(block_connected, pos);
+                        }
+                    }
+                }
+                pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                for(let pb of pushed_blocks) {
+                    pushBlock(pb);
                 }
                 if(matBlock.sound) {
                     resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                 }
-            } else {
-                */
-                // Create block
-                // Посадить растения можно только на блок земли
-                if(matBlock.planting) {
-                    let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-                    if(!underBlock) {
-                        return resp;
-                    }
-                    if([BLOCK.GRASS_DIRT.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
-                        return resp;
-                    }
-                    // Посадить семена можно только на вспаханную землю
-                    const is_seeds = !!matBlock.seeds;
-                    if(is_seeds && [BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
-                        return resp;
-                    }
-                }
-                // Можно поставить только на полный (непрозрачный блок, снизу)
-                if(matBlock.tags.indexOf('set_only_fullface') >= 0) {
-                    let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-                    if(!underBlock || underBlock.material.transparent) {
-                        return resp;
-                    }
-                }
-                if(matBlock.is_mushroom_block) {
-                    const neighbours = getBlockNeighbours(world, pos);
-                    let t = 0;
-                    if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
-                    if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
-                    if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
-                    if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
-                    if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
-                    if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
-                    let extra_data = t ? {t: t} : null;
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                    return resp;
-                }
-                if(matBlock.item || matBlock.is_entity) {
-                    if(matBlock.is_entity) {
-                        pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                        resp.decrement = true;
-                        let b = BLOCK.fromId(matBlock.id);
-                        if(b.sound) {
-                            resp.play_sound.push({tag: b.sound, action: 'place', pos: new Vector(pos)});
-                        }
-                    }
-                } else {
-                    if(['ladder'].indexOf(matBlock.style) >= 0) {
-                        // Лианы можно ставить на блоки с прозрачностью
-                        if(world_material.transparent && world_material.style != 'default') {
-                            return resp;
-                        }
-                        if(pos.n.y == 0) {
-                            if(pos.n.z != 0) {
-                                // z
-                            } else {
-                                // x
-                            }
-                        } else {
-                            let cardinal_direction = orientation.x;
-                            let ok = false;
-                            for(let i = 0; i < 4; i++) {
-                                let pos2 = new Vector(pos.x, pos.y, pos.z);
-                                let cd = cardinal_direction + i;
-                                if(cd > 4) cd -= 4;
-                                // F R B L
-                                switch(cd) {
-                                    case ROTATE.S: {
-                                        pos2 = pos2.add(new Vector(0, 0, 1));
-                                        break;
-                                    }
-                                    case ROTATE.W: {
-                                        pos2 = pos2.add(new Vector(1, 0, 0));
-                                        break;
-                                    }
-                                    case ROTATE.N: {
-                                        pos2 = pos2.add(new Vector(0, 0, -1));
-                                        break;
-                                    }
-                                    case ROTATE.E: {
-                                        pos2 = pos2.add(new Vector(-1, 0, 0));
-                                        break;
-                                    }
-                                }
-                                let cardinal_block = world.getBlock(pos2);
-                                if(cardinal_block.transparent && !(matBlock.tags.indexOf('anycardinal') >= 0)) {
-                                    cardinal_direction = cd;
-                                    ok = true;
-                                    break;
-                                }
-                            }
-                            if(!ok) {
-                                return resp;
-                            }
-                        }
-                    }
-                    const is_sign = matBlock.tags.indexOf('sign') >= 0;
-                    if(is_sign) {
-                        if(orientation.y != 0) {
-                            orientation.x = player.rotate.z / 90;
-                        }
-                        let block_pos = new Vector(pos);
-                        resp.open_window = {
-                            id: 'frmEditSign',
-                            args: {pos: block_pos}
-                        };
-                    }
-                    if(replaceBlock && world_material.next_part) {
-                        let part = world_material.next_part;
-                        if(part) {
-                            let connected_pos = new Vector(pos).add(part.offset_pos);
-                            let block_connected = world.getBlock(connected_pos);
-                            if(block_connected.id == part.id) {
-                                destroyBlocks.add(block_connected, pos);
-                            }
-                        }
-                    }
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                    if(matBlock.sound) {
-                        resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
-                    }
-                    resp.decrement = true;
-                }
-            //}
+                resp.decrement = true;
+            }
         }
     }
     return resp;

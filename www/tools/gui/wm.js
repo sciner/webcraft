@@ -232,7 +232,7 @@ export class Window {
         ctx.fillRect(x, y, w, h);
 
         // draw image
-        if(this.style.background.image) {
+        if(this.style.background.image && (typeof this.style.background.image == 'object')) {
             const iw = this.style.background.image.width;
             const ih = this.style.background.image.height;
             // image_size_mode
@@ -244,6 +244,13 @@ export class Window {
                 }
                 case 'stretch': {
                     ctx.drawImage(this.style.background.image, 0, 0, iw, ih, x, y, w, h);
+                    break;
+                }
+                case 'sprite': {
+                    const opts = this.style.background.sprite;
+                    if(opts.mode = 'stretch') {
+                        ctx.drawImage(this.style.background.image, opts.x, opts.y, opts.width, opts.height, x, y, w, h);
+                    }
                     break;
                 }
             }

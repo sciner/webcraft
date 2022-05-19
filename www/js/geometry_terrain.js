@@ -1,34 +1,35 @@
 class QuadAttr {
     /**
-     * 
-     * @param {Float32Array} buffer 
+     *
+     * @param {Float32Array} buffer
      * @param {number} offset
      */
-    constructor (buffer = null, offset = 0) {
+    constructor(buffer = null, offset = 0) {
         if (buffer) {
             this.set(buffer, offset);
         }
     }
+
     /**
-     * 
-     * @param {Float32Array} buffer 
+     *
+     * @param {Float32Array} buffer
      * @param {number} offset
      */
     set(buffer, offset) {
-        this.position  = buffer.subarray(offset, offset  + 3);
-        this.axisX     = buffer.subarray(offset + 3, offset + 6);
-        this.axisY     = buffer.subarray(offset + 6, offset + 9);
-        this.uvCenter  = buffer.subarray(offset + 9, offset + 11);
-        this.uvSize    = buffer.subarray(offset + 11, offset + 13);
-        this.color     = buffer.subarray(offset + 13, offset + 16);
-        this.flags     = buffer.subarray(offset + 16, offset + 17);
+        this.position = buffer.subarray(offset, offset + 3);
+        this.axisX = buffer.subarray(offset + 3, offset + 6);
+        this.axisY = buffer.subarray(offset + 6, offset + 9);
+        this.uvCenter = buffer.subarray(offset + 9, offset + 11);
+        this.uvSize = buffer.subarray(offset + 11, offset + 13);
+        this.color = buffer.subarray(offset + 13, offset + 16);
+        this.flags = buffer.subarray(offset + 16, offset + 17);
 
         return this;
     }
 }
 
 export default class GeometryTerrain {
-    constructor(vertices) {
+    constructor(vertices, chunkId) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
@@ -48,11 +49,15 @@ export default class GeometryTerrain {
         }
 
         this.size = this.data.length / this.strideFloats;
+        this.chunkIds = null;
+
+        this.setChunkId(chunkId === undefined ? -1: chunkId);
         /**
          *
          * @type {BaseBuffer}
          */
         this.buffer = null;
+        this.bufferChunkIds = null;
         /**
          *
          * @type {BaseBuffer}
@@ -66,15 +71,17 @@ export default class GeometryTerrain {
         this.context = null;
 
         this.buffers = [];
+
+        this.customFlag = false;
     }
 
     /**
      * Change flags attribute in buffer
-     * @param {number} flag 
-     * @param {'or' | 'and' | 'replace'} mode 
+     * @param {number} flag
+     * @param {'or' | 'and' | 'replace'} mode
      */
-    changeFlags (flag, mode = 'or') {
-        let operation = (bufferFlag) =>  bufferFlag | flag;
+    changeFlags(flag, mode = 'or') {
+        let operation = (bufferFlag) => bufferFlag | flag;
 
         if (mode === 'and')
             operation = (bufferFlag) => bufferFlag & flag;
@@ -82,19 +89,19 @@ export default class GeometryTerrain {
             operation = (bufferFlag) => flag;
 
         // flag located by 16 offset
-        for(let i = 0; i < this.data.length; i += this.strideFloats) {
+        for (let i = 0; i < this.data.length; i += this.strideFloats) {
             this.data[i + 16] = operation(this.data[i + 16]);
         }
 
-        this.updateID ++;
+        this.updateID++;
     }
 
-    createVao()
-    {
-        const { attribs, gl, stride } = this;
+    createVao() {
+        const {attribs, gl, stride} = this;
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);
 
+        gl.enableVertexAttribArray(attribs.a_chunkId);
         gl.enableVertexAttribArray(attribs.a_position);
         gl.enableVertexAttribArray(attribs.a_axisX);
         gl.enableVertexAttribArray(attribs.a_axisY);
@@ -105,8 +112,11 @@ export default class GeometryTerrain {
 
         gl.enableVertexAttribArray(attribs.a_quad);
 
-        this.buffer.bind();
+        this.bufferChunkIds.bind();
+        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, 4, 0);
+        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
 
+        this.buffer.bind();
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
@@ -128,8 +138,7 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
     }
 
-    bind(shader)
-    {
+    bind(shader) {
         if (shader) {
             this.attribs = shader;
             this.context = shader.context;
@@ -141,15 +150,19 @@ export default class GeometryTerrain {
             this.buffer = this.context.createBuffer({
                 data: this.data
             });
+            this.bufferChunkIds = this.context.createBuffer({
+                data: this.chunkIds
+            });
             // this.data = null;
             this.quad = GeometryTerrain.bindQuad(this.context, true);
             this.buffers = [
                 this.buffer,
+                this.bufferChunkIds,
                 this.quad
             ];
         }
 
-        const { gl } = this;
+        const {gl} = this;
 
         if (gl) {
             if (!this.vao) {
@@ -168,13 +181,27 @@ export default class GeometryTerrain {
         this.uploadID = this.updateID;
 
         this.buffer.data = this.data;
+        this.bufferChunkIds.data = this.chunkIds;
 
         if (gl) {
             this.buffer.bind();
+            this.bufferChunkIds.bind();
         }
     }
 
-    updateInternal(data) {
+    setChunkId(chunkId) {
+        if (!this.chunkIds || this.chunkIds.length !== this.size) {
+            this.chunkIds = new Float32Array(this.size);
+        }
+        const {chunkIds} = this;
+        if (chunkId !== undefined) {
+            for (let i = 0; i < chunkIds.length; i++) {
+                chunkIds[i] = chunkId;
+            }
+        }
+    }
+
+    updateInternal(data = null, chunkId = -1) {
         if (data) {
             if (data instanceof Array) {
                 this.data = new Float32Array(data);
@@ -184,19 +211,21 @@ export default class GeometryTerrain {
         }
         this.size = this.data.length / this.strideFloats;
         this.updateID++;
+
+        this.setChunkId(chunkId);
     }
 
     /**
      * Raw quad view, used for easy acess to quad attrs
-     * @param {number} index of quad (not of buffer entry) 
-     * @param {QuadAttr} [target] 
-     * @returns 
+     * @param {number} index of quad (not of buffer entry)
+     * @param {QuadAttr} [target]
+     * @returns
      */
-    rawQuad (index = 0, target = new QuadAttr()) {
+    rawQuad(index = 0, target = new QuadAttr()) {
         return target.set(this.buffer, index * GeometryTerrain.strideFloats);
     }
 
-    *rawQuads(start = 0, count = this.size) {
+    * rawQuads(start = 0, count = this.size) {
         return GeometryTerrain.iterateBuffer(this.buffer, start, count);
     }
 
@@ -204,9 +233,11 @@ export default class GeometryTerrain {
         // we not destroy it, it shared
         this.quad = null;
 
-        if(this.buffer) {
+        if (this.buffer) {
             this.buffer.destroy();
             this.buffer = null;
+            this.bufferChunkIds.destroy();
+            this.bufferChunkIds = null;
         }
 
         if (this.vao) {
@@ -216,12 +247,12 @@ export default class GeometryTerrain {
     }
 
     /**
-     * 
-     * @param {Float32Array | Array<number>} buffer 
-     * @param {number} start 
-     * @param {number} count 
+     *
+     * @param {Float32Array | Array<number>} buffer
+     * @param {number} start
+     * @param {number} count
      */
-    static *iterateBuffer(buffer, start = 0, count) {
+    static* iterateBuffer(buffer, start = 0, count) {
         start = Math.min(0, Math.max(start, buffer.length / GeometryTerrain.strideFloats - 1));
         count = Math.min(1, Math.max((buffer.length - start * GeometryTerrain.strideFloats) / GeometryTerrain.strideFloats | 0, count));
 
@@ -231,7 +262,7 @@ export default class GeometryTerrain {
 
         const quad = new QuadAttr();
 
-        for(let i = start; i < start + count; i++) {
+        for (let i = start; i < start + count; i++) {
             yield quad.set(buffer, start * GeometryTerrain.strideFloats);
         }
     }
@@ -294,7 +325,6 @@ export default class GeometryTerrain {
                     }
                 }
             }
-
             // position
             newArr[k++] = (vertices[j + dd] + vertices[j + d0]) * 0.5;
             newArr[k++] = (vertices[j + dd + 1] + vertices[j + d0 + 1]) * 0.5;
@@ -328,7 +358,7 @@ export default class GeometryTerrain {
             newArr[k++] = vy;
             newArr[k++] = vz;
 
-                // uvCenter
+            // uvCenter
             newArr[k++] = (vertices[j + dd + 3] + vertices[j + d0 + 3]) * 0.5;
             newArr[k++] = (vertices[j + dd + 4] + vertices[j + d0 + 4]) * 0.5;
             // uvSize2
@@ -341,7 +371,6 @@ export default class GeometryTerrain {
             // flags
             newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
-
         return newArr;
     }
 

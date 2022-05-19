@@ -2,6 +2,7 @@ import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
+import {noise} from "./default.js";
 
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -23,6 +24,15 @@ export const GENERATOR_OPTIONS = {
     SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
 };
+
+//
+// Rivers
+const RIVER_SCALE = .5;
+const RIVER_NOISE_SCALE = 4.5;
+const RIVER_WIDTH = 0.008 * RIVER_SCALE;
+const RIVER_OCTAVE_1 = 512 / RIVER_SCALE;
+const RIVER_OCTAVE_2 = RIVER_OCTAVE_1 / RIVER_NOISE_SCALE;
+const RIVER_OCTAVE_3 = 48 / RIVER_SCALE;
 
 //
 const temp_chunk = {
@@ -54,7 +64,7 @@ export class TerrainMapManager {
     }
 
     // Generate maps
-    generateAround(chunk_addr, smooth, vegetation) {
+    generateAround(chunk, chunk_addr, smooth, vegetation) {
         const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noisefn;
         let maps                    = [];
@@ -64,7 +74,7 @@ export class TerrainMapManager {
                 TerrainMapManager._temp_vec3.set(x, -chunk_addr.y, z);
                 temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager._temp_vec3);
                 temp_chunk.coord.copyFrom(temp_chunk.addr).multiplyVecSelf(size);
-                const map = this.generateMap(temp_chunk, noisefn);
+                const map = this.generateMap(chunk, temp_chunk, noisefn);
                 if(Math.abs(x) < 2 && Math.abs(z) < 2) {
                     maps.push(map);
                 }
@@ -84,7 +94,7 @@ export class TerrainMapManager {
                     if(smooth && !map.smoothed) {
                         map.smooth(this);
                     }
-                    map.generateVegetation(this.seed);
+                    map.generateVegetation(chunk, this.seed);
                 }
             }
         }
@@ -102,6 +112,7 @@ export class TerrainMapManager {
         let equator = Helpers.clamp((noisefn(px / GENERATOR_OPTIONS.SCALE_EQUATOR, pz / GENERATOR_OPTIONS.SCALE_EQUATOR) + 0.8), 0, 1);
         // Высота горы в точке
         const octave1 = noisefn(px / 20, pz / 20);
+
         let value = noisefn(px / 150, pz / 150, 0) * .4 +
             noisefn(px / 1650, pz / 1650) * .1 +
             noisefn(px / 650, pz / 650) * .25 +
@@ -110,6 +121,27 @@ export class TerrainMapManager {
             noisefn(px / 25, pz / 25) * (0.01568627 * octave1);
         // Get biome
         let biome = BIOMES.getBiome((value * HW + H) / 255, humidity, equator);
+
+        if(biome.code != 'OCEAN') {
+            const river_point = this.makeRiverPoint(px, pz);
+            if(river_point) {
+                if(!biome.is_empty) {
+                    value = -0.127;
+                    biome = BIOMES.OCEAN;
+                } else {
+                    // smooth with clusters
+                    if(cluster_max_height) {
+                        value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
+                    } else {
+                        biome = BIOMES.RIVER;
+                        value = value * biome.max_height + H;
+                    }
+                    value = parseInt(value);
+                    return {value, biome, humidity, equator};
+                }
+            }
+        }
+
         if(biome.no_smooth) {
             value = value * biome.max_height + H;
         } else {
@@ -130,15 +162,42 @@ export class TerrainMapManager {
         return {value, biome, humidity, equator};
     }
 
+    // rivers
+    makeRiverPoint(x, z) {
+
+        let m = this.noisefn(x / 64, z / 64) * 2;
+        if(m < 0) m*= -1;
+        m++;
+
+        const s = 1;
+
+        const rw = RIVER_WIDTH * m;
+        const o1 = RIVER_OCTAVE_1 / s;
+        let value = this.noisefn(x / o1, z / o1) * 0.7 +
+                    this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2 +
+                    this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
+        if(value < 0) {
+            value *= -1;
+        }
+        if(value > rw) {
+            return null;
+        }
+        value = 1 - value / rw;
+        return value;
+    }
+
     // generateMap
-    generateMap(chunk, noisefn) {
+    generateMap(real_chunk, chunk, noisefn) {
         let cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
         // Result map
         const map                   = new TerrainMap(chunk, GENERATOR_OPTIONS);
-        const cluster               = ClusterManager.getForCoord(chunk.coord);
+        if(!real_chunk.chunkManager) {
+            debugger
+        }
+        const cluster               = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = chunk.coord.x + x;
@@ -305,6 +364,9 @@ export class TerrainMap {
                 let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
+                    if(cell.value2 <= this.options.WATER_LINE) {
+                        cell.biome = BIOMES.OCEAN;
+                    }
                 }
                 cell.dirt_color = dirt_color.divide(colorComputer);
             }
@@ -315,7 +377,7 @@ export class TerrainMap {
     }
 
     // Генерация растительности
-    generateVegetation(seed) {
+    generateVegetation(real_chunk, seed) {
         let chunk                   = this.chunk;
         this.vegetable_generated    = true;
         this.trees                  = [];
@@ -376,7 +438,7 @@ export class TerrainMap {
                 return false;
             }
             aleaRandom = new alea(seed + '_' + chunk.coord.toString());
-            cluster = ClusterManager.getForCoord(chunk.coord);
+            cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
             return true;
         };
         //

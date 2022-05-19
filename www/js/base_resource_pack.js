@@ -1,5 +1,5 @@
 import {BLOCK} from "./blocks.js";
-import {Helpers, AlphabetTexture} from './helpers.js';
+import {Color, Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 
@@ -169,6 +169,17 @@ export class BaseResourcePack {
         );
         
         textureInfo.imageData = ctx.getImageData(0, 0, image.width, image.height);
+        textureInfo.getColorAt = function(x, y) {
+            const ax = (x * this.width) | 0;
+            const ay = (y * this.height) | 0;
+            const index = ((ay * this.width) + ax) * 4;
+            return new Color(
+                this.imageData.data[index + 0],
+                this.imageData.data[index + 1],
+                this.imageData.data[index + 2],
+                this.imageData.data[index + 3]
+            );
+        };
 
         canvas.width = canvas.height = 0;
 

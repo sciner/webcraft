@@ -383,11 +383,21 @@ export class Player {
         if(actions.reset_target_event) {
             this.pickAt.clearEvent();
         }
-        if(actions.clone_block && this.game_mode.canBlockClone()) {
+        if(actions.clone_block /* && this.game_mode.canBlockClone()*/) {
             this.world.server.CloneBlock(e.pos);
         }
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
+                //
+                const tblock = Game.world.getBlock(mod.pos);
+                if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
+                    const destroy_data = {
+                        pos: mod.pos,
+                        item: {id: tblock.id}
+                    };
+                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                }
+                //
                 switch(mod.action_id) {
                     case ServerClient.BLOCK_ACTION_CREATE:
                     case ServerClient.BLOCK_ACTION_REPLACE:
@@ -430,7 +440,7 @@ export class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height, this.lerpPos.z);
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height - this._height / 16, this.lerpPos.z);
     }
 
     // getBlockPos

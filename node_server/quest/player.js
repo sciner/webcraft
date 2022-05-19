@@ -160,7 +160,7 @@ export class QuestPlayer {
         if(!block) {
             throw 'error_invalid_block';
         }
-        this.sendMessage(`${e.player.session.username} put item ${block.name} to inventory`);
+        // this.sendMessage(`${e.player.session.username} put item ${block.name} to inventory`);
     }
 
     // On game event

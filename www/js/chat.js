@@ -195,7 +195,7 @@ export class Chat extends TextBox {
     drawHUD(hud) {
 
         const margin            = 10 * this.zoom;
-        const padding           = this.padding;
+        const padding           = this.style.padding;
         const top               = 45 * this.zoom;
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)

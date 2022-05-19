@@ -1,5 +1,5 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
-import {DIRECTION, Vector} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {impl as alea} from "../../vendors/alea.js";
@@ -111,7 +111,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: Math.PI / 4,
                 translate: [.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, 0, 16, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, 16, null, null, true)},
                 anim: 8
             });
             chains.push({
@@ -121,7 +121,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: -Math.PI / 4,
                 translate: [-.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, 0, 16, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, 16, null, null, true)},
                 anim: 8
             });
             style.pushChains(vertices, chains);

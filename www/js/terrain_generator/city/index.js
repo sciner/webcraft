@@ -5,7 +5,7 @@ import {alea, Default_Terrain_Generator} from "../default.js";
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
-        super();
+        super(seed, world_id, options);
         this.setSeed(0);
         // Init palette blocks
         this.blocks1 = [];
@@ -263,26 +263,23 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        let cell = {biome: {dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0), code: 'City'}};
-        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+            code: 'City'
+        }};
 
-        let addr = chunk.addr;
-        let size = chunk.size;
+        const addr = chunk.addr;
+        const size = chunk.size;
 
         return {
-            chunk: {
-                id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-                blocks: {},
-                seed:   chunk.seed,
-                addr:   addr,
-                size:   size,
-                coord:  addr.mul(size),
-            },
+            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
+            blocks: {},
+            seed:   chunk.seed,
+            addr:   addr,
+            size:   size,
+            coord:  addr.mul(size),
+            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
             options: {
                 WATER_LINE: 63, // Ватер-линия
-            },
-            info: {
-                cells: cells
             }
         };
 

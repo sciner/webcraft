@@ -6,6 +6,7 @@ import { Resources } from "./resources.js";
 const START_WOOL_ID = 350; // ... 365
 const START_CARPET_ID = 800; // ... 815
 const START_BUTTON_ID = 770; // ...799
+const START_BED_ID = 1200; // ...1215
 
 export const COLOR_PALETTE = {
     white: [0, 0],
@@ -69,6 +70,7 @@ export class ResourcePackManager {
         this.initWool(base);
         this.initCarpets(base);
         this.initButtons(base);
+        this.initBed(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -144,6 +146,45 @@ export class ResourcePackManager {
                 "mask_color": mask_color,
                 "tags": [
                     "can_put_info_pot",
+                    "mask_color"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
+    }
+
+    // Beds
+    initBed(resource_pack) {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_BED_ID + i,
+                "name": color.toUpperCase() + '_BED',
+                "material": {"id": "wood"},
+                "style": "bed",
+                "height": 0.5,
+                "max_in_stack": 1,
+                "sound": "madcraft:block.wood",
+                "transparent": true,
+                "texture": {
+                    "side": [16, 23]
+                },
+                "can_rotate": true,
+                "inventory": {
+                    "style": "extruder",
+                    "texture": [4, 17]
+                },
+                "mask_color": mask_color,
+                "tags": [
+                    "bed",
+                    "rotate_by_pos_n",
                     "mask_color"
                 ]
             };

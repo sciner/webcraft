@@ -5,8 +5,8 @@ import { BLOCK } from "../../blocks.js";
 //
 export class ClusterPyramid extends ClusterBase {
 
-    constructor(addr) {
-        super(addr);
+    constructor(clusterManager, addr) {
+        super(clusterManager, addr);
         this.max_height  = 1;
         this.is_empty = false;
         if(!this.is_empty) {
@@ -46,7 +46,7 @@ export class ClusterPyramid extends ClusterBase {
         if(this.is_empty) {
             return false;
         }
-        super.fillBlocks(chunk, map);
+        super.fillBlocks(maps, chunk, map);
     }
 
 }

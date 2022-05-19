@@ -16,7 +16,7 @@ export class DropItem {
         this.entity_id      = params.entity_id,
         this.items          = params.items;
         this.pos            = new Vector(params.pos);
-        this.posO           = new Vector(this.pos);
+        this.posO           = new Vector(Infinity, Infinity, Infinity);
         // Private properties
         this.#chunk_addr    = new Vector();
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
@@ -28,7 +28,7 @@ export class DropItem {
             stepHeight: 1,
             defaultSlipperiness: 0.98
         });
-        this.#prev_chunk_addr = getChunkAddr(this.pos);
+        this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
         this.load_time = performance.now();
         //

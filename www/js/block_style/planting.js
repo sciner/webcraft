@@ -74,7 +74,7 @@ export default class style {
         } else if('side' in block.material.texture_animations) {
             return block.material.texture_animations['side'];
         }
-        return 1;
+        return 0;
     }
 
     //
@@ -89,6 +89,9 @@ export default class style {
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
         style.lm.b = style.getAnimations(block, 'up');
+        if(style.lm.b > 1) {
+            flag |= QUAD_FLAGS.FLAG_ANIMATED;
+        }
 
         //
         if(material.planting) {

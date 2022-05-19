@@ -1259,5 +1259,21 @@
             "item": "madcraft:diamond_block",
             "count": 1
         }
+    },
+    {
+        "id": "8dafbca0-e5a4-46b3-8673-49c6e5e3a909",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            " I",
+            "I"
+        ],
+        "key": {
+            "I": {"item": "madcraft:iron_ingot"}
+        },
+        "result": {
+            "item": "madcraft:shears",
+            "count": 1
+        }
     }
 ]

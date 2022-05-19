@@ -23,19 +23,21 @@ export class ClusterPoint {
 
 }
 
+// ClusterBase
 export class ClusterBase {
 
     // constructor
-    constructor(addr) {
-        this.addr        = addr;
-        this.coord       = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
-        this.size        = CLUSTER_SIZE.clone();
-        this.id          = addr.toHash();
-        this.randoms     = new alea(`villages_${this.id}`);
-        this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/4;
-        this.mask        = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.max_height  = null;
-        this.max_dist    = NEAR_MASK_MAX_DIST;
+    constructor(clusterManager, addr) {
+        this.clusterManager = clusterManager;
+        this.addr           = addr;
+        this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
+        this.size           = CLUSTER_SIZE.clone();
+        this.id             = this.clusterManager.seed + '_' + addr.toHash();
+        this.randoms        = new alea(`villages_${this.id}`);
+        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.max_height     = null;
+        this.max_dist       = NEAR_MASK_MAX_DIST;
     }
 
     // Set block
@@ -166,7 +168,7 @@ export class ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(chunk, map) {
+    fillBlocks(maps, chunk, map) {
         if(this.is_empty) {
             return false;
         }
@@ -205,10 +207,17 @@ export class ClusterBase {
                             }
                         }
                     } else {
+                        const is_array = Array.isArray(point.block_id);
+                        let ai = 0;
                         for(let k = point.height; k <= 0; k++) {
                             let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
-                                this.setBlock(chunk, i, y, j, k == point.height ? point.block_id : BLOCK.AIR.id, null);
+                                // this.setBlock(chunk, i, y, j, k == point.height ? point.block_id : BLOCK.AIR.id, null);
+                                let block_id = k == point.height ? point.block_id : BLOCK.AIR.id;
+                                if(is_array) {
+                                    block_id = point.block_id[ai++];
+                                }
+                                this.setBlock(chunk, i, y, j, block_id, null);
                             }
                         }
                     }
@@ -231,6 +240,11 @@ export class ClusterBase {
 
     // Add NPC
     addNPC(chunk, pos) {
+        // Auto generate mobs
+        const auto_generate_mobs = this.clusterManager.chunkManager.world.getGeneratorOptions('auto_generate_mobs', true);
+        if(!auto_generate_mobs) {
+            return;
+        }
         let rel_pos = pos.sub(chunk.coord);
         if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= CHUNK_SIZE_X || rel_pos.y >= CHUNK_SIZE_Y || rel_pos.z >= CHUNK_SIZE_Z) {
             return false;

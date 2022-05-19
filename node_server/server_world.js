@@ -93,7 +93,7 @@ export class ServerWorld {
                 }
             }
         };
-        //
+        // Queue for packets
         this.packets_queue = {
             list: new Map(),
             add: function(user_ids, packets) {
@@ -149,6 +149,36 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        // Queue for load chest content
+        this.chest_load_queue = {
+            list: [],
+            add: function(player, params) {
+                this.list.push({player, params});
+            },
+            run: async function() {
+                while(this.list.length > 0) {
+                    const queue_item    = this.list.shift();
+                    const pos           = new Vector(queue_item.params.pos);
+                    const chest         = await that.chests.get(pos);
+                    let result          = false;
+                    if(chest) {
+                        if(chest.id < 0) {
+                            if(!queue_item.cnt) {
+                                queue_item.cnt = 0;
+                            }
+                            if(++queue_item.cnt < 1000) {
+                                this.list.push(queue_item);
+                            }
+                        } else {
+                            result = that.chests.sendContentToPlayers([queue_item.player], pos);
+                        }
+                    }
+                    if(!result) {
+                        throw `Chest ${pos.toHash()} not found`;
+                    }
+                }
+            }
+        };
         // Queue of chest confirms
         this.chest_confirm_queue = {
             list: [],
@@ -159,7 +189,7 @@ export class ServerWorld {
                 while(this.list.length > 0) {
                     const queue_item = this.list.shift();
                     const pos = queue_item.params.chest.pos;
-                    const chest = that.chests.get(pos);
+                    const chest = await that.chests.get(pos);
                     if(chest) {
                         console.log('Chest state from ' + queue_item.player.session.username);
                         await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
@@ -270,8 +300,10 @@ export class ServerWorld {
         // 6. Chest confirms
         try {
             await this.chest_confirm_queue.run();
+            await this.chest_load_queue.run();
         } catch(e) {
             // do nothing
+            console.log(e)
         }
         this.ticks_stat.add('chest_confirm_queue');
         //
@@ -458,9 +490,6 @@ export class ServerWorld {
 
     // changePlayerPosition...
     changePlayerPosition(player, params) {
-        // @todo Нужно разрешить в режиме спектатора посещать отрицательную высоту,
-        // но если это сделать, то почему-то игрок зависает в точке контакта и после
-        // этого никуда не может сместиться =(
         if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
             this.teleportPlayer(player, {
                 place_id: 'spawn'
@@ -755,6 +784,17 @@ export class ServerWorld {
                 cp.chunk.sendAll(cp.packets, []);
             }
         }
+    }
+
+    // Return generator options
+    getGeneratorOptions(key, default_value) {
+        const generator_options = this.info.generator.options;
+        if(generator_options) {
+            if(key in generator_options) {
+                return generator_options[key];
+            }
+        }
+        return default_value;
     }
 
 }

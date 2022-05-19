@@ -48,7 +48,7 @@ export class MineGenerator {
         this.genNodeMine(x, bottom_y, z, DIRECTION.SOUTH);
         this.is_empty = this.nodes.size == 0;
         const ms = Math.round((performance.now() - pn) * 1000) / 1000;
-        console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes for " + ms + ' ms on height ' + bottom_y);
+        // console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes for " + ms + ' ms on height ' + bottom_y);
     }
 
     // getForCoord
@@ -163,7 +163,7 @@ export class MineGenerator {
         
         vec.set(1, 1, 1).rotY(dir);
         const chest_rot = CHEST_ROT;
-        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot);
+        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot, {generate: true, params: {source: 'cave_mines'}});
     }
 
     // Generate enter node

@@ -29,6 +29,8 @@ export class TBlock {
         return this.tb.id[this.index];
     }
     set id(value) {
+        // let cu = this.tb.id[this.index];
+        // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
         this.tb.id[this.index] = value;
     }
 
@@ -189,10 +191,11 @@ export class TypedBlocks {
         this.shapes     = new VectorCollector();
         this.metadata   = new VectorCollector();
         this.position   = new VectorCollector();
+        this.non_zero   = 0;
     }
 
     // Restore state
-    restoreState(state) {
+    restoreState(state, refresh_non_zero = false) {
         this.buffer     = state.buffer;
         this.id         = new Uint16Array(this.buffer, 0, this.count);
         this.power      = new VectorCollector(state.power.list);
@@ -203,6 +206,20 @@ export class TypedBlocks {
         this.vertices   = new VectorCollector(state.vertices.list);
         this.shapes     = new VectorCollector(state.shapes.list);
         this.falling    = new VectorCollector(state.falling.list);
+        if(refresh_non_zero) {
+            this.refreshNonZero();
+        }
+    }
+
+    //
+    refreshNonZero() {
+        this.non_zero = 0;
+        for(let i = 0; i < this.count; i++) {
+            if(this.id[i] != 0) {
+                this.non_zero++;
+            }
+        }
+        return this.non_zero;
     }
 
     /**

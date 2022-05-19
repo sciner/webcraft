@@ -1,4 +1,4 @@
-import {Vector} from "./helpers.js";
+import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import {Sphere} from "./frustum.js";
@@ -44,18 +44,23 @@ export class Chunk {
 
     constructor(addr, modify_list, chunkManager) {
 
-        this.addr       = new Vector(addr); // относительные координаты чанка
-        this.key        = this.addr.toChunkKey();
-        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
-        this.coord      = this.addr.mul(this.size);
-        this.seed       = chunkManager.world.info.seed;
-        this.tblocks    = null;
-        this.id         = this.addr.toHash();
+        this.addr                       = new Vector(addr); // относительные координаты чанка
+        this.seed                       = chunkManager.world.info.seed;
 
         // Run webworker method
-        this.modify_list = modify_list || [];
-        chunkManager.postWorkerMessage(['createChunk', this]);
-        this.modify_list = [];
+        chunkManager.postWorkerMessage(['createChunk', [
+            {
+                addr:           this.addr,
+                seed:           this.seed,
+                modify_list:    modify_list || []
+            }
+        ]]);
+
+        //
+        this.tblocks                    = null;
+        this.size                       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
+        this.coord                      = this.addr.mul(this.size);
+        this.id                         = this.addr.toHash();
 
         // Light
         this.lightTex                   = null;
@@ -68,6 +73,7 @@ export class Chunk {
         this.buildVerticesInProgress    = false;
         this.vertices_length            = 0;
         this.vertices                   = new Map();
+        this.verticesList               = [];
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
         this.in_frustum                 = false; // в данный момент отрисован на экране
@@ -84,12 +90,18 @@ export class Chunk {
             this.coord.y + this.size.y,
             this.coord.z + this.size.z
         );
+
+        this._dataTextureOffset = 0;
+        this._dataTexture = null;
+        this._dataTextureDirty = false;
     }
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
         this.tblocks = new TypedBlocks(this.coord);
-        this.tblocks.restoreState(args.tblocks);
+        if(args.tblocks) {
+            this.tblocks.restoreState(args.tblocks);
+        }
         this.inited = true;
         this.initLights();
     }
@@ -107,7 +119,9 @@ export class Chunk {
     }
 
     onLightGenerated(args) {
-        this.lightData = args.lightmap_buffer ? new Uint8Array(args.lightmap_buffer) : null;
+        const cm = this.getChunkManager();
+        const arrClass = cm.lightTexFormat === 'rgb565unorm' ? Uint16Array: Uint8Array;
+        this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }
@@ -159,7 +173,7 @@ export class Chunk {
                 defWidth: CHUNK_SIZE_X + 2,
                 defHeight: CHUNK_SIZE_Z + 2,
                 defDepth: (CHUNK_SIZE_Y + 2) * 2,
-                type: 'rgba8unorm',
+                type: cm.lightTexFormat,
                 filter: 'linear',
             });
         }
@@ -169,13 +183,40 @@ export class Chunk {
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * 2,
-                type: 'rgba8unorm',
+                type: cm.lightTexFormat,
                 filter: 'linear',
                 data: this.lightData
             })
+            this._dataTextureDirty = true;
         }
 
         return this.lightTex;
+    }
+
+    getDataTextureOffset() {
+        if (!this._dataTexture) {
+            const cm = this.getChunkManager();
+            cm.chunkDataTexture.add(this);
+        }
+
+        return this._dataTextureOffset;
+    }
+
+    prepareRender(render) {
+        if (!render) {
+            return;
+        }
+        //TODO: if dist < 100?
+        this.getLightTexture(render);
+
+        if (!this._dataTexture) {
+            const cm = this.getChunkManager();
+            cm.chunkDataTexture.add(this);
+        }
+
+        if (this._dataTextureDirty) {
+            this._dataTexture.writeChunkData(this);
+        }
     }
 
     drawBufferVertices(render, resource_pack, group, mat, vertices) {
@@ -185,18 +226,24 @@ export class Chunk {
             texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
             resource_pack.materials.set(key, texMat);
         }
-        let dist = 0; // Game.player.lerpPos.distance(this.coord);
-        if(this.lightData && dist < 100) {
+        mat = texMat;
+        let dist = Game.player.lerpPos.distance(this.coord);
+        render.batch.setObjectDrawer(render.chunk);
+        if(this.lightData && dist < 108) {
+            // in case light of chunk is SPECIAL
             this.getLightTexture(render);
-            let mat = this.lightMats.get(key);
-            if (!mat) {
-                mat = texMat.getLightMat(this.lightTex);
-                this.lightMats.set(key, mat);
+            if (this.lightTex) {
+                const base = this.lightTex.baseTexture || this.lightTex;
+                if (base._poolLocation <= 0) {
+                    mat = this.lightMats.get(key);
+                    if (!mat) {
+                        mat = texMat.getLightMat(this.lightTex);
+                        this.lightMats.set(key, mat);
+                    }
+                }
             }
-            render.drawMesh(v.buffer, mat, this.coord);
-        } else {
-            render.drawMesh(v.buffer, texMat, this.coord);
         }
+        render.chunk.draw(v.buffer, mat, this);
         return true;
     }
 
@@ -214,24 +261,46 @@ export class Chunk {
         this.vertices_length                    = 0;
         // Delete old WebGL buffers
         for(let [key, v] of this.vertices) {
-            if(v.buffer) {
-                v.buffer.destroy();
-            }
-            this.vertices.delete(key);
+            v.buffer.customFlag = true;
         }
+
+        const chunkLightId = this.getDataTextureOffset();
         // Add chunk to renderer
+        this.verticesList.length = 0;
         for(let [key, v] of Object.entries(args.vertices)) {
             if(v.list.length > 0) {
                 let temp = key.split('/');
                 this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
-                v.buffer              = new GeometryTerrain(v.list);
+                let lastBuffer = this.vertices.get(key);
+                if (lastBuffer) { lastBuffer = lastBuffer.buffer }
                 v.resource_pack_id    = temp[0];
                 v.material_group      = temp[1];
                 v.texture_id          = temp[2];
                 v.key                 = key;
+                v.buffer              = chunkManager.bufferPool.alloc({
+                    lastBuffer,
+                    vertices: v.list,
+                    chunkId: chunkLightId
+                });
+                if (lastBuffer && v.buffer !== lastBuffer) {
+                    lastBuffer.destroy();
+                }
+                v.buffer.customFlag = false;
+                v.rpl = null;
                 this.vertices.set(key, v);
+                this.verticesList.push(v);
                 delete(v.list);
             }
+        }
+        let oldKeys = [];
+        for (let [key, v] of this.vertices) {
+            if (v.customFlag) {
+                v.destroy();
+                oldKeys.push(key);
+            }
+        }
+        for (let i = 0; i< oldKeys.length; i++) {
+            this.vertices.delete(oldKeys);
         }
         if(this.vertices_length == 0) {
             // @todo
@@ -255,8 +324,9 @@ export class Chunk {
         }
         this.lightTex = null;
         // run webworker method
-        chunkManager.postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
-        chunkManager.postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        chunkManager.destruct_chunks_queue.add(this.addr);
+        // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
+        // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
         const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
         Game.render.meshes.remove(PARTICLE_EFFECTS_ID, Game.render);
@@ -269,7 +339,10 @@ export class Chunk {
         }
         this.buildVerticesInProgress = true;
         // run webworker method
-        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key], addrs: [this.addr]}]);
+        this.getChunkManager().postWorkerMessage(['buildVertices', {
+            addrs: [this.addr],
+            offsets: [this.getDataTextureOffset()]
+        }]);
         return true;
     }
 
@@ -350,11 +423,7 @@ export class Chunk {
         if(update_vertices) {
             let set_block_list = [];
             set_block_list.push({
-                key:        this.key,
-                addr:       this.addr,
-                x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z,
+                pos:        new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z),
                 type:       item,
                 is_modify:  is_modify,
                 power:      power,
@@ -381,20 +450,17 @@ export class Chunk {
                 update_neighbours2.push(update_neighbour.add(new Vector(0, 1, 0)));
             }
             update_neighbours.push(...update_neighbours2);
-            let updated_chunks = [this.key];
+            let updated_chunks = new VectorCollector();
+            updated_chunks.set(this.addr, true);
+            let _chunk_addr = new Vector(0, 0, 0);
             for(var update_neighbour of update_neighbours) {
-                let pos = new Vector(x, y, z).add(this.coord).add(update_neighbour);
-                let chunk_addr = getChunkAddr(pos);
-                let key = chunk_addr.toChunkKey();
+                let pos = new Vector(x, y, z).addSelf(this.coord).addSelf(update_neighbour);
+                _chunk_addr = getChunkAddr(pos, _chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды
-                if(updated_chunks.indexOf(key) < 0) {
-                    updated_chunks.push(key);
+                if(!updated_chunks.has(_chunk_addr)) {
+                    updated_chunks.set(_chunk_addr);
                     set_block_list.push({
-                        key:        key,
-                        addr:       chunk_addr,
-                        x:          pos.x,
-                        y:          pos.y,
-                        z:          pos.z,
+                        pos,
                         type:       null,
                         is_modify:  is_modify,
                         power:      power,

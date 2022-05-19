@@ -12,7 +12,6 @@ const HEIGHT_INNER = 4/32;
 const CONNECT_HEIGHT_ON_CEIL = 6 / 16;
 
 const lm = MULTIPLY.COLOR.WHITE.clone();
-lm.b = 1;
 
 // getAnimations...
 let getAnimations = (material, side) => {
@@ -76,7 +75,7 @@ export default class style {
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const animations_side   = getAnimations(block.material, 'side');
         const on_ceil           = block.rotate.y == -1;
-        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.FLAG_ANIMATED;
 
         lm.b = animations_side;
 

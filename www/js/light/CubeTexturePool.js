@@ -2,7 +2,7 @@ import {Vector} from '../helpers.js';
 import {BaseTexture3D, RegionTexture3D} from "../renders/BaseTexture3D.js";
 
 export class GridCubeTexture {
-    constructor({ textureOptions, dims, context }) {
+    constructor({textureOptions, dims, context}) {
         this.textureOptions = textureOptions;
         this.dims = dims;
         this.freeRegions = []
@@ -12,7 +12,7 @@ export class GridCubeTexture {
     }
 
     init() {
-        const { dims, context } = this;
+        const {dims, context} = this;
         const to = this.textureOptions;
         const baseTexture = this.baseTexture = this.context.createTexture3D({
             width: dims.x * to.width,
@@ -48,11 +48,12 @@ export class CubeTexturePool {
         defWidth = 18,
         defHeight = 18,
         defDepth = 42,
-        bigWidth = 128,
-        bigHeight = 128,
-        bigDepth = 128,
+        bigWidth = 256,
+        bigHeight = 256,
+        bigDepth = 256,
         type = 'rgba8unorm',
-        filter = 'linear'
+        filter = 'linear',
+        maxBoundTextures = 10,
     }) {
         this.bigWidth = bigWidth;
         this.bigHeight = bigHeight;
@@ -71,10 +72,13 @@ export class CubeTexturePool {
 
         this.totalBytes = 0;
         this.totalRegions = 0;
+        this.maxBoundTextures = maxBoundTextures;
+        this.boundTextures = [null];
+        this.bytePerElement = (type === 'rgb565unorm' ? 2 : 4 );
     }
 
     alloc({width, height, depth, type, filter, data}) {
-        const { defTex } = this;
+        const {defTex} = this;
         if (width !== this.defTex.width || height !== this.defTex.height || depth !== this.defTex.depth) {
             // create a single
             const tex = this.context.createTexture3D(
@@ -85,6 +89,9 @@ export class CubeTexturePool {
             return tex;
         } else {
             const tex = this.findFreeRegion();
+            if (!tex) {
+                return null;
+            }
             tex.ownerPool = this;
             if (data) {
                 tex.update(data);
@@ -95,8 +102,25 @@ export class CubeTexturePool {
         }
     }
 
+    registerLocation(baseTex) {
+        const {boundTextures} = this;
+        baseTex._ownerPool = this;
+        for (let i = 1; i < boundTextures.length; i++) {
+            if (!boundTextures[i]) {
+                boundTextures[i] = baseTex;
+                baseTex._poolLocation = i;
+            }
+        }
+        if (boundTextures.length >= this.maxBoundTextures) {
+            return;
+        }
+        //TODO: check for max size!
+        baseTex._poolLocation = boundTextures.length;
+        boundTextures.push(baseTex);
+    }
+
     findFreeRegion() {
-        const { defTex, pools, context } = this;
+        const {defTex, pools, context} = this;
 
         let cur = this.currentPoolIndex;
         let repeat = 0;
@@ -123,9 +147,10 @@ export class CubeTexturePool {
             )
             newCube.init();
             const base = newCube.baseTexture;
-            this.totalBytes += base.width * base.height * base.depth * 4;
+            this.totalBytes += base.width * base.height * base.depth * this.bytePerElement;
             cur = pools.length;
             pools.push(newCube);
+            this.registerLocation(base);
         }
         this.currentPoolIndex = cur;
         const tex = pools[cur].freeRegions.pop();
@@ -134,7 +159,7 @@ export class CubeTexturePool {
     }
 
     dealloc(tex) {
-        const { pools, singles } = this;
+        const {pools, singles} = this;
         if (tex.ownerPool !== this) {
             // wtf
             return;
@@ -173,7 +198,7 @@ export class CubeTexturePool {
     }
 
     destroy() {
-        for (let i=0;i<this.singles.length;i++) {
+        for (let i = 0; i < this.singles.length; i++) {
             this.singles[i].destroy();
         }
     }

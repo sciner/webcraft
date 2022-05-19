@@ -1,6 +1,7 @@
 // Modules
 let Vector              = null;
 let Helpers             = null;
+let getChunkAddr        = null;
 let VectorCollector     = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
@@ -17,7 +18,7 @@ const worker = {
             import('path').then(module => global.path = module);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);    
+                this.parentPort.on('message', onMessageFunc);
             });
         } else {
             onmessage = onMessageFunc
@@ -51,13 +52,13 @@ async function preLoad () {
         WorkerWorldManager = module.WorkerWorldManager;
     });
     // load module
+    await import('./chunk.js').then(module => {
+        getChunkAddr = module.getChunkAddr;
+    });
+    // load module
     await import('./blocks.js').then(module => {
         globalThis.BLOCK = module.BLOCK;
         // return BLOCK.init(settings);
-    });
-    // load module
-    await import('./terrain_generator/cluster/manager.js').then(module => {
-        globalThis.ClusterManager = module.ClusterManager;
     });
 
     console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
@@ -66,7 +67,7 @@ async function preLoad () {
 * @param {string} terrain_type
 */
 async function initWorld(
-    terrain_type,
+    generator,
     world_seed,
     world_guid,
     settings,
@@ -84,8 +85,8 @@ async function initWorld(
     await globalThis.BLOCK.init(settings);
     //
     worlds = new WorkerWorldManager();
-    await worlds.InitTerrainGenerators([terrain_type]);
-    globalThis.world = await worlds.add(terrain_type, world_seed, world_guid);
+    await worlds.InitTerrainGenerators([generator.id]);
+    globalThis.world = await worlds.add(generator, world_seed, world_guid);
     // Worker inited
     worker.postMessage(['world_inited', null]);
 }
@@ -101,7 +102,7 @@ async function onMessageFunc(e) {
     if(cmd == 'init') {
         // Init modules
         return await initWorld(
-            args.generator.id,
+            args.generator,
             args.world_seed,
             args.world_guid,
             args.settings,
@@ -110,37 +111,43 @@ async function onMessageFunc(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            let from_cache = world.chunks.has(args.addr);
-            const update = ('update' in args) && args.update;
-            if(update) {
+            for(let item of args) {
+                let from_cache = world.chunks.has(item.addr);
+                const update = ('update' in item) && item.update;
+                if(update) {
+                    if(from_cache) {
+                        world.chunks.delete(item.addr);
+                        from_cache = false;
+                    }
+                }
                 if(from_cache) {
-                    world.chunks.delete(args.addr);
-                    from_cache = false;
+                    let chunk = world.chunks.get(item.addr);
+                    const non_zero = chunk.tblocks.refreshNonZero();
+                    worker.postMessage(['blocks_generated', {
+                        key:            chunk.key,
+                        addr:           chunk.addr,
+                        tblocks:        non_zero > 0 ? chunk.tblocks : null,
+                        ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
+                        map:            chunk.map
+                    }]);
+                } else {
+                    let ci = world.createChunk(item);
+                    const non_zero = ci.tblocks.refreshNonZero();
+                    const ci2 = {
+                        addr: ci.addr,
+                        key: ci.key,
+                        tblocks: non_zero > 0 ? ci.tblocks : null,
+                        ticking_blocks: ci.ticking_blocks
+                    }
+                    worker.postMessage(['blocks_generated', ci2]);
                 }
-            }
-            if(from_cache) {
-                let chunk = world.chunks.get(args.addr);
-                worker.postMessage(['blocks_generated', {
-                    key:            chunk.key,
-                    addr:           chunk.addr,
-                    tblocks:        chunk.tblocks,
-                    ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
-                    map:            chunk.map
-                }]);
-            } else {
-                let ci = world.createChunk(args);
-                const ci2 = {
-                    addr: ci.addr,
-                    key: ci.key,
-                    tblocks: ci.tblocks,
-                    ticking_blocks: ci.ticking_blocks
-                }
-                worker.postMessage(['blocks_generated', ci2]);
             }
             break;
         }
         case 'destructChunk': {
-            world.destructChunk(args.addr);
+            for(let addr of args) {
+                world.destructChunk(addr);
+            }
             break;
         }
         case 'destroyMap': {
@@ -151,9 +158,13 @@ async function onMessageFunc(e) {
         }
         case 'buildVertices': {
             let results = [];
-            for(let addr of args.addrs) {
+            for (let ind = 0; ind < args.addrs.length; ind++) {
+                let addr = args.addrs[ind];
+                let dataOffset = args.offsets[ind];
+
                 let chunk = world.chunks.get(addr);
                 if(chunk) {
+                    chunk.dataOffset = dataOffset;
                     // 4. Rebuild vertices list
                     const item = buildVertices(chunk, false);
                     if(item) {
@@ -175,18 +186,21 @@ async function onMessageFunc(e) {
         }
         case 'setBlock': {
             let chunks = new VectorCollector();
+            let chunk_addr = new Vector(0, 0, 0);
+            const pos_world = new Vector(0, 0, 0);
             for(let m of args) {
                 // 1. Get chunk
-                let chunk = world.getChunk(m.addr);
+                getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
+                let chunk = world.getChunk(chunk_addr);
                 if(chunk) {
                     // 2. Set block
                     if(m.type) {
-                        chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                        chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
-                    let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
+                    pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z)
                     // 3. Clear vertices for block and around near
-                    chunk.setDirtyBlocks(pos);
-                    chunks.set(m.addr, chunk);
+                    chunk.setDirtyBlocks(pos_world);
+                    chunks.set(chunk_addr, chunk);
                 } else {
                     console.error('worker.setBlock: chunk not found at addr: ', m.addr);
                 }
@@ -221,7 +235,7 @@ async function onMessageFunc(e) {
         case 'createMaps': {
             /*let pn = performance.now();
             const addr = new Vector(args.addr);
-            const maps = world.generator.maps.generateAround(addr, false, false, 8);
+            const maps = world.generator.maps.generateAround(chunk, addr, false, false, 8);
             const CELLS_COUNT = 256;
             const CELL_LENGTH = 4;
             const resp = new Float32Array(new Array((CELLS_COUNT * CELL_LENGTH + CELL_LENGTH) * maps.length));

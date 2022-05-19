@@ -428,6 +428,7 @@ export class Building1 extends Building {
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
         //
         if(cluster.flat) {
             if(seed < .5) {
@@ -467,28 +468,18 @@ export class Building1 extends Building {
             }
         }
         //
-        this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
-        if(this.is_big_building) {
-            // draw fence
-            cluster.addFence(orig_coord, orig_size);
-            //
-            if(this.randoms.double() < .75) {
-                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-11, 0, 6), door_direction + 2);
-                const dx = centerOfHay.x - cluster.coord.x;
-                const dz = centerOfHay.z - cluster.coord.z;
-                this.addHays(dx, dz);
-            }
-        }
-        //
         this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: 1}
         ]);
         // Blocks
         const dir                = this.door_direction;
         const mirror_x           = dir % 2 == 1;
+        const add_hays           = this.randoms.double() <= .75;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
+        const has_bed            = this.randoms.double() <= .6;
+        const has_bookcases      = this.randoms.double();
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
@@ -510,8 +501,49 @@ export class Building1 extends Building {
                 {move: new Vector(1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
             ]
         }
+        //
+        if(this.is_big_building) {
+            // draw fence
+            cluster.addFence(orig_coord, orig_size, door_bottom, this.blocks.list);
+            //
+            if(add_hays) {
+                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-11, 0, 6), door_direction + 2);
+                const dx = centerOfHay.x - cluster.coord.x;
+                const dz = centerOfHay.z - cluster.coord.z;
+                this.addHays(dx, dz);
+            }
+        }
         if(has_chest) {
-            this.blocks.list.push({move: new Vector(-1, 3, 5), block_id: BLOCK.CHEST.id, rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0}});
+            this.blocks.list.push({
+                move: new Vector(-1, 3, 5),
+                block_id: BLOCK.CHEST.id,
+                rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0},
+                extra_data: {generate: true, params: {source: 'village_house'}}
+            });
+        }
+        // Bed
+        if(has_bed) {
+            const color_index = ((this.randoms.double() * 4) | 0);
+            const bed_block_id = 1210 + color_index;
+            const carpet_block_id = 810 + color_index;
+            this.blocks.list.push({move: new Vector(1, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}});
+            this.blocks.list.push({move: new Vector(2, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 3 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}, extra_data: {is_head: true}});
+            this.blocks.list.push({move: new Vector(1, 0, 4), block_id: carpet_block_id, rotate: {x: 0, y: 1, z: 0}});
+        }
+        // Book cases
+        if(has_bookcases < .6) {
+            let bc_start_pos = null;
+            if(has_bookcases < .2) {
+                bc_start_pos = new Vector(3, 0, 4);
+            } else if(has_bookcases < .4) {
+                bc_start_pos = new Vector(-1, 0, 1);
+            }
+            if(bc_start_pos) {
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 0)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 1)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 0)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 1)), block_id: BLOCK.BOOKCASE.id});
+            }
         }
     }
 
@@ -581,7 +613,7 @@ export class Building1 extends Building {
 
 }
 
-// BuildingS
+// BuildingS (small)
 export class BuildingS extends Building {
 
     static MAX_SIZES = [5];
@@ -624,6 +656,7 @@ export class BuildingS extends Building {
         const mirror_x           = dir % 2 == 1;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
+        const has_bed            = this.randoms.double() <= .6;
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
@@ -643,6 +676,12 @@ export class BuildingS extends Building {
         }
         if(has_chandelier) {
             this.blocks.list.push({move: new Vector(0, 3, 2), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}});
+        }
+        // Bed
+        if(has_bed) {
+            const bed_block_id = 1210 + ((this.randoms.double() * 4) | 0);
+            this.blocks.list.push({move: new Vector(-1, 0, 1), block_id: bed_block_id, rotate: {x: dir + 0, y: -1, z: 0}, extra_data: {is_head: true}});
+            this.blocks.list.push({move: new Vector(-1, 0, 2), block_id: bed_block_id, rotate: {x: dir + 2, y: -1, z: 0}});
         }
     }
 

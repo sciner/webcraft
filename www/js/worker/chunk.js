@@ -1,8 +1,9 @@
-import {BLOCK, POWER_NO, WATER_BLOCKS_ID} from "../blocks.js";
-import {Color, Vector, VectorCollector} from "../helpers.js";
+import {BLOCK, POWER_NO} from "../blocks.js";
+import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
+import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -23,6 +24,7 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
+        this.clusterManager = new ClusterManager(this, world.generator.seed);
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -55,10 +57,11 @@ export class ChunkManager {
 
 }
 
-class BlockNeighbours {
+// BlockNeighbours
+export class BlockNeighbours {
 
     constructor() {
-        this.pcnt   = 0;
+        this.pcnt   = 6;
         this.UP     = null;
         this.DOWN   = null;
         this.SOUTH  = null;
@@ -73,7 +76,7 @@ class BlockNeighbours {
 export class Chunk {
 
     constructor(chunkManager, args) {
-        this.chunkManager = chunkManager;
+        this.chunkManager   = chunkManager;
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -81,7 +84,8 @@ export class Chunk {
         this.id             = this.addr.toHash();
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new VectorCollector();
-        this.cluster        = ClusterManager.getForCoord(this.coord);
+        this.temp_vec2      = new Vector(0, 0, 0);
+        this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,
@@ -240,54 +244,76 @@ export class Chunk {
         this.emitted_blocks.delete(block.pos);
     }
 
-    // Возвращает всех 6-х соседей блока
+    // Set block indirect
+    setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
+        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        if(rotate || extra_data) {
+            this.temp_vec2.x = x;
+            this.temp_vec2.y = y;
+            this.temp_vec2.z = z;
+        }
+        // fill data
+        this.tblocks.id[index] = block_id;
+        if(rotate) {
+            this.tblocks.rotate.set(this.temp_vec2, rotate);
+        }
+        if(extra_data) {
+            this.tblocks.extra_data.set(this.temp_vec2, extra_data);
+        }
+    }
+
     /**
-     * 
+     * Возвращает всех 6-х соседей блока
      * @param {Vector} pos 
+     * @param {Array} cache 
      * @returns 
      */
     getBlockNeighbours(pos, cache = null) {
 
         const neighbours = new BlockNeighbours();
+        let i = 0;
+        let chunk;
 
         // обходим соседние блоки
-        let i = 0;
         for(let p of CC) {
 
-            const cb = (cache && cache[i]) || new TBlock(null, new Vector());
+            const cb = (cache && cache[i++]) || new TBlock(null, new Vector());
             const v = cb.vec;
             const ax = pos.x + p.x;
             const ay = pos.y + p.y;
             const az = pos.z + p.z;
-            
-            let b;
 
-            if(ax < 0) {
-                b = this.neighbour_chunks.nx.tblocks.get(v.set(this.size.x - 1, pos.y, pos.z), cb);
-            } else if(az < 0) {
-                b = this.neighbour_chunks.nz.tblocks.get(v.set(pos.x, pos.y, this.size.z - 1), cb);
-            } else if(ay < 0) {
-                b = this.neighbour_chunks.ny?.tblocks.get(v.set(pos.x, this.size.y - 1, pos.z), cb);
-            } else if(ay >= this.size.y) {
-                b = this.neighbour_chunks.py.tblocks.get(v.set(pos.x, 0, pos.z), cb);
-            } else if(ax >= this.size.x) {
-                b = this.neighbour_chunks.px.tblocks.get(v.set(0, pos.y, pos.z), cb);
-            } else if(az >= this.size.z) {
-                b = this.neighbour_chunks.pz.tblocks.get(v.set(pos.x, pos.y, 0), cb);
+            if(ax >= 0 && ay >= 0 && az >= 0 && ax < this.size.x && ay < this.size.y && az < this.size.z) {
+                v.x = ax;
+                v.y = ay;
+                v.z = az;
+                chunk = this;
             } else {
-                b = this.tblocks.get(v.set(ax, ay, az), cb);
+                v.x = (pos.x + p.x + this.size.x) % this.size.x;
+                v.y = (pos.y + p.y + this.size.y) % this.size.y;
+                v.z = (pos.z + p.z + this.size.z) % this.size.z;
+                if(ax < 0) {
+                    chunk = this.neighbour_chunks.nx;
+                } else if(ay < 0) {
+                    chunk = this.neighbour_chunks.ny;
+                } else if(az < 0) {
+                    chunk = this.neighbour_chunks.nz;
+                } else if(ax >= this.size.x) {
+                    chunk = this.neighbour_chunks.px;
+                } else if(ay >= this.size.y) {
+                    chunk = this.neighbour_chunks.py;
+                } else if(az >= this.size.z) {
+                    chunk = this.neighbour_chunks.pz;
+                }
             }
 
-            neighbours[p.name] = b;
-
-            let properties = b?.properties;
+            const b = neighbours[p.name] = chunk.tblocks.get(v, cb);
+            const properties = b?.properties;
             if(!properties || properties.transparent || properties.fluid) {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                // break;
-                neighbours.pcnt = -40;
+                neighbours.pcnt--;
             }
-            neighbours.pcnt++;
-            i++;
+
         }
 
         return neighbours;
