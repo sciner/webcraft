@@ -369,23 +369,27 @@ export class DBWorld {
         ]});
 
         migrations.push({version: 41, queries: [
-            `ALTER TABLE "user" ADD COLUMN stats TEXT;`
-        ]});
-
-        migrations.push({version: 42, queries: [
-            {
-                sql: 'UPDATE "user" SET stats = :stats WHERE stats IS NULL',
-                placeholders: {
-                    ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
-                }
-            }
             `UPDATE world_modify AS m
             SET extra_data = COALESCE((SELECT '{"can_destroy":' || (case when c.slots is null then 'true' when c.slots = '{}' then 'true' else 'false' end) || ',"slots":' || coalesce(c.slots, '{}') || '}' from chest c where m.entity_id = c.entity_id), '{"can_destroy":true,"slots":{}}')
             WHERE m.block_id = 54 AND m.extra_data IS NULL`
         ]});
 
-        migrations.push({version: 43, queries: [
+        migrations.push({version: 42, queries: [
             `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
+        ]});
+
+        migrations.push({version: 43, queries: [
+            `ALTER TABLE "user" ADD COLUMN stats TEXT;`
+        ]});
+
+        migrations.push({version: 44, queries: [
+            {
+                sql: `UPDATE "user" SET stats = :stats WHERE stats IS NULL OR stats == :null`,
+                placeholders: {
+                    ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
+                    ':null':  'null'
+                }
+            }
         ]});
 
         for(let m of migrations) {
