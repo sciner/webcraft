@@ -122,19 +122,21 @@ async function onMessageFunc(e) {
                 }
                 if(from_cache) {
                     let chunk = world.chunks.get(item.addr);
+                    const non_zero = chunk.tblocks.refreshNonZero();
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
                         addr:           chunk.addr,
-                        tblocks:        chunk.tblocks,
+                        tblocks:        non_zero > 0 ? chunk.tblocks : null,
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
                     }]);
                 } else {
                     let ci = world.createChunk(item);
+                    const non_zero = ci.tblocks.refreshNonZero();
                     const ci2 = {
                         addr: ci.addr,
                         key: ci.key,
-                        tblocks: ci.tblocks,
+                        tblocks: non_zero > 0 ? ci.tblocks : null,
                         ticking_blocks: ci.ticking_blocks
                     }
                     worker.postMessage(['blocks_generated', ci2]);

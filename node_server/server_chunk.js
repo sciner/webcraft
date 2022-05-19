@@ -379,7 +379,9 @@ export class ServerChunk {
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
         this.tblocks = new TypedBlocks(this.coord);
-        this.tblocks.restoreState(args.tblocks);
+        if(args.tblocks) {
+            this.tblocks.restoreState(args.tblocks);
+        }
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);

@@ -99,7 +99,9 @@ export class Chunk {
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
         this.tblocks = new TypedBlocks(this.coord);
-        this.tblocks.restoreState(args.tblocks);
+        if(args.tblocks) {
+            this.tblocks.restoreState(args.tblocks);
+        }
         this.inited = true;
         this.initLights();
     }
