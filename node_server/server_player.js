@@ -158,6 +158,9 @@ export class ServerPlayer extends Player {
         this.packet.ReadPacket(this, cmd);
 
         try {
+            if (this.is_die && cmd.name != ServerClient.CMD_RESURRECTION) {
+                return;
+            }
             switch(cmd.name) {
                 // Connect
                 case ServerClient.CMD_CONNECT: {
