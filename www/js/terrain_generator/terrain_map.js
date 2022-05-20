@@ -102,7 +102,7 @@ export class TerrainMapManager {
     }
 
     //
-    makePoint(px, pz, cluster_max_height) {
+    makePoint(px, pz, cluster_is_empty, cluster_max_height) {
         const noisefn = this.noisefn;
         const H = 68;
         const HW = 64;
@@ -122,22 +122,30 @@ export class TerrainMapManager {
         // Get biome
         let biome = BIOMES.getBiome((value * HW + H) / 255, humidity, equator);
 
-        if(biome.code != 'OCEAN') {
-            const river_point = this.makeRiverPoint(px, pz);
-            if(river_point) {
-                if(!biome.is_empty) {
-                    value = -0.127;
-                    biome = BIOMES.OCEAN;
-                } else {
-                    // smooth with clusters
-                    if(cluster_max_height) {
-                        value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
-                    } else {
-                        biome = BIOMES.RIVER;
-                        value = value * biome.max_height + H;
-                    }
+        const is_ocean = biome.code == 'OCEAN';
+
+        if(is_ocean) {
+            cluster_max_height = null;
+        }
+
+        const river_point = this.makeRiverPoint(px, pz);
+        if(river_point) {
+            if(cluster_is_empty) {
+                // smooth with clusters
+                if(cluster_max_height) {
+                    value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
                     value = parseInt(value);
                     return {value, biome, humidity, equator};
+                } else {
+                    if(!is_ocean) {
+                        biome = BIOMES.RIVER;
+                        value = -0.127;
+                    }
+                }
+            } else {
+                if(!is_ocean) {
+                    biome = BIOMES.RIVER;
+                    value = -0.22 * (river_point / 1.5);
                 }
             }
         }
@@ -193,11 +201,11 @@ export class TerrainMapManager {
             return cached;
         }
         // Result map
-        const map                   = new TerrainMap(chunk, GENERATOR_OPTIONS);
+        const map = new TerrainMap(chunk, GENERATOR_OPTIONS);
         if(!real_chunk.chunkManager) {
             debugger
         }
-        const cluster               = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
+        const cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = chunk.coord.x + x;
@@ -206,7 +214,7 @@ export class TerrainMapManager {
                 if(!cluster.is_empty && cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
                     cluster_max_height = cluster.max_height;
                 }
-                const {value, biome, humidity, equator} = this.makePoint(px, pz, cluster_max_height);
+                const {value, biome, humidity, equator} = this.makePoint(px, pz, cluster.is_empty, cluster_max_height);
                 // Different dirt blocks
                 let dirt_block_id = biome.dirt_block[0];
                 if(biome.dirt_block.length > 1) {

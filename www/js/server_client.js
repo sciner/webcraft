@@ -52,10 +52,6 @@ export class ServerClient {
     static CMD_QUEST_GET_ENABLED        = 93
 	static CMD_QUEST_ALL                = 94;
 
-    // Furnace / Печь
-    static CMD_LOAD_FURNACE             = 91;
-    static CMD_FURNACE_CONTENT          = 95;
-
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
@@ -235,13 +231,6 @@ export class ServerClient {
                 if(power) tblock.power = power;
                 //
                 set_block_list.push({
-                    /*
-                    key:        chunk_key,
-                    addr:       chunk_addr,
-                    x:          pos.x,
-                    y:          pos.y,
-                    z:          pos.z,
-                    */
                     pos,
                     type:       item,
                     is_modify:  false,
@@ -250,17 +239,19 @@ export class ServerClient {
                     extra_data: extra_data
                 });
                 //
-                const oldLight = chunk.light_source[tblock.index];
-                const light = chunk.light_source[tblock.index] = material.light_power_number;
-                if(oldLight !== light) {
-                    // updating light here
-                    chunkManager.postLightWorkerMessage(['setBlock', {
-                        addr:           chunk.addr,
-                        x:              pos.x,
-                        y:              pos.y,
-                        z:              pos.z,
-                        light_source:   light
-                    }]);
+                if(chunkManager.use_light) {
+                    const oldLight = chunk.light_source[tblock.index];
+                    const light = chunk.light_source[tblock.index] = material.light_power_number;
+                    if(oldLight !== light) {
+                        // updating light here
+                        chunkManager.postLightWorkerMessage(['setBlock', {
+                            addr:           chunk.addr,
+                            x:              pos.x,
+                            y:              pos.y,
+                            z:              pos.z,
+                            light_source:   light
+                        }]);
+                    }
                 }
             }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
@@ -359,11 +350,6 @@ export class ServerClient {
     // Запрос содержимого сундука
     LoadChest(info) {
         this.Send({name: ServerClient.CMD_LOAD_CHEST, data: info});
-    }
-
-    // Запрос содержимого печки
-    LoadFurnace(entity_id) {
-        this.Send({name: ServerClient.CMD_LOAD_FURNACE, data: {entity_id: entity_id}});
     }
 
     //
