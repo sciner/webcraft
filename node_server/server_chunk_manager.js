@@ -152,7 +152,8 @@ export class ServerChunkManager {
             let added_vecs = new VectorCollector();
 
             // Find new chunks
-            for(let sm of spiral_moves_3d) {
+            for(let i = 0; i < spiral_moves_3d.length; i++) {
+                const sm = spiral_moves_3d[i];
                 let addr = player.chunk_addr.add(sm.pos);
                 if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                     added_vecs.set(addr, true);

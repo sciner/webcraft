@@ -531,13 +531,15 @@ export class ServerPlayer extends Player {
             }
             if(near.length > 0) {
                 // 1. add items to inventory
-                for(const drop_item of near) {
+                for(const i = 0; i < near.length; i++) {
+                    const drop_item = near[i];
                     for(const item of drop_item) {
                         this.inventory.increment(item);
                     }
                 }
                 // 2. deactive drop item in database
-                for(let entity_id of entity_ids) {
+                for(const i = 0; i < entity_ids.length; i++) {
+                    const entity_id = entity_ids[i];
                     this.world.db.deleteDropItem(entity_id);
                 }
                 // 3. play sound on client

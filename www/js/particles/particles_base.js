@@ -46,7 +46,8 @@ export class Particles_Base {
         const corrY = pos.y - chCoord.y;
         const corrZ = pos.z - chCoord.z;
         
-        for(let p of this.particles) {
+        for (let i = 0; i < this.particles.length; i++) {
+            const p = this.particles[i];
             for(let i = 0; i < p.vertices_count; i++) {
                 dataView      = GeometryTerrain.decomposite(data, (idx + i) * GeometryTerrain.strideFloats, dataView);
                 startDataView = GeometryTerrain.decomposite(vertices, (idx + i) * GeometryTerrain.strideFloats, startDataView);

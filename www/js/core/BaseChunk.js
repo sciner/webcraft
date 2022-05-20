@@ -200,7 +200,8 @@ export class BaseChunk {
     }
 
     _removeAllPortals() {
-        for (let portal of this.portals) {
+        for (let i = 0; i < this.portals.length; i++) {
+            const portal = this.portals[i];
             const {rev} = portal;
             const ind = rev.fromRegion.portals.indexOf(rev);
             if (ind >= 0) {

@@ -121,7 +121,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
     update (delta) {
         delta *= 75;
         this.life -= delta / 100000;
-        for(let p of this.particles) {
+        for (let i = 0; i < this.particles.length; i++) {
+            const p = this.particles[i];
             p.x += p.dx * delta * p.speed;
             p.y += p.dy * delta * p.speed + (delta / 1000) * p.gravity;
             p.z += p.dz * delta * p.speed;

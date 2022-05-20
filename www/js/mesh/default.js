@@ -72,7 +72,8 @@ export class Mesh_Default {
         // render
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         gl.disable(gl.CULL_FACE);
-        for(let buf of this.buffers) {
+        for (let i = 0; i < this.buffers.length; i++) {
+            const buf = this.buffers[i];
             render.drawBuffer(buf.info, a_pos);
         }
         gl.enable(gl.CULL_FACE);

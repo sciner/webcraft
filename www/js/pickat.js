@@ -239,7 +239,8 @@ export class PickAt {
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
-        for(let shape of shapes) {
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
             let x1 = shape[0];
             let x2 = shape[3];
             let y1 = shape[1];

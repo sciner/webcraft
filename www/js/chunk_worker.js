@@ -111,7 +111,8 @@ async function onMessageFunc(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            for(let item of args) {
+            for(let i = 0; i < args.length; i++) {
+                const item = args[i];
                 let from_cache = world.chunks.has(item.addr);
                 const update = ('update' in item) && item.update;
                 if(update) {
@@ -188,7 +189,8 @@ async function onMessageFunc(e) {
             let chunks = new VectorCollector();
             let chunk_addr = new Vector(0, 0, 0);
             const pos_world = new Vector(0, 0, 0);
-            for(let m of args) {
+            for(let i = 0; i < args.length; i++) {
+                const m = args[i];
                 // 1. Get chunk
                 getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
                 let chunk = world.getChunk(chunk_addr);

@@ -52,7 +52,7 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
 
 globalThis.BLOCK            = BLOCK;
 const CHUNK_RENDER_DIST     = 32;
-const chunk_addr_start      = new Vector(180 - CHUNK_RENDER_DIST, 0, 170 - CHUNK_RENDER_DIST);
+const chunk_addr_start      = new Vector(0 - CHUNK_RENDER_DIST, 0, 0 - CHUNK_RENDER_DIST);
 const chunk_coord_start     = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
 const all_maps              = new VectorCollector();
 const all_clusters          = new VectorCollector();
@@ -62,7 +62,7 @@ const demo_map_seed         = 'undefined';
 const seed                  = demo_map_seed | 0; // allow only numeric values
 const world_id              = 'demo';
 const noisefn               = noise.simplex2;
-const SZ                    = CHUNK_RENDER_DIST * 2 + 3;
+const SZ                    = CHUNK_RENDER_DIST * 2;
 
 const ALL_BIOMES = [
     {color: [120, 10, 255]}, // cold
@@ -160,11 +160,11 @@ function fillBiomes(chunk_addr, seed) {
     const cells                 = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
     //
     const CLUSTER_SIZE          = 16 / scale;
-    const POINTS_PER_CLUSTER    = 20 / scale;
-    const TEMPER_OCT_1          = 512 * scale;
+    const POINTS_PER_CLUSTER    = 20 / scale
+    const TEMPER_OCT_1          = 512 / scale
     const DIST_NOISE            = 16 / scale;
-    const DIST_NOISE_OCT1       = 1024 / scale;
-    const DIST_NOISE_OCT2       = 96 / scale;
+    const DIST_NOISE_OCT1       = 1024 / scale
+    const DIST_NOISE_OCT2       = 96 / scale
     //
     const cluster_addr          = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z).divScalar(CLUSTER_SIZE).flooredSelf();
 
@@ -204,14 +204,14 @@ function fillBiomes(chunk_addr, seed) {
         // border waves
         let si = DIST_NOISE ? noisefn(x / DIST_NOISE_OCT1, z / DIST_NOISE_OCT2) * DIST_NOISE : 0;
         let sj = DIST_NOISE ? noisefn(z / DIST_NOISE_OCT1, x / DIST_NOISE_OCT2) * DIST_NOISE : 0;
-        for(let d of points) {
-            let distance = Math.sqrt(
-                (d.x - x + si) * (d.x - x + si) +
-                (d.z - z + sj) * (d.z - z + sj)
-            );
+        for(let i = 0; i < points.length; i++) {
+            const d = points[i];
+            const a = (d.x - x + si);
+            const b = (d.z - z + sj);
+            const fake_distance = a * a + b * b; // Math.sqrt(a * a + b * b);
             cnt++;
-            if (distance < closest) {
-                closest = distance;
+            if (fake_distance < closest) {
+                closest = fake_distance;
                 chosenPoint = d;
             }
         }

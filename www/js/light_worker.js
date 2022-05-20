@@ -682,7 +682,8 @@ class Chunk {
 
         let upPortal = false;
 
-        for (let portal of portals) {
+        for (let i = 0; i < portals.length; i++) {
+            const portal = portals[i];
             const other = portal.toRegion;
             const p = portal.aabb;
             const outer2 = other.outerSize;
@@ -807,7 +808,8 @@ class Chunk {
                             uint8View[coordBytes + OFFSET_PREV] = defLight
                         }
                 // copy found dayLight to portals
-                for (let portal of portals) {
+                for (let i = 0; i < portals.length; i++) {
+                    const portal = portals[i];
                     const other = portal.toRegion;
                     const p = portal.aabb;
                     const outer2 = other.outerSize;
@@ -1206,7 +1208,8 @@ async function onMessageFunc(e) {
                     world.dayLightSrc.add(chunk, ind);
                     world.dayLight.add(chunk, ind, maxLight);
                 }
-                for (let portal of portals) {
+                for (let i = 0; i < portals.length; i++) {
+                    const portal = portals[i];
                     if (portal.aabb.contains(x, y, z)) {
                         const other = portal.toRegion;
                         const ind = other.indexByWorld(x, y, z);

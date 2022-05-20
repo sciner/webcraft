@@ -271,13 +271,13 @@ export class Chunk {
     getBlockNeighbours(pos, cache = null) {
 
         const neighbours = new BlockNeighbours();
-        let i = 0;
         let chunk;
 
         // обходим соседние блоки
-        for(let p of CC) {
+        for (let i = 0; i < CC.length; i++) {
 
-            const cb = (cache && cache[i++]) || new TBlock(null, new Vector());
+            const p = CC[i];
+            const cb = (cache && cache[i]) || new TBlock(null, new Vector());
             const v = cb.vec;
             const ax = pos.x + p.x;
             const ay = pos.y + p.y;

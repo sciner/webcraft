@@ -178,7 +178,8 @@ export class ChunkManager {
                     break;
                 }
                 case 'vertices_generated': {
-                    for(let result of args) {
+                    for(let i = 0; i < args.length; i++) {
+                        const result = args[i];
                         let chunk = that.chunks.get(result.addr);
                         if(chunk) {
                             chunk.onVerticesGenerated(result);
@@ -303,7 +304,8 @@ export class ChunkManager {
 
         //
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
-        for(let chunk of this.poses) {
+        for(let i = 0; i < this.poses.length; i++) {
+            const chunk = this.poses[i];
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }
@@ -520,11 +522,12 @@ export class ChunkManager {
                 let ok = true;
                 if(!chunk.addr_neighbors) {
                     chunk.addr_neighbors = [];
-                    for(let c of CC) {
+                    for(let i = 0; i < CC.length; i++) {
+                        const c = CC[i];
                         chunk.addr_neighbors.push(chunk.addr.add(c));
                     }
                 }
-                for(let i in chunk.addr_neighbors) {
+                for(let i = 0; i < chunk.addr_neighbors.length; i++) {
                     const neighbour_addr = chunk.addr_neighbors[i];
                     if(ALLOW_NEGATIVE_Y || neighbour_addr.y >= 0) {
                         if(!this.getChunk(neighbour_addr)) {

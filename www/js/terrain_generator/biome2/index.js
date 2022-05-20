@@ -170,7 +170,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 stone_block_id = BLOCK.GRANITE.id;
             }
         } else if(xyz.y < value - 5) {
-            for(let ore of this.ores) {
+            for (let i = 0; i < this.ores.length; i++) {
+                const ore = this.ores[i];
                 if(ore.pos.distance(xyz) < ore.rad) {
                     if(xyz.y < ore.max_y) {
                         stone_block_id = ore.block_id;
@@ -331,8 +332,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
             // Plant trees
-            for(const m of maps) {
-                for(let p of m.trees) {
+            for (let i = 0; i < maps.length; i++) {
+                const m = maps[i];
+                for (let j = 0; j < m.trees.length; j++) {
+                    const p = m.trees[j];
                     this.plantTree(
                         p,
                         chunk,
@@ -599,7 +602,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     //
     intersectChunkWithVoxelBuildings(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;
-        for(var item of this.voxel_buildings) {
+        for (let i = 0; i < this.voxel_buildings.length; i++) {
+            const item = this.voxel_buildings[i];
             _createBlockAABB_second.set(
                 item.coord.x - item.size.x,
                 item.coord.y - item.size.y,
@@ -618,7 +622,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     //
     intersectChunkWithIslands(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;
-        for(let item of this.islands) {
+        for (let i = 0; i < this.islands.length; i++) {
+            const item = this.islands[i];
             const rad = item.rad;
             _createBlockAABB_second.set(
                 item.pos.x - rad,
@@ -638,7 +643,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     // extruders
     intersectChunkWithExtruders(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;
-        for(let item of this.extruders) {
+        for (let i = 0; i < this.extruders.length; i++) {
+            const item = this.extruders[i];
             const rad = item.rad;
             _createBlockAABB_second.set(
                 item.pos.x - rad,
@@ -739,7 +745,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 continue;
             }
             ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
-            for(let tree of m.trees) {
+            for (let i = 0; i < m.trees.length; i++) {
+                const tree = m.trees[i];
                 if(tree.pos.distance(ppos) < near_rad) {
                     return true;
                 }
@@ -763,7 +770,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // drawIsland
     drawIsland(xyz, x, y, z, chunk) {
-        for(let island of this.islands) {
+        for (let i = 0; i < this.islands.length; i++) {
+            const island = this.islands[i];
             let dist = xyz.distance(island.pos);
             if(dist < island.rad) {
                 if(xyz.y < island.pos.y) {
@@ -788,7 +796,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // extrude
     extrude(xyz) {
-        for(let extruder of this.extruders) {
+        for (let i = 0; i < this.extruders.length; i++) {
+            const extruder = this.extruders[i];
             if(xyz.distance(extruder.pos) < extruder.rad) {
                 return true;
             }

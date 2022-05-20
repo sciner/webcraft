@@ -65,7 +65,8 @@ export class Default_Terrain_Generator {
 
     //
     getVoxelBuilding(xyz) {
-        for(var vb of this.voxel_buildings) {
+        for (let i = 0; i < this.voxel_buildings.length; i++) {
+            const vb = this.voxel_buildings[i];
             if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
                 xyz.x < vb.coord.x + vb.size.x &&
                 xyz.y < vb.coord.y + vb.size.z && 

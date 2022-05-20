@@ -271,7 +271,8 @@ export class CaveGenerator {
 
     // Инициализация пещер во всех чанках вокруг центрального chunk_addr
     addSpiral(chunk_addr) {
-        for(let sm of this.spiral_moves) {
+        for (let i = 0; i < this.spiral_moves.length; i++) {
+            const sm = this.spiral_moves[i];
             this._temp_add_vec.set(chunk_addr.x, chunk_addr.y, chunk_addr.z).addSelf(sm.pos);
             this.add(this._temp_add_vec);
         }

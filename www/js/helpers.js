@@ -591,9 +591,9 @@ export class Vector {
      * @return {number}
      */
     horizontalDistance(vec) {
-        let vec1 = new Vector(this.x, 0, this.z);
-        let vec2 = new Vector(vec.x, 0, vec.z);
-        return vec1.sub(vec2).length();
+        const x = this.x - vec.x;
+        const z = this.z - vec.z;
+        return Math.sqrt(x * x + z * z);
     }
 
     // distancePointLine...

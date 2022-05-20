@@ -89,7 +89,8 @@ export class TerrainMapManager {
         }
         // Generate vegetation
         if(vegetation) {
-            for(let map of maps) {
+            for (let i = 0; i < maps.length; i++) {
+                const map = maps[i];
                 if(!map.vegetable_generated) {
                     if(smooth && !map.smoothed) {
                         map.smooth(this);
@@ -401,7 +402,8 @@ export class TerrainMap {
             plant_pos.x = x;
             plant_pos.y = y;
             plant_pos.z = z;
-            for(let p of biome.plants.list) {
+            for (let i = 0; i < biome.plants.list.length; i++) {
+                const p = biome.plants.list[i];
                 s += p.percent;
                 if(r < s) {
                     if(p.block) {

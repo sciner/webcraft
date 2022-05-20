@@ -131,7 +131,8 @@ export class Building {
         const vec = new Vector(0, 0, 0);
         const block_coord = this.door_bottom.clone().subSelf(chunk.coord);
         const dir = this.door_direction;
-        for(let item of this.blocks.list) {
+        for (let i = 0; i < this.blocks.list.length; i++) {
+            const item = this.blocks.list[i];
             vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
             cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
         }
