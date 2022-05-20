@@ -233,7 +233,7 @@ export class Chat extends TextBox {
                     }
                 }
                 let texts = m.text.split('\n');
-                for(let i in texts) {
+                for(let i = 0; i < texts.length; i++) {
                     let text = texts[i];
                     if(i == 0) {
                         text = m.username + ': ' + text;

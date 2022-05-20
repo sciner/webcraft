@@ -464,7 +464,7 @@ export class HUD {
         if(!this.strMeasures || this.strMeasures.length != str.length) {
             this.strMeasures = new Array(str.length);
         }
-        for(let i in str) {
+        for(let i = 0; i < str.length; i++) {
             if(!this.strMeasures[i] || this.strMeasures[i].text != str[i]) {
                 this.strMeasures[i] = {
                     text: str[i],

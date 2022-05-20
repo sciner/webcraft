@@ -1382,7 +1382,7 @@ export class RuneStrings {
     static splitLongWords(str, max_len) {
         let text = str.replaceAll("\r", "¡");
         let temp = text.split(' ');
-        for(let i in temp) {
+        for(let i = 0; i < temp.length; i++) {
             let word = temp[i];
             if(word) {
                 temp[i] = RuneStrings.toChunks(word, max_len).join(' ');
