@@ -73,7 +73,7 @@ export class DieWindow extends Window {
         }
         btnReturn.onMouseDown = function (e) {
             Game.hud.wm.closeAll();
-            Game.player.world.server.Send({ name: ServerClient.CMD_RESUR });
+            Game.player.world.server.Send({ name: ServerClient.CMD_RESURRECTION });
         }
         btnReturn.onMouseEnter = function () {
             this.style.background.color = '#8892c9';

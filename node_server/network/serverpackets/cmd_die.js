@@ -5,6 +5,8 @@ export class CMD_DIE {
     {
         player.state.stats.death++;
 
+        player.is_die = true;
+
         let packets = [{
             name: ServerClient.CMD_DIE,
             data: {}

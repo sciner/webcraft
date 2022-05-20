@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\node_server",
+    "\\node_server\\network",
+    "\\node_server\\network\\clientpackets",
+    "\\node_server\\network\\serverpackets",
+    "\\www",
+    "\\www\\js",
+    "\\www\\js\\window"
+  ],
+  "SelectedNode": "\\www\\js\\world.js",
+  "PreviewInSolutionExplorer": false
+}
