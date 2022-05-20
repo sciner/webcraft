@@ -15,23 +15,6 @@ await import('../../js/terrain_generator/biomes.js').then(module => {
 //
 import {alea, noise} from "../../js/terrain_generator/default.js";
 
-const ALL_BIOMES = [
-    {color: [0, 0, 0]},
-    {color: [120, 10, 255]},
-    {color: [65, 100, 250]},
-    {color: [0, 180, 235]},
-    {color: [65, 235, 210]},
-    {color: [130, 255, 180]},
-    {color: [190, 235, 140]},
-    {color: [255, 175, 95]},
-    {color: [254, 94, 47]},
-    {color: [255, 6, 5]},
-    {color: [0, 0, 0]},
-];
-
-let cnt = 0;
-const CHUNK_SIZE_VEC = new Vector(CHUNK_SIZE_X, 0, CHUNK_SIZE_Z);
-
 // Fix biomes color
 import {Resources} from "../../js/resources.js";
 await Resources.loadImage('resource_packs/base/textures/default.png', false).then(async (img) => {
@@ -67,12 +50,31 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
     globalThis.ClusterManager = module.ClusterManager;
 });
 
-globalThis.BLOCK = BLOCK;
-const chunk_addr_start = new Vector(180, 0, 170);
-const chunk_coord_start = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
-const all_maps = new VectorCollector();
-const all_clusters = new VectorCollector();
-const noisefn = noise.simplex2;
+globalThis.BLOCK            = BLOCK;
+const CHUNK_RENDER_DIST     = 32;
+const chunk_addr_start      = new Vector(180 - CHUNK_RENDER_DIST, 0, 170 - CHUNK_RENDER_DIST);
+const chunk_coord_start     = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+const all_maps              = new VectorCollector();
+const all_clusters          = new VectorCollector();
+let cnt                     = 0;
+const CHUNK_SIZE_VEC        = new Vector(CHUNK_SIZE_X, 0, CHUNK_SIZE_Z);
+const demo_map_seed         = 'undefined';
+const seed                  = demo_map_seed | 0; // allow only numeric values
+const world_id              = 'demo';
+const noisefn               = noise.simplex2;
+const SZ                    = CHUNK_RENDER_DIST * 2 + 3;
+
+const ALL_BIOMES = [
+    {color: [120, 10, 255]}, // cold
+    {color: [65, 100, 250]},
+    {color: [0, 180, 235]},
+    {color: [65, 235, 210]},
+    {color: [130, 255, 180]},
+    {color: [190, 235, 140]},
+    {color: [255, 175, 95]},
+    {color: [254, 94, 47]},
+    {color: [255, 6, 5]}, // hot
+];
 
 // showCoordInfo
 export function showCoordInfo(x, z) {
@@ -96,18 +98,10 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
     globalThis.TerrainMapManager = module.TerrainMapManager;
 
-    //
-    const CHUNK_RENDER_DIST = 32;
-    const demo_map_seed     = 'undefined';
-    const seed              = demo_map_seed | 0; // allow only numeric values
-    const world_id          = 'demo';
-
     noise.seed(seed);
 
-    const noisefn           = noise.perlin2;
     const Tmaps             = new TerrainMapManager(seed, world_id, noisefn);
     const pn                = performance.now();
-    const SZ                = CHUNK_RENDER_DIST * 2 + 3;
 
     let canvas = document.getElementById('canvas3D');
     let ctx = canvas.getContext('2d', { alpha: false });
@@ -160,19 +154,25 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 //
 function fillBiomes(chunk_addr, seed) {
 
-    const CLUSTER_SIZE = 22;
-    const POINTS_PER_CLUSTER = 2;
-    const cluster_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z).divScalar(CLUSTER_SIZE).flooredSelf();
+    const scale                 = 1;
+    //
+    const chunk_coord           = chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+    const cells                 = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+    //
+    const CLUSTER_SIZE          = 16 / scale;
+    const POINTS_PER_CLUSTER    = 20 / scale;
+    const TEMPER_OCT_1          = 512 * scale;
+    const DIST_NOISE            = 16 / scale;
+    const DIST_NOISE_OCT1       = 1024 / scale;
+    const DIST_NOISE_OCT2       = 96 / scale;
+    //
+    const cluster_addr          = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z).divScalar(CLUSTER_SIZE).flooredSelf();
 
     // create points
     let points = [];
-    const scale = 1;
     const ca = new Vector();
-    const margin = 1;
-    const OCT_1 = 512 / scale;
-    const OCT_2 = 64 / scale;
-    for(let x = -margin; x <= margin; x++) {
-        for(let z = -margin; z <= margin; z++) {
+    for(let x = -1; x <= 1; x++) {
+        for(let z = -1; z <= 1; z++) {
             ca.set(cluster_addr.x + x, 0, cluster_addr.z + z);
             let map_points = all_clusters.get(ca);
             if(!map_points) {
@@ -184,10 +184,7 @@ function fillBiomes(chunk_addr, seed) {
                         0,
                         ca.z * (CLUSTER_SIZE * CHUNK_SIZE_Z) + random.nextInt(CLUSTER_SIZE * CHUNK_SIZE_Z - 1)
                     );
-                    let temper_point = (
-                        noisefn(vec.x / OCT_1, vec.z / OCT_1) +
-                        noisefn(vec.x / OCT_2, vec.z / OCT_2)
-                    + 2) / 4;
+                    let temper_point = (noisefn(vec.x / TEMPER_OCT_1, vec.z / TEMPER_OCT_1) + 1) / 2;
                     const biome_idx = (temper_point * ALL_BIOMES.length) | 0;
                     vec.biome = ALL_BIOMES[biome_idx];
                     map_points.push(vec);
@@ -198,17 +195,15 @@ function fillBiomes(chunk_addr, seed) {
         }
     }
 
-    const chunk_coord = chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
-
     // find closest point
-    const getNear = (i, j) => {
+    const getNear = (x, z) => {
         let closest = Number.MAX_VALUE;
         let chosenPoint;
-        const x = (chunk_coord.x + i);
-        const z = (chunk_coord.z + j);
+        x += chunk_coord.x;
+        z += chunk_coord.z;
         // border waves
-        let si = noisefn(x / 1024, z / 96) * 32;
-        let sj = noisefn(z / 1024, x / 96) * 32;
+        let si = DIST_NOISE ? noisefn(x / DIST_NOISE_OCT1, z / DIST_NOISE_OCT2) * DIST_NOISE : 0;
+        let sj = DIST_NOISE ? noisefn(z / DIST_NOISE_OCT1, x / DIST_NOISE_OCT2) * DIST_NOISE : 0;
         for(let d of points) {
             let distance = Math.sqrt(
                 (d.x - x + si) * (d.x - x + si) +
@@ -223,12 +218,10 @@ function fillBiomes(chunk_addr, seed) {
         return chosenPoint;
     }
 
-    const cells = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-    for (let i = 0; i < CHUNK_SIZE_X; i++) {
-        for (let j = 0; j < CHUNK_SIZE_Z; j++) {
-            let index = (j * CHUNK_SIZE_X + i);
-            // get biome and return
-            cells[index] = getNear(i, j);
+    for (let x = 0; x < CHUNK_SIZE_X; x++) {
+        for (let z = 0; z < CHUNK_SIZE_Z; z++) {
+            let index = (z * CHUNK_SIZE_X + x);
+            cells[index] = getNear(x, z);
         }
     }
 
