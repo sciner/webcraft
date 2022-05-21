@@ -345,6 +345,7 @@ export class Player {
         Game.kb.clearStates()
         this.pickAt.clearEvent();
         this.inMiningProcess = false;
+        this.controls.reset();
     }
 
     // Apply pickat actions
@@ -455,6 +456,8 @@ export class Player {
         pc.player.entity.position.copyFrom(vec);
         pc.player_state.pos.copyFrom(vec);
         pc.player_state.onGround = false;
+        //
+        this.clearEvents();
         //
         this.onGround = false;
         this.lastBlockPos = null;
