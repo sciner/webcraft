@@ -1589,18 +1589,6 @@
         }
     },
     {
-        "id": 43,
-        "name": "DOUBLE_SLAB",
-        "sound": "madcraft:block.stone",
-        "texture": {
-            "side": [5, 0],
-            "up": [6, 0]
-        },
-        "material": {
-            "id": "stone"
-        }
-    },
-    {
         "id": 44,
         "name": "SMOOTH_STONE_SLAB",
         "transparent": true,
@@ -2273,17 +2261,6 @@
         }
     },
     {
-        "id": 125,
-        "name": "DOUBLE_SLAB2",
-        "material": {
-            "id": "stone"
-        },
-        "texture": [
-            5,
-            0
-        ]
-    },
-    {
         "id": 501,
         "name": "BRICK_SLAB",
         "transparent": true,
@@ -2664,17 +2641,16 @@
         "id": 199,
         "name": "TEST",
         "sound": "madcraft:block.wood",
-        "uvlock": false,
         "material": {
             "id": "wood"
         },
         "texture": {
-            "up": [26, 31, 2],
+            "up": [26, 31],
             "down": [27, 31],
             "south": [28, 31],
-            "east": [29, 31],
+            "west": [29, 31],
             "north": [30, 31],
-            "west": [31, 31]
+            "east": [31, 31]
         },
         "can_rotate": true
     },
@@ -5750,6 +5726,9 @@
         "inventory": {
             "style": "extruder",
             "texture": [8, 28]
+        },
+        "extra_data": {
+            "active": true
         },
         "sound": "madcraft:block.wood",
         "material": {

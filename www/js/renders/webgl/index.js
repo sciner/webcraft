@@ -567,6 +567,7 @@ export default class WebGLRenderer extends BaseRenderer {
         ctx.canvas.width = width;
         ctx.canvas.height = height;
         ctx.putImageData(data, 0, 0);
+        ctx.drawImage(Game.hud.canvas, 0, 0, width, height);
         ctx.canvas.toBlob(function(blob) {
             ctx.canvas.width = ctx.canvas.height = 0;
             // let filefromblob = new File([blob], 'image.png', {type: 'image/png'});

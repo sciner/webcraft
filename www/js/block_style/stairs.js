@@ -1,5 +1,7 @@
-import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
+import {DIRECTION, ROTATE, MULTIPLY, TX_CNT, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
+import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import { CubeSym } from "../core/CubeSym.js";
 
 // Ступеньки
 export default class style {
@@ -11,68 +13,194 @@ export default class style {
         };
     }
 
+    static checkIfSame = (checked_block, on_ceil) => {
+        const checked_block_on_ceil = BLOCK.isOnCeil(checked_block);
+        if(checked_block_on_ceil != on_ceil) {
+            return false;
+        }
+        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.indexOf('stairs') >= 0;
+    }
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        let texture         = block.material.texture;
-        let lm              = MULTIPLY.COLOR.WHITE;
-        let pos             = new Vector(x, y, z);
-        let flags           = 0, sideFlags = 0, upFlags = 0;
-        let shapes          = BLOCK.getShapes(pos, block, chunk, true, false, neighbours);
+        const material              = block.material;
+        const texture               = block.material.texture;
+        const pos                   = new Vector(x, y, z);
+        const cardinal_direction    = block.getCardinalDirection();
+
+        const width = 1;
+        const height = .5;
+        const depth = 1;
 
         // полная текстура
-        let c_full = BLOCK.calcTexture(texture, DIRECTION.UP);
+        const c_up = BLOCK.calcTexture(texture, DIRECTION.UP);
+        const c_south = BLOCK.calcMaterialTexture(material, DIRECTION.SOUTH, width, height);
+        const c_north = [...c_south];
 
-        for(let shape of shapes) {
-            let x1          = shape[0] + pos.x + .5;
-            let x2          = shape[3] + pos.x + .5;
-            let y1          = shape[1] + pos.y + .5;
-            let y2          = shape[4] + pos.y + .5;
-            let z1          = shape[2] + pos.z + .5;
-            let z2          = shape[5] + pos.z + .5;
-            let xw          = x2 - x1; // ширина по оси X
-            let yw          = y2 - y1; // ширина по оси Y
-            let zw          = z2 - z1; // ширина по оси Z
-            let xpos        = -.5 + x1 + xw/2;
-            let y_top       = -.5 + y2;
-            let y_bottom    = -.5 + y1;
-            let zpos        = -.5 + z1 + zw/2;
-            let c           = c_full;
-            // Up; X,Z,Y
-            vertices.push(xpos, zpos, y_top,
-                xw, 0, 0,
-                0, zw, 0,
-                c[0], c[1], c[2] * xw, -c[3] * zw,
-                lm.r, lm.g, lm.b, flags | upFlags);
-            // Bottom
-            vertices.push(xpos, zpos, y_bottom,
-                xw, 0, 0,
-                0, -zw, 0,
-                c[0], c[1], c[2] * xw, c[3] * zw,
-                lm.r, lm.g, lm.b, flags);
-            // South | Forward | z++ (XZY)
-            vertices.push(xpos, zpos - zw/2, y_bottom + yw/2,
-                xw, 0, 0,
-                0, 0, yw,
-                c[0], c[1], c[2] * xw, -c[3] * yw,
-                lm.r, lm.g, lm.b, flags | sideFlags);
-            // North | Back | z--
-            vertices.push(xpos, zpos + zw/2, y_bottom + yw/2,
-                xw, 0, 0,
-                0, 0, -yw,
-                c[0], c[1], -c[2] * xw, c[3] * yw,
-                lm.r, lm.g, lm.b, flags | sideFlags);
-            // West | Left | x--
-            vertices.push(xpos - xw/2, zpos, y_bottom + yw/2,
-                0, zw, 0,
-                0, 0, -yw,
-                c[0], c[1], -c[2] * zw, c[3] * yw,
-                lm.r, lm.g, lm.b, flags | sideFlags);
-            // East | Right | x++
-            vertices.push(xpos + xw/2, zpos, y_bottom + yw/2,
-                0, zw, 0,
-                0, 0, yw,
-                c[0], c[1], -c[2] * zw, -c[3] * yw,
-                lm.r, lm.g, lm.b, flags | sideFlags);
+        let aabb = new AABB();
+        aabb.set(
+            x + .5 - width/2,
+            y,
+            z + .5 - depth/2,
+            x + .5 + width/2,
+            y + height,
+            z + .5 + depth/2
+        );
+
+        const on_ceil = BLOCK.isOnCeil(block);
+
+        if(on_ceil) {
+            aabb.translate(0, height, 0);
+            c_south[1] -= c_south[3];
+            c_north[1] -= c_north[3];
+        }
+
+        c_north[2] *= -1;
+        c_north[3] *= -1;
+
+        pushAABB(vertices, aabb, pivot, matrix,
+            {
+                up:     new AABBSideParams(c_up, 0, 1, null, null, false),
+                down:   new AABBSideParams(c_up, 0, 1, null, null, false),
+                south:  new AABBSideParams(c_south, 0, 1, null, null, false),
+                north:  new AABBSideParams(c_north, 0, 1, null, null, false),
+                west:   new AABBSideParams(c_north, 0, 1, null, null, false),
+                east:   new AABBSideParams(c_south, 0, 1, null, null, false),
+            },
+            pos
+        );
+
+        // Tops
+        const aabb_top = new AABB()
+        aabb_top.set(
+            x,
+            y + height,
+            z,
+            x + width/2,
+            y + height * 2,
+            z + depth/2
+        );
+
+        c_up[2] /= 2;
+        c_up[3] /= 2;
+        c_south[2] /= 2;
+        c_north[2] /= 2;
+
+        c_south[0] -= .25 / TX_CNT;
+        c_north[0] -= .25 / TX_CNT;
+
+        if(on_ceil) {
+            aabb_top.translate(0, -.5, 0);
+            c_south[1] += .5 / TX_CNT;
+            c_north[1] += .5 / TX_CNT;
+        } else {
+            c_south[1] -= .5 / TX_CNT;
+            c_north[1] -= .5 / TX_CNT;
+        }
+
+        const c_1 = [...c_south];
+        const c_2 = [...c_north];
+        const c_3 = [...c_north];
+        const c_4 = [...c_south];
+
+        let sw = cardinal_direction == DIRECTION.NORTH || cardinal_direction == DIRECTION.EAST;
+        let nw = cardinal_direction == DIRECTION.SOUTH || cardinal_direction == DIRECTION.EAST;
+        let en = cardinal_direction == DIRECTION.SOUTH || cardinal_direction == DIRECTION.WEST;
+        let se = cardinal_direction == DIRECTION.NORTH || cardinal_direction == DIRECTION.WEST;
+
+        const dn = {};
+        dn[DIRECTION.SOUTH] = sw;
+        dn[DIRECTION.WEST] = nw;
+        dn[DIRECTION.NORTH] = en;
+        dn[DIRECTION.EAST] = se;
+
+        const n = BLOCK.autoNeighbs(null, null, cardinal_direction, neighbours);
+
+        // Даже не пытайся это понять и переделать
+        if(style.checkIfSame(n.SOUTH, on_ceil)) {
+            // удаление лишних
+            let cd = CubeSym.sub(n.SOUTH.getCardinalDirection(), cardinal_direction);
+            if(!(style.checkIfSame(n.WEST, on_ceil) && n.WEST.getCardinalDirection() == cardinal_direction) && cd == ROTATE.W) {
+                dn[(cardinal_direction + 2) % 4] = false;
+            } else if(!(style.checkIfSame(n.EAST, on_ceil) && n.EAST.getCardinalDirection() == cardinal_direction) && cd == ROTATE.E) {
+                dn[(cardinal_direction + 3) % 4] = false;
+            }
+        } else if(style.checkIfSame(n.NORTH, on_ceil)) {
+            // добавление нужных
+            let cd2 = CubeSym.sub(n.NORTH.getCardinalDirection(), cardinal_direction);
+            if(cd2 == ROTATE.E) {
+                if(!(style.checkIfSame(n.WEST, on_ceil) && n.WEST.getCardinalDirection() == cardinal_direction)) {
+                    dn[(cardinal_direction + 1) % 4] = true;
+                }
+            } else if(cd2 == ROTATE.W) {
+                if(!(style.checkIfSame(n.EAST, on_ceil) && n.EAST.getCardinalDirection() == cardinal_direction)) {
+                    dn[(cardinal_direction + 0) % 4] = true;
+                }
+            }
+        }
+
+        // sw
+        if(dn[DIRECTION.SOUTH]) {
+            // sw
+            pushAABB(vertices, aabb_top, pivot, matrix,
+                {
+                    up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    south:  new AABBSideParams(c_1, 0, 1, null, null, false),
+                    west:   new AABBSideParams([c_2[0] + .5/TX_CNT, c_2[1], c_2[2], c_2[3]], 0, 1, null, null, false),
+                    north:  new AABBSideParams([c_3[0] + .5/TX_CNT, c_3[1], c_3[2], c_3[3]], 0, 1, null, null, false),
+                    east:  new AABBSideParams(c_4, 0, 1, null, null, false),
+                },
+                pos
+            );
+        }
+
+
+        // se
+        if(dn[DIRECTION.EAST]) {
+            // se
+            pushAABB(vertices, aabb_top.clone().translate(.5, 0, 0), pivot, matrix,
+                {
+                    up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    south:  new AABBSideParams([c_1[0] + .5/TX_CNT, c_1[1], c_1[2], c_1[3]], 0, 1, null, null, false),
+                    west:   new AABBSideParams([c_2[0] + .5/TX_CNT, c_2[1], c_2[2], c_2[3]], 0, 1, null, null, false),
+                    north:  new AABBSideParams(c_3, 0, 1, null, null, false),
+                    east:  new AABBSideParams(c_4, 0, 1, null, null, false),
+                },
+                pos
+            );
+        }
+
+        // en
+        if(dn[DIRECTION.NORTH]) {
+            // en
+            pushAABB(vertices, aabb_top.clone().translate(.5, 0, .5), pivot, matrix,
+                {
+                    up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    south:  new AABBSideParams([c_1[0] + .5/TX_CNT, c_1[1], c_1[2], c_1[3]], 0, 1, null, null, false),
+                    west:   new AABBSideParams(c_2, 0, 1, null, null, false),
+                    north:  new AABBSideParams(c_3, 0, 1, null, null, false),
+                    east:  new AABBSideParams([c_4[0] + .5/TX_CNT, c_4[1], c_4[2], c_4[3]], 0, 1, null, null, false),
+                },
+                pos
+            );
+        }
+
+        // nw
+        if(dn[DIRECTION.WEST]) {
+            pushAABB(vertices, aabb_top.clone().translate(0, 0, .5), pivot, matrix,
+                {
+                    up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    south:  new AABBSideParams(c_1, 0, 1, null, null, false),
+                    west:   new AABBSideParams(c_2, 0, 1, null, null, false),
+                    north:  new AABBSideParams([c_3[0] + .5/TX_CNT, c_3[1], c_3[2], c_3[3]], 0, 1, null, null, false),
+                    east:  new AABBSideParams([c_4[0] + .5/TX_CNT, c_4[1], c_4[2], c_4[3]], 0, 1, null, null, false),
+                },
+                pos
+            );
         }
 
     }

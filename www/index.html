@@ -153,11 +153,8 @@
                 <form>
                     <div>
                         <div class="my-worlds" ng-if="mygames.list.length > 0">
-                            <div ng-repeat="item in mygames.list track by item.id" ng-if="item.my">
-                                <button class="btn" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
-                            </div>
-                            <div ng-repeat="item in mygames.list track by item.id" ng-if="!item.my">
-                                <button class="btn btn-secondary" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
+                            <div ng-repeat="item in mygames.list track by item.id">
+                                <button class="btn" ng-class="{'btn-secondary': !item.my}" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
                             </div>
                         </div>
                         <button class="btn btn-main" ng-click="newgame.open()">

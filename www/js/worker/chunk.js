@@ -458,7 +458,7 @@ export class Chunk {
                         eb.pos,
                         fake_neighbours,
                         eb.biome,
-                        null,
+                        eb.dirt_color,
                         null,
                         null,
                         eb.matrix,

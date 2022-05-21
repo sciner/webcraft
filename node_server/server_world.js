@@ -30,12 +30,12 @@ export class ServerWorld {
         return Date.now() + SERVE_TIME_LAG;
     }
 
-    async initServer(world_guid, db) {
+    async initServer(world_guid, db_world) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
         const that          = this;
-        this.db             = db;
+        this.db             = db_world;
         this.info           = await this.db.getWorld(world_guid);
         this.chests         = new ChestManager(this);
         this.chat           = new ServerChat(this);

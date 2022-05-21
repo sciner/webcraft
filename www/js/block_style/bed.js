@@ -90,6 +90,8 @@ export default class style {
         // IMPORTANT! c_head positions must be 0x0 coord in bed texture
         c_head[0] -= 16/sz;
         c_head[1] -= 16/sz;
+        c_head[2] *= -1;
+        c_head[3] *= -1;
 
         // up
         const c_up = is_head ? [

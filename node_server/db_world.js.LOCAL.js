@@ -378,15 +378,6 @@ export class DBWorld {
             `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
         ]});
 
-        migrations.push({version: 45, queries: [
-            `UPDATE world_modify SET block_id = 98, params = '{"id": 98}' WHERE block_id IN(43, 125);`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":43,', '"id":98,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":43}', ',"id":98}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":125,', '"id":98}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":125}', ',"id":98,');`,
-            `UPDATE world_modify SET extra_data = '{"active":true}' WHERE block_id = 660;`,
-        ]});
-
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

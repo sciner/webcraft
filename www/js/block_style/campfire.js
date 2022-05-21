@@ -70,7 +70,7 @@ export default class style {
         }
 
         const pos = new Vector(x, y, z);
-        const active = true;
+        const active = block?.extra_data?.active;
 
         const aabb_stone = new AABB();
         aabb_stone.set(

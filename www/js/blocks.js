@@ -644,9 +644,20 @@ export class BLOCK {
             }
         }
         let c = this.calcTexture(texture, dir, tx_cnt);
+        if(width && width < 1) {
+            c[2] *= width;
+        }
         if(height && height < 1) {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;
+        }
+        /*if(dir == DIRECTION.UP) {
+            c[2] *= -1;
+            c[3] *= -1;
+        }*/
+        if(dir == DIRECTION.NORTH || dir == DIRECTION.WEST) {
+            //c[2] *= -1;
+            //c[3] *= -1;
         }
         return c;
     }
@@ -753,7 +764,7 @@ export class BLOCK {
     }
 
     static isOnCeil(block) {
-        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
+        return block.extra_data && block.extra_data?.point?.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
     }
 
     static isOpened(block) {

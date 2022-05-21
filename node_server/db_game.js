@@ -83,6 +83,11 @@ export class DBGame {
             `DROP TABLE "main"."_world_player_old_20220515";`
         ]});
 
+        migrations.push({version: 5, queries: [
+            `ALTER TABLE "world" ADD COLUMN "play_count" integer NOT NULL DEFAULT 0;`,
+            `ALTER TABLE "world_player" ADD COLUMN "play_count" integer NOT NULL DEFAULT 0;`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -166,7 +171,7 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         let result = [];
-        let rows = await this.db.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = ?", user_id)
+        let rows = await this.db.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = ? ORDER BY wp.play_count DESC, wp.id DESC", user_id)
         if(rows) {
             for(let row of rows) {
                 let world = {
@@ -284,6 +289,25 @@ export class DBGame {
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null
         };
+    }
+
+    // Increase world play count by user
+    async IncreasePlayCount(world_id, session_id) {
+        //
+        const result = await this.db.get(`UPDATE world_player
+        SET play_count = play_count + 1
+        WHERE world_id = :world_id
+        AND user_id = (SELECT user_id FROM user_session WHERE token = :session_id)`, {
+            ':world_id':      world_id,
+            ':session_id':    session_id
+        });
+        //
+        await this.db.get(`UPDATE world
+        SET play_count = play_count + 1
+        WHERE id = :world_id`, {
+            ':world_id':      world_id
+        });
+        return !!result;
     }
 
 }

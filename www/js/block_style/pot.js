@@ -38,10 +38,14 @@ class FakeBlock {
     }
 
     hasTag(tag) {
-        if(!Array.isArray(this.tags)) {
+        const mat = this.material;
+        if(!mat) {
             return false;
         }
-        return this.tags.indexOf(tag) >= 0;
+        if(!Array.isArray(mat.tags)) {
+            return false;
+        }
+        return mat.tags.indexOf(tag) >= 0;
     }
 
     get material() {

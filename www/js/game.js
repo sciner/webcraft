@@ -249,13 +249,13 @@ export class GameClass {
                         break;
                     }
                     // [F2]
-                    /*case KEY.F2: {
+                    case KEY.F2: {
                         if(!e.down) {
-                            this.render.screenshot();
+                            this.render.downloadScreenshot();
                         }
                         return true;
                         break;
-                    }*/
+                    }
                     // [F3] Toggle info
                     case KEY.F3: {
                         if(!e.down) {
