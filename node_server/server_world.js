@@ -626,7 +626,7 @@ export class ServerWorld {
 
     //
     async applyActions(server_player, actions) {
-        let chunks_packets = new VectorCollector();
+        const chunks_packets = new VectorCollector();
         //
         const getChunkPackets = (pos) => {
             let chunk_addr = getChunkAddr(pos);
@@ -636,7 +636,11 @@ export class ServerWorld {
             //}
             let cps = chunks_packets.get(chunk_addr);
             if(!cps) {
-                cps = {packets: [], chunk: chunk};
+                cps = {
+                    chunk: chunk,
+                    packets: [],
+                    custom_packets: []
+                };
                 chunks_packets.set(chunk_addr, cps);
             }
             return cps;
@@ -689,6 +693,7 @@ export class ServerWorld {
             let chunk_addr = new Vector(0, 0, 0);
             let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
             let chunk = null;
+            // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
             const use_tx = actions.blocks.list.length > 1;
@@ -717,19 +722,19 @@ export class ServerWorld {
                             data: params
                         });
                         // 0. Play particle animation on clients
-                        if(!ignore_check_air) {
-                            if(params.item.id == BLOCK.AIR.id) {
-                                let tblock = chunk.tblocks.get(block_pos_in_chunk);
-                                if(tblock.id > 0) {
-                                    let destroy_data = {
-                                        pos: params.pos,
-                                        item: {id: tblock.id}
-                                    }
-                                    let packet = {
-                                        name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                                        data: destroy_data
-                                    };
-                                    cps.packets.push(packet);
+                        if(!ignore_check_air && server_player) {
+                            if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                                if(params.destroy_block_id > 0) {
+                                    cps.custom_packets.push({
+                                        except_players: [server_player.session.user_id],
+                                        packets: [{
+                                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                                            data: {
+                                                pos: params.pos,
+                                                item: {id: params.destroy_block_id}
+                                            }
+                                        }]
+                                    });
                                 }
                             }
                         }
@@ -782,6 +787,10 @@ export class ServerWorld {
         for(let cp of chunks_packets) {
             if(cp.chunk) {
                 cp.chunk.sendAll(cp.packets, []);
+                for(let i = 0; i < cp.custom_packets.length; i++) {
+                    const item = cp.custom_packets[i];
+                    cp.chunk.sendAll(item.packets, item.except_players || []);
+                }
             }
         }
     }

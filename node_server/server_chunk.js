@@ -439,7 +439,7 @@ export class ServerChunk {
 
     //
     sendAll(packets, except_players) {
-        let connections = Array.from(this.connections.keys());
+        const connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
     }
 

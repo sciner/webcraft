@@ -127,7 +127,7 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.5 (${world.info.guid})`
         }]);
 
         this.sendWorldInfo(false);
