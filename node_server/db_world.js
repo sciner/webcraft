@@ -387,6 +387,33 @@ export class DBWorld {
             `UPDATE world_modify SET extra_data = '{"active":true}' WHERE block_id = 660;`,
         ]});
 
+        migrations.push({version: 46, queries: [
+            `UPDATE world_modify SET block_id = 1315, params = '{"id": 1315}' WHERE block_id = 450;`,
+            `UPDATE world_modify SET block_id = 1311, params = '{"id": 1311}' WHERE block_id = 451;`,
+            `UPDATE world_modify SET block_id = 1312, params = '{"id": 1312}' WHERE block_id = 452;`,
+            `UPDATE world_modify SET block_id = 1309, params = '{"id": 1309}' WHERE block_id = 453;`,
+            `UPDATE world_modify SET block_id = 1307, params = '{"id": 1307}' WHERE block_id = 454;`,
+            `UPDATE world_modify SET block_id = 1313, params = '{"id": 1313}' WHERE block_id = 455;`,
+            `UPDATE world_modify SET block_id = 1314, params = '{"id": 1314}' WHERE block_id = 503;`,
+            `UPDATE world_modify SET block_id = 1304, params = '{"id": 1304}' WHERE block_id = 507;`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":450,', '"id":1315,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":450}', ',"id":1315}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":451,', '"id":1311,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":451}', ',"id":1311}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":452,', '"id":1312,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":452}', ',"id":1312}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":453,', '"id":1309,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":453}', ',"id":1309}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":454,', '"id":1307,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":454}', ',"id":1307}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":455,', '"id":1313,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":455}', ',"id":1313}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":503,', '"id":1314,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":503}', ',"id":1314}');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":507,', '"id":1304,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":507}', ',"id":1304}');`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

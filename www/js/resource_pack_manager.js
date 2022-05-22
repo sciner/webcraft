@@ -7,24 +7,26 @@ const START_WOOL_ID = 350; // ... 365
 const START_CARPET_ID = 800; // ... 815
 const START_BUTTON_ID = 770; // ...799
 const START_BED_ID = 1200; // ...1215
+const START_TERRACOTA = 1300; // 1315
+const START_GLAZZED_TERRACOTA = 1400; // 1415
 
 export const COLOR_PALETTE = {
-    white: [0, 0],
-    orange: [2, 1],
-    magenta: [2, 3],
-    light_blue: [3, 2],
-    yellow: [3, 1],
-    lime: [0, 2],
-    pink: [3, 3],
-    gray: [2, 0],
-    light_gray: [1, 0],
-    cyan: [2, 2],
-    purple: [1, 3],
-    blue: [0, 3],
-    brown: [0, 1],
-    green: [1, 2],
-    red: [1, 1],
-    black: [3, 0],
+    white: [0, 0],      // Белая керамика - white_terracotta
+    orange: [2, 1],     // Оранжевая керамика - orange_terracotta
+    magenta: [2, 3],    // Сиреневая керамика - magenta_terracotta
+    light_blue: [3, 2], // Светло-синяя керамика - light_blue_terracotta
+    yellow: [3, 1],     // Жёлтая керамика - yellow_terracotta
+    lime: [0, 2],       // Лаймовая керамика - lime_terracotta
+    pink: [3, 3],       // Розовая керамика - pink_terracotta
+    gray: [2, 0],       // Серая керамика - gray_terracotta
+    light_gray: [1, 0], // Светло-серая керамика - light_gray_terracotta
+    cyan: [2, 2],       // Бирюзовая керамика - cyan_terracotta
+    purple: [1, 3],     // Фиолетовая керамика - purple_terracotta
+    blue: [0, 3],       // Синяя керамика - blue_terracotta
+    brown: [0, 1],      // Коричневая керамика - brown_terracotta
+    green: [1, 2],      // Зелёная керамика - green_terracotta
+    red: [1, 1],        // Красная керамика - red_terracotta
+    black: [3, 0],      // Чёрная керамика - black_terracotta
 };
 
 export class ResourcePackManager {
@@ -71,6 +73,8 @@ export class ResourcePackManager {
         this.initCarpets(base);
         this.initButtons(base);
         this.initBed(base);
+        this.initTerracota(base);
+        this.initGlazzedTerracota(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -186,6 +190,54 @@ export class ResourcePackManager {
                     "bed",
                     "rotate_by_pos_n",
                     "mask_color"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
+    }
+
+    // Терракота (terracotta)
+    initTerracota(resource_pack) {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_TERRACOTA + i,
+                "name": color.toUpperCase() + '_TERRACOTTA',
+                "material": {"id": "stone"},
+                "sound": "madcraft:block.stone",
+                "texture": {"side": [10, 16]},
+                "mask_color": mask_color,
+                "tags": [
+                    "can_put_info_pot",
+                    "mask_color"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
+    }
+
+    initGlazzedTerracota(resource_pack) {
+        const first_pos = {x: 30, y: 6};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const b = {
+                "id": START_GLAZZED_TERRACOTA + i,
+                "name": color.toUpperCase() + '_GLAZZED_TERRACOTTA',
+                "material": {"id": "stone"},
+                "sound": "madcraft:block.stone",
+                "texture": {"side": [first_pos.x, first_pos.y + i]},
+                "can_rotate": true,
+                "tags": [
+                    "rotate_by_pos_n",
+                    "can_put_info_pot"
                 ]
             };
             BLOCK.add(resource_pack, b);
