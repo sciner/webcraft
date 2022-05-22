@@ -598,6 +598,21 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         if(!e.shiftKey && world_material.name == 'TNT') {
             resp.play_sound.push({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos)});
             // resp.play_sound.push({tag: 'madcraft:block.player', action: 'explode', pos: new Vector(pos)});
+            /*
+            // Explode
+            const rad = 3;
+            const air = {id: 0};
+            for(let i = -rad; i < rad; i++) {
+                for(let j = -rad; j < rad; j++) {
+                    for(let k = -rad; k < rad; k++) {
+                        const air_pos = new Vector(pos.x + i, pos.y + k, pos.z + j);
+                        if(air_pos.distance(pos) < rad) {
+                            resp.blocks.list.push({pos: air_pos, item: air});
+                        }
+                    }
+                }
+            }
+            */
             return resp;
         }
         // 2. Проверка инвентаря
