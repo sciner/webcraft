@@ -382,8 +382,8 @@ export class DBWorld {
             `UPDATE world_modify SET block_id = 98, params = '{"id": 98}' WHERE block_id IN(43, 125);`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":43,', '"id":98,');`,
             `UPDATE user SET inventory = REPLACE(inventory, ',"id":43}', ',"id":98}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":125,', '"id":98}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":125}', ',"id":98,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":125,', '"id":98,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, ',"id":125}', ',"id":98}');`,
             `UPDATE world_modify SET extra_data = '{"active":true}' WHERE block_id = 660;`,
         ]});
 
@@ -412,6 +412,10 @@ export class DBWorld {
             `UPDATE user SET inventory = REPLACE(inventory, ',"id":503}', ',"id":1314}');`,
             `UPDATE user SET inventory = REPLACE(inventory, '"id":507,', '"id":1304,');`,
             `UPDATE user SET inventory = REPLACE(inventory, ',"id":507}', ',"id":1304}');`,
+        ]});
+
+        migrations.push({version: 47, queries: [
+            `UPDATE user SET inventory = REPLACE(inventory, '}"', ',"');`,
         ]});
 
         for(let m of migrations) {
