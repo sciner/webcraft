@@ -117,15 +117,19 @@ export default class style {
         const n = BLOCK.autoNeighbs(null, null, cardinal_direction, neighbours);
 
         // Даже не пытайся это понять и переделать
+        let changed = false;
         if(style.checkIfSame(n.SOUTH, on_ceil)) {
             // удаление лишних
             let cd = CubeSym.sub(n.SOUTH.getCardinalDirection(), cardinal_direction);
             if(!(style.checkIfSame(n.WEST, on_ceil) && n.WEST.getCardinalDirection() == cardinal_direction) && cd == ROTATE.W) {
                 dn[(cardinal_direction + 2) % 4] = false;
+                changed = true;
             } else if(!(style.checkIfSame(n.EAST, on_ceil) && n.EAST.getCardinalDirection() == cardinal_direction) && cd == ROTATE.E) {
                 dn[(cardinal_direction + 3) % 4] = false;
+                changed = true;
             }
-        } else if(style.checkIfSame(n.NORTH, on_ceil)) {
+        }
+        if(!changed && style.checkIfSame(n.NORTH, on_ceil)) {
             // добавление нужных
             let cd2 = CubeSym.sub(n.NORTH.getCardinalDirection(), cardinal_direction);
             if(cd2 == ROTATE.E) {
