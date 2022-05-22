@@ -518,6 +518,7 @@ export class BLOCK {
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
+        block.uvlock            = !('uvlock' in block) ? true : false;
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
@@ -695,11 +696,12 @@ export class BLOCK {
         if(!c) {
             debugger;
         }
+        const flags = c[2] | 0;
         return [
             (c[0] + 0.5) / tx_cnt,
             (c[1] + 0.5) / tx_cnt,
-            1 / tx_cnt,
-            c[2] === 2 ? - 1 / tx_cnt : 1 / tx_cnt
+            ((flags & 1) != 0) ? - 1 / tx_cnt : 1 / tx_cnt,
+            ((flags & 2) != 0)  ? - 1 / tx_cnt : 1 / tx_cnt
         ];
     }
 

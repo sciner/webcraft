@@ -7,8 +7,8 @@ const START_WOOL_ID = 350; // ... 365
 const START_CARPET_ID = 800; // ... 815
 const START_BUTTON_ID = 770; // ...799
 const START_BED_ID = 1200; // ...1215
-const START_TERRACOTA = 1300; // 1315
-const START_GLAZZED_TERRACOTA = 1400; // 1415
+const START_TERRACOTTA = 1300; // 1315
+const START_GLAZED_TERRACOTTA = 1400; // 1415
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая керамика - white_terracotta
@@ -73,8 +73,8 @@ export class ResourcePackManager {
         this.initCarpets(base);
         this.initButtons(base);
         this.initBed(base);
-        this.initTerracota(base);
-        this.initGlazzedTerracota(base);
+        this.initTerracotta(base);
+        this.initGlazedTerracotta(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -198,7 +198,7 @@ export class ResourcePackManager {
     }
 
     // Терракота (terracotta)
-    initTerracota(resource_pack) {
+    initTerracotta(resource_pack) {
         const palette_pos = {x: 24, y: 31};
         let i = 0;
         for(let color in COLOR_PALETTE) {
@@ -208,7 +208,7 @@ export class ResourcePackManager {
             mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
             const b = {
-                "id": START_TERRACOTA + i,
+                "id": START_TERRACOTTA + i,
                 "name": color.toUpperCase() + '_TERRACOTTA',
                 "material": {"id": "stone"},
                 "sound": "madcraft:block.stone",
@@ -224,19 +224,26 @@ export class ResourcePackManager {
         }
     }
 
-    initGlazzedTerracota(resource_pack) {
-        const first_pos = {x: 30, y: 6};
+    // Glazed terracotta
+    initGlazedTerracotta(resource_pack) {
+        const first_pos = {x: 29, y: 6};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const b = {
-                "id": START_GLAZZED_TERRACOTA + i,
-                "name": color.toUpperCase() + '_GLAZZED_TERRACOTTA',
+                "id": START_GLAZED_TERRACOTTA + i,
+                "name": color.toUpperCase() + '_GLAZED_TERRACOTTA',
                 "material": {"id": "stone"},
                 "sound": "madcraft:block.stone",
-                "texture": {"side": [first_pos.x, first_pos.y + i]},
+                "uvlock": false,
+                "texture": {
+                    "side": [first_pos.x, first_pos.y + i],
+                    "up": [first_pos.x + 1, first_pos.y + i, 0],
+                    "north": [first_pos.x + 1, first_pos.y + i, 0],
+                    "south": [first_pos.x + 1, first_pos.y + i, 3],
+                    "west": [first_pos.x, first_pos.y + i, 3]
+                },
                 "can_rotate": true,
                 "tags": [
-                    "rotate_by_pos_n",
                     "can_put_info_pot"
                 ]
             };

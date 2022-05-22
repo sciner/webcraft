@@ -11,14 +11,16 @@ let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 
+// @IMPORTANT!: No change order, because it very important for uvlock blocks
 const UP_AXES = [
-    [[0, -1, 0], [1, 0, 0]],
-    [[-1, 0, 0], [0, -1, 0]],
     [[0, 1, 0], [-1, 0, 0]],
+    [[-1, 0, 0], [0, -1, 0]],
+    [[0, -1, 0], [1, 0, 0]],
     [[1, 0, 0], [0, 1, 0]],
 ];
 
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+// Used for grass pseudo-random rotation
+const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_dirt_rotations');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
@@ -377,6 +379,12 @@ export default class style {
         if(block.id == BLOCK.GRASS_DIRT.id || block.id == BLOCK.SAND.id) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             axes_up = UP_AXES[rv % 4];
+            autoUV = false;
+        }
+
+        // uvlock
+        if(!material.uvlock) {
+            axes_up = UP_AXES[cardinal_direction];
             autoUV = false;
         }
 
