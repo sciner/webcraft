@@ -37,24 +37,38 @@ export default class style {
         let zconnects = 0;
         let xconnects = 0;
 
+
+        // South and North
+        const ss = BLOCK.canWallConnect(neighbours.SOUTH);
+        const sn = BLOCK.canWallConnect(neighbours.NORTH);
+        const czsn = (ss && sn) ? 2 : CONNECT_Z;
         // South
-        if(BLOCK.canWallConnect(neighbours.SOUTH)) {
-            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 - CONNECT_Z/2, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
+        if(ss) {
+            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + czsn/4, CONNECT_X, czsn/2, CONNECT_HEIGHT);
             zconnects++;
         }
         // North
-        if(BLOCK.canWallConnect(neighbours.NORTH)) {
-            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 + CONNECT_Z/2, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
+        if(sn) {
+            if(!ss) {
+                push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + 1 - CONNECT_Z/4, CONNECT_X, CONNECT_Z/2, CONNECT_HEIGHT);
+            }
             zconnects++;
         }
+
+        // West and East
+        const sw = BLOCK.canWallConnect(neighbours.WEST);
+        const se = BLOCK.canWallConnect(neighbours.EAST);
+        const czwe = (sw && se) ? 2 : CONNECT_Z;
         // West
-        if(BLOCK.canWallConnect(neighbours.WEST)) {
-            push_part(vertices, c, x + .5 - CONNECT_Z/2, y + CONNECT_BOTTOM, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
+        if(sw) {
+            push_part(vertices, c, x + czwe/4, y + CONNECT_BOTTOM, z + .5, czwe/2, CONNECT_X, CONNECT_HEIGHT);
             xconnects++;
         }
         // East
-        if(BLOCK.canWallConnect(neighbours.EAST)) {
-            push_part(vertices, c, x + .5 + CONNECT_Z/2, y + CONNECT_BOTTOM, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
+        if(se) {
+            if(!sw) {
+                push_part(vertices, c, x + 1. - CONNECT_Z/4, y + CONNECT_BOTTOM, z + .5, CONNECT_Z/2, CONNECT_X, CONNECT_HEIGHT);
+            }
             xconnects++;
         }
 

@@ -5,6 +5,8 @@ import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { AABB } from './core/AABB.js';
 
+import { default as StyleStairs } from './block_style/stairs.js';
+
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
@@ -442,6 +444,7 @@ export class BLOCK {
         return transparent;
     }
 
+    // add
     static async add(resource_pack, block) {
         // Check duplicate ID
         if(!('name' in block) || !('id' in block)) {
@@ -859,7 +862,7 @@ export class BLOCK {
                     // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canWallConnect(n.SOUTH)) {
-                        shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z]);
+                        shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z/2]);
                         zconnects++;
                     }
                     // North z++
@@ -868,56 +871,33 @@ export class BLOCK {
                             shapes.pop();
                             shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1]);
                         } else {
-                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, .5, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z]);
+                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, .5+CONNECT_Z/2, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z]);
                         }
                         zconnects++;
                     }
                     // West x--
                     if(this.canWallConnect(n.WEST)) {
-                        shapes.push([
-                            0,
-                            CONNECT_BOTTOM,
-                            .5-CONNECT_X/2, 
-                            CONNECT_Z,
-                            height,
-                            .5-CONNECT_X/2 + CONNECT_X
-                        ]);
+                        shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_X/2, CONNECT_Z/2, height, .5-CONNECT_X/2 + CONNECT_X]);
                         xconnects++;
                     }
                     // East x++
                     if(this.canWallConnect(n.EAST)) {
                         if(xconnects) {
                             shapes.pop();
-                            shapes.push([
-                                0,
-                                CONNECT_BOTTOM,
-                                .5-CONNECT_X/2,
-                                1,
-                                height,
-                                .5-CONNECT_X/2 + CONNECT_X
-                            ]);
+                            shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X]);
                         } else {
-                            shapes.push([
-                                .5,
-                                CONNECT_BOTTOM,
-                                .5-CONNECT_X/2,
-                                .5+CONNECT_Z,
-                                height,
-                                .5-CONNECT_X/2 + CONNECT_X
-                            ]);
+                            shapes.push([1 - CONNECT_Z/2, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X]);
                         }
                         xconnects++;
                     }
                     if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
                         // do nothing
                     } else {
-                        //if(!for_physic) {
                         // Central
                         shapes.push([
                             .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
                             .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
                         ]);
-                        //}
                     }
                     break;
                 }
@@ -973,55 +953,7 @@ export class BLOCK {
                     break;
                 }
                 case 'stairs': {
-                    let cardinal_direction = b.getCardinalDirection();
-                    let n = this.autoNeighbs(world.chunkManager, pos, cardinal_direction, neighbours);
-                    //
-                    let checkIfSame = (checked_block) => {
-                        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.indexOf('stairs') >= 0;
-                    };
-                    //
-                    let on_ceil = this.isOnCeil(b);
-                    let sz = 0.5;
-                    let yt = 0;
-                    // Основная часть
-                    if(on_ceil) {
-                        shapes.push(aabb.set(0, sz - f, 0, 1, 1, 1)
-                            .rotate(cardinal_direction, shapePivot).toArray());
-                    } else {
-                        shapes.push(aabb.set(0, 0, 0, 1, sz + f, 1)
-                            .rotate(cardinal_direction, shapePivot).toArray());
-                        yt = .5;
-                    }
-                    // Верхняя ступенька (либо нижняя, если блок перевернуть вертикально)
-                    let poses = [];
-                    poses = [
-                        new Vector(.5, yt, 0),
-                        new Vector(0, yt, 0),
-                    ];
-                    // удаление лишних
-                    if(!(checkIfSame(n.WEST) && checkIfSame(n.EAST)) && checkIfSame(n.SOUTH)) {
-                        let cd = CubeSym.sub(n.SOUTH.getCardinalDirection(), cardinal_direction);
-                        if(cd == ROTATE.E) {
-                            poses.shift();
-                        } else if (cd == ROTATE.W) {
-                            poses.pop();
-                        }
-                    }
-                    // добавление недостающих
-                    if(!(checkIfSame(n.WEST) && checkIfSame(n.EAST)) && checkIfSame(n.NORTH)) {
-                        let cd = CubeSym.sub(n.NORTH.getCardinalDirection(), cardinal_direction);
-                        if(!checkIfSame(n.EAST) && cd == ROTATE.W) {
-                            poses.push(new Vector(.5, yt, .5));
-                        }
-                        if(!checkIfSame(n.WEST) && cd == ROTATE.E) {
-                            poses.push(new Vector(0, yt, .5));
-                        }
-                    }
-                    for(let pose of poses) {
-                        shapes.push(
-                            aabb.set(pose.x - f, pose.y, pose.z - f, pose.x + .5 + f, pose.y + .5 + f, pose.z + .5 + f)
-                                .rotate(cardinal_direction, shapePivot).toArray());
-                    }
+                    shapes.push(...StyleStairs.calculate(b, pos, neighbours, world.chunkManager).getShapes(new Vector(pos).multiplyScalar(-1), f));
                     break;
                 }
                 case 'trapdoor': {

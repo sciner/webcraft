@@ -1649,10 +1649,7 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            4,
-            2
-        ],
+        "texture": [4, 2],
         "can_rotate": true
     },
     {
@@ -1702,12 +1699,8 @@
         "material": {
             "id": "cobblestone"
         },
-        "texture": [
-            0,
-            1
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [0, 1],
+        "can_rotate": true
     },
     {
         "id": 72,
@@ -2178,12 +2171,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            7,
-            0
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [7, 0],
+        "can_rotate": true
     },
     {
         "id": 109,
@@ -2196,12 +2185,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            1,
-            0
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [1, 0],
+        "can_rotate": true
     },
     {
         "id": 112,
@@ -2228,12 +2213,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            0,
-            14
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [0, 14],
+        "can_rotate": true
     },
     {
         "id": 117,
@@ -2404,12 +2385,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            0,
-            12
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [0, 12],
+        "can_rotate": true
     },
     {
         "id": 129,
@@ -2429,12 +2406,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            20,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [20, 19],
+        "can_rotate": true
     },
     {
         "id": 53,
@@ -2447,12 +2420,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            21,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [21, 19],
+        "can_rotate": true
     },
     {
         "id": 163,
@@ -2465,12 +2434,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            22,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [22, 19],
+        "can_rotate": true
     },
     {
         "id": 134,
@@ -2483,12 +2448,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            23,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [23, 19],
+        "can_rotate": true
     },
     {
         "id": 534,
@@ -2501,12 +2462,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            24,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [24, 19],
+        "can_rotate": true
     },
     {
         "id": 535,
@@ -2519,12 +2476,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            25,
-            19
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [25, 19],
+        "can_rotate": true
     },
     {
         "id": 136,
@@ -2577,12 +2530,8 @@
         "tags": [
             "stairs"
         ],
-        "texture": [
-            12,
-            10
-        ],
-        "can_rotate": true,
-        "transparent": true
+        "texture": [12, 10],
+        "can_rotate": true
     },
     {
         "id": 161,

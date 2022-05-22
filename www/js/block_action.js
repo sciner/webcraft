@@ -51,7 +51,7 @@ function calcRotate(rot, pos_n) {
     rot.x = 0;
     rot.y = 0;
     // top normal
-    if (Math.abs(pos_n.y) === 1) {
+    if (true || Math.abs(pos_n.y) === 1) {
         rot.x = BLOCK.getCardinalDirection(rot);
         rot.z = 0;
         rot.y = pos_n.y; // mark that is up
