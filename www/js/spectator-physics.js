@@ -19,17 +19,6 @@ export class PlayerControl  {
         this.enabled            = false;
     }
 
-    // reset controls
-    reset() {
-        this.back       = false;
-        this.forward    = false;
-        this.right      = false;
-        this.left       = false;
-        this.jump       = false;
-        this.sneak      = false;
-        this.sprint     = false;
-    }
-
 }
 
 export class SpectatorPlayerControl {
