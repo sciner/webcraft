@@ -199,19 +199,23 @@ export class FSMBrain {
 		}
     }
 
-    stand(chance) {
+    goStand(chance) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " stand");
             this.stack.replaceState(this.doStand);
+            return true;
         }
+        return false;
     }
 
-    rotate(chance, angle = -1) {
+    goRotate(chance, angle = -1) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " rotate");
             this.rad = (angle == -1) ? Math.random() * Math.PI : angle;
             this.stack.replaceState(this.doRotate);
+            return true;
         }
+        return false;
 	}
 
     doStand(delta) {
@@ -224,13 +228,19 @@ export class FSMBrain {
 
         this.forward(0.01);
 
-        this.rotate(0.01);
+        if (this.goRotate(0.01)) {
+            return;
+		}
 
         this.beyond();
 
         this.applyControl(delta);
         this.sendState();
     }
+
+    setMobDie() {
+
+	}
 
     doForward(delta) {
         this.updateControl({
@@ -241,7 +251,9 @@ export class FSMBrain {
 
         this.agressor();
 
-        this.stand(0.01);
+        if (this.goStand(0.01)) {
+            return;
+		}
 
         this.applyControl(delta);
         this.sendState();
@@ -279,6 +291,7 @@ export class FSMBrain {
         }
 
         if (dist < 4) {
+            this.mob.pos.y += 0.5;
             let actions = {
                 blocks: {
                     list: [],
@@ -288,18 +301,20 @@ export class FSMBrain {
                     }
                 }
             };
-            const rad = 3;
+            const rad = 20;
             const air = { id: 0 };
             for (let i = -rad; i < rad; i++) {
                 for (let j = -rad; j < rad; j++) {
                     for (let k = -rad; k < rad; k++) {
-                        const air_pos = new Vector(this.mob.pos.x + i, this.mob.pos.y + k, this.mob.pos.z + j);
+                        const air_pos = new Vector(this.mob.pos.x + i, this.mob.pos.y + k, this.mob.pos.z + j).flooredSelf();
                         if (air_pos.distance(this.mob.pos) < rad) {
                             actions.blocks.list.push({ pos: air_pos, item: air });
                         }
                     }
                 }
             }
+            console.log(actions.blocks.list);
+            console.log(player.state.pos);
             await this.mob.getWorld().applyActions(null, actions, false);
             this.stand(1.0)
             this.target = null;
