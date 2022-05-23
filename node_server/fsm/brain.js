@@ -23,6 +23,8 @@ export class FSMBrain {
         this.rotateSign     = 1;
         this.#pos           = new Vector(0, 0, 0);
         this.panic          = false;
+        this.target = null;
+        this.rad = 0;
     }
 
     /**
@@ -130,6 +132,328 @@ export class FSMBrain {
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
 
+    getConnections(pos) {
+       // let connections = new Map();
+
+        let connections = [];
+        let chunk_addr;
+        chunk_addr = getChunkAddr(pos, chunk_addr);
+        for (let x = -3; x <= 3; x++) {
+            for (let z = -3; z <= 3; z++) {
+                let chunk = this.mob.getWorld().chunks.get({ 'x': chunk_addr.x + x, 'y': chunk_addr.y, 'z': chunk_addr.z + z });
+                if (chunk != null && chunk.connections != null) {
+                    for (let key of chunk.connections.keys()) { // то же самое, что и recipeMap.entries()
+                        // connections.set(key, chunk.connections.get(key));
+                        connections.push(key);
+                    }
+                }
+            }
+        }
+
+        return connections;
+	}
+
+    angle(target) {
+        let angle = Math.atan2(target.x - this.mob.pos.x, target.z - this.mob.pos.z);
+        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    }
+
+    distance(target) {
+        if (target != null)
+            return Math.sqrt(Math.pow(target.x - this.mob.pos.x, 2) + Math.pow(target.z - this.mob.pos.z, 2));
+    }
+
+    agressor() {
+        if (this.isAggrressor && this.target == null) {
+            let connections = this.getConnections(this.mob.pos);
+            for (let id of connections) {
+                let player = this.mob.getWorld().players.get(id);
+                let dist = this.distance(player.state.pos);
+                if (dist < 10) {
+                    console.log("[AI] catch");
+                    this.target = id;
+                    this.stack.replaceState(this.doCatch);
+                    return;
+                }
+			}
+        }
+    }
+
+    beyond() {
+        if (this.isAggrressor && this.target != null) {
+            return;
+        }
+
+        let dist = this.distance(this.mob.pos_spawn);
+
+        if (dist > 21) {
+            console.log("[AI] mob " + this.mob.id + " beyond " + dist);
+            this.rotate(1.0, this.angle(this.mob.pos_spawn));
+        }
+    }
+
+    forward(chance) {
+        if (Math.random() < chance) {
+            console.log("[AI] mob " + this.mob.id + " forward");
+            this.stack.replaceState(this.doForward);
+		}
+    }
+
+    stand(chance) {
+        if (Math.random() < chance) {
+            console.log("[AI] mob " + this.mob.id + " stand");
+            this.stack.replaceState(this.doStand);
+        }
+    }
+
+    rotate(chance, angle = -1) {
+        if (Math.random() < chance) {
+            console.log("[AI] mob " + this.mob.id + " rotate");
+            this.rad = (angle == -1) ? Math.random() * Math.PI : angle;
+            this.stack.replaceState(this.doRotate);
+        }
+	}
+
+    doStand(delta) {
+        this.updateControl({
+            jump: this.checkInWater(),
+            forward: false
+        });
+
+        this.agressor();
+
+        this.forward(0.01);
+
+        this.rotate(0.01);
+
+        this.beyond();
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    doForward(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        this.agressor();
+
+        this.stand(0.01);
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    doRotate(delta) {
+        this.updateControl({
+            forward: false,
+            jump: this.checkInWater()
+        });
+
+        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.rad) > 0.2) {
+            this.mob.rotate.z += delta * 2;
+        } else {
+            this.forward(1.0);
+		}
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    async doCatch(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        let player = this.mob.getWorld().players.get(this.target);
+
+        let dist = this.distance(player.state.pos);
+        if (dist > 15) {
+            this.stand(1.0)
+            this.target = null;
+        }
+
+        if (dist < 4) {
+            let actions = {
+                blocks: {
+                    list: [],
+                    options: {
+                        ignore_check_air: true,
+                        on_block_set: false
+                    }
+                }
+            };
+            const rad = 3;
+            const air = { id: 0 };
+            for (let i = -rad; i < rad; i++) {
+                for (let j = -rad; j < rad; j++) {
+                    for (let k = -rad; k < rad; k++) {
+                        const air_pos = new Vector(this.mob.pos.x + i, this.mob.pos.y + k, this.mob.pos.z + j);
+                        if (air_pos.distance(this.mob.pos) < rad) {
+                            actions.blocks.list.push({ pos: air_pos, item: air });
+                        }
+                    }
+                }
+            }
+            await this.mob.getWorld().applyActions(null, actions, false);
+            this.stand(1.0)
+            this.target = null;
+		}
+
+        if (Math.random() < 0.5) {
+            this.mob.rotate.z = this.angle(player.state.pos);
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    checkInWater() {
+        let mob = this.mob;
+        let world = mob.getWorld();
+        let chunk_over = world.chunks.get(mob.chunk_addr);
+        if (!chunk_over) {
+            return false;
+        }
+        let block = chunk_over.getBlock(mob.pos.floored());
+        return block.material.is_fluid;
+    }
+
+
+
+
+
+    /*
+    doCatch(delta) {
+        let mob = this.mob;
+        let world = this.mob.getWorld();
+        this.target = world.players.get(1001);
+        if (this.target != null) {
+            let pos = this.target.state.pos;
+            let dist = this.distance(mob.pos, pos);
+            if (dist < 10) {
+                let angToCam = Math.atan2(pos.x - mob.pos.x, pos.z - mob.pos.z);
+                angToCam = (angToCam > 0) ? angToCam : angToCam + 6.28;
+                mob.rotate.z = angToCam;
+                this.applyControl(delta);
+                this.sendState();
+
+                this.stack.replaceState(this.goForward);
+            }
+		}
+    }
+
+    angle(target) {
+        let angToCam = Math.atan2(target.x - this.mob.pos.x, target.z - this.mob.pos.z);
+        return (angToCam > 0) ? angToCam : angToCam + 6.28;
+	}
+
+    distance(target) {
+        return Math.sqrt(Math.pow(target.x - this.mob.pos.x, 2) + Math.pow(target.z - this.mob.pos.z, 2) );
+    }
+
+
+    stand(delta) {
+        /*
+         * если встали, то можем развернуться или пойти
+         
+        this.updateControl({
+            jump: this.checkInWater(),
+            forward: false
+        });
+
+
+        if (this.isAggrressor) {
+            let pos = this.mob.getWorld().players.get(1001).state.pos;
+            let dist = this.distance(pos);
+            if (dist < 10) {
+                this.target = this.mob.getWorld().players.get(1001);
+                this.mob.rotate.z = this.angle(pos);
+                console.log("[AI] catch");
+                this.stack.replaceState(this.catch);
+			}
+        }
+
+        if (Math.random() * 5000 < 300) {
+            console.log("[AI] forward");
+            this.stack.replaceState(this.forward);
+        }
+
+        if (Math.random() * 5000 < 300) {
+            console.log("[AI] forward");
+            this.stack.replaceState(this.forward);
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    catch(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        let dist = this.distance(this.target.state.pos);
+        if (dist > 15) {
+            console.log("[AI] stand");
+            this.stack.replaceState(this.stand);
+            this.target = null;
+        }
+
+        if ((Math.random() * 5000) < 300) {
+            this.mob.rotate.z = this.angle(this.target.state.pos);
+		}
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    forward(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        if (Math.random() * 5000 < 300) {
+            console.log("[AI] rotate");
+            this.stack.replaceState(this.rotate);
+        }
+
+        if (Math.random() * 5000 < 300) {
+            console.log("[AI] stand");
+            this.stack.replaceState(this.stand);
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    rotate(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: false,
+            jump: this.checkInWater()
+        });
+
+        this.mob.rotate.z += (delta * (this.panic ? 25 : 1));
+
+        if (Math.random() * 5000 < 30) {
+            console.log("[AI] forward");
+            this.stack.replaceState(this.forward);
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
     // Stand still
     standStill(delta) {
 
@@ -166,8 +490,66 @@ export class FSMBrain {
         return block.material.is_fluid;
     }
 
-    // Rotate
     doRotate(delta) {
+        this.updateControl({ forward: false, jump: this.checkInWater() });
+
+        let mob = this.mob;
+        if (this.isAggrressor) {
+            let time = Math.round(Date.now());
+            //if ((time % 50) == 0) {
+                let pos = this.mob.getWorld().players.get(1001).state.pos;
+                let radius = Math.sqrt(Math.pow((pos.z - mob.pos.z), 2) + Math.pow((pos.x - mob.pos.x), 2));
+                if (radius < 1000) {
+                    let angToCam = Math.atan2(pos.x - mob.pos.x, pos.z - mob.pos.z);
+                    angToCam = (angToCam > 0) ? angToCam : angToCam + 6.28;
+                    mob.rotate.z = angToCam;
+
+                    this.applyControl(delta);
+                    this.sendState();
+
+                    this.stack.replaceState(this.goForward);
+                    return;
+				}
+            //}
+        }
+
+        mob.rotate.z += (delta * (this.panic ? 25 : 1));
+        this.applyControl(delta);
+        this.sendState();
+        if (this.panic) {
+            this.stack.replaceState(this.goForward);
+            return;
+        } else {
+            if (Math.random() * 5000 < 300) {
+                this.stack.replaceState(this.standStill);
+                return;
+             }
+        }
+        /*
+        let pos = this.mob.getWorld().players.get(1001).state.pos;
+        let mob = this.mob;
+        let angToCam = Math.atan2(pos.x - mob.pos.x, pos.z - mob.pos.z);
+        angToCam = (angToCam > 0) ? angToCam : angToCam + 6.28;
+        if (Math.pow((pos.z - mob.pos.z), 2) + Math.pow((pos.x - mob.pos.x), 2) < 100)
+        {
+            console.log(this.isAggrressor)
+            if (Math.abs((mob.rotate.z % 6.28) - angToCam) < 0.4) {
+                this.stack.replaceState(this.goForward);
+                return;
+			}
+		}
+            //console.log(angToCam + " " + (mob.rotate.z % 6.28));
+
+        this.updateControl({ forward: false, jump: this.checkInWater() });
+        mob.rotate.z += (delta * 1);
+
+        this.applyControl(delta);
+        this.sendState();
+        
+	}
+
+    // Rotate
+    doRotate3(delta) {
 
         this.updateControl({forward: false, jump: this.checkInWater()});
 
@@ -188,7 +570,7 @@ export class FSMBrain {
             // mob.rotate.z = angToCam;
             mob.rotate.z += delta;
         }
-        */
+        
 
         mob.rotate.z += (delta * (this.panic ? 25 : 1)) * this.rotateSign;
 
@@ -208,7 +590,6 @@ export class FSMBrain {
 
     // Go forward
     goForward(delta) {
-
         let mob = this.mob;
         let world = mob.getWorld();
 
@@ -255,6 +636,12 @@ export class FSMBrain {
             return;
         }
 
+        if (Math.random() * 5000 < 200) {
+            this.stack.replaceState(this.doRotate); // push new state, making it the active state.
+            this.sendState();
+            return;
+        }
+
         this.applyControl(delta);
         this.sendState();
 
@@ -287,5 +674,5 @@ export class FSMBrain {
         }
         return false;
     }
- 
+    */
 }
