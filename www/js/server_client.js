@@ -52,6 +52,8 @@ export class ServerClient {
     static CMD_QUEST_GET_ENABLED        = 93
 	static CMD_QUEST_ALL                = 94;
 
+    static CMD_STATS                    = 96;
+
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
