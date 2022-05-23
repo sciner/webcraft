@@ -162,13 +162,30 @@ export class FSMBrain {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
-    isAttack() {
+    runAttack() {
         if (this.panic && !this.isAggrressor) {
-
-            return 5.0;
+            console.log("[AI] attack ");
+            this.mob.rotate.z = Math.random() * 2 * Math.PI;
+            this.stack.replaceState(this.doEscape);
+            return true;
         }
-        return 1.0;
-	}
+        return false;
+    }
+
+    doEscape(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        this.applyControl(delta);
+        this.sendState();
+
+        if (this.runStand(0.001)) {
+            return;
+        }
+    }
 
     findTarget() {
         if (this.isAggrressor && this.target == null) {
@@ -227,7 +244,7 @@ export class FSMBrain {
     runRotate(chance, angle = -1) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " rotate");
-            this.rad = (angle == -1) ? Math.random() * Math.PI : angle;
+            this.rad = (angle == -1) ? Math.random() * 2 * Math.PI : angle;
             this.stack.replaceState(this.doRotate);
             return true;
         }
@@ -243,6 +260,9 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
+        if (this.runAttack()) {
+            return;
+        }
 
         if (this.findTarget()) {
             return;
@@ -271,6 +291,10 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
+        if (this.runAttack()) {
+            return;
+        }
+
         if (this.findTarget()) {
             return;
         }
@@ -286,8 +310,8 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.rad) > 0.2) {
-            this.mob.rotate.z += delta * 2;
+        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.rad) > 0.5) {
+            this.mob.rotate.z += delta * ((this.panic) ? 2 : 1);
         } else {
             this.runForward(1.0);
             return;
