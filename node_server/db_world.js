@@ -418,6 +418,10 @@ export class DBWorld {
             `UPDATE user SET inventory = REPLACE(inventory, '}"', ',"');`,
         ]});
 
+        migrations.push({version: 48, queries: [
+            `ALTER TABLE entity ADD COLUMN "is_active" integer NOT NULL DEFAULT 1`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -649,7 +653,8 @@ export class DBWorld {
         });
         return {
             id: result.lastID,
-            entity_id: entity_id
+            entity_id: entity_id,
+            is_active: 1
         };
     }
 
@@ -677,9 +682,16 @@ export class DBWorld {
         });
     }
 
+    async setEntityActive(entity_id, value) {
+        const result = await this.db.run('UPDATE entity SET is_active = :is_active WHERE entity_id = :entity_id', {
+            ':is_active': value,
+            ':entity_id': entity_id
+        });
+    }
+
     // Load mobs
     async loadMobs(addr, size) {
-        let rows = await this.db.all('SELECT * FROM entity WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        let rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -696,7 +708,7 @@ export class DBWorld {
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 type:       row.type,
-                skin:       row.skin,
+                extra_data: Mob.convertRowToExtraData(row),
                 indicators: JSON.parse(row.indicators)
             });
             resp.set(item.id, item);

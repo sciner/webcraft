@@ -16,6 +16,7 @@ export class MobManager {
             switch(cmd.name) {
                 case ServerClient.CMD_MOB_ADDED: {
                     for(let mob of cmd.data) {
+                        console.log(mob.extra_data)
                         // console.log('Mob added: ' + mob.id, mob.pos);
                         this.add(mob);
                     }
@@ -23,12 +24,13 @@ export class MobManager {
                 }
                 case ServerClient.CMD_MOB_UPDATE: {
                     if(Array.isArray(cmd.data)) {
-                        for(let i = 0; i < cmd.data.length; i += 5) {
+                        for(let i = 0; i < cmd.data.length; i += 6) {
                             let mob = this.list.get(cmd.data[i]);
                             if(mob) {
                                 mob.applyNetState({
                                     pos: new Vector(cmd.data[i + 1], cmd.data[i + 2], cmd.data[i + 3]),
                                     rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
+                                    extra_data: cmd.data[i + 5],
                                     time: cmd.time
                                 });
                             } else {
@@ -72,7 +74,8 @@ export class MobManager {
             rotate:         data.rotate,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
-            skin:           data.skin || 'base'
+            skin:           data.skin || 'base',
+            extra_data:     data.extra_data || null
         });
 
         mob.world = this.world;

@@ -473,10 +473,42 @@ export class MobModel extends NetworkPhysicObject {
         this.animator.update(delta, camPos, this);
     }
 
+    isAlive() {
+        return this.extra_data?.is_alive;
+    }
+
     // draw
     draw(render, camPos, delta) {
         this.lazyInit(render);
         this.update(render, camPos, delta);
+
+        // If mob die
+        if(!this.isAlive()) {
+            // first enter to this code
+            if(!this.die_info) {
+                this.yaw_before_die = this.yaw;
+                this.die_info = {
+                    time: performance.now(),
+                    scale: Array.from(this.sceneTree.scale)
+                };
+                this.sneak = 1;
+            }
+            const elapsed = performance.now() - this.die_info.time;
+            const max_die_animation_time = 1000;
+            const die_percent = elapsed / max_die_animation_time;
+            if(die_percent < 1) {
+                if(this.netBuffer.length > 0) {
+                    const state = this.netBuffer[0];
+                    state.rotate.z = this.yaw_before_die + elapsed / 100;
+                    this.sceneTree.scale[0] = this.die_info.scale[0] * (1 - die_percent);
+                    this.sceneTree.scale[1] = this.die_info.scale[1] * (1 - die_percent);
+                    this.sceneTree.scale[2] = this.die_info.scale[2] * (1 - die_percent);
+                }
+                this.tintColor.set(1, 1, 1, .3);
+            } else {
+                return false;
+            }
+        }
 
         // run render
         this.renderer.drawLayer(render, this);

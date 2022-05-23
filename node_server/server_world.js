@@ -119,7 +119,8 @@ export class ServerWorld {
                                 p.data.id,
                                 p.data.pos.x, p.data.pos.y, p.data.pos.z,
                                 // p.data.rotate.x, p.data.rotate.y,
-                                p.data.rotate.z
+                                p.data.rotate.z,
+                                p.data.extra_data
                             );
                             return false;
                         }
@@ -286,7 +287,9 @@ export class ServerWorld {
         this.ticks_stat.add('players');
         // 3.
         for(let [entity_id, mob] of this.mobs) {
-            mob.tick(delta);
+            if(mob.isAlive()) {
+                mob.tick(delta);
+            }
         }
         this.ticks_stat.add('mobs');
         // 4.

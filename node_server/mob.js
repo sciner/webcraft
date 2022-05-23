@@ -24,6 +24,7 @@ export class Mob {
         this.pos            = new Vector(params.pos);
         this.pos_spawn      = params.pos_spawn;
         this.rotate         = new Vector(params.rotate);
+        this.extra_data     = params.extra_data;
         // Private properties
         this.#chunk_addr    = new Vector();
         this.#forward       = new Vector(0, 1, 0);
@@ -33,6 +34,11 @@ export class Mob {
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
         world.mobs.set(this.id, this);
         this.save_offset = Math.round(Math.random() * this.save_per_tick);
+    }
+
+    //
+    static convertRowToExtraData(row) {
+        return {is_alive: !!row.is_active};
     }
 
     get chunk_addr() {
@@ -64,10 +70,14 @@ export class Mob {
         let result = await world.db.createMob(params);
         params.id = result.id;
         params.entity_id = result.entity_id;
+        params.extra_data = Mob.convertRowToExtraData(result);
         return new Mob(world, params);
     }
 
     tick(delta) {
+        if(this.indicators.live.value == 0) {
+            return false;
+        }
         this.#brain.tick(delta);
         if(this.save_offset++ % this.save_per_tick == 0) {
             // console.log('Mob state saved ' + this.entity_id);
@@ -109,16 +119,32 @@ export class Mob {
                 }
             }
         } else if(params.button_id == 1) {
-            console.log('live', this.indicators.live.value);
-            // Add velocity for drop item
-            let velocity = this.pos.sub(server_player.state.pos).normSelf();
-            velocity.y = .5;
-            this.addVelocity(velocity);
-            this.#brain.panic = true;
-            setTimeout(() => {
-                this.#brain.panic = false;
-            }, 3000);
+            if(this.indicators.live.value > 0) {
+                this.kill();
+                console.log('live', this.indicators.live.value);
+                // Add velocity for drop item
+                let velocity = this.pos.sub(server_player.state.pos).normSelf();
+                velocity.y = .5;
+                this.addVelocity(velocity);
+                this.#brain.panic = true;
+                setTimeout(() => {
+                    this.#brain.panic = false;
+                }, 3000);
+            }
         }
+    }
+
+    async kill() {
+        if(this.indicators.live.value == 0) {
+            return false;
+        }
+        this.indicators.live.value = 0;
+        this.#world.db.setEntityActive(this.entity_id, 0);
+        this.#brain.sendState();
+    }
+
+    isAlive() {
+        return this.indicators.live.value > 0;
     }
 
 }

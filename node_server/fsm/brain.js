@@ -82,15 +82,18 @@ export class FSMBrain {
             return;
         }
         let new_state = {
-            id:       mob.id,
-            rotate:   mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
-            pos:      mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
+            id:         mob.id,
+            extra_data: {is_alive: mob.isAlive()},
+            rotate:     mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
+            pos:        mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
         };
         let need_send = true;
         if(mob.prev_state) {
             if(mob.prev_state.rotate.equal(new_state.rotate)) {
                 if(mob.prev_state.pos.equal(new_state.pos)) {
-                    need_send = false;
+                    if(mob.prev_state.extra_data.is_alive == new_state.extra_data.is_alive) {
+                        need_send = false;
+                    }
                 }
             }
         }
@@ -98,6 +101,7 @@ export class FSMBrain {
             mob.prev_state = new_state;
             mob.prev_state.rotate = mob.prev_state.rotate.clone();
             mob.prev_state.pos = mob.prev_state.pos.clone();
+            mob.prev_state.extra_data = JSON.parse(JSON.stringify(mob.prev_state.extra_data));
             let packets = [{
                 name: ServerClient.CMD_MOB_UPDATE,
                 data: new_state
