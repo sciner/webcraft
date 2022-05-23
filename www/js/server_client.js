@@ -52,6 +52,14 @@ export class ServerClient {
     static CMD_QUEST_GET_ENABLED        = 93
 	static CMD_QUEST_ALL                = 94;
 
+    // Furnace / Печь
+    static CMD_LOAD_FURNACE             = 91;
+    static CMD_FURNACE_CONTENT          = 95;
+    
+    static CMD_STATS                    = 96;
+    static CMD_DIE                      = 97;
+    static CMD_RESURRECTION             = 98;
+
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
