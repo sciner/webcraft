@@ -9,6 +9,7 @@ import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
+import {Packet} from "./network/packets.js";
 
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
@@ -73,6 +74,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
+        this.packet = new Packet();
+        this.is_dead = false;
     }
 
     init(init_info) {
@@ -151,8 +154,13 @@ export class ServerPlayer extends Player {
         } = this;
 
         const cmd = JSON.parse(response);
+        
+        this.packet.ReadPacket(this, cmd);
 
         try {
+            if (this.is_die && cmd.name != ServerClient.CMD_RESURRECTION) {
+                return;
+            }
             switch(cmd.name) {
                 // Connect
                 case ServerClient.CMD_CONNECT: {
@@ -164,6 +172,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_SYNC_TIME: {
+                    break;
                     this.sendPackets([{
                         name: ServerClient.CMD_SYNC_TIME,
                         data: { clientTime: cmd.data.clientTime },
@@ -214,6 +223,7 @@ export class ServerPlayer extends Player {
 
                 // Modify indicator request
                 case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
+                    break;
                     switch (cmd.data.indicator) {
                         case 'live': {
                             this.state.indicators.live.value += cmd.data.value;
@@ -267,7 +277,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_PICKAT_ACTION: {
-                    this.world.pickAtAction(this, cmd.data);
+                    //this.world.pickAtAction(this, cmd.data);
                     break;
                 }
 
@@ -567,5 +577,4 @@ export class ServerPlayer extends Player {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
     }
-
 }

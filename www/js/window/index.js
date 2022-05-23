@@ -6,5 +6,7 @@ export {CreativeInventoryWindow} from "./creative_inventory.js";
 export {CraftTable} from "./craft_table.js";
 export {RecipeWindow} from "./recipe.js";
 export {QuestWindow} from "./quest.js";
+export {StatsWindow} from "./stats.js";
+export {DieWindow} from "./die.js";
 export {default as MainMenu} from "./main_menu.js";
 export {EditSignWindow} from "./edit_sign.js";

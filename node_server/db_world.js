@@ -359,7 +359,7 @@ export class DBWorld {
             "x" real NOT NULL,
             "y" real NOT NULL,
             "z" real NOT NULL,
-            "title" VARCHER(50)
+            "title" text
             );`
         ]});
 
@@ -378,48 +378,18 @@ export class DBWorld {
             `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
         ]});
 
-        migrations.push({version: 45, queries: [
-            `UPDATE world_modify SET block_id = 98, params = '{"id": 98}' WHERE block_id IN(43, 125);`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":43,', '"id":98,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":43}', ',"id":98}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":125,', '"id":98,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":125}', ',"id":98}');`,
-            `UPDATE world_modify SET extra_data = '{"active":true}' WHERE block_id = 660;`,
+        migrations.push({version: 43, queries: [
+            `ALTER TABLE "user" ADD COLUMN stats TEXT;`
         ]});
 
-        migrations.push({version: 46, queries: [
-            `UPDATE world_modify SET block_id = 1315, params = '{"id": 1315}' WHERE block_id = 450;`,
-            `UPDATE world_modify SET block_id = 1311, params = '{"id": 1311}' WHERE block_id = 451;`,
-            `UPDATE world_modify SET block_id = 1312, params = '{"id": 1312}' WHERE block_id = 452;`,
-            `UPDATE world_modify SET block_id = 1309, params = '{"id": 1309}' WHERE block_id = 453;`,
-            `UPDATE world_modify SET block_id = 1307, params = '{"id": 1307}' WHERE block_id = 454;`,
-            `UPDATE world_modify SET block_id = 1313, params = '{"id": 1313}' WHERE block_id = 455;`,
-            `UPDATE world_modify SET block_id = 1314, params = '{"id": 1314}' WHERE block_id = 503;`,
-            `UPDATE world_modify SET block_id = 1304, params = '{"id": 1304}' WHERE block_id = 507;`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":450,', '"id":1315,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":450}', ',"id":1315}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":451,', '"id":1311,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":451}', ',"id":1311}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":452,', '"id":1312,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":452}', ',"id":1312}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":453,', '"id":1309,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":453}', ',"id":1309}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":454,', '"id":1307,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":454}', ',"id":1307}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":455,', '"id":1313,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":455}', ',"id":1313}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":503,', '"id":1314,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":503}', ',"id":1314}');`,
-            `UPDATE user SET inventory = REPLACE(inventory, '"id":507,', '"id":1304,');`,
-            `UPDATE user SET inventory = REPLACE(inventory, ',"id":507}', ',"id":1304}');`,
-        ]});
-
-        migrations.push({version: 47, queries: [
-            `UPDATE user SET inventory = REPLACE(inventory, '}"', ',"');`,
-        ]});
-
-        migrations.push({version: 48, queries: [
-            `ALTER TABLE entity ADD COLUMN "is_active" integer NOT NULL DEFAULT 1`,
+        migrations.push({version: 44, queries: [
+            {
+                sql: `UPDATE "user" SET stats = :stats WHERE stats IS NULL OR stats == :null`,
+                placeholders: {
+                    ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
+                    ':null':  'null'
+                }
+            }
         ]});
 
         for(let m of migrations) {
@@ -453,6 +423,11 @@ export class DBWorld {
 
     async TransactionRollback() {
         await this.db.get('rollback');
+    }
+
+    // getDefaultPlayerStats...
+    getDefaultPlayerStats() {
+        return {death: 0, time: 0, pickat: 0, distance: 0}
     }
 
     // getDefaultPlayerIndicators...
@@ -492,7 +467,7 @@ export class DBWorld {
     // Register new user or return existed
     async registerUser(world, player) {
         // Find existing user record
-        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
+        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, stats, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             let inventory = JSON.parse(row.inventory);
             // Added new property
@@ -505,15 +480,16 @@ export class DBWorld {
                     pos_spawn:          JSON.parse(row.pos_spawn),
                     rotate:             JSON.parse(row.rotate),
                     indicators:         JSON.parse(row.indicators),
+                    stats:              JSON.parse(row.stats),
                     chunk_render_dist:  row.chunk_render_dist,
-                    game_mode:          row.game_mode || world.info.game_mode
+                    game_mode:          row.game_mode || world.info.game_mode,
                 },
                 inventory: inventory
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
-        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin)', {
+        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, stats, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :stats, :is_admin)', {
             ':id':          player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
@@ -523,6 +499,7 @@ export class DBWorld {
             ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
             ':inventory':   JSON.stringify(this.getDefaultInventory()),
             ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+            ':stats':       JSON.stringify(this.getDefaultPlayerStats()),
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
         });
         return await this.registerUser(world, player);
@@ -552,11 +529,12 @@ export class DBWorld {
     // savePlayerState...
     async savePlayerState(player) {
         player.position_changed = false;
-        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators WHERE id = :id', {
+        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
             ':id':             player.session.user_id,
             ':pos':            JSON.stringify(player.state.pos),
             ':rotate':         JSON.stringify(player.state.rotate),
             ':indicators':     JSON.stringify(player.state.indicators),
+            ':stats':          JSON.stringify(player.state.stats),
             ':dt_moved':       ~~(Date.now() / 1000)
         });
     }
@@ -653,8 +631,7 @@ export class DBWorld {
         });
         return {
             id: result.lastID,
-            entity_id: entity_id,
-            is_active: 1
+            entity_id: entity_id
         };
     }
 
@@ -682,16 +659,9 @@ export class DBWorld {
         });
     }
 
-    async setEntityActive(entity_id, value) {
-        const result = await this.db.run('UPDATE entity SET is_active = :is_active WHERE entity_id = :entity_id', {
-            ':is_active': value,
-            ':entity_id': entity_id
-        });
-    }
-
     // Load mobs
     async loadMobs(addr, size) {
-        let rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        let rows = await this.db.all('SELECT * FROM entity WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -708,7 +678,7 @@ export class DBWorld {
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 type:       row.type,
-                extra_data: Mob.convertRowToExtraData(row),
+                skin:       row.skin,
                 indicators: JSON.parse(row.indicators)
             });
             resp.set(item.id, item);
@@ -718,12 +688,11 @@ export class DBWorld {
 
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
-            ':entity_id': mob.entity_id,
-            ':indicators': JSON.stringify(mob.indicators)
+            ':entity_id': mob.entity_id
         });
     }
 
@@ -1088,5 +1057,7 @@ export class DBWorld {
             ":z": z
         });
     }
+    
+    
 
 }
