@@ -1,812 +1,1063 @@
+import { v4 as uuid } from 'uuid';
+import path from 'path'
+import sqlite3 from 'sqlite3'
+import {open} from 'sqlite'
+import { copyFile } from 'fs/promises';
+
 import {Mob} from "./mob.js";
-import {DropItem} from "./drop_item.js";
-import {ServerChat} from "./server_chat.js";
-import {ChestManager} from "./chest_manager.js";
-import {WorldAdminManager} from "./admin_manager.js";
-import {ModelManager} from "./model_manager.js";
-import {PlayerEvent} from "./player_event.js";
-import {QuestManager} from "./quest/manager.js";
 
-import {Vector, VectorCollector} from "../www/js/helpers.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
+import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
-import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {doBlockAction} from "../www/js/block_action.js";
+import { DropItem } from './drop_item.js';
 
-import {ServerChunkManager} from "./server_chunk_manager.js";
-import config from "./config.js";
+export class DBWorld {
 
-export const MAX_BLOCK_PLACE_DIST = 14;
+    static TEMPLATE_DB = './world.sqlite3.template';
 
-// for debugging client time offset
-export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
-
-export class ServerWorld {
-
-    constructor() {}
-    temp_vec = new Vector();
-
-    get serverTime() {
-        return Date.now() + SERVE_TIME_LAG;
+    constructor(db, world) {
+        this.db = db;
+        this.world = world;
     }
 
-    async initServer(world_guid, db_world) {
-        if (SERVE_TIME_LAG) {
-            console.log('[World] Server time lag ', SERVE_TIME_LAG);
+    // Open database and return provider
+    static async openDB(dir, world) {
+        let filename = dir + '/world.sqlite';
+        filename = path.resolve(filename);
+        // Check directory exists
+        if (!fs.existsSync(dir)) {
+            await fs.mkdirSync(dir, {recursive: true});
         }
-        const that          = this;
-        this.db             = db_world;
-        this.info           = await this.db.getWorld(world_guid);
-        this.chests         = new ChestManager(this);
-        this.chat           = new ServerChat(this);
-        this.chunks         = new ServerChunkManager(this);
-        this.quests         = new QuestManager(this);
-        this.players        = new Map(); // new PlayerManager(this);
-        this.mobs           = new Map(); // Store refs to all loaded mobs in the world
-        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
-        this.models         = new ModelManager();
-        this.models.init();
-        await this.quests.init();
-        this.ticks_stat     = {
-            number: 0,
-            pn: null,
-            last: 0,
-            total: 0,
-            count: 0,
-            min: Number.MAX_SAFE_INTEGER,
-            max: 0,
-            values: {
-                chunks: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                players: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                mobs: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                maps_clear: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
-                packets_queue_send: {min: Infinity, max: -Infinity, avg: 0, sum: 0}
-            },
-            start() {
-                this.pn = performance.now();
-                this.pn_values = performance.now();
-            },
-            add(field) {
-                const value = this.values[field];
-                if(value) {
-                    const elapsed = performance.now() - this.pn_values;
-                    value.sum += elapsed;
-                    if(elapsed < value.min) value.min = elapsed;
-                    if(elapsed > value.max) value.max = elapsed;
-                    value.avg = value.sum / this.count;
-                } else {
-                    console.error('invalid tick stat value: ' + field);
-                }
-                this.pn_values = performance.now();
-            },
-            end() {
-                if(this.pn !== null) {
-                    // Calculate stats of elapsed time for ticks
-                    this.last = performance.now() - this.pn;
-                    this.total += this.last;
-                    this.count++;
-                    if(this.last < this.min) this.min = this.last;
-                    if(this.last > this.max) this.max = this.last;
-                }
-            }
-        };
-        // Queue for packets
-        this.packets_queue = {
-            list: new Map(),
-            add: function(user_ids, packets) {
-                for(let user_id of user_ids) {
-                    let arr = this.list.get(user_id);
-                    if(!arr) {
-                        arr = [];
-                        this.list.set(user_id, arr);
-                    }
-                    arr.push(...packets);
-                }
-            },
-            send: function() {
-                for(let [user_id, packets] of this.list) {
-                    // Group mob update packets
-                    let mob_update_packet = null;
-                    packets = packets.filter(p => {
-                        if(p.name == ServerClient.CMD_MOB_UPDATE) {
-                            if(!mob_update_packet) {
-                                mob_update_packet = {name: p.name, data: []}
-                            }
-                            mob_update_packet.data.push(
-                                p.data.id,
-                                p.data.pos.x, p.data.pos.y, p.data.pos.z,
-                                // p.data.rotate.x, p.data.rotate.y,
-                                p.data.rotate.z,
-                                p.data.extra_data
-                            );
-                            return false;
-                        }
-                        return true;
-                    });
-                    if(mob_update_packet) {
-                        packets.push(mob_update_packet);
-                    }
-                    that.sendSelected(packets, [user_id], []);
-                }
-                this.list.clear();
-            }
-        };
-        //
-        this.admins = new WorldAdminManager(this);
-        await this.admins.load();
-        await this.restoreModifiedChunks();
-        await this.chunks.initWorker();
-        //
-        //this.tickerWorldTimer = setInterval(() => {
-        //    this.tick();
-        //}, 50);
-        //
-        this.saveWorldTimer = setInterval(() => {
-            // let pn = performance.now();
-            this.save();
-            // calc time elapsed
-            // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
-        }, 5000);
-        // Queue for load chest content
-        this.chest_load_queue = {
-            list: [],
-            add: function(player, params) {
-                this.list.push({player, params});
-            },
-            run: async function() {
-                while(this.list.length > 0) {
-                    const queue_item    = this.list.shift();
-                    const pos           = new Vector(queue_item.params.pos);
-                    const chest         = await that.chests.get(pos);
-                    let result          = false;
-                    if(chest) {
-                        if(chest.id < 0) {
-                            if(!queue_item.cnt) {
-                                queue_item.cnt = 0;
-                            }
-                            if(++queue_item.cnt < 1000) {
-                                this.list.push(queue_item);
-                            }
-                        } else {
-                            result = that.chests.sendContentToPlayers([queue_item.player], pos);
-                        }
-                    }
-                    if(!result) {
-                        throw `Chest ${pos.toHash()} not found`;
-                    }
-                }
-            }
-        };
-        // Queue of chest confirms
-        this.chest_confirm_queue = {
-            list: [],
-            add: function(player, params) {
-                this.list.push({player, params});
-            },
-            run: async function() {
-                while(this.list.length > 0) {
-                    const queue_item = this.list.shift();
-                    const pos = queue_item.params.chest.pos;
-                    const chest = await that.chests.get(pos);
-                    if(chest) {
-                        console.log('Chest state from ' + queue_item.player.session.username);
-                        await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
-                    } else {
-                        queue_item.player.inventory.refresh(true);
-                        const pos_hash = pos.toHash();
-                        throw `Chest ${pos_hash} not found`;
-                    }
-                }
-            }
-        };
-        // Queue of player pickat actions
-        this.pickat_action_queue = {
-            list: [],
-            add: function(player, params) {
-                this.list.push({player, params});
-            },
-            run: async function() {
-                while(this.list.length > 0) {
-                    const world = that;
-                    const queue_item = this.list.shift();
-                    const server_player = queue_item.player;
-                    const params = queue_item.params;
-                    const currentInventoryItem = server_player.inventory.current_item;
-                    const player = {
-                        radius:     0.7,
-                        height:     server_player.height,
-                        username:   server_player.session.username,
-                        pos:        new Vector(server_player.state.pos),
-                        rotate:     server_player.rotateDegree.clone()
-                    };
-                    if(params.interractMob) {
-                        const mob = world.mobs.get(params.interractMob);
-                        if(mob) {
-                            mob.punch(server_player, params);
-                        }
-                    } else {
-                        const actions = await doBlockAction(params, world, player, currentInventoryItem);
-                        // @todo Need to compare two actions
-                        // console.log(JSON.stringify(params.actions.blocks));
-                        // console.log(JSON.stringify(actions.blocks));
-                        await world.applyActions(server_player, actions);
-                    }
-                }
-            }
-        };
-        await this.tick();
+        // Recheck directory exists
+        if (!fs.existsSync(dir)) {
+            throw 'World directory not found: ' + dir;
+        }
+        // If DB file not exists, then create it from template
+        if (!fs.existsSync(filename)) {
+            // create db from template
+            let template_db_filename = path.resolve(DBWorld.TEMPLATE_DB);
+            await copyFile(template_db_filename, filename);
+        }
+        // Open SQLIte3 fdatabase file
+        let dbc = await open({
+            filename: filename,
+            driver: sqlite3.Database
+        }).then(async (conn) => {
+            return new DBWorld(conn, world);
+        });
+        await dbc.applyMigrations();
+        return dbc;
     }
 
-    getInfo() {
-        console.log(this.info);
-        this.updateWorldCalendar();
-        return this.info;
-    }
-
-    // updateWorldCalendar
-    updateWorldCalendar() {
-        this.info.calendar = {
-            age: null,
-            day_time: null,
-        };
-        const currentTime = ((+new Date()) / 1000) | 0;
-        // возраст в реальных секундах
-        const diff_sec = currentTime - this.info.dt;
-        // один игровой день в реальных секундах
-        const game_day_in_real_seconds = 86400 / GAME_ONE_SECOND // 1200
-        // возраст в игровых днях
-        let add = (this.info.add_time / GAME_DAY_SECONDS);
-        const age = diff_sec / game_day_in_real_seconds + add;
-        // возраст в ЦЕЛЫХ игровых днях
-        this.info.calendar.age = Math.floor(age);
-        // количество игровых секунд прошедших в текущем игровом дне
-        this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
-    }
-
-    // World tick
-    async tick() {
-        let started = performance.now();
-        let delta = 0;
-        if(this.pn) {
-            delta = (performance.now() - this.pn) / 1000;
-        }
-        this.pn = performance.now();
-        //
-        this.ticks_stat.number++;
-        this.ticks_stat.start();
-        // 1.
-        await this.chunks.tick(delta);
-        this.ticks_stat.add('chunks');
-        // 2.
-        for(let player of this.players.values()) {
-            player.tick(delta);
-        }
-        this.ticks_stat.add('players');
-        // 3.
-        for(let [entity_id, mob] of this.mobs) {
-            if(mob.isAlive()) {
-                mob.tick(delta);
+    // Возвращает мир по его GUID либо создает и возвращает его
+    async getWorld(world_guid) {
+        let row = await this.db.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        if(row) {
+            return {
+                id:         row.id,
+                user_id:    row.user_id,
+                dt:         row.dt,
+                guid:       row.guid,
+                title:      row.title,
+                seed:       row.seed,
+                game_mode:  row.game_mode,
+                generator:  JSON.parse(row.generator),
+                pos_spawn:  JSON.parse(row.pos_spawn),
+                state:      null,
+                add_time:   row.add_time
             }
         }
-        this.ticks_stat.add('mobs');
-        // 4.
-        for(let [entity_id, drop_item] of this.all_drop_items) {
-            drop_item.tick(delta);
-        }
-        this.ticks_stat.add('drop_items');
-        // 5.
-        await this.pickat_action_queue.run();
-        this.ticks_stat.add('pickat_action_queue');
-        // 6. Chest confirms
+        // Insert new world to Db
+        let world = await Game.db.getWorld(world_guid);
+        await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+            ':dt':          ~~(Date.now() / 1000),
+            ':guid':        world.guid,
+            ':user_id':     world.user_id,
+            ':title':       world.title,
+            ':seed':        world.seed,
+            ':generator':   JSON.stringify(world.generator),
+            ':pos_spawn':   JSON.stringify(world.pos_spawn)
+        });
+        // let world_id = result.lastID;
+        return this.getWorld(world_guid);
+    }
+
+    async updateAddTime(world_guid, add_time) {
+        await this.db.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
+            ':world_guid':  world_guid,
+            ':add_time':    add_time
+        });
+    }
+
+    // Migrations
+    async applyMigrations() {
+        let version = 0;
         try {
-            await this.chest_confirm_queue.run();
-            await this.chest_load_queue.run();
+            // Read options
+            let row = await this.db.get('SELECT version FROM options');
+            version = row.version;
         } catch(e) {
-            // do nothing
-            console.log(e)
+            await this.db.get('BEGIN TRANSACTION');
+            await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
+            await this.db.get('INSERT INTO options(version) values(0)');
+            await this.db.get('COMMIT');
         }
-        this.ticks_stat.add('chest_confirm_queue');
-        //
-        this.packets_queue.send();
-        this.ticks_stat.add('packets_queue_send');
-        //
-        if(this.ticks_stat.number % 100 == 0) {
-            if(this.players.size > 0) {
-                let players = [];
-                for(let [_, p] of this.players.entries()) {
-                    players.push({
-                        pos: p.state.pos,
-                        chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
-                        chunk_render_dist: p.state.chunk_render_dist
-                    });
+        const migrations = [];
+        migrations.push({version: 1, queries: [
+            'ALTER TABLE user ADD COLUMN indicators text',
+            {
+                sql: 'UPDATE user SET indicators = :indicators',
+                placeholders: {
+                    ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
                 }
-                this.chunks.postWorkerMessage(['destroyMap', {players}]);
             }
-            this.ticks_stat.add('maps_clear');
+        ]});
+        migrations.push({version: 2, queries: [
+            'alter table user add column is_admin integer default 0',
+            'update user set is_admin = 1 where id in (select user_id from world)',
+        ]});
+        migrations.push({version: 3, queries: [
+            `CREATE TABLE "entity" (
+                "id" INTEGER NOT NULL,
+                "dt" integer,
+                "entity_id" TEXT,
+                "type" TEXT,
+                "skin" TEXT,
+                "indicators" TEXT,
+                "rotate" TEXT,
+                "x" real,
+                "y" real,
+                "z" real,
+                PRIMARY KEY ("id")
+              )`
+        ]});
+        migrations.push({version: 4, queries: [
+            `alter table world add column "game_mode" TEXT DEFAULT 'survival'`,
+            `alter table user add column "chunk_render_dist" integer DEFAULT 4`
+        ]});
+        migrations.push({version: 5, queries: [
+            `CREATE INDEX "world_modify_xyz" ON "world_modify" ("x", "y", "z")`,
+        ]});
+        migrations.push({version: 6, queries: [
+            `update world_modify set params = replace(replace(replace(replace(replace(replace(replace(params,',"rotate":{"x":0,"y":0,"z":0}', ''), ',"entity_id":""', ''), ',"entity_id":null', ''), ',"extra_data":null', ''), ',"power":1', ''), '{"id":0}', ''), '{}', '') where params is not null`,
+            `update world_modify set params = null where params is not null and params = ''`,
+            `update world_modify set params = '{"id":2}' where params is not null and params like '{"id":2,%'`
+        ]});
+        migrations.push({version: 7, queries: [
+            `update world_modify set params = '{"id":50,"rotate":{"x":0,"y":1,"z":0}}' where params is not null and params like '{"id":50,%'`
+        ]});
+        migrations.push({version: 8, queries: [
+            `alter table entity add column "pos_spawn" TEXT NOT NULL DEFAULT ''`,
+            `update entity set pos_spawn = '{"x":' || x || ',"y":' || y || ',"z":' || z || '}' where pos_spawn = '';`
+        ]});
+        migrations.push({version: 9, queries: [
+            `alter table chest add column "is_deleted" integer DEFAULT 0`
+        ]});
+        migrations.push({version: 10, queries: [
+            `CREATE TABLE "drop_item" (
+                "id" INTEGER NOT NULL,
+                "dt" integer,
+                "entity_id" TEXT,
+                "items" TEXT,
+                "x" real,
+                "y" real,
+                "z" real,
+                PRIMARY KEY ("id")
+              )`,
+            ]});
+        migrations.push({version: 11, queries: [
+            `DROP INDEX "main"."world_modify_xyz";`,
+            //
+            `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20211227";`,
+            //
+            `CREATE TABLE "main"."world_modify" (
+                "id" INTEGER,
+                "world_id" INTEGER NOT NULL,
+                "dt" integer,
+                "user_id" INTEGER,
+                "params" TEXT,
+                "user_session_id" INTEGER,
+                "x" real NOT NULL,
+                "y" real NOT NULL,
+                "z" real NOT NULL,
+                "entity_id" text,
+                "extra_data" text,
+                PRIMARY KEY ("id"),
+                UNIQUE ("entity_id" ASC) ON CONFLICT ABORT
+              );`,
+            //
+            `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data" FROM "main"."_world_modify_old_20211227";`,
+            //
+            `CREATE INDEX "main"."world_modify_xyz" ON "world_modify" ("x" ASC, "y" ASC, "z" ASC);`,
+            `DROP TABLE "_world_modify_old_20211227"`
+        ]});
+        migrations.push({version: 12, queries: [`alter table drop_item add column "is_deleted" integer DEFAULT 0`]});
+        migrations.push({version: 13, queries: [`alter table user add column "game_mode" TEXT DEFAULT NULL`]});
+        migrations.push({version: 14, queries: [`UPDATE user SET inventory = replace(inventory, '"index2":0', '"index2":-1')`]});
+        migrations.push({version: 15, queries: [`UPDATE entity SET x = json_extract(pos_spawn, '$.x'), y = json_extract(pos_spawn, '$.y'), z = json_extract(pos_spawn, '$.z')`]});
+        migrations.push({version: 16, queries: [
+            `CREATE TABLE "painting" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "user_id" integer NOT NULL,
+                "dt" integer NOT NULL,
+                "params" TEXT,
+                "x" integer NOT NULL,
+                "y" integer NOT NULL,
+                "z" integer NOT NULL,
+                "image_name" TEXT,
+                "entity_id" TEXT,
+                "world_id" INTEGER
+            );`
+        ]});
+        migrations.push({version: 17, queries: [`alter table world_modify add column "ticks" INTEGER DEFAULT NULL`]});
+        migrations.push({version: 18, queries: [`UPDATE world_modify SET params = '{"id":612}' WHERE params = '{"id":141}';`]});
+        migrations.push({version: 19, queries: [`UPDATE world_modify SET extra_data = '{"stage":0}' WHERE params = '{"id":59}' OR params LIKE '{"id":59,%';`]});
+        migrations.push({version: 20, queries: [
+            `DELETE FROM world_modify WHERE params = '{"id":75}' OR params LIKE '{"id":75,%';`,
+            `DELETE FROM world_modify WHERE params = '{"id":76}' OR params LIKE '{"id":76,%';`
+        ]});
+        migrations.push({version: 21, queries: [
+            `UPDATE user SET pos_spawn = (SELECT pos_spawn FROM world) WHERE ABS(json_extract(pos_spawn, '$.x')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.y')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.z')) > 2000000000`,
+            `UPDATE user SET pos = pos_spawn WHERE ABS(json_extract(pos, '$.x')) > 2000000000 OR ABS(json_extract(pos, '$.y')) > 2000000000 OR ABS(json_extract(pos, '$.z')) > 2000000000`
+        ]});
+        migrations.push({version: 22, queries: [`alter table world add column "add_time" INTEGER DEFAULT 7000`]});
+        migrations.push({version: 23, queries: [
+            `UPDATE world_modify SET params = '{"id":365}' WHERE params LIKE '{"id":350%';`,
+            `UPDATE world_modify SET params = '{"id":361}' WHERE params LIKE '{"id":351%';`,
+            `UPDATE world_modify SET params = '{"id":362}' WHERE params LIKE '{"id":352%';`,
+            `UPDATE world_modify SET params = '{"id":359}' WHERE params LIKE '{"id":353%';`,
+            `UPDATE world_modify SET params = '{"id":357}' WHERE params LIKE '{"id":354%';`,
+            `UPDATE world_modify SET params = '{"id":363}' WHERE params LIKE '{"id":355%';`,
+            `UPDATE world_modify SET params = '{"id":364}' WHERE params LIKE '{"id":502%';`,
+            `UPDATE world_modify SET params = '{"id":354}' WHERE params LIKE '{"id":506%';`,
+        ]});
+        migrations.push({version: 24, queries: [
+            `UPDATE entity SET skin = 'base' WHERE type = 'axolotl' and skin = 'blue'`,
+        ]});
+        migrations.push({version: 25, queries: [
+            `UPDATE user SET game_mode = 'survival' WHERE game_mode IS NOT NULL AND is_admin = 0`,
+        ]});
+        migrations.push({version: 26, queries: [
+            `UPDATE world_modify set params = '{"id": 3}' where  params like '{"id":3,"rotate":{"x":-%'`,
+        ]});
+        migrations.push({version: 27, queries: [
+            `CREATE TABLE "quest" ("id" INTEGER NOT NULL, "quest_group_id" INTEGER NOT NULL, "title" TEXT NOT NULL, "description" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_action" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "quest_action_type_id" INTEGER, "block_id" INTEGER, "cnt" integer, "pos" TEXT, "description" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_action_type" ("id" INTEGER NOT NULL, "title" TEXT, PRIMARY KEY ("id"));`,
+            `INSERT INTO "quest_action_type" VALUES (1, 'Добыть');`,
+            `INSERT INTO "quest_action_type" VALUES (2, 'Скрафтить');`,
+            `INSERT INTO "quest_action_type" VALUES (3, 'Установить блок');`,
+            `INSERT INTO "quest_action_type" VALUES (4, 'Использовать инструмент');`,
+            `INSERT INTO "quest_action_type" VALUES (5, 'Достигнуть координат');`,
+            `CREATE TABLE "quest_group" ("id" INTEGER NOT NULL, "title" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_reward" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "block_id" INTEGER NOT NULL, "cnt" TEXT NOT NULL, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "actions" TEXT, PRIMARY KEY ("id"));`
+        ]});
+        //
+        migrations.push({version: 28, queries: [
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (1, 1, 'Добыть дубовые брёвна', 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
+            `\r\n` +
+            `1-й шаг — Найдите дерево\r\n` +
+            `Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\r\n` +
+            `Чтобы сломать бревно рукой нужно примерно 6 секунд.\r\n` +
+            `\r\n` +
+            `2-й шаг — Подберите блок\r\n` +
+            `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.');`,
+            
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
+            `Земля (она же дёрн) может быть добыта чем угодно.');`,
+  
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
+            `\r\n` +
+            `1-й шаг\r\n` +
+            `Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\r\n` +
+            `\r\n` +
+            `2-й шаг\r\n` +
+            `Поместите верстак в один из нижних слотов инвентаря\r\n` +
+            `\r\n` +
+            `3-й шаг\r\n` +
+            `Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\r\n` +
+            `\r\n` +
+            `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее. Пример создания деревянной кирки из досок и палок.');`,
+            // actions
+            `INSERT INTO "quest_action" VALUES (1, 1, 1, 3, 5, NULL, 'Добыть 5 дубовых брёвен');`,
+            `INSERT INTO "quest_action" VALUES (2, 2, 1, 2, 20, NULL, 'Выкопать 20 земляных блоков');`,
+            `INSERT INTO "quest_action" VALUES (3, 3, 2, 58, 1, NULL, 'Скрафтить верстак');`,
+            `INSERT INTO "quest_action" VALUES (4, 3, 3, 58, 1, NULL, 'Установить верстак в удобном для вас месте');`,
+            // groups
+            `INSERT INTO "quest_group" VALUES (1, 'Основные задания');`,
+            `INSERT INTO "quest_group" VALUES (2, 'Дополнительные задания');`,
+            // rewards
+            `INSERT INTO "quest_reward" VALUES (1, 1, 3, 8);`,
+            `INSERT INTO "quest_reward" VALUES (2, 2, 2, 20);`,
+            `INSERT INTO "quest_reward" VALUES (3, 3, 130, 4);`,
+            `INSERT INTO "quest_reward" VALUES (4, 3, 59, 4);`
+        ]});
+        migrations.push({version: 29, queries: [`alter table user_quest add column "is_completed" integer NOT NULL DEFAULT 0`]});
+        migrations.push({version: 30, queries: [
+            `alter table quest add column "is_default" integer NOT NULL DEFAULT 0`,
+            `update quest set is_default = 1 where id in(1, 2, 3)`
+        ]});
+        migrations.push({version: 31, queries: [`alter table user_quest add column "in_progress" integer NOT NULL DEFAULT 0`]});
+        migrations.push({version: 32, queries: [`delete from user_quest`]});
+        migrations.push({version: 33, queries: [
+            `UPDATE quest SET is_default = 0 WHERE id = 3`,
+            `ALTER TABLE quest ADD COLUMN "next_quests" TEXT`,
+            `UPDATE quest SET next_quests = '[3]' WHERE id = 1`
+        ]});
+        migrations.push({version: 34, queries: [
+            `DELETE FROM user_quest;`,
+            `UPDATE quest SET is_default = 0, next_quests = '[2]' WHERE id = 3;`,
+            `UPDATE quest SET is_default = 0 WHERE id = 2;`,
+            // Update quest 1
+            `UPDATE quest SET description = 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
+            `\r\n` +
+            `1-й шаг — Найдите дерево\r\n` +
+            `Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\r\n` +
+            `Чтобы сломать бревно рукой нужно примерно 6 секунд.\r\n` +
+            `\r\n` +
+            `2-й шаг — Подберите блок\r\n` +
+            `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.' WHERE id = 1;`,
+            // Update quest 2
+            `UPDATE quest SET description = 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
+            `Земля (она же дёрн) может быть добыта чем угодно.' WHERE id = 2;`,
+            // Update quest 3
+            `UPDATE quest SET description = 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
+            `\r\n` +
+            `1-й шаг\r\n` +
+            `Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\r\n` +
+            `\r\n` +
+            `2-й шаг\r\n` +
+            `Поместите верстак в один из нижних слотов инвентаря\r\n` +
+            `\r\n` +
+            `3-й шаг\r\n` +
+            `Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\r\n` +
+            `\r\n` +
+            `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее.' WHERE id = 3;`,
+        ]});
+        migrations.push({version: 35, queries: [
+            `CREATE TABLE "chunk" ("id" INTEGER NOT NULL, "dt" integer, "addr" TEXT, "mobs_is_generated" integer NOT NULL DEFAULT 0, PRIMARY KEY ("id"));`,
+        ]});
+        migrations.push({version: 36, queries: [
+            `DELETE FROM entity;`,
+            `DELETE FROM chunk;`,
+        ]});
+        migrations.push({version: 37, queries: [
+            `update quest_action set block_id = 18 where block_id = 2;`,
+            `update user_quest set actions = replace(actions, '"block_id":2,', '"block_id":18,');`,
+        ]});
+        migrations.push({version: 38, queries: [
+            `DELETE FROM entity;`,
+            `DELETE FROM chunk;`,
+        ]});
+        
+        migrations.push({version: 39, queries: [
+            `CREATE TABLE "teleport_points" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "user_id" integer NOT NULL,
+            "x" real NOT NULL,
+            "y" real NOT NULL,
+            "z" real NOT NULL,
+            "title" text
+            );`
+        ]});
+
+        migrations.push({version: 40, queries: [
+            `alter table world_modify add column "block_id" integer DEFAULT NULL`,
+            `UPDATE world_modify SET block_id = json_extract(params, '$.id') WHERE params IS NOT NULL`
+        ]});
+
+        migrations.push({version: 41, queries: [
+            `UPDATE world_modify AS m
+            SET extra_data = COALESCE((SELECT '{"can_destroy":' || (case when c.slots is null then 'true' when c.slots = '{}' then 'true' else 'false' end) || ',"slots":' || coalesce(c.slots, '{}') || '}' from chest c where m.entity_id = c.entity_id), '{"can_destroy":true,"slots":{}}')
+            WHERE m.block_id = 54 AND m.extra_data IS NULL`
+        ]});
+
+        migrations.push({version: 42, queries: [
+            `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
+        ]});
+
+        migrations.push({version: 43, queries: [
+            `ALTER TABLE "user" ADD COLUMN stats TEXT;`
+        ]});
+
+        migrations.push({version: 44, queries: [
+            {
+                sql: `UPDATE "user" SET stats = :stats WHERE stats IS NULL OR stats == :null`,
+                placeholders: {
+                    ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
+                    ':null':  'null'
+                }
+            }
+        ]});
+
+        for(let m of migrations) {
+            if(m.version > version) {
+                await this.db.get('begin transaction');
+                for(let query of m.queries) {
+                    if (typeof query === 'string') {
+                        await this.db.get(query);
+                    } else {
+                        await this.db.run(query.sql, query.placeholders);
+                    }
+                }
+                await this.db.get('UPDATE options SET version = ' + (++version));
+                await this.db.get('commit');
+                // Auto vacuum
+                await this.db.get('VACUUM');
+                version = m.version;
+                console.info('Migration applied: ' + version);
+            }
         }
-        //
-        this.ticks_stat.end();
-        //
-        let elapsed = performance.now() - started;
-        setTimeout(async () => {
-                await this.tick();
-            }, 
-            elapsed < 50 ? (50 - elapsed) : 0    
-        );
+
     }
 
-    save() {
-        for(let player of this.players.values()) {
-            this.db.savePlayerState(player);
-        }
+    async TransactionBegin() {        
+        await this.db.get('begin transaction');
     }
 
-    // onPlayer
-    async onPlayer(player, skin) {
-        // 1. Insert to DB if new player
-        player.init(await this.db.registerUser(this, player));
-        player.state.skin = skin;
-        player.updateHands();
-        await player.initQuests();
-        // 2. Add new connection
-        if (this.players.has(player.session.user_id)) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
-            this.onLeave(this.players.get(player.session.user_id));
+    async TransactionCommit() {
+        await this.db.get('commit');
+    }
+
+    async TransactionRollback() {
+        await this.db.get('rollback');
+    }
+
+    // getDefaultPlayerStats...
+    getDefaultPlayerStats() {
+        return {death: 0, time: 0, pickat: 0, distance: 0}
+    }
+
+    // getDefaultPlayerIndicators...
+    getDefaultPlayerIndicators() {
+        return {
+            live: {
+                name:  'live',
+                value: 20,
+            },
+            food: {
+                name:  'food',
+                value: 20,
+            },
+            oxygen: {
+                name:  'oxygen',
+                value: 10,
+            },
+        };
+    }
+
+    // Return default inventory for user
+    getDefaultInventory() {
+        const MAX_COUNT = 36;
+        const resp = {
+            items: [],
+            current: {
+                index: 0, // right hand
+                index2: -1 // left hand
+            }
+        };
+        for(let i = 0; i < MAX_COUNT; i++) {
+            resp.items.push(null);
         }
-        // 3. Insert to array
-        this.players.set(player.session.user_id, player);
-        // 4. Send about all other players
-        let all_players_packets = [];
-        for(let c of this.players.values()) {
-            if (c.session.user_id != player.session.user_id) {
-                all_players_packets.push({
-                    name: ServerClient.CMD_PLAYER_JOIN,
-                    data: c.exportState()
+        return resp;
+    }
+
+    // Register new user or return existed
+    async registerUser(world, player) {
+        // Find existing user record
+        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, stats, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
+        if(row) {
+            let inventory = JSON.parse(row.inventory);
+            // Added new property
+            if(inventory.current.index2 === undefined) {
+                inventory.current.index2 = -1;
+            }
+            return {
+                state: {
+                    pos:                JSON.parse(row.pos),
+                    pos_spawn:          JSON.parse(row.pos_spawn),
+                    rotate:             JSON.parse(row.rotate),
+                    indicators:         JSON.parse(row.indicators),
+                    stats:              JSON.parse(row.stats),
+                    chunk_render_dist:  row.chunk_render_dist,
+                    game_mode:          row.game_mode || world.info.game_mode,
+                },
+                inventory: inventory
+            };
+        }
+        let default_pos_spawn = world.info.pos_spawn;
+        // Insert to DB
+        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, stats, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :stats, :is_admin)', {
+            ':id':          player.session.user_id,
+            ':dt':          ~~(Date.now() / 1000),
+            ':guid':        player.session.user_guid,
+            ':username':    player.session.username,
+            ':pos':         JSON.stringify(default_pos_spawn),
+            ':pos_spawn':   JSON.stringify(default_pos_spawn),
+            ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
+            ':inventory':   JSON.stringify(this.getDefaultInventory()),
+            ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+            ':stats':       JSON.stringify(this.getDefaultPlayerStats()),
+            ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
+        });
+        return await this.registerUser(world, player);
+    }
+
+    // Добавление сообщения в чат
+    async insertChatMessage(player, params) {
+        const result = await this.db.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
+            ':user_id':         player.session.user_id,
+            ':dt':              ~~(Date.now() / 1000),
+            ':text':            params.text,
+            ':world_id':        this.world.info.id,
+            ':user_session_id': 0
+        });
+        let chat_message_id = result.lastID;
+        return chat_message_id;
+    }
+
+    // savePlayerInventory...
+    async savePlayerInventory(player, params) {
+        const result = await this.db.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
+            ':id':              player.session.user_id,
+            ':inventory':       JSON.stringify(params)
+        });
+    }
+
+    // savePlayerState...
+    async savePlayerState(player) {
+        player.position_changed = false;
+        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
+            ':id':             player.session.user_id,
+            ':pos':            JSON.stringify(player.state.pos),
+            ':rotate':         JSON.stringify(player.state.rotate),
+            ':indicators':     JSON.stringify(player.state.indicators),
+            ':stats':          JSON.stringify(player.state.stats),
+            ':dt_moved':       ~~(Date.now() / 1000)
+        });
+    }
+
+    // changePosSpawn...
+    async changePosSpawn(player, params) {
+        await this.db.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
+            ':id':             player.session.user_id,
+            ':pos_spawn':      JSON.stringify(params.pos)
+        });
+    }
+
+    // changeRenderDist...
+    async changeRenderDist(player, value) {
+        await this.db.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
+            ':id':                  player.session.user_id,
+            ':chunk_render_dist':   value
+        });
+    }
+
+    // Вычитка списка администраторов
+    async loadAdminList(world_id)  {
+        let resp = [];
+        let rows = await this.db.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+        for(let row of rows) {
+            resp.push(row.username);
+        }
+        return resp;
+    }
+
+    // findPlayer...
+    async findPlayer(world_id, username) {
+        let row = await this.db.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        if(!row) {
+            return null;
+        }
+        return row;
+    }
+
+    // setAdmin...
+    async setAdmin(world_id, user_id, is_admin) {
+        let result = await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
+    }
+
+    // saveChestSlots...
+    async saveChestSlots(chest) {
+        let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            ':x': chest.pos.x,
+            ':y': chest.pos.y,
+            ':z': chest.pos.z
+        });
+        for(let row of rows) {
+            let extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
+            extra_data.slots = chest.slots;
+            extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
+            await this.db.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
+                ':extra_data':  JSON.stringify(extra_data),
+                ':id':          row.id
+            });
+            return true;
+        }
+        return false;
+    }
+
+    // Chunk became modified
+    async chunkBecameModified() {
+        let resp = new Set();
+        let rows = await this.db.all(`SELECT DISTINCT
+            cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
+            cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
+            cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
+        FROM world_modify`);
+        for(let row of rows) {
+            let addr = new Vector(row.x, row.y, row.z);
+            resp.add(addr);
+        }
+        return resp
+    }
+
+    // Create entity (mob)
+    async createMob(params) {
+        const entity_id = uuid();
+        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn)', {
+            ':dt':              ~~(Date.now() / 1000),
+            ':entity_id':       entity_id,
+            ':type':            params.type,
+            ':skin':            params.skin,
+            ':indicators':      JSON.stringify(params.indicators),
+            ':rotate':          JSON.stringify(params.rotate),
+            ':pos_spawn':       JSON.stringify(params.pos),
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z
+        });
+        return {
+            id: result.lastID,
+            entity_id: entity_id
+        };
+    }
+
+    // Create drop item
+    async createDropItem(params) {
+        const entity_id = uuid();
+        const result = await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
+            ':dt':              ~~(Date.now() / 1000),
+            ':entity_id':       entity_id,
+            ':items':           JSON.stringify(params.items),
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z
+        });
+        return {
+            entity_id: entity_id
+        };
+    }
+
+    // Delete drop item
+    async deleteDropItem(entity_id) {
+        const result = await this.db.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
+            ':is_deleted': 1,
+            ':entity_id': entity_id
+        });
+    }
+
+    // Load mobs
+    async loadMobs(addr, size) {
+        let rows = await this.db.all('SELECT * FROM entity WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = new Mob(this.world, {
+                id:         row.id,
+                rotate:     JSON.parse(row.rotate),
+                pos_spawn:  JSON.parse(row.pos_spawn),
+                pos:        new Vector(row.x, row.y, row.z),
+                entity_id:  row.entity_id,
+                type:       row.type,
+                skin:       row.skin,
+                indicators: JSON.parse(row.indicators)
+            });
+            resp.set(item.id, item);
+        }
+        return resp;
+    }
+
+    // Save mob state
+    async saveMob(mob) {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
+            ':x': mob.pos.x,
+            ':y': mob.pos.y,
+            ':z': mob.pos.z,
+            ':entity_id': mob.entity_id
+        });
+    }
+
+    // Load drop items
+    async loadDropItems(addr, size) {
+        let rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = new DropItem(this.world, {
+                id:         row.id,
+                pos:        new Vector(row.x, row.y, row.z),
+                entity_id:  row.entity_id,
+                items:      JSON.parse(row.items)
+            });
+            resp.set(item.entity_id, item);
+        }
+        return resp;
+    }
+
+    // Load chunk modify list
+    async loadChunkModifiers(addr, size) {
+        const mul = new Vector(10, 10, 10); // 116584
+        let resp = new Map();
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        for(let row of rows) {
+            let params = row.params ? JSON.parse(row.params) : null;
+            // @BlockItem
+            let item = {
+                id: params && ('id' in params) ? params.id : 0
+            };
+            if(item.id > 2) {
+                if(row.ticks) {
+                    item.ticks = row.ticks;
+                }
+                if('rotate' in params && params.rotate) {
+                    if(BLOCK.fromId(item.id)?.can_rotate) {
+                        item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
+                    }
+                }
+                if('power' in params) {
+                    item.power = params.power;
+                }
+                if('entity_id' in params && params.entity_id) {
+                    item.entity_id = params.entity_id;
+                }
+                if(row.extra_data !== null) {
+                    item.extra_data = JSON.parse(row.extra_data);
+                }
+            }
+            //
+            let pos = new Vector(row.x, row.y, row.z);
+            resp.set(pos.toHash(), item);
+        }
+        return resp;
+    }
+
+    // Block set
+    async blockSet(world, player, params) {
+        let item = params.item;
+        const is_modify = params.action_id == ServerClient.BLOCK_ACTION_MODIFY;
+        if(item.id == 0) {
+            item = null;
+        } else {
+            let material = BLOCK.fromId(item.id);
+            if(!material) {
+                throw 'error_block_not_found';
+            }
+            if(!material?.can_rotate && 'rotate' in item) {
+                delete(item.rotate);
+            }
+            if('entity_id' in item && !item.entity_id) {
+                delete(item.entity_id);
+            }
+            if('extra_data' in item && !item.extra_data) {
+                delete(item.extra_data);
+            }
+            if('power' in item && item.power === 0) {
+                delete(item.power);
+            }
+        }
+        let need_insert = true;
+        // console.log('db.setblock:', is_modify, params.pos.x, params.pos.y, params.pos.z);
+        if(is_modify) {
+            let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+                ':x': params.pos.x,
+                ':y': params.pos.y,
+                ':z': params.pos.z
+            });
+            for(let row of rows) {
+                need_insert = false;
+                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE id = :id', {
+                    ':id':          row.id,
+                    ':params':      item ? JSON.stringify(item) : null,
+                    ':entity_id':   item?.entity_id ? item.entity_id : null,
+                    ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                    ':block_id':    item?.id
                 });
             }
         }
-        player.sendPackets(all_players_packets);
-        // 5. Send to all about new player
-        this.sendAll([{
-            name: ServerClient.CMD_PLAYER_JOIN,
-            data: player.exportState()
-        }], []);
-        // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
-        // 7. Send CMD_CONNECTED
-        player.sendPackets([{name: ServerClient.CMD_CONNECTED, data: {
-            session: player.session,
-            state: player.state,
-            inventory: {
-                current: player.inventory.current,
-                items: player.inventory.items
-            }
-        }}]);
-        // 8. Check player visible chunks
-        this.chunks.checkPlayerVisibleChunks(player, true);
-    }
-
-    // onLeave
-    async onLeave(player) {
-        if(this.players.has(player?.session?.user_id)) {
-            this.players.delete(player.session.user_id);
-            this.db.savePlayerState(player);
-            player.onLeave();
-            // Notify other players about leave me
-            let packets = [{
-                name: ServerClient.CMD_PLAYER_LEAVE,
-                data: {
-                    id: player.session.user_id
-                }
-            }];
-            this.sendAll(packets, [player.session.user_id]);
+        if(need_insert) {
+            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id)', {
+                ':user_id':     player?.session.user_id || null,
+                ':dt':          ~~(Date.now() / 1000),
+                ':world_id':    world.info.id,
+                ':x':           params.pos.x,
+                ':y':           params.pos.y,
+                ':z':           params.pos.z,
+                ':params':      item ? JSON.stringify(item) : null,
+                ':entity_id':   item?.entity_id ? item.entity_id : null,
+                ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                ':block_id':    item?.id
+            });
+        }
+        if (item && 'extra_data' in item) {
+            // @todo Update extra data
         }
     }
 
-    /**
-     * Send commands for all except player id list
-     * @param {Object[]} packets
-     * @param {number[]} except_players  ID of players
-     * @return {void}
-     */
-    sendAll(packets, except_players) {
-        for(let player of this.players.values()) {
-            if(except_players && except_players.indexOf(player.session.user_id) >= 0) {
-                continue;
-            }
-            player.sendPackets(packets);
-        }
+    // Change player game mode
+    async changeGameMode(player, game_mode) {
+        const result = await this.db.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
+            ':id':              player.session.user_id,
+            ':game_mode':       game_mode
+        });
     }
 
-    /**
-     * Отправить только указанным
-     * @param {Object[]} packets
-     * @param {number[]} selected_players ID of players
-     * @param {number[]} except_players  ID of players
-     * @return {void}
-     */
-    sendSelected(packets, selected_players, except_players) {
-        for(let user_id of selected_players) {
-            if(except_players && except_players.indexOf(user_id) >= 0) {
-                continue;
-            }
-            let player = this.players.get(user_id);
-            if(player) {
-                player.sendPackets(packets);
-            }
+    //
+    async loadQuest(quest_id) {
+        // Quests
+        let quest = null;
+        // const quests = new Map();
+        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest WHERE id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            quest = {...row, actions: [], rewards: []};
+            delete(quest.quest_group_id);
+            // quests.set(quest.id, quest);
         }
+        if(!quest) {
+            return quest;
+        }
+        // Actions
+        rows = await this.db.all('SELECT * FROM quest_action WHERE quest_id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            const action = {...row};
+            delete(action.quest_id);
+            quest.actions.push(action);
+        }
+        // Rewards
+        rows = await this.db.all('SELECT * FROM quest_reward WHERE quest_id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            const reward = {...row};
+            delete(reward.quest_id);
+            quest.rewards.push(reward);
+        }
+        return quest;
     }
 
-    sendUpdatedInfo() {
-        for(let p of this.players.values()) {
-            p.sendWorldInfo(true);
+    // Return default quests with groups
+    async loadDefaultQuests() {
+        // Groups
+        const groups = new Map();
+        const group_rows = await this.db.all('SELECT * FROM quest_group', {});
+        for(let row of group_rows) {
+            const g = {...row, quests: []};
+            groups.set(g.id, g);
         }
+        // Quests
+        const quests = new Map();
+        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest WHERE is_default = 1', {});
+        for(let row of rows) {
+            const quest = {...row, actions: [], rewards: []};
+            delete(quest.quest_group_id);
+            let g = groups.get(row.quest_group_id);
+            g.quests.push(quest);
+            quests.set(quest.id, quest);
+        }
+        // Actions
+        rows = await this.db.all('SELECT * FROM quest_action WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
+        for(let row of rows) {
+            const action = {...row};
+            delete(action.quest_id);
+            let q = quests.get(row.quest_id);
+            q.actions.push(action);
+        }
+        // Rewards
+        rows = await this.db.all('SELECT * FROM quest_reward WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
+        for(let row of rows) {
+            const reward = {...row};
+            delete(reward.quest_id);
+            let q = quests.get(row.quest_id);
+            q.rewards.push(reward);
+        }
+        return Array.from(groups.values());
     }
 
-    /**
-     * Teleport player
-     * @param {ServerPlayer} player 
-     * @param {Object} params 
-     * @return {void}
-     */
-    teleportPlayer(player, params) {
-        var new_pos = null;
-        if (params.pos) {
-            new_pos = params.pos;
-        } else if (params.place_id) {
-            switch (params.place_id) {
-                case 'spawn': {
-                    new_pos = player.state.pos_spawn;
-                    break;
-                }
-                case 'random': {
-                    new_pos = new Vector(
-                        (Math.random() * 2000000 - Math.random() * 2000000) | 0,
-                        120,
-                        (Math.random() * 2000000 - Math.random() * 2000000) | 0
-                    );
-                    break;
-                }
-            }
-        }
-        if (new_pos) {
-            let MAX_COORD = 2000000000;
-            if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
-                console.log('error_too_far');
-                throw 'error_too_far';
-            }
-            let packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos:        new_pos,
-                    place_id:   params.place_id
-                }
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-            player.state.pos = new_pos;
-            this.chunks.checkPlayerVisibleChunks(player, true);
-        }
-    }
-
-    // changePlayerPosition...
-    changePlayerPosition(player, params) {
-        if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
-            this.teleportPlayer(player, {
-                place_id: 'spawn'
-            })
-            return;
-        }
-        player.state.pos                = new Vector(params.pos);
-        player.state.rotate             = new Vector(params.rotate);
-        player.state.sneak              = !!params.sneak;
-        player.position_changed         = true;
-    }
-
-    // Spawn new mob
-    async spawnMob(player, params) {
-        try {
-            if(!this.admins.checkIsAdmin(player)) {
-                throw 'error_not_permitted';
-            }
-            await this.createMob(params);
-            return true;
-        } catch(e) {
-            console.log('e', e);
-            let packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-        }
-    }
-
-    // Create mob
-    async createMob(params) {
-        let chunk_addr = getChunkAddr(params.pos);
-        let chunk = this.chunks.get(chunk_addr);
-        if(chunk) {
-            let mob = await Mob.create(this, params);
-            chunk.addMob(mob);
-            return mob;
-        } else {
-            console.error('Chunk for mob not found');
-        }
-        return null;
-    }
-
-    // Create drop items
-    async createDropItems(player, pos, items, velocity) {
-        try {
-            let drop_item = await DropItem.create(this, player, pos, items, velocity);
-            this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
-            return true;
-        } catch(e) {
-            console.log('e', e);
-            let packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-        }
-    }
-
-    /**
-     * Restore modified chunks list
-     * @return {boolean}
-     */
-    async restoreModifiedChunks() {
-        this.chunkModifieds = new VectorCollector();
-        let list = await this.db.chunkBecameModified();
-        for(let addr of list) {
-            this.chunkBecameModified(addr);
+    // questsUserStarted...
+    async questsUserStarted(player) {
+        let row = await this.db.get("SELECT * FROM user_quest WHERE user_id = :user_id", {
+            ':user_id': player.session.user_id
+        });
+        if(!row) {
+            return false;
         }
         return true;
     }
 
-    // Chunk has modifiers
-    chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr);
+    // loadPlayerQuests...
+    async loadPlayerQuests(player) {
+        let rows = await this.db.all(`SELECT
+                q.id,
+                q.quest_group_id,
+                q.title,
+                q.description,
+                q.next_quests,
+                uq.is_completed,
+                uq.in_progress,
+                uq.actions,
+                json_object('id', g.id, 'title', g.title) AS quest_group,
+                (SELECT json_group_array(json_object('block_id', block_id, 'cnt', cnt)) FROM quest_reward qr WHERE qr.quest_id = q.id) AS rewards
+            FROM user_quest uq
+            left join quest q on q.id = uq.quest_id
+            left join quest_group g on g.id = q.quest_group_id
+            WHERE user_id = :user_id`, {
+            ':user_id': player.session.user_id,
+        });
+        const resp = [];
+        for(let row of rows) {
+            row.actions         = JSON.parse(row.actions);
+            row.quest_group     = JSON.parse(row.quest_group);
+            row.rewards         = JSON.parse(row.rewards);
+            row.is_completed    = row.is_completed != 0;
+            row.in_progress     = !row.is_completed && row.in_progress != 0;
+            resp.push(row);
+        }
+        return resp;
     }
-    
-    // Add chunk to modified
-    chunkBecameModified(addr) {
-        if(this.chunkModifieds.has(addr)) {
+
+    // savePlayerQuest...
+    async savePlayerQuest(player, quest) {
+        const exist_row = await this.db.get('SELECT * FROM user_quest WHERE user_id = :user_id AND quest_id = :quest_id', {
+            ':user_id':             player.session.user_id,
+            ':quest_id':            quest.id
+        });
+        if(exist_row) {
+            await this.db.run('UPDATE user_quest SET actions = :actions, is_completed = :is_completed, in_progress = :in_progress WHERE user_id = :user_id AND quest_id = :quest_id', {
+                ':user_id':         player.session.user_id,
+                ':quest_id':        quest.id,
+                ':is_completed':    quest.is_completed ? 1 : 0,
+                ':in_progress':     quest.in_progress ? 1 : 0,
+                ':actions':         JSON.stringify(quest.actions)
+            });
+        } else {
+            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, in_progress, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :in_progress, :actions)', {
+                ':dt':              ~~(Date.now() / 1000),
+                ':user_id':         player.session.user_id,
+                ':quest_id':        quest.id,
+                ':is_completed':    quest.is_completed ? 1 : 0,
+                ':in_progress':     quest.in_progress ? 1 : 0,
+                ':actions':         JSON.stringify(quest.actions)
+            });
+        }
+    }
+
+    // chunkMobsIsGenerated...
+    async chunkMobsIsGenerated(chunk_addr_hash) {
+        let row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+            ':addr': chunk_addr_hash
+        });
+        if(!row) {
             return false;
         }
-        return this.chunkModifieds.set(addr, addr);
+        return !!row['mobs_is_generated'];
     }
 
-    // Юзер начал видеть этот чанк
-    async loadChunkForPlayer(player, addr) {
-        let chunk = this.chunks.get(addr);
-        if(!chunk) {
-            throw 'Chunk not found';
+    // chunkMobsSetGenerated...
+    async chunkMobsSetGenerated(chunk_addr_hash, mobs_is_generated) {
+        let exist_row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+            ':addr': chunk_addr_hash
+        });
+        if(exist_row) {
+            await this.db.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
+                ':addr':                chunk_addr_hash,
+                ':mobs_is_generated':   mobs_is_generated
+            });
+        } else {
+            await this.db.run('INSERT INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
+                ':dt':                  ~~(Date.now() / 1000),
+                ':addr':                chunk_addr_hash,
+                ':mobs_is_generated':   mobs_is_generated
+            });
         }
-        chunk.addPlayerLoadRequest(player);
-    }
 
-    getBlock(pos) {
-        let chunk_addr = getChunkAddr(pos);
-        let chunk = this.chunks.get(chunk_addr);
-        if(!chunk) {
+    }
+    
+    /**
+     * TO DO EN список точек для телепортации
+     * @param {number} id id игрока
+     * @return {Object} список доступных точек для телепортации
+     */
+    async getListTeleportPoints(id) {
+        let rows = await this.db.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
+            ":id" : parseInt(id)
+        });
+        if(!rows) {
             return null;
         }
-        return chunk.getBlock(pos);
+        return rows;
     }
-
-    // Create entity
-    async createEntity(player, params) {
-        // @ParamBlockSet
-        let addr = getChunkAddr(params.pos);
-        let chunk = this.chunks.get(addr);
-        if(chunk) {
-            await chunk.doBlockAction(player, params, false, false, true);
-            await this.db.blockSet(this, player, params);
-            this.chunkBecameModified(addr);
-        } else {
-            console.log('createEntity: Chunk not found', addr);
-        }
-    }
-
+    
     /**
-     * @return {ServerChunkManager}
+     * TO DO EN получает коодинаты точки игрока с именем title
+     * @param {number} id id тгрока
+     * @param {string} title имя точки
      */
-    get chunkManager() {
-        return this.chunks;
+    async getTeleportPoint(id, title) {
+        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        let row = await this.db.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
+            ":id" : parseInt(id),
+            ":title": clear_title
+        });
+        if(!row) {
+            return null;
+        }
+        return row;
     }
-
-    //
-    pickAtAction(server_player, params) {
-        this.pickat_action_queue.add(server_player, params);
+    
+    /**
+     * TO DO EN добавлят положение игрока в список с именем title
+     * @param {number} id id игрока
+     * @param {string} title имя точки
+     * @param {number} x x точки
+     * @param {number} y y точки
+     * @param {number} z z точки
+     */
+    async addTeleportPoint(id, title, x, y, z) {
+        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        await this.db.run("INSERT INTO teleport_points (user_id, title, x, y, z) VALUES (:id, :title, :x, :y, :z)", {
+            ":id" : parseInt(id),
+            ":title": clear_title,
+            ":x": x,
+            ":y": y + 0.5,
+            ":z": z
+        });
     }
-
-    //
-    async applyActions(server_player, actions) {
-        const chunks_packets = new VectorCollector();
-        //
-        const getChunkPackets = (pos) => {
-            let chunk_addr = getChunkAddr(pos);
-            let chunk = this.chunks.get(chunk_addr);
-            //if(!chunk) {
-            //    return null;
-            //}
-            let cps = chunks_packets.get(chunk_addr);
-            if(!cps) {
-                cps = {
-                    chunk: chunk,
-                    packets: [],
-                    custom_packets: []
-                };
-                chunks_packets.set(chunk_addr, cps);
-            }
-            return cps;
-        };
-        // Send message to chat
-        if(actions.chat_message) {
-            this.chat.sendMessage(server_player, actions.chat_message);
-        }
-        // Create chest
-        if(actions.create_chest) {
-            const params = actions.create_chest;
-            params.item.extra_data = {can_destroy: true, slots: {}};
-            const b_params = {pos: params.pos, item: params.item, action_id: ServerClient.BLOCK_ACTION_CREATE};
-            actions.blocks.list.push(b_params);
-        }
-        // Decrement item
-        if(actions.decrement) {
-            server_player.inventory.decrement(actions.decrement);
-        }
-        // Decrement instrument
-        if(actions.decrement_instrument) {
-            server_player.inventory.decrement_instrument(actions.decrement_instrument);
-        }
-        // Stop playing discs
-        if(Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
-            for(let params of actions.stop_disc) {
-                const cps = getChunkPackets(params.pos);
-                if(cps) {
-                    if(cps.chunk) {
-                        cps.packets.push({
-                            name: ServerClient.CMD_STOP_PLAY_DISC,
-                            data: actions.stop_disc
-                        });
-                    }
-                }
-            }
-        }
-        // Create drop items
-        if(actions.drop_items && actions.drop_items.length > 0) {
-            for(let di of actions.drop_items) {
-                if(di.force || server_player.game_mode.isSurvival()) {
-                    // Add velocity for drop item
-                    this.temp_vec.set(0, .375, 0);
-                    this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
-                }
-            }
-        }
-        // Modify blocks
-        if(actions.blocks && actions.blocks.list) {
-            let chunk_addr = new Vector(0, 0, 0);
-            let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
-            let chunk = null;
-            // trick for worldedit plugin
-            const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
-            const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            const use_tx = actions.blocks.list.length > 1;
-            if(use_tx) {
-                await this.db.TransactionBegin();
-            }
-            try {
-                let all = [];
-                for(let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToDBItem(params.item);
-                    chunk_addr = getChunkAddr(params.pos, chunk_addr);
-                    if(!prev_chunk_addr.equal(chunk_addr)) {
-                        chunk = this.chunks.get(chunk_addr);
-                        prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
-                    }
-                    // await this.db.blockSet(this, server_player, params);
-                    all.push(this.db.blockSet(this, server_player, params));
-                    // 2. Mark as became modifieds
-                    this.chunkBecameModified(chunk_addr);
-                    if(chunk) {
-                        const block_pos = new Vector(params.pos).floored();
-                        const block_pos_in_chunk = block_pos.sub(chunk.coord);
-                        const cps = getChunkPackets(params.pos);
-                        cps.packets.push({
-                            name: ServerClient.CMD_BLOCK_SET,
-                            data: params
-                        });
-                        // 0. Play particle animation on clients
-                        if(!ignore_check_air && server_player) {
-                            if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                                if(params.destroy_block_id > 0) {
-                                    cps.custom_packets.push({
-                                        except_players: [server_player.session.user_id],
-                                        packets: [{
-                                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                                            data: {
-                                                pos: params.pos,
-                                                item: {id: params.destroy_block_id}
-                                            }
-                                        }]
-                                    });
-                                }
-                            }
-                        }
-                        // 3. Store in chunk tblocks
-                        chunk.tblocks.delete(block_pos_in_chunk);
-                        let tblock           = chunk.tblocks.get(block_pos_in_chunk);
-                        tblock.id            = params.item.id;
-                        tblock.extra_data    = params.item?.extra_data || null;
-                        tblock.entity_id     = params.item?.entity_id || null;
-                        tblock.power         = params.item?.power || null;
-                        tblock.rotate        = params.item?.rotate || null;
-                        // 1. Store in modify list
-                        chunk.addModifiedBlock(block_pos, params.item);
-                        if(on_block_set) {
-                            chunk.onBlockSet(block_pos.clone(), params.item)
-                        }
-                        if(server_player) {
-                            if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                                PlayerEvent.trigger({
-                                    type: PlayerEvent.DESTROY_BLOCK,
-                                    player: server_player,
-                                    data: {pos: params.pos, block_id: params.destroy_block_id}
-                                });
-                            } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
-                                if(server_player) {
-                                    PlayerEvent.trigger({
-                                        type: PlayerEvent.SET_BLOCK,
-                                        player: server_player,
-                                        data: {pos: block_pos.clone(), block: params.item}
-                                    });
-                                }
-                            }
-                        }
-                    } else {
-                        // console.error('Chunk not found in pos', chunk_addr, params);
-                    }
-                }
-                await Promise.all(all);
-                if(use_tx) {
-                    await this.db.TransactionCommit();
-                }
-            } catch(e) {
-                console.log('error', e);
-                if(use_tx) {
-                    await this.db.TransactionRollback();
-                }
-                throw e;
-            }
-        }
-        for(let cp of chunks_packets) {
-            if(cp.chunk) {
-                cp.chunk.sendAll(cp.packets, []);
-                for(let i = 0; i < cp.custom_packets.length; i++) {
-                    const item = cp.custom_packets[i];
-                    cp.chunk.sendAll(item.packets, item.except_players || []);
-                }
-            }
-        }
-    }
-
-    // Return generator options
-    getGeneratorOptions(key, default_value) {
-        const generator_options = this.info.generator.options;
-        if(generator_options) {
-            if(key in generator_options) {
-                return generator_options[key];
-            }
-        }
-        return default_value;
-    }
+    
+    
 
 }
