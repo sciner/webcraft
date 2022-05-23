@@ -47,6 +47,125 @@ await Resources.loadImage('resource_packs/base/textures/default.png', false).the
     }
 );
 
+await Resources.loadImage('media/card.png', false).then(async (img) => {
+    let canvas          = document.createElement('canvas');
+    const w             = img.width;
+    const h             = img.height;
+    canvas.width        = w;
+    canvas.height       = h;
+    let ctx             = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+    const imgData = ctx.getImageData(0, 0, w, h);
+    let rad = 15;
+    const rad_width = rad * 2 + 1;
+    let index = 0;
+    let p = performance.now();
+    
+    if(false) {
+        //
+        const data_orig = new Array(w * h * 4).fill(null);
+        for(let i = 0; i < data_orig.length; i++) {
+            data_orig[i] = imgData.data[i];
+        }
+        for(let y = 0; y < h; y++) {
+            for(let x = 0; x < w; x++) {
+                let sum = [0, 0, 0];
+                let cnt = 0;
+                for(let i = -rad; i < rad; i++) {
+                    let j = 0;
+                    //for(let j = -rad; j < rad; j++) {
+                        let ax = x + i;
+                        let ay = y + j;
+                        if(ax < 0) ax = 0;
+                        if(ay < 0) ay = 0;
+                        if(ax >= w) ax = w - 1;
+                        if(ay >= h) ay = h - 1;
+                        const index = (ay * w + ax) * 4;
+                        sum[0] += data_orig[index + 0];
+                        sum[1] += data_orig[index + 1];
+                        sum[2] += data_orig[index + 2];
+                        cnt++;
+                    //}
+                }
+                const index = (y * w + x) * 4;
+                imgData.data[index + 0] = sum[0] / cnt;
+                imgData.data[index + 1] = sum[1] / cnt;
+                imgData.data[index + 2] = sum[2] / cnt;
+            }
+        }
+    } else {
+
+        const chs = 4;
+        // horizontal
+        let data = imgData.data;
+        for(let c = 0; c < 3; c++) {
+            for(let y = 0; y < h; y++) {
+                let sum = data[y * w * chs + c] * rad;
+                for(let x = 0; x < w + rad_width; x++) {
+                    const index = (y * w + x) * chs;
+                    // const first_index = ;
+                    // (x - rad_width >= 0) ? (index - rad_width * chs) : (y * w * chs);
+                    if(x >= w) {
+                        /*
+                        const last_index = (y * w + w - 1) * 4;
+                        sum[c] += data[last_index + c];
+                        imgData.data[first_index + c] = sum[c] / rad_width;
+                        sum[c] -= data[first_index + c];
+                        */
+                        continue;
+                    }
+                    //
+                    sum += data[index + c];
+                    if(x >= rad) {
+                        data[(y * w + x - rad) * chs + c] = sum / rad_width;
+                        sum -= data[first_index + c];
+                    }
+                }
+            }
+        }
+        /*
+        // vertical
+        for(let x = 0; x < w; x++) {
+            index = (0 * w + x) * 4;
+            const sum = [imgData.data[index + 0], imgData.data[index + 2], imgData.data[index + 3]];
+            for(let y = 0; y < h + rad_width; y++) {
+                index = (y * w + x) * 4;
+                const first_index = y - rad_width < 0 ? index : index - (rad_width * w) * 4;
+                if(y >= h) {
+                    const last_index = ((w) * h - w + x) * 4;
+                    sum[0] += imgData.data[last_index + 0];
+                    sum[1] += imgData.data[last_index + 1];
+                    sum[2] += imgData.data[last_index + 2];
+                    sum[0] -= imgData.data[first_index + 0];
+                    sum[1] -= imgData.data[first_index + 1];
+                    sum[2] -= imgData.data[first_index + 2];
+                    imgData.data[first_index + 0] = sum[0] / rad_width;
+                    imgData.data[first_index + 1] = sum[1] / rad_width;
+                    imgData.data[first_index + 2] = sum[2] / rad_width;
+                    continue;
+                }
+                sum[0] += imgData.data[index + 0];
+                sum[1] += imgData.data[index + 1];
+                sum[2] += imgData.data[index + 2];
+                //
+                if(y > rad_width - 1) {
+                    sum[0] -= imgData.data[first_index + 0];
+                    sum[1] -= imgData.data[first_index + 1];
+                    sum[2] -= imgData.data[first_index + 2];
+                    imgData.data[first_index + 0] = sum[0] / rad_width;
+                    imgData.data[first_index + 1] = sum[1] / rad_width;
+                    imgData.data[first_index + 2] = sum[2] / rad_width;
+                }
+            }
+        }
+        */
+    }
+
+    console.log(performance.now() - p);
+    ctx.putImageData(imgData, 0, 0);
+    document.body.appendChild(canvas);
+});
+
 // load module
 await import('../../js/terrain_generator/cluster/manager.js').then(module => {
     globalThis.ClusterManager = module.ClusterManager;
@@ -76,6 +195,7 @@ export function showCoordInfo(x, z) {
 }
 
 await import('../../js/terrain_generator/terrain_map.js').then(module => {
+    return;
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
     globalThis.TerrainMapManager = module.TerrainMapManager;
 

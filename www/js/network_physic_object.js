@@ -143,8 +143,9 @@ export class NetworkPhysicObject {
         this.netBuffer.push(data);
     }
 
-    applyState(nextPos, nextRot, sneak) {
+    applyState(nextPos, nextRot, sneak, extra_data) {
         this.pos = nextPos;
+        this.extra_data = extra_data;
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;
@@ -167,7 +168,8 @@ export class NetworkPhysicObject {
             return this.applyState(
                 this.netBuffer[0].pos,
                 this.netBuffer[0].rotate,
-                this.netBuffer[0].sneak || 0
+                this.netBuffer[0].sneak || 0,
+                this.netBuffer[0].extra_data || null
             );
         }
 
@@ -179,6 +181,7 @@ export class NetworkPhysicObject {
             rotate: prevRot,
             time: prevTime,
             sneak: prevSneak = 0,
+            extra_data: prevExtraData = null,
         } = this.netBuffer[0];
 
         const {
@@ -186,6 +189,7 @@ export class NetworkPhysicObject {
             rotate: nextRot,
             time: nextTime,
             sneak: nextSneak = 0,
+            extra_data: nextExtraData = null,
         } = this.netBuffer[1];
 
         let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
@@ -198,12 +202,13 @@ export class NetworkPhysicObject {
         tPos.lerpFrom(prevPos, nextPos, iterp);
 
         const sneak = Mth.lerp(iterp, prevSneak, nextSneak);
+        const extra_data = nextExtraData;
 
         if(nextRot) {
             tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
         }
 
-        return this.applyState(tPos, tRot, sneak);
+        return this.applyState(tPos, tRot, sneak, extra_data);
     }
 
     update() {
