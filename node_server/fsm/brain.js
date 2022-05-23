@@ -1,8 +1,8 @@
 import {CHUNK_STATE_BLOCKS_GENERATED} from "../server_chunk.js";
-import {FSMStack} from "./stack.js";
+import { FSMStack } from "./stack.js";
 
 import { PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
-import { Vector } from "../../www/js/helpers.js";
+import { Vector, Mth } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
@@ -158,48 +158,52 @@ export class FSMBrain {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
-    distance(target) {
-        if (target != null)
-            return Math.sqrt(Math.pow(target.x - this.mob.pos.x, 2) + Math.pow(target.z - this.mob.pos.z, 2));
-    }
-
-    agressor() {
+    findTarget() {
         if (this.isAggrressor && this.target == null) {
-            let connections = this.getConnections(this.mob.pos);
+            let mob = this.mob;
+            let connections = this.getConnections(mob.pos);
+            let players = mob.getWorld().players;
             for (let id of connections) {
-                let player = this.mob.getWorld().players.get(id);
-                let dist = this.distance(player.state.pos);
+                let player = players.get(id);
+                let dist = mob.pos.distance(player.state.pos);
                 if (dist < 10) {
-                    console.log("[AI] catch");
+                    console.log("[AI] find target and go " + id);
                     this.target = id;
                     this.stack.replaceState(this.doCatch);
-                    return;
+                    return true;
                 }
 			}
         }
+        return false;
     }
 
-    beyond() {
-        if (this.isAggrressor && this.target != null) {
-            return;
-        }
+    toRespawn() {
+        let mob = this.mob;
 
-        let dist = this.distance(this.mob.pos_spawn);
+        if (this.isAggrressor && this.target != null || !mob.pos_spawn) {
+            return false;
+        }
+        
+        let dist = mob.pos.distance(mob.pos_spawn);
 
         if (dist > 21) {
-            console.log("[AI] mob " + this.mob.id + " beyond " + dist);
-            this.rotate(1.0, this.angle(this.mob.pos_spawn));
+            console.log("[AI] mob " + mob.id + " go to respawn");
+            this.runRotate(1.0, this.angle(this.mob.pos_spawn));
+            return true;
         }
+        return false;
     }
 
-    forward(chance) {
+    runForward(chance) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " forward");
             this.stack.replaceState(this.doForward);
-		}
+            return true;
+        }
+        return false;
     }
 
-    goStand(chance) {
+    runStand(chance) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " stand");
             this.stack.replaceState(this.doStand);
@@ -208,7 +212,7 @@ export class FSMBrain {
         return false;
     }
 
-    goRotate(chance, angle = -1) {
+    runRotate(chance, angle = -1) {
         if (Math.random() < chance) {
             console.log("[AI] mob " + this.mob.id + " rotate");
             this.rad = (angle == -1) ? Math.random() * Math.PI : angle;
@@ -224,18 +228,25 @@ export class FSMBrain {
             forward: false
         });
 
-        this.agressor();
+        this.applyControl(delta);
+        this.sendState();
 
-        this.forward(0.01);
 
-        if (this.goRotate(0.01)) {
+        if (this.findTarget()) {
+            return;
+        }
+
+        if (this.toRespawn()) {
+            return;
+        }
+
+        if (this.runForward(0.02)) {
             return;
 		}
 
-        this.beyond();
-
-        this.applyControl(delta);
-        this.sendState();
+        if (this.runRotate(0.01)) {
+            return;
+		}
     }
 
     setMobDie() {
@@ -249,14 +260,16 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        this.agressor();
-
-        if (this.goStand(0.01)) {
-            return;
-		}
-
         this.applyControl(delta);
         this.sendState();
+
+        if (this.findTarget()) {
+            return;
+        }
+
+        if (this.runStand(0.01)) {
+            return;
+		}
     }
 
     doRotate(delta) {
@@ -268,7 +281,8 @@ export class FSMBrain {
         if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.rad) > 0.2) {
             this.mob.rotate.z += delta * 2;
         } else {
-            this.forward(1.0);
+            this.runForward(1.0);
+            return;
 		}
 
         this.applyControl(delta);
@@ -282,16 +296,20 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        let player = this.mob.getWorld().players.get(this.target);
+        let mob = this.mob;
 
-        let dist = this.distance(player.state.pos);
+        let player = mob.getWorld().players.get(this.target);
+
+        let dist = mob.pos.distance(player.state.pos);
         if (dist > 15) {
-            this.stand(1.0)
+            console.log("[AI] mob " + this.mob.id + " lost plasyer and stand");
             this.target = null;
+            this.runStand(1.0);
+            return
         }
 
         if (dist < 4) {
-            this.mob.pos.y += 0.5;
+           /* this.mob.pos.y += 0.5;
             let actions = {
                 blocks: {
                     list: [],
@@ -318,6 +336,8 @@ export class FSMBrain {
             await this.mob.getWorld().applyActions(null, actions, false);
             this.stand(1.0)
             this.target = null;
+            */
+            mob.kill();
 		}
 
         if (Math.random() < 0.5) {
