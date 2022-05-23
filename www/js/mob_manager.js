@@ -16,7 +16,6 @@ export class MobManager {
             switch(cmd.name) {
                 case ServerClient.CMD_MOB_ADDED: {
                     for(let mob of cmd.data) {
-                        console.log(mob.extra_data)
                         // console.log('Mob added: ' + mob.id, mob.pos);
                         this.add(mob);
                     }

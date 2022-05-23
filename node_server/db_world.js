@@ -718,11 +718,12 @@ export class DBWorld {
 
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
-            ':entity_id': mob.entity_id
+            ':entity_id': mob.entity_id,
+            ':indicators': JSON.stringify(mob.indicators)
         });
     }
 

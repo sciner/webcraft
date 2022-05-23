@@ -120,8 +120,12 @@ export class Mob {
             }
         } else if(params.button_id == 1) {
             if(this.indicators.live.value > 0) {
-                this.kill();
+                this.indicators.live.value = Math.max(this.indicators.live.value - 5, 0);
                 console.log('live', this.indicators.live.value);
+                if(this.indicators.live.value == 0) {
+                    return this.kill();
+                }
+                this.save();
                 // Add velocity for drop item
                 let velocity = this.pos.sub(server_player.state.pos).normSelf();
                 velocity.y = .5;
@@ -135,10 +139,12 @@ export class Mob {
     }
 
     async kill() {
-        if(this.indicators.live.value == 0) {
+        if(this.already_killed) {
             return false;
         }
+        this.already_killed = true;
         this.indicators.live.value = 0;
+        this.save();
         this.#world.db.setEntityActive(this.entity_id, 0);
         this.#brain.sendState();
     }

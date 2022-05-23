@@ -483,7 +483,7 @@ export class MobModel extends NetworkPhysicObject {
         this.update(render, camPos, delta);
 
         // If mob die
-        if(!this.isAlive()) {
+        if(this.isAlive() === false) {
             // first enter to this code
             if(!this.die_info) {
                 this.yaw_before_die = this.yaw;
