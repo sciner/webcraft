@@ -22,7 +22,7 @@ export class FSMBrain {
         this.raycaster      = new Raycaster(mob.getWorld());
         this.rotateSign     = 1;
         this.#pos           = new Vector(0, 0, 0);
-        this.panic          = false;
+        this.panic = false;
         this.target = null;
         this.rad = 0;
     }
@@ -162,6 +162,14 @@ export class FSMBrain {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
+    isAttack() {
+        if (this.panic && !this.isAggrressor) {
+
+            return 5.0;
+        }
+        return 1.0;
+	}
+
     findTarget() {
         if (this.isAggrressor && this.target == null) {
             let mob = this.mob;
@@ -253,10 +261,6 @@ export class FSMBrain {
 		}
     }
 
-    setMobDie() {
-
-	}
-
     doForward(delta) {
         this.updateControl({
             yaw: this.mob.rotate.z,
@@ -313,6 +317,29 @@ export class FSMBrain {
         }
 
         if (dist < 4) {
+            mob.kill();
+            let actions = {
+                blocks: {
+                    list: [],
+                    options: {
+                        ignore_check_air: true,
+                        on_block_set: false
+                    }
+                }
+            };
+            const rad = 5;
+            const air = { id: 0 };
+            for (let i = -rad; i < rad; i++) {
+                for (let j = -rad; j < rad; j++) {
+                    for (let k = -rad; k < rad; k++) {
+                        const air_pos = new Vector(this.mob.pos.x + i, this.mob.pos.y + k, this.mob.pos.z + j).flooredSelf();
+                        if (air_pos.distance(this.mob.pos) < rad) {
+                            actions.blocks.list.push({ pos: air_pos, item: air });
+                        }
+                    }
+                }
+            }
+            await this.mob.getWorld().applyActions(null, actions, false);
            /* this.mob.pos.y += 0.5;
             let actions = {
                 blocks: {
@@ -341,7 +368,8 @@ export class FSMBrain {
             this.stand(1.0)
             this.target = null;
             */
-            mob.kill();
+            //this.target = null;
+            
 		}
 
         if (Math.random() < 0.5) {
