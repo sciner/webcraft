@@ -9,6 +9,7 @@ import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
+import {Packet} from "./network/packets.js";
 
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
@@ -73,6 +74,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
+        this.packet = new Packet();
+        this.is_dead = false;
     }
 
     init(init_info) {
@@ -127,7 +130,7 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.5 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
 
         this.sendWorldInfo(false);
@@ -151,8 +154,13 @@ export class ServerPlayer extends Player {
         } = this;
 
         const cmd = JSON.parse(response);
+        
+        this.packet.ReadPacket(this, cmd);
 
         try {
+            if (this.is_die && cmd.name != ServerClient.CMD_RESURRECTION) {
+                return;
+            }
             switch(cmd.name) {
                 // Connect
                 case ServerClient.CMD_CONNECT: {
@@ -164,6 +172,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_SYNC_TIME: {
+                    break;
                     this.sendPackets([{
                         name: ServerClient.CMD_SYNC_TIME,
                         data: { clientTime: cmd.data.clientTime },
@@ -214,6 +223,7 @@ export class ServerPlayer extends Player {
 
                 // Modify indicator request
                 case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
+                    break;
                     switch (cmd.data.indicator) {
                         case 'live': {
                             this.state.indicators.live.value += cmd.data.value;
@@ -267,7 +277,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_PICKAT_ACTION: {
-                    this.world.pickAtAction(this, cmd.data);
+                    //this.world.pickAtAction(this, cmd.data);
                     break;
                 }
 
@@ -531,15 +541,13 @@ export class ServerPlayer extends Player {
             }
             if(near.length > 0) {
                 // 1. add items to inventory
-                for(let i = 0; i < near.length; i++) {
-                    const drop_item = near[i];
+                for(const drop_item of near) {
                     for(const item of drop_item) {
                         this.inventory.increment(item);
                     }
                 }
                 // 2. deactive drop item in database
-                for(let i = 0; i < entity_ids.length; i++) {
-                    const entity_id = entity_ids[i];
+                for(let entity_id of entity_ids) {
                     this.world.db.deleteDropItem(entity_id);
                 }
                 // 3. play sound on client
@@ -567,5 +575,4 @@ export class ServerPlayer extends Player {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
     }
-
 }

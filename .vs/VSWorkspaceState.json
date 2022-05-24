@@ -2,9 +2,11 @@
   "ExpandedNodes": [
     "",
     "\\node_server",
-    "\\node_server\\fsm",
-    "\\node_server\\fsm\\brain"
+    "\\node_server\\network",
+    "\\node_server\\network\\serverpackets",
+    "\\www",
+    "\\www\\js"
   ],
-  "SelectedNode": "\\node_server\\plugins",
+  "SelectedNode": "\\node_server\\network\\serverpackets\\cmd_die.js",
   "PreviewInSolutionExplorer": false
 }

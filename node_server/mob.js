@@ -130,10 +130,10 @@ export class Mob {
                 let velocity = this.pos.sub(server_player.state.pos).normSelf();
                 velocity.y = .5;
                 this.addVelocity(velocity);
-                this.#brain.panic = true;
-                setTimeout(() => {
-                    this.#brain.panic = false;
-                }, 3000);
+                this.#brain.isPanic();//.panic = true;
+                //setTimeout(() => {
+                   // this.#brain.panic = false;
+               // }, 3000);
             }
         }
     }
