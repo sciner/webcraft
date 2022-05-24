@@ -1,22 +1,12 @@
 import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
-import {TypedBlocks, TBlock} from "../typed_blocks.js";
+import {BlockNeighbours, CC, TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
-
-const CC = [
-    {x:  0, y:  1, z:  0, name: 'UP'},
-    {x:  0, y: -1, z:  0, name: 'DOWN'},
-    {x:  0, y:  0, z: -1, name: 'SOUTH'},
-    {x:  0, y:  0, z:  1, name: 'NORTH'},
-    {x: -1, y:  0, z:  0, name: 'WEST'},
-    {x:  1, y:  0, z:  0, name: 'EAST'}
-];
-
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
 
 // ChunkManager
@@ -53,21 +43,6 @@ export class ChunkManager {
             return chunk.getBlock(x, y, z);
         }
         return this.DUMMY;
-    }
-
-}
-
-// BlockNeighbours
-export class BlockNeighbours {
-
-    constructor() {
-        this.pcnt   = 6;
-        this.UP     = null;
-        this.DOWN   = null;
-        this.SOUTH  = null;
-        this.NORTH  = null;
-        this.WEST   = null;
-        this.EAST   = null;
     }
 
 }
@@ -262,63 +237,6 @@ export class Chunk {
         }
     }
 
-    /**
-     * Возвращает всех 6-х соседей блока
-     * @param {Vector} pos 
-     * @param {Array} cache 
-     * @returns 
-     */
-    getBlockNeighbours(pos, cache = null) {
-
-        const neighbours = new BlockNeighbours();
-        let chunk;
-
-        // обходим соседние блоки
-        for (let i = 0; i < CC.length; i++) {
-
-            const p = CC[i];
-            const cb = (cache && cache[i]) || new TBlock(null, new Vector());
-            const v = cb.vec;
-            const ax = pos.x + p.x;
-            const ay = pos.y + p.y;
-            const az = pos.z + p.z;
-
-            if(ax >= 0 && ay >= 0 && az >= 0 && ax < this.size.x && ay < this.size.y && az < this.size.z) {
-                v.x = ax;
-                v.y = ay;
-                v.z = az;
-                chunk = this;
-            } else {
-                v.x = (pos.x + p.x + this.size.x) % this.size.x;
-                v.y = (pos.y + p.y + this.size.y) % this.size.y;
-                v.z = (pos.z + p.z + this.size.z) % this.size.z;
-                if(ax < 0) {
-                    chunk = this.neighbour_chunks.nx;
-                } else if(ay < 0) {
-                    chunk = this.neighbour_chunks.ny;
-                } else if(az < 0) {
-                    chunk = this.neighbour_chunks.nz;
-                } else if(ax >= this.size.x) {
-                    chunk = this.neighbour_chunks.px;
-                } else if(ay >= this.size.y) {
-                    chunk = this.neighbour_chunks.py;
-                } else if(az >= this.size.z) {
-                    chunk = this.neighbour_chunks.pz;
-                }
-            }
-
-            const b = neighbours[p.name] = chunk.tblocks.get(v, cb);
-            const properties = b?.properties;
-            if(!properties || properties.transparent || properties.fluid) {
-                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                neighbours.pcnt--;
-            }
-
-        }
-
-        return neighbours;
-    }
-
     // buildVertices
     buildVertices() {
 
@@ -331,14 +249,7 @@ export class Chunk {
 
         const tmpVector = new Vector();
 
-        this.neighbour_chunks = {
-            nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
-            px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
-            ny: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y - 1, this.addr.z)),
-            py: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y + 1, this.addr.z)),
-            nz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z - 1)),
-            pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
-        };
+        this.neighbour_chunks = this.tblocks.getNeightboursChunks(world);
 
         // Check neighbour chunks available
         if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
@@ -397,7 +308,7 @@ export class Chunk {
         }
 
         const cache                 = BLOCK_CACHE;
-        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
+        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)), true);
 
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
@@ -410,7 +321,8 @@ export class Chunk {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-            let neighbours = this.getBlockNeighbours(block.pos, cache);
+            let neighbours = block.getNeighbours(world, cache);
+            // let neighbours = this.getBlockNeighbours(block.pos, cache);
             // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
             if(neighbours.pcnt == 6) {
                 continue;
@@ -442,6 +354,7 @@ export class Chunk {
                 addVerticesToGroup(material.group, material.material_key, block.vertices);
             }
         }
+        // console.log(cnt)
 
         // Emmited blocks
         if(this.emitted_blocks.size > 0) {
@@ -468,6 +381,11 @@ export class Chunk {
                 }
             }
         }
+
+        /*for(let k of this.vertices.keys()) {
+            const group = this.vertices.get(k);
+            group.list = new Float32Array(group.list);
+        }*/
 
         this.dirty = false;
         this.tm = performance.now() - tm;

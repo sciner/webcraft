@@ -1,6 +1,30 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "./chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
+
+export const CC = [
+    {x:  0, y:  1, z:  0, name: 'UP'},
+    {x:  0, y: -1, z:  0, name: 'DOWN'},
+    {x:  0, y:  0, z: -1, name: 'SOUTH'},
+    {x:  0, y:  0, z:  1, name: 'NORTH'},
+    {x: -1, y:  0, z:  0, name: 'WEST'},
+    {x:  1, y:  0, z:  0, name: 'EAST'}
+];
+
+// BlockNeighbours
+export class BlockNeighbours {
+
+    constructor() {
+        this.pcnt   = 6;
+        this.UP     = null;
+        this.DOWN   = null;
+        this.SOUTH  = null;
+        this.NORTH  = null;
+        this.WEST   = null;
+        this.EAST   = null;
+    }
+
+}
 
 export class TBlock {
 
@@ -170,16 +194,70 @@ export class TBlock {
         return BLOCK.convertItemToDBItem(this);
     }
 
+    /**
+     * Возвращает всех 6-х соседей блока
+     * @param {Vector} pos 
+     * @param {Array} cache 
+     * @returns 
+     */
+    getNeighbours(world, cache) {
+        this.neighbours = new BlockNeighbours();
+        const nc = this.tb.getNeightboursChunks(world);
+        const pos = this.vec;
+        let chunk;
+        // обходим соседние блоки
+        for (let i = 0; i < CC.length; i++) {
+            const p = CC[i];
+            const cb = cache[i]; // (cache && cache[i]) || new TBlock(null, new Vector());
+            const v = cb.vec;
+            const ax = pos.x + p.x;
+            const ay = pos.y + p.y;
+            const az = pos.z + p.z;
+            if(ax >= 0 && ay >= 0 && az >= 0 && ax < CHUNK_SIZE_X && ay < CHUNK_SIZE_Y && az < CHUNK_SIZE_Z) {
+                v.x = ax;
+                v.y = ay;
+                v.z = az;
+                chunk = nc.that.chunk;
+            } else {
+                v.x = (pos.x + p.x + CHUNK_SIZE_X) % CHUNK_SIZE_X;
+                v.y = (pos.y + p.y + CHUNK_SIZE_Y) % CHUNK_SIZE_Y;
+                v.z = (pos.z + p.z + CHUNK_SIZE_Z) % CHUNK_SIZE_Z;
+                if(ax < 0) {
+                    chunk = nc.nx.chunk;
+                } else if(ay < 0) {
+                    chunk = nc.ny.chunk;
+                } else if(az < 0) {
+                    chunk = nc.nz.chunk;
+                } else if(ax >= CHUNK_SIZE_X) {
+                    chunk = nc.px.chunk;
+                } else if(ay >= CHUNK_SIZE_Y) {
+                    chunk = nc.py.chunk;
+                } else if(az >= CHUNK_SIZE_Z) {
+                    chunk = nc.pz.chunk;
+                }
+            }
+            const b = this.neighbours[p.name] = chunk.tblocks.get(v, cb);
+            const properties = b?.properties;
+            if(!properties || properties.transparent || properties.fluid) {
+                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
+                this.neighbours.pcnt--;
+            }
+        }
+        return this.neighbours;
+    }
+
 }
 
 // TypedBlocks
 export class TypedBlocks {
 
+    #neightbours_chunks;
+
     constructor(coord, block_count = CHUNK_SIZE) {
+        this.addr       = getChunkAddr(coord);
         this.coord      = coord;
         this.count      = block_count;
-        this.buffer     = new ArrayBuffer(this.count * 2);
-        this.id         = new Uint16Array(this.buffer, 0, this.count);
+        this.id         = new Uint16Array(this.count);
         this.power      = new VectorCollector();
         this.rotate     = new VectorCollector();
         this.entity_id  = new VectorCollector();
@@ -194,10 +272,36 @@ export class TypedBlocks {
         this.non_zero   = 0;
     }
 
+    //
+    getNeightboursChunks(world) {
+        if(this.#neightbours_chunks) {
+            return this.#neightbours_chunks;
+        }
+        //
+        const nc = this.#neightbours_chunks = {
+            // center
+            that: {addr: this.addr, chunk: world.chunkManager.getChunk(this.addr)},
+            // sides
+            nx: {addr: new Vector(this.addr.x - 1, this.addr.y, this.addr.z), chunk: null},
+            px: {addr: new Vector(this.addr.x + 1, this.addr.y, this.addr.z), chunk: null},
+            ny: {addr: new Vector(this.addr.x, this.addr.y - 1, this.addr.z), chunk: null},
+            py: {addr: new Vector(this.addr.x, this.addr.y + 1, this.addr.z), chunk: null},
+            nz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z - 1), chunk: null},
+            pz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z + 1), chunk: null}
+        };
+        //
+        nc.nx.chunk = world.chunkManager.getChunk(nc.nx.addr);
+        nc.px.chunk = world.chunkManager.getChunk(nc.px.addr);
+        nc.ny.chunk = world.chunkManager.getChunk(nc.ny.addr);
+        nc.py.chunk = world.chunkManager.getChunk(nc.py.addr);
+        nc.nz.chunk = world.chunkManager.getChunk(nc.nx.addr);
+        nc.pz.chunk = world.chunkManager.getChunk(nc.pz.addr);
+        return nc;
+    }
+
     // Restore state
     restoreState(state, refresh_non_zero = false) {
-        this.buffer     = state.buffer;
-        this.id         = new Uint16Array(this.buffer, 0, this.count);
+        this.id         = state.id; // new Uint16Array(state.id);
         this.power      = new VectorCollector(state.power.list);
         this.rotate     = new VectorCollector(state.rotate.list);
         this.entity_id  = new VectorCollector(state.entity_id.list);
@@ -222,31 +326,87 @@ export class TypedBlocks {
         return this.non_zero;
     }
 
+    // DIAMOND_ORE // 56
+    // REDSTONE_ORE // 73
+    // GOLD_ORE // 14
+    // IRON_ORE // 15
+    // COAL_ORE // 16
+    isFilled(id) {
+        return (id >= 2 && id <= 3) ||
+                id == 9 || id == 56 || id == 73 ||
+                (id >= 14 && id <= 16) ||
+                (id >= 545 && id <= 550);
+    }
+
+    isWater(id) {
+        return id == 200 || id == 202;
+    }
+
+    //
+    blockIsClosed(index, id, x, y, z) {
+        const max_count = this.count;
+        const i_up = index + CHUNK_SIZE_X * CHUNK_SIZE_Z;
+        const i_down = index - CHUNK_SIZE_X * CHUNK_SIZE_Z;
+        const i_north = index + CHUNK_SIZE_X;
+        const i_south = index - CHUNK_SIZE_X;
+        const i_east = index + 1;
+        const i_west = index - 1;
+        if(i_up < max_count && i_north < max_count && i_east < max_count && i_down > -1 && i_south > -1 && i_west > -1) {
+            const is_filled = this.isFilled(id);
+            const is_water = false; // this.isWater(id);
+            if(is_filled || is_water) {
+                const id_up = this.id[i_up];
+                const id_down = this.id[i_down];
+                const id_north = this.id[i_north];
+                const id_south = this.id[i_south];
+                const id_west = this.id[i_west];
+                const id_east = this.id[i_east];
+                if(is_filled) {
+                    if(this.isFilled(id_up) && this.isFilled(id_down) && this.isFilled(id_south) && this.isFilled(id_north) && this.isFilled(id_west) && this.isFilled(id_east)) {
+                        return true;
+                    }
+                } /*else if(is_water) {
+                    if(this.isWater(id_up) && this.isWater(id_down) && this.isWater(id_south) && this.isWater(id_north) && this.isWater(id_west) && this.isWater(id_east)) {
+                        return true;
+                    }
+                }*/
+            }
+        }
+        return false;
+    }
+
     /**
      * Creating iterator that fill target block to reduce allocations 
      * NOTE! This unsafe because returned block will be re-filled in iteration process
      * @param {TBlock} target 
      * @returns 
      */
-    createUnsafeIterator(target = null) {
+    createUnsafeIterator(target = null, ignore_filled = false) {
         const b = target || new TBlock(this, new Vector());
         const contex = this;
-
         return (function* () {
+            // if(!globalThis.dfgdfg) globalThis.dfgdfg = 0;
             for(let index = 0; index < contex.count; index++) {
-                if (!contex.id[index]) {
+                const id = contex.id[index];
+                if (!id) {
                     continue;
                 }
-
                 // let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
                 let x = index % CHUNK_SIZE_X;
                 let y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
                 let z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
+                if(ignore_filled) {
+                    if(x > 0 && y > 0 && z > 0 && x < CHUNK_SIZE_X - 1 && y < CHUNK_SIZE_Y - 1 && z < CHUNK_SIZE_Z - 1) {
+                        if(contex.blockIsClosed(index, id, x, y, z)) {
+                            // globalThis.dfgdfg++
+                            continue;
+                        }
+                    }
+                }
                 let vec = b.vec.set(x, y, z);
-
-
-                yield b.init(contex, vec);//new TBlock(this, vec);
+                yield b.init(contex, vec); // new TBlock(this, vec);
             }
+            // console.log(globalThis.dfgdfg)
         })()
     }
 

@@ -136,7 +136,7 @@ async function onMessageFunc(e) {
                     const non_zero = ci.tblocks.refreshNonZero();
                     const ci2 = {
                         addr: ci.addr,
-                        key: ci.key,
+                        // key: ci.key,
                         tblocks: non_zero > 0 ? ci.tblocks : null,
                         ticking_blocks: ci.ticking_blocks
                     }
