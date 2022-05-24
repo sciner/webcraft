@@ -234,6 +234,9 @@ export class FSMBrain {
     }
 
     isPanic() {
+        if (this.isAggrressor) {
+            return;
+		}
         console.log("[AI] panic ");
         this.run = true;
         this.oldTime = Date.now();
