@@ -8,10 +8,12 @@ import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 import { CMD_DIE } from "../network/serverpackets/cmd_die.js";
 
-const FORWARD_DISTANCE = 20;
-const FOLLOW_DISTANCE = 10;
-const DISTANCE_LOST_TRAGET = 15;
-const DISTANCE_DETONATION = 4;
+const FORWARD_DISTANCE              = 20;
+const FOLLOW_DISTANCE               = 10;
+const DISTANCE_LOST_TRAGET          = 15;
+const DISTANCE_DETONATION           = 4;
+const DETONATION_TIMER              = 1500; //ms
+const EXPLODE_DEFAULT_RAD           = 5;
 
 export class FSMBrain {
 
@@ -84,17 +86,17 @@ export class FSMBrain {
 
     // Send current mob state to players
     sendState() {
-        let mob = this.mob;
-        let world = mob.getWorld();
-        let chunk_over = world.chunks.get(mob.chunk_addr);
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const chunk_over = world.chunks.get(mob.chunk_addr);
         if (!chunk_over) {
             return;
         }
         let new_state = {
-            id: mob.id,
-            extra_data: { is_alive: mob.isAlive() },
-            rotate: mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
-            pos: mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
+            id:         mob.id,
+            extra_data: mob.extra_data, // { is_alive: mob.isAlive() },
+            rotate:     mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
+            pos:        mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
         };
         let need_send = true;
         if (mob.prev_state) {
@@ -153,7 +155,7 @@ export class FSMBrain {
             for (let z = -3; z <= 3; z++) {
                 let chunk = this.mob.getWorld().chunks.get({ 'x': chunk_addr.x + x, 'y': chunk_addr.y, 'z': chunk_addr.z + z });
                 if (chunk != null && chunk.connections != null) {
-                    for (let key of chunk.connections.keys()) { // то же самое, что и recipeMap.entries()
+                    for (let key of chunk.connections.keys()) { // пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ recipeMap.entries()
                         // connections.set(key, chunk.connections.get(key));
                         connections.push(key);
                     }
@@ -233,13 +235,13 @@ export class FSMBrain {
         return false;
     }
 
-    isPanic() {
+    runPanic() {
         if (this.isAggrressor) {
             return;
 		}
-        console.log("[AI] panic ");
+        console.log("[AI] panic");
         this.run = true;
-        this.oldTime = Date.now();
+        this.oldTime = performance.now();
         this.mob.rotate.z = 2 * Math.random() * Math.PI;
         this.stack.replaceState(this.doPanic);
 	}
@@ -250,10 +252,9 @@ export class FSMBrain {
             forward: true,
             jump: this.checkInWater()
         });
-
         this.applyControl(delta);
         this.sendState();
-        let time = Date.now() - this.oldTime;
+        let time = performance.now() - this.oldTime;
         if (time > 3000) {
             this.run = false;
             this.isStand(1.0);
@@ -310,6 +311,7 @@ export class FSMBrain {
         }
     }
 
+    //
     doRotate(delta) {
         this.updateControl({
             forward: false,
@@ -327,6 +329,7 @@ export class FSMBrain {
         this.sendState();
     }
 
+    // Chasing a player
     doCatch(delta) {
         this.updateControl({
             yaw: this.mob.rotate.z,
@@ -334,21 +337,20 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        let mob = this.mob;
-
-        let player = mob.getWorld().players.get(this.target);
-
-        let dist = mob.pos.distance(player.state.pos);
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        const dist = mob.pos.distance(player.state.pos);
 
         if (dist > DISTANCE_LOST_TRAGET) {
-            console.log("[AI] mob " + this.mob.id + " lost plasyer and stand");
+            console.log("[AI] mob " + this.mob.id + " lost player and stand");
             this.target = null;
             this.isStand(1.0);
             return
         }
 
         if (dist < DISTANCE_DETONATION) {
-            this.oldTime = Date.now();
+            this.oldTime = performance.now();
+            mob.extra_data.detonation_started = true;
             this.stack.replaceState(this.doTimerDetonation);
         }
 
@@ -360,6 +362,7 @@ export class FSMBrain {
         this.sendState();
     }
 
+    //
     doTimerDetonation(delta) {
         this.updateControl({
             jump: this.checkInWater(),
@@ -368,54 +371,62 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
-        let mob = this.mob;
-
-        let player = mob.getWorld().players.get(this.target);
-
-        let dist = mob.pos.distance(player.state.pos);
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        const dist = mob.pos.distance(player.state.pos);
 
         if (dist < DISTANCE_DETONATION) {
-            let time = Date.now() - this.oldTime;
-            if (time > 3000) {
-                this.MobDetonation(5);
+            const time = performance.now() - this.oldTime;
+            if (time > DETONATION_TIMER) {
+                this.mobDetonation(EXPLODE_DEFAULT_RAD);
             } else {
-                //мигание пред взрывом
+                //пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             }
         } else {
+            mob.extra_data.detonation_started = false;
             this.stack.replaceState(this.doCatch);
         }
     }
 
-    async MobDetonation(rad) {
+    //
+    async mobDetonation(rad) {
         console.log("[AI] mob " + this.mob.id + " detonation");
-        let mob = this.mob;
-
-        mob.kill();
-        let actions = {
+        const mob = this.mob;
+        const air = { id: 0 };
+        const mobPos = mob.pos.clone().flooredSelf();
+        await mob.kill();
+        // Actions
+        const actions = {
             blocks: {
                 list: [],
                 options: {
                     ignore_check_air: true,
                     on_block_set: false
                 }
-            }
+            },
+            play_sound: []
         };
-        const air = { id: 0 };
+        // Extrude blocks
         for (let i = -rad; i < rad; i++) {
             for (let j = -rad; j < rad; j++) {
                 for (let k = -rad; k < rad; k++) {
-                    const air_pos = new Vector(mob.pos.x + i, mob.pos.y + k, mob.pos.z + j).flooredSelf();
+                    const air_pos = mobPos.add(new Vector(i, k, j));
                     if (air_pos.distance(mob.pos) < rad) {
                         actions.blocks.list.push({ pos: air_pos, item: air });
                     }
                 }
             }
         }
-        await this.mob.getWorld().applyActions(null, actions, false);
+        // Kill mob
+        mob.kill();
+        // Add sound
+        actions.play_sound.push({tag: 'madcraft:block.creeper', action: 'explode', pos: mobPos.clone()});
+        await mob.getWorld().applyActions(null, actions);
         let player = mob.getWorld().players.get(this.target);
         new CMD_DIE(player);
     }
 
+    //
     checkInWater() {
         let mob = this.mob;
         let world = mob.getWorld();
@@ -465,7 +476,7 @@ export class FSMBrain {
 
     stand(delta) {
         /*
-         * если встали, то можем развернуться или пойти
+         * пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
          
         this.updateControl({
             jump: this.checkInWater(),

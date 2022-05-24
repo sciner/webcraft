@@ -24,7 +24,7 @@ export class Mob {
         this.pos            = new Vector(params.pos);
         this.pos_spawn      = params.pos_spawn;
         this.rotate         = new Vector(params.rotate);
-        this.extra_data     = params.extra_data;
+        this.extra_data     = params.extra_data || {};
         // Private properties
         this.#chunk_addr    = new Vector();
         this.#forward       = new Vector(0, 1, 0);
@@ -91,17 +91,17 @@ export class Mob {
     }
 
     // Save mob state to DB
-    save() {
-        this.#world.db.saveMob(this);
+    async save() {
+        await this.#world.db.saveMob(this);
     }
 
-    onUnload() {
+    async onUnload() {
         console.log('Mob unloaded: ' + this.entity_id);
-        this.save();
+        await this.save();
         this.#world.mobs.delete(this.entity_id);
     }
 
-    punch(server_player, params) {
+    async punch(server_player, params) {
         if(params.button_id == 3) {
             const mat = server_player.state.hands.right;
             if(this.type == 'sheep') {
@@ -120,21 +120,25 @@ export class Mob {
             }
         } else if(params.button_id == 1) {
             if(this.indicators.live.value > 0) {
-                this.indicators.live.value = Math.max(this.indicators.live.value - 5, 0);
-                console.log('live', this.indicators.live.value);
-                if(this.indicators.live.value == 0) {
-                    return this.kill();
-                }
-                this.save();
+                await this.changeLive(-5);
                 // Add velocity for drop item
                 let velocity = this.pos.sub(server_player.state.pos).normSelf();
                 velocity.y = .5;
                 this.addVelocity(velocity);
-                this.#brain.isPanic();//.panic = true;
-                //setTimeout(() => {
-                   // this.#brain.panic = false;
-               // }, 3000);
+                this.#brain.runPanic();
             }
+        }
+    }
+
+    //
+    async changeLive(value) {
+        const prev_value = this.indicators.live.value;
+        this.indicators.live.value = Math.max(prev_value + value, 0);
+        console.log(`Mob live ${prev_value} -> ${this.indicators.live.value}`);
+        if(this.indicators.live.value == 0) {
+            await this.kill();
+        } else {
+            this.save();
         }
     }
 
@@ -144,6 +148,7 @@ export class Mob {
         }
         this.already_killed = true;
         this.indicators.live.value = 0;
+        this.extra_data.is_alive = false;
         this.save();
         this.#world.db.setEntityActive(this.entity_id, 0);
         this.#brain.sendState();

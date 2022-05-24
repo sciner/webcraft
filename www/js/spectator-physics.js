@@ -5,6 +5,10 @@ import { Vector } from "./helpers.js";
 export class PlayerControl  {
 
     constructor() {
+        this.reset();
+    }
+
+    reset() {
         this.back               = false;
         this.forward            = false;
         this.right              = false;
