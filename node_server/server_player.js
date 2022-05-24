@@ -50,6 +50,7 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
+        this.indicators_changed     = true;
         this.position_changed       = false;
         this.chunk_addr             = new Vector(0, 0, 0);
         this.chunk_addr_o           = new Vector(0, 0, 0);
@@ -158,7 +159,7 @@ export class ServerPlayer extends Player {
         this.packet.ReadPacket(this, cmd);
 
         try {
-            if (this.is_die && cmd.name != ServerClient.CMD_RESURRECTION) {
+            if (this.is_dead && cmd.name != ServerClient.CMD_RESURRECTION) {
                 return;
             }
             switch(cmd.name) {
@@ -218,41 +219,6 @@ export class ServerPlayer extends Player {
                         }
                     }
                     */
-                    break;
-                }
-
-                // Modify indicator request
-                case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
-                    break;
-                    switch (cmd.data.indicator) {
-                        case 'live': {
-                            this.state.indicators.live.value += cmd.data.value;
-                            break;
-                        }
-                        case 'food': {
-                            this.state.indicators.food.value += cmd.data.value;
-                            break;
-                        }
-                        case 'oxygen': {
-                            this.state.indicators.oxygen.value += cmd.data.value;
-                            break;
-                        }
-                    }
-                    if (cmd.data.indicator == 'live' && this.state.indicators.live.value <= 0) {
-                        this.state.indicators.live.value = 20;
-                        this.world.teleportPlayer(this, {
-                            place_id: 'spawn',
-                        })
-                    }
-                    // notify player about his new indicators
-                    let packets = [{
-                        name: ServerClient.CMD_ENTITY_INDICATORS,
-                        data: {
-                            indicators: this.state.indicators
-                        }
-                    }];
-                    this.world.sendSelected(packets, [this.session.user_id], []);
-                    // @todo notify all about change?
                     break;
                 }
 
@@ -364,6 +330,20 @@ export class ServerPlayer extends Player {
         //} catch(e) {
         //    console.error(e);
         //}
+    }
+
+    // Change live value
+    // Die checked in tick()
+    changeLive(value) {
+        if(this.is_dead) {
+            return false;
+        }
+        const ind = this.state.indicators.live;
+        const prev_value = ind.value;
+        ind.value = Math.max(prev_value + value, 0);
+        console.log(`Player live ${prev_value} -> ${ind.value}`);
+        this.indicators_changed = true;
+        return true;
     }
 
     /**
@@ -483,6 +463,9 @@ export class ServerPlayer extends Player {
         this.checkInventoryChanges();
         //
         this.sendState();
+        //
+        this.checkIndicators();
+
     }
 
     //
@@ -509,6 +492,31 @@ export class ServerPlayer extends Player {
         }];
         // this.world.sendAll(packets, [this.session.user_id]);
         this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.user_id]);
+    }
+
+    //
+    checkIndicators() {
+        if(!this.indicators_changed || this.is_dead) {
+            return false;
+        }
+        this.indicators_changed = false;
+        // notify player about his new indicators
+        const packets = [{
+            name: ServerClient.CMD_ENTITY_INDICATORS,
+            data: {
+                indicators: this.state.indicators
+            }
+        }];
+        // check if died
+        if(this.state.indicators.live.value <= 0) {
+            this.is_dead = true;
+            packets.push({
+                name: ServerClient.CMD_DIE,
+                data: {}
+            });
+        }
+        this.world.sendSelected(packets, [this.session.user_id], []);
+        // @todo notify all about change?
     }
 
     // Check near drop items

@@ -4,7 +4,7 @@ export class CMD_DIE {
 
     constructor(player, data) {
         // player.state.stats.death++;
-        player.is_die = true;
+        player.is_dead = true;
         let packets = [{
             name: ServerClient.CMD_DIE,
             data: {}

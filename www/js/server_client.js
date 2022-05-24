@@ -37,7 +37,6 @@ export class ServerClient {
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
     static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
-    static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
 	static CMD_WORLD_INFO               = 74;
 	static CMD_GAMEMODE_NEXT            = 80;

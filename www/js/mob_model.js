@@ -535,6 +535,7 @@ export class MobModel extends NetworkPhysicObject {
             this.sceneTree.scale[1] = new_creeper_scale;
             this.sceneTree.scale[2] = new_creeper_scale;
         } else if(this.detonation_started_info) {
+            this.tintColor.set(0, 0, 0, 0);
             this.sceneTree.scale = this.detonation_started_info.scale;
             this.detonation_started_info = null;
         }

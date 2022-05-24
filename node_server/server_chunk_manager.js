@@ -3,6 +3,7 @@ import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
+import { AABB } from "../www/js/core/AABB.js";
 
 export const MAX_Y_MARGIN = 3;
 
@@ -223,6 +224,18 @@ export class ServerChunkManager {
     // chunkSetMobsIsGenerated
     async chunkSetMobsIsGenerated(chunk_addr_hash) {
         return await this.world.db.chunkMobsSetGenerated(chunk_addr_hash, 1);
+    }
+
+    // Return chunks inside AABB
+    getInAABB(aabb) {
+        const pos1 = getChunkAddr(new Vector(aabb.x_min, aabb.y_min, aabb.z_min));
+        const pos2 = getChunkAddr(new Vector(aabb.x_max, aabb.y_max, aabb.z_max));
+        const aabb2 = new AABB().set(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z).expand(.1, .1, .1);
+        const resp = [];
+        for(let [chunk_addr, chunk] of this.all.entries(aabb2)) {
+            resp.push(chunk);
+        }
+        return resp;
     }
 
 }

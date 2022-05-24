@@ -10,10 +10,10 @@ export class GameMode {
         this.player = player;
         this.onSelect = (mode) => {};
         this.modes = [];
-        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5});
-        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10});
-        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5});
+        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5, can_take_damage: true});
+        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10, can_take_damage: false});
+        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: true});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: false});
         if(game_mode_id) {
             this.applyMode(game_mode_id, false);
         }

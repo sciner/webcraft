@@ -1,12 +1,11 @@
 import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
 
-import { PrismarinePlayerControl, PHYSICS_TIMESTEP } from "../../www/vendors/prismarine-physics/using.js";
-import { Vector, Mth } from "../../www/js/helpers.js";
+import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
+import { Vector } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
-import { CMD_DIE } from "../network/serverpackets/cmd_die.js";
 
 const FORWARD_DISTANCE = 20;
 
@@ -140,21 +139,10 @@ export class FSMBrain {
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
 
-    getPlayerList(pos) {
-        let connections = [];
-        let chunk_addr;
-        chunk_addr = getChunkAddr(pos, chunk_addr);
-        for (let x = -3; x <= 3; x++) {
-            for (let z = -3; z <= 3; z++) {
-                let chunk = this.mob.getWorld().chunks.get({ 'x': chunk_addr.x + x, 'y': chunk_addr.y, 'z': chunk_addr.z + z });
-                if (chunk != null && chunk.connections != null) {
-                    for (let key of chunk.connections.keys()) { 
-                        connections.push(key);
-                    }
-                }
-            }
-        }
-        return connections;
+    // Return players near pos by distance
+    getPlayersNear(pos, max_distance, not_in_creative) {
+        const world = this.mob.getWorld();
+        return world.getPlayersNear(pos, max_distance, not_in_creative);
     }
 
     angleTo(target) {
@@ -165,7 +153,7 @@ export class FSMBrain {
 
     isStand(chance) {
         if (Math.random() < chance) {
-            //console.log("[AI] mob " + this.mob.id + " stand");
+            // console.log("[AI] mob " + this.mob.id + " stand");
             this.stack.replaceState(this.doStand);
             return true;
         }

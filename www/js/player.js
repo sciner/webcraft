@@ -630,7 +630,7 @@ export class Player {
         }
     }
     
-    setDie(){
+    setDie() {
         Game.hud.wm.getWindow('frmDie').show();
     }
 

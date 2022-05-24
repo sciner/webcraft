@@ -8,6 +8,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
 
 import { Vector, VectorCollector } from "../www/js/helpers.js";
+import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk.js";
 import { BLOCK } from "../www/js/blocks.js";
@@ -281,17 +282,17 @@ export class ServerWorld {
         await this.chunks.tick(delta);
         this.ticks_stat.add('chunks');
         // 2.
-        for (let player of this.players.values()) {
-            player.tick(delta);
-        }
-        this.ticks_stat.add('players');
-        // 3.
         for (let [entity_id, mob] of this.mobs) {
             if (mob.isAlive()) {
                 mob.tick(delta);
             }
         }
         this.ticks_stat.add('mobs');
+        // 3.
+        for (let player of this.players.values()) {
+            player.tick(delta);
+        }
+        this.ticks_stat.add('players');
         // 4.
         for (let [entity_id, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
@@ -824,6 +825,35 @@ export class ServerWorld {
             }
         }
         return default_value;
+    }
+
+    // Return players near pos by distance
+    getPlayersNear(pos, max_distance, not_in_creative) {
+        const world = this;
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
+            .expand(max_distance, max_distance, max_distance);
+        // 
+        const all_players = world.players;
+        const chunks = world.chunks.getInAABB(aabb);
+        const resp = new Map();
+        //
+        for(let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            for(let user_id of chunk.connections.keys()) { 
+                const player = all_players.get(user_id);
+                if(player.is_dead) {
+                    continue;
+                }
+                if(not_in_creative && !player.game_mode.getCurrent().can_take_damage) {
+                    continue;
+                }
+                const dist = new Vector(player.state.pos).distance(pos);
+                if(dist <= max_distance) {
+                    resp.set(user_id, player);
+                }
+            }
+        }
+        return Array.from(resp.values());
     }
 
 }

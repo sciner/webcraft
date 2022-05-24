@@ -1,5 +1,4 @@
 import {ServerClient} from "../../www/js/server_client.js";
-import {CMD_MODIFY_INDICATOR_REQUEST} from "./clientpackets/cmd_modify_indicator_request.js";
 import {CMD_SYNC_TIME} from "./clientpackets/cmd_sync_time.js";
 import {CMD_PLAYER_STATE} from "./clientpackets/cmd_player_state.js";
 import {CMD_STATS} from "./clientpackets/cmd_stats.js";
@@ -12,19 +11,19 @@ export class Packet {
     }
 
     ReadPacket(player, packet) {
-        if (player.is_die && packet.name != ServerClient.CMD_RESURRECTION)
+        if (player.is_dead && packet.name != ServerClient.CMD_RESURRECTION)
         {
             return;
 		}
-        if (packet.name < 96 && packet.name != ServerClient.CMD_MODIFY_INDICATOR_REQUEST && packet.name != ServerClient.CMD_SYNC_TIME && packet.name != ServerClient.CMD_PLAYER_STATE && packet.name != ServerClient.CMD_PICKAT_ACTION) {
+        if (packet.name < 96 &&
+            packet.name != ServerClient.CMD_SYNC_TIME &&
+            packet.name != ServerClient.CMD_PLAYER_STATE &&
+            packet.name != ServerClient.CMD_PICKAT_ACTION) {
             return;
         }
         try {
             switch (packet.name) {
 
-                case ServerClient.CMD_MODIFY_INDICATOR_REQUEST:
-                    new CMD_MODIFY_INDICATOR_REQUEST(player, packet.data);
-                    break;
                 case ServerClient.CMD_SYNC_TIME:
                     new CMD_SYNC_TIME(player, packet.data);
                     break;
