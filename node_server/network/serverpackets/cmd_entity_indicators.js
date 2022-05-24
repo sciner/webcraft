@@ -1,4 +1,5 @@
 import {ServerClient} from "../../../www/js/server_client.js";
+import { CMD_DIE } from "./cmd_die.js";
 
 export class CMD_ENTITY_INDICATORS {
     constructor(player, data) {
@@ -9,5 +10,10 @@ export class CMD_ENTITY_INDICATORS {
             }
         }];
         player.world.sendSelected(packets, [player.session.user_id], []);
+
+        if (player.state.indicators.live.value <= 0) {
+            player.is_dead = true;
+            new CMD_DIE(player);
+        }
     }
 }
