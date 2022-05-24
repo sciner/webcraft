@@ -789,6 +789,21 @@ export class ServerWorld {
                 throw e;
             }
         }
+        // Play sound
+        if (actions.play_sound) {
+            for(let params of actions.play_sound) {
+                const cps = getChunkPackets(params.pos);
+                if (cps) {
+                    if (cps.chunk) {
+                        cps.packets.push({
+                            name: ServerClient.CMD_PLAY_SOUND,
+                            data: params
+                        });
+                    }
+                }
+            }
+        }
+        //
         for (let cp of chunks_packets) {
             if (cp.chunk) {
                 cp.chunk.sendAll(cp.packets, []);

@@ -13,7 +13,7 @@ const FOLLOW_DISTANCE               = 10;
 const DISTANCE_LOST_TRAGET          = 15;
 const DISTANCE_DETONATION           = 4;
 const DETONATION_TIMER              = 1500; //ms
-const EXPLODE_DEFAULT_RAD           = 5;
+const EXPLODE_DEFAULT_RAD           = 2.55;
 
 export class FSMBrain {
 
@@ -330,7 +330,7 @@ export class FSMBrain {
     }
 
     // Chasing a player
-    doCatch(delta) {
+    async doCatch(delta) {
         this.updateControl({
             yaw: this.mob.rotate.z,
             forward: true,
@@ -351,6 +351,11 @@ export class FSMBrain {
         if (dist < DISTANCE_DETONATION) {
             this.oldTime = performance.now();
             mob.extra_data.detonation_started = true;
+            await mob.getWorld().applyActions(null, {
+                play_sound: [
+                    {tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(mob.pos)}
+                ]
+            });
             this.stack.replaceState(this.doTimerDetonation);
         }
 
@@ -407,11 +412,14 @@ export class FSMBrain {
             play_sound: []
         };
         // Extrude blocks
-        for (let i = -rad; i < rad; i++) {
-            for (let j = -rad; j < rad; j++) {
-                for (let k = -rad; k < rad; k++) {
+        const out_rad = Math.ceil(rad);
+        const check_pos = mob.pos.flooredSelf().add(new Vector(.5, 0, .5));
+
+        for (let i = -out_rad; i < out_rad; i++) {
+            for (let j = -out_rad; j < out_rad; j++) {
+                for (let k = -out_rad; k < out_rad; k++) {
                     const air_pos = mobPos.add(new Vector(i, k, j));
-                    if (air_pos.distance(mob.pos) < rad) {
+                    if (air_pos.distance(check_pos) <= rad) {
                         actions.blocks.list.push({ pos: air_pos, item: air });
                     }
                 }
@@ -423,7 +431,7 @@ export class FSMBrain {
         actions.play_sound.push({tag: 'madcraft:block.creeper', action: 'explode', pos: mobPos.clone()});
         await mob.getWorld().applyActions(null, actions);
         let player = mob.getWorld().players.get(this.target);
-        new CMD_DIE(player);
+        // new CMD_DIE(player);
     }
 
     //

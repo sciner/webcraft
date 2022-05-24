@@ -525,13 +525,15 @@ export class MobModel extends NetworkPhysicObject {
             const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
             const is_tinted = Math.round(elapsed / 150) % 2 == 0;
             if(elapsed_percent == 1 || is_tinted) {
-                this.tintColor.set(1, 0, 0, .3);
+                this.tintColor.set(1, 1, 1, .5);
             } else {
                 this.tintColor.set(0, 0, 0, 0);
             }
-            this.sceneTree.scale[0] = info.scale[0] * (1 + elapsed_percent * 0.5);
-            this.sceneTree.scale[1] = info.scale[1] * (1 + elapsed_percent * 0.5);
-            this.sceneTree.scale[2] = info.scale[2] * (1 + elapsed_percent * 0.5);
+            const CREEPER_MAX_DETONATION_SCALE = 1.35;
+            const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
+            this.sceneTree.scale[0] = new_creeper_scale;
+            this.sceneTree.scale[1] = new_creeper_scale;
+            this.sceneTree.scale[2] = new_creeper_scale;
         } else if(this.detonation_started_info) {
             this.sceneTree.scale = this.detonation_started_info.scale;
             this.detonation_started_info = null;
