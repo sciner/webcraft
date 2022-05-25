@@ -36,6 +36,11 @@ export class MeshManager {
             [0, 4], [1, 4], [2, 4], [3, 4]
         ]);
 
+        this.particle_textures.set('explosion', [
+            [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3],
+            [0, 4], [1, 4], [2, 4], [3, 4]
+        ]);
+
     }
 
     get(id) {
@@ -96,6 +101,16 @@ export class MeshManager {
                 p.y += .35 + .25 * Math.random();
                 p.z += (Math.random() - Math.random()) * .3;
                 particle = new Particle(textures[texture_index], 5, false, 0, 0.0075 + (0.0075 * Math.random()), new Vector(0, 100, 0));
+                break;
+            }
+            case 'explosion': {
+                const speed = new Vector(
+                    (Math.random() - .5) * 2,
+                    (Math.random() - .5) * 2,
+                    (Math.random() - .5) * 2
+                ).normalize()
+                .multiplyScalar(700);
+                particle = new Particle(textures[texture_index], .5, false, 0, 0.0075 + (0.0075 * Math.random()), speed);
                 break;
             }
         }

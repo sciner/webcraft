@@ -1,11 +1,13 @@
-import {CHUNK_STATE_BLOCKS_GENERATED} from "../server_chunk.js";
-import {FSMStack} from "./stack.js";
+import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
+import { FSMStack } from "./stack.js";
 
-import { PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
+import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
+
+const FORWARD_DISTANCE = 20;
 
 export class FSMBrain {
 
@@ -17,12 +19,15 @@ export class FSMBrain {
     }
 
     constructor(mob) {
-        this.mob            = mob;
-        this.stack          = new FSMStack();
-        this.raycaster      = new Raycaster(mob.getWorld());
-        this.rotateSign     = 1;
-        this.#pos           = new Vector(0, 0, 0);
-        this.panic          = false;
+        this.mob = mob;
+        this.stack = new FSMStack();
+        this.raycaster = new Raycaster(mob.getWorld());
+        this.rotateSign = 1;
+        this.#pos = new Vector(0, 0, 0);
+        this.run = false;
+        this.target = null;
+        this.angleRotation = 0;
+        this.painicTime = 0;
     }
 
     /**
@@ -42,7 +47,7 @@ export class FSMBrain {
         const world = this.mob.getWorld();
         this.#chunk_addr = getChunkAddr(this.mob.pos, this.#chunk_addr);
         let chunk = world.chunks.get(this.#chunk_addr);
-        if(chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+        if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
             // tick
             this.stack.tick(delta, this);
         }
@@ -63,7 +68,7 @@ export class FSMBrain {
                     let pos = new Vector(x, y, z).floored();
                     this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
                     let chunk = world.chunks.get(this.chunk_addr);
-                    if(chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                    if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
                         return chunk.getBlock(pos);
                     } else {
                         return world.chunks.DUMMY;
@@ -75,29 +80,38 @@ export class FSMBrain {
 
     // Send current mob state to players
     sendState() {
-        let mob = this.mob;
-        let world = mob.getWorld();
-        let chunk_over = world.chunks.get(mob.chunk_addr);
-        if(!chunk_over) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const chunk_over = world.chunks.get(mob.chunk_addr);
+        if (!chunk_over) {
             return;
         }
         let new_state = {
             id:         mob.id,
-            extra_data: {is_alive: mob.isAlive()},
+            extra_data: mob.extra_data, // { is_alive: mob.isAlive() },
             rotate:     mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
             pos:        mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
         };
         let need_send = true;
-        if(mob.prev_state) {
-            if(mob.prev_state.rotate.equal(new_state.rotate)) {
-                if(mob.prev_state.pos.equal(new_state.pos)) {
-                    if(mob.prev_state.extra_data.is_alive == new_state.extra_data.is_alive) {
+        if (mob.prev_state) {
+            if (mob.prev_state.rotate.equal(new_state.rotate)) {
+                if (mob.prev_state.pos.equal(new_state.pos)) {
+                    let all_extas_equal = true;
+                    const checked_extras = ['is_alive', 'detonation_started'];
+                    for(let i = 0; i < checked_extras.length; i++) {
+                        const field_name = checked_extras[i];
+                        if (mob.prev_state.extra_data[field_name] != new_state.extra_data[field_name]) {
+                            all_extas_equal = false;
+                            break;
+                        }
+                    }
+                    if(all_extas_equal) {
                         need_send = false;
                     }
                 }
             }
         }
-        if(need_send) {
+        if (need_send) {
             mob.prev_state = new_state;
             mob.prev_state.rotate = mob.prev_state.rotate.clone();
             mob.prev_state.pos = mob.prev_state.pos.clone();
@@ -114,8 +128,8 @@ export class FSMBrain {
     // Update state and send to players
     updateControl(new_states) {
         let pc = this.pc;
-        for(let [key, value] of Object.entries(new_states)) {
-            switch(key) {
+        for (let [key, value] of Object.entries(new_states)) {
+            switch (key) {
                 case 'yaw': {
                     pc.player_state[key] = value;
                     break;
@@ -130,13 +144,91 @@ export class FSMBrain {
 
     applyControl(delta) {
         let pc = this.pc;
-        pc.tick(delta * (this.panic ? 3 : 1));
+        pc.tick(delta * (this.run ? 4 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
 
-    // Stand still
-    standStill(delta) {
+    // Return players near pos by distance
+    getPlayersNear(pos, max_distance, not_in_creative) {
+        const world = this.mob.getWorld();
+        return world.getPlayersNear(pos, max_distance, not_in_creative);
+    }
 
+    angleTo(target) {
+        let pos = this.mob.pos;
+        let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    }
+
+    isStand(chance) {
+        if (Math.random() < chance) {
+            // console.log("[AI] mob " + this.mob.id + " stand");
+            this.stack.replaceState(this.doStand);
+            return true;
+        }
+        return false;
+    }
+
+    isForward(chance) {
+        if (Math.random() < chance) {
+            //console.log("[AI] mob " + this.mob.id + " forward");
+            this.stack.replaceState(this.doForward);
+            return true;
+        }
+        return false;
+    }
+
+    isRotate(chance, angle = -1) {
+        if (Math.random() < chance) {
+            //console.log("[AI] mob " + this.mob.id + " rotate");
+            this.angleRotation = (angle == -1) ? 2 * Math.random() * Math.PI : angle;
+            this.stack.replaceState(this.doRotate);
+            return true;
+        }
+        return false;
+    }
+
+    isRespawn() {
+        let mob = this.mob;
+
+        if (this.isAggrressor && this.target != null || !mob.pos_spawn) {
+            return false;
+        }
+
+        let dist = mob.pos.distance(mob.pos_spawn);
+
+        if (dist > FORWARD_DISTANCE) {
+            //console.log("[AI] mob " + mob.id + " go to respawn");
+            this.isRotate(1.0, this.angleTo(this.mob.pos_spawn));
+            return true;
+        }
+        return false;
+    }
+
+    runPanic() {
+       //console.log("[AI] panic");
+        this.run = true;
+        this.panicTime = performance.now();
+        this.mob.rotate.z = 2 * Math.random() * Math.PI;
+        this.stack.replaceState(this.doPanic);
+	}
+
+    doPanic(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+        this.applyControl(delta);
+        this.sendState();
+        let time = performance.now() - this.panicTime;
+        if (time > 3000) {
+            this.run = false;
+            this.isStand(1.0);
+		}
+	}
+
+    doStand(delta) {
         this.updateControl({
             jump: this.checkInWater(),
             forward: false
@@ -145,151 +237,67 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
-        let r = Math.random() * 5000;
-        if(r < 500 || this.panic) {
-            if(r < 100 || this.panic) {
-                // Random rotate
-                this.rotateSign = Math.sign(Math.random() - Math.random());
-                this.stack.replaceState(this.doRotate); // push new state, making it the active state.
-            } else {
-                // Go forward
-                this.stack.replaceState(this.goForward);
-            }
+        if (this.isRespawn()) {
+            return;
+        }
+
+        if (this.isForward(0.02)) {
+            return;
+        }
+
+        if (this.isRotate(0.01)) {
+            return;
         }
     }
 
-    // Check mob if in water
+    doForward(delta) {
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        const pick = this.raycastFromHead();
+        if (pick) {
+
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+
+        if (this.isStand(0.01)) {
+            return;
+        }
+    }
+
+    //
+    doRotate(delta) {
+        this.updateControl({
+            forward: false,
+            jump: this.checkInWater()
+        });
+
+        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.5) {
+            this.mob.rotate.z += delta * ((this.run) ? 2 : 1);
+        } else {
+            this.isForward(1.0);
+            return;
+        }
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    //
     checkInWater() {
         let mob = this.mob;
         let world = mob.getWorld();
         let chunk_over = world.chunks.get(mob.chunk_addr);
-        if(!chunk_over) {
+        if (!chunk_over) {
             return false;
         }
         let block = chunk_over.getBlock(mob.pos.floored());
         return block.material.is_fluid;
     }
 
-    // Rotate
-    doRotate(delta) {
-
-        this.updateControl({forward: false, jump: this.checkInWater()});
-
-        let mob = this.mob;
-
-        /*
-        let world = mob.getWorld();
-        let camPos = null;
-        for(let player of world.players.values()) {
-            if(player.state.pos.distance(mob.pos) < 5) {
-                camPos = player.state.pos;
-                break;
-            }
-        }
-        if(camPos) {
-            // @todo angle to cam
-            // let angToCam = -Math.PI/2 - Math.atan2(camPos.z - mob.pos.z, camPos.x - mob.pos.x) + Math.PI;
-            // mob.rotate.z = angToCam;
-            mob.rotate.z += delta;
-        }
-        */
-
-        mob.rotate.z += (delta * (this.panic ? 25 : 1)) * this.rotateSign;
-
-        this.applyControl(delta);
-        this.sendState();
-
-        if(this.panic) {
-            this.stack.replaceState(this.goForward);
-            return;
-        } else {
-            if(Math.random() * 5000 < 300) {
-                this.stack.replaceState(this.standStill);
-                return;
-            }
-        }
-    }
-
-    // Go forward
-    goForward(delta) {
-
-        let mob = this.mob;
-        let world = mob.getWorld();
-
-        let chunk_over = world.chunks.get(mob.chunk_addr);
-        if(!chunk_over) {
-            return;
-        }
-
-        if(chunk_over.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
-            return;
-        }
-
-        this.updateControl({
-            yaw: mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-
-        // Do not enter liquids and do not fall
-        if(this.checkDangerAhead()) {
-            this.rotateSign = Math.sign(Math.random() - Math.random());
-            this.stack.replaceState(this.doRotate); // push new state, making it the active state.
-            this.sendState();
-            return;
-        }
-
-        const pick = this.raycastFromHead();
-        if (pick) {
-            let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
-            if(block && !block.material.planting) {
-                let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
-                if(dist < .5 + this.mob.width) {
-                    this.rotateSign = Math.sign(Math.random() - Math.random());
-                    this.stack.replaceState(this.doRotate); // push new state, making it the active state.
-                    this.sendState();
-                    return;
-                }
-            }
-        }
-
-        if(Math.random() * 5000 < 200) {
-            this.stack.replaceState(this.standStill); // push new state, making it the active state.
-            this.sendState();
-            return;
-        }
-
-        this.applyControl(delta);
-        this.sendState();
-
-    }
-
-    // Do not enter liquids and do not fall
-    checkDangerAhead() {
-        const mob = this.mob;
-        // 1. do not enter liquids
-        const pos_ahead = this.#_temp.vec_ahead.copyFrom(mob.pos)
-            .addSelf(this.#_temp.vec_add.set(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z)))
-            .flooredSelf()
-        const block_ahead = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-        if(block_ahead.material.is_fluid || block_ahead.material.is_fire) {
-            return true;
-        }
-        //
-        pos_ahead.y--;
-        let block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-        if(block.material.is_fluid || block.material.is_fire) {
-            return true;
-        }
-        // 2. do not fall
-        if(block.id == 0) {
-            pos_ahead.y--;
-            block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-            if(block.id == 0 || block.material.is_fire || block.material.is_fluid) {
-                return true;
-            }
-        }
-        return false;
-    }
- 
 }

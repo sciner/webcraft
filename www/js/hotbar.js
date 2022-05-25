@@ -34,13 +34,17 @@ export class Hotbar {
 
     //
     damage(damage_value, reason_text) {
+        Game.sounds.play('madcraft:block.player', 'hit');
+        this.last_damage_time = performance.now();
+        console.error('error_not_implemented', damage_value, reason_text);
+        /*
         if(damage_value > 0) {
             Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
             // Play hit sound
             Game.sounds.play('madcraft:block.player', 'hit');
-            this.last_damage_time = performance.now();
         }
+        */
     }
 
     setState(new_state) {

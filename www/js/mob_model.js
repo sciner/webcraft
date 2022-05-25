@@ -7,7 +7,8 @@ import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
-const SNEAK_ANGLE = 28.65 * Math.PI / 180;
+const SNEAK_ANGLE           = 28.65 * Math.PI / 180;
+const MAX_DETONATION_TIME   = 2000; // ms
 
 export class Traversable {
     constructor() {
@@ -389,8 +390,15 @@ export class MobModel extends NetworkPhysicObject {
              !this.currentChunk);
     }
 
+    isAlive() {
+        return this.extra_data?.is_alive;
+    }
+
     // ударить кулаком
     punch(e) {
+        if(!this.isAlive()) {
+            return false;
+        }
         if(e.button_id == 1) {
             // play punch
             Game.sounds.play('madcraft:block.player', 'strong_atack');
@@ -477,10 +485,18 @@ export class MobModel extends NetworkPhysicObject {
         return this.extra_data?.is_alive;
     }
 
+    isDetonationStarted() {
+        return this.extra_data?.detonation_started || false;
+    }
+
     // draw
     draw(render, camPos, delta) {
         this.lazyInit(render);
         this.update(render, camPos, delta);
+
+        if (!this.sceneTree) {
+            return null;
+        }
 
         // If mob die
         if(this.isAlive() === false) {
@@ -495,19 +511,47 @@ export class MobModel extends NetworkPhysicObject {
             }
             const elapsed = performance.now() - this.die_info.time;
             const max_die_animation_time = 1000;
-            const die_percent = elapsed / max_die_animation_time;
-            if(die_percent < 1) {
+            let elapsed_percent = elapsed / max_die_animation_time;
+            if(elapsed_percent < 1) {
                 if(this.netBuffer.length > 0) {
                     const state = this.netBuffer[0];
                     state.rotate.z = this.yaw_before_die + elapsed / 100;
-                    this.sceneTree.scale[0] = this.die_info.scale[0] * (1 - die_percent);
-                    this.sceneTree.scale[1] = this.die_info.scale[1] * (1 - die_percent);
-                    this.sceneTree.scale[2] = this.die_info.scale[2] * (1 - die_percent);
+                    if(!this.extra_data.play_death_animation) {
+                        elapsed_percent = 1;
+                    }
+                    this.sceneTree.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
+                    this.sceneTree.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
+                    this.sceneTree.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
                 }
                 this.tintColor.set(1, 1, 1, .3);
             } else {
                 return false;
             }
+        } else if(this.isDetonationStarted()) {
+            if(!this.detonation_started_info) {
+                this.detonation_started_info = {
+                    time: performance.now(),
+                    scale: Array.from(this.sceneTree.scale)
+                }
+            }
+            const info = this.detonation_started_info;
+            const elapsed = performance.now() - info.time;
+            const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
+            const is_tinted = Math.round(elapsed / 150) % 2 == 0;
+            if(elapsed_percent == 1 || is_tinted) {
+                this.tintColor.set(1, 1, 1, .5);
+            } else {
+                this.tintColor.set(0, 0, 0, 0);
+            }
+            const CREEPER_MAX_DETONATION_SCALE = 1.35;
+            const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
+            this.sceneTree.scale[0] = new_creeper_scale;
+            this.sceneTree.scale[1] = new_creeper_scale;
+            this.sceneTree.scale[2] = new_creeper_scale;
+        } else if(this.detonation_started_info) {
+            this.tintColor.set(0, 0, 0, 0);
+            this.sceneTree.scale = this.detonation_started_info.scale;
+            this.detonation_started_info = null;
         }
 
         // run render

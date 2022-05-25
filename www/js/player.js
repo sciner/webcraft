@@ -10,7 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {QuestWindow, StatsWindow, MainMenu} from "./window/index.js";
+import {QuestWindow, MainMenu, DieWindow} from "./window/index.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -123,9 +123,11 @@ export class Player {
         // Controls
         this.controls               = new PlayerControl();
         // Add listeners for server commands
+        this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
@@ -150,9 +152,9 @@ export class Player {
         // Quests
         this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
         Game.hud.wm.add(this.frmQuests);
-        //Stats
-        this.frmStats = new StatsWindow(this);
-        Game.hud.wm.add(this.frmStats);
+
+        this.frmDie = new DieWindow(10, 10, 352, 332, 'frmDie', null, null, this);
+        Game.hud.wm.add(this.frmDie);
         return true;
     }
 
@@ -265,7 +267,7 @@ export class Player {
         let {type, button_id, shiftKey} = e;
         // Mouse actions
         if (type == MOUSE.DOWN) {
-            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
@@ -314,10 +316,13 @@ export class Player {
                 radius: 0.7,
                 height: this.height,
                 pos: this.lerpPos,
-                rotate: this.rotateDegree.clone()
+                rotate: this.rotateDegree.clone(),
+                session: {
+                    user_id: this.session.user_id
+                }
             };
-            let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            this.applyActions(e, actions);
+            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            await this.applyActions(actions);
             e_orig.actions = {blocks: actions.blocks};
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
@@ -328,23 +333,8 @@ export class Player {
         return true;
     }
 
-    // Ограничение частоты выполнения данного действия
-    limitBlockActionFrequency(e) {
-        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
-        if(!resp) {
-            this._prevActionTime = performance.now();
-        }
-        return resp;
-    }
-
-    clearEvents() {
-        Game.kb.clearStates()
-        this.pickAt.clearEvent();
-        this.inMiningProcess = false;
-    }
-
     // Apply pickat actions
-    applyActions(e, actions) {
+    async applyActions(actions) {
         // console.log(actions.id);
         if(actions.open_window) {
             this.clearEvents();
@@ -380,7 +370,7 @@ export class Player {
             this.pickAt.clearEvent();
         }
         if(actions.clone_block /* && this.game_mode.canBlockClone()*/) {
-            this.world.server.CloneBlock(e.pos);
+            this.world.server.CloneBlock(actions.clone_block);
         }
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
@@ -406,6 +396,22 @@ export class Player {
                 }
             }
         }
+    }
+
+    // Ограничение частоты выполнения данного действия
+    limitBlockActionFrequency(e) {
+        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
+        if(!resp) {
+            this._prevActionTime = performance.now();
+        }
+        return resp;
+    }
+
+    clearEvents() {
+        Game.kb.clearStates()
+        this.pickAt.clearEvent();
+        this.inMiningProcess = false;
+        this.controls.reset();
     }
 
     //
@@ -446,8 +452,17 @@ export class Player {
 
     //
     setPosition(vec) {
+        //
         let pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
+        pc.player_state.pos.copyFrom(vec);
+        pc.player_state.onGround = false;
+        //
+        this.clearEvents();
+        //
+        this.onGround = false;
+        this.lastBlockPos = null;
+        this.lastOnGroundTime = null;
     }
 
     getFlying() {
@@ -617,6 +632,10 @@ export class Player {
             this.lastOnGroundTime = performance.now();
             this.lastBlockPos = this.getBlockPos();
         }
+    }
+    
+    setDie() {
+        Game.hud.wm.getWindow('frmDie').show();
     }
 
 }

@@ -5,6 +5,7 @@ import {BLOCK} from "../www/js/blocks.js";
 import {TBlock} from "../www/js/typed_blocks.js";
 import {TypedBlocks2} from "../www/js/typed_blocks2.js";
 import {impl as alea} from '../www/vendors/alea.js';
+import {PickatActions} from "../www/js/block_action.js";
 
 const Tickers = new Map();
 for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
@@ -55,6 +56,7 @@ class TickingBlockManager {
 
     // addTickingBlock
     add(id, pos, ticking) {
+        console.log(id, pos, ticking)
         const block = new TickingBlock(this, id, pos, ticking);
         const ex_block = this.blocks.get(block.pos.toHash());
         if(ex_block) {
@@ -103,7 +105,8 @@ class TickingBlockManager {
             }
         }
         if(updated_blocks.length > 0) {
-            const actions = {blocks: {list: updated_blocks}};
+            const actions = new PickatActions();
+            actions.addBlocks(updated_blocks);
             await world.applyActions(null, actions);
         }
     }
@@ -530,7 +533,7 @@ export class ServerChunk {
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
-                mob.onUnload();
+                await mob.onUnload();
             }
         }
         // Unload drop items

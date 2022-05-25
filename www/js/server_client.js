@@ -37,7 +37,6 @@ export class ServerClient {
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
     static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
-    static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
 	static CMD_WORLD_INFO               = 74;
 	static CMD_GAMEMODE_NEXT            = 80;
@@ -45,6 +44,7 @@ export class ServerClient {
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
+	static CMD_PARTICLE_EXPLOSION       = 89;
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92;
 
@@ -53,6 +53,8 @@ export class ServerClient {
 	static CMD_QUEST_ALL                = 94;
 
     static CMD_STATS                    = 96;
+    static CMD_DIE                      = 97;
+    static CMD_RESURRECTION             = 98;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
@@ -173,15 +175,16 @@ export class ServerClient {
     _onMessage(event) {
         let cmds = JSON.parse(event.data);
         // @hack optimizations
-        let only_set_blocks = true;
-        for(let c of cmds) {
-            if(c.name != ServerClient.CMD_BLOCK_SET) {
-                only_set_blocks = false;
-                break;
+        const only_set_blocks = [];
+        for(let i = cmds.length - 1; i >= 0; i--) {
+            const c = cmds[i];
+            if(c.name == ServerClient.CMD_BLOCK_SET) {
+                only_set_blocks.push(c);
+                delete(cmds[i]);
             }
         }
         // Only set blocks
-        if(only_set_blocks) {
+        if(only_set_blocks.length > 0) {
             let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
             let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
             let chunk_key           = null;
@@ -191,7 +194,8 @@ export class ServerClient {
             let tblock_pos          = new Vector(Infinity, Infinity, Infinity);
             let material            = null;
             const chunkManager      = Game.world.chunkManager;
-            for(let cmd of cmds) {
+            for(let i = 0; i < only_set_blocks.length; i++) {
+                const cmd = only_set_blocks[i];
                 let pos = cmd.data.pos;
                 let item = cmd.data.item;
                 //
@@ -257,12 +261,15 @@ export class ServerClient {
                 }
             }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
-            return;
         }
         //
         this.stat.in_packets.physical++;
         this.stat.in_packets.size += event.data.length;
-        for(let cmd of cmds) {
+        for(let i = 0; i < cmds.length; i++) {
+            const cmd = cmds[i];
+            if(!cmd) {
+                continue;
+            }
             // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
             if(!this.stat.in_packets[cmd.name]) {

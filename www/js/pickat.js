@@ -54,22 +54,26 @@ export class PickAt {
     }
 
     // setEvent...
-    setEvent(e) {
+    setEvent(player, e) {
         e.start_time        = performance.now();
         e.destroyBlock      = e.button_id == 1;
         e.cloneBlock        = e.button_id == 2;
         e.createBlock       = e.button_id == 3;
         e.interractMob      = null;
         e.number            = 0;
-        let damage_block = this.damage_block;
-        damage_block.event = Object.assign(e, {number: 0});
-        damage_block.start = performance.now();
+        const damage_block  = this.damage_block;
+        damage_block.event  = Object.assign(e, {number: 0});
+        damage_block.start  = performance.now();
         this.updateDamageBlock();
+        // Picking target
+        if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
+            player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
+        }
     }
 
     // clearEvent...
     clearEvent() {
-        let damage_block = this.damage_block;
+        const damage_block = this.damage_block;
         damage_block.event = null;
         if(damage_block.mesh) {
             damage_block.mesh.destroy();

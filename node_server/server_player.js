@@ -50,6 +50,7 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
+        this.indicators_changed     = true;
         this.position_changed       = false;
         this.chunk_addr             = new Vector(0, 0, 0);
         this.chunk_addr_o           = new Vector(0, 0, 0);
@@ -75,6 +76,7 @@ export class ServerPlayer extends Player {
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
         this.packet = new Packet();
+        this.is_dead = false;
     }
 
     init(init_info) {
@@ -129,7 +131,7 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.5 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
 
         this.sendWorldInfo(false);
@@ -157,9 +159,14 @@ export class ServerPlayer extends Player {
         this.packet.ReadPacket(this, cmd);
 
         try {
+            if (this.is_dead && [ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].indexOf(cmd.name) < 0) {
+                return;
+            }
             switch(cmd.name) {
+
                 // Connect
                 case ServerClient.CMD_CONNECT: {
+                    console.log('Connect');
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
                     Log.append('CmdConnect', {world_guid, session: this.session});
@@ -168,7 +175,6 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_SYNC_TIME: {
-                    break;
                     this.sendPackets([{
                         name: ServerClient.CMD_SYNC_TIME,
                         data: { clientTime: cmd.data.clientTime },
@@ -214,41 +220,6 @@ export class ServerPlayer extends Player {
                         }
                     }
                     */
-                    break;
-                }
-
-                // Modify indicator request
-                case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
-                    break;
-                    switch (cmd.data.indicator) {
-                        case 'live': {
-                            this.state.indicators.live.value += cmd.data.value;
-                            break;
-                        }
-                        case 'food': {
-                            this.state.indicators.food.value += cmd.data.value;
-                            break;
-                        }
-                        case 'oxygen': {
-                            this.state.indicators.oxygen.value += cmd.data.value;
-                            break;
-                        }
-                    }
-                    if (cmd.data.indicator == 'live' && this.state.indicators.live.value <= 0) {
-                        this.state.indicators.live.value = 20;
-                        this.world.teleportPlayer(this, {
-                            place_id: 'spawn',
-                        })
-                    }
-                    // notify player about his new indicators
-                    let packets = [{
-                        name: ServerClient.CMD_ENTITY_INDICATORS,
-                        data: {
-                            indicators: this.state.indicators
-                        }
-                    }];
-                    this.world.sendSelected(packets, [this.session.user_id], []);
-                    // @todo notify all about change?
                     break;
                 }
 
@@ -360,6 +331,20 @@ export class ServerPlayer extends Player {
         //} catch(e) {
         //    console.error(e);
         //}
+    }
+
+    // Change live value
+    // Die checked in tick()
+    changeLive(value) {
+        if(this.is_dead) {
+            return false;
+        }
+        const ind = this.state.indicators.live;
+        const prev_value = ind.value;
+        ind.value = Math.max(prev_value + value, 0);
+        console.log(`Player live ${prev_value} -> ${ind.value}`);
+        this.indicators_changed = true;
+        return true;
     }
 
     /**
@@ -479,6 +464,9 @@ export class ServerPlayer extends Player {
         this.checkInventoryChanges();
         //
         this.sendState();
+        //
+        this.checkIndicators();
+
     }
 
     //
@@ -505,6 +493,31 @@ export class ServerPlayer extends Player {
         }];
         // this.world.sendAll(packets, [this.session.user_id]);
         this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.user_id]);
+    }
+
+    //
+    checkIndicators() {
+        if(!this.indicators_changed || this.is_dead) {
+            return false;
+        }
+        this.indicators_changed = false;
+        // notify player about his new indicators
+        const packets = [{
+            name: ServerClient.CMD_ENTITY_INDICATORS,
+            data: {
+                indicators: this.state.indicators
+            }
+        }];
+        // check if died
+        if(this.state.indicators.live.value <= 0) {
+            this.is_dead = true;
+            packets.push({
+                name: ServerClient.CMD_DIE,
+                data: {}
+            });
+        }
+        this.world.sendSelected(packets, [this.session.user_id], []);
+        // @todo notify all about change?
     }
 
     // Check near drop items
@@ -537,15 +550,13 @@ export class ServerPlayer extends Player {
             }
             if(near.length > 0) {
                 // 1. add items to inventory
-                for(let i = 0; i < near.length; i++) {
-                    const drop_item = near[i];
+                for(const drop_item of near) {
                     for(const item of drop_item) {
                         this.inventory.increment(item);
                     }
                 }
                 // 2. deactive drop item in database
-                for(let i = 0; i < entity_ids.length; i++) {
-                    const entity_id = entity_ids[i];
+                for(let entity_id of entity_ids) {
                     this.world.db.deleteDropItem(entity_id);
                 }
                 // 3. play sound on client
@@ -573,5 +584,4 @@ export class ServerPlayer extends Player {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
     }
-
 }

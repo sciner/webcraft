@@ -359,7 +359,7 @@ export class DBWorld {
             "x" real NOT NULL,
             "y" real NOT NULL,
             "z" real NOT NULL,
-            "title" text
+            "title" VARCHER(50)
             );`
         ]});
 
@@ -436,6 +436,10 @@ export class DBWorld {
             }
         ]});
 
+        migrations.push({version: 50, queries: [
+            `UPDATE entity SET is_active = 0 WHERE indicators LIKE '%"live","value":0}%'`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -467,11 +471,6 @@ export class DBWorld {
 
     async TransactionRollback() {
         await this.db.get('rollback');
-    }
-
-    // getDefaultPlayerStats...
-    getDefaultPlayerStats() {
-        return {death: 0, time: 0, pickat: 0, distance: 0}
     }
 
     // getDefaultPlayerIndicators...
@@ -508,10 +507,15 @@ export class DBWorld {
         return resp;
     }
 
+    // getDefaultPlayerStats...
+    getDefaultPlayerStats() {
+        return {death: 0, time: 0, pickat: 0, distance: 0}
+    }
+
     // Register new user or return existed
     async registerUser(world, player) {
         // Find existing user record
-        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, stats, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
+        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             let inventory = JSON.parse(row.inventory);
             // Added new property
@@ -524,16 +528,15 @@ export class DBWorld {
                     pos_spawn:          JSON.parse(row.pos_spawn),
                     rotate:             JSON.parse(row.rotate),
                     indicators:         JSON.parse(row.indicators),
-                    stats:              JSON.parse(row.stats),
                     chunk_render_dist:  row.chunk_render_dist,
-                    game_mode:          row.game_mode || world.info.game_mode,
+                    game_mode:          row.game_mode || world.info.game_mode
                 },
                 inventory: inventory
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
-        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, stats, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :stats, :is_admin)', {
+        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin)', {
             ':id':          player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
@@ -543,7 +546,6 @@ export class DBWorld {
             ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
             ':inventory':   JSON.stringify(this.getDefaultInventory()),
             ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
-            ':stats':       JSON.stringify(this.getDefaultPlayerStats()),
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
         });
         return await this.registerUser(world, player);
@@ -573,12 +575,11 @@ export class DBWorld {
     // savePlayerState...
     async savePlayerState(player) {
         player.position_changed = false;
-        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
+        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators WHERE id = :id', {
             ':id':             player.session.user_id,
             ':pos':            JSON.stringify(player.state.pos),
             ':rotate':         JSON.stringify(player.state.rotate),
             ':indicators':     JSON.stringify(player.state.indicators),
-            ':stats':          JSON.stringify(player.state.stats),
             ':dt_moved':       ~~(Date.now() / 1000)
         });
     }
@@ -740,11 +741,12 @@ export class DBWorld {
 
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
             ':entity_id': mob.entity_id,
+            ':is_active': mob.indicators.live.value > 0 ? 1 : 0,
             ':indicators': JSON.stringify(mob.indicators)
         });
     }
@@ -1110,7 +1112,5 @@ export class DBWorld {
             ":z": z
         });
     }
-    
-    
 
 }
