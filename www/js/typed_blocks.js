@@ -197,9 +197,9 @@ export class TBlock {
 
     /**
      * Возвращает всех 6-х соседей блока
-     * @param {Vector} pos 
-     * @param {Array} cache 
-     * @returns 
+     * @param {Vector} pos
+     * @param {Array} cache
+     * @returns
      */
     getNeighbours(world, cache) {
         const neighbours = new BlockNeighbours();
@@ -261,7 +261,7 @@ export class TypedBlocks {
 
     #neightbours_chunks;
 
-    constructor(coord, block_count = CHUNK_SIZE) {
+    constructor(coord, chunkSize = null, block_count = CHUNK_SIZE) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
         this.count      = block_count;
@@ -382,10 +382,10 @@ export class TypedBlocks {
     }
 
     /**
-     * Creating iterator that fill target block to reduce allocations 
+     * Creating iterator that fill target block to reduce allocations
      * NOTE! This unsafe because returned block will be re-filled in iteration process
-     * @param {TBlock} target 
-     * @returns 
+     * @param {TBlock} target
+     * @returns
      */
     createUnsafeIterator(target = null, ignore_filled = false) {
         const b = target || new TBlock(this, new Vector());
@@ -443,13 +443,13 @@ export class TypedBlocks {
 
     /**
      * Get or fill block by it pos
-     * @param {Vector} vec 
-     * @param {TBlock} block 
-     * @returns 
+     * @param {Vector} vec
+     * @param {TBlock} block
+     * @returns
      */
     get(vec, block = null) {
-        return block 
-            ? block.init(this, vec) 
+        return block
+            ? block.init(this, vec)
             : new TBlock(this, vec);
     }
 

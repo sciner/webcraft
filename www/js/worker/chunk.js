@@ -1,6 +1,7 @@
 import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
-import {BlockNeighbours, CC, TypedBlocks, TBlock} from "../typed_blocks.js";
+import {BlockNeighbours, CC, TBlock} from "../typed_blocks.js";
+import {TypedBlocks2} from "../typed_blocks2.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
@@ -87,7 +88,7 @@ export class Chunk {
         };
         // 1. Initialise world array
         this.timers.init = performance.now();
-        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks = new TypedBlocks2(this.coord, this.size);
         //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
         // 2. Generate terrain

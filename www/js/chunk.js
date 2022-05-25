@@ -1,6 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import {TypedBlocks} from "./typed_blocks.js";
+import {TypedBlocks2} from "./typed_blocks2.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 import {AABB} from './core/AABB.js';
@@ -98,7 +98,7 @@ export class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks = new TypedBlocks2(this.coord, this.size);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }

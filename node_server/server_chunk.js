@@ -2,7 +2,8 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
+import {TBlock} from "../www/js/typed_blocks.js";
+import {TypedBlocks2} from "../www/js/typed_blocks2.js";
 import {impl as alea} from '../www/vendors/alea.js';
 
 const Tickers = new Map();
@@ -378,7 +379,7 @@ export class ServerChunk {
 
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
-        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks = new TypedBlocks2(this.coord, this.size);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
