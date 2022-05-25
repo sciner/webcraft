@@ -35,7 +35,7 @@ export class Brain extends FSMBrain {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
             if (players.length > 0) {
-                const rnd = Math.round(Math.random() * (players.length - 1));
+                const rnd = (Math.random() * players.length) | 0;
                 const player = players[rnd];
                 this.target = player.session.user_id;
                 this.stack.replaceState(this.doCatch);
