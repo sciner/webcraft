@@ -32,15 +32,15 @@ export class Brain extends FSMBrain {
 
     isTarget() {
         if (this.isAggrressor && this.target == null) {
-            let mob = this.mob;
-            let players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
-            for(let player of players) {
-                const user_id = player.session.user_id;;
-                console.log("[AI] find target and go " + user_id);
-                this.target = user_id;
+            const mob = this.mob;
+            const players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
+            if (players.length > 0) {
+                const rnd = Math.round(Math.random() * (players.length - 1));
+                const player = players[rnd];
+                this.target = player.session.user_id;
                 this.stack.replaceState(this.doCatch);
                 return true;
-            }
+			}
         }
         return false;
     }
