@@ -1,6 +1,6 @@
 import {FSMBrain} from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { ServerActions } from "../../server_actions.js";
+import {PickatActions} from "../../../www/js/block_action.js";
 import {ServerClient} from "../../../www/js/server_client.js";
 
 const FOLLOW_DISTANCE       = 10;
@@ -146,9 +146,9 @@ export class Brain extends FSMBrain {
         const mobPosFloored = mobPos.clone().flooredSelf();
         const world = mob.getWorld();
         // Actions
-        const actions = new ServerActions(world);
-        actions.ignore_check_air = true;
-        actions.on_block_set = false;
+        const actions = new PickatActions();
+        actions.blocks.options.ignore_check_air = true;
+        actions.blocks.options.on_block_set = false;
         // Extrude blocks
         const air = { id: 0 };
         const out_rad = Math.ceil(rad);
@@ -158,7 +158,9 @@ export class Brain extends FSMBrain {
                 for (let k = -out_rad; k < out_rad; k++) {
                     const air_pos = mobPosFloored.add(new Vector(i, k, j));
                     if (air_pos.distance(check_pos) <= rad) {
-                        actions.addBlock({pos: air_pos, item: air});
+                        actions.addBlocks([
+                            {pos: air_pos, item: air}
+                        ]);
                     }
                 }
             }
@@ -190,7 +192,7 @@ export class Brain extends FSMBrain {
             world.sendSelected(custom_packets.list, custom_packets.user_ids)
         }
         //
-        await actions.apply();
+        await world.applyActions(null, actions);
     }
 
 }

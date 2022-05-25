@@ -320,8 +320,8 @@ export class Player {
                     user_id: this.session.user_id
                 }
             };
-            let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            this.applyActions(e, actions);
+            const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            await this.applyActions(actions);
             e_orig.actions = {blocks: actions.blocks};
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
@@ -332,24 +332,8 @@ export class Player {
         return true;
     }
 
-    // Ограничение частоты выполнения данного действия
-    limitBlockActionFrequency(e) {
-        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
-        if(!resp) {
-            this._prevActionTime = performance.now();
-        }
-        return resp;
-    }
-
-    clearEvents() {
-        Game.kb.clearStates()
-        this.pickAt.clearEvent();
-        this.inMiningProcess = false;
-        this.controls.reset();
-    }
-
     // Apply pickat actions
-    applyActions(e, actions) {
+    async applyActions(actions) {
         // console.log(actions.id);
         if(actions.open_window) {
             this.clearEvents();
@@ -385,7 +369,7 @@ export class Player {
             this.pickAt.clearEvent();
         }
         if(actions.clone_block /* && this.game_mode.canBlockClone()*/) {
-            this.world.server.CloneBlock(e.pos);
+            this.world.server.CloneBlock(actions.clone_block);
         }
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
@@ -411,6 +395,22 @@ export class Player {
                 }
             }
         }
+    }
+
+    // Ограничение частоты выполнения данного действия
+    limitBlockActionFrequency(e) {
+        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
+        if(!resp) {
+            this._prevActionTime = performance.now();
+        }
+        return resp;
+    }
+
+    clearEvents() {
+        Game.kb.clearStates()
+        this.pickAt.clearEvent();
+        this.inMiningProcess = false;
+        this.controls.reset();
     }
 
     //

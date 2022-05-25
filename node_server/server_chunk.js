@@ -4,6 +4,7 @@ import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
 import {impl as alea} from '../www/vendors/alea.js';
+import {PickatActions} from "../www/js/block_action.js";
 
 const Tickers = new Map();
 for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
@@ -102,7 +103,8 @@ class TickingBlockManager {
             }
         }
         if(updated_blocks.length > 0) {
-            const actions = {blocks: {list: updated_blocks}};
+            const actions = new PickatActions();
+            actions.addBlocks(updated_blocks);
             await world.applyActions(null, actions);
         }
     }
