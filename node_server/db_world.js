@@ -422,6 +422,10 @@ export class DBWorld {
             `ALTER TABLE entity ADD COLUMN "is_active" integer NOT NULL DEFAULT 1`,
         ]});
 
+        migrations.push({version: 49, queries: [
+            `UPDATE entity SET is_active = 0 WHERE indicators LIKE '%"live","value":0}%'`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -718,11 +722,12 @@ export class DBWorld {
 
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
             ':entity_id': mob.entity_id,
+            ':is_active': mob.indicators.live.value > 0 ? 1 : 0,
             ':indicators': JSON.stringify(mob.indicators)
         });
     }

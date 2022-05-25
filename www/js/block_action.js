@@ -457,6 +457,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
     let isEditSign      = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
     let eatCake         = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('cake') >= 0);
+    let goToBed         = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('bed') >= 0);
     //
     const destroyBlocks = new DestroyBlocks(world, player, actions);
     // Edit sign
@@ -477,6 +478,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
         }
+    // Go to bed
+    } else if(goToBed) {
+        actions.error = 'error_no_time_to_sleep';
+        return actions;
     // Eat cake
     } else if (eatCake) {
         if(!extra_data || typeof extra_data.pieces == 'undefined') {
