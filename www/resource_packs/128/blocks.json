@@ -69,7 +69,7 @@
     },
     {
         "id": 10,
-        "name": "BRICK"
+        "name": "BRICKS"
     },
     {
         "id": 11,
@@ -157,7 +157,7 @@
     },
     {
         "id": 80,
-        "name": "SNOW_BLOCK"
+        "name": "POWDER_SNOW"
     },
     {
         "id": 145,

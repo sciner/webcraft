@@ -186,6 +186,12 @@ export class BaseChestWindow extends Window {
         if(!this.info.pos.equal(chest.pos)) {
             return;
         }
+        //
+        if(this.loading) {
+            this.loading = false;
+            this.inventory.player.clearEvents();
+        }
+        //
         this.lbl1.setText(this.options.title);
         this.clear();
         this.state = chest?.state || null;

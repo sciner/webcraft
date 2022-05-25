@@ -491,7 +491,7 @@ export class ServerChunk {
                 let under1 = this.world.getBlock(pos.clone());
                 pos.y--;
                 let under2 = this.world.getBlock(pos.clone());
-                if(under1?.id == BLOCK.SNOW_BLOCK.id && under2?.id == BLOCK.SNOW_BLOCK.id) {
+                if(under1?.id == BLOCK.POWDER_SNOW.id && under2?.id == BLOCK.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
                     const params = {
                         type           : 'snow_golem',

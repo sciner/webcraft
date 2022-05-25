@@ -97,7 +97,7 @@
         ],
         "key": {
             "B": {
-                "item": "madcraft:brick"
+                "item": "madcraft:bricks"
             }
         },
         "result": {
@@ -151,7 +151,7 @@
         ],
         "key": {
             "B": {
-                "item": "madcraft:brick"
+                "item": "madcraft:bricks"
             }
         },
         "result": {
@@ -1274,6 +1274,68 @@
         "result": {
             "item": "madcraft:shears",
             "count": 1
+        }
+    },
+    {
+        "id": "5406b520-da01-411b-957b-b278bc156c02",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "BB",
+            "BB"
+        ],
+        "key": {
+            "B": {"item": "madcraft:clay_ball"}
+        },
+        "result": {
+            "item": "madcraft:clay",
+            "count": 1
+        }
+    },
+    {
+        "id": "d54fa9a3-47a0-4614-a41d-07ff96d78a4c",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "BB",
+            "BB"
+        ],
+        "key": {
+            "B": {"item": "madcraft:brick"}
+        },
+        "result": {
+            "item": "madcraft:bricks",
+            "count": 1
+        }
+    },
+    {
+        "id": "d1a0618b-3e60-4ef9-af21-90f0a5fbc7b3",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "B B",
+            " B "
+        ],
+        "key": {
+            "B": {"item": "madcraft:brick"}
+        },
+        "result": {
+            "item": "madcraft:flower_pot",
+            "count": 1
+        }
+    },
+    {
+        "id": "e2cd1249-0166-4598-9c53-be2deb8f69b5",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "BBB",
+            "BBB"
+        ],
+        "key": {
+            "B": {
+                "item": "madcraft:bricks"
+            }
+        },
+        "result": {
+            "item": "madcraft:brick_wall",
+            "count": 6
         }
     }
 ]

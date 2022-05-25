@@ -33,7 +33,7 @@ BIOMES.OCEAN = {
     dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
     title:      'ОКЕАН',
     max_height: 64,
-    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id],
+    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id, BLOCK.CLAY.id],
     no_smooth:  false,
     trees:      {
         frequency: 0,
@@ -52,7 +52,7 @@ BIOMES.RIVER = {
     dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
     title:      'ОКЕАН',
     max_height: 64,
-    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id],
+    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.GRASS_DIRT.id],
     no_smooth:  false,
     trees:      {
         frequency: 0,
@@ -251,7 +251,7 @@ BIOMES.TAIGA = {
 };
 
 BIOMES.SNOW = {
-    block:      BLOCK.SNOW_BLOCK.id,
+    block:      BLOCK.POWDER_SNOW.id,
     code:       'SNOW',
     color:      '#f5f5ff',
     dirt_color: new Color(1020 / 1024, 990 / 1024, 0, 0),

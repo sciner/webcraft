@@ -395,6 +395,7 @@ export class PickatActions {
             create_chest:           null,
             load_chest:             null,
             open_window:            null,
+            put_in_backet:          null,
             clone_block:            false,
             reset_target_pos:       false,
             reset_target_event:     false,
@@ -432,6 +433,14 @@ export class PickatActions {
     //
     addExplosions(items) {
         this.explosions.push(...items);
+    }
+
+    //
+    putInBucket(item) {
+        if(this.put_in_backet) {
+            throw 'error_put_already';
+        }
+        this.put_in_backet = item;
     }
 
 }
@@ -710,6 +719,35 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             actions.chat_message = {text: `/spawnmob ${pos.x} ${pos.y} ${pos.z} ${matBlock.spawn_egg.type} ${matBlock.spawn_egg.skin}`};
             actions.decrement = true;
             return actions;
+        }
+        // Put in bucket
+        if(currentInventoryItem && currentInventoryItem.id == BLOCK.BUCKET_EMPTY.id) {
+            let added_to_bucket = false;
+            if(world_material.put_in_bucket) {
+                // get filled bucket
+                const filled_bucket = BLOCK.fromName(world_material.put_in_bucket);
+                if(filled_bucket) {
+                    const item = {
+                        id: filled_bucket.id,
+                        count: 1
+                    };
+                    if(world_material.extra_data) {
+                        item.extra_data = world_material.extra_data;
+                    }
+                    // put in bucket
+                    actions.putInBucket(item);
+                    added_to_bucket = true;
+                }
+            }
+            if(added_to_bucket) {
+                if(world_material.sound) {
+                    // destroy world block
+                    actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+                    // play sound
+                    actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+                }
+                return actions;
+            }
         }
         // 4. Нельзя ничего ставить поверх этого блока
         let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;

@@ -36,7 +36,7 @@
     {
         "id": 18,
         "name": "DIRT",
-        "sound": "madcraft:block.grass",
+        "sound": "madcraft:block.gravel",
         "tags": [
             "dirt"
         ],
@@ -861,12 +861,9 @@
     },
     {
         "id": 10,
-        "name": "BRICK",
+        "name": "BRICKS",
         "sound": "madcraft:block.stone",
-        "texture": [
-            7,
-            0
-        ],
+        "texture": [7, 0],
         "material": {
             "id": "stone"
         }
@@ -1680,7 +1677,7 @@
         },
         "layering": {
             "height": 0.125,
-            "full_block_name": "SNOW_BLOCK"
+            "full_block_name": "POWDER_SNOW"
         },
         "tags": [
             "layering",
@@ -1689,12 +1686,47 @@
     },
     {
         "id": 80,
-        "name": "SNOW_BLOCK",
+        "name": "POWDER_SNOW",
         "sound": "madcraft:block.snow",
+        "put_in_bucket": "BUCKET_POWDER_SNOW",
         "material": {
             "id": "snow"
         },
+        "tags": [
+            "no_drop"
+        ],
         "texture": [2, 4]
+    },
+    {
+        "id": 1416,
+        "name": "CLAY_BALL",
+        "item": {"name": "clay_ball"},
+        "style": "extruder",
+        "coocked_item": {"name": "BRICK", "count": 1},
+        "material": {
+            "id": "clay"
+        },
+        "texture": [2, 29]
+    },
+    {
+        "id": 1417,
+        "name": "BRICK",
+        "item": {"name": "brick"},
+        "style": "extruder",
+        "material": {
+            "id": "stone"
+        },
+        "texture": [3, 29]
+    },
+    {
+        "id": 1418,
+        "name": "NETHER_BRICK",
+        "item": {"name": "brick"},
+        "style": "extruder",
+        "material": {
+            "id": "stone"
+        },
+        "texture": [4, 29]
     },
     {
         "id": 82,
@@ -1702,6 +1734,7 @@
         "material": {
             "id": "clay"
         },
+        "drop_item": {"name": "CLAY_BALL", "count": 4, "chance": 1},
         "texture": [8, 4]
     },
     {
@@ -2162,7 +2195,7 @@
         "layering": {
             "height": 0.5,
             "slab": true,
-            "full_block_name": "BRICK"
+            "full_block_name": "BRICKS"
         },
         "material": {
             "id": "stone"
@@ -3600,7 +3633,7 @@
         "name": "BUCKET_POWDER_SNOW",
         "style": "extruder",
         "max_in_stack": 1,
-        "item": {"name": "bucket", "emit_on_set": "SNOW_BLOCK"},
+        "item": {"name": "bucket", "emit_on_set": "POWDER_SNOW"},
         "material": {
             "id": "iron"
         },

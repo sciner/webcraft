@@ -96,7 +96,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // разметка
                     for(let x = 1; x < chunk.size.z-2; x += 2) {
-                        this.setBlock(chunk, 15, 0, x + 1, BLOCK.SNOW_BLOCK, false);
+                        this.setBlock(chunk, 15, 0, x + 1, BLOCK.POWDER_SNOW, false);
                     }
 
                 }
@@ -137,8 +137,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // Разметка
                     for(let v = 1; v < chunk.size.z - 2; v += 2) {
-                        this.setBlock(chunk, v, 0, 0, BLOCK.SNOW_BLOCK, false);
-                        this.setBlock(chunk, 15, 0, v + 1, BLOCK.SNOW_BLOCK, false);
+                        this.setBlock(chunk, v, 0, 0, BLOCK.POWDER_SNOW, false);
+                        this.setBlock(chunk, 15, 0, v + 1, BLOCK.POWDER_SNOW, false);
                         // Тачка
                         let carColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                         if(aleaRandom.double() < .1) {

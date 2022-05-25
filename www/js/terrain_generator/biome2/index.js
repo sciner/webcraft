@@ -120,7 +120,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 106: BLOCK.STONE_BRICK,
                 114: BLOCK.CONCRETE,
                 72: BLOCK.GRASS_DIRT,
-                235: BLOCK.SNOW_BLOCK,
+                235: BLOCK.POWDER_SNOW,
                 54: BLOCK.SPRUCE_PLANK,
                 150: BLOCK.OAK_LEAVES,
                 139: BLOCK.OAK_LEAVES,

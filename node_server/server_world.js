@@ -854,6 +854,22 @@ export class ServerWorld {
                 }
             }
         }
+        // Put in bucket
+        if(actions.put_in_backet) {
+            const inventory = server_player.inventory;
+            const currentInventoryItem = inventory.current_item;
+            if(currentInventoryItem && currentInventoryItem.id == BLOCK.BUCKET_EMPTY.id) {
+                // replace item in inventory
+                inventory.items[inventory.current.index] = actions.put_in_backet;
+                // send new inventory state to player
+                inventory.refresh(true);
+                /*
+                server_player.inventory.decrement(actions.decrement);
+                console.log('edfrghjkl,./;')
+                console.log(server_player, actions.put_in_backet);
+                */
+            }
+        }
         //
         for (let cp of chunks_packets) {
             if (cp.chunk) {
