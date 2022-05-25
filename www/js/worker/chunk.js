@@ -292,21 +292,6 @@ export class Chunk {
             this.vertices.get(material_key).list.push(...vertices);
         };
 
-        const waterInWater = function(material, neighbours) {
-            if(material.is_water) {
-                let n1 = neighbours.UP?.material.is_water;
-                let n2 = neighbours.DOWN?.material.is_water
-                let n3 = neighbours.SOUTH?.material.is_water
-                let n4 = neighbours.NORTH?.material.is_water
-                let n5 = neighbours.EAST?.material.is_water
-                let n6 = neighbours.WEST?.material.is_water
-                if(n1 && n2 && n3 && n4 && n5 && n6) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         const cache                 = BLOCK_CACHE;
         const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)), true);
 
@@ -322,20 +307,16 @@ export class Chunk {
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
             let neighbours = block.getNeighbours(world, cache);
-            // let neighbours = this.getBlockNeighbours(block.pos, cache);
             // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
-            if(neighbours.pcnt == 6) {
+            if(neighbours.pcnt == 6 || neighbours.water_in_water) {
                 continue;
             }
-            //
-            if(waterInWater(material, neighbours)) {
-                continue;
-            }
-            if(block.vertices === null) {
-                block.vertices = [];
+            let vertices = block.vertices;
+            if(vertices === null) {
+                vertices = [];
                 const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
                 const resp = material.resource_pack.pushVertices(
-                    block.vertices,
+                    vertices,
                     block, // UNSAFE! If you need unique block, use clone
                     this,
                     block.pos,
@@ -348,10 +329,11 @@ export class Chunk {
                 } else if(this.emitted_blocks.size > 0) {
                     this.emitted_blocks.delete(block.pos);
                 }
+                block.vertices = vertices;
             }
             world.blocks_pushed++;
-            if(block.vertices.length > 0) {
-                addVerticesToGroup(material.group, material.material_key, block.vertices);
+            if(vertices.length > 0) {
+                addVerticesToGroup(material.group, material.material_key, vertices);
             }
         }
         // console.log(cnt)

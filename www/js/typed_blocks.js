@@ -16,6 +16,7 @@ export class BlockNeighbours {
 
     constructor() {
         this.pcnt   = 6;
+        this.water_in_water = false;
         this.UP     = null;
         this.DOWN   = null;
         this.SOUTH  = null;
@@ -205,6 +206,7 @@ export class TBlock {
         const nc = this.tb.getNeightboursChunks(world);
         const pos = this.vec;
         let chunk;
+        let is_water_count = 0;
         // обходим соседние блоки
         for (let i = 0; i < CC.length; i++) {
             const p = CC[i];
@@ -242,6 +244,12 @@ export class TBlock {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
+            if(properties.is_water) {
+                is_water_count++;
+            }
+        }
+        if(is_water_count == 6) {
+            neighbours.water_in_water = this.material.is_water;
         }
         return neighbours;
     }
