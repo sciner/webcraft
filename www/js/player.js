@@ -267,7 +267,7 @@ export class Player {
         let {type, button_id, shiftKey} = e;
         // Mouse actions
         if (type == MOUSE.DOWN) {
-            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
