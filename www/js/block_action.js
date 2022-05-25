@@ -306,7 +306,7 @@ class DestroyBlocks {
         resp.blocks.list.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: block.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
         //
         if(block.material.sound) {
-            resp.play_sound.push({tag: block.material.sound, action: 'dig', pos: new Vector(pos)});
+            resp.play_sound.push({tag: block.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         //
         if(block.material.is_jukebox) {
@@ -455,11 +455,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             extra_data.pieces--;
             if(extra_data.pieces == 0) {
                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
-                resp.play_sound.push({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos)});
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos), except_players: [player.session.user_id]});
             } else {
                 resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 resp.reset_target_pos = true;
-                resp.play_sound.push({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos)});
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
             }
         }
     // Edit trapdoor
@@ -473,7 +473,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         extra_data.opened = extra_data && !extra_data.opened;
         if(world_material.sound) {
-            resp.play_sound.push({tag: world_material.sound, action: 'open', pos: new Vector(pos)});
+            resp.play_sound.push({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         resp.reset_target_pos = true;
         resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
@@ -503,7 +503,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     extra_data.item_id = null;
                     delete(extra_data.item_id);
                     resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                    resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
+                    resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
                     // Create drop item
                     resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: drop_item_id}], force: true});
                     return resp;
@@ -589,14 +589,14 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(extra_data && 'pressed' in extra_data) {
                 pos = new Vector(pos);
                 resp.blocks.list.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                resp.play_sound.push({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos)});
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos), except_players: [player.session.user_id]});
                 resp.reset_target_pos = true;
                 return resp;
             }
         }
         // Fuse TNT
         if(!e.shiftKey && world_material.name == 'TNT') {
-            resp.play_sound.push({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos)});
+            resp.play_sound.push({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
             // resp.play_sound.push({tag: 'madcraft:block.player', action: 'explode', pos: new Vector(pos)});
             /*
             // Explode
@@ -635,7 +635,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             } else {
                 extra_data.item_id = matBlock.id;
                 resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
+                resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
                 resp.decrement = true;
             }
             return resp;
@@ -818,7 +818,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                                 resp.decrement = true;
                                 if(matBlock.sound) {
-                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                                 }
                             }
                             break;
@@ -832,7 +832,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                                 resp.decrement = true;
                                 if(matBlock.sound) {
-                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                                 }
                             }
                             break;
@@ -847,7 +847,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.blocks.list.push({pos: new Vector(pos), item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
                         if(emitBlock.sound) {
-                            resp.play_sound.push({tag: emitBlock.sound, action: 'place', pos: new Vector(pos)});
+                            resp.play_sound.push({tag: emitBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                         }
                         return resp;
                     }
@@ -870,7 +870,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 resp.create_chest = {pos: new Vector(pos), item: new_item};
                 resp.decrement = true;
                 if(matBlock.sound) {
-                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                 }
                 return resp;
             }
@@ -879,7 +879,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 case BLOCK.PAINTING.id: {
                     const painting = await createPainting(e, world, pos);
                     if(painting) {
-                        resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
+                        resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                         resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: painting}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                     }
                     return resp;
@@ -956,7 +956,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     resp.decrement = true;
                     let b = BLOCK.fromId(matBlock.id);
                     if(b.sound) {
-                        resp.play_sound.push({tag: b.sound, action: 'place', pos: new Vector(pos)});
+                        resp.play_sound.push({tag: b.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                     }
                 }
             } else {
@@ -1035,7 +1035,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     pushBlock(pb);
                 }
                 if(matBlock.sound) {
-                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                 }
                 resp.decrement = true;
             }

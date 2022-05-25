@@ -487,6 +487,10 @@ export class MobModel extends NetworkPhysicObject {
         this.lazyInit(render);
         this.update(render, camPos, delta);
 
+        if (!this.sceneTree) {
+            return null;
+        }
+
         // If mob die
         if(this.isAlive() === false) {
             // first enter to this code

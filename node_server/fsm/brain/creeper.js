@@ -1,5 +1,8 @@
 import {FSMBrain} from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
+import { ServerActions } from "../../server_actions.js";
+import {ServerClient} from "../../../www/js/server_client.js";
+
 import { CMD_ENTITY_INDICATORS } from "../../network/serverpackets/cmd_entity_indicators.js";
 
 const FOLLOW_DISTANCE       = 10;
@@ -74,7 +77,7 @@ export class Brain extends FSMBrain {
 
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player) {
+        if(!player || !player.game_mode.getCurrent().can_take_damage) {
             return this.lostTarget();
         }
 
@@ -105,8 +108,11 @@ export class Brain extends FSMBrain {
 
     lostTarget() {
         // console.log("[AI] mob " + this.mob.id + " lost player and stand");
+        const mob = this.mob;
+        mob.extra_data.detonation_started = false;
         this.target = null;
         this.isStand(1.0);
+        this.sendState();
     }
 
     //
@@ -119,7 +125,7 @@ export class Brain extends FSMBrain {
         this.sendState();
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player) {
+        if(!player || !player.game_mode.getCurrent().can_take_damage) {
             return this.lostTarget();
         }
         const dist = mob.pos.distance(player.state.pos);
@@ -138,21 +144,18 @@ export class Brain extends FSMBrain {
     async mobDetonation(rad) {
         // console.log("[AI] mob " + this.mob.id + " detonation");
         const mob = this.mob;
-        const air = { id: 0 };
         const mobPos = mob.pos.clone();
         const mobPosFloored = mobPos.clone().flooredSelf();
+        const world = mob.getWorld();
         // Actions
-        const actions = {
-            blocks: {
-                list: [],
-                options: {
-                    ignore_check_air: true,
-                    on_block_set: false
-                }
-            },
-            play_sound: []
-        };
+        const actions = new ServerActions(world, {blocks: {
+            options: {
+                ignore_check_air: true,
+                on_block_set: false
+            }
+        }});
         // Extrude blocks
+        const air = { id: 0 };
         const out_rad = Math.ceil(rad);
         const check_pos = mob.pos.flooredSelf().add(new Vector(.5, 0, .5));
         for (let i = -out_rad; i < out_rad; i++) {
@@ -160,7 +163,7 @@ export class Brain extends FSMBrain {
                 for (let k = -out_rad; k < out_rad; k++) {
                     const air_pos = mobPosFloored.add(new Vector(i, k, j));
                     if (air_pos.distance(check_pos) <= rad) {
-                        actions.blocks.list.push({ pos: air_pos, item: air });
+                        actions.addBlock({pos: air_pos, item: air});
                     }
                 }
             }
@@ -168,15 +171,31 @@ export class Brain extends FSMBrain {
         // Kill mob
         await mob.kill();
         // Add sound
-        actions.play_sound.push({ tag: 'madcraft:block.creeper', action: 'explode', pos: mobPos.clone() });
-        await mob.getWorld().applyActions(null, actions);
+        actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: mobPos.clone() });
         // Found all players around creeper
         const players = this.getPlayersNear(mobPos, this.players_damage_distance, true);
+        const custom_packets = {
+            user_ids: [],
+            list: [
+                {
+                    name: ServerClient.CMD_PLAY_SOUND,
+                    data: { tag: 'madcraft:block.player', action: 'hit', pos: mobPos.clone()}
+                }
+            ]
+        };
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
             // change live
             player.changeLive(-this.explosion_damage);
+            // play hit sound for this.player
+            custom_packets.user_ids.push(player.session.user_id);
         }
+        //
+        if(custom_packets.list.length > 0) {
+            world.sendSelected(custom_packets.list, custom_packets.user_ids)
+        }
+        //
+        await actions.apply();
     }
 
 }

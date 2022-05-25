@@ -96,7 +96,16 @@ export class FSMBrain {
         if (mob.prev_state) {
             if (mob.prev_state.rotate.equal(new_state.rotate)) {
                 if (mob.prev_state.pos.equal(new_state.pos)) {
-                    if (mob.prev_state.extra_data.is_alive == new_state.extra_data.is_alive) {
+                    let all_extas_equal = true;
+                    const checked_extras = ['is_alive', 'detonation_started'];
+                    for(let i = 0; i < checked_extras.length; i++) {
+                        const field_name = checked_extras[i];
+                        if (mob.prev_state.extra_data[field_name] != new_state.extra_data[field_name]) {
+                            all_extas_equal = false;
+                            break;
+                        }
+                    }
+                    if(all_extas_equal) {
                         need_send = false;
                     }
                 }

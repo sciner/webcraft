@@ -315,7 +315,10 @@ export class Player {
                 radius: 0.7,
                 height: this.height,
                 pos: this.lerpPos,
-                rotate: this.rotateDegree.clone()
+                rotate: this.rotateDegree.clone(),
+                session: {
+                    user_id: this.session.user_id
+                }
             };
             let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
             this.applyActions(e, actions);

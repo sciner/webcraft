@@ -132,7 +132,7 @@ export class Mob {
 
     //
     async changeLive(value) {
-        const ind = this.state.indicators.live;
+        const ind = this.indicators.live;
         const prev_value = ind.value;
         ind.value = Math.max(prev_value + value, 0);
         console.log(`Mob live ${prev_value} -> ${ind.value}`);

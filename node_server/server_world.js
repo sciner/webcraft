@@ -220,6 +220,9 @@ export class ServerWorld {
                         radius: 0.7,
                         height: server_player.height,
                         username: server_player.session.username,
+                        session: {
+                            user_id: server_player.session.user_id
+                        },
                         pos: new Vector(server_player.state.pos),
                         rotate: server_player.rotateDegree.clone()
                     };
@@ -796,10 +799,22 @@ export class ServerWorld {
                 const cps = getChunkPackets(params.pos);
                 if (cps) {
                     if (cps.chunk) {
-                        cps.packets.push({
-                            name: ServerClient.CMD_PLAY_SOUND,
-                            data: params
-                        });
+                        if('except_players' in params) {
+                            const except_players = params.except_players;
+                            delete(params.except_players);
+                            cps.custom_packets.push({
+                                except_players,
+                                packets: {
+                                    name: ServerClient.CMD_PLAY_SOUND,
+                                    data: params
+                                }
+                            });
+                        } else {
+                            cps.packets.push({
+                                name: ServerClient.CMD_PLAY_SOUND,
+                                data: params
+                            });
+                        }
                     }
                 }
             }
@@ -807,7 +822,9 @@ export class ServerWorld {
         //
         for (let cp of chunks_packets) {
             if (cp.chunk) {
+                // send 1
                 cp.chunk.sendAll(cp.packets, []);
+                // send 2
                 for (let i = 0; i < cp.custom_packets.length; i++) {
                     const item = cp.custom_packets[i];
                     cp.chunk.sendAll(item.packets, item.except_players || []);
