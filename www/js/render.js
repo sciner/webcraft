@@ -624,6 +624,14 @@ export class Renderer {
         this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
     }
 
+    // addExplosionsParticles
+    addExplosionsParticles(data) {
+        let pos = data.pos;
+        for(let i = 0; i < 100; i++) {
+            Game.render.meshes.addEffectParticle('explosion',  pos);
+        }
+    }
+
     // rainDrop
     rainDrop(pos) {
         this.meshes.add(new Particles_Raindrop(this, pos));

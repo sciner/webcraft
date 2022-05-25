@@ -819,6 +819,32 @@ export class ServerWorld {
                 }
             }
         }
+        // Explosions
+        if (actions.explosions) {
+            for(let params of actions.explosions) {
+                const cps = getChunkPackets(params.pos);
+                if (cps) {
+                    if (cps.chunk) {
+                        if('except_players' in params) {
+                            const except_players = params.except_players;
+                            delete(params.except_players);
+                            cps.custom_packets.push({
+                                except_players,
+                                packets: {
+                                    name: ServerClient.CMD_PARTICLE_EXPLOSION,
+                                    data: params
+                                }
+                            });
+                        } else {
+                            cps.packets.push({
+                                name: ServerClient.CMD_PARTICLE_EXPLOSION,
+                                data: params
+                            });
+                        }
+                    }
+                }
+            }
+        }
         //
         for (let cp of chunks_packets) {
             if (cp.chunk) {

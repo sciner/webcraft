@@ -409,7 +409,8 @@ export class PickatActions {
             },
             play_sound:             [],
             stop_disc:              [],
-            drop_items:             []
+            drop_items:             [],
+            explosions:             []
         });
     }
 
@@ -426,6 +427,11 @@ export class PickatActions {
     // Add drop item
     addDropItem(item) {
         this.drop_items.push(item);
+    }
+
+    //
+    addExplosions(items) {
+        this.explosions.push(...items);
     }
 
 }

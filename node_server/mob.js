@@ -38,7 +38,7 @@ export class Mob {
 
     //
     static convertRowToExtraData(row) {
-        return {is_alive: !!row.is_active};
+        return {is_alive: !!row.is_active, play_death_animation: true};
     }
 
     get chunk_addr() {

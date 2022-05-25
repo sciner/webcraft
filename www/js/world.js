@@ -91,6 +91,10 @@ export class World {
                 Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
+                Game.render.addExplosionsParticles(cmd.data);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {

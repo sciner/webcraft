@@ -146,14 +146,31 @@ export class Particles_Effects extends Particles_Base {
             const ap = i + pos_offset;
 
             // Change position
+            let addX = 0;
             let addY = 0;
+            let addZ = 0;
+            if(params.speed.x != 0) {
+                addX = (pn - params.started) * params.speed.x / 1000 * params.gravity;
+            }
             if(params.speed.y != 0) {
                 addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
+            }
+            if(params.speed.z != 0) {
+                addZ = (pn - params.started) * params.speed.z / 1000 * params.gravity;
             }
 
             // Change vertices data
             data[i + lm_offset] = scale; // remove params object from data and store scale in R argument
-            data[ap + 2]        = vertices[ap + 2] + addY;
+
+            if(addX != 0) {
+                data[ap + 0] = vertices[ap + 0] + addX;
+            }
+            if(addZ != 0) {
+                data[ap + 1] = vertices[ap + 1] + addZ;
+            }
+            if(addY != 0) {
+                data[ap + 2] = vertices[ap + 2] + addY;
+            }
 
         }
 

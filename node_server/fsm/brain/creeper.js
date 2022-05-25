@@ -21,6 +21,7 @@ export class Brain extends FSMBrain {
             playerHeight: 1.6,
             stepHeight: 1
         });
+        mob.extra_data.play_death_animation = false;
         this.detonationTime = 0;
         this.isAggrressor = true;
         this.explosion_damage = 12;
@@ -169,6 +170,7 @@ export class Brain extends FSMBrain {
         await mob.kill();
         // Add sound
         actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: mobPos.clone() });
+        actions.addExplosions([{pos: mobPos.clone().add(new Vector(0, mob.height / 2, 0))}]);
         // Found all players around creeper
         const players = this.getPlayersNear(mobPos, this.players_damage_distance, true);
         const custom_packets = {

@@ -504,11 +504,14 @@ export class MobModel extends NetworkPhysicObject {
             }
             const elapsed = performance.now() - this.die_info.time;
             const max_die_animation_time = 1000;
-            const elapsed_percent = elapsed / max_die_animation_time;
+            let elapsed_percent = elapsed / max_die_animation_time;
             if(elapsed_percent < 1) {
                 if(this.netBuffer.length > 0) {
                     const state = this.netBuffer[0];
                     state.rotate.z = this.yaw_before_die + elapsed / 100;
+                    if(!this.extra_data.play_death_animation) {
+                        elapsed_percent = 1;
+                    }
                     this.sceneTree.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
                     this.sceneTree.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
                     this.sceneTree.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
