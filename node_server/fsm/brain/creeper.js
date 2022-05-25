@@ -3,8 +3,6 @@ import { Vector } from "../../../www/js/helpers.js";
 import { ServerActions } from "../../server_actions.js";
 import {ServerClient} from "../../../www/js/server_client.js";
 
-import { CMD_ENTITY_INDICATORS } from "../../network/serverpackets/cmd_entity_indicators.js";
-
 const FOLLOW_DISTANCE       = 10;
 const DISTANCE_LOST_TRAGET  = 16;
 const DISTANCE_DETONATION   = 3;
@@ -148,12 +146,9 @@ export class Brain extends FSMBrain {
         const mobPosFloored = mobPos.clone().flooredSelf();
         const world = mob.getWorld();
         // Actions
-        const actions = new ServerActions(world, {blocks: {
-            options: {
-                ignore_check_air: true,
-                on_block_set: false
-            }
-        }});
+        const actions = new ServerActions(world);
+        actions.ignore_check_air = true;
+        actions.on_block_set = false;
         // Extrude blocks
         const air = { id: 0 };
         const out_rad = Math.ceil(rad);

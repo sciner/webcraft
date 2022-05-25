@@ -3,9 +3,23 @@ export class ServerActions {
     #world;
     #actions;
 
-    constructor(world, options) {
+    constructor(world) {
         this.#world = world;
-        this.#actions = options;
+        this.#actions = {blocks: {
+            list: [],
+            options: {
+                ignore_check_air: false,
+                on_block_set: false
+            }
+        }};
+    }
+
+    set ignore_check_air(value) {
+        this.#actions.blocks.options.ignore_check_air = value;
+    }
+
+    set on_block_set(value) {
+        this.#actions.blocks.options.on_block_set = value;
     }
 
     // Add play sound
