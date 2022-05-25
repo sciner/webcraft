@@ -159,12 +159,14 @@ export class ServerPlayer extends Player {
         this.packet.ReadPacket(this, cmd);
 
         try {
-            if (this.is_dead && cmd.name != ServerClient.CMD_RESURRECTION) {
+            if (this.is_dead && [ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].indexOf(cmd.name) < 0) {
                 return;
             }
             switch(cmd.name) {
+
                 // Connect
                 case ServerClient.CMD_CONNECT: {
+                    console.log('Connect');
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
                     Log.append('CmdConnect', {world_guid, session: this.session});
@@ -173,7 +175,6 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_SYNC_TIME: {
-                    break;
                     this.sendPackets([{
                         name: ServerClient.CMD_SYNC_TIME,
                         data: { clientTime: cmd.data.clientTime },

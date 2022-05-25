@@ -151,7 +151,7 @@ export class Mob {
         this.indicators.live.value = 0;
         this.extra_data.is_alive = false;
         this.save();
-        this.#world.db.setEntityActive(this.entity_id, 0);
+        await this.#world.db.setEntityActive(this.entity_id, 0);
         this.#brain.sendState();
     }
 
