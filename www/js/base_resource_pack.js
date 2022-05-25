@@ -15,6 +15,7 @@ export class BaseResourcePack {
 
         this.manager = null;
         this.shader = null;
+        this.styles_stat = new Map();
     }
 
     async init(manager) {
@@ -286,7 +287,21 @@ export class BaseResourcePack {
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
-        return module.func(block, vertices, world, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, true, _matrix, _pivot, force_tex);
+
+        /*
+        // stat
+        let stat = this.styles_stat.get(style);
+        if(!stat) {
+            stat = {count: 0, time: 0}
+            this.styles_stat.set(style, stat);
+        }*/
+
+        // let p = performance.now();
+        const resp = module.func(block, vertices, world, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, true, _matrix, _pivot, force_tex);
+        // stat.count++;
+        // stat.time += (performance.now() - p);
+
+        return resp;
     }
 
 }

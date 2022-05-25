@@ -25,6 +25,10 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
+//
+const _pl = {};
+const _vec = new Vector(0, 0, 0);
+
 // Растения/Цепи
 export default class style {
 
@@ -82,10 +86,10 @@ export default class style {
 
         const material = block.material;
         const cardinal_direction = block.getCardinalDirection();
+        const texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+
         let dx = 0, dy = 0, dz = 0;
-        let orig_tex = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-        const pos = new Vector(x, y, z);
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
         style.lm.b = style.getAnimations(block, 'up');
@@ -105,14 +109,14 @@ export default class style {
             }
         }
 
-        // Matrix
-        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
-
         //
         const is_grass = block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id;
         if(is_grass) {
             dy -= .15;
         }
+
+        // Matrix
+        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
             let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
             const r = randoms[index] * 4/16 - 2/16;
@@ -127,10 +131,6 @@ export default class style {
             }
         }
 
-        pos.x += dx;
-        pos.y += dy;
-        pos.z += dz;
-
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.set(dirt_color);
@@ -139,15 +139,18 @@ export default class style {
 
         // Planes
         const planes = material.planes || DEFAULT_PLANES;
-        for(let plane of planes) {
-            default_style.pushPlane(vertices, {
-                ...plane,
-                lm: style.lm,
-                pos: pos,
-                matrix: matrix,
-                flag: flag,
-                texture: [...orig_tex]
-            });
+        for(let i = 0; i < planes.length; i++) {
+            const plane = planes[i];
+            // fill object
+            _pl.size     = plane.size;
+            _pl.uv       = plane.uv;
+            _pl.rot      = plane.rot;
+            _pl.lm       = style.lm;
+            _pl.pos      = _vec.set(x + dx, y + dy, z + dz);
+            _pl.matrix   = matrix;
+            _pl.flag     = flag;
+            _pl.texture  = texture;
+            default_style.pushPlane(vertices, _pl);
         }
 
     }

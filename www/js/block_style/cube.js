@@ -10,6 +10,7 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
+const _aabb = new AABB();
 
 // @IMPORTANT!: No change order, because it very important for uvlock blocks
 const UP_AXES = [
@@ -229,10 +230,6 @@ export default class style {
 
         const material                  = block.material;
 
-        //if(block.id == 2 || block.id == 9 || block.id == 547) {
-        //    return;
-        //}
-
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z), biome, dirt_color);
@@ -363,17 +360,6 @@ export default class style {
             }
         }
 
-        // AABB
-        let aabb = new AABB();
-        aabb.set(
-            x + .5 - width/2,
-            y,
-            z + .5 - depth/2,
-            x + .5 + width/2,
-            y + height,
-            z + .5 + depth/2
-        );
-
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         let axes_up = null;
         if(block.id == BLOCK.GRASS_DIRT.id || block.id == BLOCK.SAND.id) {
@@ -431,7 +417,16 @@ export default class style {
             sides.east = new AABBSideParams(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
 
-        pushAABB(vertices, aabb, pivot, matrix, sides, new Vector(x, y, z));
+        // AABB
+        _aabb.set(
+            x + .5 - width/2,
+            y,
+            z + .5 - depth/2,
+            x + .5 + width/2,
+            y + height,
+            z + .5 + depth/2
+        );
+        pushAABB(vertices, _aabb, pivot, matrix, sides, new Vector(x, y, z));
 
     }
 

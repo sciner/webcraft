@@ -1,6 +1,6 @@
 import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
-import {BlockNeighbours, CC, TBlock} from "../typed_blocks.js";
+import {BlockNeighbours, TBlock} from "../typed_blocks.js";
 import {TypedBlocks2} from "../typed_blocks2.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
@@ -248,8 +248,6 @@ export class Chunk {
         // Create map of lowest blocks that are still lit
         let tm = performance.now();
 
-        const tmpVector = new Vector();
-
         this.neighbour_chunks = this.tblocks.getNeightboursChunks(world);
 
         // Check neighbour chunks available
@@ -295,6 +293,8 @@ export class Chunk {
 
         const cache                 = BLOCK_CACHE;
         const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)), true);
+        
+        this.quads = 0;
 
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
@@ -334,10 +334,10 @@ export class Chunk {
             }
             world.blocks_pushed++;
             if(vertices.length > 0) {
+                this.quads++;
                 addVerticesToGroup(material.group, material.material_key, vertices);
             }
         }
-        // console.log(cnt)
 
         // Emmited blocks
         if(this.emitted_blocks.size > 0) {
@@ -360,7 +360,10 @@ export class Chunk {
                         eb.matrix,
                         eb.pivot
                     );
-                    addVerticesToGroup(material.group, material.material_key, vertices);
+                    if(vertices.length > 0) {
+                        this.quads++;
+                        addVerticesToGroup(material.group, material.material_key, vertices);
+                    }
                 }
             }
         }
@@ -370,6 +373,7 @@ export class Chunk {
             group.list = new Float32Array(group.list);
         }*/
 
+        // console.log(this.quads);
         this.dirty = false;
         this.tm = performance.now() - tm;
         this.neighbour_chunks = null;
