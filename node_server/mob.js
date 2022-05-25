@@ -96,9 +96,9 @@ export class Mob {
     }
 
     async onUnload() {
-        console.log('Mob unloaded: ' + this.entity_id);
+        console.log(`Mob unloaded ${this.entity_id}, ${this.id}`);
         await this.save();
-        this.#world.mobs.delete(this.entity_id);
+        this.#world.mobs.delete(this.id);
     }
 
     async punch(server_player, params) {

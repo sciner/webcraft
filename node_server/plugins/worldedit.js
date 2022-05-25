@@ -246,7 +246,7 @@ export default class WorldEdit {
                     }
                     for(let b of repl_blocks.blocks) {
                         if(mat.id == b.block_id) {
-                            actions.blocks.list.push({pos: bpos.clone(), item: {id: palette.next().block_id}});
+                            actions.blocks.list.push({pos: bpos.clone(), item: palette.nextAsItem()});
                             affected_count++;
                             break;
                         }
@@ -264,13 +264,9 @@ export default class WorldEdit {
     //
     async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
         const pn_set = performance.now();
-        let actions = {blocks: {
-            list: [],
-            options: {
-                ignore_check_air: true,
-                on_block_set: false
-            }
-        }};
+        const actions = new PickatActions();
+        actions.blocks.options.ignore_check_air = true;
+        actions.blocks.options.on_block_set = false;
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -299,7 +295,7 @@ export default class WorldEdit {
                     bpos.x += x * qi.signx;
                     bpos.y += y * qi.signy;
                     bpos.z += z * qi.signz;
-                    actions.addBlocks([{pos: bpos, item: {id: palette.next().block_id}}]);
+                    actions.addBlocks([{pos: bpos, item: palette.nextAsItem()}]);
                 }
             }
         }
@@ -358,6 +354,7 @@ export default class WorldEdit {
             });
         }
         // Check names and validate blocks
+        const block_extra_data_simple = new Map();
         for(let item of blockChances) {
             let block_id = null;
             if(isNaN(item.name)) {
@@ -375,11 +372,25 @@ export default class WorldEdit {
             if(b.deprecated) {
                 throw 'error_block_is_deprecated';
             }
-            if(b.item || b.is_fluid || b.extra_data) {
+            const extra_data = b.extra_data;
+            if(b.item || b.is_fluid /*|| (extra_data && extra_data.calculated)*/) {
                 throw 'error_this_block_cannot_be_setted';
             }
             item.block_id = block_id;
             item.name = b.name;
+            if(extra_data) {
+                item.extra_data = extra_data;
+                if(extra_data.calculated) {
+                    const simple = block_extra_data_simple.get(block_id);
+                    if(simple) {
+                        item.extra_data = simple; // block_extra_data_simple.get(block_id);
+                    } else {
+                        item.extra_data = JSON.parse(JSON.stringify(extra_data));
+                        delete(item.extra_data.calculated);
+                        block_extra_data_simple.set(block_id, item.extra_data);
+                    }
+                }
+            }
         }
         // Random fill
         let max = 0;
@@ -403,6 +414,16 @@ export default class WorldEdit {
                     }
                 }
                 throw 'Proportional fill pattern';
+            },
+            nextAsItem: function() {
+                const next = this.next();
+                const resp = {
+                    id: next.block_id
+                };
+                /*if(next.extra_data) {
+                    resp.extra_data = next.extra_data;
+                }*/
+                return resp;
             }
         };
     }

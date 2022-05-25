@@ -7,7 +7,7 @@ const FOLLOW_DISTANCE       = 10;
 const DISTANCE_LOST_TRAGET  = 16;
 const DISTANCE_DETONATION   = 3;
 const DETONATION_TIMER      = 1500; //ms
-const EXPLODE_DEFAULT_RAD   = 2.55;
+const EXPLODE_DEFAULT_RAD   = 2.4;
 
 export class Brain extends FSMBrain {
 
@@ -145,6 +145,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const mobPos = mob.pos.clone();
         const mobPosFloored = mobPos.clone().flooredSelf();
+        const mobPosCenterBlockPos = mobPosFloored.add(new Vector(.5, 0, .5));
         const world = mob.getWorld();
         // Actions
         const actions = new PickatActions();
@@ -153,12 +154,14 @@ export class Brain extends FSMBrain {
         // Extrude blocks
         const air = { id: 0 };
         const out_rad = Math.ceil(rad);
-        const check_pos = mob.pos.flooredSelf().add(new Vector(.5, 0, .5));
-        for (let i = -out_rad; i < out_rad; i++) {
-            for (let j = -out_rad; j < out_rad; j++) {
-                for (let k = -out_rad; k < out_rad; k++) {
+        console.log(mobPosCenterBlockPos.toHash(), out_rad);
+        // const check_pos = mob.pos.flooredSelf().add(new Vector(.5, 0, .5));
+        for (let i = -out_rad; i <= out_rad; i++) {
+            for (let j = -out_rad; j <= out_rad; j++) {
+                for (let k = -out_rad; k <= out_rad; k++) {
                     const air_pos = mobPosFloored.add(new Vector(i, k, j));
-                    if (air_pos.distance(check_pos) <= rad) {
+                    const dist = air_pos.add(new Vector(.5, .5, .5)).distance(mobPosCenterBlockPos);
+                    if (dist <= rad) {
                         actions.addBlocks([
                             {pos: air_pos, item: air}
                         ]);

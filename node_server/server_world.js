@@ -285,9 +285,18 @@ export class ServerWorld {
         await this.chunks.tick(delta);
         this.ticks_stat.add('chunks');
         // 2.
-        for (let [entity_id, mob] of this.mobs) {
+        for (let [mob_id, mob] of this.mobs) {
             if (mob.isAlive()) {
                 mob.tick(delta);
+            } else if(!mob.death_time) {
+                mob.death_time = performance.now();
+            } else if(performance.now() - mob.death_time > 1000) {
+                await mob.onUnload();
+                let packets = [{
+                    name: ServerClient.CMD_MOB_DELETED,
+                    data: [mob_id]
+                }];
+                this.sendAll(packets);
             }
         }
         this.ticks_stat.add('mobs');

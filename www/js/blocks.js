@@ -260,7 +260,7 @@ export class BLOCK {
         let is_slab = block.is_layering && block.layering.slab;
         if(is_trapdoor || is_stairs || is_door || is_slab) {
             extra_data = {
-                point: new Vector(pos.point.x, pos.point.y, pos.point.z)
+                point: pos.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0)
             };
             // Trapdoor
             if(is_trapdoor) {
@@ -270,6 +270,9 @@ export class BLOCK {
             if(is_door) {
                 extra_data.opened = false;
                 extra_data.left = false;
+                if(!pos.point) {
+                    pos.point = new Vector(0, 0, 0);
+                }
                 switch(orientation.x) {
                     case ROTATE.S: {
                         extra_data.left = pos.point.x < .5;

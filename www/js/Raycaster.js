@@ -119,7 +119,7 @@ export class Raycaster {
         if(Game?.world?.mobs) {
             for(let [_, mob] of Game.world.mobs.list) {
                 mob.raycasted = false;
-                if(!mob.aabb) {
+                if(!mob.aabb || !mob.isAlive()) {
                     continue;
                 }
                 if(mob.tPos.distance(pos) > max_distance) {

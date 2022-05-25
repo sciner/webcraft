@@ -390,8 +390,15 @@ export class MobModel extends NetworkPhysicObject {
              !this.currentChunk);
     }
 
+    isAlive() {
+        return this.extra_data?.is_alive;
+    }
+
     // ударить кулаком
     punch(e) {
+        if(!this.isAlive()) {
+            return false;
+        }
         if(e.button_id == 1) {
             // play punch
             Game.sounds.play('madcraft:block.player', 'strong_atack');

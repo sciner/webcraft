@@ -55,6 +55,7 @@ class TickingBlockManager {
 
     // addTickingBlock
     add(id, pos, ticking) {
+        console.log(id, pos, ticking)
         const block = new TickingBlock(this, id, pos, ticking);
         const ex_block = this.blocks.get(block.pos.toHash());
         if(ex_block) {
@@ -531,7 +532,7 @@ export class ServerChunk {
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
-                mob.onUnload();
+                await mob.onUnload();
             }
         }
         // Unload drop items
