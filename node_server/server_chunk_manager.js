@@ -4,6 +4,7 @@ import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
+import {DataWorld} from "../www/js/typed_blocks3.js";
 
 export const MAX_Y_MARGIN = 3;
 
@@ -25,6 +26,7 @@ export class ServerChunkManager {
                 return this.properties;
             }
         };
+        this.dataWorld = new DataWorld();
     }
 
     // Init worker

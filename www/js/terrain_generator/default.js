@@ -79,21 +79,15 @@ export class Default_Terrain_Generator {
 
     // setBlock
     setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+        const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            this.xyz_temp.set(x, y, z);
-            if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
+            if(force_replace || !tblocks.getBlockId(x, y, z)) {
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 if(!this.getVoxelBuilding(this.xyz_temp_coord)) {
-                    let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
-                    chunk.tblocks.id[index] = block_type.id;
+                    tblocks.setBlockId(x, y, z, block_type.id);
                     if(rotate || extra_data) {
-                        this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                        if(rotate) this.temp_tblock.rotate = rotate;
-                        if(extra_data) this.temp_tblock.extra_data = extra_data;
+                        tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
                     }
-                    // chunk.tblocks.delete(this.xyz_temp);
-                    // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                    // this.temp_tblock.id = block_type.id;
                 }
             }
         }

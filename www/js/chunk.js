@@ -1,6 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import {TypedBlocks2} from "./typed_blocks2.js";
+import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 import {AABB} from './core/AABB.js';
@@ -98,7 +98,12 @@ export class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.tblocks = new TypedBlocks2(this.coord, this.size);
+        const chunkManager = this.getChunkManager();
+        if (!chunkManager) {
+            return;
+        }
+        this.tblocks = newTypedBlocks(this.coord, this.size);
+        chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
@@ -137,37 +142,40 @@ export class Chunk {
         const sz = size.x * size.y * size.z;
         const light_buffer = this.light_buffer = new ArrayBuffer(sz);
         const light_source = this.light_source = new Uint8Array(light_buffer);
-        const ids = this.tblocks.id;
 
         let ind = 0;
         let prev_block_id = Infinity;
         let light_power_number = 0;
-        let blocks_count = size.x * size.y * size.z;
         let block_material = null;
-        for(let i = 0; i < blocks_count; i++) {
-            const block_id = ids[ind];
-            if(block_id != prev_block_id) {
-                block_material = BLOCK.BLOCK_BY_ID.get(block_id)
-                if(block_material) {
-                    light_power_number = block_material.light_power_number;
-                } else {
-                    console.error(`Block not found ${block_id}`);
+
+        const {cx, cy, cz, cw } = this.dataChunk;
+        const { id } = this.tblocks;
+
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    const index = cx * x + cy * y + cz * z + cw;
+                    const block_id = id[index];
+                    if(block_id !== prev_block_id) {
+                        block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                        if(block_material) {
+                            light_power_number = block_material.light_power_number;
+                        } else {
+                            console.error(`Block not found ${block_id}`);
+                        }
+                        prev_block_id = block_id;
+                    }
+                    light_source[ind++] = light_power_number;
                 }
-                prev_block_id = block_id;
-            }
-            light_source[ind] = light_power_number;
-            ind++;
-        }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
             {addr: this.addr, size: this.size, light_buffer}]);
     }
 
     getLightTexture(render) {
-        if (!this.lightData) {
+        const cm = this.getChunkManager();
+        if (!this.lightData || !cm) {
             return null;
         }
-
-        const cm = this.getChunkManager();
         if (!cm.lightPool) {
             cm.lightPool = new CubeTexturePool(render,{
                 defWidth: CHUNK_SIZE_X + 2,
@@ -312,6 +320,11 @@ export class Chunk {
     // Destruct chunk
     destruct() {
         let chunkManager = this.getChunkManager();
+        if (!chunkManager) {
+            return;
+        }
+        this.chunkManager = null;
+        chunkManager.dataWorld.removeChunk(this);
         // destroy buffers
         for(let [_, v] of this.vertices) {
             if(v.buffer) {
@@ -405,14 +418,10 @@ export class Chunk {
             tblock.falling       = !!material.gravity;
             update_vertices         = true;
             if(this.chunkManager.use_light) {
-                const oldLight      = this.light_source[tblock.index];
-                const light         = this.light_source[tblock.index] = BLOCK.getLightPower(material);
+                const ind = x + this.size.x * (z + this.size.z * y);
+                const oldLight      = this.light_source[ind];
+                const light         = this.light_source[ind] = material.light_power_number;
                 if (oldLight !== light) {
-                    // updating light here
-                    // const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
-                    // const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
-                    // const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
-                    // const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
                     chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
                         x:          x + this.coord.x,
                         y:          y + this.coord.y,

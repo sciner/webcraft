@@ -34,7 +34,7 @@ let palette = {
     166: BLOCK.CYAN_WOOL,
     174: BLOCK.BLUE_WOOL,
     234: BLOCK.POWDER_SNOW,
-    
+
     238: BLOCK.TEST,
 
     // 97: BLOCK.OAK_PLANK,
@@ -73,23 +73,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      * setSeed
-     * @param { string } seed 
+     * @param { string } seed
      */
     setSeed(seed) {
     }
 
     /**
-     * 
-     * @param { Chunk } chunk 
-     * @returns 
+     *
+     * @param { Chunk } chunk
+     * @returns
      */
     generate(chunk) {
-    
+        const { cx, cy, cz, cw } = chunk.dataChunk;
         // setBlock
-        let temp_vec2 = new Vector(0, 0, 0);
         const setBlock = (x, y, z, block_id) => {
-            temp_vec2.set(x, y, z);
-            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            const index = cx * x + cy * y + cz * z + cw;
             chunk.tblocks.id[index] = block_id;
         };
 

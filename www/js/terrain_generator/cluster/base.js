@@ -47,10 +47,11 @@ export class ClusterBase {
         } else {
             return false;
         }
+        const { cx, cy, cz, cw } = chunk.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
         temp_vec2.x = x;
         temp_vec2.y = y;
         temp_vec2.z = z;
-        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
         if(rotate) {
             chunk.tblocks.rotate.set(temp_vec2, rotate);
         }
@@ -63,7 +64,8 @@ export class ClusterBase {
 
     // Return block from pos
     getBlock(chunk, x, y, z) {
-        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        const {cx, cy, cz, cw} = chunk.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
         return chunk.tblocks.id[index];
     }
 
@@ -344,7 +346,7 @@ export class ClusterBase {
                         const z = pos.z - chunk.coord.z - k;
                         this.setBlock(chunk, x, y, z, block.id, {x: 0, y: 0, z: 0});
                     }
-                }    
+                }
                 break;
             }
             // Look to south
@@ -356,7 +358,7 @@ export class ClusterBase {
                         const z = pos.z - chunk.coord.z + k;
                         this.setBlock(chunk, x, y, z, block.id, {x: 2, y: 0, z: 0});
                     }
-                }    
+                }
                 break;
             }
             // Look to west

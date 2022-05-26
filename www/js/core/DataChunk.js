@@ -61,6 +61,14 @@ export class DataChunk extends BaseChunk {
         return uint32View[offset + stride32 * (localX  + outerSize.x * (localZ + localY * outerSize.z))];
     }
 
+    uint16ByCoord(localX, localY, localZ, offset = 0) {
+        const { outerSize, padding, stride16, uint16View } = this;
+        localX += padding
+        localY += padding
+        localZ += padding
+        return uint16View[offset + stride16 * (localX  + outerSize.x * (localZ + localY * outerSize.z))];
+    }
+
     indexByWorld(worldX, worldY, worldZ) {
         const { outerSize } = this;
         return worldX + outerSize.x * (worldZ + outerSize.z * worldY) + this.shiftCoord;

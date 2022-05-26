@@ -222,7 +222,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
 
-            this.generateBottomCaves(chunk, aleaRandom); 
+            this.generateBottomCaves(chunk, aleaRandom);
 
         } else {
 
@@ -368,7 +368,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
                                     chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
                                 } else {
-                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);    
+                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
                                 }
                             } else {
                                 chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
@@ -398,10 +398,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let DENSITY_COEFF           = 1;
         let fill_count              = 0;
 
+        const { cx, cy, cz, cw, tblocks } = chunk;
         //
         const getBlock = (x, y, z) => {
-            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-            return chunk.tblocks.id[index];
+            const index = cx * x + cy * y + cz * z + cw;
+            return tblocks.id[index];
         };
 
         //

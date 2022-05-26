@@ -19,10 +19,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const aleaRandom = new alea(chunk.id);
 
         // setBlock
-        let temp_vec2 = new Vector(0, 0, 0);
+        const { cx, cy, cz, cw } = chunk.dataChunk;
+        // setBlock
         const setBlock = (x, y, z, block_id) => {
-            temp_vec2.set(x, y, z);
-            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            const index = cx * x + cy * y + cz * z + cw;
             chunk.tblocks.id[index] = block_id;
         };
 
