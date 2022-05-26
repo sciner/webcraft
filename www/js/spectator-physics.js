@@ -8,6 +8,7 @@ export class PlayerControl  {
         this.reset();
     }
 
+    // reset controls
     reset() {
         this.back               = false;
         this.forward            = false;

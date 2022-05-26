@@ -72,12 +72,9 @@ export class Kb {
     }
 
     clearStates() {
-        this.keys[KEY.W] = false;
-        this.keys[KEY.A] = false;
-        this.keys[KEY.S] = false;
-        this.keys[KEY.D] = false;
-        this.keys[KEY.SPACE] = false;
-        this.keys[KEY.SHIFT] = false;
+        for(let k of [KEY.W, KEY.A, KEY.S, KEY.D, KEY.SPACE, KEY.SHIFT]) {
+            this.keys[k] = false;
+        }
     }
 
     /**

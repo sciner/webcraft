@@ -6,13 +6,12 @@ import {CMD_PICKAT_ACTION} from "./clientpackets/cmd_pickat_action.js";
 import { CMD_RESURRECTION } from "./clientpackets/cmd_resurrection.js";
 
 export class Packet {
-    constructor(){
-        
+
+    constructor() {
     }
 
     ReadPacket(player, packet) {
-        if (player.is_dead && packet.name != ServerClient.CMD_RESURRECTION)
-        {
+        if (player.is_dead && packet.name != ServerClient.CMD_RESURRECTION) {
             return;
 		}
         if (packet.name < 96 &&
@@ -23,27 +22,33 @@ export class Packet {
         }
         try {
             switch (packet.name) {
-
-                case ServerClient.CMD_SYNC_TIME:
+                case ServerClient.CMD_SYNC_TIME: {
                     new CMD_SYNC_TIME(player, packet.data);
                     break;
-                case ServerClient.CMD_PLAYER_STATE:
+                }
+                case ServerClient.CMD_PLAYER_STATE: {
                     new CMD_PLAYER_STATE(player, packet.data);
                     break;
-                case ServerClient.CMD_STATS:
+                }
+                case ServerClient.CMD_STATS: {
                     new CMD_STATS(player, packet.data);
                     break;
-                case ServerClient.CMD_PICKAT_ACTION:
+                }
+                case ServerClient.CMD_PICKAT_ACTION: {
                     new CMD_PICKAT_ACTION(player, packet.data);
                     break;
-                case ServerClient.CMD_RESURRECTION:
+                }
+                case ServerClient.CMD_RESURRECTION: {
                     new CMD_RESURRECTION(player, packet.data);
                     break;
-                default:
+                }
+                default: {
                     console.log(packet.name + " not found code");
+                }
             }
         } catch(e) {
             console.log(e);
         }
     }
+
 }

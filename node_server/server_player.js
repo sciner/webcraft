@@ -75,8 +75,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
-        this.packet = new Packet();
-        this.is_dead = false;
+        this.packet                 = new Packet();
+        this.is_dead                = false;
     }
 
     init(init_info) {
@@ -142,6 +142,7 @@ export class ServerPlayer extends Player {
         this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
     }
 
+    // on message
     async onMessage(response) {
 
         if (EMULATED_PING) {
@@ -166,7 +167,6 @@ export class ServerPlayer extends Player {
 
                 // Connect
                 case ServerClient.CMD_CONNECT: {
-                    console.log('Connect');
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
                     Log.append('CmdConnect', {world_guid, session: this.session});
@@ -244,7 +244,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_PICKAT_ACTION: {
-                    //this.world.pickAtAction(this, cmd.data);
+                    // this.world.pickAtAction(this, cmd.data);
                     break;
                 }
 
@@ -512,6 +512,7 @@ export class ServerPlayer extends Player {
         // check if died
         if(this.state.indicators.live.value <= 0) {
             this.is_dead = true;
+            this.state.stats.death++;
             packets.push({
                 name: ServerClient.CMD_DIE,
                 data: {}

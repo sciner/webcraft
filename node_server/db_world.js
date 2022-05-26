@@ -429,9 +429,10 @@ export class DBWorld {
 
         migrations.push({version: 49, queries: [
             {
-                sql: 'UPDATE "user" SET stats = :stats WHERE stats IS NULL',
+                sql: 'UPDATE "user" SET stats = :stats WHERE stats IS NULL OR stats == :null',
                 placeholders: {
                     ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
+                    ':null':  'null'
                 }
             }
         ]});
@@ -515,7 +516,7 @@ export class DBWorld {
     // Register new user or return existed
     async registerUser(world, player) {
         // Find existing user record
-        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
+        const row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             let inventory = JSON.parse(row.inventory);
             // Added new property
@@ -529,14 +530,15 @@ export class DBWorld {
                     rotate:             JSON.parse(row.rotate),
                     indicators:         JSON.parse(row.indicators),
                     chunk_render_dist:  row.chunk_render_dist,
-                    game_mode:          row.game_mode || world.info.game_mode
+                    game_mode:          row.game_mode || world.info.game_mode,
+                    stats:              JSON.parse(row.stats)
                 },
                 inventory: inventory
             };
         }
-        let default_pos_spawn = world.info.pos_spawn;
+        const default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
-        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin)', {
+        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
@@ -546,7 +548,8 @@ export class DBWorld {
             ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
             ':inventory':   JSON.stringify(this.getDefaultInventory()),
             ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
-            ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
+            ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0,
+            ':stats':       JSON.stringify(this.getDefaultPlayerStats())
         });
         return await this.registerUser(world, player);
     }
@@ -575,12 +578,13 @@ export class DBWorld {
     // savePlayerState...
     async savePlayerState(player) {
         player.position_changed = false;
-        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators WHERE id = :id', {
-            ':id':             player.session.user_id,
-            ':pos':            JSON.stringify(player.state.pos),
-            ':rotate':         JSON.stringify(player.state.rotate),
-            ':indicators':     JSON.stringify(player.state.indicators),
-            ':dt_moved':       ~~(Date.now() / 1000)
+        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
+            ':id':              player.session.user_id,
+            ':pos':             JSON.stringify(player.state.pos),
+            ':rotate':          JSON.stringify(player.state.rotate),
+            ':indicators':      JSON.stringify(player.state.indicators),
+            ':dt_moved':        ~~(Date.now() / 1000),
+            ':stats':           JSON.stringify(player.state.stats),
         });
     }
 
@@ -731,6 +735,7 @@ export class DBWorld {
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 type:       row.type,
+                skin:       row.skin,
                 extra_data: Mob.convertRowToExtraData(row),
                 indicators: JSON.parse(row.indicators)
             });

@@ -225,6 +225,9 @@ export class ServerChunk {
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
         }
+        //if(['npc'].indexOf(world.info.generator.id) >= 0) {
+        //    this.mobGenerator = new MobGenerator(this);
+        //}
         this.setState(CHUNK_STATE_NEW);
     }
 
