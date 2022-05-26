@@ -1,5 +1,6 @@
 import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
+import {attribute} from "./lib/attribute.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
 
@@ -60,7 +61,10 @@ export function Physics(mcData, fake_world, options) {
         airdrag: Math.fround(1 - 0.02), // actually (1 - drag)
         yawSpeed: 3.0,
         pitchSpeed: 3.0,
-        sprintSpeed: 1.3,
+
+        playerSpeed: 0.1,
+        sprintSpeed: 0.3, //  sprintSpeed: 1.3,
+
         sneakSpeed: 0.3,
         stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
@@ -92,8 +96,10 @@ export function Physics(mcData, fake_world, options) {
             maxUp: 0.7
         },
         slowFalling: 0.125,
-        speedEffect: 1.2,
-        slowEffect: 0.85
+        // speedEffect: 1.2,
+        // slowEffect: 0.85,
+        movementSpeedAttribute: 'generic.movementSpeed', // mcData.attributesByName.movementSpeed.resource,
+        sprintingUUID: '662a6b8d-da3e-4c1c-8813-96ea6097278d' // SPEED_MODIFIER_SPRINTING_UUID is from LivingEntity.java    
     }
 
     if (supportFeature('independentLiquidGravity')) {
@@ -395,15 +401,47 @@ export function Physics(mcData, fake_world, options) {
             let acceleration = physics.airborneAcceleration
             let inertia = physics.airborneInertia
             const blockUnder = world.getBlock(pos.offset(0, -1, 0))
-            // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
+
+            //
             if (entity.onGround && blockUnder) {
-            // if (blockUnder) {
+                let playerSpeedAttribute
+                if (entity.attributes && entity.attributes[physics.movementSpeedAttribute]) {
+                    // Use server-side player attributes
+                    playerSpeedAttribute = entity.attributes[physics.movementSpeedAttribute]
+                } else {
+                    // Create an attribute if the player does not have it
+                    playerSpeedAttribute = attribute.createAttributeValue(physics.playerSpeed)
+                }
+                // Client-side sprinting (don't rely on server-side sprinting)
+                // setSprinting in LivingEntity.java
+                playerSpeedAttribute = attribute.deleteAttributeModifier(playerSpeedAttribute, physics.sprintingUUID) // always delete sprinting (if it exists)
+                if (entity.control.sprint) {
+                    if (!attribute.checkAttributeModifier(playerSpeedAttribute, physics.sprintingUUID)) {
+                        playerSpeedAttribute = attribute.addAttributeModifier(playerSpeedAttribute, {
+                            uuid: physics.sprintingUUID,
+                            amount: physics.sprintSpeed,
+                            operation: 2
+                        })
+                    }
+                }
+                // Calculate what the speed is (0.1 if no modification)
+                const attributeSpeed = attribute.getAttributeValue(playerSpeedAttribute)
+                inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
+                acceleration = attributeSpeed * (0.1627714 / (inertia * inertia * inertia))
+                if (acceleration < 0) acceleration = 0 // acceleration should not be negative
+            }
+
+            /*
+            // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
+            // if (entity.onGround && blockUnder) {
+            if (blockUnder) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
             if (entity.control.sprint) acceleration *= physics.sprintSpeed
             if (entity.speed > 0) acceleration *= physics.speedEffect * entity.speed
             if (entity.slowness > 0) acceleration *= physics.slowEffect * entity.slowness
+            */
 
             applyHeading(entity, strafe, forward, acceleration)
 
@@ -713,6 +751,7 @@ export class PlayerState {
         this.jumpQueued             = bot.jumpQueued
 
         // Input only (not modified)
+        this.attributes             = bot.entity.attributes
         this.yaw                    = bot.entity.yaw
         this.control                = control
 

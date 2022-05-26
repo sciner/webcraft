@@ -416,7 +416,7 @@ export class PickatActions {
     }
 
     // Add play sound
-    addPlaySound(item) {
+     addPlaySound(item) {
         this.play_sound.push(item);
     }
 

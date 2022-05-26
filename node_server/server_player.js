@@ -352,6 +352,7 @@ export class ServerPlayer extends Player {
      * @param {NetworkMessage[]} packets 
      */
     sendPackets(packets) {
+
         packets.forEach(e => {
             e.time = this.world.serverTime;
         });

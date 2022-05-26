@@ -813,10 +813,10 @@ export class ServerWorld {
                             delete(params.except_players);
                             cps.custom_packets.push({
                                 except_players,
-                                packets: {
+                                packets: [{
                                     name: ServerClient.CMD_PLAY_SOUND,
                                     data: params
-                                }
+                                }]
                             });
                         } else {
                             cps.packets.push({
@@ -839,10 +839,10 @@ export class ServerWorld {
                             delete(params.except_players);
                             cps.custom_packets.push({
                                 except_players,
-                                packets: {
+                                packets: [{
                                     name: ServerClient.CMD_PARTICLE_EXPLOSION,
                                     data: params
-                                }
+                                }]
                             });
                         } else {
                             cps.packets.push({
