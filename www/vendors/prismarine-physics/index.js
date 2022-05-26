@@ -396,8 +396,8 @@ export function Physics(mcData, fake_world, options) {
             let inertia = physics.airborneInertia
             const blockUnder = world.getBlock(pos.offset(0, -1, 0))
             // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
-            if (entity.onGround && blockUnder) {
-            // if (blockUnder) {
+            // if (entity.onGround && blockUnder) {
+            if (blockUnder) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
