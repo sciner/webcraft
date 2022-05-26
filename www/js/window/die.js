@@ -1,5 +1,6 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
+import { Lang } from "../lang.js";
 
 export class DieWindow extends Window {
 
@@ -17,9 +18,11 @@ export class DieWindow extends Window {
         ct.style.border.hidden = true;
         ct.hide();
         
-        let lbl2 = new Label(20 * this.zoom, 50 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'lbl2', 'Вы мертвы');
+        let lbl2 = new Label(20 * this.zoom, 50 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'lbl2', Lang.you_died);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
+        lbl2.style.font.size = 50;
+        lbl2.style.color = '#fff';
         ct.add(lbl2);
 
         this.addReturnButton()
@@ -34,7 +37,7 @@ export class DieWindow extends Window {
 
     addCloseButton() {
         // Close button
-        let btnClose = this.btnClose = new Button(20 * this.zoom, 150 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', 'Exit');
+        let btnClose = this.btnClose = new Button(20 * this.zoom, 150 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit);
         btnClose.style.background.color = '#777777ff';
         btnClose.style.color = '#ffffffff';
         btnClose.style.font.shadow = {
@@ -61,7 +64,7 @@ export class DieWindow extends Window {
     }
 
     addReturnButton() {
-        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 100 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', 'Return');
+        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 100 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return);
         btnReturn.style.background.color = '#777777ff';
         btnReturn.style.color = '#ffffffff';
         btnReturn.style.font.shadow = {

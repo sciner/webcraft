@@ -1,4 +1,5 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
+import { Lang } from "../lang.js";
 
 export default class MainMenu extends Window {
 
@@ -17,7 +18,7 @@ export default class MainMenu extends Window {
         ct.hide();
 
         //
-        let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', 'Menu');
+        let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', Lang.menu);
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
         ct.add(lbl2);
@@ -37,7 +38,7 @@ export default class MainMenu extends Window {
 
     // Return
     addReturnButton() {
-        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 80 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', 'Return');
+        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 80 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return);
         btnReturn.style.background.color = '#777777ff';
         btnReturn.style.color = '#ffffffff';
         btnReturn.style.font.shadow = {
@@ -67,7 +68,7 @@ export default class MainMenu extends Window {
     // Close
     addCloseButton() {
         // Close button
-        let btnClose = this.btnClose = new Button(20 * this.zoom, 180 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', 'Exit');
+        let btnClose = this.btnClose = new Button(20 * this.zoom, 180 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit);
         btnClose.style.background.color = '#777777ff';
         btnClose.style.color = '#ffffffff';
         btnClose.style.font.shadow = {
@@ -95,7 +96,7 @@ export default class MainMenu extends Window {
 
     // Statistics
     addStatsButton() {
-        let btnStats = this.btnStats = new Button(20 * this.zoom, 130 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnStats', 'Statistics');
+        let btnStats = this.btnStats = new Button(20 * this.zoom, 130 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnStats', Lang.btn_statistics);
         btnStats.style.background.color = '#777777ff';
         btnStats.style.color = '#ffffffff';
         btnStats.style.font.shadow = {

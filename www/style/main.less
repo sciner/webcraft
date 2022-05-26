@@ -134,7 +134,11 @@ body.started.controls_enabled .visible_in_game_menu {
 }
 
 body:not(.started) .visible_only_in_game_menu {
-    display: none;
+    display: none !important;
+}
+
+body.started .visible_only_in_lobbi {
+    display: none !important;
 }
 
 button .fa-spin {
@@ -272,6 +276,33 @@ canvas {
 	color: white;
 	font-family: Ubuntu;
 	font-size: 16px;
+}
+
+#lang-pad {
+    position: fixed;
+    left: 0.5em;
+    top: 0.5em;
+    z-index: 2;
+    display: flex;
+    button {
+        clip-path: none;
+        padding: .25em .5em;
+        font-size: 1rem;
+        &:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        &:not(:last-child) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        &:not(.active) {
+            background-color: rgba(255,255,255,.3);
+        }
+        &::before {
+            display: none;
+        }
+    }
 }
 
 #btns-pad {

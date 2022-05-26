@@ -282,7 +282,7 @@ export class HUD {
         // Draw windows
         this.ctx.restore();
         if(this.wm.hasVisibleWindow()) {
-            this.wm.style.background.color = '#00000077';
+            this.wm.style.background.color = Game.player.isAlive ? '#00000077' : '#ff330027';
             this.wm.draw(true);
         } else {
             this.wm.style.background.color = '#00000000';

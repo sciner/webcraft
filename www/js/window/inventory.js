@@ -1,6 +1,7 @@
 import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
+import { Lang } from "../lang.js";
 
 export default class InventoryWindow extends BaseCraftWindow {
 
@@ -97,7 +98,7 @@ export default class InventoryWindow extends BaseCraftWindow {
         }
 
         // Add labels to window
-        let lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Create');
+        let lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
         ct.add(lbl1);
 
         // Add close button
@@ -148,7 +149,7 @@ export default class InventoryWindow extends BaseCraftWindow {
     addRecipesButton() {
         const ct = this;
         let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
-        btnRecipes.tooltip = 'Toggle recipes';
+        btnRecipes.tooltip = Lang.toggle_recipes;
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
             let frmRecipe = Game.hud.wm.getWindow('frmRecipe');

@@ -4,6 +4,9 @@ import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
 import {GameClass} from '../game.js';
 import { Player } from '../player.js';
+import { Lang } from "../lang.js";
+
+Lang.init();
 
 function isSupported() {
 
@@ -113,6 +116,7 @@ let gameCtrl = async function($scope, $timeout) {
 
     window.Game                     = new GameClass();
     $scope.App                      = Game.App = new UIApp();
+    $scope.Lang                     = Lang;
 
     //
     $scope.App.onLogin = (e) => {};
@@ -124,29 +128,8 @@ let gameCtrl = async function($scope, $timeout) {
     }
     $scope.App.onError = (message) => {
         // Multilingual messages
-        if(message in $scope.lang) {
-            message = $scope.lang[message];
-        }
+        message = Lang[message]
         vt.error(message);
-    };
-
-    // Lang
-    $scope.lang = {
-        enter_your_name: 'Enter your name',
-        enter_your_password: 'Enter password',
-        error_user_already_registered: 'User already registered',
-        error_invalid_login_or_password: 'Invalid login or password',
-        error_player_exists_in_selected_world: 'You already exists in this world',
-        error_not_permitted: 'Not permitted',
-        share_game_with_friends: 'Share world with friends',
-        error_not_logged: 'Login before open invite link',
-        copied: 'Copied',
-        copy: 'Copy',
-        registration: 'Registration',
-        submit: 'Submit',
-        back: 'Back',
-        login: 'Login',
-        enter: 'Enter'
     };
 
     //
@@ -159,7 +142,7 @@ let gameCtrl = async function($scope, $timeout) {
         },
         copy: function() {
             Clipboard.copy(this.url);
-            vt.success($scope.lang.copied);
+            vt.success(Lang.copied);
         }
     };
 
@@ -420,7 +403,7 @@ let gameCtrl = async function($scope, $timeout) {
             let hash = window.location.hash;
             if(hash && hash.startsWith('#world_')) {
                 if(!$scope.App.isLogged()) {
-                    vt.success($scope.lang.error_not_logged);
+                    vt.success(Lang.error_not_logged);
                     return;
                 }
                 let world_guid = hash.substr(7);
@@ -430,7 +413,7 @@ let gameCtrl = async function($scope, $timeout) {
                 $scope.App.JoinWorld({world_guid: world_guid}, (resp) => {
                     $timeout(() => {
                         that.list.push(resp);
-                        vt.success('You invited to world ' + hash);
+                        vt.success(Lang.you_invited_to_world + ' ' + hash);
                         location.href = location.protocol + '//' + location.host;
                         that.loading = false;
                     });
@@ -458,9 +441,9 @@ let gameCtrl = async function($scope, $timeout) {
         generators: {
             index: 0,
             list: [
-                {id: 'biome2', title: 'Стандартный', options: {
+                {id: 'biome2', title: Lang.world_generator_type_default, options: {
                     auto_generate_mobs: {
-                        title: 'Generate mobs',
+                        title: Lang.world_generator_generate_mobs,
                         type: 'select',
                         options: [
                             {value: true, title: 'Yes'},
@@ -472,7 +455,7 @@ let gameCtrl = async function($scope, $timeout) {
                 {id: 'city2', title: 'Город 2'},
                 {id: 'flat', title: 'Плоский мир'},
                 {id: 'test_trees', title: 'Тестовые деревья'},
-                {id: 'mine', title: 'Заброшенная шахта'}
+                // {id: 'mine', title: 'Заброшенная шахта'}
             ],
             getCurrent: function() {
                 return this.list[this.index];

@@ -194,6 +194,33 @@ export class GameClass {
                     player.chat.onKeyEvent(e);
                     return false;
                 }
+                //
+                switch(e.keyCode) {
+                    // [F1]
+                    case KEY.F1: {
+                        if(!e.down) {
+                            this.hud.toggleActive();
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F2]
+                    case KEY.F2: {
+                        if(!e.down) {
+                            this.render.downloadScreenshot();
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F3] Toggle info
+                    case KEY.F3: {
+                        if(!e.down) {
+                            this.hud.toggleInfo();
+                        }
+                        return true;
+                        break;
+                    }
+                }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
@@ -240,31 +267,7 @@ export class GameClass {
                         return true;
                         break;
                     }
-                    // [F1]
-                    case KEY.F1: {
-                        if(!e.down) {
-                            this.hud.toggleActive();
-                        }
-                        return true;
-                        break;
-                    }
-                    // [F2]
-                    case KEY.F2: {
-                        if(!e.down) {
-                            this.render.downloadScreenshot();
-                        }
-                        return true;
-                        break;
-                    }
-                    // [F3] Toggle info
-                    case KEY.F3: {
-                        if(!e.down) {
-                            this.hud.toggleInfo();
-                        }
-                        return true;
-                        break;
-                    }
-                    // [F4] Draw all blocks
+                    // [F4] set spawnpoint
                     case KEY.F4: {
                         if(!e.down) {
                             if(e.shiftKey) {

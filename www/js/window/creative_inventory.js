@@ -1,6 +1,7 @@
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
+import { Lang } from "../lang.js";
 
 class CreativeInventoryCollection extends Window {
 
@@ -177,7 +178,7 @@ export class CreativeInventoryWindow extends Window {
         this.cell_size = 36 * this.zoom;
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Creative inventory');
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory);
         ct.add(lbl1);
 
         // Создание слотов для инвентаря

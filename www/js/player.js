@@ -161,6 +161,10 @@ export class Player {
         return true;
     }
 
+    get isAlive() {
+        return this.indicators.live.value > 0;
+    }
+
     // Return player is sneak
     get isSneak() {
         // Get current player control
