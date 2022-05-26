@@ -441,6 +441,33 @@ export class DBWorld {
             `UPDATE entity SET is_active = 0 WHERE indicators LIKE '%"live","value":0}%'`,
         ]});
 
+        migrations.push({version: 51, queries: [
+            `UPDATE "quest" SET "title" = '{"ru":"Добыть дубовые брёвна","en":"Get oak logs"}', "description" = '{"ru":"Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\\r\\n\\r\\n1-й шаг — Найдите дерево\\r\\nНайдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\\r\\nЧтобы сломать бревно рукой нужно примерно 6 секунд.\\r\\n\\r\\n2-й шаг — Подберите блок\\r\\nПодойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.","en":"You need to get oak logs. After that, you can craft weapons for further development.\\r\\n\\r\\n1st step - Find a tree\\r\\nFind any tree, get close enough to it so that a thin outline appears around the block of wood you are aiming at. Hold down the left mouse button and do not release until the log is mined.\\r\\nIt takes about 6 seconds to break a log by hand.\\r\\n\\r\\n2nd step - Pick up a block\\r\\nGet closer to the dropped block, it will go into your inventory."}' WHERE "id" = 1;`,
+            `UPDATE "quest" SET "title" = '{"ru":"Выкопать землю","en":"Dig up the dirt"}', "description" = '{"ru":"Это земляные работы. Почувствуй себя землекопом.\\r\\nЗемля (она же дёрн) может быть добыта чем угодно.","en":"This is earthworks. Feel like a digger.\\r\\nDirt can be mined by anything."}' WHERE "id" = 2;`,
+            `UPDATE "quest" SET "title" = '{"ru":"Скрафтить и установить Верстак","en":"Craft and install a Crafting Table"}', "description" = '{"ru":"Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\\r\\n\\r\\n1-й шаг\\r\\nПоместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\\r\\n\\r\\n2-й шаг\\r\\nПоместите верстак в один из нижних слотов инвентаря\\r\\n\\r\\n3-й шаг\\r\\nВыйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\\r\\n\\r\\nТеперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее.","en":"You need to craft and install a Crafting Table. Without it, you will not be able to develop further.\\r\\n\\r\\n1st step\\r\\nPlace 4 planks in the 4 inventory slots and take the Crafting Table on the right side.\\r\\n\\r\\n2nd step\\r\\nPlace the Crafting Table in one of the lower inventory slots\\r\\n\\r\\n3rd step\\r\\nExit the inventory by pressing the \\"E\\" key. Select the slot the item is in by scrolling the mouse wheel or using the 1-9 keys. Place the Crafting Table on the ground with the right mouse button.\\r\\n\\r\\nYou can now craft complex items at the Crafting Table. Simple items like planks and sticks can also be crafted at the Crafting Table. You can take the Crafting Table with you by breaking it with your hands, the ax will do it much faster."}' WHERE "id" = 3;`,
+            `UPDATE "quest_action" SET "description" = '{"ru":"Добыть 5 дубовых брёвен","en":"Mine 5 oak logs"}' WHERE "id" = 1;`,
+            `UPDATE "quest_action" SET "description" = '{"ru":"Выкопать 20 земляных блоков","en":"Dig 20 dirt blocks"}' WHERE "id" = 2;`,
+            `UPDATE "quest_action" SET "description" = '{"ru":"Скрафтить верстак","en":"Craft a Crafting Table"}' WHERE "id" = 3;`,
+            `UPDATE "quest_action" SET "description" = '{"ru":"Установить верстак в удобном для вас месте","en":"Install the Crafting Table in a convenient place for you"}' WHERE "id" = 4;`,
+            `UPDATE "quest_action_type" SET "title" = '{"ru":"Добыть","en":"Mine"}' WHERE "id" = 1;`,
+            `UPDATE "quest_action_type" SET "title" = '{"ru":"Скрафтить","en":"Craft"}' WHERE "id" = 2;`,
+            `UPDATE "quest_action_type" SET "title" = '{"ru":"Установить блок","en":"Set block"}' WHERE "id" = 3;`,
+            `UPDATE "quest_action_type" SET "title" = '{"ru":"Использовать инструмент","en":"Use tool"}' WHERE "id" = 4;`,
+            `UPDATE "quest_action_type" SET "title" = '{"ru":"Достигнуть координат","en":"Reach the coordinates"}' WHERE "id" = 5;`,
+            `UPDATE "quest_group" SET "title" = '{"ru":"Основные задания","en":"Main tasks"}' WHERE "id" = 1;`,
+            `UPDATE "quest_group" SET "title" = '{"ru":"Дополнительные задания","en":"Additional tasks"}' WHERE "id" = 2;`,
+            
+            `DELETE FROM user_quest`,
+
+            /*
+            `UPDATE quest_group SET title = json_object('ru', title, 'en', title) WHERE title NOT LIKE '%{"%';`,
+            `UPDATE quest SET title = json_object('ru', title, 'en', title) WHERE title NOT LIKE '%{"%';`,
+            `UPDATE quest SET description = json_object('ru', description, 'en', description) WHERE description NOT LIKE '%{"%';`,
+            `UPDATE quest_action_type SET title = json_object('ru', title, 'en', title) WHERE title NOT LIKE '%{"%';`,
+            `UPDATE quest_action SET description = json_object('ru', description, 'en', description) WHERE description NOT LIKE '%{"%';`,
+            */
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

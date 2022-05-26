@@ -2674,26 +2674,18 @@
         "name": "BIRCH_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                20,
-                17
-            ],
-            "down": [
-                20,
-                17
-            ],
-            "side": [
-                20,
-                16
-            ]
+            "up": [20, 17],
+            "down": [20, 17],
+            "side": [20, 16]
         }
     },
     {
@@ -2701,27 +2693,18 @@
         "name": "OAK_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
-        "can_rotate": true,
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                21,
-                17
-            ],
-            "down": [
-                21,
-                17
-            ],
-            "side": [
-                21,
-                16
-            ]
+            "up": [21, 17],
+            "down": [21, 17],
+            "side": [21, 16]
         }
     },
     {
@@ -2729,26 +2712,18 @@
         "name": "ACACIA_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                22,
-                17
-            ],
-            "down": [
-                22,
-                17
-            ],
-            "side": [
-                22,
-                16
-            ]
+            "up": [22, 17],
+            "down": [22, 17],
+            "side": [22, 16]
         }
     },
     {
@@ -2756,26 +2731,18 @@
         "name": "SPRUCE_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                23,
-                17
-            ],
-            "down": [
-                23,
-                17
-            ],
-            "side": [
-                23,
-                16
-            ]
+            "up": [23, 17],
+            "down": [23, 17],
+            "side": [23, 16]
         }
     },
     {
@@ -2783,26 +2750,18 @@
         "name": "DARK_OAK_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                24,
-                17
-            ],
-            "down": [
-                24,
-                17
-            ],
-            "side": [
-                24,
-                16
-            ]
+            "up": [24, 17],
+            "down": [24, 17],
+            "side": [24, 16]
         }
     },
     {
@@ -2810,26 +2769,18 @@
         "name": "JUNGLE_TRUNK",
         "sound": "madcraft:block.wood",
         "fuel_time": 16,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "tags": [
             "can_put_info_pot",
-            "rotate_by_pos_n"
+            "rotate_by_pos_n_plus"
         ],
         "texture": {
-            "up": [
-                25,
-                17
-            ],
-            "down": [
-                25,
-                17
-            ],
-            "side": [
-                25,
-                16
-            ]
+            "up": [25, 17],
+            "down": [25, 17],
+            "side": [25, 16]
         }
     },
     {

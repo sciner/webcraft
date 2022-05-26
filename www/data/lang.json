@@ -47,6 +47,9 @@
         "submit": {"en": "Submit", "ru": "Отправить"},
         "back": {"en": "Back", "ru": "Назад"},
         "login": {"en": "Login", "ru": "Авторизация"},
-        "enter": {"en": "Enter", "ru": "Вход"}
+        "enter": {"en": "Enter", "ru": "Вход"},
+        "quests": {"en": "Quests", "ru": "Квесты"},
+        "tasks": {"en": "Task(s)", "ru": "Задания"},
+        "rewards": {"en": "Reward(s)", "ru": "Награды"}
     }
 }

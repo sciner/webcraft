@@ -1337,5 +1337,23 @@
             "item": "madcraft:brick_wall",
             "count": 6
         }
+    },
+    {
+        "id": "65c1dc1c-a8ef-4375-850c-0938276965f4",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "# #",
+            " #"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:bucket_empty",
+            "count": 1
+        }
     }
 ]

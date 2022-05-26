@@ -675,7 +675,22 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             // throw 'error_deprecated_block';
             return actions;
         }
-        const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(player.rotate, pos.n) : calcRotate(player.rotate, pos.n);
+        // rotate_by_pos_n
+        let orientation = null;
+        if(matBlock.tags.indexOf('rotate_by_pos_n')) {
+            orientation = calcRotateByPosN(player.rotate, pos.n);
+            if(matBlock.tags.indexOf('rotate_by_pos_n_plus')) {
+                if(orientation.x < 0) orientation.x *= -1;
+                if(orientation.y < 0) orientation.y *= -1;
+                if(orientation.z < 0) orientation.z *= -1;
+                // 7+18; 13+22
+                if(orientation.x == 18) orientation.x = 7;
+                if(orientation.x == 22) orientation.x = 13;
+            }
+            console.log(orientation);
+        } else {
+            orientation = calcRotate(player.rotate, pos.n);
+        }
         // Put plant into pot
         let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
         if(putPlantIntoPot) {

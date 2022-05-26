@@ -21,9 +21,31 @@ export const Lang = new Proxy(
             this.code = found ? lang_code : this.default_code;
         },
 
-        change: function(item) {
+        change(item) {
             localStorage.setItem('lang', item.code);
-            location.reload();
+            this.init();
+        },
+
+        //
+        getTranslateFromJSON(json_string) {
+            try {
+                const obj = JSON.parse(json_string);
+                if(!obj) {
+                    return json_string;
+                }
+                if(this.code in obj) {
+                    return obj[this.code];
+                } else if(this.default_code in obj) {
+                    return obj[this.default_code];
+                } else {
+                    for(let c in obj) {
+                        return obj[c];
+                    }
+                }
+            } catch (e) {
+                // Oh well, but whatever...
+            }
+            return json_string;
         }
 
     },

@@ -2,6 +2,7 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import { ServerClient } from "../../js/server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
+import { Lang } from "../lang.js";
 
 export class QuestWindow extends Window {
 
@@ -25,7 +26,7 @@ export class QuestWindow extends Window {
         this.cell_size = 36 * this.zoom;
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Quests');
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);
         ct.add(lbl1);
 
         // Обработчик открытия формы
@@ -74,6 +75,18 @@ export class QuestWindow extends Window {
 
         // Quests updated
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {
+            for(let i = 0; i < cmd.data.length; i++) {
+                const group = cmd.data[i];
+                group.title = Lang.getTranslateFromJSON(group.title);
+                for(let quest of group.quests) {
+                    quest.title = Lang.getTranslateFromJSON(quest.title);
+                    quest.description = Lang.getTranslateFromJSON(quest.description);
+                    for(let action of quest.actions) {
+                        action.title = Lang.getTranslateFromJSON(action.title);
+                        action.description = Lang.getTranslateFromJSON(action.description);
+                    }
+                }
+            }
             this.setData(cmd.data);
         });
 

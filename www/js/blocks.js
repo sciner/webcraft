@@ -522,6 +522,10 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
+        // rotate_by_pos_n_plus
+        if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
+            block.tags.push('rotate_by_pos_n');
+        }
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';

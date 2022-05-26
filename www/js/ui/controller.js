@@ -118,6 +118,12 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.App                      = Game.App = new UIApp();
     $scope.Lang                     = Lang;
 
+    $scope.changeLang = (item) => {
+        Lang.change(item);
+        // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
+        location.reload();
+    };
+
     //
     $scope.App.onLogin = (e) => {};
     $scope.App.onLogout = (result) => {

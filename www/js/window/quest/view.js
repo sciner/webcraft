@@ -1,5 +1,6 @@
 import { Window } from "../../../tools/gui/wm.js";
 import {BLOCK} from "../../../js/blocks.js";
+import { Lang } from "../../lang.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -67,7 +68,7 @@ export class QuestView extends Window {
                             background: {color: '#ffffff00'}
                         },
                         title: null,
-                        text: 'Task(s):'
+                        text: Lang.tasks + ':'
                     },
                     lblActions: {
                         type: 'Label',
@@ -89,7 +90,7 @@ export class QuestView extends Window {
                             background: {color: '#ffffff00'}
                         },
                         title: null,
-                        text: 'Reward(s):'
+                        text: Lang.rewards + ':'
                     },
                     lblRewards: {
                         type: 'Label',
