@@ -45,15 +45,15 @@ export class PickAt {
         this._temp_pos = new Vector(0, 0, 0);
     }
 
-    get(pos, callback, pickat_distance, view_vector) {
+    get(pos, callback, pickat_distance, view_vector, ignore_transparent) {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
-        view_vector = null;
+        // view_vector = null;
         if(view_vector) {
-            return this.raycaster.get(pos, view_vector, pickat_distance, callback);
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent);
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-        return this.raycaster.getFromView(pos, m, pickat_distance, callback);
+        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent);
     }
 
     // setEvent...

@@ -287,13 +287,11 @@ export class Player {
     }
 
     get forward() {
-        const flip = Game.render.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT;
-        const resp = this.#forward.set(
-            Math.sin(this.rotate.z + (flip ? Math.PI : 0)),
-            Math.sin(this.rotate.x * (flip ? -1 : 1)),
-            Math.cos(this.rotate.z + (flip ? Math.PI : 0)),
+        return this.#forward.set(
+            Math.cos(this.rotate.x) * Math.sin(this.rotate.z),
+            Math.sin(this.rotate.x),
+            Math.cos(this.rotate.x) * Math.cos(this.rotate.z),
         );
-        return resp;
     }
 
     // onPickAtTarget

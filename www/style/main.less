@@ -281,12 +281,15 @@ canvas {
 #lang-pad {
     position: fixed;
     left: 0.5em;
+    margin: 0.5em 0;
     top: 0.5em;
     z-index: 2;
     display: flex;
+    & > {
+        margin: 0.5em;
+    }
     button {
         clip-path: none;
-        padding: .25em .5em;
         font-size: 1rem;
         &:not(:first-child) {
             border-top-left-radius: 0;

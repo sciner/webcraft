@@ -218,7 +218,7 @@ export class PlayerModel extends MobModel {
         const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
         const angX = 0; // @todo
 
-        this.nametag.visible = !this.sneak;
+        this.nametag.visible = !this.sneak && !this.hide_nametag;
 
         quat.fromEuler(this.nametag.quat, angX, 0, angZ);
         this.nametag.updateMatrix();

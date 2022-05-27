@@ -58,7 +58,7 @@ export class Raycaster {
      * @param {*} callback 
      * @returns {null | RaycasterResult}
      */
-    getFromView(pos, invViewMatrix, distance, callback ) {
+    getFromView(pos, invViewMatrix, distance, callback, ignore_transparent) {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
         this._dir.z = -invViewMatrix[9];
@@ -67,7 +67,7 @@ export class Raycaster {
             return null;
         }
         this._dir.normSelf();
-        return this.get(pos, this._dir, distance, callback);
+        return this.get(pos, this._dir, distance, callback, ignore_transparent);
     }
 
     // intersectSphere...
@@ -149,7 +149,7 @@ export class Raycaster {
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
-    get(origin, dir, pickat_distance, callback) {
+    get(origin, dir, pickat_distance, callback, ignore_transparent) {
 
         const pos = this._pos.copyFrom(origin);
         startBlock.set(
@@ -190,6 +190,9 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid;
+            if(ignore_transparent && b.material.invisible_for_cam) {
+                hitShape = false;
+            }
 
             if (hitShape) {
                 const shapes = BLOCK.getShapes(leftTop, b, this.world, false, true);
@@ -239,6 +242,8 @@ export class Raycaster {
 
                 hitShape = flag;
             }
+
+            // tMin += .1
 
             pos.x += dir.x * tMin;
             pos.y += dir.y * tMin;
