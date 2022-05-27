@@ -279,19 +279,18 @@ export class GameClass {
                         return true;
                         break;
                     }
-                    // [F6] (Test light)
+                    // [F6] (Camera mode)
                     case KEY.F6: {
                         if(!e.down) {
-                            globalThis.f6Toggled = !globalThis.f6Toggled;
-                            this.render.testLightOn = !this.render.testLightOn;
+                            Game.render.nextCameraMode();
                         }
                         return true;
                         break;
                     }
-                    // [F7] Ddraw player "ghost"
+                    // [F7]
                     case KEY.F7: {
                         if(!e.down) {
-                            this.world.players.drawGhost(this.player);
+                            this.render.testLightOn = !this.render.testLightOn;
                         }
                         return true;
                         break;

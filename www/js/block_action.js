@@ -687,7 +687,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 if(orientation.x == 18) orientation.x = 7;
                 if(orientation.x == 22) orientation.x = 13;
             }
-            console.log(orientation);
         } else {
             orientation = calcRotate(player.rotate, pos.n);
         }

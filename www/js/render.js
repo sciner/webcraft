@@ -1,6 +1,6 @@
 "use strict";
 
-import {Color, DIRECTION, Helpers, Vector} from "./helpers.js";
+import {Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -18,8 +18,16 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { World } from "./world.js";
 import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js";
+import { SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./mob_model.js";
 
 const {mat4, quat, vec3} = glMatrix;
+
+export const CAMERA_MODE = {
+    COUNT: 3,
+    SHOOTER: 0,
+    THIRD_PERSON: 1,
+    THIRD_PERSON_FRONT: 2
+};
 
 /**
 * Renderer
@@ -59,6 +67,7 @@ export class Renderer {
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
         this.env                = new Environment(this);
+        this.camera_mode        = CAMERA_MODE.SHOOTER;
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -78,6 +87,14 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+    }
+
+    nextCameraMode() {
+        if(!this.world.players.get('itsme')) {
+            this.world.players.drawGhost(this.player);
+        }
+        this.camera_mode = ++this.camera_mode % CAMERA_MODE.COUNT;
+
     }
 
     /**
@@ -613,7 +630,9 @@ export class Renderer {
             this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
         }
 
-        this.inHandOverlay.draw(this, dt);
+        if(this.camera_mode == CAMERA_MODE.SHOOTER) {
+            this.inHandOverlay.draw(this, dt);
+        }
 
         // we should reset camera state because a viewMatrix used for picking
         this.camera.use(this.globalUniforms);
@@ -673,7 +692,14 @@ export class Renderer {
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(player.itsMe() && id != 'itsme') continue;
+            if(player.itsMe()) {
+                if(id != 'itsme') {
+                    continue;
+                }
+            }
+            if(id == 'itsme' && this.camera_mode == CAMERA_MODE.SHOOTER) {
+                continue;
+            }
             if(player.username != Game.App.session.username) {
                 player.draw(this, this.camPos, delta);
             }
@@ -764,31 +790,55 @@ export class Renderer {
             rotate.y = 0;
         }
         this.bobView(player, tmp);
-        this.camera.set(pos, rotate, tmp);
+
+        // Camera mode
+        let cam_pos = pos.clone();
+        let cam_rotate = rotate.clone();
+
+        // Camera mode
+        if(this.camera_mode != CAMERA_MODE.SHOOTER) {
+            cam_pos.y += 4; // + performance.now() / 1000;
+            // back
+            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON) {
+                // move
+                cam_pos.x += Math.sin(rotate.z - Math.PI) * 5;
+                cam_pos.z += Math.cos(rotate.z - Math.PI) * 5;
+            // front
+            } else {
+                cam_pos.x -= Math.sin(rotate.z - Math.PI) * 5;
+                cam_pos.z -= Math.cos(rotate.z - Math.PI) * 5;
+                cam_rotate.z += Math.PI;
+            }
+            // @todo lookat
+            // ...
+            // get player model
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.pos.copyFrom(pos);
+                itsme.pos.y -= itsme.height * MOB_EYE_HEIGHT_PERCENT;
+                if(player.isSneak) {
+                    itsme.pos.y += itsme.height * SNEAK_MINUS_Y_MUL;
+                }
+                // rotate
+                itsme.yaw = rotate.z; // around
+                itsme.pitch = rotate.x; // head rotate
+                //
+                itsme.sneak = player.isSneak;
+                itsme.moving = player.moving && !player.getFlying();
+                //
+                const current_right_hand_id = player.currentInventoryItem?.id;
+                if(this.prev_current_id != current_right_hand_id) {
+                    this.prev_current_id = current_right_hand_id;
+                    itsme.activeSlotsData.right.id = current_right_hand_id;
+                    itsme.changeSlots(itsme.activeSlotsData);
+                }
+            } 
+        }
+
+        // update camera
+        this.camera.set(cam_pos, cam_rotate, tmp);
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
     }
-
-    /*
-    // Original bobView
-    bobView(viewMatrix, p_109140_) {
-        console.log(34567);
-        let player = this.world.localPlayer;
-        if(player) {
-            let f = player.walkDist - player.walkDistO;
-            let f1 = -(player.walkDist + f * p_109140_);
-            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            let effect_power = 0.05;
-            let z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
-            let x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
-            mat4.rotate(viewMatrix, viewMatrix, x_mul_degree, [1, 0, 0]); // x
-            mat4.rotate(viewMatrix, viewMatrix, z_mul_degree, [0, 1, 0]); // z
-            mat4.translate(viewMatrix, viewMatrix, [
-                (Math.sin(f1 * Math.PI) * f2 * 0.5),
-                (-Math.abs(Math.cos(f1 * Math.PI) * f2)),
-                0
-            ]);
-        }
-    }*/
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {

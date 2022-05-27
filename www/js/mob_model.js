@@ -7,8 +7,10 @@ import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
-const SNEAK_ANGLE           = 28.65 * Math.PI / 180;
-const MAX_DETONATION_TIME   = 2000; // ms
+const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
+export const SNEAK_MINUS_Y_MUL      = 0.2; // decrease player height to this percent value
+export const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
+const MAX_DETONATION_TIME           = 2000; // ms
 
 export class Traversable {
     constructor() {
@@ -463,7 +465,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2 + this.fix_z_fighting,
+            this.pos.y - this.drawPos.y - (this.sneak || 0) * SNEAK_MINUS_Y_MUL + this.fix_z_fighting,
         ]);
 
         this.sceneTree.updateMatrix();

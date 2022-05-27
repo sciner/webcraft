@@ -12,6 +12,9 @@ import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
 import {DieWindow, MainMenu, QuestWindow, StatsWindow} from "./window/index.js";
 
+// import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
+const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
+
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -449,7 +452,7 @@ export class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height - this._height / 16, this.lerpPos.z);
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT, this.lerpPos.z);
     }
 
     // getBlockPos

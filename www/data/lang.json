@@ -24,7 +24,7 @@
         "save": {"en": "Save", "ru": "Сохранить"},
         "cancel": {"en": "Cancel", "ru": "Отмена"},
         "loading_resources": {"en": "Loading resources", "ru": "Загрузка ресурсов"},
-        "new_world_do": {"en": "CREATE NEW WORLD", "ru": "СОЗДАТЬ НОВЫЙ МИР"},
+        "new_world_do": {"en": "CREATE WORLD", "ru": "СОЗДАТЬ МИР"},
         "new_world": {"en": "NEW WORLD", "ru": "НОВЫЙ МИР"},
         "world_name": {"en": "Name", "ru": "Название"},
         "world_seed": {"en": "Seed", "ru": "Зерно генератора"},
