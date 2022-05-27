@@ -789,26 +789,25 @@ export class Renderer {
         } else {
             rotate.y = 0;
         }
-        this.bobView(player, tmp);
 
-        // Camera mode
-        let cam_pos = pos.clone();
-        let cam_rotate = rotate.clone();
+        let cam_pos = pos;
+        let cam_rotate = rotate;
 
-        // Camera mode
-        if(this.camera_mode != CAMERA_MODE.SHOOTER) {
-            cam_pos.y += 4; // + performance.now() / 1000;
+        if(this.camera_mode === CAMERA_MODE.SHOOTER) {
+            this.bobView(player, tmp);
+        } else {
+            cam_pos = pos.clone();
+            cam_rotate = rotate.clone();
             // back
             if(this.camera_mode == CAMERA_MODE.THIRD_PERSON) {
-                // move
-                cam_pos.x += Math.sin(rotate.z - Math.PI) * 5;
-                cam_pos.z += Math.cos(rotate.z - Math.PI) * 5;
-            // front
-            } else {
-                cam_pos.x -= Math.sin(rotate.z - Math.PI) * 5;
-                cam_pos.z -= Math.cos(rotate.z - Math.PI) * 5;
-                cam_rotate.z += Math.PI;
+                //front
+                cam_rotate.z = rotate.z + Math.PI;
+                cam_rotate.x = -rotate.x;
             }
+            const d = 5;
+            cam_pos.x += d * Math.cos(cam_rotate.x) * Math.sin(cam_rotate.z - Math.PI);
+            cam_pos.y += d * Math.sin(-cam_rotate.x);
+            cam_pos.z += d * Math.cos(cam_rotate.x) * Math.cos(cam_rotate.z - Math.PI);
             // @todo lookat
             // ...
             // get player model
@@ -832,11 +831,11 @@ export class Renderer {
                     itsme.activeSlotsData.right.id = current_right_hand_id;
                     itsme.changeSlots(itsme.activeSlotsData);
                 }
-            } 
+            }
         }
 
-        // update camera
         this.camera.set(cam_pos, cam_rotate, tmp);
+        // update camera
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
     }
 
