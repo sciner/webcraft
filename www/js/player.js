@@ -11,6 +11,7 @@ import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
 import {DieWindow, MainMenu, QuestWindow, StatsWindow} from "./window/index.js";
+import { CAMERA_MODE } from "./render.js";
 
 // import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
 const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
@@ -24,6 +25,8 @@ const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
 // Creates a new local player manager.
 export class Player {
+
+    #forward = new Vector(0, 0, 0);
 
     constructor() {
         this.inMiningProcess = false;
@@ -72,6 +75,7 @@ export class Player {
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
+        this.#forward               = new Vector(0, 0, 0);
         // Inventory
         this.inventory              = new Inventory(this, Game.hud);
         this.inventory.onSelect     = (item) => {
@@ -283,6 +287,16 @@ export class Player {
         }
     }
 
+    get forward() {
+        const flip = Game.render.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT;
+        const resp = this.#forward.set(
+            Math.sin(this.rotate.z + (flip ? Math.PI : 0)),
+            Math.sin(this.rotate.x * (flip ? -1 : 1)),
+            Math.cos(this.rotate.z + (flip ? Math.PI : 0)),
+        );
+        return resp;
+    }
+
     // onPickAtTarget
     async onPickAtTarget(e, times, number) {
 
@@ -334,6 +348,7 @@ export class Player {
             const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
             await this.applyActions(actions);
             e_orig.actions = {blocks: actions.blocks};
+            e_orig.eye_pos = this.getEyePos();
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
                 name: ServerClient.CMD_PICKAT_ACTION,

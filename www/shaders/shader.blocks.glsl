@@ -33,6 +33,7 @@
     uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
+    uniform bool u_crosshairOn;
     uniform float u_chunkBlockDist;
 
     //

@@ -58,6 +58,7 @@ export class Renderer {
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;
         this.testLightOn        = false;
+        this.crosshairOn        = true;
         this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
         this.frustum            = new FrustumProxy();
         this.step_side          = 0;
@@ -567,6 +568,7 @@ export class Renderer {
         // it can depend of passes count
         camera.use(renderBackend.globalUniforms, true);
 
+        globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.update();
 
         renderBackend.beginPass({
@@ -716,6 +718,7 @@ export class Renderer {
         defaultShader.bind();
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
+        const pos_of_interest = this.player.getEyePos();
         for(let [id, mob] of this.world.mobs.list) {
             const ca = mob.chunk_addr;
             if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
@@ -723,7 +726,7 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.in_frustum) {
-                mob.draw(this, this.camPos, delta);
+                mob.draw(this, pos_of_interest, delta);
             }
         }
     }
@@ -793,16 +796,19 @@ export class Renderer {
         let cam_pos = pos;
         let cam_rotate = rotate;
 
+        this.bobView(player, tmp);
+        this.crosshairOn = this.camera_mode === CAMERA_MODE.SHOOTER
+
         if(this.camera_mode === CAMERA_MODE.SHOOTER) {
-            this.bobView(player, tmp);
+            // do nothing
         } else {
             cam_pos = pos.clone();
             cam_rotate = rotate.clone();
             // back
-            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON) {
-                //front
+            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
+                // front
                 cam_rotate.z = rotate.z + Math.PI;
-                cam_rotate.x = -rotate.x;
+                cam_rotate.x *= -1;
             }
             const d = 5;
             cam_pos.x += d * Math.cos(cam_rotate.x) * Math.sin(cam_rotate.z - Math.PI);

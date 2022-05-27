@@ -433,7 +433,7 @@ export class ServerPlayer extends Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height, this.state.pos.z);
+        return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height * 0.9375, this.state.pos.z);
     }
 
     /**

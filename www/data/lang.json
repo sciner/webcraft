@@ -4,7 +4,7 @@
         {"code": "ru", "title": "Русский", "short_title": "Ру"}
     ],
     "strings": {
-        "btn_exit": {"en": "Exit", "ru": "Выход"},
+        "btn_exit": {"en": "Exit", "ru": "Выйти"},
         "btn_return": {"en": "Return", "ru": "Вернуться"},
         "menu": {"en": "Menu", "ru": "Меню"},
         "create": {"en": "Create", "ru": "Создать"},
@@ -50,6 +50,10 @@
         "enter": {"en": "Enter", "ru": "Вход"},
         "quests": {"en": "Quests", "ru": "Квесты"},
         "tasks": {"en": "Task(s)", "ru": "Задания"},
-        "rewards": {"en": "Reward(s)", "ru": "Награды"}
+        "rewards": {"en": "Reward(s)", "ru": "Награды"},
+        "stat_death": {"en": "Number of deaths", "ru": "Количество смертей"},
+        "stat_time": {"en": "Time in game", "ru": "Время в игре"},
+        "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков"},
+        "stat_distance": {"en": "Distance traveled", "ru": "Пройдено"}
     }
 }

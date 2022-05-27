@@ -233,6 +233,7 @@ export class MobAnimator extends Animator {
 }
 
 export class MobAnimation {
+
     head({
         part, index, delta, animable, camPos
     }) {
@@ -240,8 +241,9 @@ export class MobAnimation {
             yaw, pos, targetLook = 0
         } = animable;
  
+        // Head to camera rotation
         let angToCam = 0;
-        
+
         if (Helpers.distance(pos, camPos) < 5) {
             angToCam = yaw  -Math.PI/2  + Math.atan2(camPos.z - pos.z, camPos.x - pos.x);
 

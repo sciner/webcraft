@@ -45,11 +45,14 @@ export class PickAt {
         this._temp_pos = new Vector(0, 0, 0);
     }
 
-    get(pos, callback, pickat_distance) {
+    get(pos, callback, pickat_distance, view_vector) {
         const render = this.render;
-        const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         pos = this._temp_pos.copyFrom(pos);
-        pos.y = render.camPos.y;
+        view_vector = null;
+        if(view_vector) {
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback);
+        }
+        const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         return this.raycaster.getFromView(pos, m, pickat_distance, callback);
     }
 
@@ -66,9 +69,9 @@ export class PickAt {
         damage_block.start  = performance.now();
         this.updateDamageBlock();
         // Picking target
-        if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
+        /*if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
-        }
+        }*/
     }
 
     // clearEvent...
@@ -120,9 +123,9 @@ export class PickAt {
     }
 
     // update...
-    update(pos, pickat_distance) {
+    update(pos, pickat_distance, view_vector) {
         // Get actual pick-at block
-        let bPos = this.get(pos, null, pickat_distance);
+        let bPos = this.get(pos, null, pickat_distance, view_vector);
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         target_block.visible = !!bPos && !bPos.mob;

@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer, Mth} from "./helpers.js";
+import {Vector, AverageClockTimer, Mth, VectorCollector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -25,7 +25,6 @@ export class GameClass {
         this.hotbar     = new Hotbar(this.hud);
         this.render     = new Renderer('renderSurface');
         this.world      = new World();
-
         this.current_player_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
@@ -456,7 +455,7 @@ export class GameClass {
 
         // Picking target
         if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
-            player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
+            player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
         }
 
         // change camera location

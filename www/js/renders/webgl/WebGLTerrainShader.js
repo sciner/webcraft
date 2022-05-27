@@ -30,6 +30,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         this.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
         this.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
+        this.u_crosshairOn      = gl.getUniformLocation(program, 'u_crosshairOn');
         this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
@@ -129,6 +130,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
+        gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
 
         // Tint color

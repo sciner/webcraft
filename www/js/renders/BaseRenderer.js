@@ -309,6 +309,7 @@ export class BaseShader {
 }
 
 export class GlobalUniformGroup {
+
     constructor(options) {
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
@@ -321,6 +322,8 @@ export class GlobalUniformGroup {
         this.time = performance.now();
 
         this.testLightOn = 0;
+        this.crosshairOn = true;
+
         this.sunDir = [0, 0, 0];
         this.useSunDir = false;
 
@@ -333,6 +336,7 @@ export class GlobalUniformGroup {
     update() {
         this.updateID++;
     }
+
 }
 
 export class BaseTerrainShader extends BaseShader {
@@ -348,6 +352,7 @@ export class BaseTerrainShader extends BaseShader {
         this.addPos = [0,0,0];
         this.texture = null;
         this.tintColor = new Color(0, 0, 0, 0);
+        this.crosshairOn = true;
     }
 
     bind() {
@@ -440,6 +445,7 @@ export class BaseCubeShader extends BaseShader {
      * @param {{code, sides: *[]}} options
      */
     constructor(context, options) {
+
         super(context, options);
 
         /**
@@ -454,6 +460,7 @@ export class BaseCubeShader extends BaseShader {
         // Default values
         this.resolution_value   = [1, 1];
         this.testLightOn_value  = false;
+        this.crosshairOn_value  = true;
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -488,6 +495,14 @@ export class BaseCubeShader extends BaseShader {
 
     get testLightOn() {
         return this.testLightOn_value;
+    }
+
+    set crosshairOn(v) {
+        this.crosshairOn_value = v;
+    }
+
+    get crosshairOn() {
+        return this.crosshairOn_value;
     }
 
     bind() {

@@ -1,8 +1,11 @@
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {ServerClient} from "../../js/server_client.js";
+import { Lang } from "../lang.js";
 
 export class StatsWindow extends Window {
+
     constructor(player) {
+
         super(10, 10, 300, 400, "frmStats", null, null);
 
         this.width *= this.zoom;
@@ -18,7 +21,7 @@ export class StatsWindow extends Window {
         ct.hide();
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 250 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Статистика');
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 250 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.btn_statistics);
         ct.add(lbl1);
 
         let label_death = new Label(17 * this.zoom, 50 * this.zoom, 250 * this.zoom, 68 * this.zoom, 'label_death', null, '0');
@@ -80,10 +83,10 @@ export class StatsWindow extends Window {
         }
 
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {
-            label_death.text = "Количество смертей: " + cmd.data.death;
-            label_time.text = "Время в игре: " + cmd.data.time_formatted;
-            label_pickat.text = "Разбитых блоков: " + cmd.data.pickat;
-            label_distance.text = "Пройдено: " + cmd.data.distance_formatted;
+            label_death.text = `${Lang.stat_death}: ${cmd.data.death}`;
+            label_time.text = `${Lang.stat_time}: ${cmd.data.time_formatted}`;
+            label_pickat.text = `${Lang.stat_pickat}: ${cmd.data.pickat}`;
+            label_distance.text = `${Lang.stat_distance}: ${cmd.data.distance_formatted}`;
         });
     }
 }

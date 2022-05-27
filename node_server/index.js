@@ -21,6 +21,7 @@ function checkVersion(module_name, current) {
 checkVersion('nodejs', process.version);
 checkVersion('sqlite3', sqlite3.VERSION);
 
+import {Lang} from "../www/js/lang.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_game.js";
@@ -30,6 +31,8 @@ import {PluginManager} from "./plugin_manager.js";
 import config from './config.js';
 
 import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+
+Lang.init();
 
 // Set global variables
 global.__dirname        = path.resolve();

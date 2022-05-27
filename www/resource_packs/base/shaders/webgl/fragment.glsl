@@ -75,7 +75,9 @@ void main() {
         outColor = color;
 
         #include<fog_frag>
-        #include<crosshair_call_func>
+        if(u_crosshairOn) {
+            #include<crosshair_call_func>
+        }
         #include<vignetting_call_func>
 
     } else {
