@@ -1,4 +1,4 @@
-import {Helpers, Vector} from "./helpers.js";
+import {CAMERA_MODE, Helpers, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
@@ -11,7 +11,6 @@ import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
 import {DieWindow, MainMenu, QuestWindow, StatsWindow} from "./window/index.js";
-import { CAMERA_MODE } from "./render.js";
 
 // import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
 const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;

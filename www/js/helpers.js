@@ -5,6 +5,13 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
+export const CAMERA_MODE = {
+    COUNT: 3,
+    SHOOTER: 0,
+    THIRD_PERSON: 1,
+    THIRD_PERSON_FRONT: 2
+};
+
 export const TX_CNT = 32;
 
 /*Object.defineProperty(String.prototype, 'hashCode', {

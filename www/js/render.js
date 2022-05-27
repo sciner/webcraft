@@ -1,6 +1,6 @@
 "use strict";
 
-import {Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
+import {CAMERA_MODE, Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -21,13 +21,6 @@ import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js
 import { SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./mob_model.js";
 
 const {mat4, quat, vec3} = glMatrix;
-
-export const CAMERA_MODE = {
-    COUNT: 3,
-    SHOOTER: 0,
-    THIRD_PERSON: 1,
-    THIRD_PERSON_FRONT: 2
-};
 
 /**
 * Renderer

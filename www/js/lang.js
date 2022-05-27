@@ -9,7 +9,10 @@ export const Lang = new Proxy(
             this.strings = lang_json.strings;
             this.list = lang_json.list;
             //
-            let lang_code = localStorage.getItem('lang') || this.default_code;
+            let lang_code = this.default_code;
+            if(typeof localStorage != 'undefined') {
+                lang_code = localStorage.getItem('lang') || this.default_code;
+            }
             let found = false;
             this.list.map((item) => {
                 item.active = item.code == lang_code;
@@ -22,7 +25,9 @@ export const Lang = new Proxy(
         },
 
         change(item) {
-            localStorage.setItem('lang', item.code);
+            if(localStorage) {
+                localStorage.setItem('lang', item.code);
+            }
             this.init();
         },
 
