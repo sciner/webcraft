@@ -46,7 +46,7 @@
         "copy": {"en": "Copy", "ru": "Копировать","fr": "Copier"},
         "registration": {"en": "Registration", "ru": "Регистрация","fr": "Registration"},
         "submit": {"en": "Submit", "ru": "Отправить","fr": "Soumettre"},
-        "back": {"en": "Back", "ru": "Назад",,"fr": "Arriere"},
+        "back": {"en": "Back", "ru": "Назад", "fr": "Arriere"},
         "login": {"en": "Login", "ru": "Авторизация","fr": "Se Loguer"},
         "enter": {"en": "Enter", "ru": "Вход","fr": "Entrer"},
         "quests": {"en": "Quests", "ru": "Квесты","fr": "Aventure"},
@@ -54,7 +54,7 @@
         "rewards": {"en": "Reward(s)", "ru": "Награды","fr": "Recompenses"},
         "stat_death": {"en": "Number of deaths", "ru": "Количество смертей","fr": "Nombre de Deces"},
         "stat_time": {"en": "Time in game", "ru": "Время в игре","fr": "Temps Jouers"},
-        "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков",,"fr": "Bloque Miners"},
+        "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков", "fr": "Bloque Miners"},
         "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru"}
     }
 }
