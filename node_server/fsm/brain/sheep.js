@@ -76,15 +76,14 @@ export class Brain extends FSMBrain {
         if (owner != null) {
             //owner это игрок
             if (owner.session) {
-                const rnd_count = (Math.random() * 2) | 0;
-                if (rnd_count > 0){ 
-                    items.push({id: 350, count: rnd_count});
+                const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
+                items.push({id: 1437, count: rnd_count_mutton});
+                if (!this.is_shaered) {
+                    items.push({id: 350, count: 1});
                 }
             }
         }
-        if (items.length > 0){
-            world.createDropItems(owner, mob.pos.addSelf(new Vector(0, 0.5, 0)), items, velocity);
-        }
+        world.createDropItems(owner, mob.pos.addSelf(new Vector(0, 0.5, 0)), items, velocity);
     }
     
 }
