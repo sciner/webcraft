@@ -215,7 +215,7 @@ export class Brain extends FSMBrain {
             if (owner.session) {
                 const rnd_count = (Math.random() * 2) | 0;
                 if (rnd_count > 0){ 
-                    items.push({id: 350, count: rnd_count});
+                    items.push({id: 1445, count: rnd_count});
                 }
             }
         }
