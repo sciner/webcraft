@@ -370,7 +370,7 @@ BIOMES.TEMPERATE_RAIN_FOREST = {
 };
 
 BIOMES.TROPICAL_SEASONAL_FOREST = {
-    block:      BLOCK.BRICK.id,
+    block:      BLOCK.BRICKS.id,
     code:       'TROPICAL_SEASONAL_FOREST',
     color:      '#008456',
     dirt_color: new Color(900 / 1024, 900 / 1024, 0, 0),

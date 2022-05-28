@@ -153,8 +153,8 @@ export class MineGenerator {
 
         const dir = node.dir;
 
-        this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
-        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
+        this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICKS);
+        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICKS);
         this.genBox(chunk, node, 1, 1, 1, 8, 3, 4, dir);
         
         let vec = new Vector(0, 0, 0);

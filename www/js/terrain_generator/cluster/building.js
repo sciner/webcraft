@@ -442,7 +442,7 @@ export class Building1 extends Building {
                 };
             } else {
                 this.materials  = {
-                    wall: BLOCK.BRICK,
+                    wall: BLOCK.BRICKS,
                     door: BLOCK.DARK_OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
                     roof_block: BLOCK.DARK_OAK_PLANK,
