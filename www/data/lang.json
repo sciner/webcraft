@@ -1,7 +1,8 @@
 {
     "list": [
         {"code": "en", "title": "English", "short_title": "En"},
-        {"code": "ru", "title": "Русский", "short_title": "Ру"}
+        {"code": "ru", "title": "Русский", "short_title": "Ру"},
+        {"code": "fr", "title": "Francais", "short_title": "Fr"}
     ],
     "strings": {
         "btn_exit": {"en": "Exit", "ru": "Выйти"},
