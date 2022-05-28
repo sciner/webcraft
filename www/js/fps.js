@@ -1,3 +1,5 @@
+import { Helpers } from "./helpers.js";
+
 // FPS
 export class FPSCounter {
 
@@ -24,23 +26,16 @@ export class FPSCounter {
             this.speed_time = performance.now();
         }
 
-        let now = performance.now();
-        const diff = now - this.t;
-        const PERIOD = 1000;
-        const MUL = 1000 / PERIOD;
+        const now       = performance.now();
+        const diff      = now - this.t;
+        const PERIOD    = 1000;
 
         if(diff >= PERIOD) {
-            this.fps    = Math.round(this.cnt / ((now - this.t) / PERIOD) * MUL);
+            this.fps    = Math.round(this.cnt / ((now - this.t) / PERIOD));
             this.cnt    = 0;
             this.avg    = PERIOD / Game.averageClockTimer.avg;
             this.t      = now;
-            //if(this.walkDistO > 0) {
-            //    const div = (diff / 1000);
-            //    this.speed = Math.round(player.lerpPos.distance(this.player_pos) / div * 360) / 100;
-            //    this.player_pos = JSON.parse(JSON.stringify(Game.player.lerpPos));
-            //}
-            const div = diff / PERIOD;
-            this.speed = Math.round(player.lerpPos.distance(this.player_pos) / div * 360 * MUL) / 100;
+            this.speed = Helpers.calcSpeed(player.lerpPos, this.player_pos, diff / PERIOD);
             this.player_pos = JSON.parse(JSON.stringify(Game.player.lerpPos));
             this.speed_time = performance.now();
             //

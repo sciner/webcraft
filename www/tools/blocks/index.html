@@ -1,0 +1,62 @@
+<!doctype html>
+<html ng-app="gameApp">
+<head>
+	<title>MadCraft</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.1.0/build/pure-min.css" integrity="sha384-yHIFVG6ClnONEA5yB5DJXfW2/KC173DIQrYoZMEtBvGzmf0PKiGyNEqe9N6BNDBH" crossorigin="anonymous">
+    <link href="./style.less" rel="stylesheet/less" type="text/css" />
+    <script>
+        less = {
+            env: 'production',
+            async: false,
+            fileAsync: false,
+            poll: 1000,
+            functions: {},
+            dumpLineNumbers: 'comments',
+            relativeUrls: false,
+            rootpath: ":/a.com/"
+        };
+    </script>
+    <script src="/vendors/less.min.js" ="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./controller.js" type="module"></script>
+    <script src="/vendors/angular.min.js"></script>
+</head>
+<body style="padding: 0;" ng-controller="gameCtrl" ng-cloak>
+
+    <div class="pure-g">
+        <div class="pure-u-1-4">
+            <div class="pure-form style="background: rgba(255,255,255,.7);">
+                <div style="padding: 1em;">
+                    <input id="x" type="text" />
+                    <br><br>
+                    <input id="y" type="text" />
+                    <br><br>
+                    <input id="pos" type="text" />
+                    <br><br>
+                    <button class="pure-button pure-button-primary" ng-click="new_sprites.apply()">Apply</button>
+                    <br><br>
+                    <textarea id="blocks" style="width: 100%; min-height: 300px;">{{new_sprites.block_code}}</textarea>
+                    <br><br>
+                    <div>
+                        <div ng-repeat="item in new_sprites.array" ng-mousemove="new_sprites.hover(item)" class="sprite-item">
+                            {{item.filename}}
+                            <a href="#" ng-click="new_sprites.delete(item)">delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pure-u-3-4">
+            <div id="dropZone">
+                <canvas id="inventory" width="1024" height="1024" id="textures"></canvas>
+                <div id="focuser" style="position: absolute; width: 32px; left: 32px; top: 32px; height: 32px; background-color: #ffffff44; outline: 2px solid #ffffff88; pointer-events: none;"></div>
+                <div id="hover"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./main.js"></script>
+
+</body>
+</html>

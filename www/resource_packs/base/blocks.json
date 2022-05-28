@@ -4339,7 +4339,7 @@
         "style": "planting",
         "inventory": {
             "style": "extruder",
-            "texture": [31, 3]
+            "texture": [11, 30]
         },
         "sound": "madcraft:block.stone",
         "material": {
@@ -4661,19 +4661,6 @@
         ]
     },
     {
-        "id": 614,
-        "name": "CHICKEN_RAW",
-        "item": {"name": "food"},
-        "style": "extruder",
-        "material": {
-            "id": "food"
-        },
-        "texture": [
-            3,
-            31
-        ]
-    },
-    {
         "id": 615,
         "name": "STONE_BRICK_STAIRS",
         "style": "stairs",
@@ -4714,6 +4701,13 @@
             {"size": {"x": 3, "y": 16, "z": 3}, "uv": [1.5, 8], "rot": [0, 0.7853975, 0]},
             {"size": {"x": 3, "y": 16, "z": 3}, "uv": [4.5, 8], "rot": [0, -0.7853975, 0]}
         ],
+        "inventory": {
+            "style": "extruder",
+            "texture": {
+                "id": "default",
+                "side": [13, 31]
+            }
+        },
         "aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
         "sound": "madcraft:block.stone",
         "material": {
@@ -5759,5 +5753,289 @@
         "material": {
             "id": "plant"
         }
+    },
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    {
+        "id": 1419,
+        "name": "BONE",
+        "style": "extruder",
+        "texture": [11, 31],
+        "item": {"name": "bone"},
+        "material": {
+            "id": "bone"
+        }
+    },
+    {
+        "id": 1420,
+        "name": "BONE_MEAL",
+        "style": "extruder",
+        "texture": [12, 31],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1421,
+        "name": "ROTTEN_FLESH",
+        "style": "extruder",
+        "texture": [18, 28],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1422,
+        "name": "COOKIE",
+        "style": "extruder",
+        "texture": [14, 31],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1423,
+        "name": "EGG",
+        "style": "extruder",
+        "texture": [15, 31],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1424,
+        "name": "EMPTY_ARMOR_SLOT_HELMET",
+        "style": "extruder",
+        "deprecated": true,
+        "spawnable": false,
+        "texture": [5, 30],
+        "item": {"name": "slot"},
+        "material": {
+            "id": "iron"
+        }
+    },
+    {
+        "id": 1425,
+        "name": "EMPTY_ARMOR_SLOT_CHESTPLATE",
+        "style": "extruder",
+        "deprecated": true,
+        "spawnable": false,
+        "texture": [6, 30],
+        "item": {"name": "slot"},
+        "material": {
+            "id": "iron"
+        }
+    },
+    {
+        "id": 1426,
+        "name": "EMPTY_ARMOR_SLOT_BOOTS",
+        "style": "extruder",
+        "deprecated": true,
+        "spawnable": false,
+        "texture": [8, 30],
+        "item": {"name": "slot"},
+        "material": {
+            "id": "iron"
+        }
+    },
+    {
+        "id": 1427,
+        "name": "EMPTY_ARMOR_SLOT_LEGGINGS",
+        "style": "extruder",
+        "deprecated": true,
+        "spawnable": false,
+        "texture": [7, 30],
+        "item": {"name": "slot"},
+        "material": {
+            "id": "iron"
+        }
+    },
+    {
+        "id": 1428,
+        "name": "EMPTY_ARMOR_SLOT_SHIELD",
+        "style": "extruder",
+        "deprecated": true,
+        "spawnable": false,
+        "texture": [9, 30],
+        "item": {"name": "slot"},
+        "material": {
+            "id": "iron"
+        }
+    },
+    {
+        "id": 1429,
+        "name": "FEATHER",
+        "style": "extruder",
+        "texture": [13, 28],
+        "item": {"name": "feather"},
+        "material": {
+            "id": "feather"
+        }
+    },
+    {
+        "id": 1430,
+        "name": "GLASS_BOTTLE",
+        "style": "extruder",
+        "texture": [14, 28],
+        "item": {"name": "bottle"},
+        "material": {
+            "id": "glass"
+        }
+    },
+    {
+        "id": 1431,
+        "name": "LEATHER",
+        "style": "extruder",
+        "texture": [15, 28],
+        "item": {"name": "leather"},
+        "material": {
+            "id": "leather"
+        }
+    },
+    {
+        "id": 1432,
+        "name": "RABBIT_HIDE",
+        "style": "extruder",
+        "texture": [16, 28],
+        "item": {"name": "leather"},
+        "material": {
+            "id": "leather"
+        }
+    },
+    {
+        "id": 1433,
+        "name": "PUMPKIN_PIE",
+        "style": "extruder",
+        "texture": [10, 30],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1434,
+        "name": "RABBIT_FOOT",
+        "style": "extruder",
+        "texture": [17, 28],
+        "item": {"name": "leather"},
+        "material": {
+            "id": "leather"
+        }
+    },
+    {
+        "id": 1435,
+        "name": "CHICKEN",
+        "style": "extruder",
+        "texture": [0, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1436,
+        "name": "COOKED_CHICKEN",
+        "style": "extruder",
+        "texture": [1, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1437,
+        "name": "MUTTON",
+        "style": "extruder",
+        "texture": [2, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1438,
+        "name": "COOKED_MUTTON",
+        "style": "extruder",
+        "texture": [3, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1439,
+        "name": "RABBIT",
+        "style": "extruder",
+        "texture": [6, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1440,
+        "name": "COOKED_RABBIT",
+        "style": "extruder",
+        "texture": [7, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1441,
+        "name": "BEEF",
+        "style": "extruder",
+        "texture": [8, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1442,
+        "name": "COOKED_BEEF",
+        "style": "extruder",
+        "texture": [9, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1443,
+        "name": "PORKCHOP",
+        "style": "extruder",
+        "texture": [4, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
+    },
+    {
+        "id": 1444,
+        "name": "COOKED_PORKCHOP",
+        "style": "extruder",
+        "texture": [5, 27],
+        "item": {"name": "food"},
+        "material": {
+            "id": "food"
+        }
     }
+
 ]

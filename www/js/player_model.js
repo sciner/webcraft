@@ -29,6 +29,7 @@ export class ModelSlot {
 }
 
 export class PlayerAnimation extends MobAnimation {
+
     head({
         part, animable
     }) {
@@ -46,7 +47,9 @@ export class PlayerAnimation extends MobAnimation {
 
         part.updateMatrix();
     }
+
 }
+
 export class PlayerModel extends MobModel {
 
     constructor(props) {
@@ -204,8 +207,8 @@ export class PlayerModel extends MobModel {
         this.changeSlots(this.activeSlotsData);
     }
 
-    update(render, camPos, delta) {
-        super.update(render, camPos, delta);
+    update(render, camPos, delta, speed) {
+        super.update(render, camPos, delta, speed);
 
         if (!this.isRenderable) {
             return;

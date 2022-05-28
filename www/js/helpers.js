@@ -1057,7 +1057,7 @@ export class Helpers {
         }, 'image/png');
     }
 
-    /* Canvas Donwload */
+    // Canvas download
     static downloadBlobPNG(blob, filename) {
         /// create an "off-screen" anchor tag
         let lnk = document.createElement('a'), e;
@@ -1165,6 +1165,11 @@ export class Helpers {
         };
         return new Color(color.r, color.g, color.b, 1);
         // or output as hex if preferred
+    }
+
+    // Return speed
+    static calcSpeed(pos1, pos2, delta) {
+        return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
 
 }
