@@ -262,6 +262,9 @@ export class Player {
                     sound = default_sound;
                 }
                 Game.sounds.play(sound, action);
+                if(player.running) {
+                    Game.render.destroyBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+                }
             }
         }
     }
@@ -316,7 +319,7 @@ export class Player {
             const block         = BLOCK.fromId(world_block.id);
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
-                Game.render.destroyBlock(block, bPos, true);
+                Game.render.destroyBlock(block, new Vector(bPos), true);
             }
             if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
@@ -403,7 +406,7 @@ export class Player {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                    //Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
                 }
                 //
                 switch(mod.action_id) {
@@ -554,7 +557,7 @@ export class Player {
                 }
             }
             this.lerpPos.roundSelf(3);
-            this.moving     = !this.lerpPos.equal(this.posO);
+            this.moving     = !this.lerpPos.equal(this.posO) && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
             this.isOnLadder = pc.player_state.isOnLadder;

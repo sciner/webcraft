@@ -80,23 +80,6 @@ export class PlayerManager {
             time: time,
             hands: data.hands
         });
-        /*
-        player.moving = Helpers.distance(data.pos, player.pos) > 0.001;
-        player.pos      = data.pos;
-        player.pitch    = data.rotate.x;
-        player.yaw      = data.rotate.z;
-
-        if(player.moving_timeout) {
-            clearTimeout(player.moving_timeout);
-            player.moving_timeout = null;
-        }
-
-        if (player.moving) {
-            player.moving_timeout = window.setTimeout(function() {
-                player.moving = false
-            }, 100);
-        }
-        */
     
     }
 

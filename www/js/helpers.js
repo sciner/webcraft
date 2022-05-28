@@ -1167,6 +1167,11 @@ export class Helpers {
         // or output as hex if preferred
     }
 
+    // Return speed
+    static calcSpeed(pos1, pos2, delta) {
+        return Math.round(pos1.distance(pos2) / delta * 360) / 100;
+    }
+
 }
 
 // Make fetch functions

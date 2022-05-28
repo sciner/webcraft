@@ -36,7 +36,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
         this.material = this.resource_pack.getMaterial(block.material_key);
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
-            const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
+            const pos_floored = pos.clone().flooredSelf();
+            const index = ((pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (pos_floored.x - chunk.coord.x)) * 2;
             lm          = new Color(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0, 0);
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
         } else if(BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) >= 0) {
@@ -50,7 +51,7 @@ export default class Particles_Block_Destroy extends Particles_Base {
             texture_id = block.texture.id;
         }
         let tex = this.resource_pack.textures.get(texture_id);
-        const c = BLOCK.calcTexture(this.texture, DIRECTION.UP, tex.tx_cnt); // полная текстура
+        const c = BLOCK.calcTexture(this.texture, DIRECTION.DOWN, tex.tx_cnt); // полная текстура
 
         // particles count
         const count     = small ? 5 : 30;

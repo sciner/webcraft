@@ -696,7 +696,14 @@ export class Renderer {
                 continue;
             }
             if(player.username != Game.App.session.username) {
-                player.draw(this, this.camPos, delta);
+                if(!player.prev_pos) {
+                    player.prev_pos = player.pos.clone();
+                    continue;
+                }
+                const speed = Helpers.calcSpeed(player.prev_pos, player.pos, delta / 1000);
+                const multiplyer = speed / 15.5;
+                player.prev_pos.copyFrom(player.pos);
+                player.draw(this, this.camPos, delta * multiplyer, speed);
             }
         }
     }

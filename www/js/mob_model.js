@@ -13,6 +13,7 @@ export const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
 const MAX_DETONATION_TIME           = 2000; // ms
 
 export class Traversable {
+
     constructor() {
         
         /**
@@ -29,9 +30,11 @@ export class Traversable {
 
         this.drawPos;
     }
+
 }
 
 export class Animable {
+
     constructor() {
         /**
          * @type {SceneNode}
@@ -42,9 +45,11 @@ export class Animable {
         this.parts;
         this.animationScript;
     }
+
 }
 
 export class TraversableRenderer {
+
     /**
      * 
      * @param {SceneNode} node 
@@ -106,19 +111,23 @@ export class TraversableRenderer {
 
         this.traverse(traversable.sceneTree, null, render, traversable);
     }
+
 }
 
 export class Animator {
-    prepare(animable) {
 
+    prepare(animable) {
     }
 
     update(delta, camPos, animable) {
     }
+
 }
 
 export class MobAnimator extends Animator {
+
     prepare(animable) {
+    
         const {
             sceneTree: tree,
             parts = {}
@@ -133,6 +142,8 @@ export class MobAnimator extends Animator {
         let arm;
         let head;
         let wing;
+
+        this.aniangle = 0;
 
         for(let i = 0; i < 8; i ++) {
             leg = tree.findNode('leg' + i);
@@ -172,7 +183,8 @@ export class MobAnimator extends Animator {
         animable.parts = parts;
     }
 
-    update(delta, camPos, animable) {
+    update(delta, camPos, animable, speed) {
+
         if (!animable) {
             return;
         }
@@ -186,20 +198,28 @@ export class MobAnimator extends Animator {
         }
 
         // Mob legs animation
-        let aniangle        = 0;
-        let anim_speed      = 128;
-        let max_anim_angle  = Math.PI / 4;
-        if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
-            animable.aniframe += delta / anim_speed;
-            if(animable.aniframe > Math.PI) {
-                animable.aniframe  = -Math.PI;
+        const anim_speed      = 122.5;
+        const max_anim_angle  = Math.PI / 4 * (animable.sneak ? .5 : 1);
+
+        if(animable.moving) {
+            // @IMPORTANT minus to make the character start walking on the right foot
+            animable.aniframe -= delta / anim_speed;
+            this.aniangle = max_anim_angle * Math.sin(animable.aniframe);
+        } else if(this.aniangle != 0) {
+            delta = 3;
+            if(this.aniangle < 0) {
+                this.aniangle += delta / anim_speed;
+                this.aniangle = Math.min(this.aniangle, 0);
+            } else {
+                this.aniangle -= delta / anim_speed;
+                this.aniangle = Math.max(this.aniangle, 0);
             }
-            aniangle = max_anim_angle * Math.sin(animable.aniframe);
-            if(!animable.moving && Math.abs(aniangle) < 0.1) {
+            if(this.aniangle == 0) {
                 animable.aniframe = 0;
             }
         }
-        this.applyAnimation(delta, animable.aniframe, aniangle, camPos, animable);
+
+        this.applyAnimation(delta, animable.aniframe, this.aniangle, camPos, animable);
 
     }
 
@@ -268,12 +288,35 @@ export class MobAnimation {
     leg({
         part, index, aniangle, animable, isArm = 0
     }) {
-        const x = index % 2;
-        const y = index / 2 | 0;
-        const sign = x ^ y ? 1 : -1;
+        const x         = index % 2;
+        const y         = index / 2 | 0;
+        const sign      = x ^ y ? 1 : -1;
+        const itemInArm = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
 
+        if(itemInArm) {
+            aniangle = aniangle * .4 + Math.PI / 8;
+        }
         quat.identity(part.quat);
         quat.rotateX(part.quat, part.quat, aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
+        
+        // shake arms
+        // Движение рук от дыхания
+        if(isArm) {
+            const isLeftArm = index % 2 == 0;
+            const ageInTicks = (index * 1500 + performance.now()) / 50;
+            const RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
+            const RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05; // straith/back
+            // if zombie then RotateAngleX -= 1.5;
+            quat.rotateZ(part.quat, part.quat, RotateAngleZ);
+            quat.rotateX(part.quat, part.quat, RotateAngleX);
+            if(isLeftArm) {
+                // left
+                quat.rotateY(part.quat, part.quat, -.05 + Math.sin(ageInTicks * 0.1) * 0.05);
+            } else {
+                // right
+                quat.rotateY(part.quat, part.quat, .05 + Math.sin(ageInTicks * 0.1) * 0.05);
+            }
+        }
 
         part.updateMatrix();
     }
@@ -473,7 +516,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.updateMatrix();
     }
 
-    update(render, camPos, delta) {
+    update(render, camPos, delta, speed) {
         super.update();
 
         this.computeLocalPosAndLight(render);
@@ -482,7 +525,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        this.animator.update(delta, camPos, this);
+        this.animator.update(delta, camPos, this, speed);
     }
 
     isAlive() {
@@ -494,9 +537,10 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     // draw
-    draw(render, camPos, delta) {
+    draw(render, camPos, delta, speed) {
+
         this.lazyInit(render);
-        this.update(render, camPos, delta);
+        this.update(render, camPos, delta, speed);
 
         if (!this.sceneTree) {
             return null;
