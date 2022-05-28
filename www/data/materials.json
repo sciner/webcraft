@@ -13,6 +13,7 @@
         "bone": {"mining": {"time": 4, "instruments": []}},
         "feather": {"mining": {"time": 0, "instruments": []}},
         "leather": {"mining": {"time": 1, "instruments": []}},
+        "powder": {"mining": {"time": 0, "instruments": []}},
         "clay": {"mining": {"time": 4, "instruments": ["shovel"]}},
         "cobblestone": {"mining": {"time": 5, "instruments": ["pickaxe"]}},
         "diamond": {"mining": {"time": 25, "instruments": ["pickaxe"], "instrument_boost": 8}},

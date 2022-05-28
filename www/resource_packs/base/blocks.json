@@ -6036,6 +6036,15 @@
         "material": {
             "id": "food"
         }
+    },
+    {
+        "id": 1445,
+        "name": "GUNPOWDER",
+        "style": "extruder",
+        "texture": [12, 30],
+        "item": {"name": "powder"},
+        "material": {
+            "id": "powder"
+        }
     }
-
 ]
