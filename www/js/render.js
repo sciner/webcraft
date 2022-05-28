@@ -208,7 +208,7 @@ export class Renderer {
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
             width: 2048,
-            height: 2048 + 1024,
+            height: 2048 + 2048,
             depth: true
         });
 

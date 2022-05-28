@@ -1057,7 +1057,7 @@ export class Helpers {
         }, 'image/png');
     }
 
-    /* Canvas Donwload */
+    // Canvas download
     static downloadBlobPNG(blob, filename) {
         /// create an "off-screen" anchor tag
         let lnk = document.createElement('a'), e;
