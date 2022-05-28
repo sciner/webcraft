@@ -103,7 +103,8 @@ export class Mob {
 
     async punch(server_player, params) {
         if(params.button_id == 3) {
-            const mat = server_player.state.hands.right;
+            this.#brain.onUse(server_player, server_player.state.hands.right);
+            /*const mat = server_player.state.hands.right;
             if(this.type == 'sheep') {
                 if(mat && mat.id == 552) {
                     // Add velocity for drop item
@@ -118,9 +119,12 @@ export class Mob {
                     this.#world.createDropItems(server_player, this.pos.addSelf(new Vector(0, .5, 0)), items, velocity);
                 }
             }
+            */
         } else if(params.button_id == 1) {
             if(this.indicators.live.value > 0) {
-                await this.changeLive(-5);
+                
+                
+                await this.changeLive(-5, server_player);
                 // Add velocity for drop item
                 let velocity = this.pos.sub(server_player.state.pos).normSelf();
                 velocity.y = .5;
@@ -131,12 +135,13 @@ export class Mob {
     }
 
     //
-    async changeLive(value) {
+    async changeLive(value, owner) {
         const ind = this.indicators.live;
         const prev_value = ind.value;
         ind.value = Math.max(prev_value + value, 0);
         console.log(`Mob live ${prev_value} -> ${ind.value}`);
         if(ind.value == 0) {
+            this.#brain.onKill(owner);
             await this.kill();
         } else {
             this.save();

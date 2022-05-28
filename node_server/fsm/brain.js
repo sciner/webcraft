@@ -28,6 +28,12 @@ export class FSMBrain {
         this.target = null;
         this.angleRotation = 0;
         this.painicTime = 0;
+        this.drops = [
+            {
+                id: 56, //TO DO gunpowder
+                count: [0,2]
+            }
+        ];
     }
 
     /**
@@ -225,8 +231,8 @@ export class FSMBrain {
         if (time > 3000) {
             this.run = false;
             this.isStand(1.0);
-		}
-	}
+        }
+    }
 
     doStand(delta) {
         this.updateControl({
@@ -300,4 +306,19 @@ export class FSMBrain {
         return block.material.is_fluid;
     }
 
+    /**
+    * Моба убили
+    * owner - player
+    * type - от чего умер[упал, сгорел, утонул]
+    */
+    onKill(owner, type) {
+    }
+    
+    /**
+    * Использовать предмет на мобе
+    * owner - player
+    * item - item
+    */
+    onUse(owner, item){
+    }
 }

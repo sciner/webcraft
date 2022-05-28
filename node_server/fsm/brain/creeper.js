@@ -22,16 +22,17 @@ export class Brain extends FSMBrain {
             stepHeight: 1
         });
         mob.extra_data.play_death_animation = false;
+        
+        
         this.detonationTime = 0;
-        this.isAggrressor = true;
         this.explosion_damage = 12;
         this.players_damage_distance = DISTANCE_DETONATION;
-        // Начинаем с просто "Стоять"
+        
         this.stack.pushState(this.doStand);
     }
 
     isTarget() {
-        if (this.isAggrressor && this.target == null) {
+        if (this.target == null) {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
             if (players.length > 0) {
@@ -40,7 +41,7 @@ export class Brain extends FSMBrain {
                 this.target = player.session.user_id;
                 this.stack.replaceState(this.doCatch);
                 return true;
-			}
+            }
         }
         return false;
     }
@@ -199,5 +200,27 @@ export class Brain extends FSMBrain {
         //
         await world.applyActions(null, actions);
     }
-
+    
+    onKill(owner, type) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        let velocity = new Vector(
+            -Math.sin(mob.rotate.z),
+            0,
+            -Math.cos(mob.rotate.z)
+        ).multiplyScalar(0.5);
+        let items = [];
+        if (owner != null) {
+            //owner это игрок
+            if (owner.session) {
+                const rnd_count = (Math.random() * 2) | 0;
+                if (rnd_count > 0){ 
+                    items.push({id: 350, count: rnd_count});
+                }
+            }
+        }
+        if (items.length > 0){
+            world.createDropItems(owner, mob.pos.addSelf(new Vector(0, 0.5, 0)), items, velocity);
+        }
+    }
 }

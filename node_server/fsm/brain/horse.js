@@ -14,8 +14,10 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .7
         });
+        
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.doStand);
     }
+    
 
 }
