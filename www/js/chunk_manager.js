@@ -308,6 +308,10 @@ export class ChunkManager {
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let i = 0; i < this.poses.length; i++) {
             const chunk = this.poses[i];
+            if (!chunk.chunkManager) {
+                // destroyed!
+                continue;
+            }
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }
