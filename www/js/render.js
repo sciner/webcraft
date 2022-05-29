@@ -1,9 +1,8 @@
 "use strict";
 
-import {CAMERA_MODE, Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
+import {Mth, MOB_EYE_HEIGHT_PERCENT, SNEAK_MINUS_Y_MUL, CAMERA_MODE, Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {Mth} from "./helpers.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
@@ -13,12 +12,11 @@ import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
 
-import {MeshManager} from "./mesh_manager.js";
+import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { World } from "./world.js";
 import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js";
-import { SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./mob_model.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -205,7 +203,7 @@ export class Renderer {
         this.generatePrev();
     }
 
-    generatePrev() {
+    generatePrev(callback) {
         const target = this.renderBackend.createRenderTarget({
             width: 2048,
             height: 2048 + 2048,
@@ -424,8 +422,12 @@ export class Renderer {
             });
 
             tmpCanvas.width = tmpCanvas.height = 0;
-
             Resources.inventory.image = data;
+
+            if(callback instanceof Function) {
+                callback();
+            }
+
         });
 
         this.renderBackend.endPass();
@@ -810,19 +812,15 @@ export class Renderer {
                 cam_rotate.z = rotate.z + Math.PI;
                 cam_rotate.x *= -1;
             }
+            const view_vector = player.forward.clone();
+            view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
+            //
             const d = 5;
             cam_pos.x += d * Math.cos(cam_rotate.x) * Math.sin(cam_rotate.z - Math.PI);
             cam_pos.y += d * Math.sin(-cam_rotate.x);
             cam_pos.z += d * Math.cos(cam_rotate.x) * Math.cos(cam_rotate.z - Math.PI);
-            // put the camera in front of an obstacle
-            const view_vector = player.forward.clone();
-            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON) {
-                view_vector.x *= -1;
-                view_vector.y *= -1;
-                view_vector.z *= -1;
-            }
             // raycast from eyes to cam
-            const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance(), d), view_vector, true);
+            const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
             if(bPos) {
                 this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
                 this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
@@ -830,14 +828,10 @@ export class Renderer {
                 let dist2 = pos.distance(this.obstacle_pos);
                 if(dist2 < dist1) {
                     cam_pos.copyFrom(this.obstacle_pos);
-                    const safe_margin = -.1;
-                    cam_pos.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
-                    //if(bPos.n.y) {
-                    //    cam_pos.y += bPos.n.y * .1;
-                    //}
-                    // console.log(dist2 - pos.distance(cam_pos));
                 }
             }
+            const safe_margin = -.1;
+            cam_pos.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
 
             // get player model
             const itsme = Game.world.players.get('itsme');

@@ -865,7 +865,6 @@ export class ServerWorld {
                 inventory.refresh(true);
                 /*
                 server_player.inventory.decrement(actions.decrement);
-                console.log('edfrghjkl,./;')
                 console.log(server_player, actions.put_in_backet);
                 */
             }

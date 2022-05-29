@@ -127,7 +127,7 @@ async function onMessageFunc(e) {
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
                         addr:           chunk.addr,
-                        tblocks:        non_zero > 0 ? chunk.tblocks : null,
+                        tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
                     }]);
@@ -137,7 +137,7 @@ async function onMessageFunc(e) {
                     const ci2 = {
                         addr: ci.addr,
                         // key: ci.key,
-                        tblocks: non_zero > 0 ? ci.tblocks : null,
+                        tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
                         ticking_blocks: ci.ticking_blocks
                     }
                     worker.postMessage(['blocks_generated', ci2]);

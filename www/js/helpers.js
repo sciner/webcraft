@@ -5,6 +5,9 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
+export const SNEAK_MINUS_Y_MUL      = 0.2; // decrease player height to this percent value
+export const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
+
 export const CAMERA_MODE = {
     COUNT: 3,
     SHOOTER: 0,

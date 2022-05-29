@@ -17,11 +17,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANK.id : BLOCK.BIRCH_PLANK.id;
         let block_id = BLOCK.GRASS_DIRT.id;
 
+        const { cx, cy, cz, cw } = chunk.dataChunk;
+
         // setBlock
-        let temp_vec2 = new Vector(0, 0, 0);
         const setBlock = (x, y, z, block_id) => {
-            temp_vec2.set(x, y, z);
-            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            const index = cx * x + cy * y + cz * z + cw;
             chunk.tblocks.id[index] = block_id;
         };
 

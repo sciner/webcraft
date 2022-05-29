@@ -49,6 +49,8 @@ export class MineGenerator {
         this.is_empty = this.nodes.size == 0;
         const ms = Math.round((performance.now() - pn) * 1000) / 1000;
         // console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes for " + ms + ' ms on height ' + bottom_y);
+
+        this.xyz_temp_coord = new Vector(0, 0, 0);
     }
 
     // getForCoord
@@ -74,7 +76,7 @@ export class MineGenerator {
         }
 
         let new_x = x, new_y = y, new_z = z;
-        
+
         if (dir == DIRECTION.SOUTH) {
             ++new_z;
         } else if (dir == DIRECTION.EAST) {
@@ -91,7 +93,7 @@ export class MineGenerator {
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.EAST, dir));
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.WEST, dir));
         }
-        
+
         let node = this.findNodeMine(new_x, new_y, new_z);
         if (node != null) {
             return;
@@ -104,13 +106,13 @@ export class MineGenerator {
             this.genNodeMine(new_x, new_y, new_z, this.wrapRotation(DIRECTION.WEST, dir));
             return;
         }
-        
+
         if (this.random.double() < this.chance_hal) {
             this.addNode(new_x, new_y, new_z, dir, 'hal');
             this.genNodeMine(new_x, new_y, new_z, this.wrapRotation(DIRECTION.NORTH, dir));
             return;
         }
-        
+
         if (this.random.double() < this.chance_side_room) {
             this.addNode(new_x, new_y, new_z, dir, 'room');
         }
@@ -153,14 +155,14 @@ export class MineGenerator {
 
         const dir = node.dir;
 
-        this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
-        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
+        this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICKS);
+        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICKS);
         this.genBox(chunk, node, 1, 1, 1, 8, 3, 4, dir);
-        
+
         let vec = new Vector(0, 0, 0);
-        vec.set(8, 3, 4).rotY(dir); 
+        vec.set(8, 3, 4).rotY(dir);
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
-        
+
         vec.set(1, 1, 1).rotY(dir);
         const chest_rot = CHEST_ROT;
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot, {generate: true, params: {source: 'cave_mines'}});
@@ -174,7 +176,7 @@ export class MineGenerator {
 
         const addFloorDecor = (vec, block) => {
             let temp_block_over = this.getBlock(chunk, node, vec.x, vec.y + 1, vec.z);
-            // block must connected to other block (not air) 
+            // block must connected to other block (not air)
             if(temp_block_over && temp_block_over.id != 0) {
                 this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, LANTERN_ROT_UP);
             }
@@ -214,7 +216,7 @@ export class MineGenerator {
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
-            
+
             this.genBox(chunk, node, n, 1, 14, n, 2, 14, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 1, 12, n, 2, 12, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANK);
@@ -227,14 +229,14 @@ export class MineGenerator {
             // паутина
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
-            
+
             this.genBoxAir(chunk, node, n - 3, 3, 14, n + 3, 3, 14, dir, BLOCK.COBWEB, 0.05);
             this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.COBWEB, 0.05);
-            
+
             // факелы
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE * 2, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.1, LANTERN_ROT_UP);
-            
+
             this.genBoxAir(chunk, node, n - 3, 3, 14, n + 3, 3, 14, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.LANTERN, LANTERN_CHANCE * 2, LANTERN_ROT_UP);
         }
@@ -249,7 +251,7 @@ export class MineGenerator {
 
         // floor
         this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANK, 1, true);
-        
+
         let interval = Math.round(node.random.double()) + 4;
         for (let n = 0; n <= 15; n += interval) {
 
@@ -260,20 +262,20 @@ export class MineGenerator {
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
-            
+
             this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK, 0.25);
-            
+
             this.genBoxAir(chunk, node, 1, 3, n - 1, 1, 3, n + 1, dir, BLOCK.COBBLESTONE, 0.25); // добавить из окружения
             this.genBoxAir(chunk, node, 3, 3, n - 1, 3, 3, n + 1, dir, BLOCK.DIRT, 0.25);
-            
+
             // паутина
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
-            
+
             // грибы
             this.genBoxAir(chunk, node, 1, 1, n - 3, 1, 1, n + 3, dir, BLOCK.BROWN_MUSHROOM, 0.01);
             this.genBoxAir(chunk, node, 3, 1, n - 3, 3, 1, n + 3, dir, BLOCK.BROWN_MUSHROOM, 0.01);
-            
+
             // факел
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
@@ -294,27 +296,21 @@ export class MineGenerator {
 
     setBlock(chunk, node, x, y, z, block_type, force_replace, rotate, extra_data) {
         y += node.bottom_y;
+
+        const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            this.xyz_temp = new Vector(0, 0, 0);
-            this.xyz_temp.set(x, y, z);
-            if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
-                this.xyz_temp_coord = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+            if(force_replace || !tblocks.getBlockId(x, y, z)) {
+                this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 if(!this.generator.getVoxelBuilding(this.xyz_temp_coord)) {
-                    let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
-                    chunk.tblocks.id[index] = block_type.id;
+                    tblocks.setBlockId(x, y, z, block_type.id);
                     if(rotate || extra_data) {
-                        this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                        if(rotate) this.temp_tblock.rotate = rotate;
-                        if(extra_data) this.temp_tblock.extra_data = extra_data;
+                        tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
                     }
-                    // chunk.tblocks.delete(this.xyz_temp);
-                    // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                    // this.temp_tblock.id = block_type.id;
                 }
             }
         }
     }
-    
+
     getBlock(chunk, node, x, y, z) {
         y += node.bottom_y;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
@@ -322,7 +318,7 @@ export class MineGenerator {
             return chunk.tblocks.get(xyz);
         }
     }
-    
+
     wrapRotation(dir, angle) {
         let new_dir = dir - angle;
         if (new_dir == -1) {
@@ -332,7 +328,7 @@ export class MineGenerator {
         }
         return new_dir;
     }
-    
+
     /**
      * TO DO EN генерация бокса внутри чанка, генерация с вероятностью установки
      * @param {Chunk} chunk
@@ -352,7 +348,7 @@ export class MineGenerator {
         for (let x = minX; x <= maxX; ++x) {
             for (let y = minY; y <= maxY; ++y) {
                 for (let z = minZ; z <= maxZ; ++z) {
-                    let is_chance = (chance == 1) ? true : node.random.double() < chance; 
+                    let is_chance = (chance == 1) ? true : node.random.double() < chance;
                     if (is_chance) {
                         let vec = (new Vector(x, y, z)).rotY(dir);
                         if(only_if_air) {
@@ -361,7 +357,7 @@ export class MineGenerator {
                                 continue;
                             }
                         }
-                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, blocks, true, block_rotate); 
+                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, blocks, true, block_rotate);
                     }
                 }
             }
@@ -389,18 +385,18 @@ export class MineGenerator {
                     let vec = (new Vector(x, y, z)).rotY(dir);
                     let temp_block = this.getBlock(chunk, node, vec.x, vec.y, vec.z);
                     let temp_block_over = this.getBlock(chunk, node, vec.x, vec.y + 1, vec.z);
-                    // block must connected to other block (not air) 
+                    // block must connected to other block (not air)
                     if(temp_block_over && temp_block_over.id != 0) {
                         let is_chance = (chance == 1) ?  true : node.random.double() < chance;
                         if (is_chance == true && temp_block != null && temp_block.id == 0) {
-                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate); 
+                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true, block_rotate);
                         }
                     }
                 }
             }
         }
     }
-    
+
     /**
      * TO DO EN замена не воздуха на блок с вероятностью
      * @param {Chunk} chunk
@@ -422,7 +418,7 @@ export class MineGenerator {
                     let temp_block = this.getBlock(chunk, node, vec.x, vec.y, vec.z);
                     let is_chance = (chance == 1) ?  true : node.random.double() < chance;
                     if (is_chance == true && temp_block != null && temp_block.id != 0) {
-                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true); 
+                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, block, true);
                     }
                 }
             }

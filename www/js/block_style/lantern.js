@@ -13,19 +13,6 @@ const CONNECT_HEIGHT_ON_CEIL = 6 / 16;
 
 const lm = MULTIPLY.COLOR.WHITE.clone();
 
-// getAnimations...
-let getAnimations = (material, side) => {
-    if(!material.texture_animations) {
-        return 1;
-    }
-    if(side in material.texture_animations) {
-        return material.texture_animations[side];
-    } else if('side' in material.texture_animations) {
-        return material.texture_animations['side'];
-    }
-    return 1;
-};
-
 // Фонарь
 export default class style {
 
@@ -73,7 +60,7 @@ export default class style {
         }
 
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const animations_side   = getAnimations(block.material, 'side');
+        const animations_side   = BLOCK.getAnimations(block.material, 'side');
         const on_ceil           = block.rotate.y == -1;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.FLAG_ANIMATED;
 

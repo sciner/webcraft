@@ -89,6 +89,14 @@ export class TypedBlocks2 {
         this.metadata   = new VectorCollector1D(chunkSize);
         this.position   = new VectorCollector1D(chunkSize);
         this.non_zero   = 0;
+
+        this.dataChunk = {
+            cx: 1,
+            cy: chunkSize.x * chunkSize.z,
+            cz: chunkSize.x,
+            cw: 0,
+            portals: null,
+        }
     }
 
     //
@@ -131,6 +139,10 @@ export class TypedBlocks2 {
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
+    }
+
+    saveState() {
+        return this;
     }
 
     //
@@ -260,15 +272,42 @@ export class TypedBlocks2 {
      * @returns
      */
     get(vec, block = null) {
+        //TODO: are we sure that vec wont be modified?
+        const { cx, cy, cz } = this;
+        const index = cy * vec.y + cz * vec.z + cx * vec.x;
         return block
-            ? block.init(this, vec)
-            : new TBlock(this, vec);
+            ? block.init(this, vec, index)
+            : new TBlock(this, vec, index);
     }
 
     has(vec) {
-        const { chunkSize } = this;
-        const index = (chunkSize.x * chunkSize.z) * vec.y + (chunkSize.x * vec.z) + vec.x;
+        const { cx, cy, cz } = this;
+        const index = cy * vec.y + cz * vec.z + cx * vec.x;
         return this.id[index] > 0;
     }
 
+    static _tmp = new Vector();
+
+    getBlockId(x, y, z) {
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        return this.id[index];
+    }
+
+    setBlockRotateExtra(x, y, z, rotate, extra_data) {
+        const vec = TypedBlocks2._tmp.set(x, y, z);
+        if (rotate !== undefined) {
+            this.rotate.set(vec, rotate);
+        }
+        if (extra_data !== undefined) {
+            this.extra_data.set(vec, extra_data);
+        }
+    }
+
+    setBlockId(x, y, z, id) {
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        this.id[index] = id;
+        return 0;
+    }
 }

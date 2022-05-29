@@ -14,6 +14,7 @@ export class BaseChunk {
         this.initSize(size);
         this.setPos(Vector.ZERO);
         this.dif26 = [];
+        this.rev = null;
     }
 
     initSize(size) {
@@ -26,6 +27,11 @@ export class BaseChunk {
         this.outerAABB = new AABB();
         this.safeAABB = new AABB();
         this.shiftCoord = 0;
+
+        this.cx = 1;
+        this.cy = outerSize.x * outerSize.z;
+        this.cz = outerSize.x;
+        this.cw = padding * (this.cx + this.cy + this.cz);
     }
 
     /**

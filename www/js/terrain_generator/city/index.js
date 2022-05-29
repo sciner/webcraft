@@ -37,7 +37,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             const seed                  = chunk.addr.sub(new Vector(0, chunk.addr.y, 0)).toString();
             let aleaRandom              = new alea(seed);
 
-            let BRICK   = BLOCK.BRICK;
+            let BRICK   = BLOCK.BRICKS;
             let GLASS   = BLOCK.GLASS;
             let LIGHT   = BLOCK.GLOWSTONE;
             const wnd   = [0, 0, 0, 0, 0, 0, 0, 0, 0];

@@ -29,14 +29,15 @@ export class BlockNeighbours {
 
 export class TBlock {
 
-    constructor(tb, vec) {
-        this.init(tb, vec);
+    constructor(tb, vec, index) {
+        this.init(tb, vec, index);
     }
 
-    init(tb = this.tb, vec = this.vec) {
+    init(tb = this.tb, vec = this.vec, index = undefined) {
+        //TODO try remove third param
         this.tb = tb;
         this.vec = vec;
-        this.index = this.vec ? BLOCK.getIndex(this.vec) : NaN;
+        this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
         return this;
     }
 
@@ -56,7 +57,11 @@ export class TBlock {
     set id(value) {
         // let cu = this.tb.id[this.index];
         // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
-        this.tb.id[this.index] = value;
+        if (this.tb.dataChunk.portals) {
+            this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
+        } else {
+            this.tb.id[this.index] = value;
+        }
     }
 
     //
@@ -202,6 +207,10 @@ export class TBlock {
      * @returns
      */
     getNeighbours(world, cache) {
+        if (this.tb.getNeighbours) {
+            return this.tb.getNeighbours(this, world, cache);
+        }
+
         const neighbours = new BlockNeighbours();
         const nc = this.tb.getNeightboursChunks(world);
         const pos = this.vec;
@@ -278,6 +287,14 @@ export class TypedBlocks {
         this.metadata   = new VectorCollector();
         this.position   = new VectorCollector();
         this.non_zero   = 0;
+
+        this.dataChunk = {
+            cx: 1,
+            cy: CHUNK_SIZE_X * CHUNK_SIZE_Z,
+            cz: CHUNK_SIZE_X,
+            cw: 0,
+            portals: null,
+        }
     }
 
     //
@@ -319,6 +336,10 @@ export class TypedBlocks {
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
+    }
+
+    saveState() {
+        return this;
     }
 
     //
@@ -459,4 +480,28 @@ export class TypedBlocks {
         return this.id[index] > 0;
     }
 
+    static _tmp = new Vector();
+
+    getBlockId(x, y, z) {
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        return this.id[index];
+    }
+
+    setBlockRotateExtra(x, y, z, rotate, extra_data) {
+        const vec = TypedBlocks._tmp.set(x, y, z);
+        if (rotate !== undefined) {
+            this.rotate.set(vec, rotate);
+        }
+        if (extra_data !== undefined) {
+            this.extra_data.set(vec, extra_data);
+        }
+    }
+
+    setBlockId(x, y, z, id) {
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        this.id[index] = id;
+        return 0;
+    }
 }

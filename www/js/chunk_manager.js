@@ -5,6 +5,7 @@ import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
+import {DataWorld} from "./typed_blocks3.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -118,6 +119,7 @@ export class ChunkManager {
                 }
             }
         }
+        this.dataWorld = new DataWorld();
     }
 
     get lightmap_count() {
@@ -306,6 +308,10 @@ export class ChunkManager {
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let i = 0; i < this.poses.length; i++) {
             const chunk = this.poses[i];
+            if (!chunk.chunkManager) {
+                // destroyed!
+                continue;
+            }
             if(!chunk.updateInFrustum(render)) {
                 continue;
             }

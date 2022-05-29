@@ -41,7 +41,7 @@ export class WorkerWorldManager {
 
 // World
 export class WorkerWorld {
-    
+
     constructor(generator) {
         this.generator = generator;
         this.chunkManager = new ChunkManager(this);
@@ -72,9 +72,13 @@ export class WorkerWorld {
     }
 
     destructChunk(addr) {
-        if(this.chunks.has(addr)) {
+        const chunk = this.chunks.get(addr);
+        if(chunk) {
             this.chunks.delete(addr);
             this.generator.maps.delete(addr);
+
+            this.chunkManager.dataWorld.removeChunk(chunk);
+
             return true;
         }
         return false;

@@ -69,7 +69,7 @@ export class Default_Terrain_Generator {
             const vb = this.voxel_buildings[i];
             if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
                 xyz.x < vb.coord.x + vb.size.x &&
-                xyz.y < vb.coord.y + vb.size.z && 
+                xyz.y < vb.coord.y + vb.size.z &&
                 xyz.z < vb.coord.z + vb.size.y) {
                     return vb;
                 }
@@ -79,21 +79,15 @@ export class Default_Terrain_Generator {
 
     // setBlock
     setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+        const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            this.xyz_temp.set(x, y, z);
-            if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
+            if(force_replace || !tblocks.getBlockId(x, y, z)) {
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 if(!this.getVoxelBuilding(this.xyz_temp_coord)) {
-                    let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
-                    chunk.tblocks.id[index] = block_type.id;
+                    tblocks.setBlockId(x, y, z, block_type.id);
                     if(rotate || extra_data) {
-                        this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                        if(rotate) this.temp_tblock.rotate = rotate;
-                        if(extra_data) this.temp_tblock.extra_data = extra_data;
+                        tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
                     }
-                    // chunk.tblocks.delete(this.xyz_temp);
-                    // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                    // this.temp_tblock.id = block_type.id;
                 }
             }
         }
@@ -158,7 +152,7 @@ export class Default_Terrain_Generator {
                 this.plantTropicalTree(options, chunk, x, y, z, check_chunk_size)
                 break;
             }
-            
+
         }
     }
 
@@ -353,7 +347,7 @@ export class Default_Terrain_Generator {
                 for(let j = z - rad; j <= z + rad; j++) {
                     if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
                         let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) || 
+                            (i == x + rad && j == z + rad) ||
                             (i == x - rad && j == z + rad) ||
                             (i == x + rad && j == z - rad);
                             let m2 = (py == y + options.height) ||
@@ -396,7 +390,7 @@ export class Default_Terrain_Generator {
                     }
                     if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
                         let m = (i == -rad && j == -rad) ||
-                            (i == rad && j == rad) || 
+                            (i == rad && j == rad) ||
                             (i == -rad && j == rad) ||
                             (i == rad && j == -rad);
                         if(m && py < y + options.height) {
@@ -466,7 +460,7 @@ export class Default_Terrain_Generator {
                 if(random.double() < .04 && p < y + 4) {
                     block_id = BLOCK.COCOA_BEANS.id;
                     extra_data = {stage: 2};
-                }    
+                }
             }
             if ((p + arr[p % 7]) % 2 == 0) {
                 makeCocoa();
@@ -510,9 +504,12 @@ export class Default_Terrain_Generator {
                 let d = null
                 for (let a = dx; a <= dx + w; a++) {
                     for (let b = dz; b <= dz + w; b++) {
+                        if(a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z) {
+                            continue;
+                        }
                         let l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
                         if (l <= w / 2) {
-                            this.xyz_temp_find.set(a, y + h, d)
+                            this.xyz_temp_find.set(a, y + h, b)
                             d = chunk.tblocks.get(this.xyz_temp_find, d)
                             let d_id = d.id
                             if (!d_id || (d_id >= 0 && d_id != options.type.trunk)) {

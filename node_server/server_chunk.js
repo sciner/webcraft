@@ -3,7 +3,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {TBlock} from "../www/js/typed_blocks.js";
-import {TypedBlocks2} from "../www/js/typed_blocks2.js";
+import { newTypedBlocks } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {PickatActions} from "../www/js/block_action.js";
 
@@ -56,7 +56,6 @@ class TickingBlockManager {
 
     // addTickingBlock
     add(id, pos, ticking) {
-        console.log(id, pos, ticking)
         const block = new TickingBlock(this, id, pos, ticking);
         const ex_block = this.blocks.get(block.pos.toHash());
         if(ex_block) {
@@ -385,7 +384,12 @@ export class ServerChunk {
 
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
-        this.tblocks = new TypedBlocks2(this.coord, this.size);
+        const chunkManager = this.getChunkManager();
+        if (!chunkManager) {
+            return;
+        }
+        this.tblocks = newTypedBlocks(this.coord, this.size);
+        chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
@@ -533,6 +537,11 @@ export class ServerChunk {
 
     // Before unload chunk
     async onUnload() {
+        const chunkManager = this.getChunkManager();
+        if (!chunkManager) {
+            return;
+        }
+        chunkManager.dataWorld.removeChunk(this);
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {

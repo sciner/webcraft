@@ -68,19 +68,6 @@ export default class style {
         return [aabb];
     }
 
-    // getAnimations...
-    static getAnimations(block, side) {
-        if(!block.material.texture_animations) {
-            return 1;
-        }
-        if(side in block.material.texture_animations) {
-            return block.material.texture_animations[side];
-        } else if('side' in block.material.texture_animations) {
-            return block.material.texture_animations['side'];
-        }
-        return 0;
-    }
-
     //
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
@@ -92,7 +79,7 @@ export default class style {
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
-        style.lm.b = style.getAnimations(block, 'up');
+        style.lm.b = BLOCK.getAnimations(block.material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
         }

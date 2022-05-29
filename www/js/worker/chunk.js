@@ -1,7 +1,7 @@
 import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {BlockNeighbours, TBlock} from "../typed_blocks.js";
-import {TypedBlocks2} from "../typed_blocks2.js";
+import {newTypedBlocks, DataWorld} from "../typed_blocks3.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
@@ -25,6 +25,7 @@ export class ChunkManager {
                 return this.properties;
             }
         };
+        this.dataWorld = new DataWorld();
     }
 
     // Get
@@ -88,12 +89,15 @@ export class Chunk {
         };
         // 1. Initialise world array
         this.timers.init = performance.now();
-        this.tblocks = new TypedBlocks2(this.coord, this.size);
+
+        this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.chunkManager.dataWorld.addChunk(this);
         //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = this.chunkManager.world.generator.generate(this);
+        this.chunkManager.dataWorld.syncOuter(this);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
@@ -206,7 +210,7 @@ export class Chunk {
         z = pos.z;
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
-        };
+        }
         if(is_modify) {
             console.table(orig_type);
         }
@@ -222,19 +226,11 @@ export class Chunk {
 
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
-        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        if(rotate || extra_data) {
-            this.temp_vec2.x = x;
-            this.temp_vec2.y = y;
-            this.temp_vec2.z = z;
-        }
-        // fill data
-        this.tblocks.id[index] = block_id;
-        if(rotate) {
-            this.tblocks.rotate.set(this.temp_vec2, rotate);
-        }
-        if(extra_data) {
-            this.tblocks.extra_data.set(this.temp_vec2, extra_data);
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        uint16View[index] = block_id;
+        if (rotate || extra_data) {
+            this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
         }
     }
 
@@ -293,7 +289,7 @@ export class Chunk {
 
         const cache                 = BLOCK_CACHE;
         const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)), true);
-        
+
         this.quads = 0;
 
         // Обход всех блоков данного чанка

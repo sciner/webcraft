@@ -1152,7 +1152,7 @@
         "texture": {
             "side": [0, 12],
             "up": [0, 11],
-            "down": [0, 11]
+            "down": [0, 13]
         },
         "material": {
             "id": "stone"
@@ -3402,21 +3402,12 @@
             "id": "stone"
         },
         "height": 0.8125,
+        "transparent": true,
         "texture": {
-            "up": [
-                14,
-                9
-            ],
-            "down": [
-                15,
-                10
-            ],
-            "side": [
-                15,
-                9
-            ]
-        },
-        "transparent": true
+            "up": [14, 9],
+            "down": [16, 9],
+            "side": [15, 9]
+        }
     },
     {
         "id": 158,
@@ -5572,6 +5563,10 @@
             "g": 235,
             "b": 35,
             "a": 255
+        },
+        "texture_animations": {
+            "up": 16,
+            "side": null
         },
         "texture": {
             "side": [31, 4],
