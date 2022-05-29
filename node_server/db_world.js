@@ -468,6 +468,10 @@ export class DBWorld {
             */
         ]});
 
+        migrations.push({version: 52, queries: [
+            `DELETE from world_modify WHERE json_extract(params, '$.rotate.x') > 3 AND block_id = 50`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
