@@ -31,7 +31,7 @@ export class Brain extends FSMBrain {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, this.follow_distance, true);
             let friends = [];
-            for (let player of players){
+            for (let player of players) {
                 if (player.state.hands.right.id == BLOCK.WHEAT.id) {
                     friends.push(player);
                 }
@@ -47,7 +47,7 @@ export class Brain extends FSMBrain {
         return false;
     }
     
-    doStand(delta){
+    doStand(delta) {
         super.doStand(delta);
         
         if (this.is_shaered) {
@@ -55,15 +55,15 @@ export class Brain extends FSMBrain {
         }
     }
    
-    async doEat(delta){
+    async doEat(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
         if (this.count_grass > 5) {
             this.count_grass = 0;
             this.is_shaered = false;
         }
-        if (this.is_shaered){
-            let pos = mob.pos.sub(new Vector(0, 1, 0));
+        if (this.is_shaered) {
+            let pos = mob.pos.sub(new Vector(0, 1, 0)).flooredSelf();
             if (world.getBlock(pos).id == BLOCK.GRASS_DIRT.id) {
                 const actions = new PickatActions();
                 actions.addBlocks([
@@ -76,7 +76,7 @@ export class Brain extends FSMBrain {
                 await world.applyActions(null, actions); 
                 this.count_grass++;
             }
-            pos = mob.pos;
+            pos = mob.pos.flooredSelf();
             if (world.getBlock(pos).id == BLOCK.TALL_GRASS.id) {
                 const actions = new PickatActions();
                 actions.addBlocks([
@@ -90,7 +90,7 @@ export class Brain extends FSMBrain {
                 this.count_grass++;
             }
         }
-        this.stack.replaceState(this.doRotate);
+        this.isRotate(1.0);
     }
     
      // Chasing a player
@@ -119,7 +119,7 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
     
-    onUse(owner, id){
+    onUse(owner, id) {
         if (!owner || !id){
             return;
         }
