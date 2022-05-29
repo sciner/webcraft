@@ -55,6 +55,8 @@
         "stat_death": {"en": "Number of deaths", "ru": "Количество смертей","fr": "Nombre de Deces"},
         "stat_time": {"en": "Time in game", "ru": "Время в игре","fr": "Temps Jouers"},
         "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков", "fr": "Bloque Miners"},
-        "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru"}
+        "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru"},
+        "browser_not_supported_1": {"en": "The browser you are using is not supported.", "ru": "Браузер, который вы используете, не поддерживается.","fr": "Le navigateur que vous utilisez n'est pas pris en charge."},
+        "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible"}
     }
 }

@@ -6,8 +6,6 @@ import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 
-Lang.init();
-
 function isSupported() {
 
     // we should support webgl2 strictly
@@ -45,7 +43,7 @@ function isSupported() {
     const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
 
     if (isFF) {
-        console.error('Browser not supported:', 'Firefox not support modules for workes');
+        console.error('Browser not supported:', 'Firefox not support modules for workers');
 
         return false;
     }
@@ -113,6 +111,8 @@ let app = angular.module('gameApp', []);
 
 let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
+
+    await Lang.init();
 
     window.Game                     = new GameClass();
     $scope.App                      = Game.App = new UIApp();

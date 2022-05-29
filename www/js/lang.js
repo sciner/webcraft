@@ -1,11 +1,17 @@
-import lang_json from "../data/lang.json" assert { type: "json" };
+// import lang_json from "../data/lang.json" assert { type: "json" };
 
 export const Lang = new Proxy(
     {
 
         default_code: 'en',
 
-        init() {
+        async init() {
+
+            // Load from JSON
+            const lang_json = await fetch("../data/lang.json").then(response => {
+                return response.json();
+            });
+
             this.strings = lang_json.strings;
             this.list = lang_json.list;
             //
