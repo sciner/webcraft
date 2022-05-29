@@ -46,7 +46,7 @@ export class Brain extends FSMBrain {
         return false;
     }
 
-    runPanic() {
+    onPanic() {
 
     }
     

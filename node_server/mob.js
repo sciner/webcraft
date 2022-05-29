@@ -103,7 +103,7 @@ export class Mob {
 
     async punch(server_player, params) {
         if(params.button_id == 3) {
-            this.#brain.onUse(server_player, server_player.state.hands.right);
+            this.#brain.onUse(server_player, server_player.state.hands.right.id);
             /*const mat = server_player.state.hands.right;
             if(this.type == 'sheep') {
                 if(mat && mat.id == 552) {
@@ -121,15 +121,15 @@ export class Mob {
             }
             */
         } else if(params.button_id == 1) {
+           
             if(this.indicators.live.value > 0) {
-                
-                
                 await this.changeLive(-5, server_player);
                 // Add velocity for drop item
-                let velocity = this.pos.sub(server_player.state.pos).normSelf();
-                velocity.y = .5;
-                this.addVelocity(velocity);
-                this.#brain.runPanic();
+                //let velocity = this.pos.sub(server_player.state.pos).normSelf();
+               // velocity.y = .5;
+                //this.addVelocity(velocity);
+                //this.#brain.runPanic(); 
+                this.#brain.onDemage(server_player, 5);
             }
         }
     }

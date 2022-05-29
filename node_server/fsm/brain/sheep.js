@@ -17,9 +17,6 @@ export class Brain extends FSMBrain {
             playerHalfWidth: .5
         });
         
-        this.live = 8;
-        this.demage = 0;
-        
         this.color = 0;
         this.is_shaered = false;
         this.count_grass = 0;
@@ -27,7 +24,6 @@ export class Brain extends FSMBrain {
         this.follow_distance = 10;
         
         this.stack.pushState(this.doStand);
-        
     }
     
     findTarget() {
@@ -108,7 +104,7 @@ export class Brain extends FSMBrain {
 
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player || !player.game_mode.getCurrent().can_take_damage || player.state.hands.right.id != BLOCK.WHEAT.id) {
+        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id) {
             this.target = null;
             this.isStand(1.0);
             this.sendState();
@@ -123,15 +119,19 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
     
-    onUse(owner, item){
+    onUse(owner, id){
+        if (!owner || !id){
+            return;
+        }
+        
         const mob = this.mob;
         const world = mob.getWorld();
         
-        if (item.id == BLOCK.SHEARS.id && !this.is_shaered) {
+        if (id == BLOCK.SHEARS.id && !this.is_shaered) {
             this.is_shaered = true; 
             const velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
             const rnd_count = ((Math.random() * 2) | 0) + 1;
-            let items = [
+            const items = [
                 {
                     id: 350, 
                     count: rnd_count
