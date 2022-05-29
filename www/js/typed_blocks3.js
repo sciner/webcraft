@@ -96,8 +96,9 @@ export class TypedBlocks3 {
     refreshNonZero() {
         this.non_zero = 0;
         const id = this.dataChunk.uint16View;
-        for(let i = 0; i < id.length; i++) {
-            if(id[i] != 0) {
+        const len = id.length;
+        for(let i = 0; i < len; i++) {
+            if(id[i] !== 0) {
                 this.non_zero++;
             }
         }
