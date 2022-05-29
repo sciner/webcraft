@@ -69,7 +69,7 @@ export class Default_Terrain_Generator {
             const vb = this.voxel_buildings[i];
             if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
                 xyz.x < vb.coord.x + vb.size.x &&
-                xyz.y < vb.coord.y + vb.size.z && 
+                xyz.y < vb.coord.y + vb.size.z &&
                 xyz.z < vb.coord.z + vb.size.y) {
                     return vb;
                 }
@@ -158,7 +158,7 @@ export class Default_Terrain_Generator {
                 this.plantTropicalTree(options, chunk, x, y, z, check_chunk_size)
                 break;
             }
-            
+
         }
     }
 
@@ -353,7 +353,7 @@ export class Default_Terrain_Generator {
                 for(let j = z - rad; j <= z + rad; j++) {
                     if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
                         let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) || 
+                            (i == x + rad && j == z + rad) ||
                             (i == x - rad && j == z + rad) ||
                             (i == x + rad && j == z - rad);
                             let m2 = (py == y + options.height) ||
@@ -396,7 +396,7 @@ export class Default_Terrain_Generator {
                     }
                     if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
                         let m = (i == -rad && j == -rad) ||
-                            (i == rad && j == rad) || 
+                            (i == rad && j == rad) ||
                             (i == -rad && j == rad) ||
                             (i == rad && j == -rad);
                         if(m && py < y + options.height) {
@@ -466,7 +466,7 @@ export class Default_Terrain_Generator {
                 if(random.double() < .04 && p < y + 4) {
                     block_id = BLOCK.COCOA_BEANS.id;
                     extra_data = {stage: 2};
-                }    
+                }
             }
             if ((p + arr[p % 7]) % 2 == 0) {
                 makeCocoa();
@@ -510,9 +510,12 @@ export class Default_Terrain_Generator {
                 let d = null
                 for (let a = dx; a <= dx + w; a++) {
                     for (let b = dz; b <= dz + w; b++) {
+                        if(a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z) {
+                            continue;
+                        }
                         let l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
                         if (l <= w / 2) {
-                            this.xyz_temp_find.set(a, y + h, d)
+                            this.xyz_temp_find.set(a, y + h, b)
                             d = chunk.tblocks.get(this.xyz_temp_find, d)
                             let d_id = d.id
                             if (!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
