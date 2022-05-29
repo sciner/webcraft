@@ -18,12 +18,19 @@ export class Brain extends FSMBrain {
         });
         
         this.color = 0;
-        this.is_shaered = false;
         this.count_grass = 0;
         this.target = null;
         this.follow_distance = 10;
         
         this.stack.pushState(this.doStand);
+    }
+
+    get is_shaered() {
+        return !!this.mob.extra_data?.is_shaered;
+    }
+
+    set is_shaered(value) {
+        this.mob.extra_data.is_shaered = value;
     }
     
     findTarget() {

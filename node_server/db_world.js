@@ -472,6 +472,10 @@ export class DBWorld {
             `DELETE from world_modify WHERE json_extract(params, '$.rotate.x') > 3 AND block_id = 50`,
         ]});
 
+        migrations.push({version: 53, queries: [
+            'ALTER TABLE entity ADD COLUMN extra_data text'
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -697,7 +701,7 @@ export class DBWorld {
     // Create entity (mob)
     async createMob(params) {
         const entity_id = uuid();
-        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn)', {
+        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
             ':type':            params.type,
@@ -705,6 +709,7 @@ export class DBWorld {
             ':indicators':      JSON.stringify(params.indicators),
             ':rotate':          JSON.stringify(params.rotate),
             ':pos_spawn':       JSON.stringify(params.pos),
+            ':extra_data':      params.extra_data ? JSON.stringify(params.extra_data) : null,
             ':x':               params.pos.x,
             ':y':               params.pos.y,
             ':z':               params.pos.z
@@ -777,12 +782,13 @@ export class DBWorld {
 
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, extra_data = :extra_data WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
             ':entity_id': mob.entity_id,
             ':is_active': mob.indicators.live.value > 0 ? 1 : 0,
+            ':extra_data': mob?.extra_data ? JSON.stringify(mob.extra_data) : null,
             ':indicators': JSON.stringify(mob.indicators)
         });
     }

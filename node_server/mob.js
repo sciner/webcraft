@@ -1,6 +1,7 @@
 import {getChunkAddr} from "../www/js/chunk.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
+import { json } from "express";
 
 await Brains.init();
 
@@ -38,7 +39,12 @@ export class Mob {
 
     //
     static convertRowToExtraData(row) {
-        return {is_alive: !!row.is_active, play_death_animation: true};
+        let extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
+        extra_data.is_alive = !!row.is_active;
+        if(!('play_death_animation' in extra_data)) {
+            extra_data.play_death_animation = true;
+        }
+        return extra_data;
     }
 
     get chunk_addr() {
