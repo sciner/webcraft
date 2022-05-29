@@ -51,7 +51,7 @@ function calcRotate(rot, pos_n) {
     rot.x = 0;
     rot.y = 0;
     // top normal
-    if (true || Math.abs(pos_n.y) === 1) {
+    if (Math.abs(pos_n.y) === 1) {
         rot.x = BLOCK.getCardinalDirection(rot);
         rot.z = 0;
         rot.y = pos_n.y; // mark that is up
@@ -675,9 +675,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             // throw 'error_deprecated_block';
             return actions;
         }
+
         // rotate_by_pos_n
         let orientation = null;
-        if(matBlock.tags.indexOf('rotate_by_pos_n')) {
+        if(matBlock.tags.indexOf('rotate_by_pos_n') >= 0) {
             orientation = calcRotateByPosN(player.rotate, pos.n);
             if(matBlock.tags.indexOf('rotate_by_pos_n_plus')) {
                 if(orientation.x < 0) orientation.x *= -1;
@@ -690,6 +691,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         } else {
             orientation = calcRotate(player.rotate, pos.n);
         }
+
         // Put plant into pot
         let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
         if(putPlantIntoPot) {
