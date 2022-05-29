@@ -1,4 +1,5 @@
 // import lang_json from "../data/lang.json" assert { type: "json" };
+import { Helpers } from "./helpers.js";
 
 export const Lang = new Proxy(
     {
@@ -8,8 +9,9 @@ export const Lang = new Proxy(
         async init() {
 
             // Load from JSON
-            const lang_json = await fetch("../data/lang.json").then(response => {
-                return response.json();
+            let lang_json = null;
+            await Helpers.fetchJSON("../data/lang.json", true, 'bs').then((json) => {
+                lang_json = json;
             });
 
             this.strings = lang_json.strings;
