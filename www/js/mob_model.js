@@ -1,15 +1,13 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, Vector, SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
-export const SNEAK_MINUS_Y_MUL      = 0.2; // decrease player height to this percent value
-export const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
 const MAX_DETONATION_TIME           = 2000; // ms
 
 export class Traversable {

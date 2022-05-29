@@ -104,6 +104,7 @@ export default class style {
         // Пламя
         if(active) {
             const chains = [];
+            const flame_animations = BLOCK.getAnimations(block.material, 'up');
             chains.push({
                 pos: pos,
                 width: 1,
@@ -111,7 +112,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: Math.PI / 4,
                 translate: [.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, 16, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, flame_animations, null, null, true)},
                 anim: 8
             });
             chains.push({
@@ -121,7 +122,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: -Math.PI / 4,
                 translate: [-.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, 16, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, flame_animations, null, null, true)},
                 anim: 8
             });
             style.pushChains(vertices, chains);

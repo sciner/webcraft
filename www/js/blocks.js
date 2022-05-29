@@ -629,7 +629,7 @@ export class BLOCK {
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
     static calcMaterialTexture(material, dir, width, height, block, force_tex) {
-        let tx_cnt = material.tx_cnt;
+        const tx_cnt = material.tx_cnt;
         let texture = force_tex || material.texture;
         // Stages
         if(block && material.stage_textures && block && block.extra_data) {
@@ -667,11 +667,25 @@ export class BLOCK {
             c[2] *= -1;
             c[3] *= -1;
         }*/
-        if(dir == DIRECTION.NORTH || dir == DIRECTION.WEST) {
+        //if(dir == DIRECTION.NORTH || dir == DIRECTION.WEST) {
             //c[2] *= -1;
             //c[3] *= -1;
-        }
+        //}
         return c;
+    }
+
+    // getAnimations...
+    static getAnimations(material, side) {
+        console.log(1)
+        if(!material.texture_animations) {
+            return 0;
+        }
+        if(side in material.texture_animations) {
+            return material.texture_animations[side];
+        } else if('side' in material.texture_animations) {
+            return material.texture_animations['side'];
+        }
+        return 0;
     }
 
     // Возвращает координаты текстуры
@@ -998,6 +1012,7 @@ export class BLOCK {
                             ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
                         );
                     } else {
+                        debugger
                         console.error('Deprecated');
                     }
                     break;

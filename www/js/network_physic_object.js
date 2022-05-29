@@ -1,6 +1,5 @@
 import {Mth, Vector, Color} from './helpers.js';
 import { getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
-import { World } from './world.js';
 import { AABB, AABBSideParams, pushAABB } from './core/AABB.js';
 
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
@@ -99,9 +98,6 @@ export class NetworkPhysicObject {
         this.tRot = new Vector();
         this.aabb = null;
 
-        /**
-         * @type {World}
-         */
         this.world = null;
 
         this.tracked = false;
