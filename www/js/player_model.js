@@ -105,7 +105,13 @@ export class PlayerModel extends MobModel {
 
         id = typeof id !== 'number' ? -1 : id;
 
-        const slotLocation = this.sceneTree.findNode(name + 'ItemPlace');
+        let slotLocation = null;
+        for(let st of this.sceneTree) {
+            slotLocation = st.findNode(name + 'ItemPlace');
+            if(slotLocation) {
+                break;
+            }
+        }
 
         if (!slotLocation) {
             return;
@@ -196,10 +202,10 @@ export class PlayerModel extends MobModel {
 
         this.nametag = this.buildPlayerName(this.username, render);
 
-        this.sceneTree.addChild(this.nametag);
+        this.sceneTree[0].addChild(this.nametag);
         this.nametag.scale.set([0.005, 1, 0.005]);
         this.nametag.position[2] = 
-            (this.sceneTree.findNode('Head') || this.sceneTree.findNode('head'))
+            (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head'))
             .pivot[2] + 0.5;
         
         this.nametag.updateMatrix();

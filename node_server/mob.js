@@ -1,6 +1,7 @@
 import {getChunkAddr} from "../www/js/chunk.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
+import { json } from "express";
 
 await Brains.init();
 
@@ -38,7 +39,12 @@ export class Mob {
 
     //
     static convertRowToExtraData(row) {
-        return {is_alive: !!row.is_active, play_death_animation: true};
+        let extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
+        extra_data.is_alive = !!row.is_active;
+        if(!('play_death_animation' in extra_data)) {
+            extra_data.play_death_animation = true;
+        }
+        return extra_data;
     }
 
     get chunk_addr() {
@@ -103,7 +109,8 @@ export class Mob {
 
     async punch(server_player, params) {
         if(params.button_id == 3) {
-            const mat = server_player.state.hands.right;
+            this.#brain.onUse(server_player, server_player.state.hands.right.id);
+            /*const mat = server_player.state.hands.right;
             if(this.type == 'sheep') {
                 if(mat && mat.id == 552) {
                     // Add velocity for drop item
@@ -118,25 +125,29 @@ export class Mob {
                     this.#world.createDropItems(server_player, this.pos.addSelf(new Vector(0, .5, 0)), items, velocity);
                 }
             }
+            */
         } else if(params.button_id == 1) {
+           
             if(this.indicators.live.value > 0) {
-                await this.changeLive(-5);
+                await this.changeLive(-5, server_player);
                 // Add velocity for drop item
-                let velocity = this.pos.sub(server_player.state.pos).normSelf();
-                velocity.y = .5;
-                this.addVelocity(velocity);
-                this.#brain.runPanic();
+                //let velocity = this.pos.sub(server_player.state.pos).normSelf();
+               // velocity.y = .5;
+                //this.addVelocity(velocity);
+                //this.#brain.runPanic(); 
+                this.#brain.onDemage(server_player, 5);
             }
         }
     }
 
     //
-    async changeLive(value) {
+    async changeLive(value, owner) {
         const ind = this.indicators.live;
         const prev_value = ind.value;
         ind.value = Math.max(prev_value + value, 0);
         console.log(`Mob live ${prev_value} -> ${ind.value}`);
         if(ind.value == 0) {
+            this.#brain.onKill(owner);
             await this.kill();
         } else {
             this.save();

@@ -159,7 +159,11 @@ export class FSMBrain {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-
+    
+    findTarget(){
+        return false;
+    }
+    
     isStand(chance) {
         if (Math.random() < chance) {
             // console.log("[AI] mob " + this.mob.id + " stand");
@@ -205,11 +209,11 @@ export class FSMBrain {
         return false;
     }
 
-    runPanic() {
-       //console.log("[AI] panic");
+    onPanic(pos) {
+        const mob = this.mob;
         this.run = true;
         this.panicTime = performance.now();
-        this.mob.rotate.z = 2 * Math.random() * Math.PI;
+        mob.rotate.z = this.angleTo(pos) + Math.PI;
         this.stack.replaceState(this.doPanic);
 	}
 
@@ -225,8 +229,8 @@ export class FSMBrain {
         if (time > 3000) {
             this.run = false;
             this.isStand(1.0);
-		}
-	}
+        }
+    }
 
     doStand(delta) {
         this.updateControl({
@@ -236,6 +240,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
 
         if (this.isRespawn()) {
             return;
@@ -264,6 +272,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
 
         if (this.isStand(0.01)) {
             return;
@@ -286,6 +298,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
     }
 
     //
@@ -300,4 +316,35 @@ export class FSMBrain {
         return block.material.is_fluid;
     }
 
+    /**
+    * Моба убили
+    * owner - игрок или пероснаж
+    * type - от чего умер[упал, сгорел, утонул]
+    */
+    onKill(owner, type) {
+    }
+    
+    /**
+    * Использовать предмет на мобе
+    * owner - игрок
+    * item - item
+    */
+    onUse(owner, item){
+    }
+    
+    
+    /**
+    * Нанесен урон по мобу
+    * owner - игрок или пероснаж
+    * val - количество урона
+    * type - от чего умер[упал, сгорел, утонул]
+    */
+    onDemage(owner, val, type){
+        const mob = this.mob;
+        const pos_owner = (owner.session) ? owner.state.pos : new Vector(0,0,0);
+        let velocity = mob.pos.sub(pos_owner).normSelf();
+        velocity.y = .5;
+        mob.addVelocity(velocity);
+        this.onPanic(pos_owner);
+    }
 }
