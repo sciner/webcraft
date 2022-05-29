@@ -17,9 +17,57 @@ export class Brain extends FSMBrain {
         
         this.egg_timer = performance.now();
         this.lay_interval = 200000;
+        this.follow_distance = 20;
+        this.target = null;
         
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.doStand);
+    }
+    
+    findTarget() {
+        if (this.target == null) {
+            const mob = this.mob;
+            const players = this.getPlayersNear(mob.pos, this.follow_distance, true);
+            let friends = [];
+            for (let player of players) {
+                if (player.state.hands.right.id == BLOCK.WHEAT_SEEDS.id) {
+                    friends.push(player);
+                }
+            } 
+            if (friends.length > 0) {
+                const rnd = (Math.random() * friends.length) | 0;
+                const player = friends[rnd];
+                this.target = player.session.user_id;
+                this.stack.replaceState(this.doCatch);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    async doCatch(delta) {
+        
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
+
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        if(!player || player.state.hands.right.id != BLOCK.WHEAT_SEEDS.id) {
+            this.target = null;
+            this.isStand(1.0);
+            this.sendState();
+            return;
+        }
+
+        if (Math.random() < 0.5) {
+            this.mob.rotate.z = this.angleTo(player.state.pos);
+        }
+
+        this.applyControl(delta);
+        this.sendState();
     }
     
     doStand(delta) {
