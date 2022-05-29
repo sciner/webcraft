@@ -36,7 +36,7 @@ export class Brain extends FSMBrain {
     findTarget() {
         if (this.target == null) {
             const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, this.follow_distance, true);
+            const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
             let friends = [];
             for (let player of players) {
                 if (player.state.hands.right.id == BLOCK.WHEAT.id) {
