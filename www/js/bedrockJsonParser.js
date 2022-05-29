@@ -310,16 +310,18 @@ export function decodeJsonGeometryTree(json, variant = null) {
         }
     }
 
-    /**
-     * @type {Record<string, SceneNode>}
-     */
-    const tree = {};
-    const root = new SceneNode();
-
-    root.name = geometries[0].name;
-    root.source = json;
+    const roots = [];
 
     for(let geom of geometries) {
+
+        /**
+         * @type {Record<string, SceneNode>}
+         */
+        const tree = {};
+        const root = new SceneNode();
+
+        root.name = geom.name;
+        root.source = json;
 
         for(let node of geom.bones) {
 
@@ -374,14 +376,16 @@ export function decodeJsonGeometryTree(json, variant = null) {
 
         }
 
-    }
-
-    for(const key in tree) {
-        const sceneNode = tree[key];
-        if (sceneNode.source.parent) {
-            tree[sceneNode.source.parent].addChild(sceneNode);
+        for(const key in tree) {
+            const sceneNode = tree[key];
+            if (sceneNode.source.parent) {
+                tree[sceneNode.source.parent].addChild(sceneNode);
+            }
         }
+
+        roots.push(root);
     }
 
-    return root;
+
+    return roots;
 }

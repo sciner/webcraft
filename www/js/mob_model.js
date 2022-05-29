@@ -93,7 +93,7 @@ export class TraversableRenderer {
      * @param {Traversable} traversable 
      * @returns 
      */
-    drawLayer(render, traversable) {
+    drawLayer(render, traversable, ignore_roots = []) {
         if (!traversable || !traversable.sceneTree) {
             return;
         }
@@ -107,7 +107,13 @@ export class TraversableRenderer {
             return;
         }
 
-        this.traverse(traversable.sceneTree, null, render, traversable);
+        for(let st of traversable.sceneTree) {
+            if(ignore_roots && ignore_roots.indexOf(st.name) >= 0) {
+                continue;
+            }
+            this.traverse(st, null, render, traversable);
+        }
+
     }
 
 }
@@ -127,56 +133,63 @@ export class MobAnimator extends Animator {
     prepare(animable) {
     
         const {
-            sceneTree: tree,
+            sceneTree: trees,
             parts = {}
         } = animable;
+
+        for(let p of ['head', 'arm', 'leg', 'wing', 'body']) {
+            parts[p] = [];
+        }
 
         const legs = [];
         const heads = [];
         const arms = [];
         const wings = [];
 
-        let leg;
-        let arm;
-        let head;
-        let wing;
-
         this.aniangle = 0;
 
-        for(let i = 0; i < 8; i ++) {
-            leg = tree.findNode('leg' + i);
+        for(let tree of trees) {
+
+            let leg;
+            let arm;
+            let head;
+            let wing;
+
+            for(let i = 0; i < 8; i ++) {
+                leg = tree.findNode('leg' + i);
+                leg && legs.push(leg);
+
+                arm = tree.findNode('arm' + i);
+                arm && arms.push(arm);
+
+                wing = tree.findNode('wing' + i);
+                wing && wings.push(wing);
+            }
+
+            // humanoid case
+            leg = tree.findNode('LeftLeg');
             leg && legs.push(leg);
 
-            arm = tree.findNode('arm' + i);
+            // humanoid case
+            leg = tree.findNode('RightLeg');
+            leg && legs.push(leg);
+
+            // humanoid case
+            arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
 
-            wing = tree.findNode('wing' + i);
-            wing && wings.push(wing);
+            // humanoid case
+            arm = tree.findNode('RightArm');
+            arm && arms.push(arm);
+            
+            head = tree.findNode('head') || tree.findNode('Head');
+
+            parts['head'].push(...head ? [head] : []);
+            parts['arm'].push(...arms);
+            parts['leg'].push(...legs);
+            parts['wing'].push(...wings);
+            parts['body'].push(...[tree.findNode('Body')].filter(Boolean));
         }
-
-        // humanoid case
-        leg = tree.findNode('LeftLeg');
-        leg && legs.push(leg);
-
-        // humanoid case
-        leg = tree.findNode('RightLeg');
-        leg && legs.push(leg);
-
-        // humanoid case
-        arm = tree.findNode('LeftArm');
-        arm && arms.push(arm);
-
-        // humanoid case
-        arm = tree.findNode('RightArm');
-        arm && arms.push(arm);
-        
-        head = tree.findNode('head') || tree.findNode('Head');
-
-        parts['head'] = head ? [head] : [];
-        parts['arm'] = arms;
-        parts['leg'] = legs;
-        parts['wing'] = wings;
-        parts['body'] = [tree.findNode('Body')].filter(Boolean);
 
         animable.parts = parts;
     }
@@ -222,6 +235,7 @@ export class MobAnimator extends Animator {
     }
 
     applyAnimation(delta, aniframe, aniangle, camPos, animable) {
+
         const {
             animationScript, parts
         } = animable;
@@ -238,7 +252,7 @@ export class MobAnimator extends Animator {
             for(let i = 0; i < parts[partKey].length; i ++) {
                 animationScript[partKey]({
                     part: parts[partKey][i],
-                    index: i,
+                    index: i % 4,
                     delta,
                     aniframe,
                     aniangle,
@@ -503,15 +517,16 @@ export class MobModel extends NetworkPhysicObject {
         this.drawPos = newChunk.coord;
 
         // root rotation
-        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+        for(let st of this.sceneTree) {
+            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+            st.position.set([
+                this.pos.x - this.drawPos.x,
+                this.pos.z - this.drawPos.z,
+                this.pos.y - this.drawPos.y - (this.sneak || 0) * SNEAK_MINUS_Y_MUL + this.fix_z_fighting,
+            ]);
+            st.updateMatrix();
+        }
 
-        this.sceneTree.position.set([
-            this.pos.x - this.drawPos.x,
-            this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y - (this.sneak || 0) * SNEAK_MINUS_Y_MUL + this.fix_z_fighting,
-        ]);
-
-        this.sceneTree.updateMatrix();
     }
 
     update(render, camPos, delta, speed) {
@@ -551,7 +566,7 @@ export class MobModel extends NetworkPhysicObject {
                 this.yaw_before_die = this.yaw;
                 this.die_info = {
                     time: performance.now(),
-                    scale: Array.from(this.sceneTree.scale)
+                    scale: Array.from(this.sceneTree[0].scale)
                 };
                 this.sneak = 1;
             }
@@ -565,9 +580,11 @@ export class MobModel extends NetworkPhysicObject {
                     if(!this.extra_data.play_death_animation) {
                         elapsed_percent = 1;
                     }
-                    this.sceneTree.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
-                    this.sceneTree.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
-                    this.sceneTree.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
+                    for(let st of this.sceneTree) {
+                        st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
+                        st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
+                        st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
+                    }
                 }
                 this.tintColor.set(1, 1, 1, .3);
             } else {
@@ -577,7 +594,7 @@ export class MobModel extends NetworkPhysicObject {
             if(!this.detonation_started_info) {
                 this.detonation_started_info = {
                     time: performance.now(),
-                    scale: Array.from(this.sceneTree.scale)
+                    scale: Array.from(this.sceneTree[0].scale)
                 }
             }
             const info = this.detonation_started_info;
@@ -591,17 +608,29 @@ export class MobModel extends NetworkPhysicObject {
             }
             const CREEPER_MAX_DETONATION_SCALE = 1.35;
             const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
-            this.sceneTree.scale[0] = new_creeper_scale;
-            this.sceneTree.scale[1] = new_creeper_scale;
-            this.sceneTree.scale[2] = new_creeper_scale;
+            for(let st of this.sceneTree) {
+                st.scale[0] = new_creeper_scale;
+                st.scale[1] = new_creeper_scale;
+                st.scale[2] = new_creeper_scale;
+            }
         } else if(this.detonation_started_info) {
             this.tintColor.set(0, 0, 0, 0);
-            this.sceneTree.scale = this.detonation_started_info.scale;
+            for(let st of this.sceneTree) {
+                st.scale = this.detonation_started_info.scale;
+            }
             this.detonation_started_info = null;
         }
 
+        // ignore_roots
+        const ignore_roots = [];
+        if(this.type == 'sheep' && this.extra_data?.is_shaered) {
+            ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
+        }
+
         // run render
-        this.renderer.drawLayer(render, this);
+        this.renderer.drawLayer(render, this, ignore_roots);
+
+        // Draw AABB wireframe
         //if(this.aabb) {
         //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
         //}
