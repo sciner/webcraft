@@ -676,7 +676,6 @@ export class BLOCK {
 
     // getAnimations...
     static getAnimations(material, side) {
-        console.log(1)
         if(!material.texture_animations) {
             return 0;
         }
