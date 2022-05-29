@@ -122,9 +122,8 @@ export class TypedBlocks3 {
 
     //
     blockIsClosed(index, id, x, y, z) {
-        const { outerSize, padding } = this.dataChunk;
-        const { cx, cy, cz, cw} = this;
-        index = cx * (x + padding) + cy * (y + padding) + cz * (z + padding) + cw;
+        const { cx, cy, cz, cw } = this.dataChunk;
+        index = cx * x + cy * y + cz * z + cw;
         const i_up = index + cy;
         const i_down = index - cy;
         const i_north = index + cz;
@@ -304,6 +303,9 @@ export class TypedBlocks3 {
             if(properties.is_water) {
                 is_water_count++;
             }
+        }
+        if(is_water_count == 6) {
+            neighbours.water_in_water = tblock.material.is_water;
         }
 
         return neighbours;
