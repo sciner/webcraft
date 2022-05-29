@@ -31,7 +31,7 @@ export class Brain extends FSMBrain {
         this.stack.pushState(this.doStand);
     }
 
-    isTarget() {
+    findTarget() {
         if (this.target == null) {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
@@ -48,24 +48,8 @@ export class Brain extends FSMBrain {
 
     runPanic() {
 
-	}
-
-    doStand(delta) {
-        super.doStand(delta);
-
-        if (this.isTarget()) {
-            return;
-        }
     }
-
-    doForward(delta) {
-        super.doForward(delta);
-
-        if (this.isTarget()) {
-            return;
-        }
-    }
-
+    
     // Chasing a player
     async doCatch(delta) {
 
@@ -204,23 +188,21 @@ export class Brain extends FSMBrain {
     onKill(owner, type) {
         const mob = this.mob;
         const world = mob.getWorld();
-        let velocity = new Vector(
-            -Math.sin(mob.rotate.z),
-            0,
-            -Math.cos(mob.rotate.z)
-        ).multiplyScalar(0.5);
         let items = [];
+        let velocity = new Vector(0,0,0);
         if (owner != null) {
             //owner это игрок
             if (owner.session) {
+                velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
                 const rnd_count = (Math.random() * 2) | 0;
                 if (rnd_count > 0){ 
                     items.push({id: 1445, count: rnd_count});
                 }
+                
             }
         }
         if (items.length > 0){
-            world.createDropItems(owner, mob.pos.addSelf(new Vector(0, 0.5, 0)), items, velocity);
+            world.createDropItems(owner, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
         }
     }
 }

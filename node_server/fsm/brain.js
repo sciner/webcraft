@@ -28,12 +28,6 @@ export class FSMBrain {
         this.target = null;
         this.angleRotation = 0;
         this.painicTime = 0;
-        this.drops = [
-            {
-                id: 56, //TO DO gunpowder
-                count: [0,2]
-            }
-        ];
     }
 
     /**
@@ -165,7 +159,11 @@ export class FSMBrain {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-
+    
+    findTarget(){
+        return false;
+    }
+    
     isStand(chance) {
         if (Math.random() < chance) {
             // console.log("[AI] mob " + this.mob.id + " stand");
@@ -242,6 +240,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
 
         if (this.isRespawn()) {
             return;
@@ -270,6 +272,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
 
         if (this.isStand(0.01)) {
             return;
@@ -292,6 +298,10 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
+        
+        if (this.findTarget()){
+            return;
+        }
     }
 
     //
