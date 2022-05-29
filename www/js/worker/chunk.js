@@ -226,7 +226,9 @@ export class Chunk {
 
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
-        this.tblocks.setBlockId(x, y, z, block_id);
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        this.id[index] = id;
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
         }
