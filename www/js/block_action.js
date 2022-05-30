@@ -945,8 +945,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         if(emitBlock.sound) {
                             actions.addPlaySound({tag: emitBlock.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                         }
-                        return actions;
                     }
+                    return actions;
                     break;
                 }
             }
