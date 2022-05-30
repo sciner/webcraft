@@ -18,6 +18,7 @@ export default class packet_reader {
         player.session = await Game.db.GetPlayerSession(player.session_id);
         Log.append('CmdConnect', {world_guid, session: player.session});
         player.world.onPlayer(player, player.skin);
+        return true;
     }
 
 }

@@ -356,7 +356,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const extra_data = block.extra_data || null;
                     xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
-                    if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516) {
+                    if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516 || temp_block.id == 11) {
                         temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
                         if(!chunk.tblocks.has(temp_vec)) {
                             if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {

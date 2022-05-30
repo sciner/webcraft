@@ -4,7 +4,7 @@ export default class packet_reader {
 
     // must be puto to queue
     static get queue() {
-        return false;
+        return true;
     }
 
     // which command can be parsed with this class
@@ -15,6 +15,7 @@ export default class packet_reader {
     // 
     static async read(player, packet) {
         player.newInventoryStates.push(packet.data);
+        return true;
     }
 
 }

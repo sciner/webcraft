@@ -21,6 +21,7 @@ export default class packet_reader {
         player.world.teleportPlayer(player, {
             place_id: 'spawn',
         });
+        return true;
     }
 
 }

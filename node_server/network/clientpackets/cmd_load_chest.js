@@ -1,3 +1,4 @@
+import { Vector } from "../../../www/js/helpers.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
@@ -14,7 +15,23 @@ export default class packet_reader {
 
     // Request chest content
     static async read(player, packet) {
-        player.world.chest_load_queue.add(player, packet.data);
+        const pos = new Vector(packet.data.pos);
+        const chest = await player.world.chests.get(pos);
+        if(chest) {
+            if (chest.id < 0) {
+                // if chest not loaded
+                if (!packet.attempts_count) {
+                    packet.attempts_count = 0;
+                }
+                if (++packet.attempts_count < 1000) {
+                    return false;
+                }
+            } else {
+                player.world.chests.sendContentToPlayers([player], pos);
+                return true;
+            }
+        }
+        throw `Chest ${pos.toHash()} not found`;
     }
 
 }

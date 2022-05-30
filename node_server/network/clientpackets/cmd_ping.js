@@ -15,6 +15,7 @@ export default class packet_reader {
     // Ping from player
     static async read(player, packet) {
         // do nothing
+        return true;
     }
 
 }

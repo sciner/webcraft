@@ -19,6 +19,7 @@ export default class packet_reader {
         if(player.nearby_chunk_addrs.has(addr)) {
             player.world.loadChunkForPlayer(player, addr);
         }
+        return true;
     }
 
 }

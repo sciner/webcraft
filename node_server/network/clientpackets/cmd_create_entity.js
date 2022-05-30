@@ -15,6 +15,7 @@ export default class packet_reader {
     // Create entity (e.g. mob)
     static async read(player, packet) {
         player.world.createEntity(player, packet.data);
+        return true;
     }
 
 }

@@ -14,7 +14,18 @@ export default class packet_reader {
 
     // 
     static async read(player, packet) {
-        player.world.chest_confirm_queue.add(player, packet.data);
+        const chests = player.world.chests;
+        const pos = packet.data.chest.pos;
+        const chest = await chests.get(pos);
+        if (chest) {
+            console.log('Chest state from ' + player.session.username);
+            await chests.confirmPlayerAction(player, pos, packet.data);
+        } else {
+            player.inventory.refresh(true);
+            const pos_hash = pos.toHash();
+            throw `Chest ${pos_hash} not found`;
+        }
+        return true;
     }
 
 }
