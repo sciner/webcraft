@@ -27,6 +27,8 @@ export default class packet_reader {
             name: ServerClient.CMD_SYNC_TIME,
             data: { clientTime: packet.data.clientTime },
         }]);
+
+        return true;
     }
 
 }

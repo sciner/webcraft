@@ -489,6 +489,7 @@ export class Vector {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
+        return this;
     }
 
     /**
@@ -506,6 +507,7 @@ export class Vector {
         this.x = Mth.lerpAngle(vec1.x * coef, vec2.x * coef, delta) / coef;
         this.y = Mth.lerpAngle(vec1.y * coef, vec2.y * coef, delta) / coef;
         this.z = Mth.lerpAngle(vec1.z * coef, vec2.z * coef, delta) / coef;
+        return this;
     }
 
     /**

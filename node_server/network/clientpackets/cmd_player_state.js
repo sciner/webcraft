@@ -21,6 +21,7 @@ export default class packet_reader {
         if ((distance.toFixed(1) % 1) == 0) {
             player.state.stats.distance++;
         }
+        return true;
     }
 
 }

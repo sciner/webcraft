@@ -125,66 +125,102 @@ export class PlayerInventory {
     }
 
     // Increment
-    increment(mat) {
+    increment(mat, no_update_if_remains) {
         if(!mat.id) {
-            throw 'Empty mat ID';
+            throw 'error_empty_block_id';
+        }
+        mat.id = parseInt(mat.id);
+        mat.count = parseInt(mat.count);
+        if(mat.count == 0) {
+            throw 'error_increment_value_less_then_one';
         }
         let block = BLOCK.BLOCK_BY_ID.get(mat.id);
         if(!block) {
-            throw 'Invalid mat ID';
+            throw 'error_invalid_block_id';
         }
-        // Restore material default properties
+        no_update_if_remains = !!no_update_if_remains;
+        // fill material default properties
         mat = Object.assign({
-            count:              mat?.count || 1,
             name:               block.name,
             tags:               block.tags,
             inventory_icon_id:  block.inventory_icon_id,
             max_in_stack:       block.max_in_stack,
-        }, mat);
-        mat.id = parseInt(mat.id);
-        mat.count = parseInt(mat.count);
-        let item_max_count = mat.max_in_stack;
-        // Update cell if exists
+        }, JSON.parse(JSON.stringify(mat)));
+        const item_max_count = block.max_in_stack;
+        let need_refresh = false;
+        //
+        const updated = new Map();
+        const added = new Map();
+        //
+        // 1. update cell if exists
         for(let i in this.items) {
-            let item = this.items[i];
+            const item = this.items[i];
             if(item) {
                 if(item.id == mat.id) {
-                    /*if(this.player.game_mode.isCreative()) {
-                        return;
-                    }*/
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
-                            item.count = Math.min(item.count + mat.count, item_max_count);
-                            return this.refresh(true);
+                            updated.set(i, Math.min(item.count + mat.count, item_max_count));
+                            mat.count = 0;
+                            need_refresh = true;
+                            break;
                         } else {
-                            let remains = (item.count + mat.count) - item_max_count;
-                            item.count = item_max_count;
-                            mat.count = remains;
-                            return this.refresh(true);
+                            mat.count = (item.count + mat.count) - item_max_count;
+                            updated.set(i, item_max_count);
+                            need_refresh = true;
                         }
                     }
                 }
             }
         }
-        // Start new slot
-        for(let i = 0; i < this.items.length; i++) {
-            if(!this.items[i]) {
-                this.items[i] = {...mat};
-                if(this.items[i].count > item_max_count) {
-                    mat.count -= item_max_count;
-                    this.items[i].count = item_max_count;
-                } else {
-                    mat.count = 0;
+        // 2. start new slot
+        if(mat.count > 0) {
+            for(let i = 0; i < this.max_count; i++) {
+                if(!this.items[i]) {
+                    const new_clot = {...mat};
+                    added.set(i, new_clot);
+                    need_refresh = true;
+                    if(new_clot.count > item_max_count) {
+                        mat.count -= item_max_count;
+                        new_clot.count = item_max_count;
+                    } else {
+                        mat.count = 0;
+                        break;
+                    }
                 }
-                delete(this.items[i].texture);
-                if(i == this.current.index) {
-                    this.select(i);
-                }
-                if(mat.count > 0) {
-                    this.increment(mat);
-                }
-                return this.refresh(true);
             }
+        }
+        // @debug info
+        // console.log('---------------')
+        // console.log(mat.count, no_update_if_remains, need_refresh)
+        // console.log(Array.from(updated.entries()))
+        // console.log(Array.from(added.entries()))
+        // no update if remains
+        if(no_update_if_remains && mat.count > 0) {
+            return false;
+        }
+        if(need_refresh) {
+            // updated
+            for(let [i, count] of updated.entries()) {
+                i = parseInt(i);
+                this.items[i | 0].count = count;
+            }
+            // added
+            let select_index = -1;
+            for(let [i, item] of added.entries()) {
+                i = parseInt(i);
+                if('texture' in item) {
+                    delete(item.texture);
+                }
+                this.items[i] = item;
+                if(i == this.current.index) {
+                    select_index = i;
+                }
+            }
+            if(select_index >= 0) {
+                this.select(i);
+                return true;
+            }
+            return this.refresh(true);
         }
         return false;
     }

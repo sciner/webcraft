@@ -406,7 +406,7 @@ export class Player {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    //Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
                 }
                 //
                 switch(mod.action_id) {

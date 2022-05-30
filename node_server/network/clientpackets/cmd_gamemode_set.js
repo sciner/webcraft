@@ -18,6 +18,7 @@ export default class packet_reader {
             throw 'error_not_permitted';
         }
         player.game_mode.applyMode(packet.data.id, true);
+        return true;
     }
 
 }

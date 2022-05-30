@@ -1256,10 +1256,8 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "texture": [
-            7,
-            3
-        ],
+        "drop_item": {"name": "STICK", "count": [0, 1, 2], "chance": 1},
+        "texture": [7, 3],
         "material": {
             "id": "plant"
         }

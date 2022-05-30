@@ -6,7 +6,7 @@ export default class packet_reader {
 
     // must be puto to queue
     static get queue() {
-        return false;
+        return true;
     }
 
     // which command can be parsed with this class
@@ -24,6 +24,7 @@ export default class packet_reader {
         }
         const block = chunk.getBlock(pos);
         player.inventory.cloneMaterial(block.material, player.game_mode.getCurrent().block_clone);
+        return true;
     }
 
 }

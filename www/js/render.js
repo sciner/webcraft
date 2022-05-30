@@ -806,6 +806,7 @@ export class Renderer {
         if(this.camera_mode === CAMERA_MODE.SHOOTER) {
             // do nothing
         } else {
+            const cam_pos_new = pos.clone();
             cam_pos = pos.clone();
             cam_rotate = rotate.clone();
             // back
@@ -817,21 +818,23 @@ export class Renderer {
             const view_vector = player.forward.clone();
             view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
             //
-            const d = 5;
-            cam_pos.moveToSelf(cam_rotate, d);
+            const d = 5; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+            cam_pos_new.moveToSelf(cam_rotate, d);
             // raycast from eyes to cam
             const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
             if(bPos) {
                 this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
                 this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
-                let dist1 = pos.distance(cam_pos);
+                let dist1 = pos.distance(cam_pos_new);
                 let dist2 = pos.distance(this.obstacle_pos);
                 if(dist2 < dist1) {
-                    cam_pos.copyFrom(this.obstacle_pos);
+                    cam_pos_new.copyFrom(this.obstacle_pos);
                 }
             }
             const safe_margin = -.1;
-            cam_pos.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+            cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+
+            cam_pos.copyFrom(cam_pos_new);
 
             // get player model
             const itsme = Game.world.players.get('itsme');

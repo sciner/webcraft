@@ -15,6 +15,7 @@ export default class packet_reader {
     // Request to teleport
     static async read(player, packet) {
         player.world.teleportPlayer(player, packet.data);
+        return true;
     }
 
 }

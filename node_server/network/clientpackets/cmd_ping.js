@@ -7,14 +7,14 @@ export default class packet_reader {
         return false;
     }
 
-    // which command can be parsed with this class
+    // ping from player
     static get command() {
-        return ServerClient.CMD_CHANGE_RENDER_DIST;
+        return ServerClient.CMD_PING;
     }
 
-    // 
+    // Ping from player
     static async read(player, packet) {
-        player.changeRenderDist(parseInt(packet.data));
+        // do nothing
         return true;
     }
 

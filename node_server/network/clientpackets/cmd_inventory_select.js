@@ -15,6 +15,7 @@ export default class packet_reader {
     // 
     static async read(player, packet) {
         player.inventory.setIndexes(packet.data, false);
+        return true;
     }
 
 }

@@ -61,7 +61,7 @@ export class ServerClient {
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
     static CMD_INVENTORY_NEW_STATE      = 90;
 
-    // Mobs    
+    // Mobs
 	static CMD_MOB_ADD                  = 70;
 	static CMD_MOB_ADDED                = 71;
 	static CMD_MOB_DELETE               = 72;
@@ -135,7 +135,7 @@ export class ServerClient {
         }
     }
 
-    // 
+    //
     async connect(onOpen, onClose) {
 
         let that = this;
@@ -224,12 +224,17 @@ export class ServerClient {
                 tblock_pos.set(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
                 // const ex_block = chunk.tblocks.get(tblock_pos).convertToDBItem();
                 // console.log(ex_block);
+                let oldLight = 0;
+
                 const extra_data = ('extra_data' in item) ? item.extra_data : null;
                 const entity_id = ('entity_id' in item) ? item.entity_id : null;
                 const rotate = ('rotate' in item) ? item.rotate : null;
                 const power = ('power' in item) ? item.power : POWER_NO;
-                chunk.tblocks.delete(tblock_pos);
                 tblock = chunk.tblocks.get(tblock_pos, tblock);
+                if (chunkManager.use_light) {
+                    oldLight = tblock.material.light_power_number;
+                }
+                chunk.tblocks.delete(tblock_pos);
                 // fill properties
                 tblock.id = item.id;
                 if(extra_data) tblock.extra_data = extra_data;
@@ -246,10 +251,9 @@ export class ServerClient {
                     extra_data: extra_data
                 });
                 //
-                if(chunkManager.use_light) {
-                    const oldLight = chunk.light_source[tblock.index];
-                    const light = chunk.light_source[tblock.index] = material.light_power_number;
-                    if(oldLight !== light) {
+                if (chunkManager.use_light) {
+                    const light         = material.light_power_number;
+                    if (oldLight !== light) {
                         // updating light here
                         chunkManager.postLightWorkerMessage(['setBlock', {
                             addr:           chunk.addr,

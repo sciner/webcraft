@@ -101,7 +101,7 @@ BIOMES.TEMPERATE_DESERT = {
         ]
     },
     plants: {
-        frequency: .005,
+        frequency: TREE_FREQUENCY / 1,
         list: [
             {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
         ]
@@ -181,7 +181,12 @@ BIOMES.SCORCHED = {
             {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
         ]
     },
-    plants:     {frequency: 0}
+    plants: {
+        frequency: TREE_FREQUENCY / 1,
+        list: [
+            {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
+        ]
+    }
 };
 
 BIOMES.BARE = {

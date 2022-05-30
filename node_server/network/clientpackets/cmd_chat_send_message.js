@@ -15,6 +15,7 @@ export default class packet_reader {
     // Send message to chat
     static async read(player, packet) {
         player.world.chat.sendMessage(player, packet.data);
+        return true;
     }
 
 }

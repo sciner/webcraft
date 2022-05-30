@@ -12,7 +12,6 @@ import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk.js";
 import { BLOCK } from "../www/js/blocks.js";
-import { doBlockAction } from "../www/js/block_action.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import config from "./config.js";
@@ -62,8 +61,7 @@ export class ServerWorld {
                 players: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
                 mobs: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
                 drop_items: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                pickat_action_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                chest_confirm_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
+                packet_reader_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
                 maps_clear: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
                 packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
             },
@@ -152,96 +150,6 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
-        // Queue for load chest content
-        this.chest_load_queue = {
-            list: [],
-            add: function (player, params) {
-                this.list.push({ player, params });
-            },
-            run: async function () {
-                while (this.list.length > 0) {
-                    const queue_item = this.list.shift();
-                    const pos = new Vector(queue_item.params.pos);
-                    const chest = await that.chests.get(pos);
-                    let result = false;
-                    if (chest) {
-                        if (chest.id < 0) {
-                            if (!queue_item.cnt) {
-                                queue_item.cnt = 0;
-                            }
-                            if (++queue_item.cnt < 1000) {
-                                this.list.push(queue_item);
-                            }
-                        } else {
-                            result = that.chests.sendContentToPlayers([queue_item.player], pos);
-                        }
-                    }
-                    if (!result) {
-                        throw `Chest ${pos.toHash()} not found`;
-                    }
-                }
-            }
-        };
-        // Queue of chest confirms
-        this.chest_confirm_queue = {
-            list: [],
-            add: function (player, params) {
-                this.list.push({ player, params });
-            },
-            run: async function () {
-                while (this.list.length > 0) {
-                    const queue_item = this.list.shift();
-                    const pos = queue_item.params.chest.pos;
-                    const chest = await that.chests.get(pos);
-                    if (chest) {
-                        console.log('Chest state from ' + queue_item.player.session.username);
-                        await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
-                    } else {
-                        queue_item.player.inventory.refresh(true);
-                        const pos_hash = pos.toHash();
-                        throw `Chest ${pos_hash} not found`;
-                    }
-                }
-            }
-        };
-        // Queue of player pickat actions
-        this.pickat_action_queue = {
-            list: [],
-            add: function (player, params) {
-                this.list.push({ player, params });
-            },
-            run: async function () {
-                while (this.list.length > 0) {
-                    const world = that;
-                    const queue_item = this.list.shift();
-                    const server_player = queue_item.player;
-                    const params = queue_item.params;
-                    const currentInventoryItem = server_player.inventory.current_item;
-                    const player = {
-                        radius: 0.7,
-                        height: server_player.height,
-                        username: server_player.session.username,
-                        session: {
-                            user_id: server_player.session.user_id
-                        },
-                        pos: new Vector(server_player.state.pos),
-                        rotate: server_player.rotateDegree.clone()
-                    };
-                    if (params.interractMob) {
-                        const mob = world.mobs.get(params.interractMob);
-                        if (mob) {
-                            mob.punch(server_player, params);
-                        }
-                    } else {
-                        const actions = await doBlockAction(params, world, player, currentInventoryItem);
-                        // @todo Need to compare two actions
-                        // console.log(JSON.stringify(params.actions.blocks));
-                        // console.log(JSON.stringify(actions.blocks));
-                        await world.applyActions(server_player, actions);
-                    }
-                }
-            }
-        };
         await this.tick();
     }
 
@@ -311,18 +219,9 @@ export class ServerWorld {
             drop_item.tick(delta);
         }
         this.ticks_stat.add('drop_items');
-        // 5.
-        await this.pickat_action_queue.run();
-        this.ticks_stat.add('pickat_action_queue');
-        // 6. Chest confirms
-        try {
-            await this.chest_confirm_queue.run();
-            await this.chest_load_queue.run();
-        } catch (e) {
-            // do nothing
-            console.log(e)
-        }
-        this.ticks_stat.add('chest_confirm_queue');
+        // 6. 
+        await this.packet_reader.queue.process();
+        this.ticks_stat.add('packet_reader_queue');
         //
         this.packets_queue.send();
         this.ticks_stat.add('packets_queue_send');

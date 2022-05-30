@@ -238,16 +238,22 @@ function dropBlock(player, block, actions, force) {
     if(block.material.drop_item) {
         const drop_block = BLOCK.fromName(block.material.drop_item?.name);
         if(drop_block) {
-            let ok = true;
-            // check chance
             if('chance' in block.material.drop_item) {
-                if(Math.random() > block.material.drop_item.chance) {
-                    ok = false;
+                let count = block.material.drop_item.count;
+                if(count) {
+                    if(Math.random() <= block.material.drop_item.chance) {
+                        if(Array.isArray(count)) {
+                            // const rnd = (Math.random() * (max-min + 1) + min) | 0;
+                            let count_index = (Math.random() * count.length) | 0;
+                            count = count[count_index];
+                        }
+                        count = parseInt(count);
+                        if(count > 0) {
+                            const item = {id: drop_block.id, count: count};
+                            actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        }
+                    }
                 }
-            }
-            if(ok) {
-                const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
-                actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
             }
         } else {
             console.error('error_invalid_drop_item', block.material.drop_item);
@@ -773,7 +779,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         // 5.
         let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, currentInventoryItem.id);
         if(replaceBlock) {
-            if(world_material.previous_part) {
+            if(world_material.previous_part || world_material.next_part) {
                 return actions;
             }
             if(currentInventoryItem.style == 'ladder') {
