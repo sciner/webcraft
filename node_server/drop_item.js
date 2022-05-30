@@ -24,9 +24,10 @@ export class DropItem {
         //
         this.#pc = this.createPlayerControl({
             baseSpeed: 1,
-            playerHeight: 0.3,
-            stepHeight: 1,
-            defaultSlipperiness: 0.98
+            playerHeight: 0.25,
+            stepHeight: .65,
+            defaultSlipperiness: 0.75,
+            playerHalfWidth: .25
         });
         this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
@@ -88,11 +89,6 @@ export class DropItem {
     tick(delta) {
         const pc = this.#pc;
         pc.tick(delta);
-        if(pc.player_state.onGround) {
-            pc.physics.defaultSlipperiness = DEFAULT_SLIPPERINESS;
-            pc.player_state.vel.x = 0;
-            pc.player_state.vel.z = 0;
-        }
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);

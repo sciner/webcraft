@@ -3576,6 +3576,20 @@
         }
     },
     {
+        "id": 1446,
+        "name": "BUCKET_MILK",
+        "style": "extruder",
+        "max_in_stack": 1,
+        "item": {"name": "bucket"},
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "id": "item",
+            "side": [2, 0]
+        }
+    },
+    {
         "id": 545,
         "name": "ANDESITE",
         "sound": "madcraft:block.stone",

@@ -13,8 +13,8 @@ import { ServerClient } from "../www/js/server_client.js";
 import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { doBlockAction } from "../www/js/block_action.js";
-
 import { ServerChunkManager } from "./server_chunk_manager.js";
+import { PacketReader } from "./network/packet_reader.js";
 import config from "./config.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
@@ -38,6 +38,7 @@ export class ServerWorld {
         const that = this;
         this.db = db_world;
         this.info = await this.db.getWorld(world_guid);
+        this.packet_reader = new PacketReader();
         this.chests = new ChestManager(this);
         this.chat = new ServerChat(this);
         this.chunks = new ServerChunkManager(this);
@@ -701,7 +702,11 @@ export class ServerWorld {
             for (let di of actions.drop_items) {
                 if (di.force || server_player.game_mode.isSurvival()) {
                     // Add velocity for drop item
-                    this.temp_vec.set(0, .375, 0);
+                    this.temp_vec = this.temp_vec.set(
+                        Math.random() - Math.random(),
+                        Math.random() * 0.75,
+                        Math.random() - Math.random()
+                    ).normalize().multiplyScalar(0.375);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }

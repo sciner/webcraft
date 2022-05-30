@@ -740,7 +740,9 @@ export class Renderer {
         }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
+
         for(let [id, drop_item] of this.world.drop_items.list) {
+            drop_item.updatePlayer(this.player, delta);
             drop_item.draw(this, delta);
         }
     }
@@ -816,9 +818,7 @@ export class Renderer {
             view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
             //
             const d = 5;
-            cam_pos.x += d * Math.cos(cam_rotate.x) * Math.sin(cam_rotate.z - Math.PI);
-            cam_pos.y += d * Math.sin(-cam_rotate.x);
-            cam_pos.z += d * Math.cos(cam_rotate.x) * Math.cos(cam_rotate.z - Math.PI);
+            cam_pos.moveToSelf(cam_rotate, d);
             // raycast from eyes to cam
             const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
             if(bPos) {

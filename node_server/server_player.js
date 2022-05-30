@@ -9,21 +9,6 @@ import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
-import {Packet} from "./network/packets.js";
-
-const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
-
-const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
-    new Vector(-1, 0, -1),
-    new Vector(0, 0, -1),
-    new Vector(1, 0, -1),
-    new Vector(-1, 0, 0),
-    new Vector(0, 0, 0),
-    new Vector(1, 0, 0),
-    new Vector(-1, 0, 1),
-    new Vector(0, 0, 1),
-    new Vector(1, 0, 1)
-];
 
 export class NetworkMessage {
     constructor({
@@ -75,7 +60,6 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
         this.dt_connect             = new Date();
-        this.packet                 = new Packet();
         this.is_dead                = false;
     }
 
@@ -144,179 +128,11 @@ export class ServerPlayer extends Player {
 
     // on message
     async onMessage(response) {
-
         if (EMULATED_PING) {
             await waitPing();
         }
-
-        const {
-            skin,
-            session_id,
-            world
-        } = this;
-
-        const cmd = JSON.parse(response);
-        
-        this.packet.ReadPacket(this, cmd);
-
-        try {
-            if (this.is_dead && [ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].indexOf(cmd.name) < 0) {
-                return;
-            }
-            switch(cmd.name) {
-
-                // Connect
-                case ServerClient.CMD_CONNECT: {
-                    let world_guid = cmd.data.world_guid;
-                    this.session = await Game.db.GetPlayerSession(session_id);
-                    Log.append('CmdConnect', {world_guid, session: this.session});
-                    world.onPlayer(this, skin);
-                    break;
-                }
-
-                case ServerClient.CMD_SYNC_TIME: {
-                    this.sendPackets([{
-                        name: ServerClient.CMD_SYNC_TIME,
-                        data: { clientTime: cmd.data.clientTime },
-                    }]);
-                    break;
-                }
-
-                // Send message to chat
-                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    this.world.chat.sendMessage(this, cmd.data);
-                    break;
-                }
-
-                // Change spawn position
-                case ServerClient.CMD_CHANGE_POS_SPAWN: {
-                    this.changePosSpawn(cmd.data);
-                    break;
-                }
-
-                case ServerClient.CMD_TELEPORT_REQUEST: {
-                    this.world.teleportPlayer(this, cmd.data);
-                    break;
-                }
-
-                // Player state
-                case ServerClient.CMD_PLAYER_STATE: {
-                    // Update local position
-                    this.world.changePlayerPosition(this, cmd.data);
-                    // Send new position to other players
-                    /*
-                    let packets = [{
-                        name: ServerClient.CMD_PLAYER_STATE,
-                        data: this.exportState()
-                    }];
-                    this.world.sendAll(packets, [this.session.user_id]);
-                    */
-                    /*const pick = this.raycastFromHead();
-                    if (pick) {
-                        let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
-                        // let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
-                        if(block) {
-                            console.log('Player pick at block: ', block.material.name);
-                        }
-                    }
-                    */
-                    break;
-                }
-
-                // Request chest content
-                case ServerClient.CMD_LOAD_CHEST: {
-                    this.world.chest_load_queue.add(this, cmd.data);
-                    break;
-                }
-            
-                case ServerClient.CMD_CHEST_CONFIRM: {
-                    this.world.chest_confirm_queue.add(this, cmd.data);
-                    break;
-                }
-                    
-                // Пользователь подгрузил чанк
-                case ServerClient.CMD_CHUNK_LOAD: {
-                    let addr = new Vector(cmd.data.pos);
-                    if(this.nearby_chunk_addrs.has(addr)) {
-                        this.world.loadChunkForPlayer(this, addr);
-                    }
-                    break;
-                }
-
-                case ServerClient.CMD_PICKAT_ACTION: {
-                    // this.world.pickAtAction(this, cmd.data);
-                    break;
-                }
-
-                case ServerClient.CMD_QUEST_GET_ENABLED: {
-                    this.quests.sendAll();
-                    break;
-                }
-
-                case ServerClient.CMD_INVENTORY_SELECT: {
-                    this.inventory.setIndexes(cmd.data, false);
-                    break;
-                }
-
-                case ServerClient.CMD_INVENTORY_NEW_STATE: {
-                    this.newInventoryStates.push(cmd.data);
-                    break;
-                }
-
-                case ServerClient.CMD_CREATE_ENTITY: {
-                    this.world.createEntity(this, cmd.data);
-                    break;
-                }
-
-                case ServerClient.CMD_CHANGE_RENDER_DIST: {
-                    this.changeRenderDist(parseInt(cmd.data));
-                    break;
-                }
-
-                case ServerClient.CMD_GAMEMODE_NEXT: {
-                    if(!this.world.admins.checkIsAdmin(this)) {
-                        throw 'error_not_permitted';
-                    }
-                    this.game_mode.next();
-                    break;
-                }
-
-                case ServerClient.CMD_GAMEMODE_SET: {
-                    if(!this.world.admins.checkIsAdmin(this)) {
-                        throw 'error_not_permitted';
-                    }
-                    this.game_mode.applyMode(cmd.data.id, true);
-                    break;
-                }
-
-                case ServerClient.CMD_BLOCK_CLONE: {
-                    const pos = new Vector(cmd.data);
-                    const chunk_addr = getChunkAddr(pos);
-                    let chunk = this.world.chunks.get(chunk_addr);
-                    if(!chunk) {
-                        throw 'error_invalid_block_position';
-                    }
-                    const block = chunk.getBlock(pos);
-                    this.inventory.cloneMaterial(block.material, this.game_mode.getCurrent().block_clone);
-                    break;
-                }
-
-                case ServerClient.CMD_DROP_ITEM: {
-                    this.inventory.dropItem(cmd.data);
-                    break;
-                }
-
-            }
-        } catch(e) {
-            console.log(e);
-            let packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            this.world.sendSelected(packets, [this.session.user_id], []);
-        }
+        const packet = JSON.parse(response);
+        await this.world.packet_reader.read(this, packet);
     }
 
     // onLeave...
@@ -459,13 +275,11 @@ export class ServerPlayer extends Player {
     tick(delta) {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
-        // 2. Check near drop items
-        this.checkNearDropItems();
-        // 3. Check has new inventory state
+        // 2. Check has new inventory state
         this.checkInventoryChanges();
-        //
+        // 3.
         this.sendState();
-        //
+        // 4.
         this.checkIndicators();
 
     }
@@ -522,68 +336,9 @@ export class ServerPlayer extends Player {
         // @todo notify all about change?
     }
 
-    // Check near drop items
-    checkNearDropItems() {
-        let offset = CHECK_DROP_ITEM_CHUNK_OFFSETS[this.checkDropItemIndex++ % CHECK_DROP_ITEM_CHUNK_OFFSETS.length];
-        this.checkDropItemTempVec.set(this.chunk_addr.x + offset.x, this.chunk_addr.y + offset.y, this.chunk_addr.z + offset.z);
-        let chunk = this.world.chunks.get(this.checkDropItemTempVec);
-        if(!chunk) {
-            return;
-        }
-        let entity_ids = [];
-        if(chunk.drop_items.size > 0) {
-            let near = [];
-            // pick up the maximum number of items per tick
-            for(const [entity_id, drop_item] of chunk.drop_items) {
-                // so that the player does not immediately intercept the thrown item
-                if(performance.now() - drop_item.load_time < 200) {
-                    continue;
-                }
-                let dist = drop_item.pos.distance(this.state.pos);
-                if(dist < 2) {
-                    near.push(drop_item.items);
-                    chunk.drop_items.delete(entity_id);
-                    drop_item.onUnload();
-                    entity_ids.push(drop_item.entity_id);
-                    if(near.length == MAX_PICK_UP_DROP_ITEMS_PER_TICK) {
-                        break;
-                    }
-                }
-            }
-            if(near.length > 0) {
-                // 1. add items to inventory
-                for(const drop_item of near) {
-                    for(const item of drop_item) {
-                        this.inventory.increment(item);
-                    }
-                }
-                // 2. deactive drop item in database
-                for(let entity_id of entity_ids) {
-                    this.world.db.deleteDropItem(entity_id);
-                }
-                // 3. play sound on client
-                let packets_sound = [{
-                    name: ServerClient.CMD_PLAY_SOUND,
-                    data: {tag: 'madcraft:entity.item.pickup', action: 'hit'}
-                }];
-                this.world.sendSelected(packets_sound, [this.session.user_id], []);
-                // 4.
-                let packets = [{
-                    name: ServerClient.CMD_DROP_ITEM_DELETED,
-                    data: entity_ids
-                }];
-                chunk.sendAll(packets, []);
-                PlayerEvent.trigger({
-                    type: PlayerEvent.PICKUP_ITEMS,
-                    player: this,
-                    data: {items: near.flat()}
-                });
-            }
-        }
-    }
-
     async initQuests() {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
     }
+
 }
