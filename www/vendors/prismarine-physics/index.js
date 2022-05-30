@@ -314,7 +314,7 @@ export function Physics(mcData, fake_world, options) {
                 for (cursor.x = Math.floor(playerBB.minX); cursor.x <= Math.floor(playerBB.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
                     if (block && block.id > 0) {
-                        if (supportFeature('velocityBlocksOnCollision')) {
+                        /*if (supportFeature('velocityBlocksOnCollision')) {
                             if (block.type === soulsandId) {
                                 vel.x *= physics.soulsandSpeed
                                 vel.z *= physics.soulsandSpeed
@@ -322,7 +322,7 @@ export function Physics(mcData, fake_world, options) {
                                 vel.x *= physics.honeyblockSpeed
                                 vel.z *= physics.honeyblockSpeed
                             }
-                        }
+                        }*/
                         if (block.type === webId) {
                             entity.isInWeb = true
                         } else if (block.type === bubblecolumnId) {

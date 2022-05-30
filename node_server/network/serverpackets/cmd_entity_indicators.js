@@ -2,8 +2,8 @@ import {ServerClient} from "../../../www/js/server_client.js";
 
 export class CMD_ENTITY_INDICATORS {
 
-    constructor(player, data) {
-        let packets = [{
+    constructor(player, packet) {
+        const packets = [{
             name: ServerClient.CMD_ENTITY_INDICATORS,
             data: {
                 indicators: player.state.indicators

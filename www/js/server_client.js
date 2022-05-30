@@ -72,6 +72,7 @@ export class ServerClient {
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
 	static CMD_DROP_ITEM                = 86;
+	static CMD_DROP_ITEM_PICKUP         = 99;
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
@@ -424,6 +425,10 @@ export class ServerClient {
 
     LoadQuests() {
         this.Send({name: ServerClient.CMD_QUEST_GET_ENABLED, data: null});
+    }
+
+    PickupDropItem(entity_ids) {
+        this.Send({name: ServerClient.CMD_DROP_ITEM_PICKUP, data: entity_ids});
     }
 
 }

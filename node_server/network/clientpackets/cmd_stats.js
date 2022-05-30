@@ -1,8 +1,18 @@
-import {ServerClient} from "../../../www/js/server_client.js";
+import { ServerClient } from "../../../www/js/server_client.js";
 
-export class CMD_STATS {
+export default class packet_reader {
 
-    constructor(player, data) {
+    // must be puto to queue
+    static get queue() {
+        return false;
+    }
+
+    // which command can be parsed with this class
+    static get command() {
+        return ServerClient.CMD_STATS;
+    }
+
+    static async read(player, packet) {
 
         const death     = player.state.stats.death;
         const time      = player.state.stats.time;
@@ -14,7 +24,7 @@ export class CMD_STATS {
             data: {
                 "death":                death,
                 "time":                 time,
-				"time_formatted":       this.secToStr(time),
+				"time_formatted":       packet_reader.secToStr(time),
                 "pickat":               pickat,
                 "distance":             distance,
 				"distance_formatted":   distance + " м"
@@ -24,7 +34,7 @@ export class CMD_STATS {
         player.world.sendSelected(packets, [player.session.user_id], []);
     }
 
-	secToStr(time) {
+	static secToStr(time) {
         let minute = Math.floor(time / 60);
         let hours = Math.floor(minute / 60);
         let day = Math.floor(hours / 24);

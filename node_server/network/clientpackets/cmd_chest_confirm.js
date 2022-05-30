@@ -9,15 +9,12 @@ export default class packet_reader {
 
     // which command can be parsed with this class
     static get command() {
-        return ServerClient.CMD_PICKAT_ACTION;
+        return ServerClient.CMD_CHEST_CONFIRM;
     }
 
-    // Pickat action
+    // 
     static async read(player, packet) {
-		if(packet.data.destroyBlock == true) {
-			player.state.stats.pickat++;
-		}
-        player.world.pickAtAction(player, packet.data);
+        player.world.chest_confirm_queue.add(player, packet.data);
     }
 
 }

@@ -1,5 +1,6 @@
 import { ServerClient } from "../../../www/js/server_client.js";
 
+// Change spawn position
 export default class packet_reader {
 
     // must be puto to queue
@@ -9,15 +10,12 @@ export default class packet_reader {
 
     // which command can be parsed with this class
     static get command() {
-        return ServerClient.CMD_PICKAT_ACTION;
+        return ServerClient.CMD_CHANGE_POS_SPAWN;
     }
 
-    // Pickat action
+    // 
     static async read(player, packet) {
-		if(packet.data.destroyBlock == true) {
-			player.state.stats.pickat++;
-		}
-        player.world.pickAtAction(player, packet.data);
+        player.changePosSpawn(packet.data);
     }
 
 }

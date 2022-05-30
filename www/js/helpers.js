@@ -903,6 +903,15 @@ export class Vector {
         return this;
     }
 
+    //
+    moveToSelf(rotate, dist) {
+        this.x += dist * Math.cos(rotate.x) * Math.sin(rotate.z - Math.PI);
+        this.y += dist * Math.sin(-rotate.x);
+        this.z += dist * Math.cos(rotate.x) * Math.cos(rotate.z - Math.PI);
+        return this;
+    }
+
+
 }
 
 export class Vec3 extends Vector {}
@@ -980,6 +989,12 @@ export class Helpers {
 
     static getCache() {
         return Helpers.cache;
+    }
+
+    // 
+    angleTo(pos, target) {
+        let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
 
     // clamp

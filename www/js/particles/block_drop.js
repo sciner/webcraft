@@ -1,6 +1,7 @@
 import {Vector} from '../helpers.js';
 import { NetworkPhysicObject } from '../network_physic_object.js';
 import { MeshGroup, FakeTBlock } from '../mesh/group.js';
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../vendors/prismarine-physics/using.js";
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -115,10 +116,57 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.lightTex = chunk.getLightTexture(render.renderBackend);
     }
 
+    pickup() {
+        this.now_draw = true;
+        // Game.sounds.play('madcraft:entity.item.pickup', 'hit');
+    }
+
+    // Update player
+    updatePlayer(player, delta) {
+
+        if(this.now_draw) {
+            return false;
+        }
+
+        const MAX_DIST_FOR_PICKUP       = 2.5;
+        const MAX_FLY_TIME              = 200; // ms
+        const MAX_FLY_SPEED             = 12; // m/s
+        const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
+
+        const target_pos = player.lerpPos.add(new Vector(0, .85, 0));
+        const dist = this.pos.distance(target_pos);
+
+        // if drop item already find near player
+        if(this.no_update) {
+            if(dist < MIN_DIST_FOR_PICKUP_NOW) {
+                clearTimeout(this.pickup_timeout);
+                return this.pickup();
+            }
+            this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalar(-MAX_FLY_SPEED * delta / 1000));
+        } else if(dist < MAX_DIST_FOR_PICKUP) {
+            // if dist less need, drop item start to fly to center of player body
+            this.no_update = true;
+            // start timeout for pickup
+            this.pickup_timeout = setTimeout(() => {
+                this.pickup();
+            }, MAX_FLY_TIME);
+            //
+            player.world.server.PickupDropItem([this.entity_id]);
+        } if(!this.no_update) {
+            // if drop item in calm state
+            this.update();
+        }
+
+    }
+
     // Draw
     draw(render, delta) {
 
-        this.update();
+        if(this.now_draw) {
+            return false;
+        }
+
+        // this.update();
         this.updateLightTex(render);
 
         if(!this.chunk) {

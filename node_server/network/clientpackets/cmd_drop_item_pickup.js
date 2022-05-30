@@ -1,13 +1,24 @@
 import { ServerClient } from "../../../www/js/server_client.js";
-import {PlayerEvent} from "../../player_event.js";
+import { PlayerEvent } from "../../player_event.js";
 
 const MAX_DIST_FOR_PICKUP = 2.5;
 
-export class CMD_DROP_ITEM_PICKUP {
+export default class packet_reader {
 
-    constructor(player, data) {
+    // must be puto to queue
+    static get queue() {
+        return true;
+    }
+
+    // which command can be parsed with this class
+    static get command() {
+        return ServerClient.CMD_DROP_ITEM_PICKUP;
+    }
+
+    static async read(player, packet) {
 
         const world = player.world;
+        const data = packet.data;
 
         for(let i = 0; i < data.length; i++) {
 
