@@ -102,16 +102,9 @@ export class Brain extends FSMBrain {
     
      // Chasing a player
     async doCatch(delta) {
-        
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id) {
+        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id || player.game_mode.isSpectator()) {
             this.target = null;
             this.isStand(1.0);
             this.sendState();
@@ -121,6 +114,14 @@ export class Brain extends FSMBrain {
         if (Math.random() < 0.5) {
             this.mob.rotate.z = this.angleTo(player.state.pos);
         }
+        
+        const forward = (mob.pos.distance(player.state.pos) > 1.5) ? true : false;
+        
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: forward,
+            jump: this.checkInWater()
+        });
 
         this.applyControl(delta);
         this.sendState();

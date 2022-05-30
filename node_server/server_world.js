@@ -908,10 +908,10 @@ export class ServerWorld {
             const chunk = chunks[i];
             for(let user_id of chunk.connections.keys()) { 
                 const player = all_players.get(user_id);
-                if(player.is_dead) {
+                if(player.is_dead || player.game_mode.isSpectator()) {
                     continue;
                 }
-                if(not_in_creative && !player.game_mode.getCurrent().can_take_damage) {
+                if(not_in_creative && !player.game_mode.mayGetDamaged()) {
                     continue;
                 }
                 const dist = new Vector(player.state.pos).distance(pos);
