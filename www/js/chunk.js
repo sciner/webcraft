@@ -133,15 +133,14 @@ export class Chunk {
     }
 
     initLights() {
-
         if(!this.chunkManager.use_light) {
             return false;
         }
 
         const { size } = this;
         const sz = size.x * size.y * size.z;
-        const light_buffer = this.light_buffer = new ArrayBuffer(sz);
-        const light_source = this.light_source = new Uint8Array(light_buffer);
+        const light_buffer = new ArrayBuffer(sz);
+        const light_source = new Uint8Array(light_buffer);
 
         let ind = 0;
         let prev_block_id = Infinity;
@@ -406,10 +405,17 @@ export class Chunk {
         let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
+            let oldLight = 0;
             let material = BLOCK.BLOCK_BY_ID.get(item.id);
             let pos = new Vector(x, y, z);
-            this.tblocks.delete(pos);
             let tblock           = this.tblocks.get(pos);
+
+            if(this.chunkManager.use_light) {
+                oldLight = tblock.material.light_power_number;
+            }
+
+            this.tblocks.delete(pos);
+
             tblock.id            = material.id;
             tblock.extra_data    = extra_data;
             tblock.entity_id     = entity_id;
@@ -419,8 +425,7 @@ export class Chunk {
             update_vertices         = true;
             if(this.chunkManager.use_light) {
                 const ind = x + this.size.x * (z + this.size.z * y);
-                const oldLight      = this.light_source[ind];
-                const light         = this.light_source[ind] = material.light_power_number;
+                const light         = material.light_power_number;
                 if (oldLight !== light) {
                     chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
                         x:          x + this.coord.x,

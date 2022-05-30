@@ -93,7 +93,7 @@ export class WebGLTexture3D extends BaseTexture3D {
             gl.texImage3D(target, 0, gl[formats.internal || formats.format],
                 this.width, this.height, this.depth,
                 0, gl[formats.format], gl[formats.type],
-                    new (formats.arrClass || Uint8Array)(sz));
+                    null);
             this.updateStyle();
         }
 
@@ -107,6 +107,7 @@ export class WebGLTexture3D extends BaseTexture3D {
                 gl.texSubImage3D(target, 0, region.offset.x, region.offset.y, region.offset.z,
                     region.width, region.height, region.depth,
                     gl[formats.format], gl[formats.type], region.data);
+                region.data = null;
             }
         }
         this.regionsToUpdate.length = 0;

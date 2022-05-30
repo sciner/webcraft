@@ -450,7 +450,7 @@ export class TypedBlocks {
 
     delete(vec) {
         let block           = this.get(vec);
-        block.id            = null;
+        block.id            = 0;
         block.power         = 0;
         block.rotate        = null;
         block.entity_id     = null;
