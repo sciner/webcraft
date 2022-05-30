@@ -410,7 +410,7 @@ export class Chunk {
             let pos = new Vector(x, y, z);
             let tblock           = this.tblocks.get(pos);
 
-            if(this.chunkManager.use_light) {
+            if (this.chunkManager.use_light) {
                 oldLight = tblock.material.light_power_number;
             }
 
@@ -423,8 +423,7 @@ export class Chunk {
             tblock.rotate        = rotate;
             tblock.falling       = !!material.gravity;
             update_vertices         = true;
-            if(this.chunkManager.use_light) {
-                const ind = x + this.size.x * (z + this.size.z * y);
+            if (this.chunkManager.use_light) {
                 const light         = material.light_power_number;
                 if (oldLight !== light) {
                     chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
