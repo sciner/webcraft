@@ -21,6 +21,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             new Vector(0, 0, 0)
         );
 
+        this.create_time = performance.now();
         this.entity_id = entity_id;
         const block = items[0];
 
@@ -143,7 +144,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
                 return this.pickup();
             }
             this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalar(-MAX_FLY_SPEED * delta / 1000));
-        } else if(dist < MAX_DIST_FOR_PICKUP) {
+        } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME)) {
             // if dist less need, drop item start to fly to center of player body
             this.no_update = true;
             // start timeout for pickup

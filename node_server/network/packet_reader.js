@@ -42,7 +42,7 @@ export class PacketReader {
             if(reader) {
                 await reader.read(player, packet);
             } else {
-                console.log(packet.name + " not found code");
+                console.log(`ERROR: Not found packet reader for command: ${packet.name}`);
             }
         } catch(e) {
             console.log(e);
