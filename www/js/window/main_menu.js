@@ -30,97 +30,47 @@ export default class MainMenu extends Window {
         }
 
         // Add buttons
-        this.addReturnButton();
-        this.addStatsButton();
-        this.addCloseButton();
+        this.addButton(Lang.btn_return, 80, () => {Game.hud.wm.closeAll()});
 
-    }
-
-    // Return
-    addReturnButton() {
-        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 80 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', Lang.btn_return);
-        btnReturn.style.background.color = '#777777ff';
-        btnReturn.style.color = '#ffffffff';
-        btnReturn.style.font.shadow = {
-            enable: true,
-            x: 2 * this.zoom,
-            y: 2 * this.zoom,
-            blur: 0,
-            color: 'rgba(0, 0, 0, 0.5)'
-        }
-        btnReturn.onMouseDown = function(e) {
+        this.addButton(Lang.quests, 130, () => {
             Game.hud.wm.closeAll();
-            // Game.setupMousePointer();
-        }
-        btnReturn.onMouseEnter = function() {
-            this.style.background.color = '#8892c9';
-            this.style.background.image_save = this.style.background.image;
-            this.style.background.image = null;
-        }
-        btnReturn.onMouseLeave = function() {
-            this.style.background.color = '#777777ff';
-            this.style.background.image = this.style.background.image_save;
-            this.style.background.image_save = null;
-        }
-        this.add(btnReturn);
-    }
-
-    // Close
-    addCloseButton() {
-        // Close button
-        let btnClose = this.btnClose = new Button(20 * this.zoom, 180 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', Lang.btn_exit);
-        btnClose.style.background.color = '#777777ff';
-        btnClose.style.color = '#ffffffff';
-        btnClose.style.font.shadow = {
-            enable: true,
-            x: 2 * this.zoom,
-            y: 2 * this.zoom,
-            blur: 0,
-            color: 'rgba(0, 0, 0, 0.5)'
-        }
-        btnClose.onMouseDown = function(e) {
-            location.reload();
-        }
-        btnClose.onMouseEnter = function() {
-            this.style.background.color = '#8892c9';
-            this.style.background.image_save = this.style.background.image;
-            this.style.background.image = null;
-        }
-        btnClose.onMouseLeave = function() {
-            this.style.background.color = '#777777ff';
-            this.style.background.image = this.style.background.image_save;
-            this.style.background.image_save = null;
-        }
-        this.add(btnClose);
-    }
-
-    // Statistics
-    addStatsButton() {
-        let btnStats = this.btnStats = new Button(20 * this.zoom, 130 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnStats', Lang.btn_statistics);
-        btnStats.style.background.color = '#777777ff';
-        btnStats.style.color = '#ffffffff';
-        btnStats.style.font.shadow = {
-            enable: true,
-            x: 2 * this.zoom,
-            y: 2 * this.zoom,
-            blur: 0,
-            color: 'rgba(0, 0, 0, 0.5)'
-        }
-        btnStats.onMouseDown = function(e) {
+            Game.hud.wm.getWindow('frmQuests').toggleVisibility();
+        });
+        
+        this.addButton(Lang.btn_statistics, 180, () => {
             Game.hud.wm.closeAll();
             Game.hud.wm.getWindow('frmStats').show();
+        });
+        
+        this.addButton(Lang.btn_exit, 230, () => {location.reload()});
+
+    }
+
+    //
+    addButton(label, y, onclick) {
+        const btnID = `btn_${this.id}_${y}`;
+        let btn = new Button(20 * this.zoom, y * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, btnID, label);
+        btn.style.background.color = '#777777ff';
+        btn.style.color = '#ffffffff';
+        btn.style.font.shadow = {
+            enable: true,
+            x: 2 * this.zoom,
+            y: 2 * this.zoom,
+            blur: 0,
+            color: 'rgba(0, 0, 0, 0.5)'
         }
-        btnStats.onMouseEnter = function() {
+        btn.onMouseDown = onclick;
+        btn.onMouseEnter = function() {
             this.style.background.color = '#8892c9';
             this.style.background.image_save = this.style.background.image;
             this.style.background.image = null;
         }
-        btnStats.onMouseLeave = function() {
+        btn.onMouseLeave = function() {
             this.style.background.color = '#777777ff';
             this.style.background.image = this.style.background.image_save;
             this.style.background.image_save = null;
         }
-        this.add(btnStats);
+        this.add(btn);
     }
 
 }

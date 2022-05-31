@@ -6,12 +6,12 @@ export class Brains {
         if(Brains.list.size > 0) {
             return;
         }
-        for(let type of ['chicken', 'creeper', 'horse', 'fox', 'pig', 'snow_golem', 'cow', 'sheep', 'npc']) {
+        for(let type of ['default', 'chicken', 'creeper', 'horse', 'fox', 'pig', 'snow_golem', 'cow', 'sheep', 'npc']) {
             await import(`./brain/${type}.js`).then(module => {
                 this.list.set(type, module.Brain);
             });
         }
-        this.list.set('default', this.list.get('chicken'));
+        this.list.set('default', this.list.get('default'));
     }
 
     static get(type, mob) {
