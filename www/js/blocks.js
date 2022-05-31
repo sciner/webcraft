@@ -409,10 +409,10 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(block.tags && (block.tags.indexOf('alpha') >= 0)) {
+        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags && (block.tags.indexOf('alpha') >= 0))) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+        } else if(block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
             group = 'transparent';
         } else if(block.id == 649 ||
             block.tags.indexOf('leaves') >= 0 ||

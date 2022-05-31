@@ -217,7 +217,7 @@ export class PlayerInventory {
                 }
             }
             if(select_index >= 0) {
-                this.select(i);
+                this.select(select_index);
                 return true;
             }
             return this.refresh(true);

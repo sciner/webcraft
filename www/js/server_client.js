@@ -7,46 +7,50 @@ export class ServerClient {
     static cmd_titles               = null;
 
     // System
-    static CMD_HELLO                    = 1;
-    static CMD_PING                     = 3;
-    static CMD_PONG                     = 4;
-    static CMD_SYNC_TIME                = 5;
-	static CMD_ERROR                    = 7; // какая-то ошибка (ИСХ)
-    static CMD_CHANGE_RENDER_DIST       = 10;
-    static CMD_CONNECT                  = 34;
-    static CMD_CONNECTED                = 62;
+    static CMD_HELLO                    = 1; // server -> player
+    static CMD_PING                     = 3; // player -> server
+    static CMD_PONG                     = 4; // server -> player
+    static CMD_SYNC_TIME                = 5; // two side
+	static CMD_ERROR                    = 7; // server -> player (some error)
+    static CMD_CHANGE_RENDER_DIST       = 10; // player -> server
+    static CMD_CONNECT                  = 34; // player -> server
+    static CMD_CONNECTED                = 62; // server -> player
+
     // Cnunks and blocks
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
     static CMD_BLOCK_CLONE              = 84;
     static CMD_CHUNK_LOAD               = 37;
     static CMD_CHUNK_LOADED             = 39;
+
     // Chat
     static CMD_CHAT_SEND_MESSAGE        = 40;
+
     // Players
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43;
+
     // Entities
-    static CMD_CREATE_ENTITY            = 44;
-    static CMD_LOAD_CHEST               = 45;
-    static CMD_CHEST_CONTENT            = 46;
-    static CMD_CHEST_CONFIRM            = 47; // Отправка на сервер действия с сундуком
+    static CMD_LOAD_CHEST               = 45; // player -> server
+    static CMD_CHEST_CONTENT            = 46; // server -> player (when player request chest content)
+    static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
+
     //
-    static CMD_CHANGE_POS_SPAWN         = 63;
-    static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
-    static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
-    static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
-    static CMD_ENTITY_INDICATORS        = 69;
-	static CMD_WORLD_INFO               = 74;
-	static CMD_GAMEMODE_NEXT            = 80;
-	static CMD_GAMEMODE_SET             = 81;
+    static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
+    static CMD_TELEPORT_REQUEST         = 64; // player -> server (запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам)
+    static CMD_TELEPORT                 = 65; // server -> player (сервер телепортировал игрока)
+    static CMD_NEARBY_CHUNKS            = 67 // server -> player (chunks around player)
+    static CMD_ENTITY_INDICATORS        = 69; // server -> player (player indicators)
+	static CMD_WORLD_INFO               = 74; // server -> player
+	static CMD_GAMEMODE_NEXT            = 80; // player -> server (player switch to next game mode)
+	static CMD_GAMEMODE_SET             = 81; // player -> server (player switch to specific game mode)
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_PARTICLE_EXPLOSION       = 89;
     static CMD_STOP_PLAY_DISC           = 91;
-	static CMD_WORLD_UPDATE_INFO        = 92;
+	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player 
 
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93
@@ -57,7 +61,7 @@ export class ServerClient {
     static CMD_RESURRECTION             = 98;
 
     // Inventory
-    static CMD_INVENTORY_STATE          = 66;
+    static CMD_INVENTORY_STATE          = 66; // server -> player (when player inventory changed)
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
     static CMD_INVENTORY_NEW_STATE      = 90;
 
@@ -68,6 +72,7 @@ export class ServerClient {
 	static CMD_MOB_DELETED              = 73;
     static CMD_MOB_UPDATE               = 75;
 
+    // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
@@ -346,19 +351,6 @@ export class ServerClient {
 
     SendMessage(text) {
         this.Send({name: ServerClient.CMD_CHAT_SEND_MESSAGE, data: {text: text}});
-    }
-
-    // Создание сундука | Create chest
-    CreateEntity(id, pos, rotate) {
-        let mul = new Vector(10, 10, 10);
-        this.Send({name: ServerClient.CMD_CREATE_ENTITY, data: {
-            pos: pos,
-            item: {
-                id: id,
-                power: 1.0,
-                rotate: rotate.mul(mul).round().div(mul)
-            }
-        }});
     }
 
     // Запрос содержимого сундука

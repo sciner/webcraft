@@ -393,7 +393,7 @@ export class ServerWorld {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_TELEPORT,
                 data: {
                     pos: new_pos,
