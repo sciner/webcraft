@@ -1,5 +1,15 @@
 {
     "assets": {
+
+        "deer": {
+            "type": "json",
+            "geom": "json/deer.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/deer.png"
+            }
+        },
+
         "horse": {
             "type": "json",
             "geom": "json/horse_edit.geo.json",
