@@ -348,6 +348,10 @@ export function decodeJsonGeometryTree(json, variant = null) {
                 node.terrainGeometry = sceneNode.terrainGeometry;
             }
 
+            if (node.scale) {
+                vec3.set(sceneNode.scale, node.scale[0], node.scale[1], node.scale[2]);
+            }
+
             if (node.rotation) {
                 // MAGIC, we MUST flip axis
                 quat.fromEuler(
