@@ -6,7 +6,7 @@ export default class packet_reader {
 
     // must be puto to queue
     static get queue() {
-        return false;
+        return true;
     }
 
     // which command can be parsed with this class

@@ -28,7 +28,6 @@ export class ServerClient {
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43;
     // Entities
-    static CMD_CREATE_ENTITY            = 44;
     static CMD_LOAD_CHEST               = 45;
     static CMD_CHEST_CONTENT            = 46;
     static CMD_CHEST_CONFIRM            = 47; // Отправка на сервер действия с сундуком
@@ -346,19 +345,6 @@ export class ServerClient {
 
     SendMessage(text) {
         this.Send({name: ServerClient.CMD_CHAT_SEND_MESSAGE, data: {text: text}});
-    }
-
-    // Создание сундука | Create chest
-    CreateEntity(id, pos, rotate) {
-        let mul = new Vector(10, 10, 10);
-        this.Send({name: ServerClient.CMD_CREATE_ENTITY, data: {
-            pos: pos,
-            item: {
-                id: id,
-                power: 1.0,
-                rotate: rotate.mul(mul).round().div(mul)
-            }
-        }});
     }
 
     // Запрос содержимого сундука

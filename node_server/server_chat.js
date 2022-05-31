@@ -113,8 +113,12 @@ export class ServerChat {
                 if(b) {
                     const block = BLOCK.convertItemToInventoryItem(b);
                     block.count = cnt;
-                    player.inventory.increment(block);
-                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
+                    let ok = player.inventory.increment(block, true);
+                    if(ok) {
+                        this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
+                    } else {
+                        this.sendSystemChatMessageToSelectedPlayers(`error_no_place_in_inventory`, [player.session.user_id]);
+                    }
                 } else {
                     this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
                 }
