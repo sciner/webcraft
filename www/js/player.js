@@ -602,7 +602,7 @@ export class Player {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
                 if(!headBlockOver.material.is_fluid) {
-                    let power = Math.min(this.headBlock.power, .9);
+                    let power = .9; // Math.min(this.headBlock.power, .9);
                     this.eyes_in_water = (hby < (hby | 0) + power + .01) ? this.headBlock.material : null;
                 }
             }

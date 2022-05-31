@@ -223,7 +223,7 @@ export default class style {
         }
 
         const {width, height, depth}    = style.calculateBlockSize(block, neighbours);
-        const drawAllSides              = width != 1 || height != 1;
+        const drawAllSides              = (width != 1 || height != 1) && !material.is_water;
         let flags                       = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags                   = flags;
         let upFlags                     = flags;
