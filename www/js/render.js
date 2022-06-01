@@ -219,7 +219,7 @@ export class Renderer {
         let inventory_icon_id = 0;
 
         const extruded = [];
-        const regular = Array.from(all_blocks.values()).map((block, i) => {
+        const regular = all_blocks.map((block, i) => {
             let draw_style = block.inventory_style
                 ? block.inventory_style
                 : block.style;

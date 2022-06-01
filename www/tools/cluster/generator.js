@@ -5,7 +5,7 @@ await BLOCK.init({
     resource_packs_url: '../../data/resource_packs.json'
 });
 
-const blocks = Array.from(BLOCK.getAll().values());
+const blocks = BLOCK.getAll();
 
 BLOCK.GRASS_DIRT.color = '#15810e';
 BLOCK.OAK_PLANK.color = '#725c39';

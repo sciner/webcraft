@@ -10,3 +10,4 @@ export {QuestWindow} from "./quest.js";
 export {DieWindow} from "./die.js";
 export {default as MainMenu} from "./main_menu.js";
 export {EditSignWindow} from "./edit_sign.js";
+export {NotImplementedWindow} from "./not_implemented.js";

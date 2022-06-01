@@ -3,6 +3,7 @@ import {Vector} from "../helpers.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import {ServerClient} from "../server_client.js";
+import { INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
 
 export class BaseChestWindow extends Window {
 
@@ -29,7 +30,7 @@ export class BaseChestWindow extends Window {
         this.dragItem = null;
 
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Создание слотов
         this.createSlots(this.prepareSlots());
@@ -140,20 +141,23 @@ export class BaseChestWindow extends Window {
         const params = {
             drag_item:       Game.hud.wm.drag?.item?.item,
             chest:           {pos: this.info.pos, slots: {}},
-            inventory_slots: []
+            inventory_slots: new Array(this.inventory.items.length)
         };
-        params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
+        params.drag_item = params.drag_item ? params.drag_item : null;
         // chest
         for(let k in this.chest.slots) {
             let slot = this.chest.slots[k];
             if(slot.item) {
-                params.chest.slots[k] = BLOCK.convertItemToInventoryItem(slot.item);
+                params.chest.slots[k] = slot.item;
             }
         }
         // inventory
+        for(let i = 0; i < this.inventory.items.length; i++) {
+            params.inventory_slots[i] = this.inventory.items[i];
+        }
         for(let slot of this.inventory_slots) {
-            let item = slot.getItem();
-            params.inventory_slots.push(item ? BLOCK.convertItemToInventoryItem(item) : null);
+            const item = slot.getItem();
+            params.inventory_slots[slot.slot_index] = item || null;
         }
         // Send to server
         this.server.ChestConfirm(params);
@@ -203,9 +207,7 @@ export class BaseChestWindow extends Window {
             if(!(k in this.chest.slots)) {
                 continue;
             }
-            let block = {...BLOCK.fromId(item.id)};
-            block = Object.assign(block, item);
-            this.chest.slots[k].setItem(block, null, true);
+            this.chest.slots[k].setItem(item, null, true);
         }
     }
 
@@ -227,7 +229,7 @@ export class BaseChestWindow extends Window {
         for(let i = 0; i < count; i++) {
             const pos = new Vector(
                 sx + (i % xcnt) * sz,
-                sy + Math.floor(i / xcnt) * (36 * this.zoom),
+                sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom),
                 0
             );
             resp.push({pos});
@@ -282,7 +284,7 @@ export class BaseChestWindow extends Window {
         let sy          = 282 * this.zoom;
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
@@ -291,7 +293,7 @@ export class BaseChestWindow extends Window {
         xcnt            = 9;
         // верхние 3 ряда
         for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }

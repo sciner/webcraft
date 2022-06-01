@@ -1,5 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 
 export class CraftTableSlot extends Label {
@@ -15,7 +16,14 @@ export class CraftTableSlot extends Label {
         let resp = null;
         let item = this.getItem();
         if(item) {
-            resp = item.name.replaceAll('_', ' ') + ` (#${item.id})`;
+            if(item.id) {
+                const block = BLOCK.fromId(item.id);
+                if(block) {
+                    resp = block.name.replaceAll('_', ' ') + ` (#${item.id})`;
+                }
+            } else {
+
+            }
         }
         return resp;
     }
@@ -151,8 +159,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 return;
             }
             //
-            let item_max_count = dropItem.max_in_stack;
-            if(dropItem.count + dragItem.count > item_max_count) {
+            const max_stack_count = BLOCK.fromId(dropItem.id).max_in_stack;
+            if(dropItem.count + dragItem.count > max_stack_count) {
                 return;
             }
             //
@@ -205,11 +213,12 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 }
                 that.used_recipes.push(recipe_id);
                 that.parent.checkRecipe();
-                let next_item = this.getItem();
+                const next_item = this.getItem();
                 if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
                     break;
                 }
-                if(dragItem.count + next_item.count > dragItem.max_in_stack) {
+                const max_stack_count = BLOCK.fromId(dragItem.id).max_in_stack;
+                if(dragItem.count + next_item.count > max_stack_count) {
                     break;
                 }
                 dragItem.count += next_item.count;
@@ -451,7 +460,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if(typeof srcListFirstIndexOffset != 'number') {
             throw 'Invalid srcListFirstIndexOffset';
         }
-        let max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
+        const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
         // 1. проход в поисках подобного
         for(let slot of target_list) {
             if(slot instanceof CraftTableInventorySlot) {
@@ -546,7 +555,7 @@ export class BaseCraftWindow extends Window {
         let sy          = 282 * this.zoom;
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
@@ -555,7 +564,7 @@ export class BaseCraftWindow extends Window {
         xcnt            = 9;
         // верхние 3 ряда
         for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }

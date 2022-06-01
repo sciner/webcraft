@@ -12,6 +12,8 @@ export class InventoryComparator {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
+        console.log(new_simple)
+
         // 1. Check full equal
         let equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
 
@@ -122,7 +124,7 @@ export class InventoryComparator {
         for(let item of items) {
             if(item) {
                 if('id' in item && 'count' in item) {
-                    let b = BLOCK.fromId(item.id);
+                    const b = BLOCK.fromId(item.id);
                     if(!b || b.id < 0) {
                         continue;
                     }
@@ -131,26 +133,30 @@ export class InventoryComparator {
                     // generate key
                     let key = new_item.id;
                     let entity_key = false;
-                    for(let prop of ITEM_INVENTORY_KEY_PROPS) {
-                        if(prop in b) {
-                            if(prop != 'power' || b.power != 0) {
-                                if(prop in new_item) {
-                                    const jvalue = JSON.stringify(new_item[prop]);
-                                    const prop_key = `|${prop}:${jvalue}`;
-                                    key += prop_key;
-                                    entity_key = new_item.id + prop_key;
+                    if('entity_id' in item) {
+                        key = entity_key = item.entity_id;
+                    } else {
+                        for(let prop of ITEM_INVENTORY_KEY_PROPS) {
+                            if(prop in b) {
+                                if(prop != 'power' || b.power != 0) {
+                                    if(prop in new_item) {
+                                        const jvalue = JSON.stringify(new_item[prop]);
+                                        const prop_key = `|${prop}:${jvalue}`;
+                                        key += prop_key;
+                                        entity_key = new_item.id + prop_key;
+                                    }
                                 }
                             }
                         }
-                    }
-                    //
-                    if(entity_key) {
-                        let counter = entities.get(entity_key);
-                        if(!counter) {
-                            counter = 0;
+                        //
+                        if(entity_key) {
+                            let counter = entities.get(entity_key);
+                            if(!counter) {
+                                counter = 0;
+                            }
+                            entities.set(entity_key, counter + 1);
+                            key += `|_:${counter}`;
                         }
-                        entities.set(entity_key, counter + 1);
-                        key += `|_:${counter}`;
                     }
                     //
                     if(resp.has(key)) {

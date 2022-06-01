@@ -57,6 +57,7 @@
         "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков", "fr": "Bloque Miners"},
         "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru"},
         "browser_not_supported_1": {"en": "The browser you are using is not supported.", "ru": "Браузер, который вы используете, не поддерживается.","fr": "Le navigateur que vous utilisez n'est pas pris en charge."},
-        "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible"}
+        "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible"},
+        "error_chest_not_found": {"en": "Chest not found, try again later", "ru": "Сундук не найден, попробуйте еще раз"}
     }
 }

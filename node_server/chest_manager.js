@@ -2,8 +2,8 @@ import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr} from "../www/js/chunk.js";
-import {InventoryComparator} from "../www/js/inventory_comparator.js";
 import { alea } from "../www/js/terrain_generator/default.js";
+import { InventoryComparator } from "../www/js/inventory_comparator.js";
 
 export const DEFAULT_CHEST_SLOT_COUNT = 27;
 
@@ -23,8 +23,7 @@ export class ChestManager {
         if(!tblock || tblock.id < 1) {
             throw 'error_chest_not_found';
         }
-        const mat = BLOCK.fromId(tblock.id);
-        if(!mat.is_chest || !tblock.extra_data) {
+        if(!tblock.material?.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
         if(tblock.extra_data.generate) {
@@ -98,7 +97,8 @@ export class ChestManager {
         }
     }
 
-    // Send block item without slots
+    // Send block item
+    // @todo without slots
     async sendItem(block_pos, chest) {
         let chunk_addr = getChunkAddr(block_pos);
         let chunk = this.world.chunks.get(chunk_addr);

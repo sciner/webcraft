@@ -10,7 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {DieWindow, MainMenu, QuestWindow, StatsWindow} from "./window/index.js";
+import {DieWindow, QuestWindow, StatsWindow} from "./window/index.js";
 
 // import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
 const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;

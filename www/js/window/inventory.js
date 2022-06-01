@@ -2,6 +2,7 @@ import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export default class InventoryWindow extends BaseCraftWindow {
 
@@ -58,7 +59,7 @@ export default class InventoryWindow extends BaseCraftWindow {
         this.addRecipesButton();
 
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Создание слотов для крафта
         this.createCraft(this.cell_size);
@@ -148,7 +149,7 @@ export default class InventoryWindow extends BaseCraftWindow {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
+        let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = Lang.toggle_recipes;
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
@@ -176,7 +177,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             slots: [null, null, null, null]
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36 * this.zoom, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * INVENTORY_SLOT_SIZE * this.zoom, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
             }

@@ -1,4 +1,4 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, ChargingStationWindow} from "./window/index.js";
+import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, ChargingStationWindow, NotImplementedWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
@@ -178,6 +178,9 @@ export class Inventory extends PlayerInventory {
         // Edit sign
         this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
         this.hud.wm.add(this.frmEditSign);
+        // Not implemented
+        this.frmNotImplemented = new NotImplementedWindow(10, 10, 236, 192, 'frmNotImplemented', null, null, this);
+        this.hud.wm.add(this.frmNotImplemented);
     }
 
 }

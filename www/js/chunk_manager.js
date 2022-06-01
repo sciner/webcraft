@@ -612,7 +612,7 @@ export class ChunkManager {
         let cnt = 0;
         let startx = pos.x;
         let all_blocks = BLOCK.getAll();
-        for(let [id, block] of all_blocks) {
+        for(let block of all_blocks) {
             if(block.is_fluid || block.item || !block.spawnable) {
                 continue;
             }

@@ -27,7 +27,7 @@ export default class Ticker {
                 }
             }
             if(charged > 0) {
-                console.log(`Battery charged count: ${charged}`);
+                // console.log(`Battery charged count: ${charged}`);
                 updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 world.chests.sendChestToPlayers(v.pos.clone(), []);
             }

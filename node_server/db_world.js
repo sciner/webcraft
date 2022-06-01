@@ -11,6 +11,7 @@ import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
+import { INVENTORY_SLOT_COUNT } from '../www/js/constant.js';
 
 export class DBWorld {
 
@@ -529,17 +530,14 @@ export class DBWorld {
 
     // Return default inventory for user
     getDefaultInventory() {
-        const MAX_COUNT = 36;
+        const MAX_INVERTORY_SLOT_COUNT = 42;
         const resp = {
-            items: [],
+            items: new Array(MAX_INVERTORY_SLOT_COUNT).fill(null),
             current: {
                 index: 0, // right hand
                 index2: -1 // left hand
             }
         };
-        for(let i = 0; i < MAX_COUNT; i++) {
-            resp.items.push(null);
-        }
         return resp;
     }
 
@@ -553,7 +551,10 @@ export class DBWorld {
         // Find existing user record
         const row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
-            let inventory = JSON.parse(row.inventory);
+            const inventory = JSON.parse(row.inventory);
+            if(inventory.items.length < INVENTORY_SLOT_COUNT) {
+                inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));
+            }
             // Added new property
             if(inventory.current.index2 === undefined) {
                 inventory.current.index2 = -1;
