@@ -44,7 +44,7 @@ export class Brain extends FSMBrain {
         }
         return false;
     }
-    
+
     async doCatch(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);

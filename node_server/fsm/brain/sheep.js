@@ -149,22 +149,23 @@ export class Brain extends FSMBrain {
         }
     }
     
-    onKill(owner, type) {
+    async onKill(owner, type) {
         const mob = this.mob;
         const world = mob.getWorld();
-        let items = [];
-        let velocity = new Vector(0,0,0);
         if (owner != null) {
-            //owner это игрок
-            if (owner.session) {
-                velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
-                const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
-                items.push({id: BLOCK.MUTTON.id, count: rnd_count_mutton});
-                if (!this.is_shaered) {
-                    items.push({id: 350, count: 1});
-                }
+            const actions = new PickatActions();
+            const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
+
+            let items = { pos: mob.pos, items: [] };
+            items.items.push({ id: BLOCK.MUTTON.id, count: rnd_count_mutton });
+            if (!this.is_shaered) {
+                items.items.push({ id: 350, count: 1 });
             }
-            world.createDropItems(owner, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
+            actions.addDropItem(items);
+
+            actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+
+            await world.applyActions(owner, actions);
         }
     }
     

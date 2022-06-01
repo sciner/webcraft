@@ -1,6 +1,6 @@
 import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
-
+import { BLOCK } from "../../www/js/blocks.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
@@ -165,8 +165,7 @@ export class FSMBrain {
     }
     
     isStand(chance) {
-        if (Math.random() < chance) {
-            // console.log("[AI] mob " + this.mob.id + " stand");
+        if (Math.random() <= chance) {
             this.stack.replaceState(this.doStand);
             return true;
         }
@@ -174,8 +173,7 @@ export class FSMBrain {
     }
 
     isForward(chance) {
-        if (Math.random() < chance) {
-            //console.log("[AI] mob " + this.mob.id + " forward");
+        if (Math.random() <= chance) {
             this.stack.replaceState(this.doForward);
             return true;
         }
@@ -183,27 +181,9 @@ export class FSMBrain {
     }
 
     isRotate(chance, angle = -1) {
-        if (Math.random() < chance) {
-            //console.log("[AI] mob " + this.mob.id + " rotate");
+        if (Math.random() <= chance) {
             this.angleRotation = (angle == -1) ? 2 * Math.random() * Math.PI : angle;
             this.stack.replaceState(this.doRotate);
-            return true;
-        }
-        return false;
-    }
-
-    isRespawn() {
-        let mob = this.mob;
-
-        if (this.isAggrressor && this.target != null || !mob.pos_spawn) {
-            return false;
-        }
-
-        let dist = mob.pos.distance(mob.pos_spawn);
-
-        if (dist > FORWARD_DISTANCE) {
-            //console.log("[AI] mob " + mob.id + " go to respawn");
-            this.isRotate(1.0, this.angleTo(this.mob.pos_spawn));
             return true;
         }
         return false;
@@ -245,10 +225,6 @@ export class FSMBrain {
             return;
         }
 
-        if (this.isRespawn()) {
-            return;
-        }
-
         if (this.isForward(0.02)) {
             return;
         }
@@ -264,14 +240,13 @@ export class FSMBrain {
             forward: true,
             jump: this.checkInWater()
         });
-
-        const pick = this.raycastFromHead();
-        if (pick) {
-
-        }
-
         this.applyControl(delta);
         this.sendState();
+
+        if (this.checkDangerAhead()) {
+            this.isRotate(1.0);
+            return;
+		}
         
         if (this.findTarget()){
             return;
@@ -290,7 +265,7 @@ export class FSMBrain {
         });
 
         if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.5) {
-            this.mob.rotate.z += delta * ((this.run) ? 2 : 1);
+            this.mob.rotate.z += delta * ((this.run) ? 3 : 2);
         } else {
             this.isForward(1.0);
             return;
@@ -314,6 +289,37 @@ export class FSMBrain {
         }
         let block = chunk_over.getBlock(mob.pos.floored());
         return block.material.is_fluid;
+    }
+
+    checkDangerAhead() {
+        const mob = this.mob;
+        const world = mob.getWorld();
+
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), 1, Math.cos(mob.rotate.z))).floored();
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))).floored();
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z))).floored();
+        const pos_bottom = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z))).floored();
+
+        if (!world.getBlock(pos_legs) || !world.getBlock(pos_head) || !world.getBlock(pos_legs) || !world.getBlock(pos_bottom)) {
+            return false;
+        }
+
+        //боится высоты
+        if (world.getBlock(pos_legs).id == BLOCK.AIR.id && world.getBlock(pos_bottom).id == BLOCK.AIR.id) {
+            return true;
+        }
+
+        //Преграда
+        if (world.getBlock(pos_head).id != BLOCK.AIR.id && world.getBlock(pos_body).id != BLOCK.AIR.id) {
+            return true;
+        }
+
+        //Боится стихий
+        if (world.getBlock(pos_legs).material.is_fluid || world.getBlock(pos_legs).material.is_fire) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
