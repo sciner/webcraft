@@ -24,11 +24,6 @@ export class Inventory extends PlayerInventory {
     setState(inventory_state) {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
-        for(const item of this.items) {
-            if(item && 'id' in item) {
-                item.name = BLOCK.fromId(item.id).name;
-            }
-        }
         this.refresh(false);
     }
 
@@ -157,11 +152,11 @@ export class Inventory extends PlayerInventory {
         this.inventory_image = Resources.inventory.image;
         this.hud.add(this, 0);
         // CraftTable
-        this.ct = new CraftTable(this.recipes, 0, 0, 352, 332, 'frmCraft', null, null, this);
+        this.ct = new CraftTable(0, 0, 352, 332, 'frmCraft', null, null, this, this.recipes);
         this.ct.visible = false;
         this.hud.wm.add(this.ct);
         // Inventory window
-        this.frmInventory = new InventoryWindow(this.recipes, 10, 10, 352, 332, 'frmInventory', null, null, this);
+        this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this, this.recipes);
         this.hud.wm.add(this.frmInventory);
         // Creative Inventory window
         this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);

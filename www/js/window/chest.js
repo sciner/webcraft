@@ -3,7 +3,7 @@ import {Vector} from "../helpers.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import {ServerClient} from "../server_client.js";
-import { INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class BaseChestWindow extends Window {
 

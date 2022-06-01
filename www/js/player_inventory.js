@@ -131,11 +131,6 @@ export class PlayerInventory {
                 }
             }
         }
-        // @debug info
-        // console.log('---------------')
-        // console.log(mat.count, no_update_if_remains, need_refresh)
-        // console.log(Array.from(updated.entries()))
-        // console.log(Array.from(added.entries()))
         // no update if remains
         if(no_update_if_remains && mat.count > 0) {
             return false;
@@ -327,25 +322,7 @@ export class PlayerInventory {
                 index: this.current.index,
                 index2: this.current.index2
             },
-            items: []
-        }
-        for(var item of this.items) {
-            let t = null;
-            if(item) {
-                t = {
-                    id:         item.id,
-                    count:      item.count,
-                    power:      item.power
-                };
-                // Individual properties
-                for(let prop of ['entity_id', 'entity_name', 'extra_data']) {
-                    t[prop] = null;
-                    if(item.hasOwnProperty(prop)) {
-                        t[prop] = item[prop];
-                    }
-                }
-            }
-            resp.items.push(t);
+            items: this.items
         }
         return resp;
     }

@@ -12,8 +12,6 @@ export class InventoryComparator {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
-        console.log(new_simple)
-
         // 1. Check full equal
         let equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
 
@@ -133,7 +131,7 @@ export class InventoryComparator {
                     // generate key
                     let key = new_item.id;
                     let entity_key = false;
-                    if('entity_id' in item) {
+                    if('entity_id' in item && item.entity_id) {
                         key = entity_key = item.entity_id;
                     } else {
                         for(let prop of ITEM_INVENTORY_KEY_PROPS) {

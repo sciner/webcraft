@@ -6,7 +6,7 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
 
-    constructor(recipes, x, y, w, h, id, title, text, inventory) {
+    constructor(x, y, w, h, id, title, text, inventory, recipes) {
 
         super(x, y, w, h, id, title, text);
         this.width *= this.zoom;
@@ -198,9 +198,9 @@ export class CraftTable extends BaseCraftWindow {
         if(!craft_result) {
             return this.lblResultSlot.setItem(null);
         }
-        let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
-        delete(block.texture);
-        this.lblResultSlot.setItem(block);
+        const resultBlock = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true)
+        resultBlock.count = craft_result.count;
+        this.lblResultSlot.setItem(resultBlock);
     }
 
     getSlots() {

@@ -31,6 +31,11 @@ export class ServerPlayerInventory extends PlayerInventory {
         if(!('state' in params && 'used_recipes' in params)) {
             throw 'error_invalid_inventory_state_params';
         }
+
+        console.log({
+            newState: params.state.items
+        });
+
         // New state
         const state = params.state;
         if('items' in state) {

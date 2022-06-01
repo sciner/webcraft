@@ -6,7 +6,7 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export default class InventoryWindow extends BaseCraftWindow {
 
-    constructor(recipes, x, y, w, h, id, title, text, inventory) {
+    constructor(x, y, w, h, id, title, text, inventory, recipes) {
 
         super(x, y, w, h, id, title, text);
 
