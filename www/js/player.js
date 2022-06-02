@@ -1,4 +1,4 @@
-import {CAMERA_MODE, Helpers, Vector} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
@@ -6,7 +6,7 @@ import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
-import {Inventory} from "./inventory.js";
+import {PlayerInventory} from "./player_inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
@@ -76,7 +76,7 @@ export class Player {
         this.setRotate(data.state.rotate);
         this.#forward               = new Vector(0, 0, 0);
         // Inventory
-        this.inventory              = new Inventory(this, Game.hud);
+        this.inventory              = new PlayerInventory(this, Game.hud);
         this.inventory.onSelect     = (item) => {
             // Вызывается при переключении активного слота в инвентаре
             if(this.pickAt) {

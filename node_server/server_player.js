@@ -280,9 +280,9 @@ export class ServerPlayer extends Player {
 
     }
 
-    // Send current state to players
+    // Send current state to other players
     sendState() {
-        let chunk_over = this.world.chunks.get(this.chunk_addr);
+        const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }

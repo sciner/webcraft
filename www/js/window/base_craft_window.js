@@ -44,6 +44,7 @@ export class CraftTableSlot extends Label {
         }
     }
 
+    // Draw slot
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
         let item = this.getItem();
@@ -51,25 +52,25 @@ export class CraftTableSlot extends Label {
         super.draw(ctx, ax, ay);
     }
 
+    // Draw item
     drawItem(ctx, item, x, y, width, height) {
+        
         const image = this.ct.inventory.inventory_image;
 
-        if(!image) {
-            return;
-        }
-        if(!item) {
+        if(!image || !item) {
             return;
         }
 
         const size = image.width;
         const frame = size / 16;
+        const zoom = this.zoom;
+        const mat = BLOCK.fromId(item.id);
 
         ctx.imageSmoothingEnabled = true;
-        let mat = BLOCK.fromId(item.id);
 
-        // 
+        // 1. Draw icon
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 40 * this.zoom;
+        const dest_icon_size = 40 * zoom;
         ctx.drawImage(
             image,
             icon.x,
@@ -81,7 +82,8 @@ export class CraftTableSlot extends Label {
             dest_icon_size,
             dest_icon_size
         );
-        // Draw label
+
+        // 2. raw label
         let font_size = 18;
         const power_in_percent = mat?.item?.indicator == 'bar';
         let label = item.count > 1 ? item.count : null;
@@ -90,7 +92,7 @@ export class CraftTableSlot extends Label {
             if(power_in_percent) {
                 label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
             } else {
-                label = null; // Math.round(item.power * 100) / 100;
+                label = null;
             }
             font_size = 12;
             shift_y = -10;
@@ -98,26 +100,27 @@ export class CraftTableSlot extends Label {
         if(label) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = Math.round(font_size * this.zoom) + 'px ' + UI_FONT;
+            ctx.font                = Math.round(font_size * zoom) + 'px ' + UI_FONT;
             ctx.fillStyle           = '#000000ff';
-            ctx.fillText(label, x + width + 2 * this.zoom, y + height + (2 + shift_y) * this.zoom);
+            ctx.fillText(label, x + width + 2 * zoom, y + height + (2 + shift_y) * zoom);
             ctx.fillStyle           = '#ffffffff';
-            ctx.fillText(label, x + width, y + height + (shift_y) * this.zoom);
+            ctx.fillText(label, x + width, y + height + (shift_y) * zoom);
         }
-        // Draw instrument life
+
+        // 3. Draw instrument life
         if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
             const power_normal = Math.min(item.power / mat.power, 1);
-            let cx = x + 4 * this.zoom;
-            let cy = y + 3 * this.zoom;
-            let cw = width - 8 * this.zoom;
-            let ch = height - 6 * this.zoom;
+            let cx = x + 4 * zoom;
+            let cy = y + 3 * zoom;
+            let cw = width - 8 * zoom;
+            let ch = height - 6 * zoom;
             ctx.fillStyle = '#000000ff';
-            ctx.fillRect(cx, cy + ch - 6 * this.zoom, cw, 6 * this.zoom);
-            //
+            ctx.fillRect(cx, cy + ch - 6 * zoom, cw, 6 * zoom);
             let rgb = Helpers.getColorForPercentage(power_normal);
             ctx.fillStyle = rgb.toCSS();
-            ctx.fillRect(cx, cy + ch - 6 * this.zoom, cw * power_normal | 0, 4 * this.zoom);
+            ctx.fillRect(cx, cy + ch - 6 * zoom, cw * power_normal | 0, 4 * zoom);
         }
+
     }
 
     setSlotIndex(index) {
@@ -224,12 +227,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 dragItem.count += next_item.count;
             }
             // set drag item
-            e.drag.setItem({
-                draw: function(e) {
-                    that.drawItem(e.ctx, dragItem, e.x, e.y, that.width, that.height);
-                },
-                item: dragItem
-            });
+            that.parent.inventory.setDragItem(that, dragItem, e.drag, that.width, that.height);
         }
     
     }
@@ -316,12 +314,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 that.setItem(null, e);
             }
             that.dragItem = dragItem;
-            e.drag.setItem({
-                draw: function(e) {
-                    that.drawItem(e.ctx, this.item, e.x, e.y, that.width, that.height);
-                },
-                item: dragItem
-            });
+            this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height);
             this.prev_mousedown_time = performance.now();
             this.prev_mousedown_button = e.button;
         }
@@ -442,7 +435,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         dropData.item.count--;
                     } else {
                         that.setItem(dropData.item, e);
-                        drag.clear();
+                        this.getInventory().clearDragItem();
                     }
                 }
             }
@@ -503,6 +496,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
+
+    getInventory() {
+        return this.ct.inventory;
+    }
+    
 
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
@@ -572,11 +570,7 @@ export class BaseCraftWindow extends Window {
 
     clearCraft() {
         // Drag
-        let dragItem = this.getRoot().drag.getItem();
-        if(dragItem) {
-            this.inventory.increment(dragItem.item);
-        }
-        this.getRoot().drag.clear();
+        this.inventory.clearDragItem(true);
         // Clear result
         this.lblResultSlot.setItem(null);
         //
@@ -640,8 +634,8 @@ export class BaseCraftWindow extends Window {
             let item = slot.getItem();
             if(item_id) {
                 if(!item) {
-                    item = Object.assign({count: 0}, BLOCK.fromId(item_id));
-                    delete(item.texture);
+                    item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
+                    item.count = 0;
                 }
                 let count = 1;
                 item.count += count;

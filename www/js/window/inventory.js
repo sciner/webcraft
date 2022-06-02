@@ -4,7 +4,7 @@ import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
-export default class InventoryWindow extends BaseCraftWindow {
+export class InventoryWindow extends BaseCraftWindow {
 
     constructor(x, y, w, h, id, title, text, inventory, recipes) {
 
@@ -53,8 +53,6 @@ export default class InventoryWindow extends BaseCraftWindow {
         //
         this.addPlayerBox();
 
-        this.dragItem = null;
-
         // Add buttons
         this.addRecipesButton();
 
@@ -80,11 +78,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             // Close recipe window
             Game.hud.wm.getWindow('frmRecipe').hide();
             // Drag
-            let dragItem = this.getRoot().drag.getItem();
-            if(dragItem) {
-                this.inventory.increment(dragItem.item);
-            }
-            this.getRoot().drag.clear();
+            this.inventory.clearDragItem(true);
             // Clear result
             this.lblResultSlot.setItem(null);
             //
@@ -210,8 +204,8 @@ export default class InventoryWindow extends BaseCraftWindow {
         if(!craft_result) {
             return this.lblResultSlot.setItem(null);
         }
-        let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
-        delete(block.texture);
+        const block = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true);
+        block.count = craft_result.count;
         this.lblResultSlot.setItem(block);
     }
 

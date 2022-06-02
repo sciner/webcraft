@@ -5781,19 +5781,6 @@
             "id": "plant"
         }
     },
-    
-
-
-
-
-
-
-
-
-
-
-
-
     {
         "id": 1419,
         "name": "BONE",
@@ -5970,6 +5957,7 @@
         "style": "extruder",
         "texture": [0, 27],
         "item": {"name": "food"},
+        "coocked_item": {"name": "COOKED_CHICKEN", "count": 1},
         "material": {
             "id": "food"
         }
@@ -5990,6 +5978,7 @@
         "style": "extruder",
         "texture": [2, 27],
         "item": {"name": "food"},
+        "coocked_item": {"name": "COOKED_MUTTON", "count": 1},
         "material": {
             "id": "food"
         }
@@ -6010,6 +5999,7 @@
         "style": "extruder",
         "texture": [6, 27],
         "item": {"name": "food"},
+        "coocked_item": {"name": "COOKED_RABBIT", "count": 1},
         "material": {
             "id": "food"
         }
@@ -6030,6 +6020,7 @@
         "style": "extruder",
         "texture": [8, 27],
         "item": {"name": "food"},
+        "coocked_item": {"name": "COOKED_BEEF", "count": 1},
         "material": {
             "id": "food"
         }
@@ -6050,6 +6041,7 @@
         "style": "extruder",
         "texture": [4, 27],
         "item": {"name": "food"},
+        "coocked_item": {"name": "COOKED_PORKCHOP", "count": 1},
         "material": {
             "id": "food"
         }

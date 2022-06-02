@@ -1,181 +1,343 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, ChargingStationWindow, NotImplementedWindow} from "./window/index.js";
-import {Vector, Helpers} from "./helpers.js";
-import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
-import {Resources} from "./resources.js";
-import { PlayerInventory } from "./player_inventory.js";
+import {Helpers, Vector} from "./helpers.js";
+import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
 
-// Player inventory
-export class Inventory extends PlayerInventory {
+export class Inventory {
 
-    constructor(player, hud) {
-        super(null, {current: {index: 0, index2: -1}, items: []});
-        this.player         = player;
-        this.hud            = hud;
-        for(let i = 0; i < this.max_count; i++) {
-            this.items.push(null);
+    temp_vec = new Vector();
+
+    constructor(player, state) {
+        this.count              = state.items.length;
+        this.player             = player;
+        this.current            = state.current;
+        this.items              = new Array(this.count); // state.items;
+        this.max_count          = INVENTORY_SLOT_COUNT;
+        this.max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT;
+        this.hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT;
+        this.onSelect           = (item) => {};
+        this.applyNewItems(state.items, false);
+    }
+
+    //
+    setIndexes(data, send_state) {
+        this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
+        this.current.index2 = Helpers.clamp(data.index2, -1, this.max_visible_count - 1);
+        this.refresh(send_state);
+    }
+
+    //
+    applyNewItems(items, refresh) {
+        if(!Array.isArray(items)) {
+            throw 'error_items_must_be_array';
         }
+        if(items.length != this.count) {
+            throw 'error_items_invalid_count|' + `${items.length} != ${this.count}`;
+        }
+        const new_items = [];
+        for(let i in items) {
+            let b = null;
+            if(items[i]) {
+                b = BLOCK.fromId(items[i].id)
+            }
+            new_items[i] = BLOCK.convertItemToInventoryItem(items[i], b);
+        }
+        this.items = new_items;
+        if(refresh) {
+            this.refresh(true);
+        }
+    }
+
+    // Return current active item in hotbar
+    get current_item() {
+        return this.items[this.current.index];
+    }
+
+    //
+    select(index) {
+        if(index < 0) {
+            index = this.hotbar_count - 1;
+        }
+        if(index >= this.hotbar_count) {
+            index = 0;
+        }
+        this.current.index = index;
+        this.refresh(true);
+        this.onSelect(this.current_item);
+    }
+
+    // Increment
+    increment(mat, no_update_if_remains) {
+        if(!mat.id) {
+            throw 'error_empty_block_id';
+        }
+        mat.id = parseInt(mat.id);
+        mat.count = parseInt(mat.count);
+        if(mat.count < 1) {
+            throw 'error_increment_value_less_then_one';
+        }
+        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
+        if(!block) {
+            throw 'error_invalid_block_id';
+        }
+        no_update_if_remains = !!no_update_if_remains;
+        mat = BLOCK.convertItemToInventoryItem(mat);
         //
-        this.select(this.current.index);
-        // Recipe manager
-        this.recipes = new RecipeManager(true);
-    }
-
-    setState(inventory_state) {
-        this.current = inventory_state.current;
-        this.items = inventory_state.items;
-        this.refresh(false);
-    }
-
-    get inventory_window() {
-        return Game.hud.wm.getWindow('frmInventory');
-    }
-
-    // Open window
-    open() {
-        if(this.player.game_mode.isCreative()) {
-            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
-        } else {
-            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
-        }
-    }
-
-    // Refresh
-    refresh(changed) {
-        if(this.hud) {
-            this.hud.refresh();
-            try {
-                let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
-                frmRecipe.paginator.update();
-            } catch(e) {
-                // do nothing
-            }
-        }
-        return true;
-    }
-
-    // drawHUD
-    drawHUD(hud) {
-        if(!this.inventory_image) {
-            return this.initUI();
-        }
-        if(!this.current.index) {
-            this.current.index = 0;
-        }
-        hud.wm.centerChild();
-    }
-
-    // drawHotbar
-    drawHotbar(hud, cell_size, pos, zoom) {
-        if(!this.inventory_image) {
-            return this.initUI();
-        }
-        hud.ctx.imageSmoothingEnabled = false;
-        // 1. that.inventory_image
-        // 2. inventory_selector
-        // img,sx,sy,swidth,sheight,x,y,width,height
-        const hud_pos = new Vector(pos.x, pos.y, 0);
-        const DEST_SIZE = 64 * zoom;
-        // style
-        hud.ctx.font            = Math.round(18 * zoom) + 'px ' + UI_FONT;
-        hud.ctx.textAlign       = 'right';
-        hud.ctx.textBaseline    = 'bottom';
-        for(const k in this.items) {
-            const item = this.items[k];
-            if(k >= this.hotbar_count) {
-                break;
-            }
+        const updated = new Map();
+        const added = new Map();
+        const item_max_count = block.max_in_stack;
+        // 1. update cell if exists
+        let need_refresh = false;
+        for(let i in this.items) {
+            const item = this.items[i];
             if(item) {
-                if(!('id' in item)) {
-                    console.error(item);
-                }
-                let mat = BLOCK.fromId(item.id);
-                const icon = BLOCK.getInventoryIconPos(
-                    mat.inventory_icon_id,
-                    this.inventory_image.width,
-                    this.inventory_image.width / 16
-                );
-                hud.ctx.drawImage(
-                    this.inventory_image,
-                    icon.x,
-                    icon.y,
-                    icon.width,
-                    icon.height,
-                    hud_pos.x + cell_size / 2 - 49 * zoom / 2 - 4 * zoom,
-                    hud_pos.y + cell_size / 2 - 48 * zoom / 2 - 2 * zoom,
-                    DEST_SIZE,
-                    DEST_SIZE
-                    );
-                // Draw instrument life
-                const power_in_percent = mat?.item?.indicator == 'bar';
-                if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
-                    const power_normal = Math.min(item.power / mat.power, 1);
-                    let cx = hud_pos.x + 14 * zoom;
-                    let cy = hud_pos.y + 14 * zoom;
-                    let cw = 40 * zoom;
-                    let ch = 43 * zoom;
-                    hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 6 * zoom);
-                    //
-                    let rgb = Helpers.getColorForPercentage(power_normal);
-                    hud.ctx.fillStyle = rgb.toCSS();
-                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw * power_normal | 0, 4 * zoom);
-                }
-                // Draw label
-                let label = item.count > 1 ? item.count : null;
-                let shift_y = 0;
-                if(this.current.index == k) {
-                    if(!label && 'power' in item) {
-                        if(power_in_percent) {
-                            label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+                if(item.id == mat.id) {
+                    if(item.count < item_max_count) {
+                        if(item.count + mat.count <= item_max_count) {
+                            updated.set(i, Math.min(item.count + mat.count, item_max_count));
+                            mat.count = 0;
+                            need_refresh = true;
+                            break;
                         } else {
-                            label = Math.round(item.power * 100) / 100;
+                            mat.count = (item.count + mat.count) - item_max_count;
+                            updated.set(i, item_max_count);
+                            need_refresh = true;
                         }
-                        shift_y = -10;
                     }
                 }
-                if(label) {
-                    hud.ctx.textBaseline = 'bottom';
-                    hud.ctx.font = Math.round(18 * zoom) + 'px ' + UI_FONT;
-                    hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * (zoom / 2));
-                    hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + (shift_y - 2) * (zoom / 2));
+            }
+        }
+        // 2. start new slot
+        if(mat.count > 0) {
+            for(let i = 0; i < this.max_visible_count; i++) {
+                if(!this.items[i]) {
+                    const new_clot = {...mat};
+                    added.set(i, new_clot);
+                    need_refresh = true;
+                    if(new_clot.count > item_max_count) {
+                        mat.count -= item_max_count;
+                        new_clot.count = item_max_count;
+                    } else {
+                        mat.count = 0;
+                        break;
+                    }
                 }
             }
-            hud_pos.x += cell_size;
+        }
+        // no update if remains
+        if(no_update_if_remains && mat.count > 0) {
+            return false;
+        }
+        if(need_refresh) {
+            // updated
+            for(let [i, count] of updated.entries()) {
+                i = parseInt(i);
+                this.items[i | 0].count = count;
+            }
+            // added
+            let select_index = -1;
+            for(let [i, item] of added.entries()) {
+                i = parseInt(i);
+                this.items[i] = item;
+                if(i == this.current.index) {
+                    select_index = i;
+                }
+            }
+            if(select_index >= 0) {
+                this.select(select_index);
+                return true;
+            }
+            return this.refresh(true);
+        }
+        return false;
+    }
+
+    //
+    decrement_instrument(mined_block) {
+        if(!this.current_item || this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        if(current_item_material.item?.instrument_id) {
+            this.current_item.power = Math.max(this.current_item.power - 1, 0);
+            if(this.current_item.power <= 0) {
+                this.items[this.current.index] = null;
+            }
+            this.refresh(true);
+        }
+    }
+    
+    // Decrement
+    decrement(decrement_item, ignore_creative_game_mode) {
+        if(!this.current_item) {
+            return;
+        }
+        if(!ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        if(current_item_material.item?.instrument_id) {
+            this.decrement_instrument();
+        } else {
+            this.current_item.count = Math.max(this.current_item.count - 1, 0);
+            if(this.current_item.count < 1) {
+                let matBlock = BLOCK.fromId(this.current_item.id);
+                if(matBlock.item && matBlock.item?.name == 'bucket') {
+                    if(matBlock.item.emit_on_set) {
+                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        this.items[this.current.index] = {id: emptyBucket.id, count: 1};
+                    }
+                } else {
+                    this.items[this.current.index] = null;
+                }
+            }
+        }
+        this.refresh(true);
+    }
+
+    // decrementByItemID
+    decrementByItemID(item_id, count, dont_refresh) {
+        for(let i in this.items) {
+            let item = this.items[i];
+            if(!item || item.count < 1) {
+                continue;
+            }
+            if(item.id == item_id) {
+                if(item.count >= count) {
+                    item.count -= count;
+                    if(item.count < 1) {
+                        this.items[i] = null;
+                    }
+                    break;
+                } else {
+                    count -= item.count;
+                    item.count = 0;
+                    this.items[i] = null;
+                }
+            }
+        }
+        if(typeof dont_refresh === 'undefined' || !dont_refresh) {
+            this.refresh(true);
         }
     }
 
-    // initUI...
-    initUI() {
-        this.inventory_image = Resources.inventory.image;
-        this.hud.add(this, 0);
-        // CraftTable
-        this.ct = new CraftTable(0, 0, 352, 332, 'frmCraft', null, null, this, this.recipes);
-        this.ct.visible = false;
-        this.hud.wm.add(this.ct);
-        // Inventory window
-        this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this, this.recipes);
-        this.hud.wm.add(this.frmInventory);
-        // Creative Inventory window
-        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
-        this.hud.wm.add(this.frmCreativeInventory);
-        // Chest window
-        this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
-        this.hud.wm.add(this.frmChest);
-        // Furnace window
-        this.frmFurnace = new FurnaceWindow(10, 10, 352, 332, 'frmFurnace', null, null, this);
-        this.hud.wm.add(this.frmFurnace);
-        // Charging station window
-        this.frmChargingStation = new ChargingStationWindow(10, 10, 352, 332, 'frmChargingStation', null, null, this);
-        this.hud.wm.add(this.frmChargingStation);
-        // Edit sign
-        this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
-        this.hud.wm.add(this.frmEditSign);
-        // Not implemented
-        this.frmNotImplemented = new NotImplementedWindow(10, 10, 236, 192, 'frmNotImplemented', null, null, this);
-        this.hud.wm.add(this.frmNotImplemented);
+    // Возвращает список того, чего и в каком количестве не хватает
+    // в текущем инвентаре по указанному списку
+    hasResources(resources) {
+        let resp = [];
+        for(let resource of resources) {
+            let r = {
+                item_id: resource.item_id,
+                count: resource.count
+            };
+            // Each all items in inventoryy
+            for(var item of this.items) {
+                if(!item) {
+                    continue;
+                }
+                if(item.id == r.item_id) {
+                    if(item.count > r.count) {
+                        r.count = 0;
+                    } else {
+                        r.count -= item.count;
+                    }
+                    if(r.count == 0) {
+                        break;
+                    }
+                }
+            }
+            if(r.count > 0) {
+                resp.push(r);
+            }
+        }
+        return resp;
     }
+
+    // Return items from inventory
+    exportItems() {
+        const resp = {
+            current: {
+                index: this.current.index,
+                index2: this.current.index2
+            },
+            items: this.items
+        }
+        return resp;
+    }
+
+    getLeftIndex() {
+        return this.current.index2;
+    }
+
+    getRightIndex() {
+        return this.current.index;
+    }
+    
+    //
+    setItem(index, item) {
+        this.items[index] = item;
+        // Обновить текущий инструмент у игрока
+        this.select(this.current.index);
+    }
+
+    next() {
+        this.select(++this.current.index);
+    }
+    
+    prev() {
+        this.select(--this.current.index);
+    }
+
+    /*
+    // Has item
+    hasItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        return existing_item && existing_item.count >= item.count;
+    }*/
+
+    /*
+    // Decrement item
+    decrementItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        if(!existing_item || existing_item.count < item.count) {
+            return false;
+        }
+        // Decrement
+        if(isNaN(item_key)) {
+            // @todo Нужно по другому сделать вычитание, иначе если игрок не запросит свою постройку айтемов, на сервере у него порядок и группировка останется неправильной
+            // Я сделал так, потому что математически у него останется правильное количество айтемов и меня это пока устраивает =)
+            existing_item.count -= item.count;
+            if(existing_item.count < 1) {
+                items.delete(item_key);
+            }
+            this.items = Array.from(items.values());    
+        } else {
+            this.decrementByItemID(item.id, item.count, true);
+        }
+        return true;
+    }*/
 
 }

@@ -34,7 +34,7 @@ class CreativeInventoryCollection extends Window {
             const block = {
                 id: b.id
             };
-            if('power' in b) {
+            if('power' in b && (b.power !== 0)) {
                 block.power = b.power;
             }
             all_blocks.push(block)
@@ -76,37 +76,27 @@ class CreativeInventoryCollection extends Window {
                 //
                 targetItem = {...targetItem};
                 targetItem.count = count;
-                e.drag.setItem({
-                    draw: function(e) {
-                        that.drawItem(e.ctx, this.item, e.x, e.y, that.width, that.height);
-                    },
-                    item: targetItem
-                });
+                this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
                 return false;
             };
             // Drop on pallette slots
             lblSlot.onDrop = function(e) {
-                let that        = this;
-                let drag        = e.drag;
-                let dropItem    = drag.getItem().item; // что перетащили
+                const that      = this;
+                const drag      = e.drag;
+                const dropItem  = drag.getItem().item; // что перетащили
                 let targetItem  = this.getInventoryItem(); // куда перетащили
                 if(dropItem.id == targetItem.id) {
                     targetItem = {...dropItem};
                     // calc count
                     let count = 1;
+                    const max_in_stack = BLOCK.fromId(targetItem.id).max_in_stack;
                     if(e.shiftKey) {
-                        count = targetItem.max_in_stack;
+                        count = max_in_stack
                     }
-                    targetItem.count = Math.min(targetItem.count + count, targetItem.max_in_stack);
-                    //
-                    drag.setItem({
-                        draw: function(e) {
-                            that.drawItem(e.ctx, this.item, e.x, e.y, that.width, that.height);
-                        },
-                        item: {...targetItem}
-                    });
+                    targetItem.count = Math.min(targetItem.count + count, max_in_stack);
+                    this.getInventory().setDragItem(this, {...targetItem}, drag, that.width, that.height);
                 } else {
-                    drag.setItem(null);
+                    this.getInventory().clearDragItem();
                 }
                 return false;
             };
@@ -159,8 +149,6 @@ export class CreativeInventoryWindow extends Window {
         ct.setBackground('./media/gui/creative_inventory/tab_items.png');
         ct.hide();
 
-        this.dragItem = null;
-
         // Ширина / высота слота
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
@@ -182,7 +170,7 @@ export class CreativeInventoryWindow extends Window {
         
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.getRoot().drag.clear();
+            this.inventory.clearDragItem();
             // Save inventory
             Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }

@@ -561,9 +561,9 @@ export class DBWorld {
             }
             return {
                 state: {
-                    pos:                JSON.parse(row.pos),
-                    pos_spawn:          JSON.parse(row.pos_spawn),
-                    rotate:             JSON.parse(row.rotate),
+                    pos:                new Vector(JSON.parse(row.pos)),
+                    pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
+                    rotate:             new Vector(JSON.parse(row.rotate)),
                     indicators:         JSON.parse(row.indicators),
                     chunk_render_dist:  row.chunk_render_dist,
                     game_mode:          row.game_mode || world.info.game_mode,

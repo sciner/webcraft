@@ -5,6 +5,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
+import { BLOCK } from "./blocks.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -314,7 +315,11 @@ export class HUD {
         this.text += '\nMAT: ';
         let mat = player.currentInventoryItem;
         if(mat) {
-            this.text += ' ' + mat.id + ' / ' + mat.name;
+            if(this.prev_mat_id != mat.id) {
+                this.prev_mat_id = mat.id;
+                this.mat_name = BLOCK.fromId(mat.id).name;
+            }
+            this.text += ` ${mat.id} / ${this.mat_name}`;
             if(mat.is_fluid) {
                 this.text += ' ' + '(FLUID!!!)';
             }

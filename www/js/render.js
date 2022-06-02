@@ -628,7 +628,7 @@ export class Renderer {
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(this, dt);
+            this.inHandOverlay.draw(this, dt * 1.4);
         }
 
         // we should reset camera state because a viewMatrix used for picking

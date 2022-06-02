@@ -5,6 +5,28 @@ export class InventoryComparator {
 
     static rm = null;
 
+    // В новом наборе не должны появиться новые айтемы с extra_data или entity_id,
+    // а также extra_data или entity_id не могут отличаться от старой версии
+    static compareNestedExtraData(old_simple, new_simple) {
+        // old flat
+        const old_flat = new Map();
+        for(let [_, item] of old_simple) {
+            if(item.extra_data || item.entity_id) {
+                old_flat.set(InventoryComparator.flatStringifyObject(item));
+            }
+        }
+        // new flat
+        for(let [_, item] of new_simple) {
+            if(item.extra_data || item.entity_id) {
+                const new_flat = InventoryComparator.flatStringifyObject(item);
+                if(!old_flat.has(new_flat)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     static async checkEqual(old_items, new_items, used_recipes) {
 
         const rm = await InventoryComparator.getRecipeManager();
@@ -40,7 +62,7 @@ export class InventoryComparator {
                     }
                     // Append result item
                     let result_item = BLOCK.fromId(recipe.result.item_id);
-                    result_item = BLOCK.convertItemToInventoryItem(result_item, result_item);
+                    result_item = BLOCK.convertItemToInventoryItem(result_item, result_item, true);
                     result_item.count = recipe.result.count;
                     // Generate next simple state of inventory previous state
                     old_items = Array.from(old_simple.values());
@@ -53,6 +75,13 @@ export class InventoryComparator {
                 equal = false;
                 console.log('error', e);
             }
+        }
+
+        if(equal) {
+            // Проверка extra_data и entity_id у айтемов
+            // В новом наборе от клиента не должны появиться новые айтемы с extra_data или entity_id,
+            // а также extra_data или entity_id не могут быть изменены на стороне клиента
+            equal = InventoryComparator.compareNestedExtraData(old_simple, new_simple);
         }
 
         return equal;
@@ -71,7 +100,7 @@ export class InventoryComparator {
                     break;
                 }
                 if(!InventoryComparator.itemsIsEqual(old_item, item)) {
-                    console.log('* Comparator not equal', JSON.stringify([item, old_item]));
+                    console.log('* Comparator not equal (new,old):', JSON.stringify([item, old_item]));
                     equal = false;
                     break;
                 }
@@ -166,6 +195,32 @@ export class InventoryComparator {
             }
         }
         return resp;
+    }
+
+    // Объект приводится к плоскому виду с сортировкой свойств по названию
+    static flatStringifyObject(obj) {
+        const flattenObject = function(ob) {
+            const toReturn = {};
+            for (var i in ob) {
+                if (!ob.hasOwnProperty(i)) {
+                    continue;
+                }
+                if ((typeof ob[i]) == 'object') {
+                    var flatObject = flattenObject(ob[i]);
+                    for (var x in flatObject) {
+                        if (!flatObject.hasOwnProperty(x)) {
+                            continue;
+                        }
+                        toReturn[i + '.' + x] = flatObject[x];
+                    }
+                } else {
+                    toReturn[i] = ob[i];
+                }
+            }
+            return toReturn;
+        };
+        const myFlattenedObj = flattenObject(obj);
+        return JSON.stringify(myFlattenedObj, Object.keys(myFlattenedObj).sort());
     }
 
 }

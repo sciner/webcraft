@@ -15,7 +15,6 @@ export class CraftTable extends BaseCraftWindow {
 
         this.recipes = recipes;
         this.inventory = inventory;
-        this.dragItem = null;
 
         // Craft area
         this.area = {
