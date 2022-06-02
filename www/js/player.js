@@ -284,6 +284,10 @@ export class Player {
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.isSwingInProgress = true;
+            }
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
@@ -315,6 +319,10 @@ export class Player {
             }
         // destroyBlock
         } else if(e.destroyBlock) {
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.isSwingInProgress = true;
+            }
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());

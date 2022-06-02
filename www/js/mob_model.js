@@ -316,11 +316,28 @@ export class MobAnimation {
         if(isArm) {
             const isLeftArm = index % 2 == 0;
             const ageInTicks = (index * 1500 + performance.now()) / 50;
-            const RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
-            const RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05; // straith/back
+            let RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
+            let RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05; // straith/back
+            let RotateAngleY = 0;
+
+            if(!isLeftArm) {
+                // Удар правой руки
+                let inv = /*1.0 -*/ this.swingProgress;
+                let sp = inv * inv;
+                let s1 = Math.sin(sp);
+                let s2 = Math.sin(this.swingProgress);
+                RotateAngleX -= s1 * .8 + s2 * .5;
+                RotateAngleY = Math.sin(Math.sqrt(sp) * Math.PI) * .4;
+                RotateAngleZ = s2 * -.4;
+                // RotationPointX = -4 * sp; // -6
+                // RotationPointY = -4 * sp; // -6
+            }
+
             // if zombie then RotateAngleX -= 1.5;
-            quat.rotateZ(part.quat, part.quat, RotateAngleZ);
             quat.rotateX(part.quat, part.quat, RotateAngleX);
+            quat.rotateY(part.quat, part.quat, RotateAngleY);
+            quat.rotateZ(part.quat, part.quat, RotateAngleZ);
+
             if(isLeftArm) {
                 // left
                 quat.rotateY(part.quat, part.quat, -.05 + Math.sin(ageInTicks * 0.1) * 0.05);
