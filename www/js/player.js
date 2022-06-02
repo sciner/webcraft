@@ -284,6 +284,10 @@ export class Player {
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.isSwingInProgress = true;
+            }
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
@@ -320,6 +324,13 @@ export class Player {
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 Game.render.destroyBlock(block, new Vector(bPos), true);
+            }
+            if(e.number % 30 == 0) {
+                Game.sounds.play(block.sound, 'hit');
+            }
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.isSwingInProgress = true;
             }
             if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;

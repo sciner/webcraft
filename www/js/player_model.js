@@ -76,6 +76,12 @@ export class PlayerModel extends MobModel {
 
         // for lazy state generation
         this.activeSlotsData = props.hands;
+
+        // Arm swing
+        this.swingProgress = 0;
+        this.swingProgressInt = 0;
+        this.isSwingInProgress = false;
+
     }
 
     applyNetState(state) {
@@ -216,6 +222,7 @@ export class PlayerModel extends MobModel {
     update(render, camPos, delta, speed) {
         super.update(render, camPos, delta, speed);
 
+        this.updateArmSwingProgress(delta);
         if (!this.isRenderable) {
             return;
         }
@@ -276,6 +283,25 @@ export class PlayerModel extends MobModel {
         node.material = render.defaultShader.materials.label.getSubMat(texture);
 
         return node;
+    }
+
+    get getArmSwingAnimationEnd() {
+        return 6;
+    }
+
+    updateArmSwingProgress(delta) {
+        this.swingProgressPrev = this.animationScript.swingProgress;
+        const asa = this.getArmSwingAnimationEnd;
+        if(this.isSwingInProgress) {
+            this.swingProgressInt += 1/5;
+            if (this.swingProgressInt >= asa) {
+                this.swingProgressInt = 0;
+                this.isSwingInProgress = false;
+            }
+        } else {
+            this.swingProgressInt = 0;
+        }
+        this.animationScript.swingProgress = this.swingProgressInt > 0 ? this.swingProgressInt / asa : 0;
     }
 
 }
