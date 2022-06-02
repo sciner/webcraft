@@ -211,13 +211,13 @@ export class MobAnimator extends Animator {
         // Mob legs animation
         const anim_speed      = 122.5;
         const max_anim_angle  = Math.PI / 4 * (animable.sneak ? .5 : 1);
+        const speed_delta     = typeof speed === 'undefined' ? delta : delta * (speed / 15.5);
 
         if(animable.moving) {
             // @IMPORTANT minus to make the character start walking on the right foot
-            animable.aniframe -= delta / anim_speed;
+            animable.aniframe -= speed_delta / anim_speed;
             this.aniangle = max_anim_angle * Math.sin(animable.aniframe);
         } else if(this.aniangle != 0) {
-            delta = 3;
             if(this.aniangle < 0) {
                 this.aniangle += delta / anim_speed;
                 this.aniangle = Math.min(this.aniangle, 0);
@@ -322,7 +322,7 @@ export class MobAnimation {
 
             if(!isLeftArm) {
                 // Удар правой руки
-                let inv = /*1.0 -*/ this.swingProgress;
+                let inv = this.swingProgress;
                 let sp = inv * inv;
                 let s1 = Math.sin(sp);
                 let s2 = Math.sin(this.swingProgress);

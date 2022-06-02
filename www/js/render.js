@@ -700,9 +700,8 @@ export class Renderer {
                     continue;
                 }
                 const speed = Helpers.calcSpeed(player.prev_pos, player.pos, delta / 1000);
-                const multiplyer = speed / 15.5;
                 player.prev_pos.copyFrom(player.pos);
-                player.draw(this, this.camPos, delta * multiplyer, speed);
+                player.draw(this, this.camPos, delta, speed);
             }
         }
     }

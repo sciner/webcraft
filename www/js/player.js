@@ -319,15 +319,18 @@ export class Player {
             }
         // destroyBlock
         } else if(e.destroyBlock) {
-            const itsme = Game.world.players.get('itsme');
-            if(itsme) {
-                itsme.isSwingInProgress = true;
-            }
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 Game.render.destroyBlock(block, new Vector(bPos), true);
+            }
+            if(e.number % 30 == 0) {
+                Game.sounds.play(block.sound, 'hit');
+            }
+            const itsme = Game.world.players.get('itsme');
+            if(itsme) {
+                itsme.isSwingInProgress = true;
             }
             if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
