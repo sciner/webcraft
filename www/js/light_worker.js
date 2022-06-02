@@ -896,6 +896,59 @@ class Chunk {
             }
         };
 
+        // const addResult2 = (A, A2, R, G, B) => {
+        //     if (is565) {
+        //         const prev_value = result[ind2];
+        //         const new_value = (Math.round(R * 31.0 / 4.0) << 11)
+        //             + (Math.round(G * 63.0 / 4.0) << 5)
+        //             + (Math.round(B * 31.0 / 4.0) << 0);
+        //         result[ind2++] = new_value
+        //         if(prev_value != new_value) {
+        //             changed = true;
+        //         }
+        //         this.result_crc_sum += new_value;
+        //     } else {
+        //         if(!changed) {
+        //             pv1 = result[ind2 + 0];
+        //             pv2 = result[ind2 + 1];
+        //             pv3 = result[ind2 + 2];
+        //             pv4 = result[ind2 + 3];
+        //             pv5 = result[ind2 + 4];
+        //             pv6 = result[ind2 + 5];
+        //             pv7 = result[ind2 + 6];
+        //             pv8 = result[ind2 + 7];
+        //         }
+        //         result[ind2++] = Math.round(R * 255.0 / 4.0);
+        //         result[ind2++] = Math.round(G * 255.0 / 4.0);
+        //         result[ind2++] = Math.round(B * 255.0 / 4.0);
+        //         result[ind2++] = 0;
+        //         result[ind2++] = Math.round(A * 255.0 / 15.0);
+        //         result[ind2++] = 0;
+        //         result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+        //         result[ind2++] = 0;
+        //         if(!changed) {
+        //             if(
+        //                 pv1 != result[ind2 - 8] || pv2 != result[ind2 - 7] ||
+        //                 pv3 != result[ind2 - 6] || pv4 != result[ind2 - 5] ||
+        //                 pv5 != result[ind2 - 4] || pv6 != result[ind2 - 3] ||
+        //                 pv7 != result[ind2 - 2] || pv8 != result[ind2 - 1]
+        //             ) {
+        //                 changed = true;
+        //             }
+        //         }
+        //         this.result_crc_sum += (
+        //             result[ind2 - 8] +
+        //             result[ind2 - 7] +
+        //             result[ind2 - 6] +
+        //             result[ind2 - 5] +
+        //             result[ind2 - 4] +
+        //             result[ind2 - 3] +
+        //             result[ind2 - 2] +
+        //             result[ind2 - 1]
+        //         );
+        //     }
+        // };
+
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
