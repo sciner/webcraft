@@ -13,7 +13,7 @@ const MAX_DETONATION_TIME           = 2000; // ms
 export class Traversable {
 
     constructor() {
-        
+
         /**
          * @type {SceneNode}
          */
@@ -49,12 +49,12 @@ export class Animable {
 export class TraversableRenderer {
 
     /**
-     * 
-     * @param {SceneNode} node 
-     * @param {SceneNode} parent 
-     * @param {*} render 
-     * @param {Traversable} traversable 
-     * @returns 
+     *
+     * @param {SceneNode} node
+     * @param {SceneNode} parent
+     * @param {*} render
+     * @param {Traversable} traversable
+     * @returns
      */
     traverse(node, parent = null, render, traversable) {
         if(!this.drawTraversed(node, parent, render, traversable)) {
@@ -90,8 +90,8 @@ export class TraversableRenderer {
 
     /**
      * @param {} render
-     * @param {Traversable} traversable 
-     * @returns 
+     * @param {Traversable} traversable
+     * @returns
      */
     drawLayer(render, traversable, ignore_roots = []) {
         if (!traversable || !traversable.sceneTree) {
@@ -131,7 +131,7 @@ export class Animator {
 export class MobAnimator extends Animator {
 
     prepare(animable) {
-    
+
         const {
             sceneTree: trees,
             parts = {}
@@ -181,7 +181,7 @@ export class MobAnimator extends Animator {
             // humanoid case
             arm = tree.findNode('RightArm');
             arm && arms.push(arm);
-            
+
             head = tree.findNode('head') || tree.findNode('Head');
 
             parts['head'].push(...head ? [head] : []);
@@ -272,7 +272,7 @@ export class MobAnimation {
         let {
             yaw, pos, targetLook = 0
         } = animable;
- 
+
         // Head to camera rotation
         let angToCam = 0;
 
@@ -284,7 +284,7 @@ export class MobAnimation {
 
             if (Math.abs(angToCam) >= Math.PI / 4) {
                 angToCam = 0;
-            } 
+            }
         }
 
         if (Math.abs(angToCam - targetLook) > 0.05) {
@@ -310,7 +310,7 @@ export class MobAnimation {
         }
         quat.identity(part.quat);
         quat.rotateX(part.quat, part.quat, aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
-        
+
         // shake arms
         // Движение рук от дыхания
         if(isArm) {
@@ -445,7 +445,7 @@ export class MobModel extends NetworkPhysicObject {
     get isRenderable() {
         return this.sceneTree && (
              this.currentChunk &&
-             this.currentChunk.in_frustum || 
+             this.currentChunk.in_frustum ||
              !this.currentChunk);
     }
 
@@ -490,7 +490,7 @@ export class MobModel extends NetworkPhysicObject {
             });
     }
 
-    computeLocalPosAndLight(render) {
+    computeLocalPosAndLight(render, delta) {
         if (!this.initialised) {
             return;
         }
@@ -502,7 +502,7 @@ export class MobModel extends NetworkPhysicObject {
         const newChunk = ChunkManager.instance.getChunk(this.chunk_addr);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
-        
+
         if (this.material) {
             this.material.lightTex = this.lightTex;
             this.material.tintColor = this.tintColor;
@@ -517,14 +517,21 @@ export class MobModel extends NetworkPhysicObject {
         this.drawPos = newChunk.coord;
 
         let yaw = this.yaw;
-        if(this.username == 'itsme') {
-            if(!('draw_yaw' in this)) {
-                this.draw_yaw = yaw;
-            } else {
-                this.draw_yaw += (yaw - this.draw_yaw) * 0.05;
-            }
-        } else {
+        if(!('draw_yaw' in this)) {
             this.draw_yaw = yaw;
+        } else {
+            this.draw_yaw %= Math.PI * 2;
+            while (this.draw_yaw > yaw + Math.PI) {
+                this.draw_yaw -= 2 * Math.PI;
+            }
+            while (this.draw_yaw < yaw - Math.PI) {
+                this.draw_yaw += 2 * Math.PI;
+            }
+            //TODO : move this to exp interpolation function
+            this.draw_yaw = yaw + (this.draw_yaw - yaw) * Math.exp(delta / 16 * Math.log(1 - 0.2));
+            if (Math.abs(this.draw_yaw - yaw) < 0.05) {
+                this.draw_yaw = yaw;
+            }
         }
 
         // root rotation
@@ -543,7 +550,7 @@ export class MobModel extends NetworkPhysicObject {
     update(render, camPos, delta, speed) {
         super.update();
 
-        this.computeLocalPosAndLight(render);
+        this.computeLocalPosAndLight(render, delta);
 
         if (!this.isRenderable) {
             return;
@@ -669,7 +676,7 @@ export class MobModel extends NetworkPhysicObject {
 
     // Loads the player head model into a vertex buffer for rendering.
     /**
-     * 
+     *
      * @param {Renderer} render
      */
     async loadModel(render) {
@@ -717,12 +724,12 @@ export class MobModel extends NetworkPhysicObject {
 
         const image = await asset.getSkin(this.skin);
 
-        this.loadTextures(render, image); 
+        this.loadTextures(render, image);
     }
 
     /**
      * @param {Renderer} render
-     * @param {SceneNode} tree 
+     * @param {SceneNode} tree
      */
     postLoad(render, tree) {
         if (!tree) {
