@@ -264,9 +264,10 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.5) {
+        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.7) {
             this.mob.rotate.z += delta * ((this.run) ? 3 : 2);
         } else {
+            this.mob.rotate.z = this.angleRotation;
             this.isForward(1.0);
             return;
         }
@@ -295,10 +296,10 @@ export class FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
 
-        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), 1, Math.cos(mob.rotate.z))).floored();
-        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))).floored();
-        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z))).floored();
-        const pos_bottom = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z))).floored();
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 1, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 0, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -1, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_bottom = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -2, Math.cos(mob.rotate.z) * mob.width)).floored();
 
         if (!world.getBlock(pos_legs) || !world.getBlock(pos_head) || !world.getBlock(pos_legs) || !world.getBlock(pos_bottom)) {
             return false;
