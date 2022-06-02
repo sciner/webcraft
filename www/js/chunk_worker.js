@@ -52,7 +52,7 @@ async function preLoad () {
         WorkerWorldManager = module.WorkerWorldManager;
     });
     // load module
-    await import('./chunk.js').then(module => {
+    await import('./chunk_const.js').then(module => {
         getChunkAddr = module.getChunkAddr;
     });
     // load module
