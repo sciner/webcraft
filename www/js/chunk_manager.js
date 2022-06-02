@@ -1,5 +1,6 @@
 import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
-import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
+import {Chunk} from "./chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk_const.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";

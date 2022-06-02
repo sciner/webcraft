@@ -4,7 +4,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
-import {getChunkAddr} from "./chunk.js";
+import {getChunkAddr} from "./chunk_const.js";
 
 const {mat4} = glMatrix;
 

@@ -1,4 +1,4 @@
-import { getChunkAddr } from "./chunk.js";
+import { getChunkAddr } from "./chunk_const.js";
 import { Vector } from "./helpers.js";
 import { BLOCK, POWER_NO  } from "./blocks.js";
 
@@ -51,7 +51,7 @@ export class ServerClient {
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_PARTICLE_EXPLOSION       = 89;
     static CMD_STOP_PLAY_DISC           = 91;
-	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player 
+	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93

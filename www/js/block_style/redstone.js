@@ -3,7 +3,7 @@
 import {Color, DIRECTION, QUAD_FLAGS, TX_CNT} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -78,7 +78,7 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, _unknown, matrix = null, pivot = null, force_tex) {
-        
+
         let index               = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         const r                 = randoms[index];
         const H                 = 1;
@@ -111,7 +111,7 @@ export default class style {
         let xconnects = 0;
 
         const c_line = BLOCK.calcTexture(redstone_textures.line[r % redstone_textures.line.length], DIRECTION.UP, tx_cnt);
-        
+
         // South z--
         if(neighbours_connect.south) {
             zconnects++;

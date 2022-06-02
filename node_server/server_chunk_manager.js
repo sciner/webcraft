@@ -1,6 +1,6 @@
 import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk_const.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";

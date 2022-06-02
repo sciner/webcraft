@@ -1,6 +1,6 @@
 import {DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -67,7 +67,7 @@ export default class style {
             }
             mat4.rotateY(matrix, matrix, ((rot % 4) / 4) * (2 * Math.PI));
         }
-    
+
         // mattress
         let aabb_mattress = new AABB();
         aabb_mattress.set(
@@ -128,7 +128,7 @@ export default class style {
             32/sz,
             12/sz,
         ];
-        
+
         // west
         const west_axes = [ [0, 0, 1], [0, 1, 0] ];
         const c_west = [
@@ -137,7 +137,7 @@ export default class style {
             -12/sz,
             -32/sz,
         ];
-        
+
         // east
         const east_axes = [ [0, 0, -1], [0, 1, 0] ];
         const c_east = [

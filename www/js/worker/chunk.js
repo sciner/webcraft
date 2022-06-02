@@ -2,7 +2,7 @@ import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {BlockNeighbours, TBlock} from "../typed_blocks.js";
 import {newTypedBlocks, DataWorld} from "../typed_blocks3.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 

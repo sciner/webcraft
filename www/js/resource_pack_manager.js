@@ -1,5 +1,4 @@
 import { BaseResourcePack } from "./base_resource_pack.js";
-import { BLOCK } from "./blocks.js";
 import { Color } from "./helpers.js";
 import { Resources } from "./resources.js";
 
@@ -9,6 +8,7 @@ const START_BUTTON_ID = 770; // ...799
 const START_BED_ID = 1200; // ...1215
 const START_TERRACOTTA = 1300; // 1315
 const START_GLAZED_TERRACOTTA = 1400; // 1415
+let BLOCK = null;
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая керамика - white_terracotta
@@ -32,8 +32,9 @@ export const COLOR_PALETTE = {
 export class ResourcePackManager {
 
     // constructor
-    constructor() {
+    constructor(BLOCK) {
         this.list = new Map();
+        this.BLOCK = BLOCK;
     }
 
     // init
@@ -44,12 +45,12 @@ export class ResourcePackManager {
         const all               = [];
 
         // 1. base
-        const base = new BaseResourcePack(def_resource_pack.path, def_resource_pack.id);
+        const base = new BaseResourcePack(this.BLOCK, def_resource_pack.path, def_resource_pack.id);
         resource_packs.add(base);
 
         // 2. extends
         for(let item of json.extends) {
-            resource_packs.add(new BaseResourcePack(item.path, item.id));
+            resource_packs.add(new BaseResourcePack(this.BLOCK, item.path, item.id));
         }
 
         // 3. variants
@@ -58,7 +59,7 @@ export class ResourcePackManager {
         if(settings?.texture_pack != def_resource_pack.id) {
             for(let item of json.variants) {
                 if(!selected_variant_id || item.id == selected_variant_id) {
-                    resource_packs.add(new BaseResourcePack(item.path, item.id));
+                    resource_packs.add(new BaseResourcePack(this.BLOCK, item.path, item.id));
                 }
             }
         }
@@ -88,7 +89,7 @@ export class ResourcePackManager {
                 "material": {"id": "iron"},
                 "texture": {"side": [0, 29]}
             };
-            BLOCK.add(base, b);
+            this.BLOCK.add(base, b);
         }
 
     }
@@ -96,6 +97,7 @@ export class ResourcePackManager {
     // Buttons
     initButtons(resource_pack) {
         let i = 0;
+        const { BLOCK } = this;
         const materials = [
             BLOCK.OAK_PLANK,
             BLOCK.BIRCH_PLANK,
@@ -126,7 +128,7 @@ export class ResourcePackManager {
                     "button"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -153,7 +155,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -192,7 +194,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -219,7 +221,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -247,7 +249,7 @@ export class ResourcePackManager {
                     "can_put_info_pot"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -278,7 +280,7 @@ export class ResourcePackManager {
                     "no_drop_ao"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }

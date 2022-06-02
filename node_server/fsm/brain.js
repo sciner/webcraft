@@ -3,7 +3,7 @@ import { FSMStack } from "./stack.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
-import { getChunkAddr } from "../../www/js/chunk.js";
+import { getChunkAddr } from "../../www/js/chunk_const.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
@@ -159,11 +159,11 @@ export class FSMBrain {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-    
+
     findTarget(){
         return false;
     }
-    
+
     isStand(chance) {
         if (Math.random() <= chance) {
             this.stack.replaceState(this.doStand);
@@ -221,7 +221,7 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
-        
+
         if (this.findTarget()){
             return;
         }
@@ -278,7 +278,7 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
-        
+
         if (this.findTarget()){
             return;
         }
@@ -334,7 +334,7 @@ export class FSMBrain {
     */
     onKill(actor, type_demage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
     * actor - игрок
@@ -342,8 +342,8 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-    
-    
+
+
     /**
     * Нанесен урон по мобу
     * actor - игрок или пероснаж

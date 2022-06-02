@@ -1,5 +1,5 @@
 import { QUAD_FLAGS, Vector } from '../helpers.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { Particles_Base } from './particles_base.js';

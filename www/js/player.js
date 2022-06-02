@@ -1,5 +1,5 @@
 import {Helpers, Vector} from "./helpers.js";
-import {getChunkAddr} from "./chunk.js";
+import {getChunkAddr} from "./chunk_const.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -637,7 +637,7 @@ export class Player {
             this.lastBlockPos = this.getBlockPos();
         }
     }
-    
+
     setDie() {
         Game.hud.wm.getWindow('frmDie').show();
     }

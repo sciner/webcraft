@@ -16,7 +16,7 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk.js";
+import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -130,7 +130,7 @@ export class ServerWorld {
             drop_item.tick(delta);
         }
         this.ticks_stat.add('drop_items');
-        // 6. 
+        // 6.
         await this.packet_reader.queue.process();
         this.ticks_stat.add('packet_reader_queue');
         //
@@ -300,8 +300,8 @@ export class ServerWorld {
 
     /**
      * Teleport player
-     * @param {ServerPlayer} player 
-     * @param {Object} params 
+     * @param {ServerPlayer} player
+     * @param {Object} params
      * @return {void}
      */
     teleportPlayer(player, params) {
@@ -713,14 +713,14 @@ export class ServerWorld {
         const world = this;
         const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
             .expand(max_distance, max_distance, max_distance);
-        // 
+        //
         const all_players = world.players;
         const chunks = world.chunks.getInAABB(aabb);
         const resp = new Map();
         //
         for(let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
-            for(let user_id of chunk.connections.keys()) { 
+            for(let user_id of chunk.connections.keys()) {
                 const player = all_players.get(user_id);
                 if(player.is_dead || player.game_mode.isSpectator()) {
                     continue;
