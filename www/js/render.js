@@ -83,10 +83,9 @@ export class Renderer {
 
     nextCameraMode() {
         if(!this.world.players.get('itsme')) {
-            this.world.players.drawGhost(this.player);
+            this.world.players.createMyModel(this.player);
         }
         this.camera_mode = ++this.camera_mode % CAMERA_MODE.COUNT;
-
     }
 
     /**
@@ -689,12 +688,10 @@ export class Renderer {
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(player.itsMe()) {
-                if(id != 'itsme') {
-                    continue;
-                }
-            }
             if(id == 'itsme' && this.camera_mode == CAMERA_MODE.SHOOTER) {
+                continue;
+            }
+            if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
                 continue;
             }
             if(player.username != Game.App.session.username) {

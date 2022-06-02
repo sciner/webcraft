@@ -516,9 +516,20 @@ export class MobModel extends NetworkPhysicObject {
         this.currentChunk = newChunk;
         this.drawPos = newChunk.coord;
 
+        let yaw = this.yaw;
+        if(this.username == 'itsme') {
+            if(!('draw_yaw' in this)) {
+                this.draw_yaw = yaw;
+            } else {
+                this.draw_yaw += (yaw - this.draw_yaw) * 0.05;
+            }
+        } else {
+            this.draw_yaw = yaw;
+        }
+
         // root rotation
         for(let st of this.sceneTree) {
-            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - this.draw_yaw) / Math.PI);
             st.position.set([
                 this.pos.x - this.drawPos.x,
                 this.pos.z - this.drawPos.z,

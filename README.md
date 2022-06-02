@@ -18,9 +18,6 @@ node --experimental-json-modules --no-warnings ./index.js
 // Teleport current user to random location 
 Game.player.teleport('random', null);
 
-// Draw current user model at current location
-Game.world.players.drawGhost(Game.player);
-
 // Toggle rain
 Game.render.setRain(true);
 
