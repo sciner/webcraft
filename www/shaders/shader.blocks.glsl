@@ -397,7 +397,7 @@
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
         float d1 = aoVector.x + aoVector.w, d2 = aoVector.y + aoVector.z;
-        aoSample = (d1 + d2 /*+ max(abs(d2 - d1) - 0.5, 0.0)*/) / 4.0;
+        aoSample = (d1 + d2 + max(abs(d2 - d1) - 1.0, 0.0)) / 4.0;
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
     }

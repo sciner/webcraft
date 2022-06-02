@@ -841,9 +841,9 @@ class Chunk {
         const elemPerBlock = is565 ? 1 : 4;
         if (!this.lightResult) {
             if (is565) {
-                this.lightResult = new Uint16Array(this.resultLen * 2 * elemPerBlock);
+                this.lightResult = new Uint16Array(this.resultLen * elemPerBlock);
             } else {
-                this.lightResult = new Uint8Array(this.resultLen * 2 * elemPerBlock);
+                this.lightResult = new Uint8Array(this.resultLen * elemPerBlock);
             }
         }
 
