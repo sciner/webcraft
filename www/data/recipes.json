@@ -1355,5 +1355,21 @@
             "item": "madcraft:bucket_empty",
             "count": 1
         }
+    },
+    {
+        "id": "220c9476-0b16-4162-8e10-ec8eb03e4408",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "B"
+        ],
+        "key": {
+            "B": {
+                "item": "madcraft:bone"
+            }
+        },
+        "result": {
+            "item": "madcraft:bone_meal",
+            "count": 3
+        }
     }
 ]

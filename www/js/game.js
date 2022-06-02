@@ -618,7 +618,7 @@ export class GameClass {
 
     drawInstruments() {
         let instruments = [];
-        for(let block of this.block_manager.getAll().values()) {
+        for(let block of this.block_manager.getAll()) {
             if(block.item?.instrument_id) {
                 instruments.push({
                     id:                 block.id,

@@ -1,7 +1,7 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import { Lang } from "../lang.js";
 
-export default class MainMenu extends Window {
+export class MainMenu extends Window {
 
     zoom = UI_ZOOM;
 

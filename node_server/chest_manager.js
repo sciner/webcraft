@@ -2,10 +2,9 @@ import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr} from "../www/js/chunk.js";
-import {InventoryComparator} from "../www/js/inventory_comparator.js";
 import { alea } from "../www/js/terrain_generator/default.js";
-
-export const DEFAULT_CHEST_SLOT_COUNT = 27;
+import { InventoryComparator } from "../www/js/inventory_comparator.js";
+import { DEFAULT_CHEST_SLOT_COUNT } from "../www/js/constant.js";
 
 export class ChestManager {
 
@@ -23,8 +22,7 @@ export class ChestManager {
         if(!tblock || tblock.id < 1) {
             throw 'error_chest_not_found';
         }
-        const mat = BLOCK.fromId(tblock.id);
-        if(!mat.is_chest || !tblock.extra_data) {
+        if(!tblock.material?.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
         if(tblock.extra_data.generate) {
@@ -43,8 +41,10 @@ export class ChestManager {
             chest.extra_data.slots = {};
         }
 
-        // Валидация ключей слотов сундука, а также самих айтемов путем их привидения к строгому формату
-        let new_chest_slots = {};
+        // Валидация ключей слотов сундука,
+        // а также самих айтемов путем их привидения к строгому формату.
+        // Вдруг нам клиент прислал хрень
+        const new_chest_slots = {};
         for(let k in params.chest.slots) {
             if(!isNaN(k) && k >= 0 && k < DEFAULT_CHEST_SLOT_COUNT) {
                 let item = params.chest.slots[k];
@@ -52,21 +52,20 @@ export class ChestManager {
             }
         }
 
-        //
-        params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
-        //
-        let old_items = [...[player.inventory.drag_item], ...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
-        let new_items = [...[params.drag_item], ...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
+        // Compare server state and new state from player
+        let old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
+        let new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
         let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
+
         //
         if(equal) {
-            // учёт появления новых элементов в инвентаре
+            // учёт появления новых элементов в инвентаре (для квестов)
             if(player.onPutInventoryItems) {
-                let old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
-                let new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
+                const old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
+                const new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
                 const put_items = [];
                 for(let [key, item] of new_simple) {
-                    let old_item = old_simple.get(key);
+                    const old_item = old_simple.get(key);
                     if(!old_item) {
                         put_items.push(item);
                     }
@@ -78,8 +77,6 @@ export class ChestManager {
             // update chest slots
             chest.extra_data.slots = new_chest_slots;
             chest.extra_data.can_destroy = !new_chest_slots || Object.entries(new_chest_slots).length == 0;
-            // update player drag item
-            player.inventory.drag_item = params.drag_item;
             // update player inventory
             player.inventory.applyNewItems(params.inventory_slots, false);
             player.inventory.refresh(false);
@@ -94,11 +91,13 @@ export class ChestManager {
             this.sendItem(pos, chest);
         } else {
             this.sendContentToPlayers([player], pos);
+            // @todo
             player.inventory.refresh(true);
         }
     }
 
-    // Send block item without slots
+    // Send block item
+    // @todo without slots
     async sendItem(block_pos, chest) {
         let chunk_addr = getChunkAddr(block_pos);
         let chunk = this.world.chunks.get(chunk_addr);

@@ -24,7 +24,7 @@ let gameCtrl = async function($scope, $timeout) {
             // Init blocks
             const B = $scope.BLOCK;
             B.max_id = BLOCK.max_id;
-            B.all = Array.from(BLOCK.getAll().values());
+            B.all = BLOCK.getAll();
             B.used_slots = [];
             // styles
             const styles = new Map();

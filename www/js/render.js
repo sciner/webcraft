@@ -219,7 +219,7 @@ export class Renderer {
         let inventory_icon_id = 0;
 
         const extruded = [];
-        const regular = Array.from(all_blocks.values()).map((block, i) => {
+        const regular = all_blocks.map((block, i) => {
             let draw_style = block.inventory_style
                 ? block.inventory_style
                 : block.style;
@@ -628,7 +628,7 @@ export class Renderer {
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(this, dt);
+            this.inHandOverlay.draw(this, dt * 1.4);
         }
 
         // we should reset camera state because a viewMatrix used for picking

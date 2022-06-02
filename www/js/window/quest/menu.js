@@ -1,4 +1,5 @@
 import { ToggleButton, Window } from "../../../tools/gui/wm.js";
+import { INVENTORY_SLOT_SIZE } from "../../constant.js";
 import { QuestGroup } from "./group.js";
 
 //
@@ -8,9 +9,9 @@ export class QuestMenu extends Window {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
         this.max_height = 0;
-        this.wheel_scroll = 36 * this.zoom;
+        this.wheel_scroll = INVENTORY_SLOT_SIZE * this.zoom;
         //
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;

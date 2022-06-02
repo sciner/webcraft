@@ -84,7 +84,7 @@ export class Resources {
                 loadTextFile('./shaders/shader.blocks.glsl')
                     .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
                     .then(blocks => {
-                        console.log('Load shader blocks:', blocks);
+                        console.debug('Load shader blocks:', blocks);
                     })
             );
         }
@@ -110,7 +110,7 @@ export class Resources {
             Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
                 .then((t) => Object.assign(this.models, t.assets))
                 .then((loaded) => {
-                    console.log("Loaded models:", loaded);
+                    console.debug("Loaded models:", loaded);
                 })
         );
 

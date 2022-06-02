@@ -111,7 +111,7 @@ export class ServerChat {
                 cnt = Math.max(cnt | 0, 1);
                 let b = BLOCK[name.toUpperCase()];
                 if(b) {
-                    const block = BLOCK.convertItemToInventoryItem(b);
+                    const block = BLOCK.convertItemToInventoryItem(b, null, true);
                     block.count = cnt;
                     let ok = player.inventory.increment(block, true);
                     if(ok) {

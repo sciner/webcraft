@@ -2,6 +2,7 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 class CreativeInventoryCollection extends Window {
 
@@ -9,7 +10,7 @@ class CreativeInventoryCollection extends Window {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
         this.max_height = 0;
         //
         this.style.background.color = '#00000000';
@@ -25,33 +26,19 @@ class CreativeInventoryCollection extends Window {
     // Init
     init() {
         //
-        let all_blocks = Array.from(BLOCK.getAll().values()).filter((i) => {
-            return (i.id > 0) && i.spawnable;
-        });
-        //
-        all_blocks.sort((a, b) => {
-            //
-            if(a.inventory_icon_id == 0) {
-                return 1;
-            } else if(b.inventory_icon_id == 0) {
-                return -1;
+        let all_blocks = [];
+        for(let b of BLOCK.getAll()) {
+            if(b.id < 1 || !b.spawnable) {
+                continue;
             }
-            //
-            if(!a.style) a.style = 'default';
-            if(!b.style) b.style = 'default';
-            if(a.style != b.style) {
-                return a.style > b.style ? 1 : -1;
+            const block = {
+                id: b.id
+            };
+            if('power' in b && (b.power !== 0)) {
+                block.power = b.power;
             }
-            if(a.tags && b.tags) {
-                return a.tags[0] > b.tags[0] ? 1 : -1;
-            }
-            if(a.tags && !b.tags) {
-                return -1;
-            } if(b.tags && !a.tags) {
-                return 1;
-            }
-            return b.id - a.id;
-        });
+            all_blocks.push(block)
+        }
         // Create slots
         this.initCollection(all_blocks);
     }
@@ -84,42 +71,32 @@ class CreativeInventoryCollection extends Window {
                 // calc count
                 let count = 1;
                 if(e.shiftKey) {
-                    count = targetItem.max_in_stack;
+                    count = BLOCK.fromId(targetItem.id).max_in_stack;
                 }
                 //
                 targetItem = {...targetItem};
                 targetItem.count = count;
-                e.drag.setItem({
-                    draw: function(e) {
-                        that.drawItem(e.ctx, this.item, e.x, e.y, that.width, that.height);
-                    },
-                    item: targetItem
-                });
+                this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
                 return false;
             };
-            // Drag & drop
+            // Drop on pallette slots
             lblSlot.onDrop = function(e) {
-                let that        = this;
-                let drag        = e.drag;
-                let dropItem    = drag.getItem().item; // что перетащили
+                const that      = this;
+                const drag      = e.drag;
+                const dropItem  = drag.getItem().item; // что перетащили
                 let targetItem  = this.getInventoryItem(); // куда перетащили
                 if(dropItem.id == targetItem.id) {
                     targetItem = {...dropItem};
                     // calc count
                     let count = 1;
+                    const max_in_stack = BLOCK.fromId(targetItem.id).max_in_stack;
                     if(e.shiftKey) {
-                        count = targetItem.max_in_stack;
+                        count = max_in_stack
                     }
-                    targetItem.count = Math.min(targetItem.count + count, targetItem.max_in_stack);
-                    //
-                    drag.setItem({
-                        draw: function(e) {
-                            that.drawItem(e.ctx, this.item, e.x, e.y, that.width, that.height);
-                        },
-                        item: {...targetItem}
-                    });
+                    targetItem.count = Math.min(targetItem.count + count, max_in_stack);
+                    this.getInventory().setDragItem(this, {...targetItem}, drag, that.width, that.height);
                 } else {
-                    drag.setItem(null);
+                    this.getInventory().clearDragItem();
                 }
                 return false;
             };
@@ -172,10 +149,8 @@ export class CreativeInventoryWindow extends Window {
         ct.setBackground('./media/gui/creative_inventory/tab_items.png');
         ct.hide();
 
-        this.dragItem = null;
-
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Add labels to window
         let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.creative_inventory);
@@ -195,7 +170,7 @@ export class CreativeInventoryWindow extends Window {
         
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.getRoot().drag.clear();
+            this.inventory.clearDragItem();
             // Save inventory
             Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }

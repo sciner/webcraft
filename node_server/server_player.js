@@ -4,11 +4,10 @@ import {GameMode} from "../www/js/game_mode.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
-import { PlayerInventory } from "../www/js/player_inventory.js";
-import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
+import { ServerPlayerInventory } from "./server_player_inventory.js";
 
 export class NetworkMessage {
     constructor({
@@ -58,14 +57,13 @@ export class ServerPlayer extends Player {
         this.skin                   = '';
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
-        this.newInventoryStates     = [];
         this.dt_connect             = new Date();
         this.is_dead                = false;
     }
 
     init(init_info) {
         this.state = init_info.state;
-        this.inventory = new PlayerInventory(this, init_info.inventory);
+        this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.game_mode.applyMode(init_info.state.game_mode, false);
     }
 
@@ -275,8 +273,6 @@ export class ServerPlayer extends Player {
     tick(delta) {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
-        // 2. Check has new inventory state
-        this.checkInventoryChanges();
         // 3.
         this.sendState();
         // 4.
@@ -284,20 +280,9 @@ export class ServerPlayer extends Player {
 
     }
 
-    //
-    checkInventoryChanges() {
-        if(this.newInventoryStates.length == 0) {
-            return;
-        }
-        const state = this.newInventoryStates[0];
-        // Apply new inventory state
-        this.inventory.newState(state);
-        this.newInventoryStates.shift();
-    }
-
-    // Send current state to players
+    // Send current state to other players
     sendState() {
-        let chunk_over = this.world.chunks.get(this.chunk_addr);
+        const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }
