@@ -64,7 +64,6 @@ export const Lang = new Proxy(
     },
     {
         get(target, prop) {
-            if(prop == 'tasks') debugger
             if(prop in target) {
                 return target[prop];
             }

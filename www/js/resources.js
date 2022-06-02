@@ -319,14 +319,21 @@ export class Resources {
 
     // Load skins
     static async loadSkins() {
-        let resp = null;
-        await Helpers.fetchJSON('../data/skins.json').then(json => {
-            for(let item of json) {
-                item.file = './media/models/player_skins/' + item.id + '.png';
-                item.preview = './media/skins/preview/' + item.id + '.png';
+        const resp = [];
+        await Helpers.fetchJSON('../media/models/database.json').then(json => {
+            for(let k in json.assets) {
+                if(k.indexOf('player:') === 0) {
+                    for(let skin_id in json.assets[k].skins) {
+                        resp.push({
+                            id: skin_id,
+                            file: './media/models/player_skins/' + skin_id + '.png',
+                            preview: './media/models/player_skins/preview/' + skin_id + '.png'
+                        });
+                    }
+                }
             }
-            resp = json;
         });
+        resp.sort((a, b) => a.id - b.id);
         return resp;
     }
 
