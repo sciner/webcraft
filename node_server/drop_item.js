@@ -75,7 +75,7 @@ export class DropItem {
     }
 
     // Create new drop item
-    static async create(world, player, pos, items, velocity) {
+    static async create(world, pos, items, velocity) {
         const params = {
             pos: new Vector(pos),
             items: JSON.parse(JSON.stringify(items))

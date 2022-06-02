@@ -475,7 +475,7 @@ export class ServerWorld {
     // Create drop items
     async createDropItems(player, pos, items, velocity) {
         try {
-            let drop_item = await DropItem.create(this, player, pos, items, velocity);
+            let drop_item = await DropItem.create(this, pos, items, velocity);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
@@ -486,7 +486,9 @@ export class ServerWorld {
                     message: e
                 }
             }];
-            this.sendSelected(packets, [player.session.user_id], []);
+            if(player) {
+                this.sendSelected(packets, [player.session.user_id], []);
+            }
         }
     }
 
