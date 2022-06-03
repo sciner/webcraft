@@ -620,7 +620,7 @@ class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 8
+            strideBytes: 7
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
@@ -841,9 +841,9 @@ class Chunk {
         const elemPerBlock = is565 ? 1 : 4;
         if (!this.lightResult) {
             if (is565) {
-                this.lightResult = new Uint16Array(this.resultLen * 2 * elemPerBlock);
+                this.lightResult = new Uint16Array(this.resultLen * elemPerBlock);
             } else {
-                this.lightResult = new Uint8Array(this.resultLen * 2 * elemPerBlock);
+                this.lightResult = new Uint8Array(this.resultLen * elemPerBlock);
             }
         }
 
@@ -860,10 +860,11 @@ class Chunk {
         this.result_crc_sum = 0;
 
         //
-        const addResult1 = (A, A2) => {
+        const addResult1 = (A, A2, G) => {
             if (is565) {
                 const prev_value = result[ind];
                 const new_value = (Math.round(A * 31.0 / 15.0) << 11)
+                    + (Math.round(G * 63.0) << 5)
                     + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
                 result[ind++] = new_value;
                 if(prev_value != new_value) {
@@ -878,7 +879,7 @@ class Chunk {
                     pv4 = result[ind + 3];
                 }
                 result[ind++] = Math.round(A * 255.0 / 15.0);
-                result[ind++] = 0;
+                result[ind++] = Math.round(G * 255.0);
                 result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
                 result[ind++] = 0;
                 if(!changed) {
@@ -895,58 +896,58 @@ class Chunk {
             }
         };
 
-        const addResult2 = (A, A2, R, G, B) => {
-            if (is565) {
-                const prev_value = result[ind2];
-                const new_value = (Math.round(R * 31.0 / 4.0) << 11)
-                    + (Math.round(G * 63.0 / 4.0) << 5)
-                    + (Math.round(B * 31.0 / 4.0) << 0);
-                result[ind2++] = new_value
-                if(prev_value != new_value) {
-                    changed = true;
-                }
-                this.result_crc_sum += new_value;
-            } else {
-                if(!changed) {
-                    pv1 = result[ind2 + 0];
-                    pv2 = result[ind2 + 1];
-                    pv3 = result[ind2 + 2];
-                    pv4 = result[ind2 + 3];
-                    pv5 = result[ind2 + 4];
-                    pv6 = result[ind2 + 5];
-                    pv7 = result[ind2 + 6];
-                    pv8 = result[ind2 + 7];
-                }
-                result[ind2++] = Math.round(R * 255.0 / 4.0);
-                result[ind2++] = Math.round(G * 255.0 / 4.0);
-                result[ind2++] = Math.round(B * 255.0 / 4.0);
-                result[ind2++] = 0;
-                result[ind2++] = Math.round(A * 255.0 / 15.0);
-                result[ind2++] = 0;
-                result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
-                result[ind2++] = 0;
-                if(!changed) {
-                    if(
-                        pv1 != result[ind2 - 8] || pv2 != result[ind2 - 7] ||
-                        pv3 != result[ind2 - 6] || pv4 != result[ind2 - 5] ||
-                        pv5 != result[ind2 - 4] || pv6 != result[ind2 - 3] ||
-                        pv7 != result[ind2 - 2] || pv8 != result[ind2 - 1]
-                       ) {
-                        changed = true;
-                    }
-                }
-                this.result_crc_sum += (
-                    result[ind2 - 8] +
-                    result[ind2 - 7] +
-                    result[ind2 - 6] +
-                    result[ind2 - 5] +
-                    result[ind2 - 4] +
-                    result[ind2 - 3] +
-                    result[ind2 - 2] +
-                    result[ind2 - 1]
-                );
-            }
-        };
+        // const addResult2 = (A, A2, R, G, B) => {
+        //     if (is565) {
+        //         const prev_value = result[ind2];
+        //         const new_value = (Math.round(R * 31.0 / 4.0) << 11)
+        //             + (Math.round(G * 63.0 / 4.0) << 5)
+        //             + (Math.round(B * 31.0 / 4.0) << 0);
+        //         result[ind2++] = new_value
+        //         if(prev_value != new_value) {
+        //             changed = true;
+        //         }
+        //         this.result_crc_sum += new_value;
+        //     } else {
+        //         if(!changed) {
+        //             pv1 = result[ind2 + 0];
+        //             pv2 = result[ind2 + 1];
+        //             pv3 = result[ind2 + 2];
+        //             pv4 = result[ind2 + 3];
+        //             pv5 = result[ind2 + 4];
+        //             pv6 = result[ind2 + 5];
+        //             pv7 = result[ind2 + 6];
+        //             pv8 = result[ind2 + 7];
+        //         }
+        //         result[ind2++] = Math.round(R * 255.0 / 4.0);
+        //         result[ind2++] = Math.round(G * 255.0 / 4.0);
+        //         result[ind2++] = Math.round(B * 255.0 / 4.0);
+        //         result[ind2++] = 0;
+        //         result[ind2++] = Math.round(A * 255.0 / 15.0);
+        //         result[ind2++] = 0;
+        //         result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+        //         result[ind2++] = 0;
+        //         if(!changed) {
+        //             if(
+        //                 pv1 != result[ind2 - 8] || pv2 != result[ind2 - 7] ||
+        //                 pv3 != result[ind2 - 6] || pv4 != result[ind2 - 5] ||
+        //                 pv5 != result[ind2 - 4] || pv6 != result[ind2 - 3] ||
+        //                 pv7 != result[ind2 - 2] || pv8 != result[ind2 - 1]
+        //             ) {
+        //                 changed = true;
+        //             }
+        //         }
+        //         this.result_crc_sum += (
+        //             result[ind2 - 8] +
+        //             result[ind2 - 7] +
+        //             result[ind2 - 6] +
+        //             result[ind2 - 5] +
+        //             result[ind2 - 4] +
+        //             result[ind2 - 3] +
+        //             result[ind2 - 2] +
+        //             result[ind2 - 1]
+        //         );
+        //     }
+        // };
 
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
@@ -972,24 +973,23 @@ class Chunk {
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A2 = adjustLight(A2);
 
-                    addResult1(A, A2);
+                    addResult1(A, A2, uint8View[coord0 + OFFSET_AO]);
+                    // coord = coord0 - boundY - boundZ + OFFSET_AO;
+                    // const R1 = uint8View[coord] + uint8View[coord + sy + sz];
+                    // const R2 = uint8View[coord + sy] + uint8View[coord + sz];
+                    // const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
+                    //
+                    // coord = coord0 - boundX - boundY + OFFSET_AO;
+                    // const G1 = uint8View[coord] + uint8View[coord + sy + sx];
+                    // const G2 = uint8View[coord + sy] + uint8View[coord + sx];
+                    // const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
+                    //
+                    // coord = coord0 - boundX - boundZ + OFFSET_AO;
+                    // const B1 = uint8View[coord] + uint8View[coord + sx + sz];
+                    // const B2 = uint8View[coord + sx] + uint8View[coord + sz];
+                    // const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
-                    coord = coord0 - boundY - boundZ + OFFSET_AO;
-                    const R1 = uint8View[coord] + uint8View[coord + sy + sz];
-                    const R2 = uint8View[coord + sy] + uint8View[coord + sz];
-                    const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
-
-                    coord = coord0 - boundX - boundY + OFFSET_AO;
-                    const G1 = uint8View[coord] + uint8View[coord + sy + sx];
-                    const G2 = uint8View[coord + sy] + uint8View[coord + sx];
-                    const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
-
-                    coord = coord0 - boundX - boundZ + OFFSET_AO;
-                    const B1 = uint8View[coord] + uint8View[coord + sx + sz];
-                    const B2 = uint8View[coord + sx] + uint8View[coord + sz];
-                    const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
-
-                    addResult2(A, A2, R, G, B);
+                    // addResult2(A, A2, R, G, B);
                 }
 
         //
