@@ -1,16 +1,18 @@
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
+import { RENDER_DEFAULT_ARM_HIT_PERIOD } from "../constant.js";
 import { Mth, Vector } from "../helpers.js";
 import Particles_Block_Drop from "../particles/block_drop.js";
 import { Particle_Hand } from "../particles/block_hand.js";
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
-const MINE_PERIOD = 20;
 
 export class InHandOverlay {
+
     constructor (skinId, render) {
+
         // overlay camera
         this.camera = new Camera({
             type: Camera.PERSP_CAMERA,
@@ -88,9 +90,9 @@ export class InHandOverlay {
     
     }
 
-    update (render, dt) {
+    update(render, dt) {
 
-        dt /= 16.6;
+        //dt /= 16.6;
 
         const {
             player, renderBackend, camera
@@ -99,13 +101,11 @@ export class InHandOverlay {
         this.camera.width = camera.width;
         this.camera.height = camera.height;
 
-        if (player.inMiningProcess || this.mineTime > dt * 2 / MINE_PERIOD) {
-            this.mineTime += dt / MINE_PERIOD;
-
+        if (player.inMiningProcess || this.mineTime > dt * 2 / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += dt / RENDER_DEFAULT_ARM_HIT_PERIOD;
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
             }
-
         } else {
             this.mineTime = 0;
         }
@@ -131,7 +131,7 @@ export class InHandOverlay {
         }
     }
 
-    draw (render, dt) {
+    draw(render, dt) {
         const {
             player, globalUniforms, renderBackend
         } = render;

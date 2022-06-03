@@ -11,6 +11,7 @@ import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
 import {DieWindow, QuestWindow, StatsWindow} from "./window/index.js";
+import { RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 // import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
 const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
@@ -284,10 +285,7 @@ export class Player {
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
-            const itsme = Game.world.players.get('itsme');
-            if(itsme) {
-                itsme.isSwingInProgress = true;
-            }
+            this.startArmSwingProgress();
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
@@ -322,15 +320,15 @@ export class Player {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
-            if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
-                Game.render.destroyBlock(block, new Vector(bPos), true);
-            }
-            if(e.number % 30 == 0) {
-                Game.sounds.play(block.sound, 'hit');
-            }
-            const itsme = Game.world.players.get('itsme');
-            if(itsme) {
-                itsme.isSwingInProgress = true;
+            // arm animation + sound effect + destroy particles
+            if(e.destroyBlock) {
+                const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
+                if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
+                    Game.render.destroyBlock(block, new Vector(bPos), true);
+                    Game.sounds.play(block.sound, 'hit');
+                    this.startArmSwingProgress();
+                }
+                this.hitIndexO = hitIndex;
             }
             if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
@@ -357,6 +355,9 @@ export class Player {
                 }
             };
             const actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            if(e.createBlock && actions.blocks.list.length > 0) {
+                this.startArmSwingProgress();
+            }
             await this.applyActions(actions);
             e_orig.actions = {blocks: actions.blocks};
             e_orig.eye_pos = this.getEyePos();
@@ -672,6 +673,14 @@ export class Player {
     
     setDie() {
         Game.hud.wm.getWindow('frmDie').show();
+    }
+
+    // Start arm swing progress
+    startArmSwingProgress() {
+        const itsme = Game.world.players.get('itsme');
+        if(itsme) {
+            itsme.startArmSwingProgress();
+        }
     }
 
 }
