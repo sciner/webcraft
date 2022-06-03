@@ -33,7 +33,7 @@ export default class packet_reader {
 
             // check dist
             const dist = drop_item.pos.distance(player.state.pos);
-            if(dist > MAX_DIST_FOR_PICKUP) {
+            if(dist > MAX_DIST_FOR_PICKUP * 2) {
                 console.error(`ERROR: pickup item so far from player ${dist}m > ${MAX_DIST_FOR_PICKUP}`);
                 this.restoreDropItemForPlayer(player, drop_item);
                 continue;

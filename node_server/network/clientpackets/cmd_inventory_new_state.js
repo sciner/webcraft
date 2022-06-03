@@ -12,9 +12,9 @@ export default class packet_reader {
         return ServerClient.CMD_INVENTORY_NEW_STATE;
     }
 
-    // 
+    // Apply new inventory state
     static async read(player, packet) {
-        player.newInventoryStates.push(packet.data);
+        player.inventory.newState(packet.data);
         return true;
     }
 

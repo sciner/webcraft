@@ -84,17 +84,16 @@ export class PlayerManager {
     }
 
     //
-    drawGhost(player) {
+    createMyModel(player) {
         this.list.set('itsme', new PlayerModel({
             id:             'itsme',
-            itsme:          false,
+            username:       'itsme',
             rotate:         player.rotate.clone(),
             pos:            player.pos.clone(),
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skin.id,
             sneak:          player.isSneak,
-            username:       Game.App.session.username + ' Ghost',
             hands:          {left: {id: null}, right: {id: player.currentInventoryItem?.id}}
         }));
     };

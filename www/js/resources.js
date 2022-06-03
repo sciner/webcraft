@@ -84,7 +84,7 @@ export class Resources {
                 loadTextFile('./shaders/shader.blocks.glsl')
                     .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
                     .then(blocks => {
-                        console.log('Load shader blocks:', blocks);
+                        console.debug('Load shader blocks:', blocks);
                     })
             );
         }
@@ -110,7 +110,7 @@ export class Resources {
             Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
                 .then((t) => Object.assign(this.models, t.assets))
                 .then((loaded) => {
-                    console.log("Loaded models:", loaded);
+                    console.debug("Loaded models:", loaded);
                 })
         );
 
@@ -319,14 +319,21 @@ export class Resources {
 
     // Load skins
     static async loadSkins() {
-        let resp = null;
-        await Helpers.fetchJSON('../data/skins.json').then(json => {
-            for(let item of json) {
-                item.file = './media/models/player_skins/' + item.id + '.png';
-                item.preview = './media/skins/preview/' + item.id + '.png';
+        const resp = [];
+        await Helpers.fetchJSON('../media/models/database.json').then(json => {
+            for(let k in json.assets) {
+                if(k.indexOf('player:') === 0) {
+                    for(let skin_id in json.assets[k].skins) {
+                        resp.push({
+                            id: skin_id,
+                            file: './media/models/player_skins/' + skin_id + '.png',
+                            preview: './media/models/player_skins/preview/' + skin_id + '.png'
+                        });
+                    }
+                }
             }
-            resp = json;
         });
+        resp.sort((a, b) => a.id - b.id);
         return resp;
     }
 

@@ -1,4 +1,5 @@
 import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class EditSignWindow extends Window {
 
@@ -78,7 +79,7 @@ export class EditSignWindow extends Window {
         }
 
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Add close button
         this.loadCloseButtonImage((image) => {

@@ -71,7 +71,10 @@ export const Lang = new Proxy(
             if(!resp) {
                 return `[${prop}]`;
             }
-            return resp[target.code];
+            if(resp[target.code]) {
+                return resp[target.code];
+            }
+            return resp[target.default_code] || `[${prop}]`;
         }
     }
 );

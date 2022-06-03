@@ -1,11 +1,12 @@
 import {BLOCK} from "../blocks.js";
 import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
 
-    constructor(recipes, x, y, w, h, id, title, text, inventory) {
+    constructor(x, y, w, h, id, title, text, inventory, recipes) {
 
         super(x, y, w, h, id, title, text);
         this.width *= this.zoom;
@@ -14,7 +15,6 @@ export class CraftTable extends BaseCraftWindow {
 
         this.recipes = recipes;
         this.inventory = inventory;
-        this.dragItem = null;
 
         // Craft area
         this.area = {
@@ -54,7 +54,7 @@ export class CraftTable extends BaseCraftWindow {
         }
 
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Создание слотов для крафта
         this.createCraft(this.cell_size);
@@ -76,7 +76,7 @@ export class CraftTable extends BaseCraftWindow {
 
         // Add labels to window
         let lbl1 = new Label(59 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Crafting');
-        let lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
+        let lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
         ct.add(lbl1);
         ct.add(lbl2);
 
@@ -120,7 +120,7 @@ export class CraftTable extends BaseCraftWindow {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
+        let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, INVENTORY_SLOT_SIZE * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = 'Toggle recipes';
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
@@ -148,7 +148,7 @@ export class CraftTable extends BaseCraftWindow {
             slots: [null, null, null, null, null, null, null, null, null]
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
             lblSlot.is_craft_slot = true;
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
@@ -197,9 +197,9 @@ export class CraftTable extends BaseCraftWindow {
         if(!craft_result) {
             return this.lblResultSlot.setItem(null);
         }
-        let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
-        delete(block.texture);
-        this.lblResultSlot.setItem(block);
+        const resultBlock = BLOCK.convertItemToInventoryItem(BLOCK.fromId(craft_result.item_id), null, true)
+        resultBlock.count = craft_result.count;
+        this.lblResultSlot.setItem(resultBlock);
     }
 
     getSlots() {

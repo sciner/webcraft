@@ -179,7 +179,7 @@ export class Chunk {
             cm.lightPool = new CubeTexturePool(render,{
                 defWidth: CHUNK_SIZE_X + 2,
                 defHeight: CHUNK_SIZE_Z + 2,
-                defDepth: (CHUNK_SIZE_Y + 2) * 2,
+                defDepth: CHUNK_SIZE_Y + 2,
                 type: cm.lightTexFormat,
                 filter: 'linear',
             });
@@ -189,7 +189,7 @@ export class Chunk {
             const lightTex = this.lightTex = cm.lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
-                depth: (this.size.y + 2) * 2,
+                depth: this.size.y + 2,
                 type: cm.lightTexFormat,
                 filter: 'linear',
                 data: this.lightData

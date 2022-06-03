@@ -10,25 +10,9 @@ import {MineGenerator} from "../mine/mine_generator.js";
 
 import {CaveGenerator} from '../caves.js';
 import { AABB } from '../../core/AABB.js';
+import { OreGenerator } from "../ore_generator.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
-
-// Ores
-const ORE_RANDOMS = [
-    {max_rad: 2, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
-    {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
-];
 
 const sides = [
     new Vector(1, 0, 0),
@@ -65,6 +49,7 @@ const ABS_CONCRETE              = 16;
 const MOSS_HUMIDITY             = .75;
 const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
+const SAFE_NEAR_RADIUS          = 5; // for tree and clusters
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -81,7 +66,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Настройки
         this.options                = {...GENERATOR_OPTIONS, ...this.options};
         this.temp_vec               = new Vector(0, 0, 0);
-        this.noise3d                = noise.simplex3;
         //
         this.noisefn                = noise.perlin2;
         this.noisefn3d              = noise.perlin3;
@@ -152,232 +136,183 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         });
     }
 
-    // getOreBlockID...
-    getOreBlockID(map, xyz, value, dirt_block) {
-        this.temp_vec.copyFrom(xyz);
-        this.temp_vec.y++;
-        if(map.plants.has(this.temp_vec)) {
-            return dirt_block;
-        }
-        let stone_block_id = BLOCK.CONCRETE.id;
-        let density = this.noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
-        if(density > 0.5) {
-            if(density < 0.66) {
-                stone_block_id = BLOCK.DIORITE.id;
-            } else if(density < 0.83) {
-                stone_block_id = BLOCK.ANDESITE.id;
-            } else {
-                stone_block_id = BLOCK.GRANITE.id;
-            }
-        } else if(xyz.y < value - 5) {
-            for (let i = 0; i < this.ores.length; i++) {
-                const ore = this.ores[i];
-                if(ore.pos.distance(xyz) < ore.rad) {
-                    if(xyz.y < ore.max_y) {
-                        stone_block_id = ore.block_id;
-                    }
-                    break;
-                }
-            }
-        }
-        return stone_block_id;
-    }
-
     // Generate
     generate(chunk) {
 
-        let xyz                         = new Vector(0, 0, 0);
-        let temp_vec                    = new Vector(0, 0, 0);
         const seed                      = chunk.id;
         const aleaRandom                = new alea(seed);
-        const size_x                    = chunk.size.x;
-        const size_y                    = chunk.size.y;
-        const size_z                    = chunk.size.z;
-
-        // Maps
-        let maps                        = this.maps.generateAround(chunk, chunk.addr, true, true);
-        let map                         = maps[4];
-        const cluster                   = chunk.cluster;
-        const ywl                       = map.options.WATER_LINE - chunk.coord.y;
-
-        this.caveManager.addSpiral(chunk.addr);
-
-        // Ores
-        // @todo для каждого блока в чанке считается расстояние до каждого источника руды
-        this.ores = [];
-        const margin = 3;
-        let count = Math.round(aleaRandom.double() * 15);
-        for(let i = 0; i < count; i++) {
-            const r = Math.floor(aleaRandom.double() * ORE_RANDOMS.length);
-            const ore = ORE_RANDOMS[r];
-            ore.rad = Math.min(Math.round(aleaRandom.double() * ore.max_rad) + 1, ore.max_rad),
-            ore.pos = new Vector(
-                margin + (CHUNK_SIZE_X - margin*2) * aleaRandom.double(),
-                margin + (CHUNK_SIZE_Y - margin*2) * aleaRandom.double(),
-                margin + (CHUNK_SIZE_Z - margin*2) * aleaRandom.double()
-            ).flooredSelf().addSelf(chunk.coord);
-            this.ores.push(ore);
-        }
+        const maps                      = this.maps.generateAround(chunk, chunk.addr, true, true);
+        const map                       = maps[4];
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
-
             this.generateBottomCaves(chunk, aleaRandom);
+            return map;
+        }
 
-        } else {
+        const xyz                       = new Vector(0, 0, 0);
+        const temp_vec                  = new Vector(0, 0, 0);
+        const size_x                    = chunk.size.x;
+        const size_y                    = chunk.size.y;
+        const size_z                    = chunk.size.z;
+        const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
+        const cluster                   = chunk.cluster;
+        const ywl                       = map.options.WATER_LINE - chunk.coord.y;
 
-            const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
+        // Ores
+        this.ores = new OreGenerator(aleaRandom, chunk.coord, noise.simplex3);
 
-            const has_chunk_cave_lines = neighbour_lines && neighbour_lines.list.length > 0;
-            const has_voxel_buildings = this.intersectChunkWithVoxelBuildings(chunk.aabb);
-            const has_islands = this.intersectChunkWithIslands(chunk.aabb);
-            const has_extruders = this.intersectChunkWithExtruders(chunk.aabb);
-            const has_spiral_staircaes = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
+        // Caves
+        this.caveManager.addSpiral(chunk.addr);
+        const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
 
-            if(has_spiral_staircaes) {
-                this.drawSpiralStaircases(chunk);
-            }
+        const has_chunk_cave_lines      = neighbour_lines && neighbour_lines.list.length > 0;
+        const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
+        const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
+        const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);
+        const has_spiral_staircaes      = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
 
-            //
-            for(let x = 0; x < size_x; x++) {
-                for(let z = 0; z < size_z; z++) {
+        if(has_spiral_staircaes) {
+            this.drawSpiralStaircases(chunk);
+        }
 
-                    const cell              = map.cells[z * CHUNK_SIZE_X + x];
-                    const biome             = cell.biome;
-                    const value             = cell.value2;
-                    const rnd               = aleaRandom.double();
-                    const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
-                    const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
-                    const dirt_block        = cell.dirt_block_id;
-                    const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
+        //
+        for(let x = 0; x < size_x; x++) {
+            for(let z = 0; z < size_z; z++) {
 
-                    xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
+                const cell              = map.cells[z * CHUNK_SIZE_X + x];
+                const biome             = cell.biome;
+                const value             = cell.value2;
+                const rnd               = aleaRandom.double();
+                const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
+                const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
+                const dirt_block        = cell.dirt_block_id;
+                const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
 
-                    if(!has_ocean_blocks && !has_voxel_buildings && !has_islands && !has_extruders && chunk.coord.y > value) {
+                xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
+
+                if(!has_ocean_blocks && chunk.coord.y > value && !has_voxel_buildings && !has_islands && !has_extruders) {
+                    continue;
+                }
+
+                for(let y = 0; y < size_y; y++) {
+
+                    xyz.y = chunk.coord.y + y;
+
+                    // Draw voxel buildings
+                    if(has_voxel_buildings && this.drawBuilding(xyz, x, y, z, chunk)) {
                         continue;
                     }
 
-                    for(let y = 0; y < size_y; y++) {
-
-                        xyz.y = chunk.coord.y + y;
-                        // xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-
-                        // Draw voxel buildings
-                        if(has_voxel_buildings && this.drawBuilding(xyz, x, y, z, chunk)) {
-                            continue;
-                        }
-
-                        // Islands
-                        if(has_islands && this.drawIsland(xyz, x, y, z, chunk)) {
-                            continue;
-                        }
-
-                        // Remove volume from terrain
-                        if(has_extruders && this.extrude(xyz)) {
-                            continue;
-                        }
-
-                        // Exit
-                        if(xyz.y >= value) {
-                            continue;
-                        }
-
-                        // Caves | Пещеры
-                        if(has_chunk_cave_lines && !in_ocean) {
-                            const line = this.checkIsCaveBlock(xyz, neighbour_lines, value);
-                            if(line) {
-                                if(line.is_treasure) {
-                                    this.drawTreasureRoom(chunk, line, xyz, x, y, z);
-                                    continue;
-                                } else if(!this.nearTree(chunk, xyz, value, cluster, maps)) {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        // Ores (если это не вода, то заполняем полезными ископаемыми)
-                        let block_id = dirt_block;
-                        if(xyz.y < local_dirt_level) {
-                            block_id = this.getOreBlockID(map, xyz, value, dirt_block);
-                        }
-                        chunk.setBlockIndirect(x, y, z, block_id);
-
+                    // Islands
+                    if(has_islands && this.drawIsland(xyz, x, y, z, chunk)) {
+                        continue;
                     }
 
-                    // `Y` of waterline
-                    if(has_ocean_blocks) {
-                        temp_vec.set(x, 0, z);
-                        for(let y = value; y <= map.options.WATER_LINE; y++) {
-                            if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
-                                temp_vec.y = y - chunk.coord.y;
-                                if(!chunk.tblocks.has(temp_vec)) {
-                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.STILL_WATER.id);
-                                }
+                    // Remove volume from terrain
+                    if(has_extruders && this.extrude(xyz)) {
+                        continue;
+                    }
+
+                    // Exit
+                    if(xyz.y >= value) {
+                        continue;
+                    }
+
+                    // Caves | Пещеры
+                    if(has_chunk_cave_lines && !in_ocean) {
+                        const line = this.checkIsCaveBlock(xyz, neighbour_lines, value);
+                        if(line) {
+                            if(line.is_treasure) {
+                                this.drawTreasureRoom(chunk, line, xyz, x, y, z);
+                                continue;
                             }
-                        }
-                        if(cell.equator < .6 && cell.humidity > .4) {
-                            const vl = map.options.WATER_LINE;
-                            if(vl >= chunk.coord.y && vl < chunk.coord.y + chunk.size.y) {
-                                temp_vec.y = vl - chunk.coord.y;
-                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
+                            if(xyz.y < value - SAFE_NEAR_RADIUS || !this.nearTree(chunk, xyz, value, cluster, maps)) {
+                                continue;
                             }
                         }
                     }
 
+                    // Ores (if this is not water, fill by ores)
+                    let block_id = dirt_block;
+                    if(xyz.y < local_dirt_level) {
+                        block_id = this.ores.get(xyz, value);
+                    }
+                    chunk.setBlockIndirect(x, y, z, block_id);
+
                 }
-            }
 
-            if(!chunk.cluster.is_empty) {
-                chunk.cluster.fillBlocks(this.maps, chunk, map);
-            }
-
-            // Plant trees
-            for (let i = 0; i < maps.length; i++) {
-                const m = maps[i];
-                for (let j = 0; j < m.trees.length; j++) {
-                    const p = m.trees[j];
-                    this.plantTree(
-                        p,
-                        chunk,
-                        m.chunk.coord.x + p.pos.x - chunk.coord.x,
-                        m.chunk.coord.y + p.pos.y - chunk.coord.y,
-                        m.chunk.coord.z + p.pos.z - chunk.coord.z
-                    );
+                // `Y` of waterline
+                if(has_ocean_blocks) {
+                    temp_vec.set(x, 0, z);
+                    for(let y = value; y <= map.options.WATER_LINE; y++) {
+                        if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
+                            temp_vec.y = y - chunk.coord.y;
+                            //if(!chunk.tblocks.has(temp_vec)) {
+                            chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK_WATER_ID);
+                            //}
+                        }
+                    }
+                    if(cell.equator < .6 && cell.humidity > .4) {
+                        const vl = map.options.WATER_LINE;
+                        if(vl >= chunk.coord.y && vl < chunk.coord.y + chunk.size.y) {
+                            temp_vec.y = vl - chunk.coord.y;
+                            chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
+                        }
+                    }
                 }
-            }
 
-            // Plant herbs
-            let temp_block = null;
-            let idx = 0;
-            for(let pos of map.plants.keys()) {
-                if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                    let block = map.plants.get(pos);
-                    const block_id = block.id;
-                    const extra_data = block.extra_data || null;
-                    xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
-                    temp_block = chunk.tblocks.get(xyz, temp_block);
-                    if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516 || temp_block.id == 11) {
-                        temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
-                        if(!chunk.tblocks.has(temp_vec)) {
-                            if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                                // check over block
-                                xyz.y += 2;
-                                temp_block = chunk.tblocks.get(xyz, temp_block);
-                                if(temp_block.id == 0) {
-                                    //
-                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
-                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
-                                } else {
-                                    chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
-                                }
+            }
+        }
+
+        if(!chunk.cluster.is_empty) {
+            chunk.cluster.fillBlocks(this.maps, chunk, map);
+        }
+
+        // Plant trees
+        for(let i = 0; i < maps.length; i++) {
+            const m = maps[i];
+            for (let j = 0; j < m.trees.length; j++) {
+                const p = m.trees[j];
+                this.plantTree(
+                    p,
+                    chunk,
+                    m.chunk.coord.x + p.pos.x - chunk.coord.x,
+                    m.chunk.coord.y + p.pos.y - chunk.coord.y,
+                    m.chunk.coord.z + p.pos.z - chunk.coord.z
+                );
+            }
+        }
+
+        // Plant herbs
+        let temp_block = null;
+        let idx = 0;
+        for(const [pos, block] of map.plants.entries()) {
+            if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
+                temp_block = chunk.tblocks.get(xyz, temp_block);
+                if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516 || temp_block.id == 11) {
+                    temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
+                    if(!chunk.tblocks.has(temp_vec)) {
+                        const block_id = block.id;
+                        const extra_data = block.extra_data || null;
+                        if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
+                            // check over block
+                            xyz.y += 2;
+                            temp_block = chunk.tblocks.get(xyz, temp_block);
+                            if(temp_block.id == 0) {
+                                //
+                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
+                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
                             } else {
                                 chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
                             }
+                        } else {
+                            chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
                         }
                     }
                 }
             }
-
         }
 
         if(chunk.addr.y == 0) {
@@ -692,13 +627,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     return line;
                 }
             } else {
-                let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                if(dist < line.rad * 1) {
+                const dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
+                if(dist < line.rad) {
                     return line;
                 }
                 //
                 if(xyz.y < value - 1 || xyz.y > value) {
-                    let r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
+                    const r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
                     if(dist < line.rad + r * 1) {
                         return line;
                     }
@@ -710,6 +645,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
     nearTree(chunk, xyz, value2, cluster, maps) {
+        // if(!globalThis.dfgh) globalThis.dfgh = 0;
+        // console.log(globalThis.dfgh++)
         const _createBlockAABB = this._createBlockAABB;
         const _createBlockAABB_second = this._createBlockAABB_second;
         if(!cluster.is_empty) {
@@ -719,17 +656,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
         }
-        const near_rad = 5;
         // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
         _createBlockAABB_second.set(
-            xyz.x - near_rad,
-            xyz.y - near_rad - chunk.coord.y,
-            xyz.z - near_rad,
-            xyz.x + near_rad,
-            xyz.y + near_rad - chunk.coord.y,
-            xyz.z + near_rad
+            xyz.x - SAFE_NEAR_RADIUS,
+            xyz.y - SAFE_NEAR_RADIUS - chunk.coord.y,
+            xyz.z - SAFE_NEAR_RADIUS,
+            xyz.x + SAFE_NEAR_RADIUS,
+            xyz.y + SAFE_NEAR_RADIUS - chunk.coord.y,
+            xyz.z + SAFE_NEAR_RADIUS
         );
-        for(let m of maps) {
+        for(let m_index = 0; m_index < maps.length; m_index++) {
+            const m = maps[m_index];
             if(m.trees.length == 0) {
                 continue;
             }
@@ -748,7 +685,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
             for (let i = 0; i < m.trees.length; i++) {
                 const tree = m.trees[i];
-                if(tree.pos.distance(ppos) < near_rad) {
+                if(tree.pos.distance(ppos) < SAFE_NEAR_RADIUS) {
                     return true;
                 }
             }

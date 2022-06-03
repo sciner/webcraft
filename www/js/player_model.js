@@ -1,6 +1,7 @@
 import { BLOCK } from "./blocks.js";
+import { HAND_ANIMATION_SPEED } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { NORMALS, Helpers, Vector } from './helpers.js';
+import { NORMALS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
@@ -76,6 +77,12 @@ export class PlayerModel extends MobModel {
 
         // for lazy state generation
         this.activeSlotsData = props.hands;
+
+        // Arm swing
+        this.swingProgress = 0;
+        this.swingProgressInt = 0;
+        this.isSwingInProgress = false;
+
     }
 
     applyNetState(state) {
@@ -184,7 +191,9 @@ export class PlayerModel extends MobModel {
     postLoad(render, tree) {
         super.postLoad(tree);
         
-        tree.scale.set([0.9, 0.9, 0.9]);
+        for(let i = 0; i < tree.length; i++) {
+            tree[i].scale.set([0.9, 0.9, 0.9]);
+        }
         
         if (this.nametag || !this.sceneTree) {
             return;
@@ -216,6 +225,7 @@ export class PlayerModel extends MobModel {
     update(render, camPos, delta, speed) {
         super.update(render, camPos, delta, speed);
 
+        this.updateArmSwingProgress(delta);
         if (!this.isRenderable) {
             return;
         }
@@ -276,6 +286,35 @@ export class PlayerModel extends MobModel {
         node.material = render.defaultShader.materials.label.getSubMat(texture);
 
         return node;
+    }
+
+    get getArmSwingAnimationEnd() {
+        return 6;
+    }
+
+    stopArmSwingProgress() {
+        this.swingProgressInt = 0;
+        this.isSwingInProgress = false;
+    }
+
+    startArmSwingProgress() {
+        this.stopArmSwingProgress();
+        this.isSwingInProgress = true;
+    }
+
+    updateArmSwingProgress(delta) {
+        this.swingProgressPrev = this.animationScript.swingProgress;
+        const asa = this.getArmSwingAnimationEnd;
+        if(this.isSwingInProgress) {
+            this.swingProgressInt += HAND_ANIMATION_SPEED * delta / 1000;
+            if (this.swingProgressInt >= asa) {
+                this.swingProgressInt = 0;
+                this.isSwingInProgress = false;
+            }
+        } else {
+            this.swingProgressInt = 0;
+        }
+        this.animationScript.swingProgress = this.swingProgressInt > 0 ? this.swingProgressInt / asa : 0;
     }
 
 }

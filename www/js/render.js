@@ -83,10 +83,9 @@ export class Renderer {
 
     nextCameraMode() {
         if(!this.world.players.get('itsme')) {
-            this.world.players.drawGhost(this.player);
+            this.world.players.createMyModel(this.player);
         }
         this.camera_mode = ++this.camera_mode % CAMERA_MODE.COUNT;
-
     }
 
     /**
@@ -219,7 +218,7 @@ export class Renderer {
         let inventory_icon_id = 0;
 
         const extruded = [];
-        const regular = Array.from(all_blocks.values()).map((block, i) => {
+        const regular = all_blocks.map((block, i) => {
             let draw_style = block.inventory_style
                 ? block.inventory_style
                 : block.style;
@@ -689,12 +688,10 @@ export class Renderer {
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(player.itsMe()) {
-                if(id != 'itsme') {
-                    continue;
-                }
-            }
             if(id == 'itsme' && this.camera_mode == CAMERA_MODE.SHOOTER) {
+                continue;
+            }
+            if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
                 continue;
             }
             if(player.username != Game.App.session.username) {
@@ -703,9 +700,8 @@ export class Renderer {
                     continue;
                 }
                 const speed = Helpers.calcSpeed(player.prev_pos, player.pos, delta / 1000);
-                const multiplyer = speed / 15.5;
                 player.prev_pos.copyFrom(player.pos);
-                player.draw(this, this.camPos, delta * multiplyer, speed);
+                player.draw(this, this.camPos, delta, speed);
             }
         }
     }

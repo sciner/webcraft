@@ -4,7 +4,8 @@ Minecraft clone on JS
 - Demo: https://madcraft.io/
 - Discord: https://discord.gg/QQw2zadu3T
 - Youtube: https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos
-
+- Reddit: https://www.reddit.com/r/madcraft/
+- 
 # Run and play
 ```
 // Run NodeJS v17.9.0 server!
@@ -17,9 +18,6 @@ node --experimental-json-modules --no-warnings ./index.js
 ```JS
 // Teleport current user to random location 
 Game.player.teleport('random', null);
-
-// Draw current user model at current location
-Game.world.players.drawGhost(Game.player);
 
 // Toggle rain
 Game.render.setRain(true);

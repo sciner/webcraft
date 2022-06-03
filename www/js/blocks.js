@@ -13,9 +13,9 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
-export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
-export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
+export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
+export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
+export const ITEM_INVENTORY_KEY_PROPS       = ['power'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -183,7 +183,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b) {
+    static convertItemToInventoryItem(item, b, no_copy_extra_data = false) {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -200,13 +200,14 @@ export class BLOCK {
             }
         }
         for(let k of ITEM_INVENTORY_PROPS) {
+            if(no_copy_extra_data) {
+                if(k == 'extra_data') {
+                    continue;
+                }
+            }
             if(b) {
                 if(k in b) {
                     if(k == 'power' && b.power == 0) {
-                        continue;
-                    }
-                } else {
-                    if(k != 'count') {
                         continue;
                     }
                 }
@@ -221,32 +222,23 @@ export class BLOCK {
 
     //
     static getBlockIndex(x, y, z, v = null) {
-        if(x instanceof Vector) {
-            y = x.y;
-            z = x.z;
-            x = x.x;
+        if (x instanceof Vector) {
+          y = x.y;
+          z = x.z;
+          x = x.x;
         }
-        let f = (v, m) => {
-            if(v < 0) v++;
-            v = v % m;
-            if(v == 0) v = 0;
-            if(v < 0) v *= -1;
-            return v;
-        };
-        if(v) {
-            v.x = f(x, CHUNK_SIZE_X);
-            v.y = f(y, CHUNK_SIZE_Y);
-            v.z = f(z, CHUNK_SIZE_Z);
+    
+        // функция евклидового модуля
+        const f = (n, m) => ((n % m) + m) % m;
+    
+        if (v) {
+          v.x = f(x, CHUNK_SIZE_X);
+          v.y = f(y, CHUNK_SIZE_Y);
+          v.z = f(z, CHUNK_SIZE_Z);
         } else {
-            v = new Vector(
-                f(x, CHUNK_SIZE_X),
-                f(y, CHUNK_SIZE_Y),
-                f(z, CHUNK_SIZE_Z),
-            );
+          v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
         }
-        if(x < 0) v.x = CHUNK_SIZE_X - 1 - v.x;
-        if(y < 0) v.y = CHUNK_SIZE_Y - 1 - v.y;
-        if(z < 0) v.z = CHUNK_SIZE_Z - 1 - v.z;
+    
         return v;
     }
 
@@ -431,6 +423,7 @@ export class BLOCK {
         BLOCK.list                   = new Map();
         BLOCK.BLOCK_BY_ID            = new Map();
         BLOCK.BLOCK_BY_TAGS          = new Map();
+        BLOCK.list_arr               = [];
     }
 
     // parseBlockStyle...
@@ -620,7 +613,7 @@ export class BLOCK {
 
     // getAll
     static getAll() {
-        return this.list;
+        return this.list_arr;
     }
 
     static isEgg(block_id) {
@@ -1058,13 +1051,94 @@ export class BLOCK {
         return shapes;
     }
 
+    //
+    static async sortBlocks() {
+        //
+        const sortByMaterial = (b, index) => {
+            if(b.tags.indexOf('ore') >= 0) {
+                index -= .01;
+            } else if(b.window) {
+                index -= .02;
+            } else if(b.material.id == 'stone') {
+                index -= .03;
+            } else if(b.material.id == 'wood') {
+                index -= .04;
+            } else if(b.material.id == 'iron') {
+                index -= .05;
+            } else if(b.material.id == 'glass') {
+                index -= .06;
+            } else if(b.material.id == 'leaves') {
+                index -= .07;
+            } else if(b.material.id == 'dirt') {
+                index -= .08;
+            }
+            return index;
+        };
+        //
+        const all_blocks = [];
+        for(let b of BLOCK.list.values()) {
+            b.sort_index = 1000;
+            if(b.item && !b.item?.instrument_id) {
+                b.sort_index = sortByMaterial(b, 101);
+            } else if(b.material.id == 'leather') {
+                b.sort_index = 100;
+            } else if(b.material.id == 'food') {
+                b.sort_index = 99;
+            } else if(b.material.id == 'bone') {
+                b.sort_index = 98;
+            } else if(b.material.id == 'plant') {
+                b.sort_index = 97;
+            } else if(b.style == 'planting') {
+                b.sort_index = 96;
+            } else if(b.item?.instrument_id) {
+                b.sort_index = 95;
+            } else if(b.style == 'stairs') {
+                b.sort_index = sortByMaterial(b, 94);
+            } else if(b.style == 'fence') {
+                b.sort_index = sortByMaterial(b, 93);
+            } else if(b.style == 'door') {
+                b.sort_index = sortByMaterial(b, 92);
+            } else if(b.style == 'trapdoor') {
+                b.sort_index = sortByMaterial(b, 91);
+            } else if(b.style == 'bed') {
+                b.sort_index = 90;
+            } else if(b.style == 'sign') {
+                b.sort_index = 89;
+            } else if(b.style == 'wall') {
+                b.sort_index = sortByMaterial(b, 88);
+            } else if(b.style == 'carpet') {
+                b.sort_index = 87;
+            } else if(b.layering) {
+                b.sort_index = sortByMaterial(b, 86);
+            } else if(b.material.id == 'glass') {
+                b.sort_index = 85;
+            } else if((b.width || b.height || b.depth) && !b.window && b.material.id != 'dirt') {
+                b.sort_index = 84;
+            } else if(b.style == 'default' || b.style == 'cube') {
+                b.sort_index = sortByMaterial(b, 83);
+            } else {
+                b.sort_index = sortByMaterial(b, 101);
+            }
+            all_blocks.push(b);
+        }
+        //
+        all_blocks.sort((a, b) => {
+            return a.sort_index - b.sort_index;
+        });
+        //
+        BLOCK.list_arr = [];
+        for(let b of all_blocks) {
+            BLOCK.list_arr.push(b);
+        }
+    }
+
 };
 
 // Init
 BLOCK.init = async function(settings) {
 
     if(BLOCK.list.size > 0) {
-        throw 'Already inited';
+        throw 'error_blocks_already_inited';
     }
 
     BLOCK.reset();
@@ -1079,7 +1153,9 @@ BLOCK.init = async function(settings) {
     return Promise.all([
         Resources.loadBlockStyles(settings),
         BLOCK.resource_pack_manager.init(settings)
-    ]).then(([block_styles, _])=>{
+    ]).then(async ([block_styles, _]) => {
+        //
+        await BLOCK.sortBlocks();
         // Block styles
         for(let style of block_styles.values()) {
             BLOCK.registerStyle(style);

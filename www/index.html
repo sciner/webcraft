@@ -230,7 +230,7 @@
             <div ng-show="current_window.id == 'skin'" style="text-align: center;">
                 <h4>{{Lang.select_skin}}:</h4>
                 <div ng-repeat="k in skin.list">
-                    <img ng-src="/media/skins/preview/{{k.id}}.png" ng-if="$index == skin.index" style="height: 350px;" alt="player skin">
+                    <img ng-src="{{k.preview}}" ng-if="$index == skin.index" style="height: 350px;" alt="player skin">
                 </div>
                 <div style="padding-bottom: 1em;">
                     {{skin.index + 1}} / {{skin.list.length}}

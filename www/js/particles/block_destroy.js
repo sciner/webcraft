@@ -23,6 +23,13 @@ export default class Particles_Block_Destroy extends Particles_Base {
         this.chunk      = chunk;
         this.life       = .5;
         this.texture    = block.texture;
+        this.vertices   = [];
+        this.particles  = [];
+
+        if(!chunk) {
+            this.life = 0;
+            return;
+        }
 
         let flags       = QUAD_FLAGS.NO_AO;
         let lm          = MULTIPLY.COLOR.WHITE;
@@ -61,9 +68,6 @@ export default class Particles_Block_Destroy extends Particles_Base {
             pos.y + .5,
             pos.z
         );
-
-        this.vertices   = [];
-        this.particles  = [];
 
         for(let i = 0; i < count; i++) {
             const max_sz    = small ? .25 / 16 : 3 / 16;

@@ -305,61 +305,90 @@
 #ifdef ao_light_pass
     // global illumination
     vec3 absNormal = abs(v_normal);
+    vec3 signNormal = sign(v_normal);
     vec3 lightCoord = v_chunk_pos + 0.5 + v_lightOffset.xyz;
-    vec3 aoCoord = v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + vec3(0.0, 0.0, 0.5 * v_lightOffset.w) + v_lightOffset.xyz;
+
+    vec3 aoCoord0 = lightCoord + v_normal * 0.5 + 0.5;
+    vec3 aoCoord1 = aoCoord0;
+    vec3 aoCoord2 = aoCoord0;
+    vec3 aoCoord3 = aoCoord0;
+    if (absNormal.x >= absNormal.y && absNormal.x >= absNormal.z) {
+        aoCoord0 += vec3(0.0, 0.5, 0.5);
+        aoCoord1 += vec3(0.0, 0.5, -0.5);
+        aoCoord2 += vec3(0.0, -0.5, 0.5);
+        aoCoord3 += vec3(0.0, -0.5, -0.5);
+    } else if (absNormal.y >= absNormal.z) {
+        aoCoord0 += vec3(0.5, 0.0, 0.5);
+        aoCoord1 += vec3(0.5, 0.0, -0.5);
+        aoCoord2 += vec3(-0.5, 0.0, 0.5);
+        aoCoord3 += vec3(-0.5, 0.0, -0.5);
+    } else {
+        aoCoord0 += vec3(0.5, 0.5, 0.0);
+        aoCoord1 += vec3(0.5, -0.5, 0.0);
+        aoCoord2 += vec3(-0.5, 0.5, 0.0);
+        aoCoord3 += vec3(-0.5, -0.5, 0.0);
+    }
     //TODO: clamp?
 
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     vec2 caveDaySample;
-    vec3 aoVector;
+    vec4 aoVector;
 
     if (v_lightId < 0.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
         caveDaySample = texture(u_lightTex[0], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[0], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).g, texture(u_lightTex[0], aoCoord1 * texSize).g,
+                texture(u_lightTex[0], aoCoord2 * texSize).g, texture(u_lightTex[0], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 1.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
         caveDaySample = texture(u_lightTex[1], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[1], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[1], aoCoord0 * texSize).g, texture(u_lightTex[1], aoCoord1 * texSize).g,
+                texture(u_lightTex[1], aoCoord2 * texSize).g, texture(u_lightTex[1], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 2.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
         caveDaySample = texture(u_lightTex[2], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[2], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[2], aoCoord0 * texSize).g, texture(u_lightTex[2], aoCoord1 * texSize).g,
+                texture(u_lightTex[2], aoCoord2 * texSize).g, texture(u_lightTex[2], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 3.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
         caveDaySample = texture(u_lightTex[3], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[3], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[3], aoCoord0 * texSize).g, texture(u_lightTex[3], aoCoord1 * texSize).g,
+                texture(u_lightTex[3], aoCoord2 * texSize).g, texture(u_lightTex[3], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 4.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
         caveDaySample = texture(u_lightTex[4], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[4], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[4], aoCoord0 * texSize).g, texture(u_lightTex[4], aoCoord1 * texSize).g,
+                texture(u_lightTex[4], aoCoord2 * texSize).g, texture(u_lightTex[4], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 5.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
         caveDaySample = texture(u_lightTex[5], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[5], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[5], aoCoord0 * texSize).g, texture(u_lightTex[5], aoCoord1 * texSize).g,
+                texture(u_lightTex[5], aoCoord2 * texSize).g, texture(u_lightTex[5], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 6.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
         caveDaySample = texture(u_lightTex[6], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[6], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).g, texture(u_lightTex[6], aoCoord1 * texSize).g,
+                texture(u_lightTex[6], aoCoord2 * texSize).g, texture(u_lightTex[6], aoCoord3 * texSize).g);
         }
     } else if (v_lightId < 7.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[7], 0));
         caveDaySample = texture(u_lightTex[7], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
-            aoVector = texture(u_lightTex[7], aoCoord * texSize).rgb;
+            aoVector = vec4(texture(u_lightTex[7], aoCoord0 * texSize).g, texture(u_lightTex[7], aoCoord1 * texSize).g,
+                texture(u_lightTex[7], aoCoord2 * texSize).g, texture(u_lightTex[7], aoCoord3 * texSize).g);
         }
     }
     float caveSample = caveDaySample.x;
@@ -367,7 +396,8 @@
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
-        aoSample = dot(aoVector, absNormal);
+        float d1 = aoVector.x + aoVector.w, d2 = aoVector.y + aoVector.z;
+        aoSample = (d1 + d2 + max(abs(d2 - d1) - 1.0, 0.0)) / 4.0;
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
     }

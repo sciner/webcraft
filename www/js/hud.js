@@ -5,6 +5,8 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
+import { BLOCK } from "./blocks.js";
+import { DRAW_HUD_INFO_DEFAULT } from "./constant.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -32,13 +34,13 @@ export class HUD {
         // canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
         canvas.style.zIndex             = 0;
         canvas.style.pointerEvents      = 'none';
-        canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
+        canvas.style.width              = '100vw';
+        canvas.style.height             = '100vh';
         this.ctx                        = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
         document.body.appendChild(this.canvas);
         this.active                     = true;
-        this.draw_info                  = true;
+        this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
 
         this.texture                    = null;
         this.buffer                     = null;
@@ -50,9 +52,6 @@ export class HUD {
         this.prevDrawTime               = 0;
 
         this.FPS                        = new FPSCounter();
-
-        // Vignette
-        // this.makeVignette(width, height);
 
         // Splash screen (Loading...)
         this.splash = {
@@ -314,7 +313,11 @@ export class HUD {
         this.text += '\nMAT: ';
         let mat = player.currentInventoryItem;
         if(mat) {
-            this.text += ' ' + mat.id + ' / ' + mat.name;
+            if(this.prev_mat_id != mat.id) {
+                this.prev_mat_id = mat.id;
+                this.mat_name = BLOCK.fromId(mat.id).name;
+            }
+            this.text += ` ${mat.id} / ${this.mat_name}`;
             if(mat.is_fluid) {
                 this.text += ' ' + '(FLUID!!!)';
             }

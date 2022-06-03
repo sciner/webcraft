@@ -17,8 +17,8 @@ class PacketRequerQueue {
         let len = this.list.length;
         for(let i = 0; i < len; i++) {
             const item = this.list.shift();
+            const {reader, player, packet} = item;
             try {
-                const {reader, player, packet} = item;
                 const resp = await reader.read(player, packet);
                 if(!resp) {
                     this.list.push(item);

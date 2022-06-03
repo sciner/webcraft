@@ -2,7 +2,6 @@ import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
-import {noise} from "./default.js";
 
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -45,6 +44,7 @@ const temp_chunk = {
 export class TerrainMapManager {
 
     static _temp_vec3 = Vector.ZERO.clone();
+    static _temp_vec3_delete = Vector.ZERO.clone();
 
     constructor(seed, world_id, noisefn) {
         this.seed = seed;
@@ -55,7 +55,9 @@ export class TerrainMapManager {
 
     // Delete map for unused chunk
     delete(addr) {
-        return this.maps_cache.delete(addr);
+        TerrainMapManager._temp_vec3_delete.copyFrom(addr);
+        TerrainMapManager._temp_vec3_delete.y = 0;
+        this.maps_cache.delete(TerrainMapManager._temp_vec3_delete);
     }
 
     // Return map

@@ -1,8 +1,7 @@
-import {BLOCK} from "../blocks.js";
-import { BaseChestWindow } from "./chest.js";
 import { Vector } from "../helpers.js";
+import { BaseChestWindow } from "./base_chest_window.js";
 
-export default class FurnaceWindow extends BaseChestWindow {
+export class FurnaceWindow extends BaseChestWindow {
 
     constructor(x, y, w, h, id, title, text, inventory) {
         super(x, y, w, h, id, title, text, inventory, {

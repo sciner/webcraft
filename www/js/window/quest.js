@@ -3,6 +3,7 @@ import { ServerClient } from "../../js/server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
 import { Lang } from "../lang.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class QuestWindow extends Window {
 
@@ -23,7 +24,7 @@ export class QuestWindow extends Window {
         ct.hide();
 
         // Ширина / высота слота
-        this.cell_size = 36 * this.zoom;
+        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom;
 
         // Add labels to window
         let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.quests);

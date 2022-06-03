@@ -15,6 +15,7 @@ import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import config from "./config.js";
+import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
 
@@ -272,7 +273,7 @@ export class ServerWorld {
         // 3. Insert to array
         this.players.set(player.session.user_id, player);
         // 4. Send about all other players
-        let all_players_packets = [];
+        const all_players_packets = [];
         for (let c of this.players.values()) {
             if (c.session.user_id != player.session.user_id) {
                 all_players_packets.push({
@@ -289,7 +290,24 @@ export class ServerWorld {
         }], []);
         // 6. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
-        // 7. Send CMD_CONNECTED
+        // 7. Drop item if stored
+        const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+        if(drag_item) {
+            let saved = false;
+            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+                if(!player.inventory.items[i]) {
+                    player.inventory.items[i] = drag_item;
+                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+                    await player.inventory.save();
+                    saved = true;
+                    break;
+                }
+            }
+            if(!saved) {
+                player.inventory.dropFromDragSlot();
+            }
+        }
+        // 8. Send CMD_CONNECTED
         player.sendPackets([{
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
@@ -457,7 +475,7 @@ export class ServerWorld {
     // Create drop items
     async createDropItems(player, pos, items, velocity) {
         try {
-            let drop_item = await DropItem.create(this, player, pos, items, velocity);
+            let drop_item = await DropItem.create(this, pos, items, velocity);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
@@ -468,7 +486,9 @@ export class ServerWorld {
                     message: e
                 }
             }];
-            this.sendSelected(packets, [player.session.user_id], []);
+            if(player) {
+                this.sendSelected(packets, [player.session.user_id], []);
+            }
         }
     }
 
