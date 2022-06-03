@@ -620,7 +620,7 @@ class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 8
+            strideBytes: 7
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
