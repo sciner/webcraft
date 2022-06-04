@@ -64,8 +64,7 @@ export class OreGenerator {
 
         for(let y = 0; y < 4; y++) {
             chunk_coord.y = y * CHUNK_SIZE_Y;
-            const count_seed = aleaRandom.double() * 30;
-            let count = Math.floor(count_seed);
+            let count = Math.floor(aleaRandom.double() * 30);
             for(let i = 0; i < count; i++) {
                 const index = Math.floor(aleaRandom.double() * MAX_INDEX);
                 let ore_x = index % CHUNK_SIZE_X_SM;
@@ -79,12 +78,12 @@ export class OreGenerator {
                     const ore_index_seed = aleaRandom.double() * ORE_RANDOMS.length;
                     const r = Math.floor(ore_index_seed);
                     const f = ORE_RANDOMS[r];
-                    const pos = new Vector(ore_x, ore_y, ore_z).addSelf(chunk_coord);
-                    const rad = Math.min(Math.round((ore_index_seed - r) * f.max_rad) + 1, f.max_rad) / 1.5;
-                    if(pos.y > f.max_y) {
+                    if(ore_y + chunk_coord.y > f.max_y) {
                         i--;
                         continue;
                     }
+                    const pos = new Vector(ore_x, ore_y, ore_z).addSelf(chunk_coord);
+                    const rad = Math.min(Math.round((ore_index_seed - r) * f.max_rad) + 1, f.max_rad) / 1.5;
                     const ore = new OreSource(
                         pos,
                         rad,
@@ -106,12 +105,9 @@ export class OreGenerator {
         let stone_block_id;
         const noise = this.noise3d(xyz.x / 10, xyz.z / 10, xyz.y / 10);
         const density = noise / 2 + .5;
-        //density += (xyz.y * (CHUNK_SIZE_X * CHUNK_SIZE_Z) + xyz.z * CHUNK_SIZE_X + xyz.x) / (CHUNK_SIZE / 10);
-        //density = (density + 1) % 1;
 
         //
         if(density > 0.65) {
-            // return 0;
             let den = this.noisefn(xyz.x / 10, xyz.z / 10) / 2 + .5;
             if(den < .4) {
                 stone_block_id = BLOCK.ANDESITE.id;
@@ -120,13 +116,6 @@ export class OreGenerator {
             } else {
                 stone_block_id = BLOCK.DIORITE.id;
             }
-            /*if(density < 0.7) {
-                stone_block_id = BLOCK.DIORITE.id;
-            } else if(density < 0.75) {
-                stone_block_id = BLOCK.ANDESITE.id;
-            } else {
-                stone_block_id = BLOCK.GRANITE.id;
-            }*/
         } else if(density > .1 && xyz.y < dirt_height - 5) {
             const noise_dist = noise * 2.3;
             for(let i = 0; i < this.ores.length; i++) {
