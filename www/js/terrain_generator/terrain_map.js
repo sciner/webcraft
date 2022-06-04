@@ -3,6 +3,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
+import { OreGenerator } from './ore_generator.js';
 
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -202,7 +203,7 @@ export class TerrainMapManager {
 
     // generateMap
     generateMap(real_chunk, chunk, noisefn) {
-        let cached = this.maps_cache.get(chunk.addr);
+        const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
@@ -214,8 +215,8 @@ export class TerrainMapManager {
         const cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
-                let px = chunk.coord.x + x;
-                let pz = chunk.coord.z + z;
+                const px = chunk.coord.x + x;
+                const pz = chunk.coord.z + z;
                 let cluster_max_height = null;
                 if(!cluster.is_empty && cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
                     cluster_max_height = cluster.max_height;
@@ -234,6 +235,8 @@ export class TerrainMapManager {
         }
         this.maps_cache.set(chunk.addr, map);
         map.caves = new CaveGenerator(chunk.coord, noisefn);
+        map.ores = new OreGenerator(this.seed, chunk.addr, this.noisefn3d);
+        
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
     }
@@ -403,6 +406,18 @@ export class TerrainMap {
         const plant_pos             = new Vector(0, 0, 0);
         //
         const addPlant = (rnd, x, y, z) => {
+
+            const xyz = new Vector(
+                x + chunk.coord.x,
+                y + chunk.coord.y - 1,
+                z + chunk.coord.z
+            );
+
+            const caveDensity = this.caves.getPoint(xyz, null, false);
+            if(caveDensity !== null) {
+                return;
+            }
+
             let s = 0;
             let r = rnd / biome.plants.frequency;
             plant_pos.x = x;
