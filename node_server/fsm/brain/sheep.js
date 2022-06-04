@@ -127,7 +127,7 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
     
-    onUse(owner, id) {
+    async onUse(owner, id) {
         if (!owner || !id){
             return;
         }
@@ -136,16 +136,13 @@ export class Brain extends FSMBrain {
         const world = mob.getWorld();
         
         if (id == BLOCK.SHEARS.id && !this.is_shaered) {
-            this.is_shaered = true; 
-            const velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
+            this.is_shaered = true;
+            const actions = new PickatActions();
+
             const rnd_count = ((Math.random() * 2) | 0) + 1;
-            const items = [
-                {
-                    id: 350, 
-                    count: rnd_count
-                }
-            ];
-            world.createDropItems(owner, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
+            actions.addDropItem({ pos: mob.pos, items: [{ id: 350, count: rnd_count }] });
+
+            await world.applyActions(owner, actions);
         }
     }
     
