@@ -156,9 +156,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         
         let plant_index = 0;
 
-        // Ores
-        // const ores  = new OreGenerator(aleaRandom, chunk.coord, noise.simplex3);
-
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
         const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);

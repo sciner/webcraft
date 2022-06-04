@@ -235,7 +235,7 @@ export class TerrainMapManager {
         }
         this.maps_cache.set(chunk.addr, map);
         map.caves = new CaveGenerator(chunk.coord, noisefn);
-        map.ores = new OreGenerator(this.seed, chunk.addr, this.noisefn3d);
+        map.ores = new OreGenerator(this.seed, chunk.addr, noisefn, this.noisefn3d, map);
         
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
