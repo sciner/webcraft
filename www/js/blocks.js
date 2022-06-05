@@ -146,10 +146,12 @@ export class BLOCK {
             return 0;
         }
         let val = 0;
-        if(material.light_power) {
+        if (material.is_water) {
+            return 64;
+        } else if(material.light_power) {
             val = Math.floor(material.light_power.a / 16.0);
         } else if (!material.transparent) {
-            val = 127;
+            val = 96;
         }
         return val + (material.visible_for_ao ? 128 : 0);
     }

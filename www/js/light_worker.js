@@ -29,16 +29,17 @@ const world = {
     dayLightSrc: null,
 }
 
-const maxLight = 32;
-const MASK_BLOCK = 127;
-const MASK_AO = 128;
+const maxLight = 31;
+const MASK_SRC_AMOUNT = 31;
+const MASK_SRC_BLOCK = 96;
+const MASK_SRC_AO = 128;
+const MASK_SRC_REST = 224;
 
 const OFFSET_SOURCE = 0;
 const OFFSET_LIGHT = 1;
 const OFFSET_PREV = 2;
-const OFFSET_AO = 3;
 const OFFSET_SOURCE_PREV = 3;
-const OFFSET_DAY = 4;
+const OFFSET_DAY = 3;
 
 const BITS_BLOCK_ID = 16;
 
@@ -54,9 +55,9 @@ const DIR_MAX_MASK = (1 << 26) - (1 << 6);
 const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 11);
 
 function adjustSrc(srcLight) {
-    srcLight = srcLight & MASK_BLOCK;
-    if (srcLight * 2 < MASK_BLOCK && srcLight > 0) {
-        srcLight = srcLight * 2 + 2;
+    const amount = srcLight & MASK_SRC_AMOUNT;
+    if (amount > 0) {
+        return (Math.min(31, amount * 2 + 1)) | (srcLight & MASK_SRC_REST);
     }
     return srcLight;
 }
@@ -64,7 +65,7 @@ function adjustSrc(srcLight) {
 world.defDayLight = adjustSrc(15);
 
 function adjustLight(dstLight) {
-    return Math.max((dstLight - 2) / 2, 0);
+    return Math.max((dstLight - 1) / 2, 0);
 }
 
 function initMasks() {
@@ -266,10 +267,10 @@ class LightQueue {
             z += outerAABB.z_min;
 
             let mask = 0;
-            let val = uint8View[coordBytes + OFFSET_SOURCE];
+            let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT;
             const old = uint8View[coordBytes + OFFSET_LIGHT];
             const prev = uint8View[coordBytes + OFFSET_PREV];
-            if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
+            if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                 val = 0;
             } else {
                 if (val === maxLight && val === old && val === prev) {
@@ -284,7 +285,7 @@ class LightQueue {
                     }
                     let coord2 = coord + dif26[d];
                     let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
-                    if (uint8View[coord2 * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
+                    if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                         light = 0;
                         mask |= dmask[d];
                     }
@@ -508,8 +509,7 @@ class DirLightQueue {
             const old = uint8View[coordBytes + OFFSET_SOURCE];
             let val;
             const prev = uint8View[coordBytes + OFFSET_SOURCE_PREV];
-            if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK ||
-                uint8View[coord * strideBytes + OFFSET_AO] !== 0) {
+            if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_REST) > 0) {
                 val = 0;
             } else {
                 val = uint8View[coordBytes + sy * strideBytes + OFFSET_SOURCE];
@@ -681,7 +681,7 @@ class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 8
+            strideBytes: 7
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
@@ -709,7 +709,6 @@ class Chunk {
                 let indTo = (((y + padding) * outerSize.z + (z + padding)) * outerSize.x + padding) * strideBytes;
                 for (let x = 0; x < size.x; x++) {
                     uint8View[indTo + OFFSET_SOURCE] = adjustSrc(src[indFrom + x]);
-                    uint8View[indTo + OFFSET_AO] = (src[indFrom + x] & MASK_AO) > 0 ? 1 : 0;
                     indTo += strideBytes;
                 }
             }
@@ -774,17 +773,16 @@ class Chunk {
 
                         // copy AO through border
                         if (f1) {
-                            if (bytes2[coord2 + OFFSET_AO] !== uint8View[coord1 + OFFSET_AO]) {
+                            if ((bytes2[coord2 + OFFSET_SOURCE] & MASK_SRC_AO) !== (uint8View[coord1 + OFFSET_SOURCE] & MASK_SRC_AO)) {
                                 other.rev.lastID++;
-                                bytes2[coord2 + OFFSET_AO] = uint8View[coord1 + OFFSET_AO]
                             }
+                            bytes2[coord2 + OFFSET_SOURCE] = uint8View[coord1 + OFFSET_SOURCE]
                         }
                         if (f2) {
-                            uint8View[coord1 + OFFSET_SOURCE] = bytes2[coord2 + OFFSET_SOURCE]
-                            if (uint8View[coord1 + OFFSET_AO] !== bytes2[coord2 + OFFSET_AO]) {
+                            if ((uint8View[coord1 + OFFSET_SOURCE] & MASK_SRC_AO) !== (bytes2[coord2 + OFFSET_SOURCE] & MASK_SRC_AO)) {
                                 found = true;
-                                uint8View[coord1 + OFFSET_AO] = bytes2[coord2 + OFFSET_AO]
                             }
+                            uint8View[coord1 + OFFSET_SOURCE] = bytes2[coord2 + OFFSET_SOURCE]
                         }
 
                         // daylight
@@ -818,16 +816,17 @@ class Chunk {
                         m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_LIGHT]);
                     }
                     m = Math.max(m, uint8View[coordBytes + OFFSET_LIGHT]);
-                    const isBlock = uint8View[coordBytes + OFFSET_SOURCE] === MASK_BLOCK;
+                    const isBlock = (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK;
                     if (!isBlock) {
-                        m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE]);
+                        //TODO: check if its water or something advanced blocking light
+                        m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT);
                     }
                     if (m > 0) {
                         world.light.add(this, coord, m);
                     }
-                    found = found || uint8View[coordBytes + OFFSET_AO] > 0;
+                    found = found || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0;
 
-                    foundDay = foundDay || uint8View[coordBytes + OFFSET_AO] > 0 || isBlock
+                    foundDay = foundDay || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0 || isBlock
                 }
 
         if (foundDay) {
@@ -1034,7 +1033,7 @@ class Chunk {
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A2 = adjustLight(A2);
 
-                    addResult1(A, A2, uint8View[coord0 + OFFSET_AO]);
+                    addResult1(A, A2, (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
                     // coord = coord0 - boundY - boundZ + OFFSET_AO;
                     // const R1 = uint8View[coord] + uint8View[coord + sy + sz];
                     // const R2 = uint8View[coord + sy] + uint8View[coord + sz];
@@ -1260,13 +1259,9 @@ async function onMessageFunc(e) {
                 uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
                 world.light.add(chunk, ind, Math.max(light, src));
                 // push ao
-                const ao = (light_source & MASK_AO) > 0 ? 1 : 0;
-                let setAo = uint8View[ind * strideBytes + OFFSET_AO] !== ao;
-                if (setAo) {
-                    uint8View[ind * strideBytes + OFFSET_AO] = ao;
-                }
+                const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
                 //TODO: move it to adjust func
-                if (setAo || ((src === MASK_BLOCK) !== (old_src === MASK_BLOCK))) {
+                if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
                     world.dayLightSrc.add(chunk, ind);
                     world.dayLight.add(chunk, ind, maxLight);
                 }
@@ -1277,7 +1272,6 @@ async function onMessageFunc(e) {
                         const ind = other.indexByWorld(x, y, z);
                         other.setUint8ByInd(ind, OFFSET_SOURCE, src)
                         if (setAo) {
-                            other.setUint8ByInd(ind, OFFSET_AO, ao)
                             other.rev.lastID++;
                         }
                     }
@@ -1300,7 +1294,7 @@ function testDayLight() {
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY});
 
     let innerDataEmpty = new Uint8Array([0]);
-    let innerDataSolid = new Uint8Array([MASK_BLOCK + MASK_AO]);
+    let innerDataSolid = new Uint8Array([MASK_SRC_BLOCK + MASK_SRC_AO]);
     let w = 1;
 
     let centerChunk = [];
@@ -1345,7 +1339,7 @@ function testDisperse() {
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY, disperse: Math.ceil(maxLight / 2)});
 
     let innerDataEmpty = new Uint8Array([0]);
-    let innerDataSolid = new Uint8Array([MASK_BLOCK + MASK_AO]);
+    let innerDataSolid = new Uint8Array([MASK_SRC_BLOCK + MASK_SRC_AO]);
     let w = 1;
 
     let centerChunk = [];
