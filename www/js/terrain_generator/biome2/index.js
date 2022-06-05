@@ -8,9 +8,7 @@ import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 
-import {CaveGenerator} from '../caves.js';
 import { AABB } from '../../core/AABB.js';
-import { OreGenerator } from "../ore_generator.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
 
@@ -41,15 +39,12 @@ for(let i = 0; i < randoms.length; i++) {
 
 //
 const vox_templates             = {};
-const ppos                      = new Vector(0, 0, 0);
-const _intersection             = new Vector(0, 0, 0);
 
 //
 const ABS_CONCRETE              = 16;
 const MOSS_HUMIDITY             = .75;
 const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
-const SAFE_NEAR_RADIUS          = 5; // for tree and clusters
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -70,12 +65,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.noisefn                = noise.perlin2;
         this.noisefn3d              = noise.perlin3;
         // Сaves manager
-        this.caveManager            = new CaveGenerator(this.seed);
         this.islands                = [];
         this.extruders              = [];
         //
-<<<<<<< Updated upstream
-        this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn);
+        this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
         // Map specific
         if(this.world_id == 'demo') {
             await this.generateDemoMapStructures();
@@ -135,9 +128,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
             rad: this.islands[0].rad
         });
-=======
-        this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
->>>>>>> Stashed changes
     }
 
     // Generate
@@ -160,51 +150,29 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
-<<<<<<< Updated upstream
+
         const cluster                   = chunk.cluster;
+
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
 
-        // Ores
-        this.ores = new OreGenerator(aleaRandom, chunk.coord, noise.simplex3);
-
-        // Caves
-        this.caveManager.addSpiral(chunk.addr);
-        const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
-
-        const has_chunk_cave_lines      = neighbour_lines && neighbour_lines.list.length > 0;
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
         const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);
-=======
+
         const plant_pos                 = new Vector(0, 0, 0);
-        
         let plant_index = 0;
->>>>>>> Stashed changes
-        const has_spiral_staircaes      = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
-
-        if(has_spiral_staircaes) {
-            this.drawSpiralStaircases(chunk);
-        }
-
+        
         //
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
+                xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
+
                 const cell              = map.cells[z * CHUNK_SIZE_X + x];
                 const value             = cell.value;
                 const dirt_block        = cell.dirt_block_id;
-<<<<<<< Updated upstream
-                const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
 
                 xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
-=======
-                // const rnd               = aleaRandom.double();
-                // const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
-                // const biome             = cell.biome;
-                // const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
-                // const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
-                // const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
->>>>>>> Stashed changes
 
                 //if(chunk.coord.y > value) {
                 //    continue;
@@ -219,29 +187,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         continue;
                     }
 
-<<<<<<< Updated upstream
-=======
                     /*
                     // Clusters
                     const cluster_padding = 5;
                     const cellIsOccupied = has_cluster &&
                         (xyz.y > value - cluster_padding && xyz.y < value + 1);
 
->>>>>>> Stashed changes
                     // Caves | Пещеры
-                    if(has_chunk_cave_lines && !in_ocean) {
-                        const line = this.checkIsCaveBlock(xyz, neighbour_lines, value);
-                        if(line) {
-                            if(line.is_treasure) {
-                                this.drawTreasureRoom(chunk, line, xyz, x, y, z);
-                                continue;
-                            }
-                            if(xyz.y < value - SAFE_NEAR_RADIUS || !this.nearTree(chunk, xyz, value, cluster, maps)) {
-                                continue;
-                            }
+                    if(!cellIsOccupied) {
+                        const caveDensity = map.caves.getPoint(xyz, cell, in_ocean);
+                        if(caveDensity !== null) {
+                            continue;
                         }
                     }
                     */
+
+                    // this.drawTreasureRoom(chunk, line, xyz, x, y, z);
 
                     // Ores (if this is not water, fill by ores)
                     let block_id = dirt_block;
@@ -249,11 +210,29 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     /*
                     if(xyz.y < local_dirt_level) {
-                        block_id = this.ores.get(xyz, value);
+                        block_id = map.ores.get(xyz, value);
                     }
                     chunk.setBlockIndirect(x, y, z, block_id);
 
-<<<<<<< Updated upstream
+                    // Plants
+                    if(block_id == dirt_block && xyz.y == value - 1) {
+                        plant_pos.x = x;
+                        plant_pos.z = z;
+                        plant_pos.y = xyz.y + 1;
+                        const plant = map.plants.get(plant_pos);
+                        if(plant) {
+                            const block_id = plant.id;
+                            const extra_data = plant.extra_data || null;
+                            plant_pos.y -= chunk.coord.y;
+                            if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS_TOP.id);
+                            } else {
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);
+                            }
+                        }
+                    }
+
                 }
 
                 // `Y` of waterline
@@ -262,9 +241,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     for(let y = value; y <= map.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             temp_vec.y = y - chunk.coord.y;
-                            //if(!chunk.tblocks.has(temp_vec)) {
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK_WATER_ID);
-                            //}
                         }
                     }
                     if(cell.equator < .6 && cell.humidity > .4) {
@@ -273,7 +250,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             temp_vec.y = vl - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
                         }
-=======
+
                     // Plants
                     if(block_id == dirt_block && xyz.y == value - 1) {
                         plant_pos.x = x;
@@ -300,7 +277,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 for(let y = value; y <= map.options.WATER_LINE; y++) {
                     if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                         chunk.setBlockIndirect(x, y - chunk.coord.y, z, BLOCK_WATER_ID);
->>>>>>> Stashed changes
                     }
                 }
 
@@ -315,49 +291,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Plant trees
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];
-            for (let j = 0; j < m.trees.length; j++) {
-                const p = m.trees[j];
+            for(let j = 0; j < m.trees.length; j++) {
+                const tree = m.trees[j];
                 this.plantTree(
-                    p,
+                    tree,
                     chunk,
-                    m.chunk.coord.x + p.pos.x - chunk.coord.x,
-                    m.chunk.coord.y + p.pos.y - chunk.coord.y,
-                    m.chunk.coord.z + p.pos.z - chunk.coord.z
+                    m.chunk.coord.x + tree.pos.x - chunk.coord.x,
+                    m.chunk.coord.y + tree.pos.y - chunk.coord.y,
+                    m.chunk.coord.z + tree.pos.z - chunk.coord.z
                 );
             }
         }
 
-        // Plant herbs
-        let temp_block = null;
-        let idx = 0;
-        for(const [pos, block] of map.plants.entries()) {
-            if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
-                temp_block = chunk.tblocks.get(xyz, temp_block);
-                if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516 || temp_block.id == 11) {
-                    temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
-                    if(!chunk.tblocks.has(temp_vec)) {
-                        const block_id = block.id;
-                        const extra_data = block.extra_data || null;
-                        if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                            // check over block
-                            xyz.y += 2;
-                            temp_block = chunk.tblocks.get(xyz, temp_block);
-                            if(temp_block.id == 0) {
-                                //
-                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
-                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
-                            } else {
-                                chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
-                            }
-                        } else {
-                            chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
-                        }
-                    }
-                }
-            }
-        }
-
+        // Mines
         if(chunk.addr.y == 0) {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
@@ -386,11 +332,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         //
         for(let x = 0; x < chunk.size.x; x++) {
-            //if(chunk.coord.x + x < 2800) continue;
 
             for(let z = 0; z < chunk.size.z; z++) {
-
-                //if(chunk.coord.z + z > 2900) continue;
 
                 let y_start                 = Infinity;
                 let stalactite_height       = 0;
@@ -579,7 +522,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
-<<<<<<< Updated upstream
     //
     intersectChunkWithVoxelBuildings(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;
@@ -663,81 +605,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
     }
 
-    // Проверка не является ли этот блок пещерой
-    checkIsCaveBlock(xyz, neighbour_lines, value) {
-        for(let k = neighbour_lines.list.length - 1; k >= 0; k--) {
-            const line = neighbour_lines.list[k];
-            if(line.is_treasure) {
-                if(line.aabb.contains(xyz.x, xyz.y, xyz.z)) {
-                    return line;
-                }
-            } else {
-                const dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                if(dist < line.rad) {
-                    return line;
-                }
-                //
-                if(xyz.y < value - 1 || xyz.y > value) {
-                    const r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
-                    if(dist < line.rad + r * 1) {
-                        return line;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
-    nearTree(chunk, xyz, value2, cluster, maps) {
-        // if(!globalThis.dfgh) globalThis.dfgh = 0;
-        // console.log(globalThis.dfgh++)
-        const _createBlockAABB = this._createBlockAABB;
-        const _createBlockAABB_second = this._createBlockAABB_second;
-        if(!cluster.is_empty) {
-            if(xyz.y > value2 - 3 && xyz.y < value2 + 1) {
-                if(cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2)) {
-                    return true;
-                }
-            }
-        }
-        // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
-        _createBlockAABB_second.set(
-            xyz.x - SAFE_NEAR_RADIUS,
-            xyz.y - SAFE_NEAR_RADIUS - chunk.coord.y,
-            xyz.z - SAFE_NEAR_RADIUS,
-            xyz.x + SAFE_NEAR_RADIUS,
-            xyz.y + SAFE_NEAR_RADIUS - chunk.coord.y,
-            xyz.z + SAFE_NEAR_RADIUS
-        );
-        for(let m_index = 0; m_index < maps.length; m_index++) {
-            const m = maps[m_index];
-            if(m.trees.length == 0) {
-                continue;
-            }
-            //
-            _createBlockAABB.set(
-                m.chunk.coord.x,
-                m.chunk.coord.y,
-                m.chunk.coord.z,
-                m.chunk.coord.x + CHUNK_SIZE_X,
-                m.chunk.coord.y + CHUNK_SIZE_Y,
-                m.chunk.coord.z + CHUNK_SIZE_Z
-            );
-            if(!_createBlockAABB.intersect(_createBlockAABB_second)) {
-                continue;
-            }
-            ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
-            for (let i = 0; i < m.trees.length; i++) {
-                const tree = m.trees[i];
-                if(tree.pos.distance(ppos) < SAFE_NEAR_RADIUS) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     // drawBuilding...
     drawBuilding(xyz, x, y, z, chunk) {
         let vb = this.getVoxelBuilding(xyz);
@@ -788,8 +655,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return false;
     }
 
-=======
->>>>>>> Stashed changes
     // getTreasureRoomMat
     getTreasureRoomMat(xyz, is_floor, level) {
         if(!is_floor && level == 0) {

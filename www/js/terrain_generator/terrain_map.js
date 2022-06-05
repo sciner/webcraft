@@ -3,12 +3,8 @@ import { MySmooth } from '../../vendors/my-smooth.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
-<<<<<<< Updated upstream
-=======
 import { CaveGenerator } from './cave_generator.js';
 import { OreGenerator } from './ore_generator.js';
-// import { CubicSpline } from '../../vendors/cubic-spline.js';
->>>>>>> Stashed changes
 
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -49,10 +45,11 @@ export class TerrainMapManager {
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
 
-    constructor(seed, world_id, noisefn) {
+    constructor(seed, world_id, noisefn, noisefn3d) {
         this.seed = seed;
         this.world_id = world_id;
         this.noisefn = noisefn;
+        this.noisefn3d = noisefn3d;
         this.maps_cache = new VectorCollector();
 
         // new a Spline object
@@ -99,14 +96,7 @@ export class TerrainMapManager {
                 }
             }
         }
-<<<<<<< Updated upstream
-        // Smooth (for central and part of neighbours)
-        if(smooth && !center_map.smoothed) {
-            center_map.smooth(this);
-        }
-=======
 
->>>>>>> Stashed changes
         // Generate vegetation
         if(vegetation) {
             for (let i = 0; i < maps.length; i++) {
@@ -240,7 +230,7 @@ export class TerrainMapManager {
 
     // generateMap
     generateMap(real_chunk, chunk, noisefn) {
-        let cached = this.maps_cache.get(chunk.addr);
+        const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
@@ -253,8 +243,8 @@ export class TerrainMapManager {
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
-                let px = chunk.coord.x + x;
-                let pz = chunk.coord.z + z;
+                const px = chunk.coord.x + x;
+                const pz = chunk.coord.z + z;
                 let cluster_max_height = null;
                 if(!cluster.is_empty && cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
                     cluster_max_height = cluster.max_height;
@@ -274,6 +264,9 @@ export class TerrainMapManager {
             }
         }
         this.maps_cache.set(chunk.addr, map);
+        map.caves = new CaveGenerator(chunk.coord, noisefn);
+        map.ores = new OreGenerator(this.seed, chunk.addr, noisefn, this.noisefn3d, map);
+        
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
     }
@@ -326,6 +319,18 @@ export class TerrainMap {
         const plant_pos             = new Vector(0, 0, 0);
         //
         const addPlant = (rnd, x, y, z) => {
+
+            const xyz = new Vector(
+                x + chunk.coord.x,
+                y + chunk.coord.y - 1,
+                z + chunk.coord.z
+            );
+
+            const caveDensity = this.caves.getPoint(xyz, null, false);
+            if(caveDensity !== null) {
+                return;
+            }
+
             let s = 0;
             let r = rnd / biome.plants.frequency;
             plant_pos.x = x;
@@ -348,12 +353,24 @@ export class TerrainMap {
         };
         //
         const addTree = (rnd, x, y, z) => {
+
+            const xyz = new Vector(
+                x + chunk.coord.x,
+                y + chunk.coord.y - 1,
+                z + chunk.coord.z
+            );
+
+            const caveDensity = this.caves.getPoint(xyz, null, false);
+            if(caveDensity !== null) {
+                return;
+            }
+
             let s = 0;
             let r = rnd / biome.trees.frequency;
             for(let type of biome.trees.list) {
                 s += type.percent;
                 if(r < s) {
-                    if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
+                    if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
                         break;
                     }
                     let r = aleaRandom.double();
