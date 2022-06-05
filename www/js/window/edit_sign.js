@@ -3,9 +3,9 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class EditSignWindow extends Window {
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor() {
 
-        super(x, y, w, h, id, title, text);
+        super(10, 10, 236, 192, 'frmEditSign', null, null);
 
         this.zoom *= 1.5;
 

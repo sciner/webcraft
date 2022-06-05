@@ -3,8 +3,8 @@ import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChestWindow extends BaseChestWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
-        super(x, y, w, h, id, title, text, inventory, {
+    constructor(inventory) {
+        super(10, 10, 352, 332, 'frmChest', null, null, inventory, {
             title: 'Chest',
             background: {
                 image: './media/gui/form-chest.png',

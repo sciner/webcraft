@@ -23,7 +23,7 @@ export class PluginManager {
     }
 
     initPlugins(target, instance) {
-        let resp = [];
+        const resp = [];
         const targets = this.targets.get(target);
         if(targets) {
             for(let item of targets) {

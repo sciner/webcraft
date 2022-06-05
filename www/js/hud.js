@@ -5,7 +5,6 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
-import { BLOCK } from "./blocks.js";
 import { DRAW_HUD_INFO_DEFAULT } from "./constant.js";
 
 // QuestActionType
@@ -311,11 +310,11 @@ export class HUD {
         }
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
-        let mat = player.currentInventoryItem;
+        const mat = player.currentInventoryItem;
         if(mat) {
             if(this.prev_mat_id != mat.id) {
                 this.prev_mat_id = mat.id;
-                this.mat_name = BLOCK.fromId(mat.id).name;
+                this.mat_name = player.world.block_manager.fromId(mat.id).name;
             }
             this.text += ` ${mat.id} / ${this.mat_name}`;
             if(mat.is_fluid) {
@@ -380,9 +379,6 @@ export class HUD {
         // Players list
         this.text += '\nOnline:\n';
         for(let [id, p] of world.players.list) {
-            if(id == 'itsme') {
-                continue;
-            }
             this.text += '🙎‍♂️' + p.username;
             if(p.itsMe()) {
                 this.text += ' ⬅ YOU';

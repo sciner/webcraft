@@ -24,8 +24,11 @@ export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
-    constructor() { }
     temp_vec = new Vector();
+
+    constructor() {
+        this.block_manager = BLOCK;
+    }
 
     get serverTime() {
         return Date.now() + SERVE_TIME_LAG;
@@ -832,10 +835,10 @@ export class ServerWorld {
             const chunk = chunks[i];
             for(let user_id of chunk.connections.keys()) { 
                 const player = all_players.get(user_id);
-                if(player.is_dead) {
+                if(player.is_dead || player.game_mode.isSpectator()) {
                     continue;
                 }
-                if(not_in_creative && !player.game_mode.getCurrent().can_take_damage) {
+                if(not_in_creative && !player.game_mode.mayGetDamaged()) {
                     continue;
                 }
                 const dist = new Vector(player.state.pos).distance(pos);

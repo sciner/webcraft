@@ -7,9 +7,10 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class QuestWindow extends Window {
 
-    constructor(x, y, w, h, id, title, text, player) {
+    constructor(player) {
 
-        super(x, y, w, h, id, title, text);
+        super(10, 10, 1700/2, 1200/2, 'frmQuests', null, null);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
 

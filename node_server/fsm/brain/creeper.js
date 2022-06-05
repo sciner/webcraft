@@ -1,6 +1,7 @@
-import {FSMBrain} from "../brain.js";
+import { FSMBrain } from "../brain.js";
+import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
-import {PickatActions} from "../../../www/js/block_action.js";
+import { PickatActions } from "../../../www/js/block_action.js";
 import {ServerClient} from "../../../www/js/server_client.js";
 
 const FOLLOW_DISTANCE       = 10;
@@ -185,15 +186,15 @@ export class Brain extends FSMBrain {
         await world.applyActions(null, actions);
     }
     
-    onKill(owner, type) {
+    onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
         let items = [];
         let velocity = new Vector(0,0,0);
-        if (owner != null) {
-            //owner это игрок
-            if (owner.session) {
-                velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
+        if (actor != null) {
+            //actor это игрок
+            if (actor.session) {
+                velocity = actor.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
                 const rnd_count = (Math.random() * 2) | 0;
                 if (rnd_count > 0){ 
                     items.push({id: 1445, count: rnd_count});
@@ -202,7 +203,7 @@ export class Brain extends FSMBrain {
             }
         }
         if (items.length > 0){
-            world.createDropItems(owner, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
+            world.createDropItems(actor, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
         }
     }
 }

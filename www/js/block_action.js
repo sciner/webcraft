@@ -1,7 +1,7 @@
-import {DIRECTION_BIT, NORMALS, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
+import {DIRECTION_BIT, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
-import {BLOCK} from "./blocks.js";
+import { BLOCK } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';

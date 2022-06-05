@@ -4,8 +4,9 @@ import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChargingStationWindow extends BaseChestWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
-        super(x, y, w, h, id, title, text, inventory, {
+    constructor(inventory) {
+
+        super(10, 10, 352, 332, 'frmChargingStation', null, null, inventory, {
             title: 'Charging station',
             background: {
                 image: './media/gui/form-charging-station.png',
@@ -23,6 +24,7 @@ export class ChargingStationWindow extends BaseChestWindow {
                 close: {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
         });
+
     }
 
     //
