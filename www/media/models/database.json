@@ -9,6 +9,14 @@
                 "base": "textures/deer.png"
             }
         },
+          "pouch": {
+            "type": "json",
+            "geom": "json/pouch.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/pouch.png"
+            }
+        },
 
         "horse": {
             "type": "json",
