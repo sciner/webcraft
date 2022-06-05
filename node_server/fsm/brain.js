@@ -325,33 +325,33 @@ export class FSMBrain {
 
     /**
     * Моба убили
-    * owner - игрок или пероснаж
-    * type - от чего умер[упал, сгорел, утонул]
+    * actor - игрок или пероснаж
+    * type_demage - от чего умер[упал, сгорел, утонул]
     */
-    onKill(owner, type) {
+    onKill(actor, type_demage) {
     }
     
     /**
     * Использовать предмет на мобе
-    * owner - игрок
+    * actor - игрок
     * item - item
     */
-    onUse(owner, item){
+    onUse(actor, item){
     }
     
     
     /**
     * Нанесен урон по мобу
-    * owner - игрок или пероснаж
+    * actor - игрок или пероснаж
     * val - количество урона
-    * type - от чего умер[упал, сгорел, утонул]
+    * type_demage - от чего умер[упал, сгорел, утонул]
     */
-    onDemage(owner, val, type){
+    onDemage(actor, val, type_demage){
         const mob = this.mob;
-        const pos_owner = (owner.session) ? owner.state.pos : new Vector(0,0,0);
-        let velocity = mob.pos.sub(pos_owner).normSelf();
+        const pos_actor = (actor.session) ? actor.state.pos : new Vector(0,0,0);
+        let velocity = mob.pos.sub(pos_actor).normSelf();
         velocity.y = .5;
         mob.addVelocity(velocity);
-        this.onPanic(pos_owner);
+        this.onPanic(pos_actor);
     }
 }

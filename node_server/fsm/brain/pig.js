@@ -1,4 +1,4 @@
-import {FSMBrain} from "../brain.js";
+import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { PickatActions } from "../../../www/js/block_action.js";
@@ -72,21 +72,21 @@ export class Brain extends FSMBrain {
     }
 
 
-    async onKill(owner, type) {
+    async onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (owner != null) {
+        if (actor != null) {
             const actions = new PickatActions();
             const rnd_count_porkchop = ((Math.random() * 2) | 0) + 1;
 
-            let items = { pos: mob.pos, items: [] };
-            items.items.push({ id: BLOCK.PORKCHOP.id, count: rnd_count_porkchop });
+            let drop_item = { pos: mob.pos, items: [] };
+            drop_item.items.push({ id: BLOCK.PORKCHOP.id, count: rnd_count_porkchop });
 
-            actions.addDropItem(items);
+            actions.addDropItem(drop_item);
 
             actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(owner, actions);
+            await world.applyActions(actor, actions);
         }
     }
 

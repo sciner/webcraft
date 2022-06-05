@@ -127,8 +127,8 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
     
-    async onUse(owner, id) {
-        if (!owner || !id){
+    async onUse(actor, id) {
+        if (!actor || !id){
             return;
         }
         
@@ -142,27 +142,27 @@ export class Brain extends FSMBrain {
             const rnd_count = ((Math.random() * 2) | 0) + 1;
             actions.addDropItem({ pos: mob.pos, items: [{ id: 350, count: rnd_count }] });
 
-            await world.applyActions(owner, actions);
+            await world.applyActions(actor, actions);
         }
     }
     
-    async onKill(owner, type) {
+    async onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (owner != null) {
+        if (actor != null) {
             const actions = new PickatActions();
             const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
 
-            let items = { pos: mob.pos, items: [] };
-            items.items.push({ id: BLOCK.MUTTON.id, count: rnd_count_mutton });
+            let drop_item = { pos: mob.pos, items: [] };
+            drop_item.items.push({ id: BLOCK.MUTTON.id, count: rnd_count_mutton });
             if (!this.is_shaered) {
-                items.items.push({ id: 350, count: 1 });
+                drop_item.items.push({ id: 350, count: 1 });
             }
-            actions.addDropItem(items);
+            actions.addDropItem(drop_item);
 
             actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(owner, actions);
+            await world.applyActions(actor, actions);
         }
     }
     

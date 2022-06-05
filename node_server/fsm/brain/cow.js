@@ -19,8 +19,8 @@ export class Brain extends FSMBrain {
         this.stack.pushState(this.doStand);
     }
 
-    async onUse(owner, id) {
-        if (!owner || !id) {
+    async onUse(actor, id) {
+        if (!actor || !id) {
             return;
         }
 
@@ -30,30 +30,30 @@ export class Brain extends FSMBrain {
         if (id == BLOCK.BUCKET_EMPTY.id) {
             const actions = new PickatActions();
             actions.putInBucket(BLOCK.BUCKET_MILK);
-            await world.applyActions(owner, actions);
+            await world.applyActions(actor, actions);
         }
     }
 
-    async onKill(owner, type) {
+    async onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (owner != null) {
+        if (actor != null) {
             const actions = new PickatActions();
-            let items = { pos: mob.pos, items: [] };
+            let drop_item = { pos: mob.pos, items: [] };
 
             const rnd_count_beef = ((Math.random() * 2) | 0) + 1;
-            items.items.push({ id: BLOCK.BEEF.id, count: rnd_count_beef });
+            drop_item.items.push({ id: BLOCK.BEEF.id, count: rnd_count_beef });
            
             const rnd_count_leather = ((Math.random() * 2) | 0);
             if (rnd_count_leather != 0) {
-                items.items.push({ id: BLOCK.LEATHER.id, count: rnd_count_leather });
+                drop_item.items.push({ id: BLOCK.LEATHER.id, count: rnd_count_leather });
 			}
 
-            actions.addDropItem(items);
+            actions.addDropItem(drop_item);
 
             actions.addPlaySound({ tag: 'madcraft:block.cow', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(owner, actions);
+            await world.applyActions(actor, actions);
         }
     }
 

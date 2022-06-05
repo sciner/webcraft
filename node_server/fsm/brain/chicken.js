@@ -1,6 +1,7 @@
-import {FSMBrain} from "../brain.js";
-import {BLOCK} from "../../../www/js/blocks.js";
-import {Vector} from "../../../www/js/helpers.js";
+import { FSMBrain } from "../brain.js";
+import { BLOCK } from "../../../www/js/blocks.js";
+import { Vector } from "../../../www/js/helpers.js";
+import { PickatActions } from "../../../www/js/block_action.js";
 
 export class Brain extends FSMBrain {
 
@@ -87,22 +88,25 @@ export class Brain extends FSMBrain {
         this.isRotate(1.0);
     }
     
-    onKill(owner, type) {
+    async onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
         let items = [];
         let velocity = new Vector(0,0,0);
-        if (owner != null) {
-            //owner это игрок
-            if (owner.session) {
-                items.push({id: BLOCK.CHICKEN.id, count: 1});
-                const rnd_count_feather = (Math.random() * 2) | 0;
-                if (rnd_count_feather > 0) {
-                    items.push({id: BLOCK.FEATHER.id, count: rnd_count_feather});
-                }
-                velocity = owner.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
+        if (actor != null) {
+            const actions = new PickatActions();
+
+            let drop_item = { pos: mob.pos, items: [] };
+            drop_item.items.push({ id: BLOCK.CHICKEN.id, count: 1 });
+            const rnd_count_feather = (Math.random() * 2) | 0;
+            if (rnd_count_feather > 0) {
+                drop_item.items.push({ id: BLOCK.FEATHER.id, count: rnd_count_feather });
             }
-            world.createDropItems(owner, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
+            actions.addDropItem(drop_item);
+
+            actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+
+            await world.applyActions(actor, actions);
         }
     }
 
