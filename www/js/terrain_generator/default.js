@@ -54,7 +54,7 @@ export class Default_Terrain_Generator {
         return {
             chunk: chunk,
             options: {
-                WATER_LINE: 63, // Ватер-линия
+                WATER_LINE: 100, // Ватер-линия
             },
             info: {
                 cells: cells

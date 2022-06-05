@@ -25,6 +25,7 @@ export class OreGenerator {
         // @todo для каждого блока в чанке считается расстояние до каждого источника руды
         this.ores = [];
         this.noise3d = noise3d;
+<<<<<<< Updated upstream
         const margin = 3;
         let count = Math.round(aleaRandom.double() * 15);
         for(let i = 0; i < count; i++) {
@@ -37,6 +38,42 @@ export class OreGenerator {
                 margin + (CHUNK_SIZE_Z - margin * 2) * aleaRandom.double()
             ).flooredSelf().addSelf(chunk_coord);
             this.ores.push(ore);
+=======
+
+        return;
+
+        for(let y = 0; y < 4; y++) {
+            chunk_coord.y = y * CHUNK_SIZE_Y;
+            let count = Math.floor(aleaRandom.double() * 30);
+            for(let i = 0; i < count; i++) {
+                const index = Math.floor(aleaRandom.double() * MAX_INDEX);
+                let ore_x = index % CHUNK_SIZE_X_SM;
+                let ore_y = index / (CHUNK_SIZE_X_SM * CHUNK_SIZE_Z_SM) | 0;
+                let ore_z = (index % (CHUNK_SIZE_X_SM * CHUNK_SIZE_Z_SM) - ore_x) / CHUNK_SIZE_X_SM;
+                ore_x += MAX_ORE_RAD;
+                ore_y += MAX_ORE_RAD;
+                ore_z += MAX_ORE_RAD;
+                const cell = map.cells[ore_z * CHUNK_SIZE_X + ore_x];
+                if(ore_y + chunk_coord.y < cell.value2) {
+                    const ore_index_seed = aleaRandom.double() * ORE_RANDOMS.length;
+                    const r = Math.floor(ore_index_seed);
+                    const f = ORE_RANDOMS[r];
+                    if(ore_y + chunk_coord.y > f.max_y) {
+                        i--;
+                        continue;
+                    }
+                    const pos = new Vector(ore_x, ore_y, ore_z).addSelf(chunk_coord);
+                    const rad = Math.min(Math.round((ore_index_seed - r) * f.max_rad) + 1, f.max_rad) / 1.5;
+                    const ore = new OreSource(
+                        pos,
+                        rad,
+                        f.block_id,
+                        f.max_y
+                    );
+                    this.ores.push(ore);
+                }
+            }
+>>>>>>> Stashed changes
         }
     }
 

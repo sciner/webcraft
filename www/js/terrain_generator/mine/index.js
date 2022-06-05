@@ -42,7 +42,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
             coord:  addr.mul(size),
             cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
             options: {
-                WATER_LINE: 63, // Ватер-линия
+                WATER_LINE: 100, // Ватер-линия
             }
         };
 

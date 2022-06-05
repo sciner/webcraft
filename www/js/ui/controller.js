@@ -6,6 +6,71 @@ import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 
+import { CubicSpline } from '../../vendors/cubic-spline.js';
+import { MySmooth } from '../../vendors/my-smooth.js';
+
+// Draw grid
+const cnv = document.createElement('canvas');
+cnv.width           = 512;
+cnv.height          = 512;
+cnv.style.background = '#ffffff';
+const ctx = cnv.getContext('2d');
+const x_start = 20;
+document.body.appendChild(cnv);
+// document.getElementById('main-menu').remove();
+
+const S = 2;
+let lines = [0, 50, 100, 150];
+for(let i = 0; i < lines.length; i++) {
+    let y = 210 - lines[i];
+    // console.log(y)
+    ctx.beginPath();
+    ctx.moveTo(x_start * S, y * S);
+    ctx.lineTo(250 * S, y * S); 
+    ctx.strokeStyle = '#00000077';
+    ctx.stroke();
+    ctx.fillText(lines[i] * S, x_start * S, y)
+}
+
+//
+function draw(spline, color) {
+
+    let f = [];
+    for(let i = -10; i <= 10; i += .2) {
+        f.push([
+            i / 10, Math.round((spline.at(i / 10)) * 100) / 100
+        ]);
+    }
+    console.table(f);
+
+    //
+    ctx.beginPath(); // Начинает новый путь
+    let p = f.shift();
+    let x = (1 + p[0]) * 100 + x_start
+    let y = 210 - p[1];
+    ctx.moveTo(x * S, y * S); // Передвигает перо в точку (30, 50)
+    while(f.length) {
+        p = f.shift();
+        let x = (1 + p[0]) * 100 + x_start
+        let y = 210 - p[1];
+        ctx.lineTo(x * S, y * S); 
+    }
+    ctx.strokeStyle = color;
+    ctx.stroke();
+
+}
+
+// new a Spline object
+const xs = [-1, 0.3, 0.4, 1];
+const ys = [50, 100, 150, 150];
+
+const mySmooth = new MySmooth(xs, ys);
+const spline = new CubicSpline(xs, ys);
+
+draw(spline, '#ff0000');
+draw(mySmooth, '#0000ff');
+
+
 function isSupported() {
 
     // we should support webgl2 strictly

@@ -74,6 +74,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.islands                = [];
         this.extruders              = [];
         //
+<<<<<<< Updated upstream
         this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
@@ -134,6 +135,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
             rad: this.islands[0].rad
         });
+=======
+        this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
+>>>>>>> Stashed changes
     }
 
     // Generate
@@ -156,6 +160,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
+<<<<<<< Updated upstream
         const cluster                   = chunk.cluster;
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
 
@@ -170,6 +175,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
         const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);
+=======
+        const plant_pos                 = new Vector(0, 0, 0);
+        
+        let plant_index = 0;
+>>>>>>> Stashed changes
         const has_spiral_staircaes      = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
 
         if(has_spiral_staircaes) {
@@ -181,44 +191,43 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             for(let z = 0; z < size_z; z++) {
 
                 const cell              = map.cells[z * CHUNK_SIZE_X + x];
-                const biome             = cell.biome;
-                const value             = cell.value2;
-                const rnd               = aleaRandom.double();
-                const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
-                const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
+                const value             = cell.value;
                 const dirt_block        = cell.dirt_block_id;
+<<<<<<< Updated upstream
                 const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
 
                 xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
+=======
+                // const rnd               = aleaRandom.double();
+                // const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
+                // const biome             = cell.biome;
+                // const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
+                // const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
+                // const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+>>>>>>> Stashed changes
 
-                if(!has_ocean_blocks && chunk.coord.y > value && !has_voxel_buildings && !has_islands && !has_extruders) {
-                    continue;
-                }
+                //if(chunk.coord.y > value) {
+                //    continue;
+                //}
 
                 for(let y = 0; y < size_y; y++) {
 
                     xyz.y = chunk.coord.y + y;
-
-                    // Draw voxel buildings
-                    if(has_voxel_buildings && this.drawBuilding(xyz, x, y, z, chunk)) {
-                        continue;
-                    }
-
-                    // Islands
-                    if(has_islands && this.drawIsland(xyz, x, y, z, chunk)) {
-                        continue;
-                    }
-
-                    // Remove volume from terrain
-                    if(has_extruders && this.extrude(xyz)) {
-                        continue;
-                    }
 
                     // Exit
                     if(xyz.y >= value) {
                         continue;
                     }
 
+<<<<<<< Updated upstream
+=======
+                    /*
+                    // Clusters
+                    const cluster_padding = 5;
+                    const cellIsOccupied = has_cluster &&
+                        (xyz.y > value - cluster_padding && xyz.y < value + 1);
+
+>>>>>>> Stashed changes
                     // Caves | Пещеры
                     if(has_chunk_cave_lines && !in_ocean) {
                         const line = this.checkIsCaveBlock(xyz, neighbour_lines, value);
@@ -232,14 +241,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
                         }
                     }
+                    */
 
                     // Ores (if this is not water, fill by ores)
                     let block_id = dirt_block;
+                    chunk.setBlockIndirect(x, y, z, block_id);
+
+                    /*
                     if(xyz.y < local_dirt_level) {
                         block_id = this.ores.get(xyz, value);
                     }
                     chunk.setBlockIndirect(x, y, z, block_id);
 
+<<<<<<< Updated upstream
                 }
 
                 // `Y` of waterline
@@ -259,12 +273,41 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             temp_vec.y = vl - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
                         }
+=======
+                    // Plants
+                    if(block_id == dirt_block && xyz.y == value - 1) {
+                        plant_pos.x = x;
+                        plant_pos.z = z;
+                        plant_pos.y = xyz.y + 1;
+                        const plant = map.plants.get(plant_pos);
+                        if(plant) {
+                            const block_id = plant.id;
+                            const extra_data = plant.extra_data || null;
+                            plant_pos.y -= chunk.coord.y;
+                            if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS_TOP.id);
+                            } else {
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);
+                            }
+                        }
+                    }
+                    */
+
+                }
+
+                // waterline
+                for(let y = value; y <= map.options.WATER_LINE; y++) {
+                    if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
+                        chunk.setBlockIndirect(x, y - chunk.coord.y, z, BLOCK_WATER_ID);
+>>>>>>> Stashed changes
                     }
                 }
 
             }
         }
 
+        /*
         if(!chunk.cluster.is_empty) {
             chunk.cluster.fillBlocks(this.maps, chunk, map);
         }
@@ -319,6 +362,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
         }
+        */
 
         return map;
 
@@ -535,6 +579,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     }
 
+<<<<<<< Updated upstream
     //
     intersectChunkWithVoxelBuildings(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;
@@ -743,6 +788,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return false;
     }
 
+=======
+>>>>>>> Stashed changes
     // getTreasureRoomMat
     getTreasureRoomMat(xyz, is_floor, level) {
         if(!is_floor && level == 0) {

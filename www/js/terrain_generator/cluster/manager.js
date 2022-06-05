@@ -22,6 +22,8 @@ export class ClusterManager {
         if(cluster) {
             return cluster;
         }
+        cluster = new ClusterEmpty(this, addr.clone());
+        /*
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(r <= .1) {
@@ -31,6 +33,7 @@ export class ClusterManager {
         } else {
             cluster = new ClusterVilage(this, addr.clone());
         }
+        */
         this.all.set(addr, cluster);
         return cluster;
     }
