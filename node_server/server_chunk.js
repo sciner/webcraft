@@ -125,6 +125,7 @@ class MobGenerator {
         this.types.push({type: 'horse', skin: 'creamy', count: 2});
         this.types.push({type: 'pig', skin: 'base', count: 4});
         this.types.push({type: 'fox', skin: 'base', count: 1});
+        this.types.push({type:  "pouch", skin: 'base', count: 4});
     }
 
     async generate() {
