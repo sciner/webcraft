@@ -6,9 +6,10 @@ export class DieWindow extends Window {
 
     zoom = UI_ZOOM;
 
-    constructor(x, y, w, h, id, title, text) {
+    constructor() {
 
-        super(x, y, w, h, id, title, text);
+        super(10, 10, 352, 332, 'frmDie', null, null);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
 

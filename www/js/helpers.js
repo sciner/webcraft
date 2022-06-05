@@ -5,9 +5,6 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
-export const SNEAK_MINUS_Y_MUL      = 0.2; // decrease player height to this percent value
-export const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
-
 export const CAMERA_MODE = {
     COUNT: 3,
     SHOOTER: 0,
@@ -16,18 +13,6 @@ export const CAMERA_MODE = {
 };
 
 export const TX_CNT = 32;
-
-/*Object.defineProperty(String.prototype, 'hashCode', {
-    value: function() {
-        var hash = 0, i, chr;
-        for (i = 0; i < this.length; i++) {
-            chr   = this.charCodeAt(i);
-            hash  = ((hash << 5) - hash) + chr;
-            hash |= 0; // Convert to 32bit integer
-        }
-        return hash;
-    }
-});*/
 
 /**
  * Lerp any value between

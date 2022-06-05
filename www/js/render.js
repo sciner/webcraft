@@ -1,11 +1,13 @@
 "use strict";
 
-import {Mth, MOB_EYE_HEIGHT_PERCENT, SNEAK_MINUS_Y_MUL, CAMERA_MODE, Color, DIRECTION, Helpers, Vector, VectorCollector} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
+
+// Particles
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
@@ -15,10 +17,10 @@ import Particles_Clouds from "./particles/clouds.js";
 import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
-import { World } from "./world.js";
-import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js";
+import { Environment, PRESET_NAMES } from "./environment.js";
+import { RAINDROP_NEW_INTERVAL } from "./constant.js";
 
-const {mat4, quat, vec3} = glMatrix;
+const {mat4} = glMatrix;
 
 /**
 * Renderer
@@ -82,9 +84,6 @@ export class Renderer {
     }
 
     nextCameraMode() {
-        if(!this.world.players.get('itsme')) {
-            this.world.players.createMyModel(this.player);
-        }
         this.camera_mode = ++this.camera_mode % CAMERA_MODE.COUNT;
     }
 
@@ -533,7 +532,7 @@ export class Renderer {
 
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
-            const power = block.light_power_number; // BLOCK.getLightPower(block);
+            const power = block.light_power_number;
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
             globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
@@ -668,9 +667,8 @@ export class Renderer {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(() => {
-                    let pos = this.player.pos;
-                    this.rainDrop(new Vector(pos.x, pos.y, pos.z));
-                }, 25);
+                    this.rainDrop(this.player.pos.clone());
+                }, RAINDROP_NEW_INTERVAL);
             }
         } else {
             if(this.rainTim) {
@@ -688,21 +686,10 @@ export class Renderer {
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(id == 'itsme' && this.camera_mode == CAMERA_MODE.SHOOTER) {
-                continue;
-            }
             if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
                 continue;
             }
-            if(player.username != Game.App.session.username) {
-                if(!player.prev_pos) {
-                    player.prev_pos = player.pos.clone();
-                    continue;
-                }
-                const speed = Helpers.calcSpeed(player.prev_pos, player.pos, delta / 1000);
-                player.prev_pos.copyFrom(player.pos);
-                player.draw(this, this.camPos, delta, speed);
-            }
+            player.draw(this, this.camPos, delta);
         }
     }
 
@@ -778,7 +765,9 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
+        
         const tmp = mat4.create();
+        
         // Shake camera on damage
         if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
             let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
@@ -829,32 +818,7 @@ export class Renderer {
             }
             const safe_margin = -.1;
             cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
-
             cam_pos.copyFrom(cam_pos_new);
-
-            // get player model
-            const itsme = Game.world.players.get('itsme');
-            if(itsme) {
-                itsme.pos.copyFrom(pos);
-                itsme.pos.y -= itsme.height * MOB_EYE_HEIGHT_PERCENT;
-                if(player.isSneak) {
-                    itsme.pos.y += itsme.height * SNEAK_MINUS_Y_MUL;
-                }
-                // rotate
-                itsme.yaw = rotate.z; // around
-                itsme.pitch = rotate.x; // head rotate
-                //
-                itsme.hide_nametag = true;
-                itsme.sneak = player.isSneak;
-                itsme.moving = player.moving && !player.getFlying();
-                //
-                const current_right_hand_id = player.currentInventoryItem?.id;
-                if(this.prev_current_id != current_right_hand_id) {
-                    this.prev_current_id = current_right_hand_id;
-                    itsme.activeSlotsData.right.id = current_right_hand_id;
-                    itsme.changeSlots(itsme.activeSlotsData);
-                }
-            }
         }
 
         this.camera.set(cam_pos, cam_rotate, tmp);
@@ -864,38 +828,37 @@ export class Renderer {
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {
-        if(player && player.walking && !player.getFlying() && !player.in_water ) {
-            let p_109140_ = player.walking_frame * 2 % 1;
-            //
-            let f = player.walkDist - player.walkDistO;
-            let f1 = -(player.walkDist + f * p_109140_);
-            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            //
-            let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
-            let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
-            let m = Math.PI / 180;
 
-            if (!forDrop) {
+        let p_109140_ = player.walking_frame * 2 % 1;
+        //
+        let f = player.walkDist - player.walkDistO;
+        let f1 = -(player.walkDist + f * p_109140_);
+        let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+        //
+        let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
+        let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
+        let m = Math.PI / 180;
 
-                mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
-                mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+        if (!forDrop) {
 
-                mat4.translate(viewMatrix, viewMatrix, [
-                    Mth.sin(f1 * Math.PI) * f2 * 0.5,
-                    0.0,
-                    -Math.abs(Mth.cos(f1 * Math.PI) * f2),
-                ]);
-            } else {
-                mat4.translate(viewMatrix, viewMatrix, [
-                    Mth.sin(f1 * Math.PI) * f2 * 0.25,
-                    -Math.abs(Mth.cos(f1 * Math.PI) * f2) * 1,
-                    0.0,
-                ]);
-            }
-            if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
-                this.step_side = viewMatrix[1];
-                player.onStep(this.step_side);
-            }
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+
+            mat4.translate(viewMatrix, viewMatrix, [
+                Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                0.0,
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
+            ]);
+        } else {
+            mat4.translate(viewMatrix, viewMatrix, [
+                Mth.sin(f1 * Math.PI) * f2 * 0.25,
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2) * 1,
+                0.0,
+            ]);
+        }
+        if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
+            this.step_side = viewMatrix[1];
+            player.onStep(this.step_side);
         }
     }
 

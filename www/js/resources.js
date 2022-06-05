@@ -1,7 +1,7 @@
-import "./../vendors/gl-matrix-3.3.min.js";
 import { Helpers } from "./helpers.js";
 
 export class Resources {
+
     static async getModelAsset(key) {
         if (!this.models[key]) {
             return;

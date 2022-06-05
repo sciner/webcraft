@@ -3,8 +3,9 @@ import { BaseChestWindow } from "./base_chest_window.js";
 
 export class FurnaceWindow extends BaseChestWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
-        super(x, y, w, h, id, title, text, inventory, {
+    constructor(inventory) {
+
+        super(10, 10, 352, 332, 'frmFurnace', null, null, inventory, {
             title: 'Furnace',
             background: {
                 image: './media/gui/form-furnace.png',
@@ -22,6 +23,7 @@ export class FurnaceWindow extends BaseChestWindow {
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
         });
+
     }
 
     //

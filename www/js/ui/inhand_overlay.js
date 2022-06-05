@@ -71,9 +71,10 @@ export class InHandOverlay {
     }
 
     bobViewItem(player, viewMatrix) {
-        if(!player || !player.walking  || player.getFlying()  || player.in_water ) {
-            return;
-        }
+        
+        //if(!player || !player.walking  || player.getFlying()  || player.in_water ) {
+        //    return;
+        //}
 
         let p_109140_ = player.walking_frame * 2 % 1;
         //
@@ -81,10 +82,18 @@ export class InHandOverlay {
         let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
         let f1 = -(player.walkDist * speed_mul + f * p_109140_);
         let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+
+        let RotateAngleX = Math.sin(f1 * Math.PI) * f2 * 1.0
+        let RotateAngleY = -Math.abs(Math.cos(f1 * Math.PI) * f2) * 1;
+
+        // Движение при дыхании
+        const ageInTicks = Math.sin(performance.now() / 1000) * 2;
+        RotateAngleX += Math.sin(ageInTicks * 0.067) * 0.15;
+        RotateAngleY += Math.cos(ageInTicks * 0.09) * 0.15 + 0.15;
     
         mat4.translate(viewMatrix, viewMatrix, [
-            Math.sin(f1 * Math.PI) * f2 * 1.0,
-            -Math.abs(Math.cos(f1 * Math.PI) * f2) * 1,
+            RotateAngleX,
+            RotateAngleY,
             0.0,
         ]);
     
@@ -92,14 +101,15 @@ export class InHandOverlay {
 
     update(render, dt) {
 
-        //dt /= 16.6;
-
         const {
             player, renderBackend, camera
         } = render;
 
         this.camera.width = camera.width;
         this.camera.height = camera.height;
+
+        // const itsme = Game.player.getModel()
+        // this.mineTime = itsme.swingProgress;
 
         if (player.inMiningProcess || this.mineTime > dt * 2 / RENDER_DEFAULT_ARM_HIT_PERIOD) {
             this.mineTime += dt / RENDER_DEFAULT_ARM_HIT_PERIOD;

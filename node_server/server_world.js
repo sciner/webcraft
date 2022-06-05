@@ -24,8 +24,11 @@ export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
-    constructor() { }
     temp_vec = new Vector();
+
+    constructor() {
+        this.block_manager = BLOCK;
+    }
 
     get serverTime() {
         return Date.now() + SERVE_TIME_LAG;

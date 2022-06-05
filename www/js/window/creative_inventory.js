@@ -131,11 +131,13 @@ class CreativeInventoryCollection extends Window {
 
 }
 
+// CreativeInventoryWindow...
 export class CreativeInventoryWindow extends Window {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+    constructor(inventory) {
 
-        super(x, y, w, h, id, title, text);
+        super(10, 10, 390, 416, 'frmCreativeInventory', null, null);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
 

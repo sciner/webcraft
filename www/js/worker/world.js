@@ -10,9 +10,9 @@ export class WorkerWorldManager {
 
     async InitTerrainGenerators(generator_codes) {
         // generator_codes = ['biome2', 'city', 'city2', 'flat'];
-        let that = this;
+        const that = this;
         that.terrainGenerators = new Map();
-        let all = [];
+        const all = [];
         // Load terrain generators
         for(let tg_code of generator_codes) {
             all.push(import('../terrain_generator/' + tg_code + '/index.js').then((module) => {
@@ -25,14 +25,14 @@ export class WorkerWorldManager {
     async add(g, seed, world_id) {
         const generator_options = g?.options || {};
         const generator_id = g.id;
-        let key = generator_id + '/' + seed;
+        const key = generator_id + '/' + seed;
         if(this.list.has(key)) {
             return this.list.get(key);
         }
         let generator = this.terrainGenerators.get(generator_id);
         generator = new generator(seed, world_id, generator_options);
         await generator.init();
-        let world = new WorkerWorld(generator);
+        const world = new WorkerWorld(generator);
         this.list.set(key, world);
         return world;
     }
