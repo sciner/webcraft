@@ -1,9 +1,10 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector, SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
+import { SNEAK_MINUS_Y_MUL } from "./constant.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -209,9 +210,11 @@ export class MobAnimator extends Animator {
         }
 
         // Mob legs animation
+        console.log(animable.running)
+        const speed_mul      = animable.running ? 1.5 : (animable.sneak ? .5 : 1); // speed / 15.5;
         const anim_speed      = 122.5;
-        const max_anim_angle  = Math.PI / 4 * (animable.sneak ? .5 : 1);
-        const speed_delta     = typeof speed === 'undefined' ? delta : delta * (speed / 15.5);
+        const max_anim_angle  = Math.PI / 4 * speed_mul;
+        const speed_delta     = typeof speed === 'undefined' ? delta : delta * speed_mul;
 
         if(animable.moving) {
             // @IMPORTANT minus to make the character start walking on the right foot
@@ -314,23 +317,48 @@ export class MobAnimation {
         // shake arms
         // Движение рук от дыхания
         if(isArm) {
+
             const isLeftArm = index % 2 == 0;
             const ageInTicks = (index * 1500 + performance.now()) / 50;
-            let RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
-            let RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05; // straith/back
-            let RotateAngleY = 0;
+            
+            let RotateAngleX = 0; // forward/back
+            let RotateAngleY = 0; // left/right
+            let RotateAngleZ = 0;
 
-            if(!isLeftArm) {
-                // Удар правой руки
-                let inv = this.swingProgress;
+            // Атака правой руки
+            if(!isLeftArm && this.isSwingInProgress) {
+                
+                // анимация от третьего лица
+                const swingProgress = this.swingProgress;
+                let inv = Math.sin(swingProgress * Math.PI);
                 let sp = inv * inv;
                 let s1 = Math.sin(sp);
-                let s2 = Math.sin(this.swingProgress);
-                RotateAngleX -= s1 * .8 + s2 * .5;
-                RotateAngleY = Math.sin(Math.sqrt(sp) * Math.PI) * .4;
+                let s2 = Math.sin(inv);
+                RotateAngleX -= (s1 * .8 + s2 * .5);
+                RotateAngleY = Math.sin(Math.sqrt(swingProgress) * Math.PI) * .4;
                 RotateAngleZ = s2 * -.4;
-                // RotationPointX = -4 * sp; // -6
-                // RotationPointY = -4 * sp; // -6
+
+                /*
+                // анимация установки блока от первого лица
+                const attackTime = this.swingProgress;
+                const body = {yRot: 0};
+                const head = {xRot: 0};
+                let f = attackTime;
+                f = 1.0 - attackTime;
+                f *= f;
+                f *= f;
+                f = 1.0 - f;
+                let f1 = Math.sin(f * Math.PI);
+                let f2 = Math.sin(attackTime * Math.PI) * -(head.xRot - 0.7) * 0.75;
+                RotateAngleX -= f1 * 1.2 + f2;
+                RotateAngleY += body.yRot * 2.0;
+                RotateAngleZ += Math.sin(attackTime * Math.PI) * -0.4;
+                */
+
+
+            } else {
+                RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
+                RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05;
             }
 
             // if zombie then RotateAngleX -= 1.5;
@@ -349,6 +377,36 @@ export class MobAnimation {
 
         part.updateMatrix();
     }
+
+    /*
+    setupAttackAnimation(T p_102858_, float p_102859_) {
+        if (!(this.attackTime <= 0.0F)) {
+           HumanoidArm humanoidarm = this.getAttackArm(p_102858_);
+           ModelPart modelpart = this.getArm(humanoidarm);
+           float f = this.attackTime;
+           this.body.yRot = Mth.sin(Mth.sqrt(f) * ((float)Math.PI * 2F)) * 0.2F;
+           if (humanoidarm == HumanoidArm.LEFT) {
+              this.body.yRot *= -1.0F;
+           }
+  
+           this.rightArm.z = Mth.sin(this.body.yRot) * 5.0F;
+           this.rightArm.x = -Mth.cos(this.body.yRot) * 5.0F;
+           this.leftArm.z = -Mth.sin(this.body.yRot) * 5.0F;
+           this.leftArm.x = Mth.cos(this.body.yRot) * 5.0F;
+           this.rightArm.yRot += this.body.yRot;
+           this.leftArm.yRot += this.body.yRot;
+           this.leftArm.xRot += this.body.yRot;
+           f = 1.0F - this.attackTime;
+           f *= f;
+           f *= f;
+           f = 1.0F - f;
+           float f1 = Mth.sin(f * (float)Math.PI);
+           float f2 = Mth.sin(this.attackTime * (float)Math.PI) * -(this.head.xRot - 0.7F) * 0.75F;
+           modelpart.xRot -= f1 * 1.2F + f2;
+           modelpart.yRot += this.body.yRot * 2.0F;
+           modelpart.zRot += Mth.sin(this.attackTime * (float)Math.PI) * -0.4F;
+        }
+    }*/
 
     body({
         part, index, aniangle, animable

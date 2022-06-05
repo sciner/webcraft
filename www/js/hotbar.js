@@ -1,8 +1,8 @@
-import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
+//
 const LIVE_SHIFT_RANDOM = new Array(1024);
 for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
     LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
@@ -97,7 +97,7 @@ export class Hotbar {
         // Draw item name in hotbar
         let currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
-            let itemTitle = BLOCK.getBlockTitle(currentInventoryItem);
+            let itemTitle = player.world.block_manager.getBlockTitle(currentInventoryItem);
             if(itemTitle != this.itemTitleO) {
                 this.itemTitleO = itemTitle;
                 this.itemTitleChangeTime = performance.now();

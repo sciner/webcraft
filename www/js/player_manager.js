@@ -1,4 +1,3 @@
-import {Helpers} from "./helpers.js";
 import {PlayerModel} from "./player_model.js";
 import {ServerClient} from "./server_client.js";
 
@@ -46,6 +45,7 @@ export class PlayerManager {
 
         this.list.set(data.id, player);
         this.setState(cmd);
+        player.netBuffer.length = 0;
     }
 
     // getPlayer
@@ -85,9 +85,12 @@ export class PlayerManager {
 
     //
     createMyModel(player) {
-        this.list.set('itsme', new PlayerModel({
-            id:             'itsme',
-            username:       'itsme',
+        /*
+        const id = 'itsme';
+        this.list.set(id, this.list.get(Game.player.session.user_id));
+        this.list.set(id, new PlayerModel({
+            id:             id,
+            username:       id,
             rotate:         player.rotate.clone(),
             pos:            player.pos.clone(),
             pitch:          player.rotate.x,
@@ -95,7 +98,7 @@ export class PlayerManager {
             skin:           Game.skin.id,
             sneak:          player.isSneak,
             hands:          {left: {id: null}, right: {id: player.currentInventoryItem?.id}}
-        }));
+        }));*/
     };
 
 }

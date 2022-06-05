@@ -6,15 +6,16 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory, recipes) {
+    constructor(inventory, recipes) {
 
-        super(x, y, w, h, id, title, text);
+        super(0, 0, 352, 332, 'frmCraft', null, null);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
-        this.recipes = recipes;
         this.inventory = inventory;
+        this.recipes = recipes;
 
         // Craft area
         this.area = {

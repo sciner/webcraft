@@ -1,5 +1,4 @@
 import {Resources} from "./resources.js";
-import {Helpers} from "./helpers.js";
 
 export class Sounds {
 

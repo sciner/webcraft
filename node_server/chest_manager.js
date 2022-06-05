@@ -18,7 +18,7 @@ export class ChestManager {
      * @returns Chest|null
      */
     async get(pos) {
-        let tblock = this.world.getBlock(pos);
+        const tblock = this.world.getBlock(pos);
         if(!tblock || tblock.id < 1) {
             throw 'error_chest_not_found';
         }
@@ -53,9 +53,9 @@ export class ChestManager {
         }
 
         // Compare server state and new state from player
-        let old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
-        let new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
-        let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
+        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
+        const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
+        const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
 
         //
         if(equal) {

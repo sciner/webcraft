@@ -24,7 +24,7 @@ export class WorldAdminManager {
         if (player.session.user_id == this.world.info.user_id) {
             return true;
         }
-        let i = this.isUsernameExist(player.session.username);
+        const i = this.isUsernameExist(player.session.username);
         return i >= 0;
     }
 
@@ -33,7 +33,7 @@ export class WorldAdminManager {
         if(!this.checkIsAdmin(player)) {
             return null;
         }
-        let user = await this.world.db.findPlayer(this.world.info.id, username);
+        const user = await this.world.db.findPlayer(this.world.info.id, username);
         if (!user) {
             return null;
         }
@@ -46,7 +46,7 @@ export class WorldAdminManager {
         if(!this.checkIsAdmin(player)) {
             throw 'Not permitted';
         }
-        let user = await this.world.db.findPlayer(this.world.info.id, username);
+        const user = await this.world.db.findPlayer(this.world.info.id, username);
         if (!user) {
             throw 'User not found';
         }

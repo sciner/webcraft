@@ -39,7 +39,7 @@ export class Mob {
 
     //
     static convertRowToExtraData(row) {
-        let extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
+        const extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
         extra_data.is_alive = !!row.is_active;
         if(!('play_death_animation' in extra_data)) {
             extra_data.play_death_animation = true;

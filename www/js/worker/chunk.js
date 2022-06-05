@@ -380,18 +380,18 @@ export class Chunk {
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        let dirty_rad = DIRTY_REBUILD_RAD;
+        const dirty_rad = DIRTY_REBUILD_RAD;
         let cnt = 0;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
                 for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
-                    let x = pos.x + cx;
-                    let y = pos.y + cy;
-                    let z = pos.z + cz;
+                    const x = pos.x + cx;
+                    const y = pos.y + cy;
+                    const z = pos.z + cz;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        let pos = new Vector(x, y, z);
+                        const pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
-                            let block = this.tblocks.get(pos);
+                            const block = this.tblocks.get(pos);
                             if(block.material.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;

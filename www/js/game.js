@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer, Mth, VectorCollector} from "./helpers.js";
+import {Vector, AverageClockTimer} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -50,7 +50,7 @@ export class GameClass {
 
         await Promise.all([resourceTask, blockTask]);
 
-        this.world.init(settings);
+        this.world.init(settings, BLOCK);
 
         // Create world
         await this.render.init(this.world, settings);
@@ -64,10 +64,9 @@ export class GameClass {
 
     // Started...
     Started(player) {
-        this.sounds             = new Sounds();
         this.player             = player;
+        this.sounds             = new Sounds();
         this.averageClockTimer  = new AverageClockTimer();
-        this.block_manager      = BLOCK;
         this.prev_player_state  = null;
         //
         this.render.setPlayer(player);

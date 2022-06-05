@@ -7,17 +7,13 @@ import {BLOCK} from "./blocks.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
+import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {DieWindow, QuestWindow, StatsWindow} from "./window/index.js";
-import { RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
-
-// import {MOB_EYE_HEIGHT_PERCENT} from "./mob_model.js";
-const MOB_EYE_HEIGHT_PERCENT = 1 - 1/16;
+import { MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
-const PLAYER_HEIGHT                     = 1.7;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 const SNEAK_HEIGHT                      = 6/16; // in blocks
@@ -58,9 +54,7 @@ export class Player {
                 this.setFlying(true);
             }
         };
-        this._prevActionTime        = performance.now();
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
-        this._eye_pos               = new Vector(0, 0, 0);
         // Position
         this._height                = PLAYER_HEIGHT;
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
@@ -68,6 +62,8 @@ export class Player {
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         this._block_pos             = new Vector(0, 0, 0);
+        this._eye_pos               = new Vector(0, 0, 0);
+        this.#forward               = new Vector(0, 0, 0);
         this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
         this.chunkAddr              = getChunkAddr(this.pos);
@@ -75,40 +71,7 @@ export class Player {
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
-        this.#forward               = new Vector(0, 0, 0);
-        // Inventory
-        this.inventory              = new PlayerInventory(this, Game.hud);
-        this.inventory.onSelect     = (item) => {
-            // Вызывается при переключении активного слота в инвентаре
-            if(this.pickAt) {
-                this.pickAt.resetProgress();
-            }
-            this.world.server.InventorySelect(this.inventory.current);
-            Game.hud.refresh();
-        };
-        this.inventory.setState(data.inventory);
-        Game.hotbar.setInventory(this.inventory);
-        // pickAt
-        this.pickAt                 = new PickAt(this.world, Game.render, async (...args) => {
-            return await this.onPickAtTarget(...args);
-        }, async (e) => {
-            // onInterractMob
-            let mob = Game.world.mobs.list.get(e.interractMob);
-            if(mob) {
-                mob.punch(e);
-                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-                this.world.server.Send({
-                    name: ServerClient.CMD_PICKAT_ACTION,
-                    data: e
-                });
-            }
-        });
-        // Player control
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});
-        this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
-        // Chat
-        this.chat                   = new Chat(this);
-        //
+        // State
         this.falling                = false; // падает
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
@@ -127,8 +90,14 @@ export class Player {
         this.oBob                   = 0;
         this.overChunk              = null;
         this.step_count             = 0;
-        // Controls
+        this._prevActionTime        = performance.now();
+        //
+        this.inventory              = new PlayerInventory(this, data.inventory, Game.hud);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
+        this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
+        this.chat                   = new Chat(this);
         this.controls               = new PlayerControl();
+        this.windows                = new PlayerWindowManager(this);
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
@@ -156,15 +125,21 @@ export class Player {
             this.indicators = cmd.data.indicators;
             Game.hud.refresh();
         });
-        // Quests
-        this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
-        Game.hud.wm.add(this.frmQuests);
-        // Stats
-        this.frmStats = new StatsWindow(this);
-        Game.hud.wm.add(this.frmStats);
-        // Die
-        this.frmDie = new DieWindow(10, 10, 352, 332, 'frmDie', null, null, this);
-        Game.hud.wm.add(this.frmDie);
+        // pickAt
+        this.pickAt = new PickAt(this.world, Game.render, async (...args) => {
+            return await this.onPickAtTarget(...args);
+        }, async (e) => {
+            // onInterractMob
+            let mob = Game.world.mobs.list.get(e.interractMob);
+            if(mob) {
+                mob.punch(e);
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e
+                });
+            }
+        });
         return true;
     }
 
@@ -285,7 +260,9 @@ export class Player {
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
-            this.startArmSwingProgress();
+            if(e.button_id == 1) {
+                this.startArmSwingProgress();
+            }
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
@@ -358,7 +335,7 @@ export class Player {
             if(e.createBlock && actions.blocks.list.length > 0) {
                 this.startArmSwingProgress();
             }
-            await this.applyActions(actions);
+            await this.world.applyActions(actions, this);
             e_orig.actions = {blocks: actions.blocks};
             e_orig.eye_pos = this.getEyePos();
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
@@ -368,71 +345,6 @@ export class Player {
             });
         }
         return true;
-    }
-
-    // Apply pickat actions
-    async applyActions(actions) {
-        // console.log(actions.id);
-        if(actions.open_window) {
-            this.clearEvents();
-            let args = null;
-            let window_id = actions.open_window;
-            if(typeof actions.open_window == 'object') {
-                window_id = actions.open_window.id;
-                args = actions.open_window.args;
-            }
-            const w = Game.hud.wm.getWindow(window_id);
-            if(w) {
-                w.show(args);
-            } else {
-                console.error('error_window_not_found', actions.open_window);
-            }
-        }
-        if(actions.error) {
-            console.error(actions.error);
-        }
-        if(actions.load_chest) {
-            this.clearEvents();
-            Game.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
-        }
-        if(actions.play_sound) {
-            for(let item of actions.play_sound) {
-                Game.sounds.play(item.tag, item.action);
-            }
-        }
-        if(actions.reset_target_pos) {
-            this.pickAt.resetTargetPos();
-        }
-        if(actions.reset_target_event) {
-            this.pickAt.clearEvent();
-        }
-        if(actions.clone_block /* && this.game_mode.canBlockClone()*/) {
-            this.world.server.CloneBlock(actions.clone_block);
-        }
-        if(actions.blocks && actions.blocks.list) {
-            for(let mod of actions.blocks.list) {
-                //
-                const tblock = Game.world.getBlock(mod.pos);
-                if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
-                    const destroy_data = {
-                        pos: mod.pos,
-                        item: {id: tblock.id}
-                    };
-                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
-                }
-                //
-                switch(mod.action_id) {
-                    case ServerClient.BLOCK_ACTION_CREATE:
-                    case ServerClient.BLOCK_ACTION_REPLACE:
-                    case ServerClient.BLOCK_ACTION_MODIFY:
-                    case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.world.chunkManager.torches.delete(mod.pos);
-                        this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     // Ограничение частоты выполнения данного действия
@@ -458,8 +370,8 @@ export class Player {
 
     // getCurrentInstrument
     getCurrentInstrument() {
-        let currentInventoryItem = this.currentInventoryItem;
-        let instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
+        const currentInventoryItem = this.currentInventoryItem;
+        const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
         if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
             // instrument = new Instrument_Hand();
         }
@@ -468,7 +380,7 @@ export class Player {
 
     // changeSpawnpoint
     changeSpawnpoint() {
-        let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
+        const pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
         this.world.server.SetPosSpawn(pos);
     }
 
@@ -490,7 +402,7 @@ export class Player {
     //
     setPosition(vec) {
         //
-        let pc = this.getPlayerControl();
+        const pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
         pc.player_state.pos.copyFrom(vec);
         pc.player_state.onGround = false;
@@ -577,17 +489,22 @@ export class Player {
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
+            // Update player model
+            this.getModel()?.setProps(
+                this.lerpPos,
+                this.rotate,
+                this.controls.sneak,
+                this.moving, // && !this.getFlying(),
+                this.running && !this.isSneak,
+                this.state.hands
+            );
             // Check falling
             this.checkFalling();
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
-            if(this.walking && this.onGround) {
-                this.walking_frame += (this.in_water ? .2 : 1) * delta;
-            }
             this.prev_walking = this.walking;
             // Walking distance
             this.walkDistO = this.walkDist;
-            this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
             //
             this.oBob = this.bob;
             let f = 0;
@@ -597,7 +514,17 @@ export class Player {
             //} else {
                 //   f = 0.0F;
             //}
-            this.bob += (f - this.bob) * 0.4
+            if(this.walking && this.onGround) {
+                // remove small arm movements when landing
+                if(this.onGroundO != this.onGround) {
+                    this.block_walking_ticks = 10;
+                }
+                if(!this.block_walking_ticks || --this.block_walking_ticks == 0) {
+                    this.walking_frame += (this.in_water ? .2 : 1) * delta;
+                    this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
+                    this.bob += (f - this.bob) * 0.04
+                }
+            }
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
@@ -606,7 +533,7 @@ export class Player {
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится голова (в идеале глаза)
-            let hby                 = this.pos.y + this.height;
+            const hby                 = this.pos.y + this.height;
             this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
             this.eyes_in_water_o    = this.eyes_in_water;
             this.eyes_in_water      = this.headBlock.material.is_fluid ? this.headBlock.material : null;
@@ -622,6 +549,10 @@ export class Player {
             Game.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
         }
         this.lastUpdate = performance.now();
+    }
+
+    getModel() {
+        return Game.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
@@ -677,7 +608,7 @@ export class Player {
 
     // Start arm swing progress
     startArmSwingProgress() {
-        const itsme = Game.world.players.get('itsme');
+        const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
         }
