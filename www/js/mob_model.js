@@ -210,7 +210,6 @@ export class MobAnimator extends Animator {
         }
 
         // Mob legs animation
-        console.log(animable.running)
         const speed_mul      = animable.running ? 1.5 : (animable.sneak ? .5 : 1); // speed / 15.5;
         const anim_speed      = 122.5;
         const max_anim_angle  = Math.PI / 4 * speed_mul;

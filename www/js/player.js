@@ -490,14 +490,18 @@ export class Player {
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
             // Update player model
-            this.getModel()?.setProps(
-                this.lerpPos,
-                this.rotate,
-                this.controls.sneak,
-                this.moving, // && !this.getFlying(),
-                this.running && !this.isSneak,
-                this.state.hands
-            );
+            const model = this.getModel();
+            if(model) {
+                model.hide_nametag = true;
+                model.setProps(
+                    this.lerpPos,
+                    this.rotate,
+                    this.controls.sneak,
+                    this.moving, // && !this.getFlying(),
+                    this.running && !this.isSneak,
+                    this.state.hands
+                );
+            }
             // Check falling
             this.checkFalling();
             // Walking

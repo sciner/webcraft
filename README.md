@@ -40,7 +40,7 @@ Game.player.setRotate({x: 0, y: 0, z: 0});
 Game.player.chat.sendMessage('Hello, World!');
 
 // Get all supported blocks
-let blocks = Game.block_manager.getAll();
+let blocks = Game.world.block_manager.getAll();
 
 // Change game mode
 Game.world.server.GameModeSet('creative'); // survival|creative|adventure|spectator
