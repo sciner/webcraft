@@ -367,7 +367,7 @@ export class MobAnimation {
 
             // hands up if zombie
             if(isZombie) {
-                RotateAngleX -= 1.5;
+                RotateAngleX -= 1.7;
             }
 
             quat.rotateX(part.quat, part.quat, RotateAngleX);
