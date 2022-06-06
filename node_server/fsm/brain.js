@@ -205,8 +205,9 @@ export class FSMBrain {
         });
         this.applyControl(delta);
         this.sendState();
+
         let time = performance.now() - this.panicTime;
-        if (time > 3000) {
+        if (time > 3000 || this.checkDangerAhead()) {
             this.run = false;
             this.isStand(1.0);
         }
@@ -244,6 +245,9 @@ export class FSMBrain {
         this.sendState();
 
         if (this.checkDangerAhead()) {
+            if (this.isStand(0.5)) {
+                return;
+			}
             this.isRotate(1.0);
             return;
 		}
@@ -316,7 +320,7 @@ export class FSMBrain {
         }
 
         //Боится стихий
-        if (world.getBlock(pos_legs).material.is_fluid || world.getBlock(pos_legs).material.is_fire) {
+        if (world.getBlock(pos_legs).material.is_fire) {
             return true;
         }
 
