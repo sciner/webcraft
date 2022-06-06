@@ -54,11 +54,7 @@ export class Brain extends FSMBrain {
     // Chasing a player
     async doCatch(delta) {
 
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
+        
 
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
@@ -72,6 +68,8 @@ export class Brain extends FSMBrain {
             return this.lostTarget();
         }
 
+        this.mob.rotate.z = this.angleTo(player.state.pos);
+
         if (dist < DISTANCE_DETONATION) {
             this.detonationTime = performance.now();
             mob.extra_data.detonation_started = true;
@@ -83,9 +81,11 @@ export class Brain extends FSMBrain {
             this.stack.replaceState(this.doTimerDetonation);
         }
 
-        if (Math.random() < 0.5) {
-            this.mob.rotate.z = this.angleTo(player.state.pos);
-        }
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
 
         this.applyControl(delta);
         this.sendState();
