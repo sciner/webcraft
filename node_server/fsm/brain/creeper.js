@@ -102,14 +102,18 @@ export class Brain extends FSMBrain {
 
     //
     doTimerDetonation(delta) {
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        this.mob.rotate.z = this.angleTo(player.state.pos);
+
         this.updateControl({
-            jump: this.checkInWater(),
-            forward: false
+            yaw: this.mob.rotate.z,
+            forward: false,
+            jump: this.checkInWater()
         });
         this.applyControl(delta);
         this.sendState();
-        const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
+        
         if(!player || !player.game_mode.getCurrent().can_take_damage) {
             return this.lostTarget();
         }
