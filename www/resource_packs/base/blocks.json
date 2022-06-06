@@ -2108,7 +2108,7 @@
         "name": "MELON_STEM",
         "passable": 1,
         "transparent": true,
-        "style": "planting",
+        "style": "extruder",
         "material": {
             "id": "plant"
         },
@@ -2183,9 +2183,9 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            13,
-            9
+        "texture": [13, 9],
+        "tags": [
+            "no_drop_ao"
         ]
     },
     {
@@ -3774,7 +3774,7 @@
         "texture_animations": {
             "side": 18
         },
-        "spawnable": false
+        "spawnable": true
     },
     {
         "id": 550,
@@ -4705,7 +4705,7 @@
         ],
         "texture": {
             "id": "default",
-            "side": [19, 10]
+            "side": [21, 19]
         }
     },
     {

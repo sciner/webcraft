@@ -608,12 +608,13 @@ export class ChunkManager {
 
     //
     setTestBlocks(pos) {
-        let d = 10;
+        let d = 16;
         let cnt = 0;
         let startx = pos.x;
         let all_blocks = BLOCK.getAll();
-        for(let block of all_blocks) {
-            if(block.is_fluid || block.item || !block.spawnable) {
+        const set_block_list = [];
+        for(let mat of all_blocks) {
+            if(mat.deprecated || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || mat.style == 'extruder' || mat.style == 'text') {
                 continue;
             }
             if(cnt % d == 0) {
@@ -621,9 +622,37 @@ export class ChunkManager {
                 pos.z += 2;
             }
             pos.x += 2;
-            this.setBlock(pos.x, pos.y, pos.z, block, true, null, null, null, block.extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+            const item = {
+                id:         mat.id,
+                extra_data: null,
+                rotate:     mat.id
+            };
+            if(mat.is_chest) {
+                item.extra_data = { can_destroy: true, slots: {} };
+            } else if(mat.tags.indexOf('sign') >= 0) {
+                item.extra_data = {
+                    text: 'Hello, World!',
+                    username: 'Server',
+                    dt: new Date().toISOString()
+                };
+            } else if(mat.extra_data) {
+                item.extra_data = mat.extra_data;
+            }
+            if(mat.can_rotate) {
+                item.rotate = new Vector(0, 1, 0);
+            }
+            set_block_list.push({
+                pos:        pos.clone(),
+                type:       item,
+                is_modify:  false,
+                power:      null,
+                rotate:     item.rotate,
+                extra_data: item.extra_data
+            });
+            // this.setBlock(pos.x, pos.y, pos.z, mat, true, null, item.rotate, null, item.extra_data, ServerClient.BLOCK_ACTION_CREATE);
             cnt++;
         }
+        this.postWorkerMessage(['setBlock', set_block_list]);
     }
 
 }

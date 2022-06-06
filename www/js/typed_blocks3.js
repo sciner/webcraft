@@ -301,7 +301,7 @@ export class TypedBlocks3 {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties.is_water) {
+            if(properties && properties.is_water) {
                 is_water_count++;
             }
         }

@@ -303,7 +303,7 @@ export class Chunk {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-            let neighbours = block.getNeighbours(world, cache);
+            const neighbours = block.getNeighbours(world, cache);
             // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
             if(neighbours.pcnt == 6 || neighbours.water_in_water) {
                 continue;
@@ -392,7 +392,7 @@ export class Chunk {
                         const pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
                             const block = this.tblocks.get(pos);
-                            if(block.material.gravity) {
+                            if(block.material?.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }

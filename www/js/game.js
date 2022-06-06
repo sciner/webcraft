@@ -269,7 +269,7 @@ export class GameClass {
                     case KEY.F4: {
                         if(!e.down) {
                             if(e.shiftKey) {
-                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 11, player.pos.y | 0, (player.pos.z | 0) - 13));
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
                             } else {
                                 player.changeSpawnpoint();
                             }
