@@ -306,6 +306,11 @@ export class MobAnimation {
         const y         = index / 2 | 0;
         const sign      = x ^ y ? 1 : -1;
         const itemInArm = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
+        const isZombie  = animable.type == 'zombie';
+
+        if(isZombie && isArm) {
+            aniangle /= 16;
+        }
 
         if(itemInArm) {
             aniangle = aniangle * .4 + Math.PI / 8;
@@ -360,7 +365,11 @@ export class MobAnimation {
                 RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05;
             }
 
-            // if zombie then RotateAngleX -= 1.5;
+            // hands up if zombie
+            if(isZombie) {
+                RotateAngleX -= 1.5;
+            }
+
             quat.rotateX(part.quat, part.quat, RotateAngleX);
             quat.rotateY(part.quat, part.quat, RotateAngleY);
             quat.rotateZ(part.quat, part.quat, RotateAngleZ);
