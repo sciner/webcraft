@@ -143,7 +143,6 @@ export class Brain extends FSMBrain {
         // Add sound
         actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: mobPosCenter.clone() });
         // Custom packets for every player near
-        /*
         const custom_packets = {
             user_ids: [],
             list: [{
@@ -162,7 +161,6 @@ export class Brain extends FSMBrain {
         if(custom_packets.list.length > 0) {
             world.sendSelected(custom_packets.list, custom_packets.user_ids)
         }
-        */
         //
         world.actions_queue.add(null, actions);
     }
