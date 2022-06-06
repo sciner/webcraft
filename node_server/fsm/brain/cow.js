@@ -30,7 +30,7 @@ export class Brain extends FSMBrain {
         if (id == BLOCK.BUCKET_EMPTY.id) {
             const actions = new PickatActions();
             actions.putInBucket(BLOCK.BUCKET_MILK);
-            await world.applyActions(actor, actions);
+            world.actions_queue.add(actor, actions);
         }
     }
 
@@ -53,7 +53,7 @@ export class Brain extends FSMBrain {
 
             actions.addPlaySound({ tag: 'madcraft:block.cow', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(actor, actions);
+            world.actions_queue.add(actor, actions);
         }
     }
 

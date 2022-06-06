@@ -515,7 +515,7 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.material.id == 'plant' && block.style == 'planting';
+        block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         // rotate_by_pos_n_plus
         if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
             block.tags.push('rotate_by_pos_n');
@@ -537,6 +537,13 @@ export class BLOCK {
                 block[k] = v;
             }
         }
+        //
+        block.drop_if_unlinked  = block.style == 'torch';
+        block.can_auto_drop     = !block.previous_part &&
+                                  !block.deprecated &&
+                                  block.spawnable &&
+                                  !block.is_fluid &&
+                                  [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
         if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {

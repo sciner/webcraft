@@ -80,7 +80,7 @@ export class Brain extends FSMBrain {
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }
                 ]);
-                await world.applyActions(null, actions); 
+                world.actions_queue.add(null, actions); 
                 this.count_grass++;
             }
             pos = mob.pos.flooredSelf();
@@ -93,7 +93,7 @@ export class Brain extends FSMBrain {
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }
                 ]);
-                await world.applyActions(null, actions); 
+                world.actions_queue.add(null, actions); 
                 this.count_grass++;
             }
         }
@@ -142,7 +142,7 @@ export class Brain extends FSMBrain {
             const rnd_count = ((Math.random() * 2) | 0) + 1;
             actions.addDropItem({ pos: mob.pos, items: [{ id: 350, count: rnd_count }] });
 
-            await world.applyActions(actor, actions);
+            world.actions_queue.add(actor, actions);
         }
     }
     
@@ -162,7 +162,7 @@ export class Brain extends FSMBrain {
 
             actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(actor, actions);
+            world.actions_queue.add(actor, actions);
         }
     }
     

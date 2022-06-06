@@ -1,12 +1,12 @@
-import {Vector} from "../www/js/helpers.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {BLOCK} from "../www/js/blocks.js";
-import {getChunkAddr} from "../www/js/chunk.js";
-import { alea } from "../www/js/terrain_generator/default.js";
-import { InventoryComparator } from "../www/js/inventory_comparator.js";
-import { DEFAULT_CHEST_SLOT_COUNT } from "../www/js/constant.js";
+import {Vector} from "../../www/js/helpers.js";
+import {ServerClient} from "../../www/js/server_client.js";
+import {BLOCK} from "../../www/js/blocks.js";
+import {getChunkAddr} from "../../www/js/chunk.js";
+import { alea } from "../../www/js/terrain_generator/default.js";
+import { InventoryComparator } from "../../www/js/inventory_comparator.js";
+import { DEFAULT_CHEST_SLOT_COUNT } from "../../www/js/constant.js";
 
-export class ChestManager {
+export class WorldChestManager {
 
     constructor(world) {
         this.world = world;

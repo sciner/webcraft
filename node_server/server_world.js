@@ -1,11 +1,17 @@
-import { Mob } from "./mob.js";
+import config from "./config.js";
+
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
-import { ChestManager } from "./chest_manager.js";
-import { WorldAdminManager } from "./admin_manager.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
+
+import { WorldTickStat } from "./world/tick_stat.js";
+import { WorldPacketQueue } from "./world/packet_queue.js";
+import { WorldActionQueue } from "./world/action_queue.js";
+import { WorldMobManager } from "./world/mob_manager.js";
+import { WorldAdminManager } from "./world/admin_manager.js";
+import { WorldChestManager } from "./world/chest_manager.js";
 
 import { Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
@@ -14,7 +20,6 @@ import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import config from "./config.js";
 import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
@@ -38,118 +43,32 @@ export class ServerWorld {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
-        const that = this;
         this.db = db_world;
         this.info = await this.db.getWorld(world_guid);
-        this.packet_reader = new PacketReader();
-        this.chests = new ChestManager(this);
-        this.chat = new ServerChat(this);
-        this.chunks = new ServerChunkManager(this);
-        this.quests = new QuestManager(this);
-        this.players = new Map(); // new PlayerManager(this);
-        this.mobs = new Map(); // Store refs to all loaded mobs in the world
-        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
-        this.models = new ModelManager();
-        this.models.init();
-        await this.quests.init();
-        this.ticks_stat = {
-            number: 0,
-            pn: null,
-            last: 0,
-            total: 0,
-            count: 0,
-            min: Number.MAX_SAFE_INTEGER,
-            max: 0,
-            values: {
-                chunks: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                players: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                mobs: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                drop_items: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                packet_reader_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                maps_clear: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-                packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 }
-            },
-            start() {
-                this.pn = performance.now();
-                this.pn_values = performance.now();
-            },
-            add(field) {
-                const value = this.values[field];
-                if (value) {
-                    const elapsed = performance.now() - this.pn_values;
-                    value.sum += elapsed;
-                    if (elapsed < value.min) value.min = elapsed;
-                    if (elapsed > value.max) value.max = elapsed;
-                    value.avg = value.sum / this.count;
-                } else {
-                    console.error('invalid tick stat value: ' + field);
-                }
-                this.pn_values = performance.now();
-            },
-            end() {
-                if (this.pn !== null) {
-                    // Calculate stats of elapsed time for ticks
-                    this.last = performance.now() - this.pn;
-                    this.total += this.last;
-                    this.count++;
-                    if (this.last < this.min) this.min = this.last;
-                    if (this.last > this.max) this.max = this.last;
-                }
-            }
-        };
-        // Queue for packets
-        this.packets_queue = {
-            list: new Map(),
-            add: function (user_ids, packets) {
-                for (let user_id of user_ids) {
-                    let arr = this.list.get(user_id);
-                    if (!arr) {
-                        arr = [];
-                        this.list.set(user_id, arr);
-                    }
-                    arr.push(...packets);
-                }
-            },
-            send: function () {
-                for (let [user_id, packets] of this.list) {
-                    // Group mob update packets
-                    let mob_update_packet = null;
-                    packets = packets.filter(p => {
-                        if (p.name == ServerClient.CMD_MOB_UPDATE) {
-                            if (!mob_update_packet) {
-                                mob_update_packet = { name: p.name, data: [] }
-                            }
-                            mob_update_packet.data.push(
-                                p.data.id,
-                                p.data.pos.x, p.data.pos.y, p.data.pos.z,
-                                // p.data.rotate.x, p.data.rotate.y,
-                                p.data.rotate.z,
-                                p.data.extra_data
-                            );
-                            return false;
-                        }
-                        return true;
-                    });
-                    if (mob_update_packet) {
-                        packets.push(mob_update_packet);
-                    }
-                    that.sendSelected(packets, [user_id], []);
-                }
-                this.list.clear();
-            }
-        };
         //
-        this.admins = new WorldAdminManager(this);
+        this.packet_reader  = new PacketReader();
+        this.models         = new ModelManager();
+        this.chat           = new ServerChat(this);
+        this.ticks_stat     = new WorldTickStat();
+        this.chunks         = new ServerChunkManager(this);
+        this.quests         = new QuestManager(this);
+        this.actions_queue  = new WorldActionQueue(this);
+        this.admins         = new WorldAdminManager(this);
+        this.chests         = new WorldChestManager(this);
+        this.mobs           = new WorldMobManager(this);
+        this.packets_queue  = new WorldPacketQueue(this);
+        //
+        this.players = new Map(); // new PlayerManager(this);
+        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
+        //
+        await this.models.init();
+        await this.quests.init();
         await this.admins.load();
         await this.restoreModifiedChunks();
         await this.chunks.initWorker();
         //
-        //this.tickerWorldTimer = setInterval(() => {
-        //    this.tick();
-        //}, 50);
-        //
         this.saveWorldTimer = setInterval(() => {
-            // let pn = performance.now();
+            let pn = performance.now();
             this.save();
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
@@ -157,6 +76,7 @@ export class ServerWorld {
         await this.tick();
     }
 
+    // Return world info
     getInfo() {
         console.log(this.info);
         this.updateWorldCalendar();
@@ -185,7 +105,7 @@ export class ServerWorld {
 
     // World tick
     async tick() {
-        let started = performance.now();
+        const started = performance.now();
         let delta = 0;
         if (this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -198,20 +118,7 @@ export class ServerWorld {
         await this.chunks.tick(delta);
         this.ticks_stat.add('chunks');
         // 2.
-        for (let [mob_id, mob] of this.mobs) {
-            if (mob.isAlive()) {
-                mob.tick(delta);
-            } else if(!mob.death_time) {
-                mob.death_time = performance.now();
-            } else if(performance.now() - mob.death_time > 1000) {
-                await mob.onUnload();
-                let packets = [{
-                    name: ServerClient.CMD_MOB_DELETED,
-                    data: [mob_id]
-                }];
-                this.sendAll(packets);
-            }
-        }
+        await this.mobs.tick(delta);
         this.ticks_stat.add('mobs');
         // 3.
         for (let player of this.players.values()) {
@@ -219,7 +126,7 @@ export class ServerWorld {
         }
         this.ticks_stat.add('players');
         // 4.
-        for (let [entity_id, drop_item] of this.all_drop_items) {
+        for (let [_, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
         }
         this.ticks_stat.add('drop_items');
@@ -230,24 +137,17 @@ export class ServerWorld {
         this.packets_queue.send();
         this.ticks_stat.add('packets_queue_send');
         //
-        if (this.ticks_stat.number % 100 == 0) {
-            if (this.players.size > 0) {
-                let players = [];
-                for (let [_, p] of this.players.entries()) {
-                    players.push({
-                        pos: p.state.pos,
-                        chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
-                        chunk_render_dist: p.state.chunk_render_dist
-                    });
-                }
-                this.chunks.postWorkerMessage(['destroyMap', { players }]);
-            }
+        await this.actions_queue.run();
+        this.ticks_stat.add('actions_queue');
+        //
+        if(this.ticks_stat.number % 100 != 0) {
+            this.checkDestroyMap();
             this.ticks_stat.add('maps_clear');
         }
         //
         this.ticks_stat.end();
         //
-        let elapsed = performance.now() - started;
+        const elapsed = performance.now() - started;
         setTimeout(async () => {
             await this.tick();
         },
@@ -259,6 +159,22 @@ export class ServerWorld {
         for (let player of this.players.values()) {
             this.db.savePlayerState(player);
         }
+    }
+
+    //
+    checkDestroyMap() {
+        if(this.players.size == 0) {
+            return;
+        }
+        const players = [];
+        for (let [_, p] of this.players.entries()) {
+            players.push({
+                pos: p.state.pos,
+                chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
+                chunk_render_dist: p.state.chunk_render_dist
+            });
+        }
+        this.chunks.postWorkerMessage(['destroyMap', { players }]);
     }
 
     // onPlayer
@@ -441,40 +357,6 @@ export class ServerWorld {
         player.position_changed = true;
     }
 
-    // Spawn new mob
-    async spawnMob(player, params) {
-        try {
-            if (!this.admins.checkIsAdmin(player)) {
-                throw 'error_not_permitted';
-            }
-            await this.createMob(params);
-            return true;
-        } catch (e) {
-            console.log('e', e);
-            let packets = [{
-                name: ServerClient.CMD_ERROR,
-                data: {
-                    message: e
-                }
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-        }
-    }
-
-    // Create mob
-    async createMob(params) {
-        let chunk_addr = getChunkAddr(params.pos);
-        let chunk = this.chunks.get(chunk_addr);
-        if (chunk) {
-            let mob = await Mob.create(this, params);
-            chunk.addMob(mob);
-            return mob;
-        } else {
-            console.error('Chunk for mob not found');
-        }
-        return null;
-    }
-
     // Create drop items
     async createDropItems(player, pos, items, velocity) {
         try {
@@ -501,8 +383,8 @@ export class ServerWorld {
      */
     async restoreModifiedChunks() {
         this.chunkModifieds = new VectorCollector();
-        let list = await this.db.chunkBecameModified();
-        for (let addr of list) {
+        const list = await this.db.chunkBecameModified();
+        for(let addr of list) {
             this.chunkBecameModified(addr);
         }
         return true;
@@ -531,8 +413,8 @@ export class ServerWorld {
     }
 
     getBlock(pos) {
-        let chunk_addr = getChunkAddr(pos);
-        let chunk = this.chunks.get(chunk_addr);
+        const chunk_addr = getChunkAddr(pos);
+        const chunk = this.chunks.get(chunk_addr);
         if (!chunk) {
             return null;
         }
@@ -570,11 +452,8 @@ export class ServerWorld {
         const chunks_packets = new VectorCollector();
         //
         const getChunkPackets = (pos) => {
-            let chunk_addr = getChunkAddr(pos);
-            let chunk = this.chunks.get(chunk_addr);
-            //if(!chunk) {
-            //    return null;
-            //}
+            const chunk_addr = getChunkAddr(pos);
+            const chunk = this.chunks.get(chunk_addr);
             let cps = chunks_packets.get(chunk_addr);
             if (!cps) {
                 cps = {
@@ -756,8 +635,8 @@ export class ServerWorld {
             }
         }
         // Explosions
-        if (actions.explosions) {
-            for(let params of actions.explosions) {
+        if(actions.explosion_particles) {
+            for(let params of actions.explosion_particles) {
                 const cps = getChunkPackets(params.pos);
                 if (cps) {
                     if (cps.chunk) {

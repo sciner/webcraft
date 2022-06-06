@@ -392,7 +392,10 @@ class DestroyBlocks {
 // PickatActions
 export class PickatActions {
 
-    constructor(id) {
+    #world;
+
+    constructor(id, world, ignore_check_air = false, on_block_set = true) {
+        this.#world = world;
         //
         Object.assign(this, {
             id:                     id,
@@ -410,14 +413,14 @@ export class PickatActions {
             blocks: {
                 list: [],
                 options: {
-                    ignore_check_air: false,
-                    on_block_set: true
+                    ignore_check_air: ignore_check_air,
+                    on_block_set: on_block_set
                 }
             },
             play_sound:             [],
             stop_disc:              [],
             drop_items:             [],
-            explosions:             []
+            explosion_particles:    []
         });
     }
 
@@ -428,6 +431,12 @@ export class PickatActions {
 
     // Add block
     addBlocks(items) {
+        for(let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos';
+            if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos';
+            if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos';
+        }
         this.blocks.list.push(...items);
     }
 
@@ -437,8 +446,8 @@ export class PickatActions {
     }
 
     //
-    addExplosions(items) {
-        this.explosions.push(...items);
+    addExplosionParticles(items) {
+        this.explosion_particles.push(...items);
     }
 
     //
@@ -447,6 +456,96 @@ export class PickatActions {
             throw 'error_put_already';
         }
         this.put_in_backet = item;
+    }
+
+    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance) {
+        const world = this.#world;
+        const air = { id: 0 };
+        const out_rad = Math.ceil(rad);
+        const block_pos = new Vector();
+        const extruded_blocks = new VectorCollector();
+        drop_blocks_chance = parseFloat(drop_blocks_chance);
+        //
+        const createAutoDrop = (tblock) => {
+            const mat = tblock.material;
+            if(!mat.can_auto_drop) {
+                return false;
+            }
+            if(!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) {
+                return false;
+            }
+            const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
+            extruded_blocks.set(pos, 'drop');
+            // drop
+            this.addDropItem({
+                force: true,
+                pos: pos,
+                items: [
+                    // @todo need to calculate drop item ID and count
+                    { id: mat.id, count: 1 }
+                ]
+            });
+            if(mat.is_chest && tblock.extra_data?.slots) {
+                for(let i in tblock.extra_data.slots) {
+                    const slot_item = tblock.extra_data.slots[i];
+                    if(slot_item) {
+                        this.addDropItem({
+                            force: true,
+                            pos: pos,
+                            items: [
+                                // @todo need to calculate drop item ID and count
+                                slot_item
+                            ]
+                        });
+                    }
+                }
+            }
+            return true;
+        };
+        // const block_pos_floored = vec_center.clone().flooredSelf();
+        for (let i = -out_rad; i <= out_rad; i++) {
+            for (let j = -out_rad; j <= out_rad; j++) {
+                for (let k = -out_rad; k <= out_rad; k++) {
+                    block_pos.copyFrom(vec_center).addScalarSelf(i, k, j);
+                    const dist = block_pos.distance(vec_center);
+                    block_pos.flooredSelf();
+                    if (dist <= rad) {
+                        this.addBlocks([
+                            {pos: block_pos.clone(), item: air, drop_blocks_chance}
+                        ]);
+                        extruded_blocks.set(block_pos, 'extruded');
+                        const tblock = world.getBlock(block_pos);
+                        if(tblock) {
+                            const mat = tblock.material;
+                            createAutoDrop(tblock);
+                        }
+                    }
+                }
+            }
+        }
+        //
+        for(let [vec, _] of extruded_blocks.entries()) {
+            // 1. check under
+            const check_under_poses = [
+                vec.clone().addSelf(new Vector(0, 1, 0)),
+                vec.clone().addSelf(new Vector(0, 2, 0))
+            ];
+            for(let i = 0; i < check_under_poses.length; i++) {
+                const pos_under = check_under_poses[i];
+                if(extruded_blocks.has(pos_under)) {
+                    continue;
+                }
+                const tblock = world.getBlock(pos_under);
+                if(!tblock) {
+                    continue;
+                }
+                createAutoDrop(tblock);
+            }
+        }
+        //
+        if(add_particles) {
+            this.addExplosionParticles([{pos: vec_center.clone()}]);
+        }
     }
 
 }

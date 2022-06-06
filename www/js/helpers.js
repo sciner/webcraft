@@ -503,6 +503,13 @@ export class Vector {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
+    addScalarSelf(x, y, z) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+        return this;
+    }
+
     /**
      * @param {Vector} vec
      * @return {Vector}

@@ -1,7 +1,6 @@
 import {getChunkAddr} from "../www/js/chunk.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
-import { json } from "express";
 
 await Brains.init();
 
@@ -33,7 +32,7 @@ export class Mob {
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
         this.height         = this.#brain.pc.physics.playerHeight;
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
-        world.mobs.set(this.id, this);
+        world.mobs.add(this);
         this.save_offset = Math.round(Math.random() * this.save_per_tick);
     }
 

@@ -130,7 +130,7 @@ export class Player {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
             // onInterractMob
-            let mob = Game.world.mobs.list.get(e.interractMob);
+            const mob = Game.world.mobs.get(e.interractMobID);
             if(mob) {
                 mob.punch(e);
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком

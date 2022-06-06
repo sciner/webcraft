@@ -86,7 +86,7 @@ export class Brain extends FSMBrain {
 
             actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
 
-            await world.applyActions(actor, actions);
+            world.actions_queue.add(actor, actions);
         }
     }
 

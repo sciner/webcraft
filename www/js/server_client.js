@@ -237,6 +237,9 @@ export class ServerClient {
                 const power = ('power' in item) ? item.power : POWER_NO;
                 tblock = chunk.tblocks.get(tblock_pos, tblock);
                 if (chunkManager.use_light) {
+                    if(!tblock.material) {
+                        debugger
+                    }
                     oldLight = tblock.material.light_power_number;
                 }
                 chunk.tblocks.delete(tblock_pos);

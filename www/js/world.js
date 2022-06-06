@@ -92,7 +92,7 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
-                Game.render.addExplosionsParticles(cmd.data);
+                Game.render.addExplosionParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));

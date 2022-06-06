@@ -177,9 +177,7 @@ export default class WorldEdit {
             throw 'error_not_copied_blocks';
         }
         const pn_set = performance.now();
-        const actions = new PickatActions();
-        actions.blocks.options.ignore_check_air = true;
-        actions.blocks.options.on_block_set = false;
+        const actions = new PickatActions(null, null, true, false);
         //
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
@@ -194,7 +192,7 @@ export default class WorldEdit {
             affected_count++;
         }
         //
-        await chat.world.applyActions(null, actions);
+        chat.world.actions_queue.add(null, actions);
         let msg = `${affected_count} block(s) affected`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         console.log('Time took: ' + (performance.now() - pn_set));
@@ -217,9 +215,7 @@ export default class WorldEdit {
         let chunk           = null;
         let affected_count  = 0;
         const pn_set        = performance.now();
-        const actions = new PickatActions();
-        actions.blocks.options.ignore_check_air = true;
-        actions.blocks.options.on_block_set = false;
+        const actions = new PickatActions(null, null, true, false);
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -255,7 +251,7 @@ export default class WorldEdit {
             }
         }
         //
-        await chat.world.applyActions(null, actions);
+        chat.world.actions_queue.add(null, actions);
         let msg = `${affected_count} block(s) affected`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         console.log('Time took: ' + (performance.now() - pn_set));
@@ -264,9 +260,7 @@ export default class WorldEdit {
     //
     async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
         const pn_set = performance.now();
-        const actions = new PickatActions();
-        actions.blocks.options.ignore_check_air = true;
-        actions.blocks.options.on_block_set = false;
+        const actions = new PickatActions(null, null, true, false);
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -299,7 +293,7 @@ export default class WorldEdit {
                 }
             }
         }
-        await chat.world.applyActions(null, actions, false);
+        chat.world.actions_queue.add(null, actions);
         chat.sendSystemChatMessageToSelectedPlayers(`${qi.volume} blocks changed`, [player.session.user_id]);
         console.log('Time took: ' + (performance.now() - pn_set));
     }
