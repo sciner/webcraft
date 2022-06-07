@@ -1,9 +1,8 @@
-import {DIRECTION, QUAD_FLAGS} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;

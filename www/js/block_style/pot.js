@@ -1,4 +1,4 @@
-import {DIRECTION} from '../helpers.js';
+import {DIRECTION, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {impl as alea} from "../../vendors/alea.js";

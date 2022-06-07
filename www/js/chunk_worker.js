@@ -10,7 +10,7 @@ let worlds              = null;
 
 const CHUNK_SIZE_X = 16;
 
-const worker = {
+const worker = globalThis.worker = {
 
     init: function() {
         if(typeof process !== 'undefined') {
