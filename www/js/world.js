@@ -3,6 +3,7 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
+import { Lang } from "./lang.js";
 
 /**
  * World generation unfo passed from server
@@ -259,6 +260,7 @@ export class World {
             player.state.sitting = actions.sitting;
             player.setPosition(actions.sitting.pos);
             player.setRotate(actions.sitting.rotate);
+            Game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
     }
 

@@ -59,6 +59,7 @@
         "stat_pickat": {"en": "Mined blocks", "ru": "Разбитых блоков", "fr": "Bloque Miners","es":""},
         "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru","es":""},
         "browser_not_supported_1": {"en": "The browser you are using is not supported.", "ru": "Браузер, который вы используете, не поддерживается.","fr": "Le navigateur que vous utilisez n'est pas pris en charge.","es":""},
-        "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible","es":""}
+        "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible","es":""},
+        "press_lshift_for_dismount": {"en": "Press LSHIFT for dismount", "ru": "Пожалуйста нажмите LSHIFT (левый шифт), чтобы слезть", "fr": "", "es": ""}
     }
 }

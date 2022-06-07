@@ -264,19 +264,25 @@ export class Player {
         // Mouse actions
         if (type == MOUSE.DOWN) {
             // console.log(e.button_id, this.state.sitting, this.state.lies)
-            if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
-                this.world.server.Send({
-                    name: ServerClient.CMD_STANDUP_STRAIGHT,
-                    data: null
-                });
-            } else {
-                this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
-                if(e.button_id == 1) {
-                    this.startArmSwingProgress();
-                }
+            //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
+            //    this.standUp();
+            //} else {
+            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+            if(e.button_id == 1) {
+                this.startArmSwingProgress();
             }
+            //}
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
+        }
+    }
+
+    standUp() {
+        if(this.state.sitting || this.state.lies) {
+            this.world.server.Send({
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: null
+            });
         }
     }
 

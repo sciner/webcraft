@@ -778,10 +778,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return actions;
         }
         //
-        if(world_material.tags.indexOf('stairs') >= 0) {
+        console.log(currentInventoryItem)
+        if(world_material.tags.indexOf('stairs') >= 0 && !currentInventoryItem) {
             const obj_pos = new Vector(pos.x, pos.y, pos.z).addScalarSelf(.5, 0, .5);
             const dist = player.pos.distance(obj_pos);
-            if(dist < 1.5) {
+            if(dist < 3.0) {
                 actions.reset_target_pos = true;
                 actions.setSitting(
                     obj_pos.addScalarSelf(0, .5, 0),

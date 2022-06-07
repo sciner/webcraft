@@ -385,6 +385,9 @@ export class GameClass {
                             }
                         }
                     }
+                    if(e.shiftKey && e.down && e.keyCode == KEY.SHIFT) {
+                        player.standUp();
+                    }
                 }
                 return false;
             },

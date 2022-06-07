@@ -51,6 +51,7 @@ export class TerrainMapManager {
         this.world_id = world_id;
         this.noisefn = noisefn;
         this.maps_cache = new VectorCollector();
+        BIOMES.init();
     }
 
     // Delete map for unused chunk
