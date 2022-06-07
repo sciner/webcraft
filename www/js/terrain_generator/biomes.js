@@ -41,6 +41,8 @@ export class  BIOMES {
             return false;
         }
 
+        TREES.init();
+
         BIOMES.OCEAN = {
             block:      BLOCK.STILL_WATER.id,
             code:       'OCEAN',
