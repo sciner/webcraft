@@ -4,7 +4,7 @@ import {alea, Default_Terrain_Generator} from "../default.js";
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
+    constructor(seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(0);
         // Init palette blocks
@@ -20,15 +20,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      * setSeed
-     * @param { string } seed 
+     * @param { string } seed
      */
     setSeed(seed) {
     }
 
     /**
-     * 
-     * @param { Chunk } chunk 
-     * @returns 
+     *
+     * @param { Chunk } chunk
+     * @returns
      */
     generate(chunk) {
 

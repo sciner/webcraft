@@ -40,6 +40,8 @@ const OFFSET_AO = 3;
 const OFFSET_SOURCE_PREV = 3;
 const OFFSET_DAY = 4;
 
+const BITS_BLOCK_ID = 16;
+
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
 const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
@@ -93,7 +95,6 @@ initMasks();
 class LightQueue {
     constructor({offset, dirCount, capacity}) {
         // deque structure
-        this.dequeChunk = [];
         this.dequeCoord = new Int32Array(0);
         this.capacity = 0;
         this.filled = 0;
@@ -113,7 +114,7 @@ class LightQueue {
         const oldCoord = this.dequeCoord;
         const newCoord = this.dequeCoord = new Int32Array(newCap * 2);
         newCoord.set(oldCoord, 0);
-        this.dequeChunk.length = this.capacity = newCap;
+        this.capacity = newCap;
     }
 
     /**
@@ -129,14 +130,13 @@ class LightQueue {
             this.resizeQueue(this.capacity * 2);
         }
         const cap = this.capacity;
-        const {dequeChunk} = this;
+        const {dequeCoord} = this;
         let {position} = this;
-        while (dequeChunk[position]) {
+        while (dequeCoord[position]) {
             position = (position + 1) % cap;
         }
-        dequeChunk[position] = chunk;
-        this.dequeCoord[position * 2] = coord;
-        this.dequeCoord[position * 2 + 1] = this.heads[waveNum];
+        dequeCoord[position * 2] = chunk.dataIdShift + coord;
+        dequeCoord[position * 2 + 1] = this.heads[waveNum];
         this.heads[waveNum] = position;
         this.position = (position + 1) % cap;
         this.filled++;
@@ -145,6 +145,7 @@ class LightQueue {
 
     doIter(times) {
         const {qOffset, dirCount, heads} = this;
+        const { chunkById } = world.chunkManager;
         let wn = maxLight;
 
         let chunk = null;
@@ -167,16 +168,16 @@ class LightQueue {
             }
             //that's a pop
             const pos = heads[wn];
-            let newChunk = this.dequeChunk[pos];
-            this.dequeChunk[pos] = null;
-            const coord = this.dequeCoord[pos * 2];
+            let newChunk = chunkById[this.dequeCoord[pos * 2] >> BITS_BLOCK_ID];
+            let coord = this.dequeCoord[pos * 2] & ((1 << BITS_BLOCK_ID) - 1);
             heads[wn] = this.dequeCoord[pos * 2 + 1];
-            newChunk.waveCounter--;
+            this.dequeCoord[pos * 2] = 0;
             this.filled--;
             // pop end
-            if (newChunk.removed) {
+            if (!newChunk || newChunk.removed) {
                 continue;
             }
+            newChunk.waveCounter--;
             if (chunk !== newChunk) {
                 chunk = newChunk;
                 lightChunk = chunk.lightChunk;
@@ -319,7 +320,6 @@ class LightQueue {
 
 class WaveLevel {
     constructor(level) {
-        this.chunks = [];
         this.coords = [];
         this.level = level;
     }
@@ -366,13 +366,13 @@ class DirLightQueue {
         let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
 
         const wave = this.getWave(lvl);
-        wave.chunks.push(chunk);
-        wave.coords.push(coord);
+        wave.coords.push(chunk.dataIdShift + coord);
         chunk.waveCounter++;
     }
 
     doIter(times) {
         const {waveLevels, qOffset, disperse} = this;
+        const {chunkById} = world.chunkManager;
         let wn = maxLight;
 
         let curWave = null;
@@ -387,6 +387,7 @@ class DirLightQueue {
         let safeAABB = null;
         let portals = null;
         let dif26 = null;
+        let chunkDataId = 0;
         let sx = 0, sy = 0, sz = 0;
 
         for (let tries = 0; tries < times; tries++) {
@@ -409,9 +410,10 @@ class DirLightQueue {
                 }
             }
 
-            let newChunk = curWave.chunks.pop();
-            const coord = curWave.coords.pop();
-            if (newChunk.removed) {
+            let coord = curWave.coords.pop();
+            const newChunk = chunkById[coord >> BITS_BLOCK_ID];
+            coord = coord & ((1 << BITS_BLOCK_ID) - 1);
+            if (!newChunk || newChunk.removed) {
                 continue;
             }
             if (chunk !== newChunk) {
@@ -427,6 +429,7 @@ class DirLightQueue {
                 sx = 1;
                 sz = outerSize.x;
                 sy = outerSize.x * outerSize.z;
+                chunkDataId = chunk.dataIdShift;
             }
             chunk.waveCounter--;
 
@@ -494,16 +497,14 @@ class DirLightQueue {
             //TODO: copy to neib chunks
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
-                nextWave.chunks.push(chunk);
-                nextWave.coords.push(coord - sy);
+                nextWave.coords.push(chunkDataId + coord - sy);
                 chunk.waveCounter++;
                 if (changedDisperse) {
                     for (let d = 0; d < 4; d++) {
                         if ((mask & (1 << d)) !== 0) {
                             continue;
                         }
-                        curWave.chunks.push(chunk);
-                        curWave.coords.push(coord + dif26[d]);
+                        curWave.coords.push(chunkDataId + coord + dif26[d]);
                         chunk.waveCounter++;
                     }
                 }
@@ -520,8 +521,7 @@ class DirLightQueue {
                         y2 = y - 1,
                         z2 = z;
                     if (chunk2.aabb.contains(x2, y2, z2)) {
-                        nextWave.chunks.push(chunk2.rev);
-                        nextWave.coords.push(chunk2.indexByWorld(x2, y2, z2));
+                        nextWave.coords.push(chunk2.dataIdShift + chunk2.indexByWorld(x2, y2, z2));
                         chunk2.rev.waveCounter++;
                         mask |= (1 << DIR_DOWN); //down
                     }
@@ -535,8 +535,7 @@ class DirLightQueue {
                             z2 = z + dz[d];
                             if (chunk2.aabb.contains(x2, y2, z2)) {
                                 mask |= 1 << d;
-                                curWave.chunks.push(chunk2.rev);
-                                curWave.coords.push(chunk2.indexByWorld(x2, y2, z2));
+                                curWave.coords.push(chunk2.dataIdShift + chunk2.indexByWorld(x2, y2, z2));
                                 chunk2.rev.waveCounter++;
                             }
                         }
@@ -548,8 +547,7 @@ class DirLightQueue {
                         z2 = z;
                     let coord2 = coord - sy;
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        nextWave.chunks.push(chunk);
-                        nextWave.coords.push(coord2);
+                        nextWave.coords.push(chunkDataId + coord2);
                         chunk.waveCounter++;
                     }
                 }
@@ -563,8 +561,7 @@ class DirLightQueue {
                             z2 = z + dz[d];
                         let coord2 = coord + dif26[d];
                         if (lightChunk.aabb.contains(x2, y2, z2)) {
-                            curWave.chunks.push(chunk);
-                            curWave.coords.push(coord2);
+                            curWave.coords.push(chunkDataId +coord2);
                             chunk.waveCounter++;
                         }
                     }
@@ -587,6 +584,7 @@ class ChunkManager {
 
         const INF = 1000000000;
         this.lightBase = new BaseChunk({size: new Vector(INF, INF, INF)}).setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
+        this.chunkById = [null];
     }
 
     // Get
@@ -598,10 +596,13 @@ class ChunkManager {
         this.list.push(chunk);
         this.chunks.add(chunk.addr, chunk);
         this.lightBase.addSub(chunk.lightChunk);
+
+        this.chunkById[chunk.dataId] = chunk;
     }
 
     delete(chunk) {
         if (this.chunks.delete(chunk.addr)) {
+            this.chunkById[chunk.dataId] = null;
             this.list.splice(this.list.indexOf(chunk), 1);
             this.lightBase.removeSub(chunk.lightChunk);
         }
@@ -610,6 +611,8 @@ class ChunkManager {
 
 class Chunk {
     constructor(args) {
+        this.dataId = args.dataId;
+        this.dataIdShift = args.dataId << BITS_BLOCK_ID;
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.lastID = 0;
@@ -1167,7 +1170,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'createChunk': {
-            if (!world.chunkManager.getChunk(args.addr)) {
+            if (!world.chunkManager.chunkById[args.dataId]) {
                 let chunk = new Chunk(args);
                 chunk.init();
                 world.chunkManager.add(chunk);
@@ -1186,7 +1189,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'setBlock': {
-            let chunk = world.chunkManager.getChunk(args.addr);
+            let chunk = world.chunkManager.chunkById[args.dataId];
             if (chunk) {
                 const {light_source, x, y, z} = args;
                 const {lightChunk} = chunk;
