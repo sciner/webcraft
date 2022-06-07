@@ -73,6 +73,9 @@ export class PlayerManager {
             return;
         }
 
+        player.sitting = data.sitting;
+        player.lies = data.lies;
+
         player.applyNetState({
             pos: data.pos,
             sneak: !!data.sneak,

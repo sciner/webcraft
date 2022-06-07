@@ -229,6 +229,7 @@ export class World {
         if(actions.clone_block /* && player.game_mode.canBlockClone()*/) {
             this.server.CloneBlock(actions.clone_block);
         }
+        //
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 //
@@ -252,6 +253,12 @@ export class World {
                     }
                 }
             }
+        }
+        // Sitting
+        if(actions.sitting) {
+            player.state.sitting = actions.sitting;
+            player.setPosition(actions.sitting.pos);
+            player.setRotate(actions.sitting.rotate);
         }
     }
 

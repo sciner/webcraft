@@ -323,13 +323,15 @@ export class PlayerModel extends MobModel {
     }
 
     //
-    setProps(pos, rotate, sneak, moving, running, hands) {
+    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting) {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
         this.sneak = sneak;
         this.moving = moving;
         this.running = running;
+        this.lies = lies;
+        this.sitting = sitting;
         //
         const current_right_hand_id = hands.right?.id;
         if(this.prev_current_id != current_right_hand_id) {
@@ -339,14 +341,14 @@ export class PlayerModel extends MobModel {
         }
     }
 
-    draw(render, pos, delta) {
+    draw(render, camPos, delta) {
         if(!this.prev_pos) {
             this.prev_pos = this.pos.clone();
             return false;;
         }
         const speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, pos, delta, speed);
+        super.draw(render, camPos, delta, speed);
     }
 
 }

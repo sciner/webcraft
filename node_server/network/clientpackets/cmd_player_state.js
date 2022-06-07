@@ -15,6 +15,10 @@ export default class packet_reader {
     // 
     static async read(player, packet) {
         const data = packet.data;
+        if(player.state.sitting || player.state.lies) {
+            data.pos = player.state.pos.clone();
+            // data.rotate = player.state.rotate.clone();
+        }
         player.world.changePlayerPosition(player, data);
         //
         const distance = Math.sqrt(Math.pow(data.pos.x, 2) + Math.pow(data.pos.y, 2) + Math.pow(data.pos.z, 2));

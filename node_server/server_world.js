@@ -687,6 +687,14 @@ export class ServerWorld {
                 }
             }
         }
+        // Sitting
+        if(actions.sitting) {
+            server_player.state.sitting = actions.sitting;
+            server_player.state.lies = false;
+            server_player.state.rotate = actions.sitting.rotate;
+            server_player.state.pos = actions.sitting.pos;
+            server_player.sendState();
+        }
     }
 
     // Return generator options

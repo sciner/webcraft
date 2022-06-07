@@ -18,6 +18,9 @@ export default class packet_reader {
     static async read(player, packet) {
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
+        if(player.state.sitting || player.state.lies) {
+            return true;
+        }
         if (packet.data.interractMobID) {
             const mob = world.mobs.get(packet.data.interractMobID);
             if (mob) {

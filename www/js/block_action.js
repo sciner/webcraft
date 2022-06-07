@@ -410,6 +410,7 @@ export class PickatActions {
             reset_target_event:     false,
             decrement:              false,
             decrement_instrument:   false,
+            sitting:                false,
             blocks: {
                 list: [],
                 options: {
@@ -425,7 +426,7 @@ export class PickatActions {
     }
 
     // Add play sound
-     addPlaySound(item) {
+    addPlaySound(item) {
         this.play_sound.push(item);
     }
 
@@ -546,6 +547,11 @@ export class PickatActions {
         if(add_particles) {
             this.addExplosionParticles([{pos: vec_center.clone()}]);
         }
+    }
+
+    setSitting(pos, rotate) {
+        this.sitting = {pos, rotate};
+        this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
     }
 
 }
@@ -770,6 +776,19 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
             */
             return actions;
+        }
+        //
+        if(world_material.tags.indexOf('stairs') >= 0) {
+            const obj_pos = new Vector(pos.x, pos.y, pos.z).addScalarSelf(.5, 0, .5);
+            const dist = player.pos.distance(obj_pos);
+            if(dist < 1.5) {
+                actions.reset_target_pos = true;
+                actions.setSitting(
+                    obj_pos.addScalarSelf(0, .5, 0),
+                    new Vector(0, 0, (rotate.x / 4) * -(2 * Math.PI))
+                )
+                return actions;
+            }
         }
         // 2. Проверка инвентаря
         if(!currentInventoryItem || currentInventoryItem.count < 1) {

@@ -105,6 +105,10 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
+        this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
+            this.state.lies = false;
+            this.state.sitting = false;
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
             this.game_mode.applyMode(cmd.data.id, true);
@@ -259,9 +263,17 @@ export class Player {
         let {type, button_id, shiftKey} = e;
         // Mouse actions
         if (type == MOUSE.DOWN) {
-            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
-            if(e.button_id == 1) {
-                this.startArmSwingProgress();
+            // console.log(e.button_id, this.state.sitting, this.state.lies)
+            if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
+                this.world.server.Send({
+                    name: ServerClient.CMD_STANDUP_STRAIGHT,
+                    data: null
+                });
+            } else {
+                this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+                if(e.button_id == 1) {
+                    this.startArmSwingProgress();
+                }
             }
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
@@ -321,6 +333,10 @@ export class Player {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
+            if(this.state.sitting || this.state.lies) {
+                console.log('Stand up first');
+                return false;
+            }
             const e_orig = JSON.parse(JSON.stringify(e));
             const player = {
                 radius: 0.7,
@@ -391,7 +407,11 @@ export class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT, this.lerpPos.z);
+        let subY = 0;
+        if(this.state.sitting) {
+            subY = this.height * 1/3;
+        }
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
     }
 
     // getBlockPos
@@ -454,13 +474,14 @@ export class Player {
             //
             let pc                 = this.getPlayerControl();
             this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
-            pc.controls.back       = this.controls.back;
-            pc.controls.forward    = this.controls.forward;
-            pc.controls.right      = this.controls.right;
-            pc.controls.left       = this.controls.left;
-            pc.controls.jump       = this.controls.jump;
-            pc.controls.sneak      = this.controls.sneak;
-            pc.controls.sprint     = this.controls.sprint;
+            const applyControl = !this.state.sitting && !this.state.lies;
+            pc.controls.back       = applyControl && this.controls.back;
+            pc.controls.forward    = applyControl && this.controls.forward;
+            pc.controls.right      = applyControl && this.controls.right;
+            pc.controls.left       = applyControl && this.controls.left;
+            pc.controls.jump       = applyControl && this.controls.jump;
+            pc.controls.sneak      = applyControl && this.controls.sneak;
+            pc.controls.sprint     = applyControl && this.controls.sprint;
             pc.player_state.yaw    = this.rotate.z;
             // Physics tick
             let ticks = pc.tick(delta);
@@ -499,7 +520,9 @@ export class Player {
                     this.controls.sneak,
                     this.moving, // && !this.getFlying(),
                     this.running && !this.isSneak,
-                    this.state.hands
+                    this.state.hands,
+                    this.state.lies,
+                    this.state.sitting
                 );
             }
             // Check falling

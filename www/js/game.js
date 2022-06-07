@@ -121,22 +121,6 @@ export class GameClass {
                 } else if(type == MOUSE.MOVE) {
                     let z = e.movementX;
                     let x = e.movementY;
-                    // @todo Hack for chrome bug
-                    /*
-                    if(Math.abs(z) > 100) {
-                        if(that.preve) {
-                            z = that.preve.movementX;
-                        }
-                    } else {
-                        that.preve = e;
-                    }
-                    if(Math.abs(x) > 100) {
-                        if(that.preve) {
-                            x = that.preve.movementY;
-                        }
-                    } else {
-                        that.preve = e;
-                    }*/
                     if(that.hud.wm.hasVisibleWindow()) {
                         if(controls.enabled) {
                             controls.mouseY += x;
