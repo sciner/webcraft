@@ -19,6 +19,9 @@ const worker = globalThis.worker = {
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
                 this.parentPort.on('message', onMessageFunc);
+                //options.context.parentPort = module.parentPort;
+                //options.context.parentPort.on('message', onMessageFunc);
+                
             });
         } else {
             onmessage = onMessageFunc

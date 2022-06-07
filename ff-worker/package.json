@@ -1,9 +1,12 @@
 {
   "type": "module",
   "scripts": {
-	  "start": "rollup --config rollup.config.js"
+    "start": "rollup --config rollup.config.js"
   },
   "dependencies": {
     "rollup": "^2.75.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0"
   }
 }

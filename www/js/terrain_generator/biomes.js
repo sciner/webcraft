@@ -33,15 +33,13 @@ export class TREES {
 }
 
 // 2. Biomes
-export class BIOMES {
+export class  BIOMES {
 
     static init() {
     
         if(BIOMES.OCEAN) {
             return false;
         }
-
-        TREES.init();
 
         BIOMES.OCEAN = {
             block:      BLOCK.STILL_WATER.id,
