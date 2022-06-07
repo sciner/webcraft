@@ -49,7 +49,7 @@ const dlen = [];
 const dmask = [];
 const DIR_COUNT = 26; //26 // 26 is full 3d light approx
 const DIR_DOWN = 5;
-const DIR_MAX_MASK = (1<<26) - (1<<6);
+const DIR_MAX_MASK = (1 << 26) - (1 << 6);
 
 const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 11);
 
@@ -85,36 +85,108 @@ function initMasks() {
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
     const sx = 1, sz = size.x, sy = size.x * size.z;
-    for (let i=0;i<DIR_COUNT;i++) {
+    for (let i = 0; i < DIR_COUNT; i++) {
         out.push(sx * dx[i] + sy * dy[i] + sz * dz[i]);
     }
 }
 
 initMasks();
 
+class MultiQueuePage {
+    constructor(size) {
+        this.size = size;
+        this.arr = new Int32Array(size);
+        this.clear();
+    }
+
+    clear() {
+        this.start = this.finish = 0;
+        this.next = null;
+    }
+}
+
+class MultiQueue {
+    constructor({maxPriority, pageSize}) {
+        this.headsTails = [];
+        this.pageSize = pageSize;
+        this.headsTails.push(null, null);
+        this.maxPriority = maxPriority || 0;
+        if (maxPriority) {
+            for (let i = 0; i < maxPriority; i++) {
+                this.headsTails.push(null, null);
+            }
+        }
+
+        this.pages = [];
+        this.freePageStack = [];
+        this.freePageCount = 0;
+    }
+
+    push(priority, value) {
+        while (this.headsTails.length < priority * 2) {
+            this.headsTails.push(null, null);
+            this.maxPriority++;
+        }
+
+        let curPage = this.headsTails[priority * 2 + 1];
+        if (curPage && curPage.finish < curPage.size) {
+            curPage.arr[curPage.finish++] = value;
+            return;
+        }
+
+        // alloc page
+        if (this.freePageCount === 0) {
+            // create page
+            this.pages.push(new MultiQueuePage(this.pageSize));
+            this.freePageStack.push(null);
+            this.freePageStack[0] = this.pages[this.pages.length - 1];
+            this.freePageCount++;
+        }
+
+        const newPage = this.freePageStack[--this.freePageCount];
+        newPage.arr[newPage.finish++] = value;
+        if (curPage) {
+            curPage.next = newPage;
+        } else {
+            // set head
+            this.headsTails[priority * 2] = newPage;
+        }
+        // set tail
+        this.headsTails[priority * 2 + 1] = newPage;
+    }
+
+    has(priority) {
+        return this.headsTails[priority * 2];
+    }
+
+    freeHeadPage(priority) {
+        const head = this.headsTails[priority * 2];
+        this.headsTails[priority * 2] = head.next;
+        if (head.next === null) {
+            this.headsTails[priority * 2 + 1] = null;
+        }
+        head.clear();
+        this.freePageStack[this.freePageCount++] = head;
+    }
+
+    shift(priority) {
+        const head = this.headsTails[priority * 2];
+        const val = head.arr[head.start++];
+        if (head.start === head.finish) {
+            this.freeHeadPage(priority);
+        }
+        return val;
+    }
+}
+
 class LightQueue {
     constructor({offset, dirCount, capacity}) {
         // deque structure
-        this.dequeCoord = new Int32Array(0);
-        this.capacity = 0;
+        this.deque = new MultiQueue({maxPriority: maxLight, pageSize: 1 << 16});
         this.filled = 0;
-        this.position = 0;
-        this.heads = [];
-        for (let i = 0; i <= maxLight; i++) {
-            this.heads.push(-1);
-        }
-        this.resizeQueue(capacity || 32768);
-
         // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
-    }
-
-    resizeQueue(newCap) {
-        const oldCoord = this.dequeCoord;
-        const newCoord = this.dequeCoord = new Int32Array(newCap * 2);
-        newCoord.set(oldCoord, 0);
-        this.capacity = newCap;
     }
 
     /**
@@ -126,26 +198,14 @@ class LightQueue {
         if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }
-        if (this.filled * 3 > this.capacity * 2) {
-            this.resizeQueue(this.capacity * 2);
-        }
-        const cap = this.capacity;
-        const {dequeCoord} = this;
-        let {position} = this;
-        while (dequeCoord[position * 2]) {
-            position = (position + 1) % cap;
-        }
-        dequeCoord[position * 2] = chunk.dataIdShift + coord;
-        dequeCoord[position * 2 + 1] = this.heads[waveNum];
-        this.heads[waveNum] = position;
-        this.position = (position + 1) % cap;
+        this.deque.push(waveNum, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
     }
 
     doIter(times) {
-        const {qOffset, dirCount, heads} = this;
-        const { chunkById } = world.chunkManager;
+        const {qOffset, dirCount, deque} = this;
+        const {chunkById} = world.chunkManager;
         let wn = maxLight;
 
         let chunk = null;
@@ -160,18 +220,16 @@ class LightQueue {
         let sx = 0, sy = 0, sz = 0;
 
         for (let tries = 0; tries < times; tries++) {
-            while (wn >= 0 && heads[wn] < 0) {
+            while (wn >= 0 && !deque.has(wn)) {
                 wn--;
             }
             if (wn < 0) {
                 return true;
             }
             //that's a pop
-            const pos = heads[wn];
-            let newChunk = chunkById[this.dequeCoord[pos * 2] >> BITS_BLOCK_ID];
-            let coord = this.dequeCoord[pos * 2] & ((1 << BITS_BLOCK_ID) - 1);
-            heads[wn] = this.dequeCoord[pos * 2 + 1];
-            this.dequeCoord[pos * 2] = 0;
+            const pos = deque.shift(wn);
+            const newChunk = chunkById[pos >> BITS_BLOCK_ID];
+            const coord = pos & ((1 << BITS_BLOCK_ID) - 1);
             this.filled--;
             // pop end
             if (!newChunk || newChunk.removed) {
@@ -214,8 +272,7 @@ class LightQueue {
             if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
                 val = 0;
             } else {
-                if (val === maxLight && val === old && val === prev)
-                {
+                if (val === maxLight && val === old && val === prev) {
                     continue;
                 }
                 for (let d = 0; d < dirCount; d++) {
@@ -362,7 +419,7 @@ class DirLightQueue {
     }
 
     add(chunk, coord) {
-        const { outerSize } = chunk;
+        const {outerSize} = chunk;
         let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
 
         const wave = this.getWave(lvl);
@@ -562,7 +619,7 @@ class DirLightQueue {
                             z2 = z + dz[d];
                         let coord2 = coord + dif26[d];
                         if (lightChunk.aabb.contains(x2, y2, z2)) {
-                            curWave.coords.push(chunkDataId +coord2);
+                            curWave.coords.push(chunkDataId + coord2);
                             chunk.waveCounter++;
                         }
                     }
@@ -757,7 +814,7 @@ class Chunk {
                     const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
 
                     let m = 0;
-                    for (let d=0;d<6;d++) {
+                    for (let d = 0; d < 6; d++) {
                         m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_LIGHT]);
                     }
                     m = Math.max(m, uint8View[coordBytes + OFFSET_LIGHT]);
@@ -785,7 +842,7 @@ class Chunk {
                             world.dayLightSrc.add(this, coord);
                         } else /* if (disperse > 0) */ // somehow there's a bug with this thing
                         {
-                            for (let d=0;d<4;d++) {
+                            for (let d = 0; d < 4; d++) {
                                 if (uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_SOURCE] === maxLight) {
                                     world.dayLightSrc.add(this, coord);
                                     break;
@@ -793,7 +850,7 @@ class Chunk {
                             }
                         }
                         let m = uint8View[coordBytes + OFFSET_LIGHT];
-                        for (let d=0;d<6;d++) {
+                        for (let d = 0; d < 6; d++) {
                             m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_LIGHT]);
                         }
                         if (m > 0) {
@@ -871,12 +928,12 @@ class Chunk {
                     + (Math.round(G * 63.0) << 5)
                     + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
                 result[ind++] = new_value;
-                if(prev_value != new_value) {
+                if (prev_value != new_value) {
                     changed = true;
                 }
                 this.result_crc_sum += new_value;
             } else {
-                if(!changed) {
+                if (!changed) {
                     pv1 = result[ind + 0];
                     pv2 = result[ind + 1];
                     pv3 = result[ind + 2];
@@ -886,8 +943,8 @@ class Chunk {
                 result[ind++] = Math.round(G * 255.0);
                 result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
                 result[ind++] = 0;
-                if(!changed) {
-                    if(pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
+                if (!changed) {
+                    if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
                         changed = true;
                     }
                 }
@@ -997,7 +1054,7 @@ class Chunk {
                 }
 
         //
-        if(changed) {
+        if (changed) {
             this.crc++;
         } else {
             // TODO: find out why are there so many calcResults
@@ -1045,14 +1102,14 @@ function run() {
         chunk.calcResult(renderFormat === 'rgb565unorm');
 
         // no need to send if no changes
-        if(chunk.crc != chunk.crcO) {
+        if (chunk.crc != chunk.crcO) {
             chunk.crcO = chunk.crc;
             const is_zero = (chunk.result_crc_sum == 0 && (
                 (!('result_crc_sumO' in chunk)) ||
                 (chunk.result_crc_sumO == 0)
             ));
             chunk.result_crc_sumO = chunk.result_crc_sum;
-            if(!is_zero) {
+            if (!is_zero) {
                 // console.log(8)
                 worker.postMessage(['light_generated', {
                     addr: chunk.addr,
@@ -1136,7 +1193,8 @@ async function initWorld() {
     world.chunkManager = new ChunkManager();
     world.light = new LightQueue({offset: 0, dirCount: 6});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
-    world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
+    world.dayLightSrc = new DirLightQueue({
+        offset: OFFSET_DAY,
         disperse: DEFAULT_LIGHT_DAY_DISPERSE
     })
     for (let item of msgQueue) {
@@ -1180,7 +1238,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'destructChunk': {
-            for(let addr of args) {
+            for (let addr of args) {
                 let chunk = world.chunkManager.getChunk(addr);
                 if (chunk) {
                     chunk.removed = true;
@@ -1247,16 +1305,16 @@ function testDayLight() {
 
     let centerChunk = [];
 
-    for (let y=0;y<3;y++) {
-        for (let x=0;x<3;x++) {
-            for (let z=0;z<3;z++) {
+    for (let y = 0; y < 3; y++) {
+        for (let x = 0; x < 3; x++) {
+            for (let z = 0; z < 3; z++) {
                 const light_buffer = (y < 2) ? innerDataEmpty.buffer : innerDataSolid.buffer;
                 let chunk = new Chunk({addr: new Vector(x, y, z), size: new Vector(w, w, w), light_buffer});
                 chunk.init();
                 world.chunkManager.add(chunk);
                 chunk.fillOuter();
 
-                if (x===1 && z===1 && y<=1) {
+                if (x === 1 && z === 1 && y <= 1) {
                     centerChunk.push(chunk);
                 }
             }
@@ -1293,16 +1351,16 @@ function testDisperse() {
     let centerChunk = [];
 
     const maxY = 3;
-    for (let y=0;y<maxY;y++) {
-        for (let x=0;x<3;x++) {
-            for (let z=0;z<3;z++) {
+    for (let y = 0; y < maxY; y++) {
+        for (let x = 0; x < 3; x++) {
+            for (let z = 0; z < 3; z++) {
                 const light_buffer = (y < maxY - 1) ? innerDataEmpty.buffer : innerDataSolid.buffer;
                 let chunk = new Chunk({addr: new Vector(x, y, z), size: new Vector(w, w, w), light_buffer});
                 chunk.init();
                 world.chunkManager.add(chunk);
                 chunk.fillOuter();
 
-                if (x===1 && z===1 && y < maxY - 1) {
+                if (x === 1 && z === 1 && y < maxY - 1) {
                     centerChunk.push(chunk);
                 }
                 // if (y < maxY - 1) {
