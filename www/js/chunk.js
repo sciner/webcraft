@@ -427,6 +427,7 @@ export class Chunk {
                 const light         = material.light_power_number;
                 if (oldLight !== light) {
                     chunkManager.postLightWorkerMessage(['setBlock', {
+                        addr: this.addr,
                         dataId: this.getDataTextureOffset(),
                         x:          x + this.coord.x,
                         y:          y + this.coord.y,

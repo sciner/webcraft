@@ -132,7 +132,7 @@ class LightQueue {
         const cap = this.capacity;
         const {dequeCoord} = this;
         let {position} = this;
-        while (dequeCoord[position]) {
+        while (dequeCoord[position * 2]) {
             position = (position + 1) % cap;
         }
         dequeCoord[position * 2] = chunk.dataIdShift + coord;
@@ -520,8 +520,9 @@ class DirLightQueue {
                     let x2 = x,
                         y2 = y - 1,
                         z2 = z;
+                    const dataIdShift2 = chunk2.rev.dataIdShift;
                     if (chunk2.aabb.contains(x2, y2, z2)) {
-                        nextWave.coords.push(chunk2.dataIdShift + chunk2.indexByWorld(x2, y2, z2));
+                        nextWave.coords.push(dataIdShift2 + chunk2.indexByWorld(x2, y2, z2));
                         chunk2.rev.waveCounter++;
                         mask |= (1 << DIR_DOWN); //down
                     }
@@ -535,7 +536,7 @@ class DirLightQueue {
                             z2 = z + dz[d];
                             if (chunk2.aabb.contains(x2, y2, z2)) {
                                 mask |= 1 << d;
-                                curWave.coords.push(chunk2.dataIdShift + chunk2.indexByWorld(x2, y2, z2));
+                                curWave.coords.push(dataIdShift2 + chunk2.indexByWorld(x2, y2, z2));
                                 chunk2.rev.waveCounter++;
                             }
                         }
@@ -1170,7 +1171,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'createChunk': {
-            if (!world.chunkManager.chunkById[args.dataId]) {
+            if (!world.chunkManager.getChunk(args.addr)) {
                 let chunk = new Chunk(args);
                 chunk.init();
                 world.chunkManager.add(chunk);
@@ -1189,7 +1190,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'setBlock': {
-            let chunk = world.chunkManager.chunkById[args.dataId];
+            let chunk = world.chunkManager.getChunk(args.addr);
             if (chunk) {
                 const {light_source, x, y, z} = args;
                 const {lightChunk} = chunk;
