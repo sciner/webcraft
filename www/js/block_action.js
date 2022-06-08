@@ -759,36 +759,33 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         // Fuse TNT
         if(!e.shiftKey && world_material.name == 'TNT') {
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-            // actions.addPlaySound({tag: 'madcraft:block.player', action: 'explode', pos: new Vector(pos)});
-            /*
-            // Explode
-            const rad = 3;
-            const air = {id: 0};
-            for(let i = -rad; i < rad; i++) {
-                for(let j = -rad; j < rad; j++) {
-                    for(let k = -rad; k < rad; k++) {
-                        const air_pos = new Vector(pos.x + i, pos.y + k, pos.z + j);
-                        if(air_pos.distance(pos) < rad) {
-                            actions.addBlocks([{pos: air_pos, item: air}]);
-                        }
-                    }
-                }
-            }
-            */
+            // @todo make explosion like a creeper
             return actions;
         }
         //
-        console.log(currentInventoryItem)
-        if(world_material.tags.indexOf('stairs') >= 0 && !currentInventoryItem) {
-            const obj_pos = new Vector(pos.x, pos.y, pos.z).addScalarSelf(.5, 0, .5);
-            const dist = player.pos.distance(obj_pos);
-            if(dist < 3.0) {
-                actions.reset_target_pos = true;
-                actions.setSitting(
-                    obj_pos.addScalarSelf(0, .5, 0),
-                    new Vector(0, 0, (rotate.x / 4) * -(2 * Math.PI))
-                )
-                return actions;
+        const world_block_is_slab = world_material.layering && world_material.height == 0.5;
+        const block_for_sittings = (world_material.tags.indexOf('stairs') >= 0) || world_block_is_slab;
+        if(block_for_sittings && !currentInventoryItem) {
+            // check over block if not empty for head
+            const overBlock = world.getBlock(new Vector(pos.x, pos.y + 1, pos.z));
+            if(!overBlock || overBlock.id == 0) {
+                //
+                const obj_pos = new Vector(pos.x, pos.y, pos.z)
+                if(world_block_is_slab) {
+                    const on_ceil = world_block.extra_data?.point?.y >= .5;
+                    obj_pos.addScalarSelf(.5, on_ceil ? .5 : 0, .5);
+                } else {
+                    obj_pos.addScalarSelf(.5, 0, .5);
+                }
+                const dist = player.pos.distance(obj_pos);
+                if(dist < 3.0) {
+                    actions.reset_target_pos = true;
+                    actions.setSitting(
+                        obj_pos.addScalarSelf(0, .5, 0),
+                        new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
+                    )
+                    return actions;
+                }
             }
         }
         // 2. Проверка инвентаря
@@ -987,7 +984,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return actions;
         }
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-        let is_layering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.is_layering;
+        const is_layering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.is_layering;
         if(is_layering) {
             const layering = world_material.layering;
             let new_extra_data = null;
@@ -1002,16 +999,18 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 actions.reset_target_pos = true;
                 actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
                 actions.decrement = true;
+                actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
             } else {
                 const full_block = BLOCK.fromName(layering.full_block_name);
                 actions.reset_target_pos = true;
                 actions.addBlocks([{pos: new Vector(pos), item: {id: full_block.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
                 actions.decrement = true;
+                actions.addPlaySound({tag: full_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
             }
             return actions;
         }
         // 11. Факелы можно ставить только на определенные виды блоков!
-        let isTorch = matBlock.style == 'torch';
+        const isTorch = matBlock.style == 'torch';
         if(isTorch) {
             if(!replaceBlock && (
                         ['default', 'fence', 'wall'].indexOf(world_material.style) < 0 ||
