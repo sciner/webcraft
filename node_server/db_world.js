@@ -477,6 +477,10 @@ export class DBWorld {
             'ALTER TABLE entity ADD COLUMN extra_data text'
         ]});
 
+        migrations.push({version: 54, queries: [
+            'DELETE FROM world_modify WHERE block_id = 105'
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
