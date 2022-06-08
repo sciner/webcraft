@@ -219,19 +219,19 @@ export class Player {
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
-    onStep(step_side) {
+    onStep(step_side, force) {
         this.steps_count++;
         if(this.isSneak) {
             return;
         }
         let world = this.world;
         let player = this;
-        if(!player || player.in_water || !player.walking || !player.controls.enabled) {
+        if(!player || (!force && (player.in_water || !player.walking || !player.controls.enabled))) {
             return;
         }
-        let f = player.walkDist - player.walkDistO;
-        if(f > 0) {
-            const pos = player.lerpPos;
+        let f = this.walkDist - this.walkDistO;
+        if(f > 0 || force) {
+            const pos = player.pos;
             let world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
             if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
@@ -514,6 +514,9 @@ export class Player {
             this.isOnLadder = pc.player_state.isOnLadder;
             this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
+            if(this.onGround && !this.onGroundO) {
+                this.onStep(null, true);
+            }
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
             // Update player model
