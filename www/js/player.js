@@ -600,6 +600,7 @@ export class Player {
         this.running = false;
         this.controls.reset();
         this.updateModelProps();
+        Game.hud.wm.closeAll();
         Game.hud.wm.getWindow('frmDie').show();
     }
 
