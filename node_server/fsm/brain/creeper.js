@@ -113,7 +113,8 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
         
-        if(!player || !player.game_mode.getCurrent().can_take_damage) {
+        // если игрока нет, он умер или сменил игровой режим на безопасный, то теряем к нему интерес
+        if(!mob.playerCanBeAtacked(player)) {
             return this.lostTarget();
         }
         const dist = mob.pos.distance(player.state.pos);

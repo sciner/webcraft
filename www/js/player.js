@@ -490,18 +490,7 @@ export class Player {
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
             // Update player model
-            const model = this.getModel();
-            if(model) {
-                model.hide_nametag = true;
-                model.setProps(
-                    this.lerpPos,
-                    this.rotate,
-                    this.controls.sneak,
-                    this.moving, // && !this.getFlying(),
-                    this.running && !this.isSneak,
-                    this.state.hands
-                );
-            }
+            this.updateModelProps();
             // Check falling
             this.checkFalling();
             // Walking
@@ -607,6 +596,10 @@ export class Player {
     }
     
     setDie() {
+        this.moving = false;
+        this.running = false;
+        this.controls.reset();
+        this.updateModelProps();
         Game.hud.wm.getWindow('frmDie').show();
     }
 
@@ -615,6 +608,22 @@ export class Player {
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
+        }
+    }
+
+    // Update player model
+    updateModelProps() {
+        const model = this.getModel();
+        if(model) {
+            model.hide_nametag = true;
+            model.setProps(
+                this.lerpPos,
+                this.rotate,
+                this.controls.sneak,
+                this.moving, // && !this.getFlying(),
+                this.running && !this.isSneak,
+                this.state.hands
+            );
         }
     }
 

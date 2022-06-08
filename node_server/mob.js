@@ -168,4 +168,9 @@ export class Mob {
         return this.indicators.live.value > 0;
     }
 
+    // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать
+    playerCanBeAtacked(player) {
+        return !player || player.is_dead || !player.game_mode.getCurrent().can_take_damage;
+    }
+
 }

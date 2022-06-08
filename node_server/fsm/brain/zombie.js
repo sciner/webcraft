@@ -19,9 +19,9 @@ export class Brain extends FSMBrain {
             playerHeight: 1.6,
             stepHeight: 1
         });
-        this.distance_attack = 2;
+        this.distance_attack = 1.5;
         this.timer_attack = 0;
-        this.interval_attack = 8;
+        this.interval_attack = 16;
         this.stack.pushState(this.doStand);
     }
 
@@ -44,26 +44,42 @@ export class Brain extends FSMBrain {
 
     }
 
+    lostTarget() {
+        this.target = null;
+        this.stack.replaceState(this.doStand);
+        this.sendState();
+    }
+
     doAttack(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if (player.is_dead) {
-            this.target = null;
-            this.stack.replaceState(this.doStand);
-		}
+
+        // если игрока нет, он умер или сменил игровой режим на безопасный, то теряем к нему интерес
+        if(!mob.playerCanBeAtacked(player)) {
+            return this.lostTarget();
+        }
+
         const world = mob.getWorld();
         const dist = mob.pos.distance(player.state.pos);
         if (dist > this.distance_attack) {
-            this.stack.replaceState(this.doCatch);
+            return this.stack.replaceState(this.doCatch);
         }
         this.timer_attack++;
-        if (this.timer_attack >= this.interval_attack) {
-            this.timer_attack = 0;
-            player.changeLive(-2);
-            const actions = new PickatActions();
-            actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() }); //Звук смерти
-            world.actions_queue.add(player, actions);
-		}
+        const angle_to_player = this.angleTo(player.state.pos);
+        // моб должен примерно быть направлен на игрока
+        if(Math.abs(this.mob.rotate.z - angle_to_player) > Math.PI / 2) {
+            // сперва нужно к нему повернуться
+            this.mob.rotate.z = angle_to_player;
+            this.sendState();
+        } else {
+            if (this.timer_attack >= this.interval_attack) {
+                this.timer_attack = 0;
+                player.changeLive(-2);
+                const actions = new PickatActions();
+                actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
+                world.actions_queue.add(player, actions);
+            }
+        }
 	}
     
     // Chasing a player
