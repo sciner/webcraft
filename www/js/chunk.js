@@ -139,7 +139,7 @@ export class Chunk {
                     light_source[ind++] = light_power_number;
                 }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
-            {addr: this.addr, size: this.size, light_buffer}]);
+            {addr: this.addr, size: this.size, light_buffer, dataId: this.getDataTextureOffset() }]);
     }
 
     getLightTexture(render) {
@@ -399,7 +399,9 @@ export class Chunk {
             if (this.chunkManager.use_light) {
                 const light         = material.light_power_number;
                 if (oldLight !== light) {
-                    chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
+                    chunkManager.postLightWorkerMessage(['setBlock', {
+                        addr: this.addr,
+                        dataId: this.getDataTextureOffset(),
                         x:          x + this.coord.x,
                         y:          y + this.coord.y,
                         z:          z + this.coord.z,
