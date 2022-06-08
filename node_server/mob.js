@@ -1,7 +1,6 @@
-import {getChunkAddr} from "../www/js/chunk.js";
+import {getChunkAddr} from "../www/js/chunk_const.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
-import { json } from "express";
 
 await Brains.init();
 
@@ -33,13 +32,13 @@ export class Mob {
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
         this.height         = this.#brain.pc.physics.playerHeight;
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
-        world.mobs.set(this.id, this);
+        world.mobs.add(this);
         this.save_offset = Math.round(Math.random() * this.save_per_tick);
     }
 
     //
     static convertRowToExtraData(row) {
-        let extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
+        const extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
         extra_data.is_alive = !!row.is_active;
         if(!('play_death_animation' in extra_data)) {
             extra_data.play_death_animation = true;
@@ -127,14 +126,14 @@ export class Mob {
             }
             */
         } else if(params.button_id == 1) {
-           
+
             if(this.indicators.live.value > 0) {
                 await this.changeLive(-5, server_player);
                 // Add velocity for drop item
                 //let velocity = this.pos.sub(server_player.state.pos).normSelf();
                // velocity.y = .5;
                 //this.addVelocity(velocity);
-                //this.#brain.runPanic(); 
+                //this.#brain.runPanic();
                 this.#brain.onDemage(server_player, 5);
             }
         }

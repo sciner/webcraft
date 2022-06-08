@@ -1,7 +1,5 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, ChargingStationWindow, NotImplementedWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
-import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import { Inventory } from "./inventory.js";
 import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
@@ -9,7 +7,7 @@ import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
 // Player inventory
 export class PlayerInventory extends Inventory {
 
-    constructor(player, hud) {
+    constructor(player, state, hud) {
         super(null, {current: {index: 0, index2: -1}, items: []});
         this.player         = player;
         this.hud            = hud;
@@ -20,6 +18,21 @@ export class PlayerInventory extends Inventory {
         this.select(this.current.index);
         // Recipe manager
         this.recipes = new RecipeManager(true);
+        // Restore slots state
+        this.setState(state);
+        // Action on change slot
+        this.onSelect = (item) => {
+            // Вызывается при переключении активного слота в инвентаре
+            if(player.pickAt) {
+                player.pickAt.resetProgress();
+            }
+            player.world.server.InventorySelect(this.current);
+            Game.hud.refresh();
+        };
+        // Add this for draw on screen
+        Game.hotbar.setInventory(this);
+        //
+        this.hud.add(this, 0);
     }
 
     setState(inventory_state) {
@@ -43,6 +56,7 @@ export class PlayerInventory extends Inventory {
 
     // Refresh
     refresh() {
+        this.player.state.hands.right = this.current_item;
         if(this.hud) {
             this.hud.refresh();
             try {
@@ -90,8 +104,9 @@ export class PlayerInventory extends Inventory {
                 if(!('id' in item)) {
                     console.error(item);
                 }
-                let mat = BLOCK.fromId(item.id);
-                const icon = BLOCK.getInventoryIconPos(
+                const bm = this.player.world.block_manager;
+                const mat = bm.fromId(item.id);
+                const icon = bm.getInventoryIconPos(
                     mat.inventory_icon_id,
                     this.inventory_image.width,
                     this.inventory_image.width / 16
@@ -151,32 +166,6 @@ export class PlayerInventory extends Inventory {
     // initUI...
     initUI() {
         this.inventory_image = Resources.inventory.image;
-        this.hud.add(this, 0);
-        // CraftTable
-        this.ct = new CraftTable(0, 0, 352, 332, 'frmCraft', null, null, this, this.recipes);
-        this.ct.visible = false;
-        this.hud.wm.add(this.ct);
-        // Inventory window
-        this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this, this.recipes);
-        this.hud.wm.add(this.frmInventory);
-        // Creative Inventory window
-        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
-        this.hud.wm.add(this.frmCreativeInventory);
-        // Chest window
-        this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
-        this.hud.wm.add(this.frmChest);
-        // Furnace window
-        this.frmFurnace = new FurnaceWindow(10, 10, 352, 332, 'frmFurnace', null, null, this);
-        this.hud.wm.add(this.frmFurnace);
-        // Charging station window
-        this.frmChargingStation = new ChargingStationWindow(10, 10, 352, 332, 'frmChargingStation', null, null, this);
-        this.hud.wm.add(this.frmChargingStation);
-        // Edit sign
-        this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
-        this.hud.wm.add(this.frmEditSign);
-        // Not implemented
-        this.frmNotImplemented = new NotImplementedWindow(10, 10, 236, 192, 'frmNotImplemented', null, null, this);
-        this.hud.wm.add(this.frmNotImplemented);
     }
 
     //

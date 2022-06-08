@@ -1,4 +1,3 @@
-import {BLOCK} from "./blocks.js";
 import {Color, Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
@@ -7,7 +6,8 @@ let tmpCanvas;
 
 export class BaseResourcePack {
 
-    constructor(location, id) {
+    constructor(BLOCK, location, id) {
+        this.BLOCK = BLOCK;
         this.id = id;
         this.dir = location;
         this.textures = new Map();
@@ -29,7 +29,7 @@ export class BaseResourcePack {
         ]).then(async ([conf, json]) => {
             this.conf = conf;
             for(let b of json) {
-                await BLOCK.add(this, b);
+                await this.BLOCK.add(this, b);
             }
         })
     }
@@ -59,7 +59,7 @@ export class BaseResourcePack {
         } else {
             shader_options = this.dir + this.conf.shader.webgpu;
         }
-    
+
         this.shader = await renderBackend.createResourcePackShader(shader_options);
         this.shader.resource_pack_id = this.id;
         this.shader.shared = shared;
@@ -149,7 +149,7 @@ export class BaseResourcePack {
             image = resp.image;
             texture = resp.texture;
         }
-    
+
         textureInfo.texture = texture;
         textureInfo.width   = image.width;
         textureInfo.height  = image.height;
@@ -158,17 +158,17 @@ export class BaseResourcePack {
         // Get image bytes
         const canvas        = tmpCanvas;
         const ctx           = canvas.getContext('2d');
-        
+
         canvas.width        = image.width;
         canvas.height       = image.height;
 
         ctx.drawImage(
             image, 0, 0,
             image.width,
-            image.height, 0, 0, 
+            image.height, 0, 0,
             image.width, image.height
         );
-        
+
         textureInfo.imageData = ctx.getImageData(0, 0, image.width, image.height);
         textureInfo.getColorAt = function(x, y) {
             const ax = (x * this.width) | 0;
@@ -199,7 +199,7 @@ export class BaseResourcePack {
         if (!this.conf.textures) {
             return;
         }
-        
+
         const tasks = [];
 
         tmpCanvas = tmpCanvas || document.createElement('canvas');
@@ -283,7 +283,7 @@ export class BaseResourcePack {
     // pushVertices
     pushVertices(vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot) {
         const style = draw_style ? draw_style : block.material.style;
-        const module = BLOCK.styles.get(style);
+        const module = this.BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }

@@ -6,9 +6,9 @@ import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory, recipes) {
+    constructor(inventory, recipes) {
 
-        super(x, y, w, h, id, title, text);
+        super(10, 10, 352, 332, 'frmInventory', null, null);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
@@ -37,8 +37,6 @@ export class InventoryWindow extends BaseCraftWindow {
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
         ct.setBackground(options.background.image);
-
-
 
         ct.hide();
         

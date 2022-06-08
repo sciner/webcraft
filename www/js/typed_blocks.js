@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 
 export const CC = [

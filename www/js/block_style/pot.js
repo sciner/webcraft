@@ -1,6 +1,6 @@
-import {DIRECTION} from '../helpers.js';
+import {DIRECTION, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -127,7 +127,7 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_top, 0, 1, null, null, true), // flag: 0, anim: 1 implicit 
+                up:     new AABBSideParams(c_top, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
                 down:   new AABBSideParams(c_down, 0, 1, null, null, true),
                 south:  new AABBSideParams(c_side, 0, 1, null, null, true),
                 north:  new AABBSideParams(c_side, 0, 1, null, null, true),

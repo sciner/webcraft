@@ -1,4 +1,4 @@
-import {DIRECTION, QUAD_FLAGS, MULTIPLY} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, MULTIPLY, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';

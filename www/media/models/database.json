@@ -231,6 +231,15 @@
                 "scientist_9": "textures/npc/npc_scientist_9.png",
                 "scientist_10": "textures/npc/npc_scientist_10.png"
             }
+        },
+        "zombie": {
+            "type": "json",
+            "geom": "json/steve.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/zombie/zombie.png",
+                "husk": "textures/zombie/husk.png"
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
-import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
+import {Chunk} from "./chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk_const.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
@@ -95,8 +96,13 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
-        this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
-        this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        if (navigator.userAgent.indexOf('Firefox') > -1) {
+            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
+            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
+        } else {
+            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        }
         this.sort_chunk_by_frustum  = false;
         this.timer60fps             = 0;
 
@@ -608,12 +614,13 @@ export class ChunkManager {
 
     //
     setTestBlocks(pos) {
-        let d = 10;
+        let d = 16;
         let cnt = 0;
         let startx = pos.x;
         let all_blocks = BLOCK.getAll();
-        for(let block of all_blocks) {
-            if(block.is_fluid || block.item || !block.spawnable) {
+        const set_block_list = [];
+        for(let mat of all_blocks) {
+            if(mat.deprecated || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || mat.style == 'extruder' || mat.style == 'text') {
                 continue;
             }
             if(cnt % d == 0) {
@@ -621,9 +628,37 @@ export class ChunkManager {
                 pos.z += 2;
             }
             pos.x += 2;
-            this.setBlock(pos.x, pos.y, pos.z, block, true, null, null, null, block.extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+            const item = {
+                id:         mat.id,
+                extra_data: null,
+                rotate:     mat.id
+            };
+            if(mat.is_chest) {
+                item.extra_data = { can_destroy: true, slots: {} };
+            } else if(mat.tags.indexOf('sign') >= 0) {
+                item.extra_data = {
+                    text: 'Hello, World!',
+                    username: 'Server',
+                    dt: new Date().toISOString()
+                };
+            } else if(mat.extra_data) {
+                item.extra_data = mat.extra_data;
+            }
+            if(mat.can_rotate) {
+                item.rotate = new Vector(0, 1, 0);
+            }
+            set_block_list.push({
+                pos:        pos.clone(),
+                type:       item,
+                is_modify:  false,
+                power:      null,
+                rotate:     item.rotate,
+                extra_data: item.extra_data
+            });
+            // this.setBlock(pos.x, pos.y, pos.z, mat, true, null, item.rotate, null, item.extra_data, ServerClient.BLOCK_ACTION_CREATE);
             cnt++;
         }
+        this.postWorkerMessage(['setBlock', set_block_list]);
     }
 
 }

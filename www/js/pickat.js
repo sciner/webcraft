@@ -4,7 +4,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
-import {getChunkAddr} from "./chunk.js";
+import {getChunkAddr} from "./chunk_const.js";
 
 const {mat4} = glMatrix;
 
@@ -62,7 +62,7 @@ export class PickAt {
         e.destroyBlock      = e.button_id == 1;
         e.cloneBlock        = e.button_id == 2;
         e.createBlock       = e.button_id == 3;
-        e.interractMob      = null;
+        e.interractMobID    = null;
         e.number            = 0;
         const damage_block  = this.damage_block;
         damage_block.event  = Object.assign(e, {number: 0});
@@ -133,7 +133,7 @@ export class PickAt {
             if(bPos.mob) {
                 if(this.onInterractMob instanceof Function) {
                     if(this.damage_block.event) {
-                        this.damage_block.event.interractMob = bPos.mob.id;
+                        this.damage_block.event.interractMobID = bPos.mob.id;
                         this.onInterractMob(this.damage_block.event);
                         this.damage_block.event = null;
                     }

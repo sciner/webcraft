@@ -40,11 +40,41 @@
         "hurt": [
             "Chicken_hurt1",
             "Chicken_hurt2"
+        ],
+        "idle": [
+            "ChickenIdle1",
+            "ChickenIdle2",
+            "ChickenIdle3"
+        ],
+        "step": [
+            "ChickenStep1",
+            "ChickenStep2"
+        ],
+        "death": [
+            "Chicken_hurt1",
+            "Chicken_hurt2"
         ]
     },
     {
         "type": "madcraft:block.sheep",
         "hurt": [
+            "Sheep1",
+            "Sheep2",
+            "Sheep3"
+        ],
+        "idle": [
+            "SheepIdle1",
+            "SheepIdle2",
+            "SheepIdle3"
+        ],
+        "step": [
+            "SheepStep1",
+            "SheepStep2",
+            "SheepStep3",
+            "SheepStep4",
+            "SheepStep5"
+        ],
+        "death": [
             "Sheep1",
             "Sheep2",
             "Sheep3"
@@ -56,6 +86,23 @@
             "Cow_hurt1",
             "Cow_hurt2",
             "Cow_hurt3"
+        ],
+        "idle": [
+            "CowIdle1",
+            "CowIdle2",
+            "CowIdle3",
+            "CowIdle4"
+        ],
+        "step": [
+            "CowStep1",
+            "CowStep2",
+            "CowStep3",
+            "CowStep4"
+        ],
+        "death": [
+            "Cow_hurt1",
+            "Cow_hurt2",
+            "Cow_hurt3"
         ]
     },
     {
@@ -64,6 +111,21 @@
             "Pig_idle1",
             "Pig_idle2",
             "Pig_idle3"
+        ],
+        "idle": [
+            "Pig_idle1",
+            "Pig_idle2",
+            "Pig_idle3"
+        ],
+        "step": [
+            "PigStep1",
+            "PigStep2",
+            "PigStep3",
+            "PigStep4",
+            "PigStep5"
+        ],
+        "death": [
+            "PigDeath1"
         ]
     },
     {
@@ -73,6 +135,14 @@
             "Horse_hurt2",
             "Horse_hurt3",
             "Horse_hurt4"
+        ],
+        "idle": [
+            "Horse_Idle"
+        ],
+        "step": [
+        ],
+        "death": [
+            "Horse_Death"
         ]
     },
     {
@@ -82,11 +152,38 @@
             "Fox_hurt2",
             "Fox_hurt3",
             "Fox_hurt4"
+        ],
+        "idle": [
+            "Fox_idle1",
+            "Fox_idle2",
+            "Fox_idle3",
+            "Fox_idle4",
+            "Fox_idle5",
+            "Fox_idle6"
+        ],
+        "step": [
+        ],
+        "death": [
+            "Fox_death1",
+            "Fox_death2"
         ]
     },
     {
         "type": "madcraft:block.cat",
         "hurt": [
+            "Cat_hurt1",
+            "Cat_hurt2",
+            "Cat_hurt3"
+        ],
+        "idle": [
+            "CatIdle1",
+            "CatIdle2",
+            "CatIdle3",
+            "CatIdle4"
+        ],
+        "step": [
+        ],
+        "death": [
             "Cat_hurt1",
             "Cat_hurt2",
             "Cat_hurt3"
@@ -105,6 +202,13 @@
             "explode2",
             "explode3",
             "explode4"
+        ],
+        "idle": [
+        ],
+        "step": [
+        ],
+        "death": [
+            "CreeperDeath1"
         ]
     },
     {
@@ -448,6 +552,28 @@
         ],
         "break": [
             "Random_break"
+        ]
+    },
+    {
+        "type": "madcraft:block.zombie",
+        "idle": [
+            "ZombieIdle1",
+            "ZombieIdle2",
+            "ZombieIdle3"
+        ],
+        "death": [
+            "ZombieDeath1"
+        ],
+        "hurt": [
+            "ZombieHurt1",
+            "ZombieHurt2"
+        ],
+        "step": [
+            "ZombieStep1",
+            "ZombieStep2",
+            "ZombieStep3",
+            "ZombieStep4",
+            "ZombieStep5"
         ]
     }
 ]

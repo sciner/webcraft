@@ -1,6 +1,6 @@
-import { getChunkAddr } from "./chunk.js";
-import {Vector} from "./helpers.js";
-import {BLOCK, POWER_NO} from "./blocks.js";
+import { getChunkAddr } from "./chunk_const.js";
+import { Vector } from "./helpers.js";
+import { BLOCK, POWER_NO  } from "./blocks.js";
 
 export class ServerClient {
 
@@ -30,6 +30,7 @@ export class ServerClient {
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43;
+    static CMD_STANDUP_STRAIGHT         = 48; // встать с дивана/кресла
 
     // Entities
     static CMD_LOAD_CHEST               = 45; // player -> server
@@ -50,7 +51,7 @@ export class ServerClient {
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_PARTICLE_EXPLOSION       = 89;
     static CMD_STOP_PLAY_DISC           = 91;
-	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player 
+	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93
@@ -237,6 +238,9 @@ export class ServerClient {
                 const power = ('power' in item) ? item.power : POWER_NO;
                 tblock = chunk.tblocks.get(tblock_pos, tblock);
                 if (chunkManager.use_light) {
+                    if(!tblock.material) {
+                        debugger
+                    }
                     oldLight = tblock.material.light_power_number;
                 }
                 chunk.tblocks.delete(tblock_pos);

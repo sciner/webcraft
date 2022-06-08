@@ -1,6 +1,6 @@
 import {Vector} from "./helpers.js";
 import {TBlock, BlockNeighbours, CC, TypedBlocks as TB} from "./typed_blocks.js";
-import {getChunkAddr} from "./chunk.js";
+import {getChunkAddr} from "./chunk_const.js";
 import { VectorCollector1D, TypedBlocks2 as TB2 } from './typed_blocks2.js';
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
@@ -301,7 +301,7 @@ export class TypedBlocks3 {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties.is_water) {
+            if(properties && properties.is_water) {
                 is_water_count++;
             }
         }

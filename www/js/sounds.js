@@ -1,5 +1,4 @@
 import {Resources} from "./resources.js";
-import {Helpers} from "./helpers.js";
 
 export class Sounds {
 
@@ -13,7 +12,7 @@ export class Sounds {
     }
 
     async add(item) {
-        for(let action of ['dig', 'place', 'open', 'close', 'hit', 'eat', 'burp', 'fuse', 'break', 'explode', 'click', 'hurt', 'strong_atack']) {
+        for(let action of ['dig', 'place', 'open', 'close', 'hit', 'eat', 'burp', 'fuse', 'break', 'explode', 'click', 'hurt', 'strong_atack', 'death', 'idle', 'step']) {
             if(item.hasOwnProperty(action)) {
                 let volume = 1.;
                 if(action == 'hit') {

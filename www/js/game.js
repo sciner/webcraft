@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer, Mth, VectorCollector} from "./helpers.js";
+import {Vector, AverageClockTimer} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -50,7 +50,7 @@ export class GameClass {
 
         await Promise.all([resourceTask, blockTask]);
 
-        this.world.init(settings);
+        this.world.init(settings, BLOCK);
 
         // Create world
         await this.render.init(this.world, settings);
@@ -64,10 +64,9 @@ export class GameClass {
 
     // Started...
     Started(player) {
-        this.sounds             = new Sounds();
         this.player             = player;
+        this.sounds             = new Sounds();
         this.averageClockTimer  = new AverageClockTimer();
-        this.block_manager      = BLOCK;
         this.prev_player_state  = null;
         //
         this.render.setPlayer(player);
@@ -122,22 +121,6 @@ export class GameClass {
                 } else if(type == MOUSE.MOVE) {
                     let z = e.movementX;
                     let x = e.movementY;
-                    // @todo Hack for chrome bug
-                    /*
-                    if(Math.abs(z) > 100) {
-                        if(that.preve) {
-                            z = that.preve.movementX;
-                        }
-                    } else {
-                        that.preve = e;
-                    }
-                    if(Math.abs(x) > 100) {
-                        if(that.preve) {
-                            x = that.preve.movementY;
-                        }
-                    } else {
-                        that.preve = e;
-                    }*/
                     if(that.hud.wm.hasVisibleWindow()) {
                         if(controls.enabled) {
                             controls.mouseY += x;
@@ -270,7 +253,7 @@ export class GameClass {
                     case KEY.F4: {
                         if(!e.down) {
                             if(e.shiftKey) {
-                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 11, player.pos.y | 0, (player.pos.z | 0) - 13));
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
                             } else {
                                 player.changeSpawnpoint();
                             }
@@ -401,6 +384,9 @@ export class GameClass {
                                 player.controls.sprint = false;
                             }
                         }
+                    }
+                    if(e.shiftKey && e.down && e.keyCode == KEY.SHIFT) {
+                        player.standUp();
                     }
                 }
                 return false;

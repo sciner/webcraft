@@ -1,6 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import {TBlock} from "./typed_blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk_const.js";
 
 
 // VectorCollector...
@@ -222,9 +222,9 @@ export class TypedBlocks2 {
                     continue;
                 }
                 // let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-                let x = index % CHUNK_SIZE_X;
-                let y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
-                let z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
+                const x = index % CHUNK_SIZE_X;
+                const y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
+                const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
                 if(ignore_filled) {
                     if(x > 0 && y > 0 && z > 0 && x < CHUNK_SIZE_X - 1 && y < CHUNK_SIZE_Y - 1 && z < CHUNK_SIZE_Z - 1) {
                         if(contex.blockIsClosed(index, id, x, y, z)) {
@@ -233,7 +233,7 @@ export class TypedBlocks2 {
                         }
                     }
                 }
-                let vec = b.vec.set(x, y, z);
+                const vec = b.vec.set(x, y, z);
                 yield b.init(contex, vec); // new TBlock(this, vec);
             }
             // console.log(globalThis.dfgdfg)
@@ -243,10 +243,10 @@ export class TypedBlocks2 {
     *[Symbol.iterator]() {
         for(let index = 0; index < this.count; index++) {
             // let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-            let x = index % CHUNK_SIZE_X;
-            let y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
-            let z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
-            let vec = new Vector(x, y, z);
+            const x = index % CHUNK_SIZE_X;
+            const y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
+            const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
+            const vec = new Vector(x, y, z);
             yield new TBlock(this, vec);
         }
     }

@@ -1,5 +1,5 @@
 import {impl as alea} from '../../vendors/alea.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk_const.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
 
@@ -51,6 +51,7 @@ export class TerrainMapManager {
         this.world_id = world_id;
         this.noisefn = noisefn;
         this.maps_cache = new VectorCollector();
+        BIOMES.init();
     }
 
     // Delete map for unused chunk

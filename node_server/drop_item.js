@@ -1,4 +1,4 @@
-import {getChunkAddr} from "../www/js/chunk.js";
+import {getChunkAddr} from "../www/js/chunk_const.js";
 import { Vector } from "../www/js/helpers.js";
 import { PrismarinePlayerControl, PHYSICS_TIMESTEP, DEFAULT_SLIPPERINESS} from "../www/vendors/prismarine-physics/using.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
@@ -43,14 +43,14 @@ export class DropItem {
      * @return {PrismarinePlayerControl}
      */
     createPlayerControl(options) {
-        let world = this.getWorld();
+        const world = this.getWorld();
         return new PrismarinePlayerControl({
             chunkManager: {
                 chunk_addr: new Vector(),
                 getBlock: (x, y, z) => {
-                    let pos = new Vector(x, y, z).floored();
+                    const pos = new Vector(x, y, z).floored();
                     this.#chunk_addr = getChunkAddr(pos, this.#chunk_addr);
-                    let chunk = world.chunks.get(this.#chunk_addr);
+                    const chunk = world.chunks.get(this.#chunk_addr);
                     if(chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
                         return chunk.getBlock(pos);
                     } else {

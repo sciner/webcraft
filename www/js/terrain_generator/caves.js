@@ -1,6 +1,6 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../chunk_const.js";
 import {AABB} from '../core/AABB.js';
 
 // Общее количество блоков в чанке
@@ -60,7 +60,7 @@ function traceVec3(p1, p2) {
                 side.zero()[d] = -1;
             }
         }
-    
+
         if (tMin >= INF) {
             break;
         }
@@ -121,7 +121,7 @@ export class Cave {
         const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
         vec_line.set(x, y, z);
 
-        const start_coord = addr.mul(DIVIDER).addSelf(vec_line); // 
+        const start_coord = addr.mul(DIVIDER).addSelf(vec_line); //
         let p_start = start_coord.clone();
 
         // getChunk
@@ -262,8 +262,8 @@ export class CaveGenerator {
 
     /**
      * getNeighbourLines
-     * @param { Vector } chunk_addr 
-     * @returns 
+     * @param { Vector } chunk_addr
+     * @returns
      */
      getNeighbourLines(chunk_addr) {
         return this.lines.get(chunk_addr);

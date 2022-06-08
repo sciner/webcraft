@@ -1,18 +1,92 @@
-import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
+//
 const LIVE_SHIFT_RANDOM = new Array(1024);
 for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
     LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
+}
+
+//
+class Strings {
+
+    constructor() {
+        this.strings = [
+            {text: null, set_time: null, measure: null, max_time: null},
+            {text: null, set_time: null, measure: null, max_time: null}
+        ];
+    }
+    
+    // set new text
+    setText(index, text, max_time) {
+        this.strings[index].text = text;
+        if(text) {
+            this.strings[index].set_time = performance.now();
+            this.strings[index].measure = null;
+            this.strings[index].max_time = max_time;
+        }
+    }
+
+    // set text if not same with previous
+    updateText(index, text, max_time) {
+        if(this.strings[index].text == text) {
+            return false;
+        }
+        this.setText(index, text, max_time);
+    }
+
+    // draw
+    draw(hud, y_margin, zoom, hud_pos, cell_size) {
+
+        let draw_count = 0;
+        const ctx = hud.ctx;
+
+        for(let i = 0; i < this.strings.length; i++) {
+            const item = this.strings[i];
+            if(!item.text) {
+                continue;
+            }
+            const time_remains = performance.now() - item.set_time;
+            const max_time = item.max_time || MAX_NAME_SHOW_TIME;
+            if(time_remains > max_time) {
+                continue;
+            }
+            //
+            y_margin += (i * cell_size / 2);
+            // Text opacity
+            const alpha = Math.min(2 - (time_remains / max_time) * 2, 1);
+            let aa = Math.ceil(255 * alpha).toString(16);
+            if(aa.length == 1) {
+                aa = '0' + aa;
+            }
+            //
+            ctx.textBaseline = 'bottom';
+            ctx.font = Math.round(24 * zoom) + 'px ' + UI_FONT;
+            // Measure text
+            if(!item.measure) {
+                item.measure = ctx.measureText(item.text);
+            }
+            ctx.fillStyle = '#000000' + aa;
+            ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin);
+            ctx.fillStyle = '#ffffff' + aa;
+            ctx.fillText(item.text, hud.width / 2 - item.measure.width / 2, hud_pos.y + cell_size - y_margin - 2 * zoom);
+            //
+            draw_count++;
+
+        }
+
+        return draw_count > 0;
+
+    }
+
 }
 
 export class Hotbar {
 
     zoom = UI_ZOOM;
 
-    constructor(hud, inventory) {
+    constructor(hud) {
         let that                = this;
         this.hud                = hud;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
@@ -21,10 +95,9 @@ export class Hotbar {
             that.hud.add(that, 0);
         }
         this.image.src = './media/hotbar.png';
-        //
-        this.itemTitleO = null;
-        this.itemTitleChangeTime = performance.now();
         this.last_damage_time = null;
+        //
+        this.strings = new Strings();
     }
 
     //
@@ -51,8 +124,8 @@ export class Hotbar {
         for(const [key, value] of Object.entries(new_state)) {
             this[key] = value;
         }
-    };
-    
+    }
+
     drawHUD(hud) {
 
         const player = this.inventory.player;
@@ -95,42 +168,22 @@ export class Hotbar {
         const mayGetDamaged     = player.game_mode.mayGetDamaged();
 
         // Draw item name in hotbar
-        let currentInventoryItem = player.currentInventoryItem;
+        const currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
-            let itemTitle = BLOCK.getBlockTitle(currentInventoryItem);
-            if(itemTitle != this.itemTitleO) {
-                this.itemTitleO = itemTitle;
-                this.itemTitleChangeTime = performance.now();
-            }
-            const time_remains = performance.now() - this.itemTitleChangeTime;
-            if(time_remains < MAX_NAME_SHOW_TIME) {
-                // Text opacity
-                let alpha = 1;
-                alpha = Math.min(2 - (time_remains / MAX_NAME_SHOW_TIME) * 2, 1);
-                let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-                //
-                hud.ctx.textBaseline = 'bottom';
-                hud.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
-                const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
-                // Measure text
-                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemTitle) {
-                    this.prevItemMeasure = {
-                        text: itemTitle,
-                        measure: hud.ctx.measureText(itemTitle)
-                    };
-                }
-                const textWidth = this.prevItemMeasure.measure.width;
-                hud.ctx.fillStyle = '#000000' + aa;
-                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
-                hud.ctx.fillStyle = '#ffffff' + aa;
-                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
-                //
-                hud.refresh();
-            }
+            const itemTitle = player.world.block_manager.getBlockTitle(currentInventoryItem);
+            this.strings.updateText(0, itemTitle);
         } else {
-            this.itemTitleO = null;
+            this.strings.setText(0, null);
         }
 
+        // Draw strings
+        // shift texts to up if livebar is drawed
+        const y_margin = mayGetDamaged ? 40 * this.zoom : 0;
+        if(this.strings.draw(hud, y_margin, this.zoom, hud_pos, cell_size)) {
+            hud.refresh();
+        }
+
+        //
         if(mayGetDamaged) {
             // bar
             hud.ctx.drawImage(

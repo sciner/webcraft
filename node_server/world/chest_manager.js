@@ -1,12 +1,12 @@
-import {Vector} from "../www/js/helpers.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {BLOCK} from "../www/js/blocks.js";
-import {getChunkAddr} from "../www/js/chunk.js";
-import { alea } from "../www/js/terrain_generator/default.js";
-import { InventoryComparator } from "../www/js/inventory_comparator.js";
-import { DEFAULT_CHEST_SLOT_COUNT } from "../www/js/constant.js";
+import {Vector} from "../../www/js/helpers.js";
+import {ServerClient} from "../../www/js/server_client.js";
+import {BLOCK} from "../../www/js/blocks.js";
+import {getChunkAddr} from "../../www/js/chunk_const.js";
+import { alea } from "../../www/js/terrain_generator/default.js";
+import { InventoryComparator } from "../../www/js/inventory_comparator.js";
+import { DEFAULT_CHEST_SLOT_COUNT } from "../../www/js/constant.js";
 
-export class ChestManager {
+export class WorldChestManager {
 
     constructor(world) {
         this.world = world;
@@ -18,7 +18,7 @@ export class ChestManager {
      * @returns Chest|null
      */
     async get(pos) {
-        let tblock = this.world.getBlock(pos);
+        const tblock = this.world.getBlock(pos);
         if(!tblock || tblock.id < 1) {
             throw 'error_chest_not_found';
         }
@@ -53,9 +53,9 @@ export class ChestManager {
         }
 
         // Compare server state and new state from player
-        let old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
-        let new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
-        let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
+        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
+        const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
+        const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
 
         //
         if(equal) {

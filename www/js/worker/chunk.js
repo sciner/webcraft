@@ -2,7 +2,7 @@ import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {BlockNeighbours, TBlock} from "../typed_blocks.js";
 import {newTypedBlocks, DataWorld} from "../typed_blocks3.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 
@@ -303,7 +303,7 @@ export class Chunk {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-            let neighbours = block.getNeighbours(world, cache);
+            const neighbours = block.getNeighbours(world, cache);
             // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
             if(neighbours.pcnt == 6 || neighbours.water_in_water) {
                 continue;
@@ -380,19 +380,19 @@ export class Chunk {
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        let dirty_rad = DIRTY_REBUILD_RAD;
+        const dirty_rad = DIRTY_REBUILD_RAD;
         let cnt = 0;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
                 for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
-                    let x = pos.x + cx;
-                    let y = pos.y + cy;
-                    let z = pos.z + cz;
+                    const x = pos.x + cx;
+                    const y = pos.y + cy;
+                    const z = pos.z + cz;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        let pos = new Vector(x, y, z);
+                        const pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
-                            let block = this.tblocks.get(pos);
-                            if(block.material.gravity) {
+                            const block = this.tblocks.get(pos);
+                            if(block.material?.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }

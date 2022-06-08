@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
-import { BLOCK } from "./blocks.js";
-import { ALLOW_NEGATIVE_Y } from "./chunk.js";
+import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
+
 const INF = 100000.0;
 const eps = 1e-3;
 const coord = ['x', 'y', 'z'];
@@ -9,7 +9,6 @@ const side = new Vector(0, 0, 0);
 const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
 const startBlock = new Vector(0, 0, 0);
-const _mobLeft = new Vector(0, 0, 0);
 
 export class RaycasterResult {
 
@@ -46,16 +45,17 @@ export class Raycaster {
 
     constructor(world) {
         this.world = world;
+        this.BLOCK = world.block_manager;
         this._dir = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
         this._blk = new Vector(0, 0, 0);
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {number[]} invViewMatrix 
-     * @param {number} distance 
-     * @param {*} callback 
+     * @param {Vector} pos
+     * @param {number[]} invViewMatrix
+     * @param {number} distance
+     * @param {*} callback
      * @returns {null | RaycasterResult}
      */
     getFromView(pos, invViewMatrix, distance, callback, ignore_transparent) {
@@ -143,9 +143,9 @@ export class Raycaster {
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {*} dir 
-     * @param {number} pickat_distance 
+     * @param {Vector} pos
+     * @param {*} dir
+     * @param {number} pickat_distance
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
@@ -189,13 +189,13 @@ export class Raycaster {
             leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid;
+            let hitShape = b.id > this.BLOCK.AIR.id && !b.material.is_fluid;
             if(ignore_transparent && b.material.invisible_for_cam) {
                 hitShape = false;
             }
 
             if (hitShape) {
-                const shapes = BLOCK.getShapes(leftTop, b, this.world, false, true);
+                const shapes = this.BLOCK.getShapes(leftTop, b, this.world, false, true);
                 let flag = false;
 
                 for (let i = 0; i < shapes.length; i++) {
@@ -203,10 +203,10 @@ export class Raycaster {
 
                     for(let j = 0; j < 3; j++) {
                         const d = coord[j];
-                        
+
                         if(dir[d] > eps && tMin + eps > (shape[j] + leftTop[d] - pos[d]) / dir[d]) {
                             const t = (shape[j] + leftTop[d] - pos[d]) / dir[d];
-                            
+
                             check.x = pos.x - leftTop.x + t * dir.x;
                             check.y = pos.y - leftTop.y + t * dir.y;
                             check.z = pos.z - leftTop.z + t * dir.z;
@@ -283,7 +283,7 @@ export class Raycaster {
         }
 
         callback && callback(res);
-        
+
         return res;
     }
 

@@ -6,7 +6,7 @@ import { copyFile } from 'fs/promises';
 
 import {Mob} from "./mob.js";
 
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
 import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -265,10 +265,10 @@ export class DBWorld {
             `\r\n` +
             `2-й шаг — Подберите блок\r\n` +
             `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.');`,
-            
+
             `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
             `Земля (она же дёрн) может быть добыта чем угодно.');`,
-  
+
             `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
             `\r\n` +
             `1-й шаг\r\n` +
@@ -352,7 +352,7 @@ export class DBWorld {
             `DELETE FROM entity;`,
             `DELETE FROM chunk;`,
         ]});
-        
+
         migrations.push({version: 39, queries: [
             `CREATE TABLE "teleport_points" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -457,7 +457,7 @@ export class DBWorld {
             `UPDATE "quest_action_type" SET "title" = '{"ru":"Достигнуть координат","en":"Reach the coordinates"}' WHERE "id" = 5;`,
             `UPDATE "quest_group" SET "title" = '{"ru":"Основные задания","en":"Main tasks"}' WHERE "id" = 1;`,
             `UPDATE "quest_group" SET "title" = '{"ru":"Дополнительные задания","en":"Additional tasks"}' WHERE "id" = 2;`,
-            
+
             `DELETE FROM user_quest`,
 
             /*
@@ -498,7 +498,7 @@ export class DBWorld {
 
     }
 
-    async TransactionBegin() {        
+    async TransactionBegin() {
         await this.db.get('begin transaction');
     }
 
@@ -1104,7 +1104,7 @@ export class DBWorld {
         }
 
     }
-    
+
     /**
      * TO DO EN список точек для телепортации
      * @param {number} id id игрока
@@ -1119,7 +1119,7 @@ export class DBWorld {
         }
         return rows;
     }
-    
+
     /**
      * TO DO EN получает коодинаты точки игрока с именем title
      * @param {number} id id тгрока
@@ -1136,7 +1136,7 @@ export class DBWorld {
         }
         return row;
     }
-    
+
     /**
      * TO DO EN добавлят положение игрока в список с именем title
      * @param {number} id id игрока

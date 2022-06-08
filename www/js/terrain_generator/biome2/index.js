@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../../chunk_const.js";
 import {Vector} from '../../helpers.js';
 import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
@@ -237,6 +237,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     let block_id = dirt_block;
                     if(xyz.y < local_dirt_level) {
                         block_id = this.ores.get(xyz, value);
+                    } else {
+                        if(xyz.y < value -1 && block_id == BLOCK.GRASS_DIRT.id) {
+                            block_id = BLOCK.DIRT.id;
+                        }
                     }
                     chunk.setBlockIndirect(x, y, z, block_id);
 

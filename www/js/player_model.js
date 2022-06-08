@@ -1,12 +1,13 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED } from "./constant.js";
+import { HAND_ANIMATION_SPEED, PLAYER_HEIGHT, SNEAK_MINUS_Y_MUL } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { NORMALS, Vector } from './helpers.js';
+import { Helpers, NORMALS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
 const {mat4, quat} = glMatrix;
+const SWING_DURATION = 6;
 
 const KEY_SLOT_MAP = {
     left: 'LeftArm',
@@ -56,7 +57,7 @@ export class PlayerModel extends MobModel {
     constructor(props) {
         super({type: 'player', skin: '1', ...props});
 
-        this.height = 1.7;
+        this.height = PLAYER_HEIGHT;
 
         /**
          * @type {HTMLCanvasElement}
@@ -185,7 +186,7 @@ export class PlayerModel extends MobModel {
     }
 
     itsMe() {
-        return this.username == Game.App.session.username;
+        return this.id == Game.App.session.user_id;
     }
 
     postLoad(render, tree) {
@@ -223,6 +224,7 @@ export class PlayerModel extends MobModel {
     }
 
     update(render, camPos, delta, speed) {
+
         super.update(render, camPos, delta, speed);
 
         this.updateArmSwingProgress(delta);
@@ -288,8 +290,8 @@ export class PlayerModel extends MobModel {
         return node;
     }
 
-    get getArmSwingAnimationEnd() {
-        return 6;
+    getArmSwingAnimationEnd() {
+        return SWING_DURATION;
     }
 
     stopArmSwingProgress() {
@@ -303,8 +305,8 @@ export class PlayerModel extends MobModel {
     }
 
     updateArmSwingProgress(delta) {
+        const asa = this.getArmSwingAnimationEnd();
         this.swingProgressPrev = this.animationScript.swingProgress;
-        const asa = this.getArmSwingAnimationEnd;
         if(this.isSwingInProgress) {
             this.swingProgressInt += HAND_ANIMATION_SPEED * delta / 1000;
             if (this.swingProgressInt >= asa) {
@@ -314,7 +316,39 @@ export class PlayerModel extends MobModel {
         } else {
             this.swingProgressInt = 0;
         }
-        this.animationScript.swingProgress = this.swingProgressInt > 0 ? this.swingProgressInt / asa : 0;
+        // attackAnim
+        this.animationScript.isSwingInProgress = this.isSwingInProgress;
+        this.swingProgress = this.swingProgressInt / asa;
+        this.animationScript.swingProgress = this.swingProgress;
+    }
+
+    //
+    setProps(pos, rotate, sneak, moving, running, hands, lies, sitting) {
+        this.pos.copyFrom(pos);
+        this.yaw = rotate.z; // around
+        this.pitch = rotate.x; // head rotate
+        this.sneak = sneak;
+        this.moving = moving;
+        this.running = running;
+        this.lies = lies;
+        this.sitting = sitting;
+        //
+        const current_right_hand_id = hands.right?.id;
+        if(this.prev_current_id != current_right_hand_id) {
+            this.prev_current_id = current_right_hand_id;
+            this.activeSlotsData.right.id = current_right_hand_id;
+            this.changeSlots(this.activeSlotsData);
+        }
+    }
+
+    draw(render, camPos, delta) {
+        if(!this.prev_pos) {
+            this.prev_pos = this.pos.clone();
+            return false;;
+        }
+        const speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
+        this.prev_pos.copyFrom(this.pos);
+        super.draw(render, camPos, delta, speed);
     }
 
 }

@@ -3,6 +3,7 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
+import { Lang } from "./lang.js";
 
 /**
  * World generation unfo passed from server
@@ -92,7 +93,7 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
-                Game.render.addExplosionsParticles(cmd.data);
+                Game.render.addExplosionParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
@@ -112,8 +113,9 @@ export class World {
         });
     }
 
-    init (settings) {
+    init(settings, block_manager) {
         this.settings = settings;
+        this.block_manager = block_manager;
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
@@ -187,6 +189,79 @@ export class World {
             name: ServerClient.CMD_PICKAT_ACTION,
             data: e
         });
+    }
+
+    // Apply pickat actions
+    async applyActions(actions, player) {
+        // console.log(actions.id);
+        if(actions.open_window) {
+            player.clearEvents();
+            let args = null;
+            let window_id = actions.open_window;
+            if(typeof actions.open_window == 'object') {
+                window_id = actions.open_window.id;
+                args = actions.open_window.args;
+            }
+            const w = Game.hud.wm.getWindow(window_id);
+            if(w) {
+                w.show(args);
+            } else {
+                console.error('error_window_not_found', actions.open_window);
+            }
+        }
+        if(actions.error) {
+            console.error(actions.error);
+        }
+        if(actions.load_chest) {
+            player.clearEvents();
+            Game.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
+        }
+        if(actions.play_sound) {
+            for(let item of actions.play_sound) {
+                Game.sounds.play(item.tag, item.action);
+            }
+        }
+        if(actions.reset_target_pos) {
+            player.pickAt.resetTargetPos();
+        }
+        if(actions.reset_target_event) {
+            player.pickAt.clearEvent();
+        }
+        if(actions.clone_block /* && player.game_mode.canBlockClone()*/) {
+            this.server.CloneBlock(actions.clone_block);
+        }
+        //
+        if(actions.blocks && actions.blocks.list) {
+            for(let mod of actions.blocks.list) {
+                //
+                const tblock = Game.world.getBlock(mod.pos);
+                if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
+                    const destroy_data = {
+                        pos: mod.pos,
+                        item: {id: tblock.id}
+                    };
+                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                }
+                //
+                switch(mod.action_id) {
+                    case ServerClient.BLOCK_ACTION_CREATE:
+                    case ServerClient.BLOCK_ACTION_REPLACE:
+                    case ServerClient.BLOCK_ACTION_MODIFY:
+                    case ServerClient.BLOCK_ACTION_DESTROY: {
+                        this.chunkManager.torches.delete(mod.pos);
+                        this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
+                        break;
+                    }
+                }
+            }
+        }
+        // Sitting
+        if(actions.sitting) {
+            player.state.sitting = actions.sitting;
+            player.setPosition(actions.sitting.pos);
+            player.setRotate(actions.sitting.rotate);
+            Game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
+        }
     }
 
 }

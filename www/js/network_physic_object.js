@@ -1,5 +1,5 @@
 import {Mth, Vector, Color} from './helpers.js';
-import { getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
+import { getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { AABB, AABBSideParams, pushAABB } from './core/AABB.js';
 
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
@@ -45,7 +45,7 @@ export class AABBDrawable extends AABB {
 
     // createTargetBuffer...
     createTargetBuffer(pos, c) {
-        
+
         const vertices  = [];
         const lm        = new Color(0, 0, 0);
         const flags     = 0, sideFlags = 0, upFlags = 0;
@@ -115,7 +115,7 @@ export class NetworkPhysicObject {
         const {
             x, y, z
         } = this._pos;
-        
+
         const dx = v.x - x;
         const dy = v.y - y;
         const dz = v.z - z;
@@ -189,7 +189,7 @@ export class NetworkPhysicObject {
         } = this.netBuffer[1];
 
         let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
-        
+
         // prevent extrapolation.
         // it should be processed by another way
         // or will be bug with jump

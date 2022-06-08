@@ -7,7 +7,6 @@ import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 
 function isSupported() {
-
     // we should support webgl2 strictly
     if(!('WebGL2RenderingContext' in self)) {
         console.error('Browser not supported:', 'Webgl2 context is required');
@@ -37,19 +36,19 @@ function isSupported() {
     // GC issues on safari
     canvas.width = canvas.height = 0;
 
-    const isFF = navigator.userAgent.indexOf('Firefox') > -1;
+    const isFF = navigator.userAgent.indexOf('Mozilla') > -1;
     // safari 15 is ok
     const isSafari = navigator.userAgent.indexOf('Safari') > -1;
     const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
-
+/*
     if (isFF) {
         console.error('Browser not supported:', 'Firefox not support modules for workers');
 
         return false;
     }
-
+*/
     // chrome + safari
-    return isSafari || isChrome;
+    return isSafari || isChrome || isFF;
 }
 
 // Mouse event enumeration

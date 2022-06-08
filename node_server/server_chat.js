@@ -179,7 +179,7 @@ export class ServerChat {
             }
             case '/sysstat': {
                 const stat = {
-                    mobs_count: this.world.mobs.size,
+                    mobs_count: this.world.mobs.count(),
                     drop_items: this.world.all_drop_items.size,
                     players: this.world.players.size,
                 };
@@ -215,8 +215,8 @@ export class ServerChat {
                 if (args[3] !== null) {
                     params.pos.z = args[3];
                 }
-                // add
-                this.world.spawnMob(player, params);
+                // spawn
+                this.world.mobs.spawn(player, params);
                break;
             }
             case '/obj':

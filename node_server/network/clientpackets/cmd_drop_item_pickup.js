@@ -79,7 +79,7 @@ export default class packet_reader {
                 if(restored_items.length > 0) {
                     const actions = new PickatActions();
                     actions.addDropItem({pos: drop_item.pos, items: restored_items, force: true});
-                    await world.applyActions(null, actions); 
+                    world.actions_queue.add(null, actions); 
                 }
 
                 // play sound on client

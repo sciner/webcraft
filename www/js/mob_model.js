@@ -1,9 +1,10 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector, SNEAK_MINUS_Y_MUL, MOB_EYE_HEIGHT_PERCENT } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
+import { SNEAK_MINUS_Y_MUL } from "./constant.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -209,9 +210,10 @@ export class MobAnimator extends Animator {
         }
 
         // Mob legs animation
+        const speed_mul      = animable.running ? 1.5 : (animable.sneak ? .5 : 1); // speed / 15.5;
         const anim_speed      = 122.5;
-        const max_anim_angle  = Math.PI / 4 * (animable.sneak ? .5 : 1);
-        const speed_delta     = typeof speed === 'undefined' ? delta : delta * (speed / 15.5);
+        const max_anim_angle  = Math.PI / 4 * speed_mul;
+        const speed_delta     = typeof speed === 'undefined' ? delta : delta * speed_mul;
 
         if(animable.moving) {
             // @IMPORTANT minus to make the character start walking on the right foot
@@ -300,62 +302,136 @@ export class MobAnimation {
     leg({
         part, index, aniangle, animable, isArm = 0
     }) {
-        const x         = index % 2;
-        const y         = index / 2 | 0;
-        const sign      = x ^ y ? 1 : -1;
-        const itemInArm = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
+
+        const x             = index % 2;
+        const y             = index / 2 | 0;
+        const sign          = x ^ y ? 1 : -1;
+        const ageInTicks    = performance.now() / 50;
+        const isLeftArm     = isArm && index % 2 == 0;
+        const isLeftLeg     = !isArm && index % 2 == 0;
+        const itemInArm     = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
+        const isZombie      = animable.type == 'zombie';
+        const isHumanoid    = animable.type.indexOf('player:') >= 0;
+        const rotate        = new Vector(0, 0, 0);
+        const isSitting     = animable.sitting; // isHumanoid;
+
+        if(isZombie && isArm) {
+            aniangle /= 16;
+        }
 
         if(itemInArm) {
             aniangle = aniangle * .4 + Math.PI / 8;
         }
-        quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
+
+        if(isSitting) {
+            if(isArm) {
+                rotate.x -= .8;
+            } else {
+                rotate.x -= 1.55;
+                rotate.y += 0.4 * (isLeftLeg ? -1 : 1);
+            }
+        } else {
+            // размахивание конечностями
+            rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
+        }
 
         // shake arms
-        // Движение рук от дыхания
         if(isArm) {
-            const isLeftArm = index % 2 == 0;
-            const ageInTicks = (index * 1500 + performance.now()) / 50;
-            let RotateAngleZ = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
-            let RotateAngleX = Math.sin(ageInTicks * 0.067) * 0.05; // straith/back
-            let RotateAngleY = 0;
-
-            if(!isLeftArm) {
-                // Удар правой руки
-                let inv = this.swingProgress;
-                let sp = inv * inv;
-                let s1 = Math.sin(sp);
-                let s2 = Math.sin(this.swingProgress);
-                RotateAngleX -= s1 * .8 + s2 * .5;
-                RotateAngleY = Math.sin(Math.sqrt(sp) * Math.PI) * .4;
-                RotateAngleZ = s2 * -.4;
-                // RotationPointX = -4 * sp; // -6
-                // RotationPointY = -4 * sp; // -6
+            if(!isLeftArm && this.isSwingInProgress) {
+                // атака правой руки
+                this.setupArmOnAttackAnimation(rotate);
+            } else if(!isSitting) {
+                // движение рук от дыхания
+                this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
             }
-
-            // if zombie then RotateAngleX -= 1.5;
-            quat.rotateX(part.quat, part.quat, RotateAngleX);
-            quat.rotateY(part.quat, part.quat, RotateAngleY);
-            quat.rotateZ(part.quat, part.quat, RotateAngleZ);
-
-            if(isLeftArm) {
-                // left
-                quat.rotateY(part.quat, part.quat, -.05 + Math.sin(ageInTicks * 0.1) * 0.05);
-            } else {
-                // right
-                quat.rotateY(part.quat, part.quat, .05 + Math.sin(ageInTicks * 0.1) * 0.05);
+            // hands up if zombie
+            if(isZombie) {
+                rotate.x -= 1.7;
             }
         }
 
+        // apply animation
+        quat.identity(part.quat);
+        quat.rotateX(part.quat, part.quat, rotate.x);
+        quat.rotateY(part.quat, part.quat, rotate.y);
+        quat.rotateZ(part.quat, part.quat, rotate.z);
+
         part.updateMatrix();
+
     }
+
+    // анимация от третьего лица
+    setupArmOnAttackAnimation(vec) {
+        let inv = Math.sin(this.swingProgress * Math.PI);
+        let sp = inv * inv;
+        let s1 = Math.sin(sp);
+        let s2 = Math.sin(inv);
+        vec.x -= (s1 * .8 + s2 * .5);
+        vec.y = Math.sin(Math.sqrt(this.swingProgress) * Math.PI) * .4;
+        vec.z = s2 * -.4;
+    }
+
+    // анимация установки блока от первого лица
+    setupArmOnPlaceAnimation(vec) {
+        const attackTime = this.swingProgress;
+        const body = {yRot: 0};
+        const head = {xRot: 0};
+        let f = attackTime;
+        f = 1.0 - attackTime;
+        f *= f;
+        f *= f;
+        f = 1.0 - f;
+        const f1 = Math.sin(f * Math.PI);
+        const f2 = Math.sin(attackTime * Math.PI) * -(head.xRot - 0.7) * 0.75;
+        vec.x -= f1 * 1.2 + f2;
+        vec.y += body.yRot * 2.0;
+        vec.z += Math.sin(attackTime * Math.PI) * -0.4;
+    }
+
+    // движение рук от дыхания
+    setupArmOnBreathAnimation(vec, ageInTicks, isLeftArm) {
+        vec.x += Math.sin(ageInTicks * 0.067) * 0.05;
+        vec.y += .05 * (isLeftArm ? - 1 : 1) + Math.sin(ageInTicks * 0.1) * 0.05; // Руки в сторону
+        vec.z = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
+    }
+
+    /*
+    setupAttackAnimation(T p_102858_, float p_102859_) {
+        if (!(this.attackTime <= 0.0F)) {
+           HumanoidArm humanoidarm = this.getAttackArm(p_102858_);
+           ModelPart modelpart = this.getArm(humanoidarm);
+           float f = this.attackTime;
+           this.body.yRot = Mth.sin(Mth.sqrt(f) * ((float)Math.PI * 2F)) * 0.2F;
+           if (humanoidarm == HumanoidArm.LEFT) {
+              this.body.yRot *= -1.0F;
+           }
+  
+           this.rightArm.z = Mth.sin(this.body.yRot) * 5.0F;
+           this.rightArm.x = -Mth.cos(this.body.yRot) * 5.0F;
+           this.leftArm.z = -Mth.sin(this.body.yRot) * 5.0F;
+           this.leftArm.x = Mth.cos(this.body.yRot) * 5.0F;
+           this.rightArm.yRot += this.body.yRot;
+           this.leftArm.yRot += this.body.yRot;
+           this.leftArm.xRot += this.body.yRot;
+           f = 1.0F - this.attackTime;
+           f *= f;
+           f *= f;
+           f = 1.0F - f;
+           float f1 = Mth.sin(f * (float)Math.PI);
+           float f2 = Mth.sin(this.attackTime * (float)Math.PI) * -(this.head.xRot - 0.7F) * 0.75F;
+           modelpart.xRot -= f1 * 1.2F + f2;
+           modelpart.yRot += this.body.yRot * 2.0F;
+           modelpart.zRot += Mth.sin(this.attackTime * (float)Math.PI) * -0.4F;
+        }
+    }*/
 
     body({
         part, index, aniangle, animable
     }) {
         quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
-
+        if(animable.sneak && !animable.lies && !animable.sitting) {
+            quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
+        }
         part.updateMatrix();
     }
 
@@ -398,6 +474,7 @@ export class MobAnimation {
 
         part.updateMatrix();
     }
+
 }
 
 export class MobModel extends NetworkPhysicObject {
@@ -554,11 +631,21 @@ export class MobModel extends NetworkPhysicObject {
         // root rotation
         for(let st of this.sceneTree) {
             quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - this.draw_yaw) / Math.PI);
+
+            //
+            let subY = 0;
+            if(this.sitting) {
+                subY = this.height * 1/3
+            } else if(this.sneak) {
+                subY = SNEAK_MINUS_Y_MUL;
+            }
+
             st.position.set([
                 this.pos.x - this.drawPos.x,
                 this.pos.z - this.drawPos.z,
-                this.pos.y - this.drawPos.y - (this.sneak || 0) * SNEAK_MINUS_Y_MUL + this.fix_z_fighting,
+                this.pos.y - this.drawPos.y - subY + this.fix_z_fighting,
             ]);
+
             st.updateMatrix();
         }
 

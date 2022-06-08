@@ -1,5 +1,5 @@
 import { Color, DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector } from '../helpers.js';
-import { CHUNK_SIZE_X, getChunkAddr } from "../chunk.js";
+import { CHUNK_SIZE_X, getChunkAddr } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 import { BLOCK } from "../blocks.js";

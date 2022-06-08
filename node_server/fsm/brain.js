@@ -1,9 +1,9 @@
 import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
-
+import { BLOCK } from "../../www/js/blocks.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
-import { getChunkAddr } from "../../www/js/chunk.js";
+import { getChunkAddr } from "../../www/js/chunk_const.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
@@ -159,14 +159,13 @@ export class FSMBrain {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-    
+
     findTarget(){
         return false;
     }
-    
+
     isStand(chance) {
-        if (Math.random() < chance) {
-            // console.log("[AI] mob " + this.mob.id + " stand");
+        if (Math.random() <= chance) {
             this.stack.replaceState(this.doStand);
             return true;
         }
@@ -174,8 +173,7 @@ export class FSMBrain {
     }
 
     isForward(chance) {
-        if (Math.random() < chance) {
-            //console.log("[AI] mob " + this.mob.id + " forward");
+        if (Math.random() <= chance) {
             this.stack.replaceState(this.doForward);
             return true;
         }
@@ -183,27 +181,9 @@ export class FSMBrain {
     }
 
     isRotate(chance, angle = -1) {
-        if (Math.random() < chance) {
-            //console.log("[AI] mob " + this.mob.id + " rotate");
+        if (Math.random() <= chance) {
             this.angleRotation = (angle == -1) ? 2 * Math.random() * Math.PI : angle;
             this.stack.replaceState(this.doRotate);
-            return true;
-        }
-        return false;
-    }
-
-    isRespawn() {
-        let mob = this.mob;
-
-        if (this.isAggrressor && this.target != null || !mob.pos_spawn) {
-            return false;
-        }
-
-        let dist = mob.pos.distance(mob.pos_spawn);
-
-        if (dist > FORWARD_DISTANCE) {
-            //console.log("[AI] mob " + mob.id + " go to respawn");
-            this.isRotate(1.0, this.angleTo(this.mob.pos_spawn));
             return true;
         }
         return false;
@@ -225,8 +205,9 @@ export class FSMBrain {
         });
         this.applyControl(delta);
         this.sendState();
+
         let time = performance.now() - this.panicTime;
-        if (time > 3000) {
+        if (time > 3000 || this.checkDangerAhead()) {
             this.run = false;
             this.isStand(1.0);
         }
@@ -240,12 +221,8 @@ export class FSMBrain {
 
         this.applyControl(delta);
         this.sendState();
-        
-        if (this.findTarget()){
-            return;
-        }
 
-        if (this.isRespawn()) {
+        if (this.findTarget()){
             return;
         }
 
@@ -264,14 +241,16 @@ export class FSMBrain {
             forward: true,
             jump: this.checkInWater()
         });
-
-        const pick = this.raycastFromHead();
-        if (pick) {
-
-        }
-
         this.applyControl(delta);
         this.sendState();
+
+        if (this.checkDangerAhead()) {
+            if (this.isStand(0.5)) {
+                return;
+			}
+            this.isRotate(1.0);
+            return;
+		}
         
         if (this.findTarget()){
             return;
@@ -289,16 +268,17 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.5) {
-            this.mob.rotate.z += delta * ((this.run) ? 2 : 1);
+        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.7) {
+            this.mob.rotate.z += delta * ((this.run) ? 3 : 2);
         } else {
+            this.mob.rotate.z = this.angleRotation;
             this.isForward(1.0);
             return;
         }
 
         this.applyControl(delta);
         this.sendState();
-        
+
         if (this.findTarget()){
             return;
         }
@@ -316,35 +296,66 @@ export class FSMBrain {
         return block.material.is_fluid;
     }
 
+    checkDangerAhead() {
+        const mob = this.mob;
+        const world = mob.getWorld();
+
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 1, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 0, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -1, Math.cos(mob.rotate.z) * mob.width)).floored();
+        const pos_bottom = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -2, Math.cos(mob.rotate.z) * mob.width)).floored();
+
+        if (!world.getBlock(pos_legs) || !world.getBlock(pos_head) || !world.getBlock(pos_legs) || !world.getBlock(pos_bottom)) {
+            return false;
+        }
+
+        //боится высоты
+        if (world.getBlock(pos_legs).id == BLOCK.AIR.id && world.getBlock(pos_bottom).id == BLOCK.AIR.id) {
+            return true;
+        }
+
+        //Преграда
+        if (world.getBlock(pos_head).id != BLOCK.AIR.id && world.getBlock(pos_body).id != BLOCK.AIR.id) {
+            return true;
+        }
+
+        //Боится стихий
+        if (world.getBlock(pos_legs).material.is_fire) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
     * Моба убили
-    * owner - игрок или пероснаж
-    * type - от чего умер[упал, сгорел, утонул]
+    * actor - игрок или пероснаж
+    * type_demage - от чего умер[упал, сгорел, утонул]
     */
-    onKill(owner, type) {
+    onKill(actor, type_demage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
-    * owner - игрок
+    * actor - игрок
     * item - item
     */
-    onUse(owner, item){
+    onUse(actor, item){
     }
-    
-    
+
+
     /**
     * Нанесен урон по мобу
-    * owner - игрок или пероснаж
+    * actor - игрок или пероснаж
     * val - количество урона
-    * type - от чего умер[упал, сгорел, утонул]
+    * type_demage - от чего умер[упал, сгорел, утонул]
     */
-    onDemage(owner, val, type){
+    onDemage(actor, val, type_demage){
         const mob = this.mob;
-        const pos_owner = (owner.session) ? owner.state.pos : new Vector(0,0,0);
-        let velocity = mob.pos.sub(pos_owner).normSelf();
+        const pos_actor = (actor.session) ? actor.state.pos : new Vector(0,0,0);
+        let velocity = mob.pos.sub(pos_actor).normSelf();
         velocity.y = .5;
         mob.addVelocity(velocity);
-        this.onPanic(pos_owner);
+        this.onPanic(pos_actor);
     }
 }
