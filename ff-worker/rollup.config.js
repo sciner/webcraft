@@ -1,11 +1,11 @@
 import commonjs from '@rollup/plugin-commonjs';
 
 export default [{
-    input: '../www/js/chunk_worker.js',
+    input: './chunk_worker_bundle.js',
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/ff-chunk-worker.js',
+        file: '../www/js-gen/chunk_worker_bundle.js',
         format: 'cjs'//'es',//'cjs',
     },
     plugins: [
@@ -15,11 +15,11 @@ export default [{
 }
 ,
 {
-    input: '../www/js/light_worker.js',
+    input: './light_worker_bundle.js',
     treeshake: false,
     output: {
         inlineDynamicImports: true,
-        file: '../www/js-gen/ff-light-worker.js',
+        file: '../www/js-gen/light_worker_bundle.js',
         format: 'cjs',
     },
     plugins: [commonjs()]

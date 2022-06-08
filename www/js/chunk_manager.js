@@ -96,8 +96,8 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
-        this.worker                 = new Worker('./js-gen/ff-chunk-worker.js');
-        this.lightWorker            = new Worker('./js-gen/ff-light-worker.js');
+        this.worker                 = new Worker('./js-gen/chunk_worker_bundle.js');
+        this.lightWorker            = new Worker('./js-gen/light_worker_bundle.js');
         //this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         //this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;

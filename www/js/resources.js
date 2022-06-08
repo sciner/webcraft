@@ -361,9 +361,9 @@ export class Resources {
                     case 'lantern':
                         all.push(import('./block_style/lantern.js').then(module => {resp.add(module.default);}));
                         break;
-                   /* case 'painting':
-                        import('./block_style/painting.js').then(module => {resp.add(module.default);})
-                        break;  */
+                    case 'painting':
+                        all.push(import('./block_style/painting.js').then(module => {resp.add(module.default);}));
+                        break;  
                     case 'pane':
                         all.push(import('./block_style/pane.js').then(module => {resp.add(module.default);}));
                         break;
