@@ -433,6 +433,12 @@ export class PickatActions {
     addBlocks(items) {
         for(let i = 0; i < items.length; i++) {
             const item = items[i];
+            if(!item.item.extra_data && item.item.id > 0) {
+                const extra_data = BLOCK.makeExtraData(item.item, item.pos);
+                if(extra_data) {
+                    item.item.extra_data = extra_data;
+                }
+            }
             if(item.pos.x != Math.floor(item.pos.x)) throw 'error_invalid_block_pos';
             if(item.pos.y != Math.floor(item.pos.y)) throw 'error_invalid_block_pos';
             if(item.pos.z != Math.floor(item.pos.z)) throw 'error_invalid_block_pos';
