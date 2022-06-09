@@ -653,7 +653,9 @@ export class Player {
                 this.controls.sneak,
                 this.moving, // && !this.getFlying(),
                 this.running && !this.isSneak,
-                this.state.hands
+                this.state.hands,
+                this.state.lies,
+                this.state.sitting
             );
         }
     }
