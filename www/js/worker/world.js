@@ -1,4 +1,4 @@
-import {ChunkManager, Chunk} from "./chunk.js";
+import { ChunkManager, Chunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 
 // WorkerWorldManager

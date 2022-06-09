@@ -1,9 +1,8 @@
 import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
-import { BLOCK } from "../../www/js/blocks.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
-import { getChunkAddr } from "../../www/js/chunk.js";
+import { getChunkAddr } from "../../www/js/chunk_const.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
