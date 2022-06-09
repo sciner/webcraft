@@ -758,8 +758,27 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         // Fuse TNT
         if(!e.shiftKey && world_material.name == 'TNT') {
-            actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-            // @todo make explosion like a creeper
+                      actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
+           
+            actions.addPlaySound({tag: 'madcraft:block.player', action: 'explode', pos: new Vector(pos)});
+             actions.addExplosionParticles([{pos: pos}]);
+            // Explode
+            const rad = 3;
+            const air = {id: 0};
+@ -769,12 +769,15 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
+                    for(let k = -rad; k < rad; k++) {
+                        const air_pos = new Vector(pos.x + i, pos.y + k, pos.z + j);
+                        if(air_pos.distance(pos) < rad) {
+                            actions.addBlocks([{pos: air_pos, item: air}]);
+                            //actions.addBlocks([{pos: air_pos, item: air}]);
+								extra_data = extra_data || {}
+            extra_data.pressed = !extra_data.pressed ? 1 : 0;
+		    actions.addBlocks([{pos: air_pos, item: {id: 0, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+                        }
+                    }
+                }
+            }
+            
             return actions;
         }
         //
