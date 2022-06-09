@@ -244,15 +244,14 @@ export class Chunk {
         // Create map of lowest blocks that are still lit
         let tm = performance.now();
 
-        this.neighbour_chunks = this.tblocks.getNeightboursChunks(world);
-
+        // this.neighbour_chunks = this.tblocks.getNeightboursChunks(world);
         // Check neighbour chunks available
-        if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
-            this.tm                 = performance.now() - tm;
-            this.neighbour_chunks   = null;
-            console.error('todo_unobtainable_chunk');
-            return false;
-        }
+        // if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
+        //     this.tm                 = performance.now() - tm;
+        //     this.neighbour_chunks   = null;
+        //     console.error('todo_unobtainable_chunk');
+        //     return false;
+        // }
 
         let group_templates = {
             regular: {
@@ -372,7 +371,6 @@ export class Chunk {
         // console.log(this.quads);
         this.dirty = false;
         this.tm = performance.now() - tm;
-        this.neighbour_chunks = null;
         return true;
 
     }
