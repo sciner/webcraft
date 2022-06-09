@@ -5,7 +5,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
-await Resources.loadPainting();
+Resources.loadPainting();
 
 // Картина
 export default class style {

@@ -10,7 +10,7 @@ let worlds              = null;
 
 const CHUNK_SIZE_X = 16;
 
-const worker = {
+const worker = globalThis.worker = {
 
     init: function() {
         if(typeof process !== 'undefined') {
@@ -19,6 +19,9 @@ const worker = {
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
                 this.parentPort.on('message', onMessageFunc);
+                //options.context.parentPort = module.parentPort;
+                //options.context.parentPort.on('message', onMessageFunc);
+                
             });
         } else {
             onmessage = onMessageFunc
@@ -52,7 +55,7 @@ async function preLoad () {
         WorkerWorldManager = module.WorkerWorldManager;
     });
     // load module
-    await import('./chunk.js').then(module => {
+    await import('./chunk_const.js').then(module => {
         getChunkAddr = module.getChunkAddr;
     });
     // load module

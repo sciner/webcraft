@@ -1,4 +1,4 @@
-import {getChunkAddr} from "../www/js/chunk.js";
+import {getChunkAddr} from "../www/js/chunk_const.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
 
@@ -126,14 +126,14 @@ export class Mob {
             }
             */
         } else if(params.button_id == 1) {
-           
+
             if(this.indicators.live.value > 0) {
                 await this.changeLive(-5, server_player);
                 // Add velocity for drop item
                 //let velocity = this.pos.sub(server_player.state.pos).normSelf();
                // velocity.y = .5;
                 //this.addVelocity(velocity);
-                //this.#brain.runPanic(); 
+                //this.#brain.runPanic();
                 this.#brain.onDemage(server_player, 5);
             }
         }

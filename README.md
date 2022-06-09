@@ -10,8 +10,8 @@ Minecraft clone on JS
 ```
 // Run NodeJS v17.9.0 server!
 cd ./node_server
-npm install
-node --experimental-json-modules --no-warnings ./index.js
+npm run install-all
+npm run start-rebuild
 ```
 
 # Commands

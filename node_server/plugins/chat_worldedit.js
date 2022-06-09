@@ -1,5 +1,5 @@
 import {BLOCK} from "../../www/js/blocks.js";
-import {getChunkAddr} from "../../www/js/chunk.js";
+import {getChunkAddr} from "../../www/js/chunk_const.js";
 import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {PickatActions} from "../../www/js/block_action.js";
 
@@ -48,10 +48,10 @@ export default class WorldEdit {
 
     /**
      * Reset selected region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_desel(chat, player, cmd, args) {
         player.pos1 = null;
@@ -60,10 +60,10 @@ export default class WorldEdit {
 
     /**
      * Set first point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_pos1(chat, player, cmd, args) {
         player.pos1 = player.state.pos.floored();
@@ -77,10 +77,10 @@ export default class WorldEdit {
 
     /**
      * Set second point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_pos2(chat, player, cmd, args) {
         player.pos2 = player.state.pos.floored();
@@ -140,10 +140,10 @@ export default class WorldEdit {
 
     /**
      * Set block in region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_set(chat, player, cmd, args) {
         let types = ['//set', '//walls', '//faces'];
@@ -156,10 +156,10 @@ export default class WorldEdit {
 
     /**
      * Copy all blocks in region to clipboard
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_copy(chat, player, cmd, args) {
         const qi = this.getCuboidInfo(player);
@@ -219,10 +219,10 @@ export default class WorldEdit {
 
     /**
      * Paste copied blocks
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_paste(chat, player, cmd, args) {
         if(!player._world_edit_copy) {
@@ -252,10 +252,10 @@ export default class WorldEdit {
 
     /**
      * Replace blocks in region to another
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_replace(chat, player, cmd, args) {
         const qi            = this.getCuboidInfo(player);

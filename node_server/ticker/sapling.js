@@ -46,6 +46,7 @@ class TreeGenerator extends Default_Terrain_Generator {
         // Import trees
         await import('../../www/js/terrain_generator/biomes.js').then(module => {
             TreeGenerator.TREES = module.TREES;
+            TreeGenerator.TREES.init();
         });
         // Return instance
         return TreeGenerator._instance = new TreeGenerator();

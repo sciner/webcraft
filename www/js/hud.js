@@ -403,6 +403,25 @@ export class HUD {
         this.drawText(this.text, 10 * this.zoom, 10 * this.zoom);
         //
         this.drawActiveQuest();
+        //
+        this.drawAverageFPS();
+    }
+
+    // Draw average FPS bar
+    drawAverageFPS() {
+        const hist = Game.averageClockTimer.history;
+        const x = 20;
+        const y = this.height - 20;
+        const ctx = this.ctx;
+        ctx.strokeStyle = '#00ff0044';
+        ctx.beginPath(); // Start a new path
+        for(let i = 0; i < hist.length; i++) {
+            const h = hist[i];
+            ctx.moveTo(x + i, y);
+            ctx.lineTo(x + i, y - h * 10);
+        }
+        ctx.stroke(); // Render the path
+        ctx.strokeStyle = '#000000';
     }
 
     // Draw active quest

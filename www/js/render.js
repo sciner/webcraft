@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector} from "./helpers.js";
-import {CHUNK_SIZE_X} from "./chunk.js";
+import {CHUNK_SIZE_X} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";

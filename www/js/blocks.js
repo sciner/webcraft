@@ -1,4 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
@@ -146,10 +146,12 @@ export class BLOCK {
             return 0;
         }
         let val = 0;
-        if(material.light_power) {
+        if (material.is_water) {
+            return 64;
+        } else if(material.light_power) {
             val = Math.floor(material.light_power.a / 16.0);
         } else if (!material.transparent) {
-            val = 127;
+            val = 96;
         }
         return val + (material.visible_for_ao ? 128 : 0);
     }
@@ -227,10 +229,10 @@ export class BLOCK {
           z = x.z;
           x = x.x;
         }
-    
+
         // функция евклидового модуля
         const f = (n, m) => ((n % m) + m) % m;
-    
+
         if (v) {
           v.x = f(x, CHUNK_SIZE_X);
           v.y = f(y, CHUNK_SIZE_Y);
@@ -238,7 +240,7 @@ export class BLOCK {
         } else {
           v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
         }
-    
+
         return v;
     }
 
@@ -1052,7 +1054,7 @@ export class BLOCK {
                             break;
                         }
                     }
-                }                
+                }
             }
         }
         return shapes;
@@ -1151,7 +1153,7 @@ BLOCK.init = async function(settings) {
     BLOCK.reset();
 
     // Resource packs
-    BLOCK.resource_pack_manager = new ResourcePackManager();
+    BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
 
     // block styles and resorce styles is independent (should)
     // block styles is how blocks is generated
@@ -1166,6 +1168,6 @@ BLOCK.init = async function(settings) {
         // Block styles
         for(let style of block_styles.values()) {
             BLOCK.registerStyle(style);
-        }    
+        }
     });
 };

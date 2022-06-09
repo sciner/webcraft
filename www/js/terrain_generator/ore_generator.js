@@ -1,27 +1,30 @@
 import { BLOCK } from "../blocks.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 
 // Ores
-const ORE_RANDOMS = [
-    {max_rad: 2, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
-    {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
-];
+const ORE_RANDOMS = [];
 
 export class OreGenerator {
 
     constructor(aleaRandom, chunk_coord, noise3d) {
+        if(ORE_RANDOMS.length == 0) {
+            ORE_RANDOMS.push(...[
+                {max_rad: 2, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
+                {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 1, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
+            ]);
+        }
         // @todo для каждого блока в чанке считается расстояние до каждого источника руды
         this.ores = [];
         this.noise3d = noise3d;

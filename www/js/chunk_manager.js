@@ -1,5 +1,6 @@
 import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
-import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
+import {Chunk} from "./chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk_const.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
@@ -95,8 +96,13 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
-        this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
-        this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        if (navigator.userAgent.indexOf('Firefox') > -1) {
+            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
+            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
+        } else {
+            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        }
         this.sort_chunk_by_frustum  = false;
         this.timer60fps             = 0;
 
@@ -113,7 +119,16 @@ export class ChunkManager {
             },
             send: function() {
                 if(this.list.length > 0) {
+                    //
                     that.postWorkerMessage(['destructChunk', this.list]);
+                    //
+                    that.postWorkerMessage(['destroyMap', {
+                        players: [{
+                            chunk_render_dist: Game.player.state.chunk_render_dist,
+                            chunk_addr: getChunkAddr(Game.player.state.pos)
+                        }]
+                    }]);
+                    //
                     that.postLightWorkerMessage(['destructChunk', this.list]);
                     this.clear();
                 }

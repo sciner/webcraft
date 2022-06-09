@@ -3,7 +3,7 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 

@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Vector, VectorCollector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 import { AABB } from "../../core/AABB.js";

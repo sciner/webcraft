@@ -305,18 +305,122 @@ export class Resources {
         let resp = new Set();
         let all = [];
         let json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
+        
         await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module
+                /*
                 all.push(import('./block_style/' + code + '.js').then(module => {
                     resp.add(module.default);
-                }));
+                }));*/
+               
+                switch (code) {
+                    case 'azalea':
+                        all.push( import('./block_style/azalea.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;   
+                    case 'bamboo':
+                        all.push( import('./block_style/bamboo.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;  
+                    case 'bed':
+                        all.push(import('./block_style/bed.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;   
+                    case 'cake':
+                        all.push(import('./block_style/cake.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;
+                    case 'campfire':
+                        all.push(import('./block_style/campfire.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;   
+                    case 'cocoa':
+                        all.push(import('./block_style/cocoa.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'cube':
+                        all.push(import('./block_style/cube.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'door':
+                        all.push(import('./block_style/door.js').then(module => {resp.add(module.default);}));
+                        break; 
+                    case 'extruder':
+                        all.push(import('./block_style/extruder.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'fence':
+                        all.push(import('./block_style/fence.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'ladder':
+                        all.push(import('./block_style/ladder.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'lantern':
+                        all.push(import('./block_style/lantern.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'painting':
+                        all.push(import('./block_style/painting.js').then(module => {resp.add(module.default);}));
+                        break;  
+                    case 'pane':
+                        all.push(import('./block_style/pane.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'plane':
+                        all.push(import('./block_style/plane.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'planting':
+                        all.push(import('./block_style/planting.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'pot':
+                        all.push(import('./block_style/pot.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'redstone':
+                        all.push( import('./block_style/redstone.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'sign':
+                        all.push(import('./block_style/sign.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'stairs':
+                        all.push(import('./block_style/stairs.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'text':
+                        all.push(import('./block_style/text.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'thin':
+                        all.push(import('./block_style/thin.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'torch':
+                        all.push(import('./block_style/torch.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'trapdoor':
+                        all.push(import('./block_style/trapdoor.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'triangle':
+                        all.push(import('./block_style/triangle.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'wall':
+                        all.push(import('./block_style/wall.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'default':
+                        all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
+                        break;
+                        /*
+                    default:
+                        all.push(import('./block_style/' + code + '.js').then(module => {
+                            resp.add(module.default);
+                        }));
+                        break;*/
+                
             }
+        }
         });
         await Promise.all(all).then(() => { return this; });
         return resp;
     }
 
+  
     // Load skins
     static async loadSkins() {
         const resp = [];

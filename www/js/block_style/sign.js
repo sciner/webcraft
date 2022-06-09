@@ -1,4 +1,4 @@
-import {DIRECTION, AlphabetTexture} from '../helpers.js';
+import {DIRECTION, AlphabetTexture, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"

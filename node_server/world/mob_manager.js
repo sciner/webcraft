@@ -1,4 +1,4 @@
-import { getChunkAddr } from "../../www/js/chunk.js";
+import { getChunkAddr } from "../../www/js/chunk_const.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Mob } from "../mob.js";
 

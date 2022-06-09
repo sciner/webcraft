@@ -1,5 +1,5 @@
 import {impl as alea} from '../../vendors/alea.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk_const.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
 
@@ -46,11 +46,17 @@ export class TerrainMapManager {
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
 
+    //static maps_in_memory = 0;
+    //static registry = new FinalizationRegistry(heldValue => {
+    //    TerrainMapManager.maps_in_memory--;
+    //});;
+
     constructor(seed, world_id, noisefn) {
         this.seed = seed;
         this.world_id = world_id;
         this.noisefn = noisefn;
         this.maps_cache = new VectorCollector();
+        BIOMES.init();
     }
 
     // Delete map for unused chunk
@@ -249,9 +255,7 @@ export class TerrainMapManager {
                 cnt_destroyed++;
             }
         }
-        //if(cnt_destroyed > 0) {
-        //    console.log(`Destroyed maps: ${cnt_destroyed}`);
-        //}
+        // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager.maps_in_memory)
     }
 
 }
@@ -274,6 +278,8 @@ export class TerrainMap {
             addr: chunk.addr.clone(),
             coord: chunk.coord.clone()
         };
+        // TerrainMapManager.maps_in_memory++;
+        // TerrainMapManager.registry.register(this, chunk.addr.toHash());
     }
 
     static initCells() {
