@@ -119,7 +119,16 @@ export class ChunkManager {
             },
             send: function() {
                 if(this.list.length > 0) {
+                    //
                     that.postWorkerMessage(['destructChunk', this.list]);
+                    //
+                    that.postWorkerMessage(['destroyMap', {
+                        players: [{
+                            chunk_render_dist: Game.player.state.chunk_render_dist,
+                            chunk_addr: getChunkAddr(Game.player.state.pos)
+                        }]
+                    }]);
+                    //
                     that.postLightWorkerMessage(['destructChunk', this.list]);
                     this.clear();
                 }
