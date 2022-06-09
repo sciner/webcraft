@@ -16,11 +16,13 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .5
         });
+        this.widtn = 0.6;
+        this.height = 1.2;
         
         this.color = 0;
         this.count_grass = 0;
         this.target = null;
-        this.follow_distance = 10;
+        this.follow_distance = 6;
         
         this.stack.pushState(this.doStand);
     }
@@ -56,8 +58,8 @@ export class Brain extends FSMBrain {
     
     doStand(delta) {
         super.doStand(delta);
-        
-        if (this.is_shaered) {
+
+        if (this.is_shaered && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
         }
     }
@@ -70,59 +72,57 @@ export class Brain extends FSMBrain {
             this.is_shaered = false;
         }
         if (this.is_shaered) {
-            let pos = mob.pos.sub(new Vector(0, 1, 0)).flooredSelf();
-            if (world.getBlock(pos).id == BLOCK.GRASS_DIRT.id) {
+            const block = this.getBeforeBlocks();
+            if (block.body.id == BLOCK.TALL_GRASS.id) {
                 const actions = new PickatActions();
                 actions.addBlocks([
                     {
-                        pos: pos, 
-                        item: {id : BLOCK.DIRT.id}, 
-                        action_id: ServerClient.BLOCK_ACTION_REPLACE
-                    }
-                ]);
-                world.actions_queue.add(null, actions); 
-                this.count_grass++;
-            }
-            pos = mob.pos.flooredSelf();
-            if (world.getBlock(pos).id == BLOCK.TALL_GRASS.id) {
-                const actions = new PickatActions();
-                actions.addBlocks([
-                    {
-                        pos: pos, 
+                        pos: block.body.posworld, 
                         item: {id : BLOCK.AIR.id}, 
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }
                 ]);
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
+            } else {
+                if (block.legs.id == BLOCK.GRASS_DIRT.id) {
+                    const actions = new PickatActions();
+                    actions.addBlocks([
+                        {
+                            pos: block.legs.posworld, 
+                            item: {id : BLOCK.DIRT.id}, 
+                            action_id: ServerClient.BLOCK_ACTION_REPLACE
+                        }
+                    ]);
+                    world.actions_queue.add(null, actions); 
+                    this.count_grass++;
+                }
             }
         }
-        this.isRotate(1.0);
+        this.stack.replaceState(this.doForward);
     }
     
      // Chasing a player
     async doCatch(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id || player.game_mode.isSpectator()) {
+        const distance = mob.pos.distance(player.state.pos);
+        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
             this.target = null;
-            this.isStand(1.0);
-            this.sendState();
+            this.stack.replaceState(this.doStand);
             return;
         }
 
-        if (Math.random() < 0.5) {
-            this.mob.rotate.z = this.angleTo(player.state.pos);
-        }
+        mob.rotate.z = this.angleTo(player.state.pos);
         
-        const forward = (mob.pos.distance(player.state.pos) > 1.5) ? true : false;
-        
+        const forward = (distance > 1.5) ? true : false;
+        const block = this.getBeforeBlocks();
+        const is_water = block.body.material.is_fluid;
         this.updateControl({
-            yaw: this.mob.rotate.z,
+            yaw: mob.rotate.z,
             forward: forward,
-            jump: this.checkInWater()
+            jump: is_water
         });
-
         this.applyControl(delta);
         this.sendState();
     }
@@ -160,7 +160,7 @@ export class Brain extends FSMBrain {
             }
             actions.addDropItem(drop_item);
 
-            actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+            actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'death', pos: mob.pos.clone() });
 
             world.actions_queue.add(actor, actions);
         }

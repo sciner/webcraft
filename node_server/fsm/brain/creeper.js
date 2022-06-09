@@ -27,6 +27,9 @@ export class Brain extends FSMBrain {
         this.detonationTime = 0;
         this.explosion_damage = 12;
         this.players_damage_distance = DISTANCE_DETONATION;
+
+        this.widtn = 0.6;
+        this.height = 1.2;
         
         this.stack.pushState(this.doStand);
     }
@@ -52,22 +55,22 @@ export class Brain extends FSMBrain {
     
     // Chasing a player
     async doCatch(delta) {
-
-        
-
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player || !player.game_mode.getCurrent().can_take_damage) {
-            return this.lostTarget();
-        }
-
-        //
         const dist = mob.pos.distance(player.state.pos);
-        if (dist > DISTANCE_LOST_TRAGET) {
+        if (mob.playerCanBeAtacked(player) || dist > DISTANCE_LOST_TRAGET) {
             return this.lostTarget();
         }
 
-        this.mob.rotate.z = this.angleTo(player.state.pos);
+        const block = this.getBeforeBlocks();
+        mob.rotate.z = this.angleTo(player.state.pos);
+        this.updateControl({
+            yaw: this.mob.rotate.z,
+            forward: true,
+            jump: block.body.material.is_fluid
+        });
+        this.applyControl(delta);
+        this.sendState();
 
         if (dist < DISTANCE_DETONATION) {
             this.detonationTime = performance.now();
@@ -79,44 +82,34 @@ export class Brain extends FSMBrain {
             });
             this.stack.replaceState(this.doTimerDetonation);
         }
-
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-
-        this.applyControl(delta);
-        this.sendState();
     }
 
     lostTarget() {
-        // console.log("[AI] mob " + this.mob.id + " lost player and stand");
         const mob = this.mob;
         mob.extra_data.detonation_started = false;
         this.target = null;
-        this.isStand(1.0);
-        this.sendState();
+        this.stack.replaceState(this.doStand);
     }
 
     //
     doTimerDetonation(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        this.mob.rotate.z = this.angleTo(player.state.pos);
+        mob.rotate.z = this.angleTo(player.state.pos);
 
         this.updateControl({
             yaw: this.mob.rotate.z,
             forward: false,
-            jump: this.checkInWater()
+            jump: false
         });
         this.applyControl(delta);
         this.sendState();
         
         // если игрока нет, он умер или сменил игровой режим на безопасный, то теряем к нему интерес
-        if(!mob.playerCanBeAtacked(player)) {
+        if (mob.playerCanBeAtacked(player)) {
             return this.lostTarget();
         }
+
         const dist = mob.pos.distance(player.state.pos);
         if (dist < DISTANCE_DETONATION) {
             const time = performance.now() - this.detonationTime;
@@ -169,21 +162,17 @@ export class Brain extends FSMBrain {
     onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        let items = [];
-        let velocity = new Vector(0,0,0);
         if (actor != null) {
-            //actor это игрок
-            if (actor.session) {
-                velocity = actor.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
-                const rnd_count = (Math.random() * 2) | 0;
-                if (rnd_count > 0){ 
-                    items.push({id: 1445, count: rnd_count});
-                }
-                
+            const rnd_count_flesh = (Math.random() * 2) | 0;
+            if (rnd_count_flesh > 0) {
+                const actions = new PickatActions();
+
+                actions.addDropItem({ pos: mob.pos, items: [{ id: 1445, count: rnd_count_flesh }] });
+
+                actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'death', pos: mob.pos.clone() });
+
+                world.actions_queue.add(actor, actions);
             }
-        }
-        if (items.length > 0){
-            world.createDropItems(actor, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
         }
     }
 }

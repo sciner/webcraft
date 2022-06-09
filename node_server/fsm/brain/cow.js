@@ -15,8 +15,61 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .5
         });
-        // Начинаем с просто "Стоять"
+
+        this.widtn = 0.7;
+        this.height = 1.3;
+
+        this.follow_distance = 6;
+
         this.stack.pushState(this.doStand);
+    }
+
+    findTarget() {
+        if (this.target == null) {
+            const mob = this.mob;
+            const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
+            let friends = [];
+            for (let player of players) {
+                if (player.state.hands.right.id == BLOCK.WHEAT.id) {
+                    friends.push(player);
+                }
+            }
+            if (friends.length > 0) {
+                const rnd = (Math.random() * friends.length) | 0;
+                const player = friends[rnd];
+                this.target = player.session.user_id;
+                this.stack.replaceState(this.doCatch);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    doCatch(delta) {
+        this.panick_timer = 0;
+
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        const distance = mob.pos.distance(player.state.pos);
+        if (!player || player.state.hands.right.id != BLOCK.WHEAT.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+
+        mob.rotate.z = this.angleTo(player.state.pos);
+
+        const forward = (distance > 1.5) ? true : false;
+        const block = this.getBeforeBlocks();
+        const is_water = block.body.material.is_fluid;
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: forward,
+            jump: is_water
+        });
+
+        this.applyControl(delta);
+        this.sendState();
     }
 
     async onUse(actor, id) {
@@ -51,7 +104,7 @@ export class Brain extends FSMBrain {
 
             actions.addDropItem(drop_item);
 
-            actions.addPlaySound({ tag: 'madcraft:block.cow', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+            actions.addPlaySound({ tag: 'madcraft:block.cow', action: 'death', pos: mob.pos.clone() });
 
             world.actions_queue.add(actor, actions);
         }

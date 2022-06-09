@@ -2,23 +2,28 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { PickatActions } from "../../../www/js/block_action.js";
-import {ServerClient} from "../../../www/js/server_client.js";
+import { ServerClient } from "../../../www/js/server_client.js";
 
-const FOLLOW_DISTANCE       = 20;
-const DISTANCE_LOST_TRAGET  = 25;
+const FOLLOW_DISTANCE = 20;
+const DISTANCE_LOST_TRAGET = 25;
 
 export class Brain extends FSMBrain {
 
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 1/2,
+        this.prevPos = new Vector(mob.pos);
+        this.lerpPos = new Vector(mob.pos);
+        this.pc = this.createPlayerControl(this, {
+            baseSpeed: 1 / 2,
             playerHeight: 1.6,
             stepHeight: 1
         });
+
+        this.widtn = 0.6;
+        this.height = 1.95;
+
+        this.follow_distance = 20;
         this.distance_attack = 1.5;
         this.timer_attack = 0;
         this.interval_attack = 16;
@@ -28,7 +33,7 @@ export class Brain extends FSMBrain {
     findTarget() {
         if (this.target == null) {
             const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, FOLLOW_DISTANCE, true);
+            const players = this.getPlayersNear(mob.pos, this.follow_distance, true);
             if (players.length > 0) {
                 const rnd = (Math.random() * players.length) | 0;
                 const player = players[rnd];
@@ -53,25 +58,21 @@ export class Brain extends FSMBrain {
     doAttack(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-
-        // если игрока нет, он умер или сменил игровой режим на безопасный, то теряем к нему интерес
-        if(!mob.playerCanBeAtacked(player)) {
-            return this.lostTarget();
-        }
-
         const world = mob.getWorld();
         const dist = mob.pos.distance(player.state.pos);
-        if (dist > this.distance_attack) {
-            return this.stack.replaceState(this.doCatch);
+        if (mob.playerCanBeAtacked(player) || dist > this.distance_attack) {
+            this.stack.replaceState(this.doCatch);
+            return;
         }
-        this.timer_attack++;
+       
         const angle_to_player = this.angleTo(player.state.pos);
         // моб должен примерно быть направлен на игрока
-        if(Math.abs(this.mob.rotate.z - angle_to_player) > Math.PI / 2) {
+        if (Math.abs(mob.rotate.z - angle_to_player) > Math.PI / 2) {
             // сперва нужно к нему повернуться
             this.mob.rotate.z = angle_to_player;
             this.sendState();
         } else {
+            this.timer_attack++;
             if (this.timer_attack >= this.interval_attack) {
                 this.timer_attack = 0;
                 player.changeLive(-2);
@@ -80,65 +81,55 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(player, actions);
             }
         }
-	}
-    
+    }
+
     // Chasing a player
     async doCatch(delta) {
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if(!player || !player.game_mode.getCurrent().can_take_damage) {
-            return this.lostTarget();
-        }
-
-        //
         const dist = mob.pos.distance(player.state.pos);
-        if (dist > DISTANCE_LOST_TRAGET) {
-            return this.lostTarget();
+        if (mob.playerCanBeAtacked(player) || dist > DISTANCE_LOST_TRAGET) {
+            this.lostTarget();
+            return;
         }
 
-        this.mob.rotate.z = this.angleTo(player.state.pos);
+        mob.rotate.z = this.angleTo(player.state.pos);
+
+        const block = this.getBeforeBlocks();
+        const is_water = block.body.material.is_fluid;
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: true,
+            jump: is_water
+        });
+        this.applyControl(delta);
+        this.sendState();
 
         if (dist < this.distance_attack) {
             this.stack.replaceState(this.doAttack);
 		}
-
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-
-        this.applyControl(delta);
-        this.sendState();
     }
 
     lostTarget() {
-        // console.log("[AI] mob " + this.mob.id + " lost player and stand");
         const mob = this.mob;
-        mob.extra_data.detonation_started = false;
         this.target = null;
-        this.isStand(1.0);
-        this.sendState();
+        this.stack.replaceState(this.doStand);
     }
-    
+
     onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        let items = [];
-        let velocity = new Vector(0,0,0);
         if (actor != null) {
-            //actor это игрок
-            if (actor.session) {
-                velocity = actor.state.pos.sub(mob.pos).normal().multiplyScalar(.5);
-                const rnd_count = (Math.random() * 2) | 0;
-                if (rnd_count > 0){ 
-                    items.push({id: 1445, count: rnd_count});
-                }
-                
+            const rnd_count_flesh = (Math.random() * 2) | 0;
+            if (rnd_count_flesh > 0) {
+                const actions = new PickatActions();
+
+                actions.addDropItem({ pos: mob.pos, items: [{ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh }] });
+
+                actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
+
+                world.actions_queue.add(actor, actions);
             }
-        }
-        if (items.length > 0){
-            world.createDropItems(actor, mob.pos.add(new Vector(0, 0.5, 0)), items, velocity);
         }
     }
 }

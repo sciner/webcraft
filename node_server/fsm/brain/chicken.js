@@ -15,16 +15,16 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .25
         });
-        
+
+        this.widtn = 0.4;
+        this.height = 0.7;
+        this.follow_distance = 6;
+
         this.egg_timer = performance.now();
-        this.lay_interval = 200000;
-        this.follow_distance = 20;
-        this.target = null;
-        
-        // Начинаем с просто "Стоять"
+        this.lay_interval = 2000000;
         this.stack.pushState(this.doStand);
     }
-    
+
     findTarget() {
         if (this.target == null) {
             const mob = this.mob;
@@ -34,7 +34,7 @@ export class Brain extends FSMBrain {
                 if (player.state.hands.right.id == BLOCK.WHEAT_SEEDS.id) {
                     friends.push(player);
                 }
-            } 
+            }
             if (friends.length > 0) {
                 const rnd = (Math.random() * friends.length) | 0;
                 const player = friends[rnd];
@@ -46,53 +46,57 @@ export class Brain extends FSMBrain {
         return false;
     }
 
-    async doCatch(delta) {
-        const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        if(!player || player.state.hands.right.id != BLOCK.WHEAT_SEEDS.id || player.game_mode.isSpectator()) {
-            this.target = null;
-            this.isStand(1.0);
-            this.sendState();
-            return;
-        }
-
-        if (Math.random() < 0.5) {
-            this.mob.rotate.z = this.angleTo(player.state.pos);
-        }
-                
-        const forward = (mob.pos.distance(player.state.pos) > 1.5) ? true : false;
-        
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: forward,
-            jump: this.checkInWater()
-        });
-        
-        this.applyControl(delta);
-        this.sendState();
-    }
-    
     doStand(delta) {
         super.doStand(delta);
-      
+
         if ((performance.now() - this.egg_timer) > this.lay_interval) {
             this.stack.replaceState(this.doLayEgg);
         }
     }
-    
-    doLayEgg(delta) {
+
+    doCatch(delta) {
+        this.panick_timer = 0;
+
+        const mob = this.mob;
+        const player = mob.getWorld().players.get(this.target);
+        const distance = mob.pos.distance(player.state.pos);
+        if (!player || player.state.hands.right.id != BLOCK.WHEAT_SEEDS.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+
+        mob.rotate.z = this.angleTo(player.state.pos);
+
+        const forward = (distance > 1.5) ? true : false;
+        const block = this.getBeforeBlocks();
+        const is_water = block.body.material.is_fluid;
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: forward,
+            jump: is_water
+        });
+
+        this.applyControl(delta);
+        this.sendState();
+    }
+
+    doLayEgg() {
         this.egg_timer = performance.now();
         const mob = this.mob;
         const world = mob.getWorld();
-        world.createDropItems(null, mob.pos.add(new Vector(0, 0.5, 0)), [{id: BLOCK.EGG.id, count: 1}], new Vector(0, 0, 0));
-        this.isRotate(1.0);
+
+        const actions = new PickatActions();
+        actions.addDropItem({ pos: mob.pos, items: [{ id: BLOCK.EGG.id, count: 1 }] , force: true});
+        world.actions_queue.add(null, actions);
+
+        this.stack.replaceState(this.doStand);
     }
-    
+
+
     async onKill(actor, type_demage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        let items = [];
-        let velocity = new Vector(0,0,0);
         if (actor != null) {
             const actions = new PickatActions();
 
@@ -104,7 +108,7 @@ export class Brain extends FSMBrain {
             }
             actions.addDropItem(drop_item);
 
-            actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+            actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
 
             world.actions_queue.add(actor, actions);
         }

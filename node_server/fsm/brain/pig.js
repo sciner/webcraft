@@ -17,10 +17,11 @@ export class Brain extends FSMBrain {
             playerHalfWidth: .5
         });
 
-        this.live = 10;
+        this.widtn = 0.6;
+        this.height = 1.2;
+
         this.follow_distance = 16;
 
-        // Начинаем с просто "Стоять"
         this.stack.pushState(this.doStand);
     }
 
@@ -46,27 +47,27 @@ export class Brain extends FSMBrain {
     }
 
     async doCatch(delta) {
+        this.panick_timer = 0;
+
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
-        if (!player || player.state.hands.right.id != BLOCK.CARROT.id || player.game_mode.isSpectator()) {
+        const distance = mob.pos.distance(player.state.pos);
+        if (!player || player.state.hands.right.id != BLOCK.CARROT.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
             this.target = null;
-            this.isStand(1.0);
-            this.sendState();
+            this.stack.replaceState(this.doStand);
             return;
         }
 
-        if (Math.random() < 0.5) {
-            this.mob.rotate.z = this.angleTo(player.state.pos);
-        }
+        mob.rotate.z = this.angleTo(player.state.pos);
 
-        const forward = (mob.pos.distance(player.state.pos) > 1.5) ? true : false;
-
+        const forward = (distance > 1.5) ? true : false;
+        const block = this.getBeforeBlocks();
+        const is_water = block.body.material.is_fluid;
         this.updateControl({
-            yaw: this.mob.rotate.z,
+            yaw: mob.rotate.z,
             forward: forward,
-            jump: this.checkInWater()
+            jump: is_water
         });
-
         this.applyControl(delta);
         this.sendState();
     }
@@ -84,7 +85,7 @@ export class Brain extends FSMBrain {
 
             actions.addDropItem(drop_item);
 
-            actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'hurt', pos: mob.pos.clone() }); //Звук смерти
+            actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'death', pos: mob.pos.clone() });
 
             world.actions_queue.add(actor, actions);
         }
