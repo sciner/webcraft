@@ -223,6 +223,7 @@ export class BaseChunk {
 export class Portal {
     constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
+        this.volume = (aabb.maxX - aabb.minX) * (aabb.maxY - aabb.minY) * (aabb.maxZ - aabb.minZ);
         this.fromRegion = fromRegion;
         this.toRegion = toRegion;
     }

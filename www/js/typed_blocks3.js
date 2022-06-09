@@ -11,9 +11,6 @@ export function newTypedBlocks(x, y, z) {
 }
 
 export class TypedBlocks3 {
-
-    #neightbours_chunks;
-
     constructor(coord, chunkSize) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
@@ -37,26 +34,32 @@ export class TypedBlocks3 {
 
     //
     getNeightboursChunks(world) {
-        if(this.#neightbours_chunks) {
-            return this.#neightbours_chunks;
+        const {dataChunk, addr} = this;
+        let nc = {};
+        for (let i=0;i<dataChunk.portals.length;i++) {
+            if (dataChunk.portals[i].volume > 8) {
+                const other = dataChunk.portals[i].toRegion.rev.pos;
+                if (addr.x < this.addr.x) {
+                    nc.nx = other;
+                } else
+                if (addr.x > this.addr.x) {
+                    nc.px = other;
+                } else
+                if (addr.y < this.addr.y) {
+                    nc.ny = other;
+                } else
+                if (addr.y > this.addr.y) {
+                    nc.py = other;
+                } else
+                if (addr.z < this.addr.z) {
+                    nc.nz = other;
+                } else
+                if (addr.z > this.addr.z) {
+                    nc.pz = other;
+                }
+            }
         }
-        //
-        const nc = this.#neightbours_chunks = {
-            // center
-            that: {addr: this.addr, chunk: null},
-            // sides
-            nx: {addr: new Vector(this.addr.x - 1, this.addr.y, this.addr.z), chunk: null},
-            px: {addr: new Vector(this.addr.x + 1, this.addr.y, this.addr.z), chunk: null},
-            ny: {addr: new Vector(this.addr.x, this.addr.y - 1, this.addr.z), chunk: null},
-            py: {addr: new Vector(this.addr.x, this.addr.y + 1, this.addr.z), chunk: null},
-            nz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z - 1), chunk: null},
-            pz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z + 1), chunk: null}
-        };
-        //
-        for(let i in this.#neightbours_chunks) {
-            const n = this.#neightbours_chunks[i];
-            n.chunk = world.chunkManager.getChunk(n.addr);
-        }
+
         return nc;
     }
 
