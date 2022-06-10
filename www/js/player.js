@@ -427,6 +427,7 @@ export class Player {
 
     //
     setPosition(vec) {
+        vec = new Vector(vec);
         //
         const pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
@@ -438,6 +439,9 @@ export class Player {
         this.onGround = false;
         this.lastBlockPos = null;
         this.lastOnGroundTime = null;
+        //
+        this.pos = vec.clone();
+        this.lerpPos = vec.clone();
     }
 
     getFlying() {
