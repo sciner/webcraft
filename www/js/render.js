@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -19,6 +19,8 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import { RAINDROP_NEW_INTERVAL } from "./constant.js";
+import GeometryTerrain from "./geometry_terrain.js";
+import { BLEND_MODES } from "./renders/BaseRenderer.js";
 
 const {mat4} = glMatrix;
 
@@ -596,6 +598,8 @@ export class Renderer {
                     this.drawDropItems(delta);
                     // 6. Draw meshes
                     this.meshes.draw(this, delta);
+                    // 7. Draw shadows
+                    this.drawShadows();
                 }
             }
         }
@@ -728,6 +732,99 @@ export class Renderer {
             drop_item.updatePlayer(this.player, delta);
             drop_item.draw(this, delta);
         }
+    }
+
+    drawShadows() {
+        const world = Game.world;
+        const TARGET_TEXTURES = [.5, .5, 1, 1];
+        // Material (shadow)
+        if(!this.material_shadow) {
+            const mat = this.renderBackend.createMaterial({
+                cullFace: true,
+                opaque: false,
+                blendMode: BLEND_MODES.MULTIPLY,
+                shader: this.defaultShader,
+            });
+            // Material
+            this.material_shadow = mat.getSubMat(this.renderBackend.createTexture({
+                source: Resources.shadow.main,
+                blendMode: BLEND_MODES.MULTIPLY,
+                minFilter: 'nearest',
+                magFilter: 'nearest',
+                textureWrapMode: 'clamp_to_edge'
+            }));
+        }
+        const pos = Game.player.lerpPos;
+        const modelMatrix = mat4.create();
+        const shapes = [];
+        const vec = new Vector();
+
+        for(let x = -1; x <= 1; x++) {
+            for(let z = -1; z <= 1; z++) {
+                for(let y = 0; y >= -2; y--) {
+                    vec.copyFrom(pos).addScalarSelf(x, y, z).flooredSelf();
+                    const block = world.getBlock(vec);
+                    if(block.id == 0) continue;
+                    const block_shapes = BLOCK.getShapes(vec, block, world, false, true);
+                    for(let i = 0; i < block_shapes.length; i++) {
+                        const s = block_shapes[i];
+                        if(s[4] + y <= pos.y) {
+                            s[0] += x;
+                            s[1] += y;
+                            s[2] += z;
+                            s[3] += x;
+                            s[4] += y + 1/500;
+                            s[5] += z;
+                            shapes.push(s);
+                        }
+                    }
+                }
+            }
+        }
+
+        const buf = this.createShadowBuffer(shapes, pos, TARGET_TEXTURES);
+        const half = new Vector(0.5, 0.5, 0.5);
+        const a_pos = half.addSelf(Game.player.blockPos);
+        this.renderBackend.drawMesh(buf, this.material_shadow, a_pos, modelMatrix);
+        buf.destroy();
+    }
+
+    // createShadowBuffer...
+    createShadowBuffer(shapes, pos, c) {
+        let vertices    = [];
+        let lm          = new Color(0, 0, 0);
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
+            let x1 = shape[0];
+            let y1 = shape[1];
+            let z1 = shape[2];
+            let x2 = shape[3];
+            let y2 = shape[4];
+            let z2 = shape[5];
+            let xw = x2 - x1; // ширина по оси X
+            let yw = y2 - y1; // ширина по оси Y
+            let zw = z2 - z1; // ширина по оси Z
+            let x = -.5 + x1 + xw/2;
+            let y_top = -.5 + y2;
+            let y_bottom = -.5 + y1;
+            let z = -.5 + z1 + zw/2;
+            //
+            let c0 = Math.floor(x1 + pos.x) + c[0];
+            let c1 = Math.floor(z1 + pos.z) + c[1];
+            const dist = Math.sqrt((pos.x - c0) * (pos.x - c0) + (pos.z - c1) * (pos.z - c1));
+            //
+            if(dist <= 1) {
+                c0 = pos.x - c0 - .5;
+                c1 = pos.z - c1 - .5;
+                vertices.push(x, z, y_top,
+                    xw, 0, 0,
+                    0, zw, 0,
+                    -c0, -c1, c[2], c[3],
+                    lm.r, lm.g, lm.b, flags | upFlags);
+            }
+        }
+        return new GeometryTerrain(vertices);
     }
 
     /**

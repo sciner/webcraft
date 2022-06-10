@@ -193,7 +193,8 @@ export class BaseTexture {
         minFilter = 'linear',
         style = null,
         source = null,
-        type = 'rgba8u'
+        type = 'rgba8u',
+        textureWrapMode = null
     } = {}) {
         this.width = width;
         this.height = height;
@@ -203,6 +204,7 @@ export class BaseTexture {
         this.style = style;
         this.context = context;
         this.type = type;
+        this.textureWrapMode = textureWrapMode;
 
         this.id = BaseRenderer.ID++;
         this.usage = 0;

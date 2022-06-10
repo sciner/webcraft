@@ -147,6 +147,11 @@ export class WebGLTexture extends BaseTexture {
             this._lastMagFilter = this.magFilter;
             gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
         }
+
+        if(this.textureWrapMode == 'clamp_to_edge') {
+            gl.texParameteri(type, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(type, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
     }
 
     bind(location) {
