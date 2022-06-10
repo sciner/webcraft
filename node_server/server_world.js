@@ -58,7 +58,7 @@ export class ServerWorld {
         this.mobs           = new WorldMobManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
         //
-        this.players = new Map(); // new PlayerManager(this);
+        this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         //
         await this.models.init();
@@ -179,16 +179,17 @@ export class ServerWorld {
 
     // onPlayer
     async onPlayer(player, skin) {
-        // 1. Insert to DB if new player
+        // 1. Delete previous connections
+        const existing_player = this.players.get(player.session.user_id);
+        if(existing_player) {
+            console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            await this.onLeave(existing_player);
+        }
+        // 2. Insert to DB if new player
         player.init(await this.db.registerUser(this, player));
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
-        // 2. Add new connection
-        if (this.players.has(player.session.user_id)) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
-            this.onLeave(this.players.get(player.session.user_id));
-        }
         // 3. Insert to array
         this.players.set(player.session.user_id, player);
         // 4. Send about all other players
@@ -245,10 +246,10 @@ export class ServerWorld {
     async onLeave(player) {
         if (this.players.has(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
-            this.db.savePlayerState(player);
+            await this.db.savePlayerState(player);
             player.onLeave();
             // Notify other players about leave me
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_PLAYER_LEAVE,
                 data: {
                     id: player.session.user_id
@@ -281,11 +282,11 @@ export class ServerWorld {
      * @return {void}
      */
     sendSelected(packets, selected_players, except_players) {
-        for (let user_id of selected_players) {
+        for(let user_id of selected_players) {
             if (except_players && except_players.indexOf(user_id) >= 0) {
                 continue;
             }
-            let player = this.players.get(user_id);
+            const player = this.players.get(user_id);
             if (player) {
                 player.sendPackets(packets);
             }

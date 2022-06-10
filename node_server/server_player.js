@@ -137,16 +137,16 @@ export class ServerPlayer extends Player {
 
     // onLeave...
     async onLeave() {
+        if(!this.conn) {
+            return false;
+        }
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
         PlayerEvent.removeHandler(this.session.user_id);
-        //
-        //try {
-        //    this.conn.close();
-        //} catch(e) {
-        //    console.error(e);
-        //}
+        // close previous connection
+        this.conn.close(1000, 'error_multiconnection');
+        delete(this.conn);
     }
 
     // Change live value
