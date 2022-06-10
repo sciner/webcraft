@@ -297,14 +297,14 @@ export class ServerChunk {
             // Unload mobs for player
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
             if(this.mobs.size > 0) {
-                let packets = [{
+                const packets = [{
                     name: ServerClient.CMD_MOB_DELETED,
                     data: Array.from(this.mobs.keys())
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
             if(this.drop_items.size > 0) {
-                let packets = [{
+                const packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
                     data: Array.from(this.drop_items.keys())
                 }];
@@ -321,7 +321,7 @@ export class ServerChunk {
     // Add mob
     addMob(mob) {
         this.mobs.set(mob.id, mob);
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_MOB_ADDED,
             data: [mob]
         }];

@@ -140,9 +140,12 @@ export class ServerPlayer extends Player {
         if(!this.conn) {
             return false;
         }
+        // remove player from chunks
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        this.chunks.clear();
+        // remove events handler
         PlayerEvent.removeHandler(this.session.user_id);
         // close previous connection
         this.conn.close(1000, 'error_multiconnection');
