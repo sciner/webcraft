@@ -16,6 +16,10 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player, packet) {
+        if(!player.game_mode.canBlockAction()) {
+            return true;
+        }
+        //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
         if(player.state.sitting || player.state.lies) {

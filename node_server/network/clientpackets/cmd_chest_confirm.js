@@ -14,6 +14,10 @@ export default class packet_reader {
 
     // 
     static async read(player, packet) {
+        if(!player.game_mode.canBlockAction()) {
+            return true;
+        }
+        //
         const chests = player.world.chests;
         const pos = packet.data.chest.pos;
         const chest = await chests.get(pos);

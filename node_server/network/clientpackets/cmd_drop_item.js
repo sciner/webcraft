@@ -14,6 +14,10 @@ export default class packet_reader {
 
     // Drop item from hand
     static async read(player, packet) {
+        if(!player.game_mode.canDropItems()) {
+            return true;
+        }
+        //
         player.inventory.dropItem();
         return true;
     }
