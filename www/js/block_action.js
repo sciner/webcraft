@@ -465,7 +465,7 @@ export class PickatActions {
         this.put_in_backet = item;
     }
 
-    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance) {
+    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
         const world = this.#world;
         const air = { id: 0 };
         const out_rad = Math.ceil(rad);
@@ -520,7 +520,7 @@ export class PickatActions {
                         const tblock = world.getBlock(block_pos);
                         if(tblock) {
                             const mat = tblock.material;
-                            if(mat.id > 0 && !mat.is_water) {
+                            if(mat.id > 0 && mat.material.mining.blast_resistance <= power) {
                                 this.addBlocks([
                                     {pos: block_pos.clone(), item: air, drop_blocks_chance}
                                 ]);

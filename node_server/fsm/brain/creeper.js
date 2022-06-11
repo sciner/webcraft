@@ -130,7 +130,7 @@ export class Brain extends FSMBrain {
         // Actions
         const actions = new PickatActions(null, world, true, false);
         // Extrude blocks
-        actions.makeExplosion(mobPosCenter, rad, true, 1/3);
+        actions.makeExplosion(mobPosCenter, rad, true, 1/3, 6);
         // Kill mob
         await mob.kill();
         // Add sound
@@ -174,4 +174,5 @@ export class Brain extends FSMBrain {
             }
         }
     }
+
 }
