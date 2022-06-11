@@ -517,14 +517,16 @@ export class PickatActions {
                     const dist = block_pos.distance(vec_center);
                     block_pos.flooredSelf();
                     if (dist <= rad) {
-                        this.addBlocks([
-                            {pos: block_pos.clone(), item: air, drop_blocks_chance}
-                        ]);
-                        extruded_blocks.set(block_pos, 'extruded');
                         const tblock = world.getBlock(block_pos);
                         if(tblock) {
                             const mat = tblock.material;
-                            createAutoDrop(tblock);
+                            if(mat.id > 0 && !mat.is_water) {
+                                this.addBlocks([
+                                    {pos: block_pos.clone(), item: air, drop_blocks_chance}
+                                ]);
+                                extruded_blocks.set(block_pos, 'extruded');
+                                createAutoDrop(tblock);
+                            }
                         }
                     }
                 }

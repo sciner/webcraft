@@ -4,7 +4,7 @@ import { Vector } from "../../../www/js/helpers.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }

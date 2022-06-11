@@ -1,5 +1,4 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { PickatActions } from "../../../www/js/block_action.js";
 import {ServerClient} from "../../../www/js/server_client.js";

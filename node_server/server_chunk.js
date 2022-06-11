@@ -265,7 +265,8 @@ export class ServerChunk {
                 }
             ]
         ]);
-        // Разошлем чанк игрокам, которые его запросили
+
+        // Разошлем чанк игрокам, которые его запрашивали
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
             this.preq.clear();
@@ -341,7 +342,7 @@ export class ServerChunk {
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
             data: {
                 addr:        this.addr,

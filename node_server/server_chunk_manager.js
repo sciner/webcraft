@@ -141,18 +141,17 @@ export class ServerChunkManager {
 
         if (force || !player.chunk_addr_o.equal(player.chunk_addr)) {
 
+            const added_vecs        = new VectorCollector();
             const chunk_render_dist = player.state.chunk_render_dist;
+            const margin            = Math.max(chunk_render_dist + 1, 1);
+            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
 
-            let margin              = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
-
-            let nearby = {
+            //
+            const nearby = {
                 chunk_render_dist:  chunk_render_dist,
                 added:              [], // чанки, которые надо подгрузить
                 deleted:            [] // чанки, которые надо выгрузить
             };
-
-            let added_vecs = new VectorCollector();
 
             // Find new chunks
             for(let i = 0; i < spiral_moves_3d.length; i++) {
@@ -191,7 +190,7 @@ export class ServerChunkManager {
             // Send new chunks
             if(nearby.added.length + nearby.deleted.length > 0) {
                 // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
-                let packets = [{
+                const packets = [{
                     name: ServerClient.CMD_NEARBY_CHUNKS,
                     data: nearby
                 }];

@@ -442,6 +442,9 @@ export class Player {
         //
         this.pos = vec.clone();
         this.lerpPos = vec.clone();
+        //
+        this.blockPos = this.getBlockPos();
+        this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
     }
 
     getFlying() {

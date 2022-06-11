@@ -406,7 +406,7 @@ export class ServerWorld {
 
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if (!chunk) {
             throw 'Chunk not found';
         }
