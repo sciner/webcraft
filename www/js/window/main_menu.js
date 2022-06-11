@@ -60,16 +60,20 @@ export class MainMenu extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         btn.onMouseDown = onclick;
+        /*
         btn.onMouseEnter = function() {
+            this.style.background.color_save = this.style.background.color;
             this.style.background.color = '#8892c9';
             this.style.background.image_save = this.style.background.image;
             this.style.background.image = null;
         }
         btn.onMouseLeave = function() {
-            this.style.background.color = '#777777ff';
+            this.style.background.color = this.style.background.color_save;
             this.style.background.image = this.style.background.image_save;
             this.style.background.image_save = null;
-        }
+            this.style.background.color_save = null;
+        }*/
+        // btn.style.border.color = '#ff0000';
         this.add(btn);
     }
 
