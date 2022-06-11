@@ -221,6 +221,7 @@ export class ServerChat {
                 this.world.mobs.spawn(player, params);
                break;
             }
+            case '/clear':
             case '/obj':
             case '/weather': {
                 break;
