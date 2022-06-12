@@ -39,7 +39,7 @@ export class Basic05GeometryPool extends GeometryPool {
               chunkId
           } = {}) {
         const {freePages, pageSize, baseGeometry} = this;
-        const sizeQuads = (vertices.length / 17);
+        const sizeQuads = vertices[0];
         const sizePages = Math.ceil(sizeQuads / pageSize);
         const lastSize = lastBuffer ? lastBuffer.sizePages : 0;
         let sub = lastBuffer;
@@ -51,7 +51,7 @@ export class Basic05GeometryPool extends GeometryPool {
             sub.sizePages = sizePages;
         }
         if (lastSize === sizePages) {
-            sub.setData17(vertices, chunkId);
+            sub.setDataPages(vertices);
             return sub;
         }
         const {pages} = sub;
@@ -67,7 +67,7 @@ export class Basic05GeometryPool extends GeometryPool {
                 pages.push(freePages.pop());
             }
         }
-        sub.setData17(vertices, chunkId);
+        sub.setDataPages(vertices);
         return sub;
     }
 

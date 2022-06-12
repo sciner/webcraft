@@ -14,15 +14,15 @@ export class WorkerWorldManager {
         that.terrainGenerators = new Map();
         const all = [];
         // Load terrain generators
-        import('../terrain_generator/biome2/index.js').then(module => 
+        import('../terrain_generator/biome2/index.js').then(module =>
             {
             that.terrainGenerators.set('biome2', module.default);
         })
-        
+
         for(let tg_code of generator_codes) {
             switch (tg_code) {
                 case 'biome2':
-                      all.push(import('../terrain_generator/biome2/index.js').then(module => 
+                      all.push(import('../terrain_generator/biome2/index.js').then(module =>
                           {
                               that.terrainGenerators.set('biome2', module.default);
                           }));
@@ -32,7 +32,7 @@ export class WorkerWorldManager {
                       break;
                   case 'city2':
                       all.push(import('../terrain_generator/city2/index.js').then(module => {that.terrainGenerators.set('city2', module.default);}));
-                      break;                       
+                      break;
                   case 'flat':
                       all.push(import('../terrain_generator/flat/index.js').then(module => {that.terrainGenerators.set('flat', module.default);}));
                       break;
@@ -49,8 +49,8 @@ export class WorkerWorldManager {
                       });
                       break;*/
              }
-                    
-                    
+
+
         }
         await Promise.all(all);
     }
@@ -109,9 +109,7 @@ export class WorkerWorld {
         if(chunk) {
             this.chunks.delete(addr);
             this.generator.maps.delete(addr);
-
-            this.chunkManager.dataWorld.removeChunk(chunk);
-
+            chunk.destroy();
             return true;
         }
         return false;

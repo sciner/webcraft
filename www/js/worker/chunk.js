@@ -1,10 +1,12 @@
 import {BLOCK, POWER_NO} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {BlockNeighbours, TBlock} from "../typed_blocks.js";
-import {newTypedBlocks, DataWorld} from "../typed_blocks3.js";
+import {newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK} from "../typed_blocks3.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
+import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
+import {WorkerInstanceBuffer} from "./WorkerInstanceBuffer.js";
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -22,10 +24,13 @@ export class ChunkManager {
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
-                return this.material;
+                return this.properties;
             }
         };
         this.dataWorld = new DataWorld();
+        this.verticesPool = new Worker05GeometryPool(null, {});
+
+        this.materialToId = new Map();
     }
 
     // Get
@@ -60,7 +65,7 @@ export class Chunk {
         this.coord          = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
         this.id             = this.addr.toHash();
         this.ticking_blocks = new VectorCollector();
-        this.emitted_blocks = new VectorCollector();
+        this.emitted_blocks = new Map();
         this.temp_vec2      = new Vector(0, 0, 0);
         this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
         this.aabb           = new AABB();
@@ -72,6 +77,9 @@ export class Chunk {
             this.coord.y + this.size.y,
             this.coord.z + this.size.z
         );
+
+        this.vertexBuffers = new Map();
+        this.serializedVertices = null;
     }
 
     init() {
@@ -221,7 +229,7 @@ export class Chunk {
         block.entity_id  = entity_id;
         block.texture    = null;
         block.extra_data = extra_data;
-        this.emitted_blocks.delete(block.pos);
+        this.emitted_blocks.delete(block.index);
     }
 
     // Set block indirect
@@ -234,143 +242,187 @@ export class Chunk {
         }
     }
 
-    // buildVertices
-    buildVertices() {
+    static neibMat = [null, null, null, null, null, null];
+    static removedEntries = [];
 
-        if(!this.dirty || !this.tblocks || !this.coord) {
+    // buildVertices
+    buildVertices({ enableCache }) {
+        if (!this.dirty || !this.tblocks || !this.coord) {
             return false;
         }
 
         // Create map of lowest blocks that are still lit
         let tm = performance.now();
 
-        // this.neighbour_chunks = this.tblocks.getNeightboursChunks(world);
-        // Check neighbour chunks available
-        // if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
-        //     this.tm                 = performance.now() - tm;
-        //     this.neighbour_chunks   = null;
-        //     console.error('todo_unobtainable_chunk');
-        //     return false;
-        // }
-
-        let group_templates = {
-            regular: {
-                list: [],
-                is_transparent: false
-            },
-            transparent: {
-                list: [],
-                is_transparent: true
-            },
-            doubleface_transparent: {
-                list: [],
-                is_transparent: true
-            },
-            doubleface: {
-                list: [],
-                is_transparent: true
-            },
-        };
-
-        this.fluid_blocks           = [];
-        this.gravity_blocks         = [];
-        this.vertices               = new Map(); // Add vertices for blocks
-
-        // addVerticesToGroup...
-        const addVerticesToGroup = (material_group, material_key, vertices) => {
-            let group = this.vertices.get(material_key);
-            if(!group) {
-                // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
-                group = JSON.parse(JSON.stringify(group_templates[material_group]));
-                this.vertices.set(material_key, group);
-            }
-            // Push vertices
-            group.list.push(...vertices);
-        };
-
-        const cache                 = BLOCK_CACHE;
-        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)), true);
-
-        this.quads = 0;
-
-        // Обход всех блоков данного чанка
-        for(let block of blockIter) {
-            const material = block.material;
-            // @todo iterator not fired air blocks
-            if(block.id == BLOCK.AIR.id || !material || material.item) {
-                if(this.emitted_blocks.has(block.pos)) {
-                    this.emitted_blocks.delete(block.pos);
-                }
-                continue;
-            }
-            // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-            const neighbours = block.getNeighbours(world, cache);
-            // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
-            if(neighbours.pcnt == 6 || neighbours.water_in_water) {
-                continue;
-            }
-            let vertices = block.vertices;
-            if(vertices === null) {
-                vertices = [];
-                const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
-                const resp = material.resource_pack.pushVertices(
-                    vertices,
-                    block, // UNSAFE! If you need unique block, use clone
-                    this,
-                    block.pos,
-                    neighbours,
-                    cell.biome,
-                    cell.dirt_color
-                );
-                if(Array.isArray(resp)) {
-                    this.emitted_blocks.set(block.pos, resp);
-                } else if(this.emitted_blocks.size > 0) {
-                    this.emitted_blocks.delete(block.pos);
-                }
-                block.vertices = vertices;
-            }
-            world.blocks_pushed++;
-            if(vertices.length > 0) {
-                this.quads++;
-                addVerticesToGroup(material.group, material.material_key, vertices);
-            }
+        if (this.tblocks.ensureVertices()) {
+            enableCache = false;
         }
 
-        // Emmited blocks
-        if(this.emitted_blocks.size > 0) {
-            const fake_neighbours = new BlockNeighbours();
-            for(let eblocks of this.emitted_blocks) {
-                for(let eb of eblocks) {
-                    let vertices = [];
-                    const material = eb.material;
-                    // vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot
-                    material.resource_pack.pushVertices(
-                        vertices,
-                        eb,
-                        this,
-                        eb.pos,
-                        fake_neighbours,
-                        eb.biome,
-                        eb.dirt_color,
-                        null,
-                        null,
-                        eb.matrix,
-                        eb.pivot
-                    );
-                    if(vertices.length > 0) {
-                        this.quads++;
-                        addVerticesToGroup(material.group, material.material_key, vertices);
+        const {materialToId, verticesPool} = this.chunkManager;
+        const {dataId, size, vertexBuffers} = this;
+        const {vertices} = this.tblocks;
+        const {cx, cy, cz, cw, uint16View} = this.tblocks.dataChunk;
+        const {BLOCK_BY_ID} = BLOCK;
+        const neibMat = Chunk.neibMat;
+        const cache = BLOCK_CACHE;
+
+        const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
+
+        const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
+            const material = block.material;
+
+            // material.group, material.material_key
+            if (!materialToId.has(material.material_key)) {
+                materialToId.set(material.material_key, materialToId.size);
+            }
+            const matId = materialToId.get(material.material_key);
+            let buf = vertexBuffers.get(matId);
+            if (!buf) {
+                vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
+                    material_group: material.group,
+                    material_key: material.material_key,
+                    geometryPool: verticesPool,
+                    chunkDataId: dataId
+                }));
+            }
+            buf.touch();
+            buf.skipCache(0);
+
+            const last = buf.vertices.filled;
+
+            const resp = material.resource_pack.pushVertices(
+                buf.vertices,
+                block, // UNSAFE! If you need unique block, use clone
+                this,
+                block.pos,
+                neighbours,
+                biome,
+                dirt_color,
+                undefined,
+                undefined,
+                matrix,
+                pivot,
+            );
+
+            if (useCache) {
+                if (last === buf.vertices.filled) {
+                    vertices[block.index * 2] = 0;
+                    vertices[block.index * 2 + 1] = 0;
+                } else {
+                    vertices[block.index * 2] = buf.vertices.filled - last;
+                    vertices[block.index * 2 + 1] = matId;
+                }
+            }
+
+            return resp;
+        }
+
+        // inline cycle
+        //TODO: move it out later
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    block.vec.set(x, y, z);
+                    const index = block.index = cx * x + cy * y + cz * z + cw;
+                    const id = uint16View[index];
+
+                    let empty = false;
+                    if (!id) {
+                        empty = true;
+                    } else {
+                        let pcnt = 6, waterCount = block.material && block.material.is_water ? 1 : 0;
+                        // inlining neighbours
+                        // direction of CC from TypedBlocks
+                        neibMat[0] = BLOCK_BY_ID.get(uint16View[index + cy]);
+                        neibMat[1] = BLOCK_BY_ID.get(uint16View[index - cy]);
+                        neibMat[2] = BLOCK_BY_ID.get(uint16View[index - cz]);
+                        neibMat[3] = BLOCK_BY_ID.get(uint16View[index + cz]);
+                        neibMat[4] = BLOCK_BY_ID.get(uint16View[index + cx]);
+                        neibMat[5] = BLOCK_BY_ID.get(uint16View[index - cx]);
+                        for (let i = 0; i < 6; i++) {
+                            const properties = neibMat[i];
+                            if (!properties || properties.transparent || properties.fluid) {
+                                pcnt--;
+                            }
+                            if (waterCount > 0 && properties && properties.is_water) {
+                                waterCount++;
+                            }
+                        }
+                        empty = pcnt === 6 || waterCount === 7;
+                    }
+
+                    if (id == BLOCK.AIR.id || !block.material || block.material.item) {
+                        // ???
+                        if (this.emitted_blocks.has(block.index)) {
+                            this.emitted_blocks.delete(block.index);
+                        }
+                    }
+
+                    const cachedQuads = vertices[index * 2];
+                    const cachedPack = vertices[index * 2 + 1] & MASK_VERTEX_PACK;
+                    const useCache = enableCache && (vertices[index * 2 + 1] & MASK_VERTEX_MOD) === 0;
+                    if (useCache) {
+                        if (cachedQuads > 0) {
+                            const vb = vertexBuffers.get(cachedPack);
+                            vb.touch();
+                            vb.copyCache(cachedQuads);
+                        }
+                        continue;
+                    }
+                    if (cachedQuads > 0) {
+                        vertexBuffers.get(cachedPack).skipCache(cachedQuads);
+                    }
+                    if (empty) {
+                        vertices[index * 2] = 0;
+                        vertices[index * 2 + 1] = 0;
+                        continue;
+                    }
+                    const neighbours = block.getNeighbours(world, cache);
+                    const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
+                    const resp = processBlock(block, neighbours,
+                        cell.biome, cell.dirt_color,
+                        undefined, undefined,
+                        true);
+
+                    if (Array.isArray(resp)) {
+                        this.emitted_blocks.set(block.index, resp);
+                    } else if (this.emitted_blocks.size > 0) {
+                        this.emitted_blocks.delete(block.index);
                     }
                 }
+
+        // Emmited blocks
+        if (this.emitted_blocks.size > 0) {
+            const fake_neighbours = new BlockNeighbours();
+            for (let [index, eblocks] of this.emitted_blocks) {
+                for (let eb of eblocks) {
+                    processBlock(eb, fake_neighbours,
+                        eb.biome, eb.dirt_color,
+                        eb.matrix, eb.pivot,
+                        false);
+                }
             }
         }
 
-        /*for(let k of this.vertices.keys()) {
-            const group = this.vertices.get(k);
-            group.list = new Float32Array(group.list);
-        }*/
+        const serializedVertices = this.serializedVertices = {}
+        const removedEntries = Chunk.removedEntries;
 
-        // console.log(this.quads);
+        for (let entry of this.vertexBuffers) {
+            const vb = entry[1];
+            if (vb.touched && (vb.vertices.filled + vb.cacheCopy > 0)) {
+                vb.skipCache(0);
+                serializedVertices[vb.material_key] = vb.getSerialized();
+                vb.markClear();
+            } else {
+                removedEntries.push(entry[0]);
+            }
+        }
+
+        for (let i = 0; i < removedEntries.length; i++) {
+            this.vertexBuffers.delete(removedEntries[i]);
+        }
+        removedEntries.length = 0;
+
         this.dirty = false;
         this.tm = performance.now() - tm;
         return true;
@@ -380,37 +432,14 @@ export class Chunk {
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        if (this.tblocks.setDirtyBlocks) {
-            return this.tblocks.setDirtyBlocks(pos.x, pos.y, pos.z);
-        }
+        this.tblocks.setDirtyBlocks(pos.x, pos.y, pos.z);
+    }
 
-        const dirty_rad = DIRTY_REBUILD_RAD;
-        let cnt = 0;
-        for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
-            for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
-                for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
-                    const x = pos.x + cx;
-                    const y = pos.y + cy;
-                    const z = pos.z + cz;
-                    if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        const pos = new Vector(x, y, z);
-                        if(this.tblocks.has(pos)) {
-                            const block = this.tblocks.get(pos);
-                            if(block.material?.gravity) {
-                                if(cy == 1 && cx == 0 && cz == 0) {
-                                    block.falling = true;
-                                }
-                            }
-                            if(block.vertices) {
-                                block.vertices = null;
-                                cnt++;
-                            }
-                        }
-                    }
-                }
-            }
+    destroy() {
+        this.chunkManager.dataWorld.removeChunk(this);
+        for (let entries of this.vertexBuffers) {
+            entries[1].clear();
         }
-        return cnt;
     }
 
 }

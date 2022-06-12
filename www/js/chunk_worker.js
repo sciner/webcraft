@@ -22,7 +22,7 @@ const worker = globalThis.worker = {
                 this.parentPort.on('message', onMessageFunc);
                 //options.context.parentPort = module.parentPort;
                 //options.context.parentPort.on('message', onMessageFunc);
-                
+
             });
         } else {
             onmessage = onMessageFunc
@@ -135,6 +135,7 @@ async function onMessageFunc(e) {
                         key:            chunk.key,
                         addr:           chunk.addr,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
+
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
                     }]);
@@ -302,12 +303,15 @@ if(typeof process !== 'undefined') {
     onmessage = onMessageFunc
 }
 
+const buildSettings = {
+    enableCache : true,
+}
 // Rebuild vertices list
 function buildVertices(chunk, return_map) {
     let prev_dirty = chunk.dirty;
     let pm = performance.now();
     chunk.dirty = true;
-    let is_builded = chunk.buildVertices();
+    let is_builded = chunk.buildVertices(buildSettings);
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;
@@ -316,7 +320,7 @@ function buildVertices(chunk, return_map) {
     let resp = {
         key:                    chunk.key,
         addr:                   chunk.addr,
-        vertices:               Object.fromEntries(chunk.vertices),
+        vertices:               chunk.serializedVertices,
         gravity_blocks:         chunk.gravity_blocks,
         fluid_blocks:           chunk.fluid_blocks,
         timers:                 chunk.timers,

@@ -222,11 +222,11 @@ export default class GeometryTerrain {
      * @returns
      */
     rawQuad(index = 0, target = new QuadAttr()) {
-        return target.set(this.buffer, index * GeometryTerrain.strideFloats);
+        return target.set(this.data, index * GeometryTerrain.strideFloats);
     }
 
     * rawQuads(start = 0, count = this.size) {
-        return GeometryTerrain.iterateBuffer(this.buffer, start, count);
+        return GeometryTerrain.iterateBuffer(this.data, start, count);
     }
 
     destroy() {

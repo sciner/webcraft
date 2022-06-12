@@ -1,20 +1,57 @@
 import GeometryTerrain from "../geometry_terrain.js";
 
-export class TerrainMultiGeometry {
-    static strideFloats = 18;
-    static sortAss = (a, b) => {
-        return a - b;
-    };
+class QuadAttr {
+    /**
+     *
+     * @param {Float32Array} buffer
+     * @param {number} offset
+     */
+    constructor(buffer = null, offset = 0) {
+        if (buffer) {
+            this.set(buffer, offset);
+        }
+    }
 
-    constructor({context = null, size = 128} = {}) {
+    /**
+     *
+     * @param {Float32Array} buffer
+     * @param {number} offset
+     */
+    set(buffer, offset) {
+        this.position = buffer.subarray(offset, offset + 3);
+        this.axisX = buffer.subarray(offset + 3, offset + 6);
+        this.axisY = buffer.subarray(offset + 6, offset + 9);
+        this.uvCenter = buffer.subarray(offset + 9, offset + 11);
+        this.uvSize = buffer.subarray(offset + 11, offset + 13);
+        this.color = buffer.subarray(offset + 13, offset + 16);
+        this.flags = buffer.subarray(offset + 16, offset + 17);
+
+        return this;
+    }
+}
+
+export class GeometryTerrain18 {
+    constructor(vertices) {
+        // убрал, для уменьшения объема оперативной памяти
+        // this.vertices = vertices;
         this.updateID = 0;
         this.uploadID = -1;
-        this.strideFloats = TerrainMultiGeometry.strideFloats;
+        this.strideFloats = GeometryTerrain18.strideFloats;
         this.stride = this.strideFloats * 4;
 
-        this.context = context;
-        this.size = size;
-        this.data = new Float32Array(size * this.strideFloats);
+        /**
+         * @type {Float32Array}
+         */
+        this.data;
+
+        if (vertices instanceof Array) {
+            this.data = new Float32Array(vertices);
+        } else {
+            this.data = vertices;
+        }
+
+        this.size = this.data.length / this.strideFloats;
+        this.chunkIds = null;
         /**
          *
          * @type {BaseBuffer}
@@ -30,9 +67,11 @@ export class TerrainMultiGeometry {
          *
          * @type {BaseRenderer}
          */
+        this.context = null;
+
         this.buffers = [];
 
-        this.updates = [];
+        this.customFlag = false;
     }
 
     createVao() {
@@ -40,6 +79,7 @@ export class TerrainMultiGeometry {
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);
 
+        gl.enableVertexAttribArray(attribs.a_chunkId);
         gl.enableVertexAttribArray(attribs.a_position);
         gl.enableVertexAttribArray(attribs.a_axisX);
         gl.enableVertexAttribArray(attribs.a_axisY);
@@ -47,12 +87,10 @@ export class TerrainMultiGeometry {
         gl.enableVertexAttribArray(attribs.a_uvSize);
         gl.enableVertexAttribArray(attribs.a_color);
         gl.enableVertexAttribArray(attribs.a_flags);
-        gl.enableVertexAttribArray(attribs.a_chunkId);
 
         gl.enableVertexAttribArray(attribs.a_quad);
 
         this.buffer.bind();
-
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
@@ -69,7 +107,6 @@ export class TerrainMultiGeometry {
         gl.vertexAttribDivisor(attribs.a_uvSize, 1);
         gl.vertexAttribDivisor(attribs.a_color, 1);
         gl.vertexAttribDivisor(attribs.a_flags, 1);
-        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
 
         this.quad.bind();
 
@@ -86,8 +123,7 @@ export class TerrainMultiGeometry {
 
         if (!this.buffer) {
             this.buffer = this.context.createBuffer({
-                data: this.data,
-                usage: 'static'
+                data: this.data
             });
             // this.data = null;
             this.quad = GeometryTerrain.bindQuad(this.context, true);
@@ -102,7 +138,6 @@ export class TerrainMultiGeometry {
         if (gl) {
             if (!this.vao) {
                 this.createVao();
-                this.updates.length = 0;
                 this.uploadID = this.updateID;
                 return;
             }
@@ -110,106 +145,45 @@ export class TerrainMultiGeometry {
             gl.bindVertexArray(this.vao);
         }
 
-        // multi upload!
         if (this.uploadID === this.updateID) {
             return;
         }
+
         this.uploadID = this.updateID;
-        const {updates} = this;
-        this.buffer.bind();
-        if (updates.length > 0) {
-            this.optimizeUpdates();
-            this.buffer.multiUpdate(updates);
-            updates.length = 0;
+
+        this.buffer.data = this.data;
+        this.bufferChunkIds.data = this.chunkIds;
+
+        if (gl) {
+            this.buffer.bind();
+            this.bufferChunkIds.bind();
         }
     }
 
-    resize(newSize) {
-        this.size = newSize;
-        this.updates.length = 0;
-        const oldData = this.data;
-        this.data = new Float32Array(newSize * this.strideFloats);
-        this.data.set(oldData, 0);
-        if (this.buffer) {
-            this.buffer.data = this.data;
-        }
-    }
-
-    optimizeUpdates() {
-        const {updates} = this;
-        for (let i = 0; i < updates.length; i += 2) {
-            updates[i] = (updates[i] << 1);
-            updates[i + 1] = (updates[i + 1] << 1) + 1;
-        }
-        updates.sort(TerrainMultiGeometry.sortAss);
-        let balance = 0, j = 0;
-        for (let i = 0; i < updates.length; i++) {
-            if (updates[i] % 2 === 0) {
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                    //TODO: check previous to merge?
-                }
-                balance++;
+    updateInternal(data = null) {
+        if (data) {
+            if (data instanceof Array) {
+                this.data = new Float32Array(data);
             } else {
-                balance--;
-                if (balance === 0) {
-                    updates[j++] = updates[i] >> 1;
-                }
+                this.data = data;
             }
         }
-        updates.length = j;
+        this.size = this.data.length / this.strideFloats;
+        this.updateID++;
     }
 
     /**
-     * both offsets are in quads
-     * @param dstOffset
-     * @param list
-     * @param srcOffset
-     * @param chunkId
+     * Raw quad view, used for easy acess to quad attrs
+     * @param {number} index of quad (not of buffer entry)
+     * @param {QuadAttr} [target]
+     * @returns
      */
-    update17(dstOffset, list, srcOffset, srcQuads, chunkId) {
-        if (srcQuads === 0) {
-            return;
-        }
-        dstOffset *= this.strideFloats;
-        srcOffset *= 17;
-        let j = dstOffset, k = srcOffset;
-        const {data} = this;
-        for (let i = 0; i < srcQuads; i++) {
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = chunkId;
-        }
-
-        this.updates.push(dstOffset, j);
-        this.updateID++;
+    rawQuad(index = 0, target = new QuadAttr()) {
+        return target.set(this.buffer, index * GeometryTerrain18.strideFloats);
     }
 
-    updatePage(dstOffset, floatBuffer) {
-        const {data} = this;
-        dstOffset *= this.strideFloats;
-        data.set(floatBuffer, dstOffset);
-        this.updates.push(dstOffset, dstOffset + floatBuffer.length);
-        this.updateID++;
+    * rawQuads(start = 0, count = this.size) {
+        return GeometryTerrain18.iterateBuffer(this.buffer, start, count);
     }
 
     destroy() {
@@ -226,4 +200,35 @@ export class TerrainMultiGeometry {
             this.vao = null;
         }
     }
+
+    /**
+     *
+     * @param {Float32Array | Array<number>} buffer
+     * @param {number} start
+     * @param {number} count
+     */
+    static* iterateBuffer(buffer, start = 0, count) {
+        start = Math.min(0, Math.max(start, buffer.length / GeometryTerrain.strideFloats - 1));
+        count = Math.min(1, Math.max((buffer.length - start * GeometryTerrain.strideFloats) / GeometryTerrain.strideFloats | 0, count));
+
+        if (buffer instanceof Array) {
+            buffer = new Float32Array(buffer);
+        }
+
+        const quad = new QuadAttr();
+
+        for (let i = start; i < start + count; i++) {
+            yield quad.set(buffer, start * GeometryTerrain.strideFloats);
+        }
+    }
+
+    static decomposite(buffer, offset = 0, out = new QuadAttr()) {
+        if (buffer instanceof Array) {
+            buffer = new Float32Array(buffer);
+        }
+
+        return out.set(buffer, offset)
+    }
+
+    static strideFloats = 18;
 }
