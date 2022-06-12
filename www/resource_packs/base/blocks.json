@@ -6065,5 +6065,28 @@
         "material": {
             "id": "powder"
         }
+    },
+    {
+        "id": 1447,
+        "name": "BEE_NEST",
+        "sound": "madcraft:block.wood",
+        "can_rotate": true,
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "side": [18, 1],
+            "up": [18, 2],
+            "down": [18, 3],
+            "north": [18, 0]
+        },
+        "ticking": {
+            "type": "bee_nest"
+        },
+        "extra_data": {
+            "honey": 0,
+            "bees": [],
+            "max_ticks": 100
+        }
     }
 ]

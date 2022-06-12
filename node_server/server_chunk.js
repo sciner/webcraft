@@ -8,7 +8,7 @@ import {impl as alea} from '../www/vendors/alea.js';
 import {PickatActions} from "../www/js/block_action.js";
 
 const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
+for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace', 'bee_nest']) {
     await import(`./ticker/${fn}.js`).then((module) => {
         Tickers.set(module.default.type, module.default.func);
     });
