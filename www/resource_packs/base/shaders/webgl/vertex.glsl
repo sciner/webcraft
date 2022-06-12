@@ -47,6 +47,8 @@ void main() {
     vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 
     // Scrolled textures
+    // uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
+    // uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
     uvCenter0.y += float(flagScroll) * (u_time * v_color.g);
     uvCenter1.y += float(flagScroll) * (u_time * v_color.g);
 
@@ -67,4 +69,5 @@ void main() {
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 
     #include<ao_light_pass_vertex>
+
 }

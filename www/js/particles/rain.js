@@ -10,8 +10,8 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr } from '../chunk
 const {mat4} = glMatrix;
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
-const RAIN_SPEED        = 3 / 1000;
-const RAIN_RAD          = 6;
+const RAIN_SPEED        = 2 / 1000;
+const RAIN_RAD          = 8;
 const RAIN_HEIGHT       = 14;
 
 //
@@ -19,8 +19,11 @@ class RainColumn {
 
     constructor(i, j, y, version) {
         this.update(i, j, y, version);
+        // this.matrix = mat4.create();
+        // mat4.rotateZ(this.matrix, this.matrix, Math.random() * (Math.PI * 2));
         this.matrix = mat4.create();
-        mat4.rotateZ(this.matrix, this.matrix, Math.random() * Math.PI);
+        const angle_z = Math.random() * Math.PI * 2; // this.angleTo(vec, center);
+        mat4.rotateZ(this.matrix, this.matrix, -angle_z);
     }
 
     update(i, j, y, version) {
@@ -29,6 +32,12 @@ class RainColumn {
         this.y = y;
         this.max_y = y;
         this.version = version;
+        const dist = Math.sqrt(i * i + j * j);
+        this.dist = dist / RAIN_RAD;
+        if(this.dist > 1) {
+            this.version = 0;
+        }
+        this.add_y = 0; // Math.random() * this.dist;
     }
 
 }
@@ -41,11 +50,11 @@ class RainColumn {
  */
 export default class Particles_Rain {
 
-    #_enabled = false;
-    #_map = new VectorCollector();
-    #_player_block_pos = new Vector();
-    #_version = 0;
-    #_blocks_sets = 0;
+    #_enabled           = false;
+    #_map               = new VectorCollector();
+    #_player_block_pos  = new Vector();
+    #_version           = 0;
+    #_blocks_sets       = 0;
 
     constructor(render, pos) {
 
@@ -53,12 +62,7 @@ export default class Particles_Rain {
         this.chunkManager = Game.world.chunkManager;
 
         // Material (rain)
-        const mat = render.renderBackend.createMaterial({
-            cullFace: true,
-            opaque: false,
-            blendMode: BLEND_MODES.MULTIPLY,
-            shader: render.defaultShader,
-        });
+        const mat = render.defaultShader.materials.doubleface_transparent;
 
         // Material
         this.material = mat.getSubMat(render.renderBackend.createTexture({
@@ -66,7 +70,6 @@ export default class Particles_Rain {
             blendMode: BLEND_MODES.MULTIPLY,
             minFilter: 'nearest',
             magFilter: 'nearest'
-            //, textureWrapMode: 'clamp_to_edge'
         }));
 
         this.aabb = new AABB();
@@ -90,6 +93,25 @@ export default class Particles_Rain {
         if(!this.enabled) {
             return false;
         }
+
+        this.prepare();
+
+        // draw
+        for(const [vec, item] of this.#_map.entries()) {
+            if(item.version != this.#_version) {
+                this.#_map.delete(vec);
+                continue;
+            }
+            if(item.i == 0 && item.j == 0) continue;
+            vec.x += .5;
+            vec.y = item.max_y + item.add_y;
+            vec.z += .5;
+            render.renderBackend.drawMesh(this.buffer, this.material, vec, item.matrix);
+        }
+
+    }
+
+    prepare() {
         
         const player = Game.player;
         
@@ -103,7 +125,7 @@ export default class Particles_Rain {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     const existing = this.#_map.get(vec);
-                    const y = Math.random() + this.#_player_block_pos.y - 4;
+                    const y = this.#_player_block_pos.y - 4;
                     if(existing) {
                         existing.update(i, j, y, this.#_version);
                         continue;
@@ -119,39 +141,38 @@ export default class Particles_Rain {
                 this.updateHeightMap();
             }
         }
+    }
 
-        // draw
-        for(const [vec, item] of this.#_map.entries()) {
-            if(item.version != this.#_version) {
-                this.#_map.delete(vec);
-                continue;
-            }
-            vec.x += .5;
-            vec.y = item.max_y; // + Math.abs(Math.sin(item.i + item.j)) % 1;
-            vec.z += .5;
-            render.renderBackend.drawMesh(this.buffer, this.material, vec, item.matrix);
-        }
-
+    angleTo(pos, target) {
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
     // updateHeightMap...
     updateHeightMap() {
         // let p = performance.now();
-        const world = Game.world;
-        const pos = this.#_player_block_pos;
-        const vec = new Vector();
-        const block_pos = new Vector();
-        const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        let chunk_addr = new Vector();
-        const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
-        let chunk = null;
-        let block = null;
+        const world         = Game.world;
+        const pos           = this.#_player_block_pos;
+        const vec           = new Vector();
+        const block_pos     = new Vector();
+        const chunk_size    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        const chunk_addr    = new Vector();
+        const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity);
+        let chunk           = null;
+        let block           = null;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let k = RAIN_HEIGHT; k >= -1; k--) {
-                    // const block = world.getBlock(pos.x + i, pos.y + k, pos.z + j);
+                    vec.copyFrom(this.#_player_block_pos);
+                    vec.addScalarSelf(i, -vec.y, j);
+                    const item = this.#_map.get(vec);
+                    if(!item) continue;
+                    if(item.version != this.#_version) {
+                        this.#_map.delete(vec);
+                        continue;
+                    }
                     block_pos.set(pos.x + i, pos.y + k, pos.z + j);
-                    chunk_addr = getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk_addr.equal(chunk_addr_o)) {
                         chunk = world.chunkManager.getChunk(chunk_addr);
                         chunk_addr_o.copyFrom(chunk_addr);
@@ -163,9 +184,7 @@ export default class Particles_Rain {
                         block_pos.z -= chunk.coord.z;
                         block = chunk.tblocks.get(block_pos, block);
                         if(block.id > 0) {
-                            vec.copyFrom(this.#_player_block_pos);
-                            vec.addScalarSelf(i, -vec.y, j);
-                            this.#_map.get(vec).max_y = pos.y + k + 1;
+                            item.max_y = pos.y + k + 1;
                             break;
                         }
                     }
@@ -188,8 +207,8 @@ export default class Particles_Rain {
     createBuffer(aabb, c) {
 
         const vertices  = [];
-        const lm        = new Color(0, -RAIN_SPEED, 0);
-        const sideFlags = QUAD_FLAGS.TEXTURE_SCROLL;
+        const lm        = new Color(RAIN_SPEED / 5, -RAIN_SPEED, 0);
+        const sideFlags = QUAD_FLAGS.TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_AO;
         const pivot     = null;
         const matrix    = null;
 
@@ -199,10 +218,10 @@ export default class Particles_Rain {
             pivot,
             matrix,
             {
-                south:  new AABBSideParams(c, sideFlags, 1, lm, null, true),
+                // south:  new AABBSideParams(c, sideFlags, 1, lm, null, true),
                 north:  new AABBSideParams(c, sideFlags, 1, lm, null, true),
-                west:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
-                east:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
+                // west:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
+                // east:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
             },
             Vector.ZERO
         );

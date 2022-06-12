@@ -925,6 +925,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
     QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
     QUAD_FLAGS.TEXTURE_SCROLL = 1 << 6;
+    QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
