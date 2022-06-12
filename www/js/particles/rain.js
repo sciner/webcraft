@@ -5,6 +5,7 @@ import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { Resources } from '../resources.js';
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr } from '../chunk_const.js';
 
 const {mat4} = glMatrix;
 
@@ -135,22 +136,44 @@ export default class Particles_Rain {
 
     // updateHeightMap...
     updateHeightMap() {
+        // let p = performance.now();
         const world = Game.world;
         const pos = this.#_player_block_pos;
         const vec = new Vector();
+        const block_pos = new Vector();
+        const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        let chunk_addr = new Vector();
+        const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+        let chunk = null;
+        let block = null;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let k = RAIN_HEIGHT; k >= -1; k--) {
-                    const block = world.getBlock(pos.x + i, pos.y + k, pos.z + j);
-                    if(block.id > 0) {
-                        vec.copyFrom(this.#_player_block_pos);
-                        vec.addScalarSelf(i, -vec.y, j);
-                        this.#_map.get(vec).max_y = pos.y + k + 1;
-                        break;
+                    // const block = world.getBlock(pos.x + i, pos.y + k, pos.z + j);
+                    block_pos.set(pos.x + i, pos.y + k, pos.z + j);
+                    chunk_addr = getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    if(!chunk_addr.equal(chunk_addr_o)) {
+                        chunk = world.chunkManager.getChunk(chunk_addr);
+                        chunk_addr_o.copyFrom(chunk_addr);
+                    }
+                    if(chunk) {
+                        chunk_addr.multiplyVecSelf(chunk_size);
+                        block_pos.x -= chunk.coord.x;
+                        block_pos.y -= chunk.coord.y;
+                        block_pos.z -= chunk.coord.z;
+                        block = chunk.tblocks.get(block_pos, block);
+                        if(block.id > 0) {
+                            vec.copyFrom(this.#_player_block_pos);
+                            vec.addScalarSelf(i, -vec.y, j);
+                            this.#_map.get(vec).max_y = pos.y + k + 1;
+                            break;
+                        }
                     }
                 }
             }
         }
+        // p = performance.now() - p;
+        // console.log(Math.round(p * 1000) / 1000)
     }
 
     get enabled() {

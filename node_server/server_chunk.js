@@ -468,18 +468,17 @@ export class ServerChunk {
         }
 
         if (typeof pos == 'number') {
-            pos = new Vector(pos, y, z);
+            pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
         } else if (typeof pos == 'Vector') {
-            // do nothing
+            pos = pos.floored().subSelf(this.coord);
         } else if (typeof pos == 'object') {
-            pos = new Vector(pos);
+            pos = new Vector(pos).flooredSelf().subSelf(this.coord);
         }
 
-        pos = pos.floored().sub(this.coord);
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
             return this.getChunkManager().DUMMY;
         }
-        let block = this.tblocks.get(pos);
+        const block = this.tblocks.get(pos);
         return block;
     }
 
