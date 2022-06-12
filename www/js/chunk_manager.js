@@ -38,6 +38,7 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+        this.block_sets             = 0;
 
         this.lightPool = null;
         this.lightTexFormat         = 'rgba8unorm';

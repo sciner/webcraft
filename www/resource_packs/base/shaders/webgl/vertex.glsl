@@ -35,6 +35,7 @@ void main() {
         v_animInterp = fract(t);
     }
 
+    //
     if (flagNormalUp == 1) {
         v_normal = -axisY;
     } else {
@@ -45,6 +46,11 @@ void main() {
 
     vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 
+    // Scrolled textures
+    uvCenter0.y += float(flagScroll) * (u_time * v_color.g);
+    uvCenter1.y += float(flagScroll) * (u_time * v_color.g);
+
+    //
     v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
     v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
     v_texcoord1_diff = uvCenter1 - uvCenter0;

@@ -178,7 +178,7 @@ export class VectorCollector {
     entries(aabb) {
         const that = this;
         return (function* () {
-            let vec = new Vector(0, 0, 0);
+            const vec = new Vector(0, 0, 0);
             for (let [xk, x] of that.list) {
                 if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
                 for (let [yk, y] of x) {
@@ -924,6 +924,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.NO_FOG = 1 << 3;
     QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
     QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
+    QUAD_FLAGS.TEXTURE_SCROLL = 1 << 6;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

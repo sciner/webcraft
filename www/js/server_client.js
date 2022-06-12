@@ -201,6 +201,7 @@ export class ServerClient {
             let tblock_pos          = new Vector(Infinity, Infinity, Infinity);
             let material            = null;
             const chunkManager      = Game.world.chunkManager;
+            chunkManager.block_sets += only_set_blocks.length;
             for(let i = 0; i < only_set_blocks.length; i++) {
                 const cmd = only_set_blocks[i];
                 let pos = cmd.data.pos;
