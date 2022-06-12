@@ -27,6 +27,7 @@ export class Brain extends FSMBrain {
         this.ticks_attack = 0;
         
         //consts
+        this.distance_attack = 1.5;
         this.interval_attack = 16;
         this.follow_distance = 10;
         this.back_distance = 10;
@@ -34,7 +35,7 @@ export class Brain extends FSMBrain {
         this.demage = 2;
         this.live = 10;
         
-        this.stack.pushState(this.doStand);
+        this.stack.pushState(this.doForward);
         
     }
     
@@ -42,15 +43,11 @@ export class Brain extends FSMBrain {
         this.pc.player_state.flying = true; //TO DO костыль от сброса полета при касании земли
         const mob = this.mob;
         const world = mob.getWorld();
-        const chunk = world.chunks.get(mob.chunk_addr);
-        if (!chunk) {
-            return null;
-        }
         
-        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z)).floored());
-        const pos_legs = mob.pos.sub(new Vector(0, 1, 0));
-        const body = chunk.getBlock(pos_body);
-        const legs = chunk.getBlock(pos_legs);
+        const pos_body = new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z)).addSelf(mob.pos).flooredSelf();
+        const pos_legs = mob.pos.sub(Vector.YP).flooredSelf();
+        const body = world.getBlock(pos_body);
+        const legs = world.getBlock(pos_legs);
         
         if (legs.id != 0 && legs.material.style == "default") {
             this.fly = Math.random() * 50 | 0;
@@ -107,7 +104,7 @@ export class Brain extends FSMBrain {
         this.sendState();
         
         const spawn_distance = mob.pos.distance(mob.pos_spawn);
-        if (spawn_distance < 1) {
+        if (spawn_distance < 1) { //TO DO поправить когда будет улей
             this.nectar_count = 0;
             console.log("[AI] doHive");
             this.stack.replaceState(this.doHive);
@@ -137,12 +134,8 @@ export class Brain extends FSMBrain {
     doForward(delta) {
         const mob = this.mob;
         
-        if (!mob || !mob.pos || !mob.pos_spawn) {
-            return;
-        }
-        
         const block = this.getFlightBlocks();
-
+        
         if (Math.random() < 0.02) {
            mob.rotate.z = Math.round(((mob.rotate.z + Math.random() * Math.PI / 4) % 6.28) * 1000) / 1000;
         }
@@ -186,7 +179,7 @@ export class Brain extends FSMBrain {
         }
         
         const player = mob.getWorld().players.get(this.target);
-        if (!player || player.game_mode.isSpectator()) {
+        if (!player || mob.playerCanBeAtacked(player)) {
             this.target = null;
             this.stack.replaceState(this.doForward);
             return;
@@ -202,7 +195,7 @@ export class Brain extends FSMBrain {
         mob.rotate.z = this.angleTo(player.state.pos);
         
         if (this.ticks_anger <= this.anger_time) {
-            if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.ticks_attack > this.interval_attack) {
+            if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.ticks_attack > this.interval_attack && distance < this.distance_attack) {
                 this.ticks_attack = 0;
                 player.changeLive(-this.demage);
                 const world = mob.getWorld();

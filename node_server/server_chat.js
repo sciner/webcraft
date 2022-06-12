@@ -203,6 +203,7 @@ export class ServerChat {
                     type:   args[4],
                     skin:   args[5],
                     pos:    player.state.pos.clone(),
+                    pos_spawn:    player.state.pos.clone(),
                     rotate: new Vector(0, 0, player.state.rotate.z)
                 }; 
                 // x
