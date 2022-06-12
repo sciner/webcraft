@@ -260,6 +260,8 @@ export class ServerClient {
                     extra_data: extra_data
                 });
                 //
+                chunkManager.torches.delete(pos);
+                //
                 if (chunkManager.use_light) {
                     const light         = material.light_power_number;
                     if (oldLight !== light) {

@@ -356,6 +356,61 @@ export class TypedBlocks3 {
 
         return pcnt;
     }
+
+    static tempAABB = new AABB();
+    static tempAABB2 = new AABB();
+    static tempVec = new Vector();
+
+    setDirtyBlocks(x, y, z) {
+        const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+
+        const wx = x + pos.x;
+        const wy = y + pos.y;
+        const wz = z + pos.z;
+
+        let cnt = 0;
+        if (this.vertices.list.has(index)) {
+            this.vertices.list.delete(index);
+            cnt++;
+        }
+
+        const aabb = TypedBlocks3.tempAABB;
+        const aabb2 = TypedBlocks3.tempAABB2;
+        const vec = TypedBlocks3.tempVec;
+        aabb.set(wx - 1, wy - 1, wz - 1, wx + 2, wy + 2, wz + 2);
+        aabb2.setIntersect(aabb, this.dataChunk.aabb);
+        for (let x = aabb2.x_min; x < aabb2.x_max; x++)
+            for (let y = aabb2.y_min; y < aabb2.y_max; y++)
+                for (let z = aabb2.z_min; z < aabb2.z_max; z++) {
+                    vec.set(x - pos.x, y - pos.y, z - pos.z);
+                    if (this.vertices.delete(vec)) {
+                        cnt++;
+                    }
+                }
+        if (safeAABB.contains(wx, wy, wz)) {
+            return 0;
+        }
+        //TODO: use only face-portals
+        for (let i = 0; i < portals.length; i++) {
+            if (portals[i].aabb.contains(wx, wy, wz)) {
+                const other = portals[i].toRegion;
+                aabb2.setIntersect(other.aabb, aabb);
+                const tb2 = other.rev.tblocks;
+                const pos2 = other.pos;
+                for (let x = aabb2.x_min; x < aabb2.x_max; x++)
+                    for (let y = aabb2.y_min; y < aabb2.y_max; y++)
+                        for (let z = aabb2.z_min; z < aabb2.z_max; z++) {
+                            vec.set(x - pos2.x, y - pos2.y, z - pos2.z);
+                            if (tb2.vertices.delete(vec)) {
+                                cnt++;
+                            }
+                        }
+            }
+        }
+
+        return cnt;
+    }
 }
 
 export class DataWorld {

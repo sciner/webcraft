@@ -424,9 +424,9 @@ export class ChunkManager {
 
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
-        let prepare = this.chunks_prepare.get(state.addr);
+        const prepare = this.chunks_prepare.get(state.addr);
         if(prepare) {
-            let chunk = new Chunk(state.addr, state.modify_list, this);
+            const chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.addr, chunk);
             this.chunk_added = true;
@@ -609,7 +609,8 @@ export class ChunkManager {
                 deleted:    new VectorCollector()
             };
         }
-        if (this.nearby.deleted.length > 0) {
+        // if (this.nearby.deleted.length > 0) {
+        if(this.nearby.deleted.list.size > 0) {
             this.update();
         }
         for(let item of data.added) {

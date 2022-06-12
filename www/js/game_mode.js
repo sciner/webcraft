@@ -10,10 +10,10 @@ export class GameMode {
         this.player = player;
         this.onSelect = (mode) => {};
         this.modes = [];
-        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5, can_take_damage: true});
-        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10, can_take_damage: false});
-        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: true});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: false});
+        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5, can_take_damage: true, pickup_items: true, drop_items: true});
+        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10, can_take_damage: false, pickup_items: true, drop_items: true});
+        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: true, pickup_items: false, drop_items: false});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5, can_take_damage: false, pickup_items: false, drop_items: false});
         if(game_mode_id) {
             this.applyMode(game_mode_id, false);
         }
@@ -102,6 +102,16 @@ export class GameMode {
     // getPickatDistance...
     getPickatDistance() {
         return this.getCurrent().pickat_distance;
+    }
+
+    // Может подбирать валяющиеся предметы
+    canPickupItems() {
+        return this.getCurrent().pickup_items;
+    }
+
+    // Может выкидывать предметы из инвентаря
+    canDropItems() {
+        return this.getCurrent().drop_items;
     }
 
 }

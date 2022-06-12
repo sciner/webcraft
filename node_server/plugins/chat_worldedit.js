@@ -419,7 +419,7 @@ export default class WorldEdit {
                 throw 'error_block_is_deprecated';
             }
             let extra_data = b.extra_data;
-            if(b.item || b.is_fluid || b.next_part || b.previous_part || b.style == 'extruder' || b.style == 'text') {
+            if(b.item || b.next_part || b.previous_part || b.style == 'extruder' || b.style == 'text') {
                 throw 'error_this_block_cannot_be_setted';
             }
             if(b.is_chest) {

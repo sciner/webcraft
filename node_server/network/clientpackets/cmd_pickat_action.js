@@ -4,7 +4,7 @@ import { Vector } from "../../../www/js/helpers.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -16,6 +16,10 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player, packet) {
+        if(!player.game_mode.canBlockAction()) {
+            return true;
+        }
+        //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
         if(player.state.sitting || player.state.lies) {

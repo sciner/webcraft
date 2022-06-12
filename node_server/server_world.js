@@ -209,7 +209,7 @@ export class ServerWorld {
             data: player.exportState()
         }], []);
         // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' connected', this.players.keys());
         // 7. Drop item if stored
         const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
         if(drag_item) {
@@ -406,7 +406,7 @@ export class ServerWorld {
 
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if (!chunk) {
             throw 'Chunk not found';
         }
@@ -723,6 +723,9 @@ export class ServerWorld {
             const chunk = chunks[i];
             for(let user_id of chunk.connections.keys()) {
                 const player = all_players.get(user_id);
+                if(!player) {
+                    continue
+                }
                 if(player.is_dead || player.game_mode.isSpectator()) {
                     continue;
                 }
@@ -732,6 +735,28 @@ export class ServerWorld {
                 const dist = new Vector(player.state.pos).distance(pos);
                 if(dist <= max_distance) {
                     resp.set(user_id, player);
+                }
+            }
+        }
+        return Array.from(resp.values());
+    }
+
+    // Return mobs near pos by distance
+    getMobsNear(pos, max_distance) {
+        const world = this;
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
+            .expand(max_distance, max_distance, max_distance);
+        //
+        const chunks = world.chunks.getInAABB(aabb);
+        const resp = new Map();
+        //
+        for(let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            for(const [mob_id, mob] of chunk.mobs) {
+                // @todo check if not dead
+                const dist = new Vector(mob.pos).distance(pos);
+                if(dist <= max_distance) {
+                    resp.set(mob_id, mob);
                 }
             }
         }

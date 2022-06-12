@@ -3,7 +3,7 @@ import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -15,6 +15,10 @@ export default class packet_reader {
 
     // Request chest content
     static async read(player, packet) {
+        if(!player.game_mode.canBlockAction()) {
+            return true;
+        }
+        //
         const pos = new Vector(packet.data.pos);
         const chest = await player.world.chests.get(pos);
         if(chest) {

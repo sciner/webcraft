@@ -125,7 +125,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     // Update player
     updatePlayer(player, delta) {
 
-        if(this.now_draw) {
+        if(this.now_draw || !player.game_mode.canPickupItems()) {
             return false;
         }
 

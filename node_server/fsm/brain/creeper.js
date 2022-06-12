@@ -1,5 +1,4 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { PickatActions } from "../../../www/js/block_action.js";
 import {ServerClient} from "../../../www/js/server_client.js";
@@ -131,7 +130,7 @@ export class Brain extends FSMBrain {
         // Actions
         const actions = new PickatActions(null, world, true, false);
         // Extrude blocks
-        actions.makeExplosion(mobPosCenter, rad, true, 1/3);
+        actions.makeExplosion(mobPosCenter, rad, true, 1/3, 6);
         // Kill mob
         await mob.kill();
         // Add sound
@@ -175,4 +174,5 @@ export class Brain extends FSMBrain {
             }
         }
     }
+
 }

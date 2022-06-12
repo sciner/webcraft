@@ -115,6 +115,7 @@ export class Window {
             },
             border: {
                 color: '#3f3f3f',
+                width: 4,
                 hidden: false
             }
         };
@@ -273,17 +274,24 @@ export class Window {
         this.print(this.text);
         // draw border
         if(!this.style.border.hidden) {
+
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = this.style.border.width;
             ctx.beginPath(); // Start a new path
-            ctx.fillStyle = 'this.style.border.color';
-            ctx.moveTo(x + 2, y);
-            ctx.lineTo(x + w - 2, y);
-            ctx.lineTo(x + w, y + 2);
-            ctx.lineTo(x + w, y + h - 2);
-            ctx.lineTo(x + w - 2, y + h);
-            ctx.lineTo(x + 2, y + h);
-            ctx.lineTo(x, y + h - 2);
-            ctx.lineTo(x, y + 2);
-            ctx.lineTo(x + 2, y);
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.moveTo(x, y + h);
+            ctx.lineTo(x, y );
+            ctx.lineTo(x + w, y);
+            ctx.stroke();
+
+            ctx.beginPath(); // Start a new path
+            ctx.strokeStyle = this.style.border.color;
+            ctx.moveTo(x + w, y);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x, y + h);
+            ctx.stroke();
+
             ctx.stroke(); // Render the path
         }
         // Restore the default state
@@ -672,12 +680,18 @@ export class Button extends Window {
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
         this.onMouseEnter = function() {
+            this.style.background.color_save = this.style.background.color;
+            this.style.color_save = this.style.color;
+            //
             this.style.background.color = '#8892c9';
             this.style.color = '#ffffff';
         }
         this.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-            this.style.color = '#3f3f3f';
+            this.style.background.color = this.style.background.color_save;
+            this.style.color = this.style.color_save;
+            //
+            this.style.background.color_save = null; 
+            this.style.color_save = null; 
         }
     }
 

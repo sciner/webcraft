@@ -465,7 +465,7 @@ export class PickatActions {
         this.put_in_backet = item;
     }
 
-    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance) {
+    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
         const world = this.#world;
         const air = { id: 0 };
         const out_rad = Math.ceil(rad);
@@ -517,14 +517,16 @@ export class PickatActions {
                     const dist = block_pos.distance(vec_center);
                     block_pos.flooredSelf();
                     if (dist <= rad) {
-                        this.addBlocks([
-                            {pos: block_pos.clone(), item: air, drop_blocks_chance}
-                        ]);
-                        extruded_blocks.set(block_pos, 'extruded');
                         const tblock = world.getBlock(block_pos);
                         if(tblock) {
                             const mat = tblock.material;
-                            createAutoDrop(tblock);
+                            if(mat.id > 0 && mat.material.mining.blast_resistance <= power) {
+                                this.addBlocks([
+                                    {pos: block_pos.clone(), item: air, drop_blocks_chance}
+                                ]);
+                                extruded_blocks.set(block_pos, 'extruded');
+                                createAutoDrop(tblock);
+                            }
                         }
                     }
                 }

@@ -378,6 +378,10 @@ export class Chunk {
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
+        if (this.tblocks.setDirtyBlocks) {
+            return this.tblocks.setDirtyBlocks(pos.x, pos.y, pos.z);
+        }
+
         const dirty_rad = DIRTY_REBUILD_RAD;
         let cnt = 0;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
