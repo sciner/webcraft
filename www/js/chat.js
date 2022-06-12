@@ -52,7 +52,7 @@ export class Chat extends TextBox {
                 this.reset();
             },
             save() {
-                const saved_arr = Array.from(this.list.slice(64));
+                const saved_arr = Array.from(this.list.slice(-64));
                 localStorage.setItem('chat_history', JSON.stringify(saved_arr));
             },
             clear() {

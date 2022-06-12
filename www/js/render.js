@@ -11,8 +11,9 @@ import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
-import Particles_Raindrop from "./particles/raindrop.js";
+// import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
+import Particles_Rain from "./particles/rain.js";
 
 import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
@@ -647,9 +648,9 @@ export class Renderer {
     }
 
     // rainDrop
-    rainDrop(pos) {
-        this.meshes.add(new Particles_Raindrop(this, pos));
-    }
+    //rainDrop(pos) {
+    //    this.meshes.add(new Particles_Raindrop(this, pos));
+    //}
 
     // addAsteroid
     addAsteroid(pos, rad) {
@@ -664,18 +665,12 @@ export class Renderer {
 
     // setRain
     setRain(value) {
-        if(value) {
-            if(!this.rainTim) {
-                this.rainTim = setInterval(() => {
-                    this.rainDrop(this.player.pos.clone());
-                }, RAINDROP_NEW_INTERVAL);
-            }
-        } else {
-            if(this.rainTim) {
-                clearInterval(this.rainTim);
-                this.rainTim = null;
-            }
+        let rain = this.meshes.get('rain');
+        if(!rain) {
+            rain = new Particles_Rain(this);
+            this.meshes.add(rain, 'rain');
         }
+        rain.enabled = value;
     }
 
     // drawPlayers
