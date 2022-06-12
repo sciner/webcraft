@@ -61,6 +61,10 @@ export class Mob {
     getWorld() {
         return this.#world;
     }
+    
+    getBrain() {
+        return this.#brain;
+    }
 
     // Create new mob
     static async create(world, params) {
