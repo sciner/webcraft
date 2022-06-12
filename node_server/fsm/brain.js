@@ -296,7 +296,7 @@ export class FSMBrain {
     * val - количество урона
     * type_demage - от чего умер[упал, сгорел, утонул]
     */
-    onDemage(actor, val, type_demage){
+    onDemage(actor, val, type_demage) {
         const mob = this.mob;
         const pos_actor = (actor.session) ? actor.state.pos : new Vector(0, 0, 0);
         let velocity = mob.pos.sub(pos_actor).normSelf();
