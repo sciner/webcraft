@@ -40,7 +40,7 @@ export class Brain extends FSMBrain {
     }
     
     // поиск блоков под пчелой для полета и анализа есть ли там цветок
-    getFlightBlocks() {
+    getFlightBlocks(ignore_nest) {
 
         // @todo костыль от сброса полета при касании земли
         this.pc.player_state.flying = true;
@@ -52,8 +52,11 @@ export class Brain extends FSMBrain {
         const body = world.getBlock(pos_body);
         const legs = world.getBlock(pos_legs);
         
-        if (legs.id != 0 && legs.material.style == 'default' && !legs.hasTag('bee_nest')) {
-            this.fly = Math.random() * 50 | 0;
+        // if on plant
+        if (legs.id != 0 && legs.material.style == 'default') {
+            if(ignore_nest || !legs.hasTag('bee_nest')) {
+                this.fly = Math.random() * 50 | 0;
+            }
         }
         
         let jump = false;
@@ -73,7 +76,7 @@ export class Brain extends FSMBrain {
     // возвращение в улей
     async doReturnToHome(delta) {
         const mob = this.mob;
-        const block = this.getFlightBlocks();
+        const block = this.getFlightBlocks(false);
         
         mob.rotate.z = this.angleTo(mob.pos_spawn);
         
@@ -124,7 +127,7 @@ export class Brain extends FSMBrain {
     doForward(delta) {
         const mob = this.mob;
         
-        const block = this.getFlightBlocks();
+        const block = this.getFlightBlocks(true);
         
         if (Math.random() < 0.02) {
            mob.rotate.z = Math.round(((mob.rotate.z + Math.random() * Math.PI / 4) % 6.28) * 1000) / 1000;
@@ -207,7 +210,7 @@ export class Brain extends FSMBrain {
             }
         }
         
-        const block = this.getFlightBlocks();
+        const block = this.getFlightBlocks(true);
         const forward = (distance > 1.5) ? true : false;
         this.updateControl({
             yaw: mob.rotate.z,

@@ -4956,6 +4956,7 @@
             "max_stage": 7,
             "times_per_stage": 8
         },
+        "tags": ["agriculture"],
         "texture": [4, 31],
         "stage_textures": [
             [8, 5],
@@ -4998,6 +4999,7 @@
         "style": "planting",
         "inventory_style": "extruder",
         "transparent": true,
+        "tags": ["agriculture"],
         "seeds": {
             "result": {
                 "incomplete": [
