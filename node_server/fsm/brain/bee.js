@@ -20,7 +20,7 @@ export class Brain extends FSMBrain {
             playerHalfWidth: 0.3,
         });
         
-        this.pc.player_state.flying = true;//TO DO костыль от сброса полета при касании земли
+        this.pc.player_state.flying = true;// @todo костыль от сброса полета при касании земли
         
         this.ticks_pollination = 0;
         this.ticks_anger = 0;
@@ -55,10 +55,10 @@ export class Brain extends FSMBrain {
         // if on plant
         if (legs.id != 0 && legs.material.style == 'default') {
             if(ignore_nest || !legs.hasTag('bee_nest')) {
-                this.fly = Math.random() * 50 | 0;
+                this.fly = Math.random() * 20 | 0;
             }
         }
-        
+
         let jump = false;
         let sneak = false;
         if (this.fly > 0) {
@@ -78,7 +78,11 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const block = this.getFlightBlocks(false);
         
-        mob.rotate.z = this.angleTo(mob.pos_spawn);
+        if (Math.random() < 0.02) {
+            mob.rotate.z = this.angleTo(mob.pos_spawn);
+        } else if (Math.random() < 0.02) {
+           mob.rotate.z = Math.round(((mob.rotate.z + Math.random() * Math.PI / 4) % 6.28) * 1000) / 1000;
+        }
         
         this.updateControl({
             yaw: mob.rotate.z,
@@ -155,15 +159,16 @@ export class Brain extends FSMBrain {
             }
         }
         
-        // если наступил вечер, то меняем состояние на "лететь в улей"
+        // если наступил вечер или набрали пыльцы, то меняем состояние на "лететь в улей"
         const world = mob.getWorld();
         const time = world.info.calendar.day_time;
         if (time < 6000 || time > 18000 || mob.extra_data.pollen >= MAX_POLLEN) {
             console.log("[AI] doReturnToHome");
             this.stack.replaceState(this.doReturnToHome);
         }
-
+        
         this.ticks_pollination++;
+        mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
     }
 
     // преследование игрока
@@ -222,6 +227,7 @@ export class Brain extends FSMBrain {
         this.sendState();
         
         this.ticks_pollination++;
+        mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
     }
     
     onDamage(actor, val, type_damage) {
