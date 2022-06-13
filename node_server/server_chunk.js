@@ -160,7 +160,7 @@ class MobGenerator {
                 //
                 if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
                     let cnt = 0;
-                    let poses = [];
+                    const poses = [];
                     const pos_up = new Vector(0, 0, 0);
                     for(let [vec, y] of vc.entries()) {
                         if(cnt++ % 2 == 0) {
@@ -299,7 +299,7 @@ export class ServerChunk {
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
             if(this.mobs.size > 0) {
                 const packets = [{
-                    name: ServerClient.CMD_MOB_DELETED,
+                    name: ServerClient.CMD_MOB_DELETE,
                     data: Array.from(this.mobs.keys())
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
@@ -323,7 +323,7 @@ export class ServerChunk {
     addMob(mob) {
         this.mobs.set(mob.id, mob);
         const packets = [{
-            name: ServerClient.CMD_MOB_ADDED,
+            name: ServerClient.CMD_MOB_ADD,
             data: [mob]
         }];
         this.sendAll(packets);
@@ -359,7 +359,7 @@ export class ServerChunk {
             return;
         }
         let packets_mobs = [{
-            name: ServerClient.CMD_MOB_ADDED,
+            name: ServerClient.CMD_MOB_ADD,
             data: []
         }];
         for(const [_, mob] of this.mobs) {

@@ -78,8 +78,6 @@ export class ServerWorld {
 
     // Return world info
     getInfo() {
-        console.log(this.info);
-        this.updateWorldCalendar();
         return this.info;
     }
 
@@ -111,6 +109,7 @@ export class ServerWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
+        this.updateWorldCalendar();
         //
         this.ticks_stat.number++;
         this.ticks_stat.start();

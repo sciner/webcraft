@@ -51,7 +51,6 @@ export default class Chat_Time {
                             if(target_time < 0 || target_time > GAME_DAY_SECONDS) {
                                 throw 'error_time_value';
                             }
-                            world.updateWorldCalendar();
                             let age = world.info.calendar.age + world.info.calendar.day_time / GAME_DAY_SECONDS;
                             let day_time = (age - Math.floor(age)) * GAME_DAY_SECONDS;
                             addWorldTime(world, Math.round(target_time - day_time));
