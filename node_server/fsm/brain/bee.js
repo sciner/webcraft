@@ -146,7 +146,6 @@ export class Brain extends FSMBrain {
         
         // если на уровне ног есть цветок
         if (block.legs.hasTag('flower')) {
-            console.log('find flower', mob.extra_data.pollen, this.ticks_pollination);
             if(mob.extra_data.pollen < MAX_POLLEN && this.ticks_pollination > 300) {
                 console.log("[AI] doPollen");
                 this.stack.replaceState(this.doPollen);

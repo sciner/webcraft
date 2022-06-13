@@ -83,10 +83,12 @@ export class ServerWorld {
 
     // updateWorldCalendar
     updateWorldCalendar() {
-        this.info.calendar = {
-            age: null,
-            day_time: null,
-        };
+        if(!this.info.calendar) {
+            this.info.calendar = {
+                age: null,
+                day_time: null,
+            };    
+        }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
         const diff_sec = currentTime - this.info.dt;

@@ -8,6 +8,7 @@ const DAY_TIMES = {
 function addWorldTime(world, value) {
     world.info.add_time += value;
     world.db.updateAddTime(world.info.guid, world.info.add_time);
+    world.updateWorldCalendar();
     world.sendUpdatedInfo();
 }
 
@@ -21,7 +22,6 @@ export default class Chat_Time {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            console.log(cmd);
             switch(cmd) {
                 case '/time': {
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
