@@ -325,6 +325,13 @@ export class BLOCK {
                         }
                         extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
                     }
+                    case 'bees': {
+                        extra_data[g.name] = [];
+                        const count = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
+                        for(let i = 0; i < count; i++) {
+                            extra_data[g.name].push({honey: 0});
+                        }
+                    }
                 }
             }
         }

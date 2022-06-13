@@ -6086,7 +6086,10 @@
         "extra_data": {
             "honey": 0,
             "bees": [],
-            "max_ticks": 100
+            "max_ticks": 100,
+            "calculated": [
+                {"type": "bees", "name": "bees", "min_max": [1, 3]}
+            ]
         }
     }
 ]
