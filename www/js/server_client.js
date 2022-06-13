@@ -68,10 +68,8 @@ export class ServerClient {
 
     // Mobs
 	static CMD_MOB_ADD                  = 70;
-	static CMD_MOB_ADDED                = 71;
-	static CMD_MOB_DELETE               = 72;
-	static CMD_MOB_DELETED              = 73;
-    static CMD_MOB_UPDATE               = 75;
+	static CMD_MOB_DELETE               = 71;
+    static CMD_MOB_UPDATE               = 72;
 
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;

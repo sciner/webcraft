@@ -329,7 +329,7 @@ export class BLOCK {
                         extra_data[g.name] = [];
                         const count = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
                         for(let i = 0; i < count; i++) {
-                            extra_data[g.name].push({honey: 0});
+                            extra_data[g.name].push({pollen: 0});
                         }
                     }
                 }
