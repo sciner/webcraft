@@ -131,7 +131,7 @@
 					]
 				},
 				{
-					"name": "leg_back_right",
+					"name": "leg0",
 					"pivot": [6, 8, 17],
 					"cubes": [
 						{
@@ -149,7 +149,7 @@
 					]
 				},
 				{
-					"name": "leg_back_left",
+					"name": "leg1",
 					"pivot": [-6, 8, 17],
 					"cubes": [
 						{
@@ -167,7 +167,7 @@
 					]
 				},
 				{
-					"name": "leg_front_right",
+					"name": "leg2",
 					"pivot": [-6, 12, -3],
 					"cubes": [
 						{
@@ -185,7 +185,7 @@
 					]
 				},
 				{
-					"name": "leg_front_left",
+					"name": "leg3",
 					"pivot": [6, 12, -3],
 					"cubes": [
 						{
