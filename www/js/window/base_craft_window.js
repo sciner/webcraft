@@ -456,23 +456,25 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if(typeof srcListFirstIndexOffset != 'number') {
             throw 'Invalid srcListFirstIndexOffset';
         }
-        const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
-        // 1. проход в поисках подобного
-        for(let slot of target_list) {
-            if(slot instanceof CraftTableInventorySlot) {
-                const item = slot.getItem();
-                if(item && item.id == srcItem.id) {
-                    let free_count = max_stack_count - item.count;
-                    if(free_count > 0) {
-                        let count = Math.min(free_count, srcItem.count);
-                        srcItem.count -= count
-                        item.count += count;
-                        slot.setItem(item);
+        if(!srcItem.entity_id) {
+            const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
+            // 1. проход в поисках подобного
+            for(let slot of target_list) {
+                if(slot instanceof CraftTableInventorySlot) {
+                    const item = slot.getItem();
+                    if(item && item.id == srcItem.id) {
+                        let free_count = max_stack_count - item.count;
+                        if(free_count > 0) {
+                            let count = Math.min(free_count, srcItem.count);
+                            srcItem.count -= count
+                            item.count += count;
+                            slot.setItem(item);
+                        }
                     }
+                } else {
+                    console.error(slot);
+                    throw 'error_invalid_slot_type';
                 }
-            } else {
-                console.error(slot);
-                throw 'error_invalid_slot_type';
             }
         }
         // 2. проход в поисках свободных слотов
