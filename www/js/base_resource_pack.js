@@ -282,6 +282,7 @@ export class BaseResourcePack {
 
     // pushVertices
     pushVertices(vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot) {
+
         const style = draw_style ? draw_style : block.material.style;
         const module = this.BLOCK.styles.get(style);
         if(!module) {

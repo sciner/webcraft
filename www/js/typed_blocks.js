@@ -159,7 +159,7 @@ export class TBlock {
         return this.id;
     }
     getProperties() {
-        return this.properties;
+        return this.material;
     }
     // position
     get position() {

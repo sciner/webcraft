@@ -87,7 +87,7 @@ export default class style {
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
-        style.lm.b = BLOCK.getAnimations(block.material, 'up');
+        style.lm.b = BLOCK.getAnimations(material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
         }

@@ -23,7 +23,7 @@ export class ServerChunkManager {
             properties: BLOCK.DUMMY,
             material:   BLOCK.DUMMY,
             getProperties: function() {
-                return this.properties;
+                return this.material;
             }
         };
         this.dataWorld = new DataWorld();

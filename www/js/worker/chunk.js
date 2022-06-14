@@ -22,7 +22,7 @@ export class ChunkManager {
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
-                return this.properties;
+                return this.material;
             }
         };
         this.dataWorld = new DataWorld();
@@ -278,12 +278,14 @@ export class Chunk {
 
         // addVerticesToGroup...
         const addVerticesToGroup = (material_group, material_key, vertices) => {
-            if(!this.vertices.has(material_key)) {
+            let group = this.vertices.get(material_key);
+            if(!group) {
                 // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
-                this.vertices.set(material_key, JSON.parse(JSON.stringify(group_templates[material_group])));
+                group = JSON.parse(JSON.stringify(group_templates[material_group]));
+                this.vertices.set(material_key, group);
             }
             // Push vertices
-            this.vertices.get(material_key).list.push(...vertices);
+            group.list.push(...vertices);
         };
 
         const cache                 = BLOCK_CACHE;

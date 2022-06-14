@@ -417,10 +417,10 @@ export class BLOCK {
         if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags && (block.tags.indexOf('alpha') >= 0))) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+        } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.id == 649 ||
-            block.tags.indexOf('leaves') >= 0 ||
+            block.is_leaves ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
             block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
@@ -511,7 +511,6 @@ export class BLOCK {
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
-        block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
@@ -522,6 +521,12 @@ export class BLOCK {
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
         block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
+        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 199, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
+        block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
+        block.is_dirt           = ['GRASS_DIRT', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM'].indexOf(block.name) >= 0;
+        block.is_leaves         = block.tags.indexOf('leaves') >= 0;
+        block.is_glass          = block.tags.indexOf('glass') >= 0;
+        block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
@@ -529,8 +534,6 @@ export class BLOCK {
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
-        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 199, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
-        block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
         // rotate_by_pos_n_plus
         if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
             block.tags.push('rotate_by_pos_n');
@@ -817,11 +820,11 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence' || block.properties.style == 'wall' || block.properties.style == 'pane');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'wall' || block.material.style == 'pane');
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane' || block.properties.style == 'fence');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'wall' || block.material.style == 'pane' || block.material.style == 'fence');
     }
 
     static canPaneConnect(block) {
@@ -829,7 +832,7 @@ export class BLOCK {
     };
 
     static canRedstoneDustConnect(block) {
-        return block.id > 0 && (block.properties && 'redstone' in block.properties);
+        return block.id > 0 && (block.material && 'redstone' in block.material);
     }
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
@@ -853,7 +856,7 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
-        const material = b.properties;
+        const material = b.material;
         if(!material) {
             return shapes;
         }

@@ -55,7 +55,7 @@ export class Brain extends FSMBrain {
         
         // if on plant
         if (legs && legs.id != 0 && legs.material.style == 'default') {
-            if(ignore_nest || !legs.hasTag('bee_nest')) {
+            if(ignore_nest || (legs && legs.hasTag && !legs.hasTag('bee_nest'))) {
                 this.fly = Math.random() * 20 | 0;
             }
         }
@@ -153,7 +153,7 @@ export class Brain extends FSMBrain {
         this.sendState();
         
         // если на уровне ног есть цветок
-        if (block.legs.hasTag('flower')) {
+        if (block.legs && block.legs.hasTag && block.legs.hasTag('flower')) {
             if(mob.extra_data.pollen < MAX_POLLEN && this.ticks_pollination > 300) {
                 console.log("[AI] doPollen");
                 this.stack.replaceState(this.doPollen);

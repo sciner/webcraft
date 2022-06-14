@@ -2,12 +2,11 @@
 
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
+import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 
-let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
@@ -162,15 +161,17 @@ export default class style {
     }
 
     // Can draw face
-    static canDrawFace(block, neighbourBlock, drawAllSides) {
-        if(!neighbourBlock) {
+    static canDrawFace(block, neighbour, drawAllSides) {
+        if(!neighbour) {
             return true;
         }
-        let resp = drawAllSides || (neighbourBlock.material && neighbourBlock.material.transparent);
+        const bmat = block.material;
+        const nmat = neighbour.material;
+        let resp = drawAllSides || (nmat && nmat.transparent);
         if(resp) {
-            if(block.id == neighbourBlock.id && block.material.selflit) {
+            if(block.id == neighbour.id && bmat.selflit) {
                 resp = false;
-            } else if(block.material.is_water && neighbourBlock.material.is_water) {
+            } else if(bmat.is_water && nmat.is_water) {
                 return false;
             }
         }
@@ -183,6 +184,7 @@ export default class style {
         let width       = material.width ? material.width : 1;
         let height      = material.height ? material.height : 1;
         let depth       = material.depth ? material.depth : width;
+        const up_mat    = neighbours.UP ? neighbours.UP.material : null;
         // Ladder
         if(material.style == 'ladder') {
             width = 1;
@@ -195,7 +197,7 @@ export default class style {
                 height /= 2;
             }
         } else if(material.is_fluid) {
-            if(neighbours.UP && neighbours.UP.material.is_fluid) {
+            if(up_mat && up_mat.is_fluid) {
                 height = 1.0;
             } else {
                 height = .9;
@@ -207,12 +209,8 @@ export default class style {
                 height = block.extra_data?.height || height;
             }
         }
-        //
-        if(!DIRT_BLOCKS) {
-            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id, BLOCK.PODZOL.id, BLOCK.MYCELIUM.id];
-        }
-        if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
-            if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+        if(material.is_dirt) {
+            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                 height = 1;
             }
         }
@@ -228,7 +226,7 @@ export default class style {
         }
 
         const material              = block.material;
-        const no_anim               = material.is_simple_qube;
+        const no_anim               = material.is_simple_qube || !material.texture_animations;
 
         let width                   = 1;
         let height                  = 1;
@@ -285,26 +283,26 @@ export default class style {
             }
 
             // Leaves
-            if(material.transparent && material.tags.indexOf('leaves') >= 0) {
-                if(neighbours.SOUTH.material.tags.indexOf('leaves') > 0) {
+            if(material.transparent && material.is_leaves) {
+                if(neighbours.SOUTH.material.is_leaves) {
                     canDrawSOUTH = false;
                 }
-                if(neighbours.WEST.material.tags.indexOf('leaves') > 0) {
+                if(neighbours.WEST.material.is_leaves) {
                     canDrawWEST = false;
                 }
-                if(neighbours.UP.material.tags.indexOf('leaves') > 0) {
+                if(neighbours.UP.material.is_leaves) {
                     canDrawUP = false;
                 }
             }
 
             // Glass
-            if(material.transparent && material.tags.indexOf('glass') >= 0) {
-                if(neighbours.SOUTH.material.tags.indexOf('glass') >= 0) canDrawSOUTH = false;
-                if(neighbours.NORTH.material.tags.indexOf('glass') >= 0) canDrawNORTH = false;
-                if(neighbours.WEST.material.tags.indexOf('glass') >= 0) canDrawWEST = false;
-                if(neighbours.EAST.material.tags.indexOf('glass') >= 0) canDrawEAST = false;
-                if(neighbours.UP.material.tags.indexOf('glass') >= 0) canDrawUP = false;
-                if(neighbours.DOWN.material.tags.indexOf('glass') >= 0) canDrawDOWN = false;
+            if(material.transparent && material.is_glass) {
+                if(neighbours.SOUTH.material.is_glass) canDrawSOUTH = false;
+                if(neighbours.NORTH.material.is_glass) canDrawNORTH = false;
+                if(neighbours.WEST.material.is_glass) canDrawWEST = false;
+                if(neighbours.EAST.material.is_glass) canDrawEAST = false;
+                if(neighbours.UP.material.is_glass) canDrawUP = false;
+                if(neighbours.DOWN.material.is_glass) canDrawDOWN = false;
             }
 
             // Texture color multiplier
@@ -351,15 +349,15 @@ export default class style {
 
             // Layering
             if(material.is_layering) {
-                if(block.properties.layering.slab) {
+                if(material.layering.slab) {
                     if(style.isOnCeil(block)) {
-                        y += block.properties.layering.height;
+                        y += material.layering.height;
                     }
                 }
             }
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
-            if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
+            if(material.is_dirt) {
                 if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                     DIRECTION_UP        = DIRECTION.DOWN;
                     DIRECTION_BACK      = DIRECTION.DOWN;
@@ -389,25 +387,25 @@ export default class style {
         // Push vertices
         const sides = {};
         if(canDrawUP) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'up');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'up');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
             sides.up = _sides.up.set(t, flags | upFlags | animFlag, anim_frames, lm, axes_up, autoUV);
         }
         if(canDrawDOWN) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'down');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'down');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
             sides.down = _sides.down.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
         }
         if(canDrawSOUTH) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'south');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'south');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, width, height, block);
             sides.south = _sides.south.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'north');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
             t[2] *= -1;
@@ -415,7 +413,7 @@ export default class style {
             sides.north = _sides.north.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'west');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
             t[2] *= -1;
@@ -423,7 +421,7 @@ export default class style {
             sides.west = _sides.west.set(t,  flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            let anim_frames = no_anim ? 1 : BLOCK.getAnimations(material, 'east');
+            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'east');
             let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, width, height, block);
             sides.east = _sides.east.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
