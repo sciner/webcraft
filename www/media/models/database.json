@@ -1,6 +1,21 @@
 {
     "assets": {
 
+        "panda": {
+            "type":"json",
+            "geom":"json/panda.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/panda/panda.png",
+                "aggressive": "textures/panda/aggressive.png",
+                "brown": "textures/panda/brown.png",
+                "lazy": "textures/panda/lazy.png",
+                "playful": "textures/panda/playful.png",
+                "sneezy": "textures/panda/sneezy.png",
+                "worried": "textures/panda/worried.png"
+            }
+        },
+
         "deer": {
             "type": "json",
             "geom": "json/deer2.geo.json",
