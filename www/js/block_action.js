@@ -847,7 +847,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         let orientation = null;
         if(matBlock.tags.indexOf('rotate_by_pos_n') >= 0) {
             orientation = calcRotateByPosN(player.rotate, pos.n);
-            if(matBlock.tags.indexOf('rotate_by_pos_n_plus')) {
+            if(matBlock.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
                 if(orientation.x < 0) orientation.x *= -1;
                 if(orientation.y < 0) orientation.y *= -1;
                 if(orientation.z < 0) orientation.z *= -1;
