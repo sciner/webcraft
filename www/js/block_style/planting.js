@@ -107,7 +107,7 @@ export default class style {
         //
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
-        const is_grass = block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id;
+        const is_grass = material.is_grass;
         if(is_grass) {
             dy -= .15;
         }

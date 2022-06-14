@@ -44,6 +44,7 @@ export class DropItemManager {
 
     // add
     add(data, time) {
+        if(data.items[0].id < 1) return;
         const drop_item = new Particles_Block_Drop(null, data.entity_id, data.items, data.pos);
         drop_item.world = this.world;
 
