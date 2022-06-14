@@ -1,6 +1,15 @@
 {
     "assets": {
 
+        "piglin": {
+            "type": "json",
+            "geom": "json/piglin.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/piglin.png"
+            }
+        },
+
         "hoglin": {
             "type": "json",
             "geom": "json/hoglin.geo.json",
