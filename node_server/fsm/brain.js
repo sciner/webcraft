@@ -276,9 +276,9 @@ export class FSMBrain {
     /**
     * Моба убили
     * actor - игрок или пероснаж
-    * type_demage - от чего умер[упал, сгорел, утонул]
+    * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onKill(actor, type_demage) {
+    onKill(actor, type_damage) {
     }
     
     /**
@@ -294,9 +294,9 @@ export class FSMBrain {
     * Нанесен урон по мобу
     * actor - игрок или пероснаж
     * val - количество урона
-    * type_demage - от чего умер[упал, сгорел, утонул]
+    * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onDemage(actor, val, type_demage){
+    onDamage(actor, val, type_damage) {
         const mob = this.mob;
         const pos_actor = (actor.session) ? actor.state.pos : new Vector(0, 0, 0);
         let velocity = mob.pos.sub(pos_actor).normSelf();

@@ -64,14 +64,12 @@ export class ServerClient {
     // Inventory
     static CMD_INVENTORY_STATE          = 66; // server -> player (when player inventory changed)
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
-    static CMD_INVENTORY_NEW_STATE      = 90;
+    static CMD_INVENTORY_NEW_STATE      = 90; // player -> server
 
     // Mobs
 	static CMD_MOB_ADD                  = 70;
-	static CMD_MOB_ADDED                = 71;
-	static CMD_MOB_DELETE               = 72;
-	static CMD_MOB_DELETED              = 73;
-    static CMD_MOB_UPDATE               = 75;
+	static CMD_MOB_DELETE               = 71;
+    static CMD_MOB_UPDATE               = 72;
 
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;

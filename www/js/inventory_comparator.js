@@ -5,6 +5,39 @@ export class InventoryComparator {
 
     static rm = null;
 
+    //
+    static makeItemCompareKey(same_items, item, b) {
+        // generate key
+        let key = item.id;
+        if('entity_id' in item && item.entity_id) {
+            key = item.entity_id;
+        } else {
+            let entity_key = null;
+            for(let prop of ITEM_INVENTORY_KEY_PROPS) {
+                if(prop in b) {
+                    if(prop != 'power' || b.power != 0) {
+                        if(prop in item) {
+                            const jvalue = JSON.stringify(item[prop]);
+                            const prop_key = `|${prop}:${jvalue}`;
+                            key += prop_key;
+                            entity_key += `/${item.id}:${prop_key}`;
+                        }
+                    }
+                }
+            }
+            //
+            if(entity_key) {
+                let counter = same_items.get(entity_key);
+                if(!counter) {
+                    counter = 0;
+                }
+                same_items.set(entity_key, counter + 1);
+                key += `|_:${counter}`;
+            }
+        }
+        return key;
+    }
+
     // В новом наборе не должны появиться новые айтемы с extra_data или entity_id,
     // а также extra_data или entity_id не могут отличаться от старой версии
     static compareNestedExtraData(old_simple, new_simple) {
@@ -146,8 +179,8 @@ export class InventoryComparator {
 
     //
     static groupToSimpleItems(items) {
-        let resp = new Map();
-        let entities = new Map();
+        const resp = new Map();
+        const same_items = new Map();
         for(let item of items) {
             if(item) {
                 if('id' in item && 'count' in item) {
@@ -156,35 +189,7 @@ export class InventoryComparator {
                         continue;
                     }
                     const new_item = BLOCK.convertItemToInventoryItem(item, b);
-                    // let is_item = (typeof b?.item !== 'undefined') && (b?.item !== null);
-                    // generate key
-                    let key = new_item.id;
-                    let entity_key = false;
-                    if('entity_id' in item && item.entity_id) {
-                        key = entity_key = item.entity_id;
-                    } else {
-                        for(let prop of ITEM_INVENTORY_KEY_PROPS) {
-                            if(prop in b) {
-                                if(prop != 'power' || b.power != 0) {
-                                    if(prop in new_item) {
-                                        const jvalue = JSON.stringify(new_item[prop]);
-                                        const prop_key = `|${prop}:${jvalue}`;
-                                        key += prop_key;
-                                        entity_key = new_item.id + prop_key;
-                                    }
-                                }
-                            }
-                        }
-                        //
-                        if(entity_key) {
-                            let counter = entities.get(entity_key);
-                            if(!counter) {
-                                counter = 0;
-                            }
-                            entities.set(entity_key, counter + 1);
-                            key += `|_:${counter}`;
-                        }
-                    }
+                    const key = InventoryComparator.makeItemCompareKey(same_items, new_item, b);
                     //
                     if(resp.has(key)) {
                         resp.get(key).count += new_item.count;

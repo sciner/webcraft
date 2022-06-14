@@ -295,6 +295,10 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        if(block.is_chest) {
+            extra_data = extra_data || {};
+            Object.assign(extra_data, { can_destroy: true, slots: {} });
+        }
         return extra_data;
     }
 
@@ -324,6 +328,13 @@ export class BLOCK {
                             throw 'error_generator_items_not_set';
                         }
                         extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
+                    }
+                    case 'bees': {
+                        extra_data[g.name] = [];
+                        const count = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
+                        for(let i = 0; i < count; i++) {
+                            extra_data[g.name].push({pollen: 0});
+                        }
                     }
                 }
             }
@@ -673,6 +684,10 @@ export class BLOCK {
             //c[2] *= -1;
             //c[3] *= -1;
         //}
+        // @todo (BEE NEST) убрать отсюда куда нибудь
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
+            c[1] += 4/32;
+        }
         return c;
     }
 

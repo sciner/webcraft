@@ -158,7 +158,7 @@ export class Brain extends FSMBrain {
         world.actions_queue.add(null, actions);
     }
     
-    onKill(actor, type_demage) {
+    onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {

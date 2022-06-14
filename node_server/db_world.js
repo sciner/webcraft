@@ -481,6 +481,49 @@ export class DBWorld {
             'DELETE FROM world_modify WHERE block_id = 105'
         ]});
 
+        migrations.push({version: 55, queries: [
+            `DELETE FROM entity WHERE type = 'bee'`,
+            `ALTER TABLE entity ADD COLUMN "is_dead" integer NOT NULL DEFAULT 0`,
+            `UPDATE entity SET is_dead = 1 - is_active`,
+            `DELETE FROM world_modify WHERE block_id = 1447`
+        ]});
+
+        migrations.push({version: 56, queries: [
+            `UPDATE entity SET extra_data = '{"is_alive":true,"play_death_animation":true}' WHERE extra_data IS NULL`,
+        ]});
+
+        migrations.push({version: 57, queries: [
+            `DROP INDEX "main"."world_modify_xyz";`,
+
+            `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20220614";`,
+
+            `CREATE TABLE "main"."world_modify" (
+              "id" INTEGER,
+              "world_id" INTEGER NOT NULL,
+              "dt" integer,
+              "user_id" INTEGER,
+              "params" TEXT,
+              "user_session_id" INTEGER,
+              "x" real NOT NULL,
+              "y" real NOT NULL,
+              "z" real NOT NULL,
+              "entity_id" text,
+              "extra_data" text,
+              "ticks" INTEGER DEFAULT NULL,
+              "block_id" integer DEFAULT NULL,
+              PRIMARY KEY ("id")
+            );`,
+
+            `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id" FROM "main"."_world_modify_old_20220614";`,
+
+            `CREATE INDEX "main"."world_modify_xyz"
+            ON "world_modify" (
+              "x" ASC,
+              "y" ASC,
+              "z" ASC
+            );`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -706,6 +749,9 @@ export class DBWorld {
     // Create entity (mob)
     async createMob(params) {
         const entity_id = uuid();
+        if(!('pos' in params)) {
+            throw 'error_no_mob_pos';
+        }
         const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
@@ -719,11 +765,13 @@ export class DBWorld {
             ':y':               params.pos.y,
             ':z':               params.pos.z
         });
-        return {
-            id: result.lastID,
-            entity_id: entity_id,
-            is_active: 1
+        const resp = {
+            id:         result.lastID,
+            entity_id:  entity_id,
+            pos_spawn:  params.pos.clone(),
+            is_active:  true
         };
+        return resp;
     }
 
     // Create drop item
@@ -750,16 +798,9 @@ export class DBWorld {
         });
     }
 
-    async setEntityActive(entity_id, value) {
-        const result = await this.db.run('UPDATE entity SET is_active = :is_active WHERE entity_id = :entity_id', {
-            ':is_active': value,
-            ':entity_id': entity_id
-        });
-    }
-
     // Load mobs
     async loadMobs(addr, size) {
-        let rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND is_dead = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -767,33 +808,47 @@ export class DBWorld {
             ':z_min': addr.z * size.z,
             ':z_max': addr.z * size.z + size.z
         });
-        let resp = new Map();
+        const resp = new Map();
         for(let row of rows) {
-            let item = new Mob(this.world, {
-                id:         row.id,
-                rotate:     JSON.parse(row.rotate),
-                pos_spawn:  JSON.parse(row.pos_spawn),
-                pos:        new Vector(row.x, row.y, row.z),
-                entity_id:  row.entity_id,
-                type:       row.type,
-                skin:       row.skin,
-                extra_data: Mob.convertRowToExtraData(row),
-                indicators: JSON.parse(row.indicators)
-            });
+            const item = Mob.fromRow(this.world, row);
             resp.set(item.id, item);
         }
         return resp;
     }
 
+    // Load mob
+    async loadMob(entity_id) {
+        const rows = await this.db.all('SELECT * FROM entity WHERE entity_id = :entity_id', {
+            ':entity_id': entity_id
+        });
+        for(let row of rows) {
+            return Mob.fromRow(this.world, row);
+        }
+        return null;
+    }
+
+    // Activate mob
+    async activateMob(entity_id, pos) {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = :is_active, pos_spawn = :pos_spawn WHERE entity_id = :entity_id AND is_dead = 0', {
+            ':x': pos.x,
+            ':y': pos.y,
+            ':z': pos.z,
+            ':is_active': 1,
+            ':pos_spawn': JSON.stringify(pos),
+            ':entity_id': entity_id
+        });
+    }
+
     // Save mob state
     async saveMob(mob) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, extra_data = :extra_data WHERE entity_id = :entity_id', {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, is_dead = :is_dead, extra_data = :extra_data WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
             ':entity_id': mob.entity_id,
-            ':is_active': mob.indicators.live.value > 0 ? 1 : 0,
-            ':extra_data': mob?.extra_data ? JSON.stringify(mob.extra_data) : null,
+            ':is_dead': mob.indicators.live.value > 0 ? 0 : 1,
+            ':is_active': mob.is_active ? 1 : 0,
+            ':extra_data': JSON.stringify(mob.extra_data),
             ':indicators': JSON.stringify(mob.indicators)
         });
     }

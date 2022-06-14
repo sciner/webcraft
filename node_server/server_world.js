@@ -78,17 +78,17 @@ export class ServerWorld {
 
     // Return world info
     getInfo() {
-        console.log(this.info);
-        this.updateWorldCalendar();
         return this.info;
     }
 
     // updateWorldCalendar
     updateWorldCalendar() {
-        this.info.calendar = {
-            age: null,
-            day_time: null,
-        };
+        if(!this.info.calendar) {
+            this.info.calendar = {
+                age: null,
+                day_time: null,
+            };    
+        }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
         const diff_sec = currentTime - this.info.dt;
@@ -111,6 +111,7 @@ export class ServerWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
+        this.updateWorldCalendar();
         //
         this.ticks_stat.number++;
         this.ticks_stat.start();
@@ -365,7 +366,6 @@ export class ServerWorld {
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            console.log('e', e);
             let packets = [{
                 name: ServerClient.CMD_ERROR,
                 data: {
@@ -470,16 +470,9 @@ export class ServerWorld {
         if (actions.chat_message) {
             this.chat.sendMessage(server_player, actions.chat_message);
         }
-        // Create chest
-        if (actions.create_chest) {
-            const params = actions.create_chest;
-            params.item.extra_data = { can_destroy: true, slots: {} };
-            const b_params = { pos: params.pos, item: params.item, action_id: ServerClient.BLOCK_ACTION_CREATE };
-            actions.blocks.list.push(b_params);
-        }
         // Decrement item
         if (actions.decrement) {
-            server_player.inventory.decrement(actions.decrement);
+            server_player.inventory.decrement(actions.decrement, actions.ignore_creative_game_mode);
         }
         // Decrement instrument
         if (actions.decrement_instrument) {
