@@ -3,10 +3,10 @@
 
         "deer": {
             "type": "json",
-            "geom": "json/deer.geo.json",
+            "geom": "json/deer2.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/deer.png"
+                "base": "textures/deer2.png"
             }
         },
 
