@@ -4,6 +4,32 @@ import { SceneNode } from "./SceneNode.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
 
+/**
+ * @typedef {Object} UVDefinition
+ * @property {number[]} uv
+ * @property {number[]} uv_size
+ */
+
+/**
+ * @typedef {Object} UVDirections
+ * @property {UVDefinition} north
+ * @property {UVDefinition} south
+ * @property {UVDefinition} east
+ * @property {UVDefinition} west
+ * @property {UVDefinition} up
+ * @property {UVDefinition} down
+ */
+
+/**
+ * @typedef {Object} FillCubeOptions
+ * @property {*} matrix
+ * @property {number[]} size (float[3])
+ * @property {number[]} textureSize (float[2])
+ * @property {boolean} mirror 
+ * @property {number} inflate (Float)
+ * @property {number[] | UVDefinition | UVDirections} uv
+ */
+
 const { mat4, vec3, quat } = glMatrix;
 const SCALE_RATIO = 1 / 16;
 const Z_FIGHT_OFFSET = 0.0005;
@@ -17,8 +43,9 @@ const computeRot = quat.create();
 const lm = {r : -1, g : -1, b : -1};
 
 /**
- * Fill cube from bedrock cube notation
- * @param {*} param0
+ * Fill cube from bedrock cube notation.
+ * 
+ * @param {FillCubeOptions} param0
  * @param {*} target
  * @returns
  */
@@ -26,7 +53,7 @@ export function fillCube({
     matrix,
     size,
     textureSize,
-    uvPoint = [0,0],
+    uv: uv_point = [0,0],
     mirror = false,
     inflate = 0
 }, target) {
@@ -52,24 +79,28 @@ export function fillCube({
     };
 
     // old format, where uvPoint is  [x, y] which represent block of start cube-layout
-    if(Array.isArray(uvPoint)) {
+    if(Array.isArray(uv_point)) {
         // UV
-        //                X                                                Y                                      w         h
-        uv.up    =  [itx * (uvPoint[0] + dz + dx / 2),            ity * (uvPoint[1] + dz / 2),       dx * itx, dz * ity];
-        uv.down  =  [itx * (uvPoint[0] + dz + dx + dx / 2),       ity * (uvPoint[1] + dz / 2),       dx * itx, dz * ity];
-        uv.north =  [itx * (uvPoint[0] + dz + dx / 2),            ity * (uvPoint[1] + dz + dy / 2),  dx * itx, dy * ity];
-        uv.south =  [itx * (uvPoint[0] + 2 * dz + dx + dx / 2),   ity * (uvPoint[1] + dz + dy / 2),  dx * itx, dy * ity];
-        uv.east  =  [itx * (uvPoint[0] + dz + dx + dz / 2),       ity * (uvPoint[1] + dz + dy / 2),  dz * itx, dy * ity];
-        uv.west  =  [itx * (uvPoint[0] + dz / 2),                 ity * (uvPoint[1] + dz + dy / 2),  dz * itx, dy * ity];
+        //           X                                             Y                                   W         H
+        uv.up    =  [itx * (uv_point[0] + dz + dx / 2),            ity * (uv_point[1] + dz / 2),       dx * itx, dz * ity];
+        uv.down  =  [itx * (uv_point[0] + dz + dx + dx / 2),       ity * (uv_point[1] + dz / 2),       dx * itx, dz * ity];
+        uv.north =  [itx * (uv_point[0] + dz + dx / 2),            ity * (uv_point[1] + dz + dy / 2),  dx * itx, dy * ity];
+        uv.south =  [itx * (uv_point[0] + 2 * dz + dx + dx / 2),   ity * (uv_point[1] + dz + dy / 2),  dx * itx, dy * ity];
+        uv.east  =  [itx * (uv_point[0] + dz + dx + dz / 2),       ity * (uv_point[1] + dz + dy / 2),  dz * itx, dy * ity];
+        uv.west  =  [itx * (uv_point[0] + dz / 2),                 ity * (uv_point[1] + dz + dy / 2),  dz * itx, dy * ity];
 
-    //uv each direction
+    // uv each direction
     } else {
+
         for(const key in uv) {
+            const [x, y] = uv_point[key].uv;
+            const [width, height] = uv_point[key].uv_size;
+
             uv[key] = [
-                (uvPoint[key].uv[0] + uvPoint[key].uv_size[0] / 2) * itx,
-                (uvPoint[key].uv[1] + uvPoint[key].uv_size[1] / 2) * ity,
-                uvPoint[key].uv_size[0] * itx,
-                uvPoint[key].uv_size[1] * ity
+                (x + width / 2) * itx,  // Center X
+                (y + height / 2) * ity, // Center Y
+                width * itx,            // Width
+                height * ity            // Height
             ]
         }
     }
@@ -159,12 +190,6 @@ export function fillCube({
 }
 
 /**
- *
- * @param {IGeoTreeBones} bone
- * @param {IGeoTreeDescription} description
- */
-/**
- *
  * @param {IGeoTreeBones} bone
  * @param {IGeoTreeDescription} description
  */
@@ -174,12 +199,12 @@ export function fillCube({
     const offset = bone.bind_pose_rotation ? bone.pivot : null;
     const flipX = !!bone.bind_pose_rotation ? -1 : 1;
 
-    for(let c of bone.cubes) {
+    for(let cube of bone.cubes) {
         const {
             origin = [0,0,0],
             size = [1,1,1],
             pivot = offset || [0,0,0]
-        } = c;
+        } = cube;
 
         vec3.set(computePivot,
             pivot[0] * SCALE_RATIO,
@@ -187,7 +212,7 @@ export function fillCube({
             pivot[2] * SCALE_RATIO
         );
 
-        const inf = (c.inflate || 0);
+        const inf = (cube.inflate || 0);
 
         // set scale by keep offset when scale is 0 to prevent z-fight
         vec3.set(computeScale,
@@ -207,7 +232,7 @@ export function fillCube({
         computePos[1] += (0.5 - Math.random()) * Z_FIGHT_OFFSET;
         computePos[2] += (0.5 - Math.random()) * Z_FIGHT_OFFSET;
 
-        const rot = c.rotation || bone.bind_pose_rotation;
+        const rot = cube.rotation || bone.bind_pose_rotation;
         if (rot) {
             quat.fromEuler(
                 computeRot,
@@ -232,13 +257,38 @@ export function fillCube({
         computeMatrix[13] += computePivot[1];
         computeMatrix[14] += computePivot[2];
 
+        let uv;
+        if(cube.uv['north']) {
+            uv = {
+                north: cube.uv.north,
+                south: cube.uv.south,
+
+                // I swap these two because it corrects the result. -Jab
+                east: cube.uv.west,
+                west: cube.uv.east,
+
+                up: cube.uv.up,
+                down: cube.uv.down
+            };
+        } else if(cube.uv_size) {
+            uv = {
+                uv: cube.uv,
+                uv_size: cube.uv_size
+            };
+        } else if(Object.keys(cube.uv).length === 0) {
+            uv = [0, 0];
+        } else {
+            uv = cube.uv;
+        }
+
+
         fillCube({
                 matrix: computeMatrix,
-                uvPoint: c.uv,
+                uv,
                 inflate: 0,
                 size: size,
                 textureSize: [description.texture_width, description.texture_height],
-                mirror: c.mirror || bone.mirror,
+                mirror: cube.mirror || bone.mirror,
             },
             data
         );
@@ -326,6 +376,11 @@ export function decodeJsonGeometryTree(json, variant = null) {
         for(let node of geom.bones) {
 
             if('visible' in node && !node.visible)  {
+                continue;
+            }
+
+            // BlockBench-generated boundary-box cube.
+            if(node.name === 'bb_main') {
                 continue;
             }
 
