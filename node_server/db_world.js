@@ -492,6 +492,38 @@ export class DBWorld {
             `UPDATE entity SET extra_data = '{"is_alive":true,"play_death_animation":true}' WHERE extra_data IS NULL`,
         ]});
 
+        migrations.push({version: 57, queries: [
+            `DROP INDEX "main"."world_modify_xyz";`,
+
+            `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20220614";`,
+
+            `CREATE TABLE "main"."world_modify" (
+              "id" INTEGER,
+              "world_id" INTEGER NOT NULL,
+              "dt" integer,
+              "user_id" INTEGER,
+              "params" TEXT,
+              "user_session_id" INTEGER,
+              "x" real NOT NULL,
+              "y" real NOT NULL,
+              "z" real NOT NULL,
+              "entity_id" text,
+              "extra_data" text,
+              "ticks" INTEGER DEFAULT NULL,
+              "block_id" integer DEFAULT NULL,
+              PRIMARY KEY ("id")
+            );`,
+
+            `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id" FROM "main"."_world_modify_old_20220614";`,
+
+            `CREATE INDEX "main"."world_modify_xyz"
+            ON "world_modify" (
+              "x" ASC,
+              "y" ASC,
+              "z" ASC
+            );`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

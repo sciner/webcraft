@@ -87,20 +87,22 @@ export class Inventory {
         const item_max_count = block.max_in_stack;
         // 1. update cell if exists
         let need_refresh = false;
-        for(let i in this.items) {
-            const item = this.items[i];
-            if(item) {
-                if(item.id == mat.id) {
-                    if(item.count < item_max_count) {
-                        if(item.count + mat.count <= item_max_count) {
-                            updated.set(i, Math.min(item.count + mat.count, item_max_count));
-                            mat.count = 0;
-                            need_refresh = true;
-                            break;
-                        } else {
-                            mat.count = (item.count + mat.count) - item_max_count;
-                            updated.set(i, item_max_count);
-                            need_refresh = true;
+        if(!mat.entity_id) {
+            for(let i in this.items) {
+                const item = this.items[i];
+                if(item) {
+                    if(item.id == mat.id) {
+                        if(item.count < item_max_count) {
+                            if(item.count + mat.count <= item_max_count) {
+                                updated.set(i, Math.min(item.count + mat.count, item_max_count));
+                                mat.count = 0;
+                                need_refresh = true;
+                                break;
+                            } else {
+                                mat.count = (item.count + mat.count) - item_max_count;
+                                updated.set(i, item_max_count);
+                                need_refresh = true;
+                            }
                         }
                     }
                 }

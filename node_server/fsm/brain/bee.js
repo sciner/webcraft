@@ -34,6 +34,7 @@ export class Brain extends FSMBrain {
         this.anger_time = 300;
         this.damage = 2;
         this.live = 10;
+        this.fly = 0;
         
         this.stack.pushState(this.doForward);
         
@@ -53,7 +54,7 @@ export class Brain extends FSMBrain {
         const legs = world.getBlock(pos_legs);
         
         // if on plant
-        if (legs.id != 0 && legs.material.style == 'default') {
+        if (legs && legs.id != 0 && legs.material.style == 'default') {
             if(ignore_nest || !legs.hasTag('bee_nest')) {
                 this.fly = Math.random() * 20 | 0;
             }
