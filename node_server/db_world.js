@@ -828,13 +828,14 @@ export class DBWorld {
     }
 
     // Activate mob
-    async activateMob(entity_id, pos) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = :is_active, pos_spawn = :pos_spawn WHERE entity_id = :entity_id AND is_dead = 0', {
+    async activateMob(entity_id, pos, rotate) {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = :is_active, pos_spawn = :pos_spawn, rotate = :rotate WHERE entity_id = :entity_id AND is_dead = 0', {
             ':x': pos.x,
             ':y': pos.y,
             ':z': pos.z,
             ':is_active': 1,
             ':pos_spawn': JSON.stringify(pos),
+            ':rotate': JSON.stringify(rotate),
             ':entity_id': entity_id
         });
     }

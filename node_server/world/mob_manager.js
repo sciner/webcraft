@@ -76,7 +76,7 @@ export class WorldMobManager {
     }
 
     //
-    async activate(entity_id, spawn_pos) {
+    async activate(entity_id, spawn_pos, rotate) {
         const world = this.world;
         //
         const chunk = world.chunkManager.get(getChunkAddr(spawn_pos));
@@ -85,7 +85,7 @@ export class WorldMobManager {
             return false;
         }
         //
-        await world.db.activateMob(entity_id, spawn_pos);
+        await world.db.activateMob(entity_id, spawn_pos, rotate);
         const mob = await world.db.loadMob(entity_id);
         if(mob) {
             chunk.addMob(mob)

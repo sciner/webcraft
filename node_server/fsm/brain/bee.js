@@ -169,7 +169,11 @@ export class Brain extends FSMBrain {
         }
         
         this.ticks_pollination++;
+
+        // теряет немного пыльцы в полёте
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
+        mob.extra_data.pollen = Math.max(mob.extra_data.pollen, 0);
+
     }
 
     // преследование игрока

@@ -24,7 +24,7 @@ export default class Ticker {
                     // const spawn_tblock = world.getBlock(spawn_pos.floored());
                     if(item.entity_id) {
                         // активация ранее созданного моба
-                        await world.mobs.activate(item.entity_id, spawn_pos);
+                        await world.mobs.activate(item.entity_id, spawn_pos, new Vector(0, 0, (tblock.rotate.x / 4) * -(2 * Math.PI)));
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
