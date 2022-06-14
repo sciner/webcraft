@@ -1,6 +1,15 @@
 {
     "assets": {
 
+        "hoglin": {
+            "type": "json",
+            "geom": "json/hoglin.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/hoglin.png"
+            }
+        },
+
         "panda": {
             "type":"json",
             "geom":"json/panda.geo.json",
