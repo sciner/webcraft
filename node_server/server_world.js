@@ -756,4 +756,26 @@ export class ServerWorld {
         return Array.from(resp.values());
     }
 
+    // Return bee nests near pos by distance
+    getBeeNestsNear(pos, max_distance) {
+        const resp = [];
+        for(const addr of this.chunkManager.ticking_chunks.keys()) {
+            const chunk = this.chunkManager.get(addr);
+            if(chunk) {
+                for(const [_, ticking_block] of chunk.ticking_blocks.blocks.entries()) {
+                    if(ticking_block.ticking.type == 'bee_nest') {
+                        const tblock = this.getBlock(ticking_block.pos);
+                        if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {
+                            const dist = tblock.posworld.distance(pos);
+                            if(dist <= max_distance) {
+                                resp.push(tblock);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return resp;
+    }
+
 }
