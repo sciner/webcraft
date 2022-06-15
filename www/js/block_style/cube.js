@@ -30,7 +30,7 @@ const UP_AXES = [
 
 // Used for grass pseudo-random rotation
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_dirt_rotations');
+const a = new alea('random_dirt_rotations');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
 }
@@ -76,7 +76,7 @@ export default class style {
         }
 
         // AABB
-        let aabb = new AABB();
+        const aabb = new AABB();
         aabb.set(
             x + .5 - width/2,
             y,
@@ -88,8 +88,8 @@ export default class style {
 
         //
         if(block.getCardinalDirection) {
-            let cardinal_direction = block.getCardinalDirection();
-            let matrix = CubeSym.matrices[cardinal_direction];
+            const cardinal_direction = block.getCardinalDirection();
+            const matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
             if(block.rotate && block.rotate.y == -1) {
                 if(block.material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
@@ -116,7 +116,7 @@ export default class style {
     static putIntoPot(vertices, material, pivot, matrix, pos, biome, dirt_color) {
         const width = 8/32;
         const {x, y, z} = pos;
-        let aabb = new AABB();
+        const aabb = new AABB();
         aabb.set(
             x + .5 - width/2,
             y,
@@ -125,9 +125,9 @@ export default class style {
             y + 1 - 6/32,
             z + .5 + width/2
         );
-        let c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
-        let c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
-        let c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
+        const c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+        const c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
+        const c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
 
         let flags = 0;
 
@@ -237,6 +237,7 @@ export default class style {
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
+        const sides                 = {};
 
         let DIRECTION_UP            = DIRECTION.UP;
         let DIRECTION_DOWN          = DIRECTION.DOWN;
@@ -266,7 +267,7 @@ export default class style {
 
         if(material.is_simple_qube) {
 
-            force_tex = BLOCK.calcTexture(block.material.texture, DIRECTION.NORTH);
+            force_tex = BLOCK.calcTexture(material.texture, DIRECTION.UP);
 
         } else {
 
@@ -319,7 +320,7 @@ export default class style {
 
             // Rotate
             const rotate = block.rotate || DEFAULT_ROTATE;
-            let cardinal_direction = block.getCardinalDirection();
+            const cardinal_direction = block.getCardinalDirection();
             matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
 
             // Can rotate
@@ -358,7 +359,7 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             if(material.is_dirt) {
-                if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+                if(neighbours.UP?.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                     DIRECTION_UP        = DIRECTION.DOWN;
                     DIRECTION_BACK      = DIRECTION.DOWN;
                     DIRECTION_RIGHT     = DIRECTION.DOWN;
@@ -385,45 +386,48 @@ export default class style {
         }
 
         // Push vertices
-        const sides = {};
         if(canDrawUP) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'up');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'up');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
             sides.up = _sides.up.set(t, flags | upFlags | animFlag, anim_frames, lm, axes_up, autoUV);
         }
         if(canDrawDOWN) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'down');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'down');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
             sides.down = _sides.down.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
         }
         if(canDrawSOUTH) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'south');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, width, height, block);
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'south');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, width, height, block);
             sides.south = _sides.south.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
-            t[2] *= -1;
-            t[3] *= -1;
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
+            if(!force_tex) {
+                t[2] *= -1;
+                t[3] *= -1;
+            }
             sides.north = _sides.north.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
-            t[2] *= -1;
-            t[3] *= -1;
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
+            if(!force_tex) {
+                t[2] *= -1;
+                t[3] *= -1;
+            }
             sides.west = _sides.west.set(t,  flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            let anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'east');
-            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, width, height, block);
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'east');
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, width, height, block);
             sides.east = _sides.east.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
 
