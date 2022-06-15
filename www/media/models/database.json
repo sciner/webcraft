@@ -1,6 +1,15 @@
 {
     "assets": {
 
+        "goat": {
+            "type": "json",
+            "geom": "json/goat.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/goat.png"
+            }
+        },
+
         "piglin": {
             "type": "json",
             "geom": "json/piglin.geo.json",
