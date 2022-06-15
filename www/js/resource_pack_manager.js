@@ -76,6 +76,7 @@ export class ResourcePackManager {
         this.initBed(base);
         this.initTerracotta(base);
         this.initGlazedTerracotta(base);
+        this.initSpawnEggs(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -282,6 +283,56 @@ export class ResourcePackManager {
             };
             this.BLOCK.add(resource_pack, b);
             i++;
+        }
+    }
+
+    // Spawn eggs
+    initSpawnEggs(resource_pack) {
+        const eggs = [
+            {id: 521, name: 'chicken',      texture: [3, 0], type: 'chicken', skin: 'base'},
+            {id: 522, name: 'creeper',      texture: [5, 0], type: 'creeper', skin: 'base'},
+            {id: 523, name: 'pig',          texture: [3, 1], type: 'pig', skin: 'base'},
+            {id: 524, name: 'horse',        texture: [2, 2], type: 'horse', skin: 'creamy'},
+            {id: 525, name: 'donkey',       texture: [4, 2], type: 'horse', skin: 'base'},
+            {id: 651, name: 'fox',          texture: [4, 3], type: 'fox', skin: 'base'},
+
+            {id: 1448, name: 'skeleton',    texture: [0, 3], type: 'skeleton', skin: 'base'},
+            {id: 1449, name: 'axolotl',     texture: [5, 3], type: 'axolotl', skin: 'base'},
+            {id: 1450, name: 'bee',         texture: [6, 3], type: 'bee', skin: 'base'},
+            {id: 1451, name: 'cow',         texture: [7, 3], type: 'cow', skin: 'base'},
+            {id: 1452, name: 'deer',        texture: [7, 7], type: 'deer', skin: 'base'},
+            {id: 1453, name: 'goat',        texture: [0, 4], type: 'goat', skin: 'base'},
+            {id: 1454, name: 'hoglin',      texture: [1, 4], type: 'hoglin', skin: 'base'},
+            {id: 1455, name: 'ocelot',      texture: [2, 4], type: 'ocelot', skin: 'base'},
+            {id: 1456, name: 'panda',       texture: [3, 4], type: 'panda', skin: 'base'},
+            {id: 1457, name: 'piglin',      texture: [4, 4], type: 'piglin', skin: 'base'},
+            {id: 1458, name: 'sheep',       texture: [5, 4], type: 'sheep', skin: 'base'},
+            {id: 1459, name: 'snow_golem',  texture: [7, 7], type: 'snow_golem', skin: 'base'},
+            /*
+            Under construction:
+            - bat base
+            - spider
+            - pillager
+            */
+        ];
+        for(let egg of eggs) {
+            const block = {
+                "id": egg.id,
+                "name": "SPAWN_EGG_" + egg.name.toUpperCase(),
+                "style": "extruder",
+                "material": {
+                    "id": "bone"
+                },
+                "spawn_egg": {
+                    "type": egg.type,
+                    "skin": egg.skin
+                },
+                "texture": {
+                    "id": "egg",
+                    "side": egg.texture
+                }
+            };
+            this.BLOCK.add(resource_pack, block);
         }
     }
 
