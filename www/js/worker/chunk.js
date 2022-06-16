@@ -242,6 +242,17 @@ export class Chunk {
         }
     }
 
+    isFilled(id) {
+        return (id >= 2 && id <= 3) ||
+            id == 9 || id == 56 || id == 73 ||
+            (id >= 14 && id <= 16) ||
+            (id >= 545 && id <= 550);
+    }
+
+    isWater(id) {
+        return id == 200 || id == 202;
+    }
+
     static neibMat = [null, null, null, null, null, null];
     static removedEntries = [];
 
@@ -331,29 +342,41 @@ export class Chunk {
                     if (!id) {
                         empty = true;
                     } else {
-                        material = BLOCK_BY_ID.get(id);
-                        let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
-                        // inlining neighbours
-                        // direction of CC from TypedBlocks
-                        neibMat[0] = BLOCK_BY_ID.get(uint16View[index + cy]);
-                        neibMat[1] = BLOCK_BY_ID.get(uint16View[index - cy]);
-                        neibMat[2] = BLOCK_BY_ID.get(uint16View[index - cz]);
-                        neibMat[3] = BLOCK_BY_ID.get(uint16View[index + cz]);
-                        neibMat[4] = BLOCK_BY_ID.get(uint16View[index + cx]);
-                        neibMat[5] = BLOCK_BY_ID.get(uint16View[index - cx]);
-                        for (let i = 0; i < 6; i++) {
-                            const properties = neibMat[i];
-                            if (!properties || properties.transparent || properties.fluid) {
-                                pcnt--;
+                        const neib0 = uint16View[index + cy], neib1 = uint16View[index - cy],
+                            neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
+                            neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
+                        // blockIsClosed from typedBlocks
+                        if ((this.isFilled(id) || this.isWater(id))
+                            && this.isFilled(neib0) && this.isFilled(neib1)
+                            && this.isFilled(neib2) && this.isFilled(neib3)
+                            && this.isFilled(neib4) && this.isFilled(neib5)) {
+                            empty = true;
+                        } else {
+                            // getNeighbours from typedBlocks
+                            material = BLOCK_BY_ID.get(id);
+                            let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
+                            // inlining neighbours
+                            // direction of CC from TypedBlocks
+                            neibMat[0] = BLOCK_BY_ID.get(neib0);
+                            neibMat[1] = BLOCK_BY_ID.get(neib1);
+                            neibMat[2] = BLOCK_BY_ID.get(neib2);
+                            neibMat[3] = BLOCK_BY_ID.get(neib3);
+                            neibMat[4] = BLOCK_BY_ID.get(neib4);
+                            neibMat[5] = BLOCK_BY_ID.get(neib5);
+                            for (let i = 0; i < 6; i++) {
+                                const properties = neibMat[i];
+                                if (!properties || properties.transparent || properties.fluid) {
+                                    pcnt--;
+                                }
+                                if (waterCount > 0 && properties && properties.is_water) {
+                                    waterCount++;
+                                }
                             }
-                            if (waterCount > 0 && properties && properties.is_water) {
-                                waterCount++;
-                            }
+                            empty = pcnt === 6 || waterCount === 7;
                         }
-                        empty = pcnt === 6 || waterCount === 7;
                     }
 
-                    if (!id || !material || material.item) {
+                    if (!material || material.item) {
                         // ???
                         if (this.emitted_blocks.has(block.index)) {
                             this.emitted_blocks.delete(block.index);
