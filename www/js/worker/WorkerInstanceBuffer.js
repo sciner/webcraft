@@ -75,7 +75,7 @@ export class WorkerInstanceBuffer {
         const {pages, lastPage} = this.vertices;
         s.list.push(this.vertices.filled);
         for (let i = 0; i + 1 < pages.length; i++) {
-            s.list.push(pages[i].data.slice(0).buffer);
+            s.list.push(pages[i].data.buffer);
         }
         if (lastPage) {
             const len = lastPage.filled * lastPage.instanceSize;
