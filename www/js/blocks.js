@@ -328,6 +328,7 @@ export class BLOCK {
                             throw 'error_generator_items_not_set';
                         }
                         extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
+                        break;
                     }
                     case 'bees': {
                         extra_data[g.name] = [];
@@ -335,6 +336,7 @@ export class BLOCK {
                         for(let i = 0; i < count; i++) {
                             extra_data[g.name].push({pollen: 0});
                         }
+                        break;
                     }
                 }
             }
