@@ -143,9 +143,9 @@ export default class style {
             _pl.rot      = plane.rot;
             _pl.lm       = style.lm;
             _pl.pos      = _vec.set(
-                x + dx + plane.move.x,
-                y + dy + plane.move.y,
-                z + dz + plane.move.z
+                x + dx + (plane.move?.x || 0),
+                y + dy + (plane.move?.y || 0),
+                z + dz + (plane.move?.z || 0)
             );
             _pl.matrix   = matrix;
             _pl.flag     = flag;
