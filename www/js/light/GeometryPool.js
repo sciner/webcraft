@@ -28,7 +28,7 @@ export class TrivialGeometryPool extends GeometryPool {
             lastBuffer.destroy();
         }
 
-        const vert = new Float32Array(vertices[0] * GeometryTerrain.strideFloats);
+        const vert = new Float32Array(vertices[0] * GeometryTerrain18.strideFloats);
         let pos = 0;
         for (let i=1; i < vertices.length; i++) {
             const floatBuffer = new Float32Array(vertices[i]);
