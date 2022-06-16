@@ -326,11 +326,13 @@ export class Chunk {
                     const index = block.index = cx * x + cy * y + cz * z + cw;
                     const id = uint16View[index];
 
+                    let material = null;
                     let empty = false;
                     if (!id) {
                         empty = true;
                     } else {
-                        let pcnt = 6, waterCount = block.material && block.material.is_water ? 1 : 0;
+                        material = BLOCK_BY_ID.get(id);
+                        let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
                         // inlining neighbours
                         // direction of CC from TypedBlocks
                         neibMat[0] = BLOCK_BY_ID.get(uint16View[index + cy]);
@@ -351,7 +353,7 @@ export class Chunk {
                         empty = pcnt === 6 || waterCount === 7;
                     }
 
-                    if (id == BLOCK.AIR.id || !block.material || block.material.item) {
+                    if (!id || !material || material.item) {
                         // ???
                         if (this.emitted_blocks.has(block.index)) {
                             this.emitted_blocks.delete(block.index);
