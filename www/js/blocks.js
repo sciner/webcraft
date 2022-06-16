@@ -246,7 +246,7 @@ export class BLOCK {
 
     // Call before setBlock
     static makeExtraData(block, pos, orientation) {
-        block = BLOCK.BLOCK_BY_ID.get(block.id);
+        block = BLOCK.BLOCK_BY_ID[block.id];
         let extra_data = null;
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
@@ -344,8 +344,8 @@ export class BLOCK {
 
     // Returns a block structure for the given id.
     static fromId(id) {
-        if(this.BLOCK_BY_ID.has(id)) {
-            return this.BLOCK_BY_ID.get(id);
+        if(this.BLOCK_BY_ID[id]) {
+            return this.BLOCK_BY_ID[id];
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
@@ -377,7 +377,7 @@ export class BLOCK {
         if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
             return true;
         }
-        let block = BLOCK.BLOCK_BY_ID.get(block_id);
+        let block = BLOCK.BLOCK_BY_ID[block_id];
         if(block.is_fluid) {
             return true;
         }
@@ -434,7 +434,7 @@ export class BLOCK {
         BLOCK.spawn_eggs             = [];
         BLOCK.ao_invisible_blocks    = [];
         BLOCK.list                   = new Map();
-        BLOCK.BLOCK_BY_ID            = new Map();
+        BLOCK.BLOCK_BY_ID            = new Array(1024);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
     }
@@ -459,7 +459,7 @@ export class BLOCK {
         if(!('name' in block) || !('id' in block)) {
             throw 'error_invalid_block';
         }
-        const existing_block = this.BLOCK_BY_ID.has(block.id) ? this.fromId(block.id) : null;
+        const existing_block = this.BLOCK_BY_ID[block.id] || null;
         const replace_block = existing_block && (block.name == existing_block.name);
         const original_props = Object.keys(block);
         if(existing_block) {
@@ -582,7 +582,7 @@ export class BLOCK {
             block = existing_block;
         } else {
             this[block.name] = block;
-            BLOCK.BLOCK_BY_ID.set(block.id, block);
+            BLOCK.BLOCK_BY_ID[block.id] = block;
             this.list.set(block.id, block);
         }
         // After add works

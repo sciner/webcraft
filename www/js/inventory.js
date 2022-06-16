@@ -75,7 +75,7 @@ export class Inventory {
         if(mat.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
+        const block = BLOCK.BLOCK_BY_ID[mat.id];
         if(!block) {
             throw 'error_invalid_block_id';
         }
@@ -167,7 +167,7 @@ export class Inventory {
             this.refresh(true);
         }
     }
-    
+
     // Decrement
     decrement(decrement_item, ignore_creative_game_mode) {
         if(!this.current_item) {
@@ -273,7 +273,7 @@ export class Inventory {
     getRightIndex() {
         return this.current.index;
     }
-    
+
     //
     setItem(index, item) {
         this.items[index] = item;
@@ -284,7 +284,7 @@ export class Inventory {
     next() {
         this.select(++this.current.index);
     }
-    
+
     prev() {
         this.select(--this.current.index);
     }
@@ -335,7 +335,7 @@ export class Inventory {
             if(existing_item.count < 1) {
                 items.delete(item_key);
             }
-            this.items = Array.from(items.values());    
+            this.items = Array.from(items.values());
         } else {
             this.decrementByItemID(item.id, item.count, true);
         }

@@ -353,16 +353,16 @@ export class Chunk {
                             empty = true;
                         } else {
                             // getNeighbours from typedBlocks
-                            material = BLOCK_BY_ID.get(id);
+                            material = BLOCK_BY_ID[id];
                             let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
                             // inlining neighbours
                             // direction of CC from TypedBlocks
-                            neibMat[0] = BLOCK_BY_ID.get(neib0);
-                            neibMat[1] = BLOCK_BY_ID.get(neib1);
-                            neibMat[2] = BLOCK_BY_ID.get(neib2);
-                            neibMat[3] = BLOCK_BY_ID.get(neib3);
-                            neibMat[4] = BLOCK_BY_ID.get(neib4);
-                            neibMat[5] = BLOCK_BY_ID.get(neib5);
+                            neibMat[0] = BLOCK_BY_ID[neib0];
+                            neibMat[1] = BLOCK_BY_ID[neib1];
+                            neibMat[2] = BLOCK_BY_ID[neib2];
+                            neibMat[3] = BLOCK_BY_ID[neib3];
+                            neibMat[4] = BLOCK_BY_ID[neib4];
+                            neibMat[5] = BLOCK_BY_ID[neib5];
                             for (let i = 0; i < 6; i++) {
                                 const properties = neibMat[i];
                                 if (!properties || properties.transparent || properties.fluid) {

@@ -128,7 +128,7 @@ export class Chunk {
                     const index = cx * x + cy * y + cz * z + cw;
                     const block_id = id[index];
                     if(block_id !== prev_block_id) {
-                        block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                        block_material = BLOCK.BLOCK_BY_ID[block_id]
                         if(block_material) {
                             light_power_number = block_material.light_power_number;
                         } else {
@@ -380,7 +380,7 @@ export class Chunk {
         //
         if(!is_modify) {
             let oldLight = 0;
-            let material = BLOCK.BLOCK_BY_ID.get(item.id);
+            let material = BLOCK.BLOCK_BY_ID[item.id];
             let pos = new Vector(x, y, z);
             let tblock           = this.tblocks.get(pos);
 

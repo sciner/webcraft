@@ -532,7 +532,7 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
+            const block = BLOCK.BLOCK_BY_ID[this.player.currentInventoryItem.id];
             const power = block.light_power_number;
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
@@ -760,9 +760,9 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
-        
+
         const tmp = mat4.create();
-        
+
         // Shake camera on damage
         if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
             let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
