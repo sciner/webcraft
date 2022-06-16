@@ -1,4 +1,5 @@
 /world
+www/js-gen
 *.obj
 *.mtl
 *.exe
@@ -6,6 +7,9 @@
 .idea/
 .vs/
 *.sqlite3
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
 node_modules
 package-lock.json
 Mickey Mouse.obj

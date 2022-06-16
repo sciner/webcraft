@@ -56,7 +56,7 @@ export class InHandOverlay {
             return;
         }
 
-        const block = BLOCK.BLOCK_BY_ID.get(targetId);
+        const block = BLOCK.BLOCK_BY_ID[targetId];
 
         if (!block || !block.spawnable) {
             return;
@@ -71,7 +71,7 @@ export class InHandOverlay {
     }
 
     bobViewItem(player, viewMatrix) {
-        
+
         //if(!player || !player.walking  || player.getFlying()  || player.in_water ) {
         //    return;
         //}
@@ -90,13 +90,13 @@ export class InHandOverlay {
         const ageInTicks = Math.sin(performance.now() / 1000) * 2;
         RotateAngleX += Math.sin(ageInTicks * 0.067) * 0.15;
         RotateAngleY += Math.cos(ageInTicks * 0.09) * 0.15 + 0.15;
-    
+
         mat4.translate(viewMatrix, viewMatrix, [
             RotateAngleX,
             RotateAngleY,
             0.0,
         ]);
-    
+
     }
 
     update(render, dt) {
@@ -129,7 +129,7 @@ export class InHandOverlay {
 
         if (this.changeAnimation) {
             this.changAnimationTime += 0.05 * dt;
-            
+
             if (this.changAnimationTime > 0.5) {
                 this.reconstructInHandItem(id);
             }
@@ -163,7 +163,7 @@ export class InHandOverlay {
             -1.5 * animFrame
         );
         camera.set(
-            camera.pos, 
+            camera.pos,
             Vector.ZERO,
             camera.bobPrependMatrix
         );
@@ -185,7 +185,7 @@ export class InHandOverlay {
         const orient = handMesh.isLeft ? -1 : 1;
         const attacPhase = Math.sin(phasedTime * phasedTime * Math.PI * 2 - Math.PI);
         const rotPhase = Math.min(-attacPhase, 0);
-        const animY = (1 - Math.cos(phasedTime * Math.PI * 2)) * 0.5;    
+        const animY = (1 - Math.cos(phasedTime * Math.PI * 2)) * 0.5;
 
         mat4.rotateZ(
             animMatrix,
@@ -194,7 +194,7 @@ export class InHandOverlay {
         );
 
         mat4.translate(animMatrix, animMatrix, [
-            orient, 
+            orient,
             attacPhase *  0.8,
             animY * 0.8,
         ]);
@@ -212,7 +212,7 @@ export class InHandOverlay {
             pos.set(0,0,0);
 
             // for axe and sticks
-            if (block_material.diagonal) {                
+            if (block_material.diagonal) {
                 mat4.scale(modelMatrix, modelMatrix, [0.8, 0.8, 0.8]);
                 mat4.rotateZ(modelMatrix, modelMatrix, -orient * 2 * Math.PI / 5);
                 mat4.rotateY(modelMatrix, modelMatrix, -Math.PI / 4);

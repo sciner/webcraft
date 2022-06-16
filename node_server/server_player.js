@@ -63,6 +63,8 @@ export class ServerPlayer extends Player {
 
     init(init_info) {
         this.state = init_info.state;
+        this.state.lies = this.state?.lies || false;
+        this.state.sitting = this.state?.sitting || false;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.game_mode.applyMode(init_info.state.game_mode, false);
     }
@@ -135,16 +137,19 @@ export class ServerPlayer extends Player {
 
     // onLeave...
     async onLeave() {
+        if(!this.conn) {
+            return false;
+        }
+        // remove player from chunks
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        this.chunks.clear();
+        // remove events handler
         PlayerEvent.removeHandler(this.session.user_id);
-        //
-        //try {
-        //    this.conn.close();
-        //} catch(e) {
-        //    console.error(e);
-        //}
+        // close previous connection
+        this.conn.close(1000, 'error_multiconnection');
+        delete(this.conn);
     }
 
     // Change live value
@@ -247,7 +252,11 @@ export class ServerPlayer extends Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height * 0.9375, this.state.pos.z);
+        let subY = 0;
+        if(this.state.sitting) {
+            subY = this.height * 1/3;
+        }
+        return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height * 0.9375 - subY, this.state.pos.z);
     }
 
     /**
@@ -266,7 +275,9 @@ export class ServerPlayer extends Player {
             rotate:   this.state.rotate,
             skin:     this.state.skin,
             hands:    this.state.hands,
-            sneak:    this.state.sneak
+            sneak:    this.state.sneak,
+            sitting:  this.state.sitting,
+            lies:     this.state.lies
         };
     }
 

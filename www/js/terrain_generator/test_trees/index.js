@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Color, Vector} from '../../helpers.js';
 import { Default_Terrain_Generator, alea } from '../default.js';
 import {BLOCK} from '../../blocks.js';

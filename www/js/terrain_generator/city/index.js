@@ -4,13 +4,13 @@ import {alea, Default_Terrain_Generator} from "../default.js";
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
+    constructor(seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(0);
         // Init palette blocks
         this.blocks1 = [];
         for(let b of BLOCK.getAll()) {
-            if (b.name.substring(0, 4) === 'TERR' || b.name.substring(0, 4) === 'WOOL') {
+            if ((b.name.indexOf('_TERRACOTTA') >= 0 && b.name.indexOf('_GLAZED') < 0) || b.name.indexOf('_WOOL') >= 0) {
                 this.blocks1.push(b);
             }
         }
@@ -20,15 +20,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     /**
      * setSeed
-     * @param { string } seed 
+     * @param { string } seed
      */
     setSeed(seed) {
     }
 
     /**
-     * 
-     * @param { Chunk } chunk 
-     * @returns 
+     *
+     * @param { Chunk } chunk
+     * @returns
      */
     generate(chunk) {
 

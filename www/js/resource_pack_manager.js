@@ -1,5 +1,4 @@
 import { BaseResourcePack } from "./base_resource_pack.js";
-import { BLOCK } from "./blocks.js";
 import { Color } from "./helpers.js";
 import { Resources } from "./resources.js";
 
@@ -9,6 +8,7 @@ const START_BUTTON_ID = 770; // ...799
 const START_BED_ID = 1200; // ...1215
 const START_TERRACOTTA = 1300; // 1315
 const START_GLAZED_TERRACOTTA = 1400; // 1415
+let BLOCK = null;
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая керамика - white_terracotta
@@ -32,8 +32,9 @@ export const COLOR_PALETTE = {
 export class ResourcePackManager {
 
     // constructor
-    constructor() {
+    constructor(BLOCK) {
         this.list = new Map();
+        this.BLOCK = BLOCK;
     }
 
     // init
@@ -44,12 +45,12 @@ export class ResourcePackManager {
         const all               = [];
 
         // 1. base
-        const base = new BaseResourcePack(def_resource_pack.path, def_resource_pack.id);
+        const base = new BaseResourcePack(this.BLOCK, def_resource_pack.path, def_resource_pack.id);
         resource_packs.add(base);
 
         // 2. extends
         for(let item of json.extends) {
-            resource_packs.add(new BaseResourcePack(item.path, item.id));
+            resource_packs.add(new BaseResourcePack(this.BLOCK, item.path, item.id));
         }
 
         // 3. variants
@@ -58,7 +59,7 @@ export class ResourcePackManager {
         if(settings?.texture_pack != def_resource_pack.id) {
             for(let item of json.variants) {
                 if(!selected_variant_id || item.id == selected_variant_id) {
-                    resource_packs.add(new BaseResourcePack(item.path, item.id));
+                    resource_packs.add(new BaseResourcePack(this.BLOCK, item.path, item.id));
                 }
             }
         }
@@ -75,6 +76,7 @@ export class ResourcePackManager {
         this.initBed(base);
         this.initTerracotta(base);
         this.initGlazedTerracotta(base);
+        this.initSpawnEggs(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -88,7 +90,7 @@ export class ResourcePackManager {
                 "material": {"id": "iron"},
                 "texture": {"side": [0, 29]}
             };
-            BLOCK.add(base, b);
+            this.BLOCK.add(base, b);
         }
 
     }
@@ -96,6 +98,7 @@ export class ResourcePackManager {
     // Buttons
     initButtons(resource_pack) {
         let i = 0;
+        const { BLOCK } = this;
         const materials = [
             BLOCK.OAK_PLANK,
             BLOCK.BIRCH_PLANK,
@@ -126,7 +129,7 @@ export class ResourcePackManager {
                     "button"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -153,7 +156,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -192,7 +195,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -219,7 +222,7 @@ export class ResourcePackManager {
                     "mask_color"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -247,7 +250,7 @@ export class ResourcePackManager {
                     "can_put_info_pot"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
         }
     }
@@ -278,8 +281,58 @@ export class ResourcePackManager {
                     "no_drop_ao"
                 ]
             };
-            BLOCK.add(resource_pack, b);
+            this.BLOCK.add(resource_pack, b);
             i++;
+        }
+    }
+
+    // Spawn eggs
+    initSpawnEggs(resource_pack) {
+        const eggs = [
+            {id: 521, name: 'chicken',      texture: [3, 0], type: 'chicken', skin: 'base'},
+            {id: 522, name: 'creeper',      texture: [5, 0], type: 'creeper', skin: 'base'},
+            {id: 523, name: 'pig',          texture: [3, 1], type: 'pig', skin: 'base'},
+            {id: 524, name: 'horse',        texture: [2, 2], type: 'horse', skin: 'creamy'},
+            {id: 525, name: 'donkey',       texture: [4, 2], type: 'horse', skin: 'base'},
+            {id: 651, name: 'fox',          texture: [4, 3], type: 'fox', skin: 'base'},
+
+            {id: 1448, name: 'skeleton',    texture: [0, 3], type: 'skeleton', skin: 'base'},
+            {id: 1449, name: 'axolotl',     texture: [5, 3], type: 'axolotl', skin: 'base'},
+            {id: 1450, name: 'bee',         texture: [6, 3], type: 'bee', skin: 'base'},
+            {id: 1451, name: 'cow',         texture: [7, 3], type: 'cow', skin: 'base'},
+            {id: 1452, name: 'deer',        texture: [7, 7], type: 'deer', skin: 'base'},
+            {id: 1453, name: 'goat',        texture: [0, 4], type: 'goat', skin: 'base'},
+            {id: 1454, name: 'hoglin',      texture: [1, 4], type: 'hoglin', skin: 'base'},
+            {id: 1455, name: 'ocelot',      texture: [2, 4], type: 'ocelot', skin: 'base'},
+            {id: 1456, name: 'panda',       texture: [3, 4], type: 'panda', skin: 'base'},
+            {id: 1457, name: 'piglin',      texture: [4, 4], type: 'piglin', skin: 'base'},
+            {id: 1458, name: 'sheep',       texture: [5, 4], type: 'sheep', skin: 'base'},
+            {id: 1459, name: 'snow_golem',  texture: [7, 7], type: 'snow_golem', skin: 'base'},
+            /*
+            Under construction:
+            - bat base
+            - spider
+            - pillager
+            */
+        ];
+        for(let egg of eggs) {
+            const block = {
+                "id": egg.id,
+                "name": "SPAWN_EGG_" + egg.name.toUpperCase(),
+                "style": "extruder",
+                "material": {
+                    "id": "bone"
+                },
+                "spawn_egg": {
+                    "type": egg.type,
+                    "skin": egg.skin
+                },
+                "texture": {
+                    "id": "egg",
+                    "side": egg.texture
+                }
+            };
+            this.BLOCK.add(resource_pack, block);
         }
     }
 

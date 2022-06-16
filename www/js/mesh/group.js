@@ -20,7 +20,7 @@ export class FakeTBlock {
     }
 
     get material() {
-        return BLOCK.BLOCK_BY_ID.get(this.id);
+        return BLOCK.BLOCK_BY_ID[this.id];
     }
 
     get properties() {
@@ -116,10 +116,10 @@ export class MeshGroup {
 
     /**
      * Build vertices
-     * @param {*} tx 
-     * @param {*} ty 
-     * @param {*} tz 
-     * @param {bool} force_inventory_style 
+     * @param {*} tx
+     * @param {*} ty
+     * @param {*} tz
+     * @param {bool} force_inventory_style
      */
     buildVertices(tx, ty, tz, force_inventory_style) {
         const dirt_color = new Color(850 / 1024, 930 / 1024, 0, 0);

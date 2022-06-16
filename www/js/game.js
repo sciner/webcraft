@@ -121,22 +121,6 @@ export class GameClass {
                 } else if(type == MOUSE.MOVE) {
                     let z = e.movementX;
                     let x = e.movementY;
-                    // @todo Hack for chrome bug
-                    /*
-                    if(Math.abs(z) > 100) {
-                        if(that.preve) {
-                            z = that.preve.movementX;
-                        }
-                    } else {
-                        that.preve = e;
-                    }
-                    if(Math.abs(x) > 100) {
-                        if(that.preve) {
-                            x = that.preve.movementY;
-                        }
-                    } else {
-                        that.preve = e;
-                    }*/
                     if(that.hud.wm.hasVisibleWindow()) {
                         if(controls.enabled) {
                             controls.mouseY += x;
@@ -269,7 +253,7 @@ export class GameClass {
                     case KEY.F4: {
                         if(!e.down) {
                             if(e.shiftKey) {
-                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 11, player.pos.y | 0, (player.pos.z | 0) - 13));
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
                             } else {
                                 player.changeSpawnpoint();
                             }
@@ -400,6 +384,9 @@ export class GameClass {
                                 player.controls.sprint = false;
                             }
                         }
+                    }
+                    if(e.shiftKey && e.down && e.keyCode == KEY.SHIFT) {
+                        player.standUp();
                     }
                 }
                 return false;

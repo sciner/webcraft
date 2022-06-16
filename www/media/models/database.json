@@ -1,12 +1,54 @@
 {
     "assets": {
 
-        "deer": {
+        "goat": {
             "type": "json",
-            "geom": "json/deer.geo.json",
+            "geom": "json/goat.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/deer.png"
+                "base": "textures/goat.png"
+            }
+        },
+
+        "piglin": {
+            "type": "json",
+            "geom": "json/piglin.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/piglin.png"
+            }
+        },
+
+        "hoglin": {
+            "type": "json",
+            "geom": "json/hoglin.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/hoglin.png"
+            }
+        },
+
+        "panda": {
+            "type":"json",
+            "geom":"json/panda.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/panda/panda.png",
+                "aggressive": "textures/panda/aggressive.png",
+                "brown": "textures/panda/brown.png",
+                "lazy": "textures/panda/lazy.png",
+                "playful": "textures/panda/playful.png",
+                "sneezy": "textures/panda/sneezy.png",
+                "worried": "textures/panda/worried.png"
+            }
+        },
+
+        "deer": {
+            "type": "json",
+            "geom": "json/deer2.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/deer2.png"
             }
         },
 
@@ -230,6 +272,15 @@
                 "scientist_8": "textures/npc/npc_scientist_8.png",
                 "scientist_9": "textures/npc/npc_scientist_9.png",
                 "scientist_10": "textures/npc/npc_scientist_10.png"
+            }
+        },
+        "zombie": {
+            "type": "json",
+            "geom": "json/steve.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/zombie/zombie.png",
+                "husk": "textures/zombie/husk.png"
             }
         }
     }

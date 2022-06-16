@@ -19,7 +19,7 @@ export default class Particles_Raindrop {
         const RAIN_Y = 18;      // количество блоков высоты дождя
         const RAIN_Z = 18;      // количество блоков по z на которые льет дождь
         const LENGTH_Y = 2;     // плотность дождя по высоте, не должно быть больше RAIN_Y
-        const RAIN_COUNT = 500; // rain density
+        const RAIN_COUNT = 5000; // rain density
         const RAIN_SPEED = 0.4; // rain speed
 
         let vertices = [];

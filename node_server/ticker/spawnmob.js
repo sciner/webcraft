@@ -23,7 +23,7 @@ export default class Ticker {
             };
             // Spawn mob
             console.log('Spawn mob', v.pos.toHash());
-            await world.createMob(params);
+            await world.mobs.create(params);
             updated_blocks.push({pos: v.pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
             // Delete completed block from tickings
             this.delete(v.pos);

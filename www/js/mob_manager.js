@@ -12,9 +12,9 @@ export class MobManager {
     // Client side method
     init() {
         // On server message
-        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADDED, ServerClient.CMD_MOB_DELETED, ServerClient.CMD_MOB_UPDATE], (cmd) => {
+        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
             switch(cmd.name) {
-                case ServerClient.CMD_MOB_ADDED: {
+                case ServerClient.CMD_MOB_ADD: {
                     for(let mob of cmd.data) {
                         // console.log('Mob added: ' + mob.id, mob.pos);
                         this.add(mob);
@@ -24,7 +24,7 @@ export class MobManager {
                 case ServerClient.CMD_MOB_UPDATE: {
                     if(Array.isArray(cmd.data)) {
                         for(let i = 0; i < cmd.data.length; i += 6) {
-                            let mob = this.list.get(cmd.data[i]);
+                            const mob = this.list.get(cmd.data[i]);
                             if(mob) {
                                 const new_state = {
                                     pos: new Vector(cmd.data[i + 1], cmd.data[i + 2], cmd.data[i + 3]),
@@ -51,7 +51,7 @@ export class MobManager {
                     }
                     break;
                 }
-                case ServerClient.CMD_MOB_DELETED: {
+                case ServerClient.CMD_MOB_DELETE: {
                     for(let mob_id of cmd.data) {
                         this.delete(mob_id);
                     }

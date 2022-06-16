@@ -1,4 +1,4 @@
-import {ChunkManager, Chunk} from "./chunk.js";
+import { ChunkManager, Chunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 
 // WorkerWorldManager
@@ -14,10 +14,43 @@ export class WorkerWorldManager {
         that.terrainGenerators = new Map();
         const all = [];
         // Load terrain generators
+        import('../terrain_generator/biome2/index.js').then(module =>
+            {
+            that.terrainGenerators.set('biome2', module.default);
+        })
+
         for(let tg_code of generator_codes) {
-            all.push(import('../terrain_generator/' + tg_code + '/index.js').then((module) => {
-                that.terrainGenerators.set(tg_code, module.default);
-            }));
+            switch (tg_code) {
+                case 'biome2':
+                      all.push(import('../terrain_generator/biome2/index.js').then(module =>
+                          {
+                              that.terrainGenerators.set('biome2', module.default);
+                          }));
+                      break;
+                  case 'city':
+                      all.push(import('../terrain_generator/city/index.js').then(module => {that.terrainGenerators.set('city', module.default);}));
+                      break;
+                  case 'city2':
+                      all.push(import('../terrain_generator/city2/index.js').then(module => {that.terrainGenerators.set('city2', module.default);}));
+                      break;
+                  case 'flat':
+                      all.push(import('../terrain_generator/flat/index.js').then(module => {that.terrainGenerators.set('flat', module.default);}));
+                      break;
+                  case 'mine':
+                      all.push(import('../terrain_generator/mine/index.js').then(module => {that.terrainGenerators.set('mine', module.default);}));
+                      break;
+                  case 'test_trees':
+                      all.push(import('../terrain_generator/test_trees/index.js').then(module => {that.terrainGenerators.set('test_trees', module.default);}));
+                      break;
+                      /*
+                  default:
+                     import('../terrain_generator/' + tg_code + '/index.js').then((module) => {
+                          that.terrainGenerators.set(tg_code, module.default);
+                      });
+                      break;*/
+             }
+
+
         }
         await Promise.all(all);
     }
@@ -76,9 +109,7 @@ export class WorkerWorld {
         if(chunk) {
             this.chunks.delete(addr);
             this.generator.maps.delete(addr);
-
-            this.chunkManager.dataWorld.removeChunk(chunk);
-
+            chunk.destroy();
             return true;
         }
         return false;

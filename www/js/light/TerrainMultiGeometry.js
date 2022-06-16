@@ -204,6 +204,14 @@ export class TerrainMultiGeometry {
         this.updateID++;
     }
 
+    updatePage(dstOffset, floatBuffer) {
+        const {data} = this;
+        dstOffset *= this.strideFloats;
+        data.set(floatBuffer, dstOffset);
+        this.updates.push(dstOffset, dstOffset + floatBuffer.length);
+        this.updateID++;
+    }
+
     destroy() {
         // we not destroy it, it shared
         this.quad = null;

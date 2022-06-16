@@ -1,36 +1,12 @@
 import {impl as alea} from '../../vendors/alea.js';
 import { BLOCK } from "../blocks.js";
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
-import { Mth, Vector } from "../helpers.js";
-
-const MAX_ORE_RAD = 2.0;
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { Vector } from "../helpers.js";
 
 // Ores
-const ORE_RANDOMS = [
-    {max_rad: 1.5, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
-    {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: 48},
-    {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-    {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
-];
+const ORE_RANDOMS = [];
 
+const MAX_ORE_RAD = 2;
 const CHUNK_SIZE_VEC = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 const CHUNK_SIZE_X_SM = (CHUNK_SIZE_X - MAX_ORE_RAD * 2);
@@ -53,6 +29,33 @@ class OreSource {
 export class OreGenerator {
 
     constructor(seed, chunk_addr, noisefn, noise3d, map) {
+
+        if(ORE_RANDOMS.length == 0) {
+            ORE_RANDOMS.push(...[
+                {max_rad: 1.5, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
+                {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: 48},
+                {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
+            ]);
+        }
 
         const aleaRandom = new alea(seed + '_' + chunk_addr.toHash());
         const chunk_coord = chunk_addr.clone().multiplyVecSelf(CHUNK_SIZE_VEC);

@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../../chunk_const.js";
 import {Vector} from '../../helpers.js';
 import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';

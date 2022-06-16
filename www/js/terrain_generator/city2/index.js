@@ -3,46 +3,8 @@ import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from '../default.js';
 import {BLOCK} from '../../blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 
 //
-let palette = {
-    150: BLOCK.OAK_LEAVES,
-    80: BLOCK.OAK_TRUNK,
-    112: BLOCK.SAND,
-    252: BLOCK.CONCRETE,
-    192: BLOCK.ICE,
-    235: BLOCK.IRON,
-    248: BLOCK.SMOOTH_STONE,
-    106: BLOCK.BIRCH_PLANK,
-    38: BLOCK.TERRACOTTA_RED,
-    246: BLOCK.IRON,
-    254: BLOCK.BLACK_WOOL,
-    236: BLOCK.TERRACOTTA_CYAN,
-    103: BLOCK.GOLD,
-    253: BLOCK.GRAY_WOOL,
-    143: BLOCK.GRASS_DIRT,
-    139: BLOCK.GREEN_WOOL,
-    29: BLOCK.TERRACOTTA_GRAY,
-    111: BLOCK.CONCRETE_YELLOW,
-    198: BLOCK.BLUE_WOOL,
-    30: BLOCK.TERRACOTTA_RED, // BRICK
-    252: BLOCK.GRAY_WOOL,
-    90: BLOCK.CLAY,
-    237: BLOCK.GRAY_WOOL,
-    165: BLOCK.CONCRETE_CYAN,
-    166: BLOCK.CYAN_WOOL,
-    174: BLOCK.BLUE_WOOL,
-    234: BLOCK.POWDER_SNOW,
-
-    238: BLOCK.TEST,
-
-    // 97: BLOCK.OAK_PLANK,
-    // 121: BLOCK.STONE_BRICK,
-    // 122: BLOCK.SMOOTH_STONE,
-    // 123: BLOCK.GRAVEL,
-};
-
 let vox_templates = {};
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -58,17 +20,62 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         if(typeof process === 'undefined') {
             root_dir = '';
         }
+        //
+        this.initPallette();
+        //
         await Vox_Loader.load(root_dir + '/data/vox/city/City_1.vox', (chunks) => {
-            vox_templates.city1 = {chunk: chunks[0], palette: palette};
+            vox_templates.city1 = {chunk: chunks[0], palette: this.palette};
         });
         await Vox_Loader.load(root_dir + '/data/vox/city/City_2.vox', (chunks) => {
-            vox_templates.city2 = {chunk: chunks[0], palette: palette};
+            vox_templates.city2 = {chunk: chunks[0], palette: this.palette};
         });
         // Voxel buildings
         this.voxel_buildings = [
             new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
             new Vox_Mesh(vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
         ];
+    }
+
+    initPallette() {
+        if(this.palette) {
+            return false;
+        }
+        this.palette = {
+            150: BLOCK.OAK_LEAVES,
+            80: BLOCK.OAK_TRUNK,
+            112: BLOCK.SAND,
+            252: BLOCK.CONCRETE,
+            192: BLOCK.ICE,
+            235: BLOCK.IRON,
+            248: BLOCK.SMOOTH_STONE,
+            106: BLOCK.BIRCH_PLANK,
+            38: BLOCK.RED_TERRACOTTA,
+            236: BLOCK.CYAN_TERRACOTTA,
+            29: BLOCK.GRAY_TERRACOTTA,
+            30: BLOCK.RED_TERRACOTTA, // BRICK
+            246: BLOCK.IRON,
+            254: BLOCK.BLACK_WOOL,
+            103: BLOCK.GOLD,
+            253: BLOCK.GRAY_WOOL,
+            143: BLOCK.GRASS_DIRT,
+            139: BLOCK.GREEN_WOOL,
+            111: BLOCK.CONCRETE_YELLOW,
+            198: BLOCK.BLUE_WOOL,
+            252: BLOCK.GRAY_WOOL,
+            90: BLOCK.CLAY,
+            237: BLOCK.GRAY_WOOL,
+            165: BLOCK.CONCRETE_CYAN,
+            166: BLOCK.CYAN_WOOL,
+            174: BLOCK.BLUE_WOOL,
+            234: BLOCK.POWDER_SNOW,
+        
+            238: BLOCK.TEST,
+        
+            // 97: BLOCK.OAK_PLANK,
+            // 121: BLOCK.STONE_BRICK,
+            // 122: BLOCK.SMOOTH_STONE,
+            // 123: BLOCK.GRAVEL,
+        };
     }
 
     /**

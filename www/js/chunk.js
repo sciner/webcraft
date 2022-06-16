@@ -5,35 +5,7 @@ import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
-
-export const CHUNK_SIZE_X                   = 16;
-export const CHUNK_SIZE_Y                   = 40;
-export const CHUNK_SIZE_Z                   = 16;
-export const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-export const CHUNK_SIZE_Y_MAX               = 4096;
-export const MAX_CAVES_LEVEL                = 256;
-export const ALLOW_NEGATIVE_Y               = true;
-
-// Возвращает адрес чанка по глобальным абсолютным координатам
-export function getChunkAddr(x, y, z, v = null) {
-    if(x instanceof Vector || typeof x == 'object') {
-        v = y;
-
-        y = x.y;
-        z = x.z;
-        x = x.x;
-    }
-    //
-    v = v || new Vector();
-    v.x = Math.floor(x / CHUNK_SIZE_X);
-    v.y = Math.floor(y / CHUNK_SIZE_Y);
-    v.z = Math.floor(z / CHUNK_SIZE_Z);
-    // Fix negative zero
-    if(v.x == 0) {v.x = 0;}
-    if(v.y == 0) {v.y = 0;}
-    if(v.z == 0) {v.z = 0;}
-    return v;
-}
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk_const.js";
 
 // Creates a new chunk
 export class Chunk {
@@ -46,15 +18,6 @@ export class Chunk {
 
         this.addr                       = new Vector(addr); // относительные координаты чанка
         this.seed                       = chunkManager.world.info.seed;
-
-        // Run webworker method
-        chunkManager.postWorkerMessage(['createChunk', [
-            {
-                addr:           this.addr,
-                seed:           this.seed,
-                modify_list:    modify_list || []
-            }
-        ]]);
 
         //
         this.tblocks                    = null;
@@ -94,6 +57,15 @@ export class Chunk {
         this._dataTextureOffset = 0;
         this._dataTexture = null;
         this._dataTextureDirty = false;
+        // Run webworker method
+        chunkManager.postWorkerMessage(['createChunk', [
+            {
+                addr:           this.addr,
+                seed:           this.seed,
+                modify_list:    modify_list || [],
+                dataId: this.getDataTextureOffset()
+            }
+        ]]);
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -156,7 +128,7 @@ export class Chunk {
                     const index = cx * x + cy * y + cz * z + cw;
                     const block_id = id[index];
                     if(block_id !== prev_block_id) {
-                        block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                        block_material = BLOCK.BLOCK_BY_ID[block_id]
                         if(block_material) {
                             light_power_number = block_material.light_power_number;
                         } else {
@@ -167,7 +139,7 @@ export class Chunk {
                     light_source[ind++] = light_power_number;
                 }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
-            {addr: this.addr, size: this.size, light_buffer}]);
+            {addr: this.addr, size: this.size, light_buffer, dataId: this.getDataTextureOffset() }]);
     }
 
     getLightTexture(render) {
@@ -275,9 +247,10 @@ export class Chunk {
         // Add chunk to renderer
         this.verticesList.length = 0;
         for(let [key, v] of Object.entries(args.vertices)) {
-            if(v.list.length > 0) {
+            if(v.list.length > 1) {
                 let temp = key.split('/');
-                this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
+
+                this.vertices_length += v.list[0];
                 let lastBuffer = this.vertices.get(key);
                 if (lastBuffer) { lastBuffer = lastBuffer.buffer }
                 v.resource_pack_id    = temp[0];
@@ -369,6 +342,7 @@ export class Chunk {
         y -= this.coord.y;
         z -= this.coord.z;
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
+            console.log(888)
             return this.getChunkManager().DUMMY;
         }
         if(v instanceof Vector) {
@@ -406,7 +380,7 @@ export class Chunk {
         //
         if(!is_modify) {
             let oldLight = 0;
-            let material = BLOCK.BLOCK_BY_ID.get(item.id);
+            let material = BLOCK.BLOCK_BY_ID[item.id];
             let pos = new Vector(x, y, z);
             let tblock           = this.tblocks.get(pos);
 
@@ -426,7 +400,9 @@ export class Chunk {
             if (this.chunkManager.use_light) {
                 const light         = material.light_power_number;
                 if (oldLight !== light) {
-                    chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
+                    chunkManager.postLightWorkerMessage(['setBlock', {
+                        addr: this.addr,
+                        dataId: this.getDataTextureOffset(),
                         x:          x + this.coord.x,
                         y:          y + this.coord.y,
                         z:          z + this.coord.z,

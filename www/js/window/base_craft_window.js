@@ -333,11 +333,14 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(!dropData) {
                     return;
                 }
-                const max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
-                //
+                let max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
+                if(dropData.item.entity_id) {
+                    max_stack_count = 1;
+                }
+                // check if double click by left mouse button
                 if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && this.prev_mousedown_button == MOUSE.BUTTON_LEFT && !e.shiftKey) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
-                    let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
+                    let doubleClick = (performance.now() - this.prev_mousedown_time < 200.0) && (max_stack_count > 1);
                     if(doubleClick && dropData.item.count < max_stack_count) {
                         let need_count = max_stack_count - dropData.item.count;
                         // проверить крафт слоты
@@ -347,7 +350,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                 break;
                             }
                             const slot = slots[i];
-                            if(slot && slot.item) {
+                            if(slot && slot.item && !slot.item.entity_id) {
                                 if(slot.item.id == dropData.item.id) {
                                     if(slot.item.count != max_stack_count) {
                                         let minus_count = 0;
@@ -367,13 +370,13 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             }
                         }
                         // проверить слоты инвентаря
-                        let inventory_items = player.inventory.items;
+                        const inventory_items = player.inventory.items;
                         for(let i in inventory_items) {
                             if(need_count == 0) {
                                 break;
                             }
                             const item = inventory_items[i];
-                            if(item) {
+                            if(item && !item.entity_id) {
                                 if(item.id == dropData.item.id) {
                                     if(item.count != max_stack_count) {
                                         let minus_count = 0;
@@ -401,7 +404,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 // Если в текущей ячейке что-то есть
                 if(targetItem) {
                     // @todo
-                    if(targetItem.id == dropData.item.id) {
+                    if(targetItem.id == dropData.item.id && (!targetItem.entity_id && !dropData.item.entity_id)) {
                         if(targetItem.count < max_stack_count) {
                             if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                                 targetItem.count++;
@@ -453,23 +456,25 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if(typeof srcListFirstIndexOffset != 'number') {
             throw 'Invalid srcListFirstIndexOffset';
         }
-        const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
-        // 1. проход в поисках подобного
-        for(let slot of target_list) {
-            if(slot instanceof CraftTableInventorySlot) {
-                const item = slot.getItem();
-                if(item && item.id == srcItem.id) {
-                    let free_count = max_stack_count - item.count;
-                    if(free_count > 0) {
-                        let count = Math.min(free_count, srcItem.count);
-                        srcItem.count -= count
-                        item.count += count;
-                        slot.setItem(item);
+        if(!srcItem.entity_id) {
+            const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
+            // 1. проход в поисках подобного
+            for(let slot of target_list) {
+                if(slot instanceof CraftTableInventorySlot) {
+                    const item = slot.getItem();
+                    if(item && item.id == srcItem.id) {
+                        let free_count = max_stack_count - item.count;
+                        if(free_count > 0) {
+                            let count = Math.min(free_count, srcItem.count);
+                            srcItem.count -= count
+                            item.count += count;
+                            slot.setItem(item);
+                        }
                     }
+                } else {
+                    console.error(slot);
+                    throw 'error_invalid_slot_type';
                 }
-            } else {
-                console.error(slot);
-                throw 'error_invalid_slot_type';
             }
         }
         // 2. проход в поисках свободных слотов

@@ -4,7 +4,7 @@ import { Vector } from "../../../www/js/helpers.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -16,10 +16,17 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player, packet) {
+        if(!player.game_mode.canBlockAction()) {
+            return true;
+        }
+        //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
-        if (packet.data.interractMob) {
-            const mob = world.mobs.get(packet.data.interractMob);
+        if(player.state.sitting || player.state.lies) {
+            return true;
+        }
+        if (packet.data.interractMobID) {
+            const mob = world.mobs.get(packet.data.interractMobID);
             if (mob) {
                 mob.punch(player, packet.data);
             }
@@ -38,7 +45,7 @@ export default class packet_reader {
             // @todo Need to compare two actions
             // console.log(JSON.stringify(params.actions.blocks));
             // console.log(JSON.stringify(actions.blocks));
-            await world.applyActions(player, actions);
+            world.actions_queue.add(player, actions);
         }
 		if(packet.data.destroyBlock == true) {
 			player.state.stats.pickat++;

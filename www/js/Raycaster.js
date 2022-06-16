@@ -1,5 +1,5 @@
 import { Vector } from "./helpers.js";
-import { ALLOW_NEGATIVE_Y } from "./chunk.js";
+import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -52,10 +52,10 @@ export class Raycaster {
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {number[]} invViewMatrix 
-     * @param {number} distance 
-     * @param {*} callback 
+     * @param {Vector} pos
+     * @param {number[]} invViewMatrix
+     * @param {number} distance
+     * @param {*} callback
      * @returns {null | RaycasterResult}
      */
     getFromView(pos, invViewMatrix, distance, callback, ignore_transparent) {
@@ -143,9 +143,9 @@ export class Raycaster {
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {*} dir 
-     * @param {number} pickat_distance 
+     * @param {Vector} pos
+     * @param {*} dir
+     * @param {number} pickat_distance
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
@@ -203,10 +203,10 @@ export class Raycaster {
 
                     for(let j = 0; j < 3; j++) {
                         const d = coord[j];
-                        
+
                         if(dir[d] > eps && tMin + eps > (shape[j] + leftTop[d] - pos[d]) / dir[d]) {
                             const t = (shape[j] + leftTop[d] - pos[d]) / dir[d];
-                            
+
                             check.x = pos.x - leftTop.x + t * dir.x;
                             check.y = pos.y - leftTop.y + t * dir.y;
                             check.z = pos.z - leftTop.z + t * dir.z;
@@ -283,7 +283,7 @@ export class Raycaster {
         }
 
         callback && callback(res);
-        
+
         return res;
     }
 

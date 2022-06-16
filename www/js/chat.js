@@ -48,7 +48,16 @@ export class Chat extends TextBox {
             index: -1,
             add: function(buffer) {
                 this.list.push(buffer);
+                this.save();
                 this.reset();
+            },
+            save() {
+                const saved_arr = Array.from(this.list.slice(-64));
+                localStorage.setItem('chat_history', JSON.stringify(saved_arr));
+            },
+            clear() {
+                this.list = [];
+                this.save();
             },
             reset: function() {
                 this.index = -1;
@@ -89,6 +98,19 @@ export class Chat extends TextBox {
         this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
             this.messages.add(cmd.data.username, cmd.data.text);
         });
+        // Restore sent history
+        let hist = localStorage.getItem('chat_history');
+        if(hist) {
+            hist = JSON.parse(hist);
+            if(Array.isArray(hist)) {
+                for(let i = 0; i < hist.length; i++) {
+                    const buf = hist[i];
+                    if(Array.isArray(buf)) {
+                        this.history.add(buf);
+                    }
+                }
+            }
+        }
     }
 
     //
@@ -139,6 +161,10 @@ export class Chat extends TextBox {
             let temp = text.replace(/  +/g, ' ').split(' ');
             let cmd = temp.shift();
             switch(cmd.trim().toLowerCase()) {
+                case '/clear': {
+                    this.history.clear();
+                    break;
+                }
                 case '/weather': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();
@@ -172,10 +198,10 @@ export class Chat extends TextBox {
                     break;
                 }
             }
+            this.history.add(this.buffer);
+            this.buffer = [];
+            this.resetCarriage();
         }
-        this.history.add(this.buffer);
-        this.buffer = [];
-        this.resetCarriage();
         this.close();
     }
 

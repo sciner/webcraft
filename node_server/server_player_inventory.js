@@ -151,6 +151,10 @@ export class ServerPlayerInventory extends Inventory {
                         return this.refresh(false);
                     } else {
                         // select if on hotbar
+                        if(k == this.current.index) {
+                            const block = BLOCK.fromId(mat.id);
+                            item.count = Math.min(item.count + 1, block.max_in_stack);
+                        }
                         this.select(k);
                         return this.refresh(false);
                     }

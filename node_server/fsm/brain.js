@@ -1,9 +1,8 @@
 import { CHUNK_STATE_BLOCKS_GENERATED } from "../server_chunk.js";
 import { FSMStack } from "./stack.js";
-import { BLOCK } from "../../www/js/blocks.js";
 import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/using.js";
 import { Vector } from "../../www/js/helpers.js";
-import { getChunkAddr } from "../../www/js/chunk.js";
+import { getChunkAddr } from "../../www/js/chunk_const.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
@@ -22,12 +21,10 @@ export class FSMBrain {
         this.mob = mob;
         this.stack = new FSMStack();
         this.raycaster = new Raycaster(mob.getWorld());
-        this.rotateSign = 1;
         this.#pos = new Vector(0, 0, 0);
-        this.run = false;
+        this.panick_timer = 0;
         this.target = null;
-        this.angleRotation = 0;
-        this.painicTime = 0;
+        this.rotate_angle = 0;
     }
 
     /**
@@ -121,7 +118,6 @@ export class FSMBrain {
                 data: new_state
             }];
             world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
-            // world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
         }
     }
 
@@ -144,7 +140,7 @@ export class FSMBrain {
 
     applyControl(delta) {
         let pc = this.pc;
-        pc.tick(delta * (this.run ? 4 : 1));
+        pc.tick(delta * (this.panick_timer > 0 ? 4 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
 
@@ -155,180 +151,134 @@ export class FSMBrain {
     }
 
     angleTo(target) {
-        let pos = this.mob.pos;
-        let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        const pos = this.mob.pos;
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
-    
-    findTarget(){
-        return false;
-    }
-    
-    isStand(chance) {
-        if (Math.random() <= chance) {
-            this.stack.replaceState(this.doStand);
-            return true;
-        }
-        return false;
-    }
 
-    isForward(chance) {
-        if (Math.random() <= chance) {
-            this.stack.replaceState(this.doForward);
-            return true;
-        }
-        return false;
-    }
-
-    isRotate(chance, angle = -1) {
-        if (Math.random() <= chance) {
-            this.angleRotation = (angle == -1) ? 2 * Math.random() * Math.PI : angle;
-            this.stack.replaceState(this.doRotate);
-            return true;
-        }
-        return false;
-    }
-
-    onPanic(pos) {
+    getBeforeBlocks() {
         const mob = this.mob;
-        this.run = true;
-        this.panicTime = performance.now();
-        mob.rotate.z = this.angleTo(pos) + Math.PI;
-        this.stack.replaceState(this.doPanic);
+        const world = mob.getWorld();
+        const chunk_over = world.chunks.get(mob.chunk_addr);
+        if (!chunk_over) {
+            return null;
+        }
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height + 1, Math.cos(mob.rotate.z)));
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height / 2, Math.cos(mob.rotate.z)));
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z)));
+        const pos_under = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z)));
+        const head = chunk_over.getBlock(pos_head);
+        const body = chunk_over.getBlock(pos_body);
+        const legs = chunk_over.getBlock(pos_legs);
+        const under = chunk_over.getBlock(pos_under);
+        return { 'head': head, 'body': body, 'legs': legs, 'under': under }
+    }
+
+    findTarget() {
+        return false;
 	}
 
-    doPanic(delta) {
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-        this.applyControl(delta);
-        this.sendState();
-        let time = performance.now() - this.panicTime;
-        if (time > 3000) {
-            this.run = false;
-            this.isStand(1.0);
-        }
-    }
-
     doStand(delta) {
+        if (this.findTarget()) {
+            return;
+        }
+
+        const block = this.getBeforeBlocks();
+        if (!block) {
+            return;
+        }
+
+        const is_water = block.body.material.is_fluid || block.head.material.is_fluid;
+        const mob = this.mob;
+        if (is_water) {
+            this.rotate_angle += Math.PI / 60;
+            mob.rotate.z = this.rotate_angle;
+        }
+
+        this.rotate_angle = Math.round((this.rotate_angle % 6.28) * 100 ) / 100;
+        if (Math.abs(Math.abs(mob.rotate.z % 6.28) - this.rotate_angle) > 0.5) {
+            mob.rotate.z += (this.panick_timer > 0 ? 1 : 0.2);
+        } else {
+            mob.rotate.z = this.rotate_angle;
+            if (this.panick_timer > 0) {
+                this.stack.replaceState(this.doForward);
+            }
+        }
+
         this.updateControl({
-            jump: this.checkInWater(),
+            yaw: mob.rotate.z,
+            jump: is_water,
             forward: false
         });
-
         this.applyControl(delta);
         this.sendState();
-        
-        if (this.findTarget()){
-            return;
-        }
 
-        if (this.isForward(0.02)) {
-            return;
-        }
-
-        if (this.isRotate(0.01)) {
-            return;
+        if (Math.random() < 0.05) {
+            this.stack.replaceState(this.doForward);
         }
     }
 
     doForward(delta) {
-        this.updateControl({
-            yaw: this.mob.rotate.z,
-            forward: true,
-            jump: this.checkInWater()
-        });
-        this.applyControl(delta);
-        this.sendState();
 
-        if (this.checkDangerAhead()) {
-            this.isRotate(1.0);
-            return;
-		}
-        
-        if (this.findTarget()){
+        if (this.findTarget()) {
             return;
         }
 
-        if (this.isStand(0.01)) {
-            return;
+        if (this.panick_timer > 0) {
+            this.panick_timer--;
         }
-    }
 
-    //
-    doRotate(delta) {
-        this.updateControl({
-            forward: false,
-            jump: this.checkInWater()
-        });
-
-        if (Math.abs((this.mob.rotate.z % (2 * Math.PI)) - this.angleRotation) > 0.7) {
-            this.mob.rotate.z += delta * ((this.run) ? 3 : 2);
-        } else {
-            this.mob.rotate.z = this.angleRotation;
-            this.isForward(1.0);
+        const block = this.getBeforeBlocks();
+        if (!block) {
             return;
         }
 
-        this.applyControl(delta);
-        this.sendState();
-        
-        if (this.findTarget()){
-            return;
-        }
-    }
-
-    //
-    checkInWater() {
-        let mob = this.mob;
-        let world = mob.getWorld();
-        let chunk_over = world.chunks.get(mob.chunk_addr);
-        if (!chunk_over) {
-            return false;
-        }
-        let block = chunk_over.getBlock(mob.pos.floored());
-        return block.material.is_fluid;
-    }
-
-    checkDangerAhead() {
         const mob = this.mob;
-        const world = mob.getWorld();
+        const is_water = block.body.material.is_fluid;
+        this.updateControl({
+            yaw: mob.rotate.z,
+            jump: is_water,
+            forward: true
+        });
+        this.applyControl(delta);
+        this.sendState();
 
-        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 1, Math.cos(mob.rotate.z) * mob.width)).floored();
-        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, 0, Math.cos(mob.rotate.z) * mob.width)).floored();
-        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -1, Math.cos(mob.rotate.z) * mob.width)).floored();
-        const pos_bottom = mob.pos.add(new Vector(Math.sin(mob.rotate.z) * mob.width, -2, Math.cos(mob.rotate.z) * mob.width)).floored();
-
-        if (!world.getBlock(pos_legs) || !world.getBlock(pos_head) || !world.getBlock(pos_legs) || !world.getBlock(pos_bottom)) {
-            return false;
+        if (block.body.material.is_fluid) {
+            return;
         }
 
-        //боится высоты
-        if (world.getBlock(pos_legs).id == BLOCK.AIR.id && world.getBlock(pos_bottom).id == BLOCK.AIR.id) {
-            return true;
+        const is_abyss = (block.legs.id == 0 && block.under.id == 0) ? true : false;
+        const is_water_legs = (block.legs.material.is_fluid) ? true : false;
+        const is_fence = (block.body.material.style == "fence") ? true : false;
+        const is_wall = (block.head.id != 0 && !block.head.material.planting) ? true : false;
+        if (is_wall || is_fence || is_abyss || is_water_legs) {
+            this.rotate_angle = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
+            this.stack.replaceState(this.doStand);
+            return;
         }
 
-        //Преграда
-        if (world.getBlock(pos_head).id != BLOCK.AIR.id && world.getBlock(pos_body).id != BLOCK.AIR.id) {
-            return true;
+        if (Math.random() < 0.05 && this.panick_timer == 0) {
+            if (Math.random() < 0.1) {
+                this.rotate_angle = 2 * Math.random() * Math.PI;
+            }
+            this.stack.replaceState(this.doStand);
         }
+    }
 
-        //Боится стихий
-        if (world.getBlock(pos_legs).material.is_fluid || world.getBlock(pos_legs).material.is_fire) {
-            return true;
-        }
-
-        return false;
+    onPanic() {
+        const mob = this.mob;
+        this.panick_timer = 80;
+        this.target = null;
+        mob.rotate.z = 2 * Math.random() * Math.PI;
+        this.stack.replaceState(this.doStand);
     }
 
     /**
     * Моба убили
     * actor - игрок или пероснаж
-    * type_demage - от чего умер[упал, сгорел, утонул]
+    * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onKill(actor, type_demage) {
+    onKill(actor, type_damage) {
     }
     
     /**
@@ -344,14 +294,14 @@ export class FSMBrain {
     * Нанесен урон по мобу
     * actor - игрок или пероснаж
     * val - количество урона
-    * type_demage - от чего умер[упал, сгорел, утонул]
+    * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onDemage(actor, val, type_demage){
+    onDamage(actor, val, type_damage) {
         const mob = this.mob;
-        const pos_actor = (actor.session) ? actor.state.pos : new Vector(0,0,0);
+        const pos_actor = (actor.session) ? actor.state.pos : new Vector(0, 0, 0);
         let velocity = mob.pos.sub(pos_actor).normSelf();
-        velocity.y = .5;
+        velocity.y = 0.5;
         mob.addVelocity(velocity);
-        this.onPanic(pos_actor);
+        this.onPanic();
     }
 }

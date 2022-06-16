@@ -1,5 +1,5 @@
 import {Helpers, Vector} from "./helpers.js";
-import {getChunkAddr} from "./chunk.js";
+import {getChunkAddr} from "./chunk_const.js";
 import {Particles_Effects} from "./particles/effects.js";
 
 export class Particle {
@@ -72,7 +72,7 @@ export class MeshManager {
 
     //
     addEffectParticle(name, pos) {
-        
+
         let particle = null;
         const p = {...pos};
 
@@ -125,7 +125,7 @@ export class MeshManager {
             }
             effects.add(p, particle);
         }
-        
+
     }
 
 }

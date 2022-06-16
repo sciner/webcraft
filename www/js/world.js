@@ -3,6 +3,7 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
+import { Lang } from "./lang.js";
 
 /**
  * World generation unfo passed from server
@@ -92,7 +93,7 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
-                Game.render.addExplosionsParticles(cmd.data);
+                Game.render.addExplosionParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
@@ -229,6 +230,7 @@ export class World {
         if(actions.clone_block /* && player.game_mode.canBlockClone()*/) {
             this.server.CloneBlock(actions.clone_block);
         }
+        //
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 //
@@ -252,6 +254,13 @@ export class World {
                     }
                 }
             }
+        }
+        // Sitting
+        if(actions.sitting) {
+            player.state.sitting = actions.sitting;
+            player.setPosition(actions.sitting.pos);
+            player.setRotate(actions.sitting.rotate);
+            Game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
     }
 

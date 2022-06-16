@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -8,7 +8,7 @@ import {impl as alea} from '../www/vendors/alea.js';
 import {PickatActions} from "../www/js/block_action.js";
 
 const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
+for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace', 'bee_nest']) {
     await import(`./ticker/${fn}.js`).then((module) => {
         Tickers.set(module.default.type, module.default.func);
     });
@@ -104,9 +104,9 @@ class TickingBlockManager {
             }
         }
         if(updated_blocks.length > 0) {
-            const actions = new PickatActions();
+            const actions = new PickatActions(null, this.#chunk.world, false, false);
             actions.addBlocks(updated_blocks);
-            await world.applyActions(null, actions);
+            world.actions_queue.add(null, actions);
         }
     }
 
@@ -160,7 +160,7 @@ class MobGenerator {
                 //
                 if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
                     let cnt = 0;
-                    let poses = [];
+                    const poses = [];
                     const pos_up = new Vector(0, 0, 0);
                     for(let [vec, y] of vc.entries()) {
                         if(cnt++ % 2 == 0) {
@@ -193,7 +193,7 @@ class MobGenerator {
                                     ...t
                                 };
                                 // Spawn mob
-                                await this.chunk.world.createMob(params);
+                                await this.chunk.world.mobs.create(params);
                             }
                         }
                     }
@@ -265,7 +265,8 @@ export class ServerChunk {
                 }
             ]
         ]);
-        // Разошлем чанк игрокам, которые его запросили
+
+        // Разошлем чанк игрокам, которые его запрашивали
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
             this.preq.clear();
@@ -297,14 +298,14 @@ export class ServerChunk {
             // Unload mobs for player
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
             if(this.mobs.size > 0) {
-                let packets = [{
-                    name: ServerClient.CMD_MOB_DELETED,
+                const packets = [{
+                    name: ServerClient.CMD_MOB_DELETE,
                     data: Array.from(this.mobs.keys())
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
             if(this.drop_items.size > 0) {
-                let packets = [{
+                const packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
                     data: Array.from(this.drop_items.keys())
                 }];
@@ -321,8 +322,8 @@ export class ServerChunk {
     // Add mob
     addMob(mob) {
         this.mobs.set(mob.id, mob);
-        let packets = [{
-            name: ServerClient.CMD_MOB_ADDED,
+        const packets = [{
+            name: ServerClient.CMD_MOB_ADD,
             data: [mob]
         }];
         this.sendAll(packets);
@@ -341,7 +342,7 @@ export class ServerChunk {
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
             data: {
                 addr:        this.addr,
@@ -358,7 +359,7 @@ export class ServerChunk {
             return;
         }
         let packets_mobs = [{
-            name: ServerClient.CMD_MOB_ADDED,
+            name: ServerClient.CMD_MOB_ADD,
             data: []
         }];
         for(const [_, mob] of this.mobs) {
@@ -467,18 +468,17 @@ export class ServerChunk {
         }
 
         if (typeof pos == 'number') {
-            pos = new Vector(pos, y, z);
+            pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
         } else if (typeof pos == 'Vector') {
-            // do nothing
+            pos = pos.floored().subSelf(this.coord);
         } else if (typeof pos == 'object') {
-            pos = new Vector(pos);
+            pos = new Vector(pos).flooredSelf().subSelf(this.coord);
         }
 
-        pos = pos.floored().sub(this.coord);
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
             return this.getChunkManager().DUMMY;
         }
-        let block = this.tblocks.get(pos);
+        const block = this.tblocks.get(pos);
         return block;
     }
 
@@ -493,7 +493,7 @@ export class ServerChunk {
         switch(item.id) {
             // 1. Make snow golem
             case BLOCK.LIT_PUMPKIN.id: {
-                let pos = item_pos.clone();
+                const pos = item_pos.clone();
                 pos.y--;
                 let under1 = this.world.getBlock(pos.clone());
                 pos.y--;
@@ -507,14 +507,71 @@ export class ServerChunk {
                         pos_spawn      : pos.clone(),
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
-                    await this.world.createMob(params);
-                    await this.world.applyActions(null, {blocks: {list: [
+                    await this.world.mobs.create(params);
+                    const actions = new PickatActions(null, this.world, false, false);
+                    actions.addBlocks([
                         {pos: item_pos, item: BLOCK.AIR},
                         {pos: under1.posworld, item: BLOCK.AIR},
                         {pos: under2.posworld, item: BLOCK.AIR}
-                    ]}});
+                    ])
+                    this.world.actions_queue.add(null, actions);
                 }
                 break;
+            }
+            case BLOCK.AIR.id: {
+                /*
+                // @todo Отключил, потому что данный код может создавать двойные дропы
+                let changes = false;
+                const air = { id: 0 };
+                const actions = new PickatActions(null, this.world, false, false);
+                //
+                const createAutoDrop = (mat, pos) => {
+                    if(!mat.can_auto_drop) {
+                        return false;
+                    }
+                    if('drop_blocks_chance' in item) {
+                        if(Math.random() > item.drop_blocks_chance) {
+                            return false;
+                        }
+                    }
+                    // drop
+                    actions.addDropItem({
+                        force: true,
+                        pos: pos.clone().addSelf(new Vector(.5, .5, .5)),
+                        items: [
+                            // @todo need to calculate drop item ID and count
+                            { id: mat.id, count: 1 }
+                        ]
+                    });
+                    return true;
+                };
+                // 1. check under
+                const check_under_poses = [
+                    item_pos.clone().addSelf(new Vector(0, 1, 0)),
+                    item_pos.clone().addSelf(new Vector(0, 2, 0))
+                ];
+                for(let i = 0; i < check_under_poses.length; i++) {
+                    const pos_under = check_under_poses[i];
+                    const tblock = this.world.getBlock(pos_under);
+                    if(!tblock) {
+                        continue;
+                    }
+                    const mat = tblock.material;
+                    if(mat.drop_if_unlinked || mat.planting || mat.is_sapling || mat.next_part || mat.previous_part) {
+                        // delete block
+                        actions.addBlocks([
+                            {pos: pos_under.clone(), item: air}
+                        ]);
+                        createAutoDrop(mat, pos_under);
+                        changes = true;
+                    }
+                }
+                //
+                if(changes) {
+                    this.world.actions_queue.add(null, actions);
+                }
+                */
+               break;
             }
         }
     }

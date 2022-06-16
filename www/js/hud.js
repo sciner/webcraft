@@ -337,7 +337,7 @@ export class HUD {
         // If render inited
         if(Game.render) {
             // Chunks inited
-            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
+            this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
@@ -403,6 +403,25 @@ export class HUD {
         this.drawText(this.text, 10 * this.zoom, 10 * this.zoom);
         //
         this.drawActiveQuest();
+        //
+        this.drawAverageFPS();
+    }
+
+    // Draw average FPS bar
+    drawAverageFPS() {
+        const hist = Game.averageClockTimer.history;
+        const x = 20;
+        const y = this.height - 20;
+        const ctx = this.ctx;
+        ctx.strokeStyle = '#00ff0044';
+        ctx.beginPath(); // Start a new path
+        for(let i = 0; i < hist.length; i++) {
+            const h = hist[i];
+            ctx.moveTo(x + i, y);
+            ctx.lineTo(x + i, y - h * 10);
+        }
+        ctx.stroke(); // Render the path
+        ctx.strokeStyle = '#000000';
     }
 
     // Draw active quest

@@ -1,4 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
@@ -51,6 +51,47 @@ class Block {
 
 }
 
+//
+export class FakeTBlock {
+
+    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
+        this.id = id;
+        this.extra_data = extra_data;
+        this.pos = pos;
+        this.rotate = rotate;
+        this.pivot = pivot;
+        this.matrix = matrix;
+        this.tags = tags;
+        this.biome = biome;
+        this.dirt_color = dirt_color;
+    }
+
+    getCardinalDirection() {
+        return BLOCK.getCardinalDirection(this.rotate);
+    }
+
+    hasTag(tag) {
+        const mat = this.material;
+        if(!mat) {
+            return false;
+        }
+        if(!Array.isArray(mat.tags)) {
+            return false;
+        }
+        let resp = mat.tags.indexOf(tag) >= 0;
+        if(!resp && this.tags) {
+            resp = this.tags.indexOf(tag) >= 0;
+        }
+        return resp;
+    }
+
+    get material() {
+        return BLOCK.fromId(this.id);
+    }
+
+}
+
+//
 class Block_Material {
 
     static materials = {
@@ -146,10 +187,12 @@ export class BLOCK {
             return 0;
         }
         let val = 0;
-        if(material.light_power) {
+        if (material.is_water) {
+            return 64;
+        } else if(material.light_power) {
             val = Math.floor(material.light_power.a / 16.0);
         } else if (!material.transparent) {
-            val = 127;
+            val = 96;
         }
         return val + (material.visible_for_ao ? 128 : 0);
     }
@@ -227,10 +270,10 @@ export class BLOCK {
           z = x.z;
           x = x.x;
         }
-    
+
         // функция евклидового модуля
         const f = (n, m) => ((n % m) + m) % m;
-    
+
         if (v) {
           v.x = f(x, CHUNK_SIZE_X);
           v.y = f(y, CHUNK_SIZE_Y);
@@ -238,13 +281,13 @@ export class BLOCK {
         } else {
           v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
         }
-    
+
         return v;
     }
 
     // Call before setBlock
     static makeExtraData(block, pos, orientation) {
-        block = BLOCK.BLOCK_BY_ID.get(block.id);
+        block = BLOCK.BLOCK_BY_ID[block.id];
         let extra_data = null;
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
@@ -293,6 +336,10 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        if(block.is_chest) {
+            extra_data = extra_data || {};
+            Object.assign(extra_data, { can_destroy: true, slots: {} });
+        }
         return extra_data;
     }
 
@@ -322,6 +369,15 @@ export class BLOCK {
                             throw 'error_generator_items_not_set';
                         }
                         extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
+                        break;
+                    }
+                    case 'bees': {
+                        extra_data[g.name] = [];
+                        const count = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
+                        for(let i = 0; i < count; i++) {
+                            extra_data[g.name].push({pollen: 0});
+                        }
+                        break;
                     }
                 }
             }
@@ -331,8 +387,8 @@ export class BLOCK {
 
     // Returns a block structure for the given id.
     static fromId(id) {
-        if(this.BLOCK_BY_ID.has(id)) {
-            return this.BLOCK_BY_ID.get(id);
+        if(this.BLOCK_BY_ID[id]) {
+            return this.BLOCK_BY_ID[id];
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
@@ -364,7 +420,7 @@ export class BLOCK {
         if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
             return true;
         }
-        let block = BLOCK.BLOCK_BY_ID.get(block_id);
+        let block = BLOCK.BLOCK_BY_ID[block_id];
         if(block.is_fluid) {
             return true;
         }
@@ -404,10 +460,10 @@ export class BLOCK {
         if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags && (block.tags.indexOf('alpha') >= 0))) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+        } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.id == 649 ||
-            block.tags.indexOf('leaves') >= 0 ||
+            block.is_leaves ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
             block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
@@ -421,7 +477,7 @@ export class BLOCK {
         BLOCK.spawn_eggs             = [];
         BLOCK.ao_invisible_blocks    = [];
         BLOCK.list                   = new Map();
-        BLOCK.BLOCK_BY_ID            = new Map();
+        BLOCK.BLOCK_BY_ID            = new Array(1024);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
     }
@@ -446,7 +502,7 @@ export class BLOCK {
         if(!('name' in block) || !('id' in block)) {
             throw 'error_invalid_block';
         }
-        const existing_block = this.BLOCK_BY_ID.has(block.id) ? this.fromId(block.id) : null;
+        const existing_block = this.BLOCK_BY_ID[block.id] || null;
         const replace_block = existing_block && (block.name == existing_block.name);
         const original_props = Object.keys(block);
         if(existing_block) {
@@ -498,7 +554,6 @@ export class BLOCK {
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
-        block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
@@ -509,13 +564,19 @@ export class BLOCK {
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
         block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
+        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 199, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
+        block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
+        block.is_dirt           = ['GRASS_DIRT', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM'].indexOf(block.name) >= 0;
+        block.is_leaves         = block.tags.indexOf('leaves') >= 0;
+        block.is_glass          = block.tags.indexOf('glass') >= 0;
+        block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.material.id == 'plant' && block.style == 'planting';
+        block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         // rotate_by_pos_n_plus
         if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
             block.tags.push('rotate_by_pos_n');
@@ -537,6 +598,13 @@ export class BLOCK {
                 block[k] = v;
             }
         }
+        //
+        block.drop_if_unlinked  = block.style == 'torch';
+        block.can_auto_drop     = !block.previous_part &&
+                                  !block.deprecated &&
+                                  block.spawnable &&
+                                  !block.is_fluid &&
+                                  [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
         if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
@@ -557,7 +625,7 @@ export class BLOCK {
             block = existing_block;
         } else {
             this[block.name] = block;
-            BLOCK.BLOCK_BY_ID.set(block.id, block);
+            BLOCK.BLOCK_BY_ID[block.id] = block;
             this.list.set(block.id, block);
         }
         // After add works
@@ -664,6 +732,10 @@ export class BLOCK {
             //c[2] *= -1;
             //c[3] *= -1;
         //}
+        // @todo (BEE NEST) убрать отсюда куда нибудь
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
+            c[1] += 4/32;
+        }
         return c;
     }
 
@@ -791,11 +863,11 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence' || block.properties.style == 'wall' || block.properties.style == 'pane');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'wall' || block.material.style == 'pane');
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane' || block.properties.style == 'fence');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'wall' || block.material.style == 'pane' || block.material.style == 'fence');
     }
 
     static canPaneConnect(block) {
@@ -803,7 +875,7 @@ export class BLOCK {
     };
 
     static canRedstoneDustConnect(block) {
-        return block.id > 0 && (block.properties && 'redstone' in block.properties);
+        return block.id > 0 && (block.material && 'redstone' in block.material);
     }
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
@@ -827,7 +899,7 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
-        const material = b.properties;
+        const material = b.material;
         if(!material) {
             return shapes;
         }
@@ -1045,7 +1117,7 @@ export class BLOCK {
                             break;
                         }
                     }
-                }                
+                }
             }
         }
         return shapes;
@@ -1144,7 +1216,7 @@ BLOCK.init = async function(settings) {
     BLOCK.reset();
 
     // Resource packs
-    BLOCK.resource_pack_manager = new ResourcePackManager();
+    BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
 
     // block styles and resorce styles is independent (should)
     // block styles is how blocks is generated
@@ -1159,6 +1231,6 @@ BLOCK.init = async function(settings) {
         // Block styles
         for(let style of block_styles.values()) {
             BLOCK.registerStyle(style);
-        }    
+        }
     });
 };

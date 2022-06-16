@@ -1281,10 +1281,8 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "texture": [
-            13,
-            0
-        ],
+        "texture": [13, 0],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1296,10 +1294,8 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "texture": [
-            12,
-            0
-        ],
+        "texture": [12, 0],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1312,10 +1308,8 @@
         "style": "planting",
         "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
-        "texture": [
-            0,
-            22
-        ],
+        "texture": [0, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1328,10 +1322,8 @@
         "style": "planting",
         "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
-        "texture": [
-            1,
-            22
-        ],
+        "texture": [1, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1344,10 +1336,8 @@
         "style": "planting",
         "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
-        "texture": [
-            2,
-            22
-        ],
+        "texture": [2, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1360,10 +1350,8 @@
         "style": "planting",
         "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
-        "texture": [
-            3,
-            22
-        ],
+        "texture": [3, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1376,10 +1364,8 @@
         "style": "planting",
         "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
-        "texture": [
-            4,
-            22
-        ],
+        "texture": [4, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         }
@@ -1395,10 +1381,8 @@
             "texture": [6, 22]
         },
         "sound": "madcraft:block.grass",
-        "texture": [
-            5,
-            22
-        ],
+        "texture": [5, 22],
+        "tags": ["flower"],
         "material": {
             "id": "plant"
         },
@@ -1415,10 +1399,7 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "texture": [
-            6,
-            22
-        ],
+        "texture": [6, 22],
         "material": {
             "id": "plant"
         },
@@ -1427,6 +1408,7 @@
             "id": 514
         },
         "tags": [
+            "flower",
             "no_drop"
         ]
     },
@@ -1442,13 +1424,13 @@
         "style": "planting",
         "sound": "madcraft:block.grass",
         "halfs": {"up": 517},
-        "texture": [
-            7,
-            22
-        ],
+        "texture": [7, 22],
         "material": {
             "id": "plant"
         },
+        "tags": [
+            "flower"
+        ],
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 517
@@ -1462,10 +1444,7 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "texture": [
-            8,
-            22
-        ],
+        "texture": [8, 22],
         "material": {
             "id": "plant"
         },
@@ -1474,6 +1453,7 @@
             "id": 516
         },
         "tags": [
+            "flower",
             "no_drop"
         ]
     },
@@ -2108,7 +2088,7 @@
         "name": "MELON_STEM",
         "passable": 1,
         "transparent": true,
-        "style": "planting",
+        "style": "extruder",
         "material": {
             "id": "plant"
         },
@@ -2183,9 +2163,9 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            13,
-            9
+        "texture": [13, 9],
+        "tags": [
+            "no_drop_ao"
         ]
     },
     {
@@ -3436,102 +3416,6 @@
         "can_rotate": true
     },
     {
-        "id": 521,
-        "name": "SPAWN_EGG_CHICKEN",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "chicken",
-            "skin": "base"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [3, 0]
-        }
-    },
-    {
-        "id": 522,
-        "name": "SPAWN_EGG_CREEPER",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "creeper",
-            "skin": "base"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [5, 0]
-        }
-    },
-    {
-        "id": 523,
-        "name": "SPAWN_EGG_PIG",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "pig",
-            "skin": "base"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [3, 1]
-        }
-    },
-    {
-        "id": 524,
-        "name": "SPAWN_EGG_HORSE",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "horse",
-            "skin": "creamy"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [2, 2]
-        }
-    },
-    {
-        "id": 525,
-        "name": "SPAWN_EGG_DONKEY",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "horse",
-            "skin": "base"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [4, 2]
-        }
-    },
-    {
-        "id": 651,
-        "name": "SPAWN_EGG_FOX",
-        "style": "extruder",
-        "material": {
-            "id": "bone"
-        },
-        "spawn_egg": {
-            "type": "fox",
-            "skin": "base"
-        },
-        "texture": {
-            "id": "egg",
-            "side": [4, 3]
-        }
-    },
-    {
         "id": 541,
         "name": "BUCKET_EMPTY",
         "style": "extruder",
@@ -3774,7 +3658,7 @@
         "texture_animations": {
             "side": 18
         },
-        "spawnable": false
+        "spawnable": true
     },
     {
         "id": 550,
@@ -4705,7 +4589,7 @@
         ],
         "texture": {
             "id": "default",
-            "side": [19, 10]
+            "side": [21, 19]
         }
     },
     {
@@ -4976,6 +4860,7 @@
             "max_stage": 7,
             "times_per_stage": 8
         },
+        "tags": ["agriculture"],
         "texture": [4, 31],
         "stage_textures": [
             [8, 5],
@@ -5018,6 +4903,7 @@
         "style": "planting",
         "inventory_style": "extruder",
         "transparent": true,
+        "tags": ["agriculture"],
         "seeds": {
             "result": {
                 "incomplete": [
@@ -5495,6 +5381,7 @@
             "id": "plant"
         },
         "tags": [
+            "flower",
             "no_drop_ao"
         ],
         "texture": {
@@ -6064,6 +5951,35 @@
         "item": {"name": "powder"},
         "material": {
             "id": "powder"
+        }
+    },
+    {
+        "id": 1447,
+        "name": "BEE_NEST",
+        "sound": "madcraft:block.wood",
+        "can_rotate": true,
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "side": [18, 1],
+            "up": [18, 2],
+            "down": [18, 3],
+            "north": [18, 0]
+        },
+        "ticking": {
+            "type": "bee_nest"
+        },
+        "tags": [
+            "bee_nest"
+        ],
+        "extra_data": {
+            "pollen": 0,
+            "bees": [],
+            "max_ticks": 100,
+            "calculated": [
+                {"type": "bees", "name": "bees", "min_max": [1, 3]}
+            ]
         }
     }
 ]

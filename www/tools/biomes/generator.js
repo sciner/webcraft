@@ -1,5 +1,5 @@
 import {BLOCK} from '../../js/blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from '../../js/chunk.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from '../../js/chunk_const.js';
 import {Color, Vector, VectorCollector} from '../../js/helpers.js';
 
 await BLOCK.init({

@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';

@@ -1,4 +1,4 @@
-import { getChunkAddr } from "./chunk.js";
+import { getChunkAddr } from "./chunk_const.js";
 import { Vector } from "./helpers.js";
 import { BLOCK, POWER_NO  } from "./blocks.js";
 
@@ -30,6 +30,7 @@ export class ServerClient {
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43;
+    static CMD_STANDUP_STRAIGHT         = 48; // встать с дивана/кресла
 
     // Entities
     static CMD_LOAD_CHEST               = 45; // player -> server
@@ -50,7 +51,7 @@ export class ServerClient {
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_PARTICLE_EXPLOSION       = 89;
     static CMD_STOP_PLAY_DISC           = 91;
-	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player 
+	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93
@@ -63,14 +64,12 @@ export class ServerClient {
     // Inventory
     static CMD_INVENTORY_STATE          = 66; // server -> player (when player inventory changed)
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
-    static CMD_INVENTORY_NEW_STATE      = 90;
+    static CMD_INVENTORY_NEW_STATE      = 90; // player -> server
 
     // Mobs
 	static CMD_MOB_ADD                  = 70;
-	static CMD_MOB_ADDED                = 71;
-	static CMD_MOB_DELETE               = 72;
-	static CMD_MOB_DELETED              = 73;
-    static CMD_MOB_UPDATE               = 75;
+	static CMD_MOB_DELETE               = 71;
+    static CMD_MOB_UPDATE               = 72;
 
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;
@@ -200,6 +199,7 @@ export class ServerClient {
             let tblock_pos          = new Vector(Infinity, Infinity, Infinity);
             let material            = null;
             const chunkManager      = Game.world.chunkManager;
+            chunkManager.block_sets += only_set_blocks.length;
             for(let i = 0; i < only_set_blocks.length; i++) {
                 const cmd = only_set_blocks[i];
                 let pos = cmd.data.pos;
@@ -237,6 +237,9 @@ export class ServerClient {
                 const power = ('power' in item) ? item.power : POWER_NO;
                 tblock = chunk.tblocks.get(tblock_pos, tblock);
                 if (chunkManager.use_light) {
+                    if(!tblock.material) {
+                        debugger
+                    }
                     oldLight = tblock.material.light_power_number;
                 }
                 chunk.tblocks.delete(tblock_pos);
@@ -255,6 +258,8 @@ export class ServerClient {
                     rotate:     rotate,
                     extra_data: extra_data
                 });
+                //
+                chunkManager.torches.delete(pos);
                 //
                 if (chunkManager.use_light) {
                     const light         = material.light_power_number;

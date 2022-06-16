@@ -6,7 +6,7 @@ const MAX_DIST_FOR_PICKUP = 2.5;
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -33,7 +33,7 @@ export default class packet_reader {
 
             // check dist
             const dist = drop_item.pos.distance(player.state.pos);
-            if(dist > MAX_DIST_FOR_PICKUP * 2) {
+            if(dist > MAX_DIST_FOR_PICKUP * 2 || !player.game_mode.canPickupItems()) {
                 console.error(`ERROR: pickup item so far from player ${dist}m > ${MAX_DIST_FOR_PICKUP}`);
                 this.restoreDropItemForPlayer(player, drop_item);
                 continue;
@@ -79,7 +79,7 @@ export default class packet_reader {
                 if(restored_items.length > 0) {
                     const actions = new PickatActions();
                     actions.addDropItem({pos: drop_item.pos, items: restored_items, force: true});
-                    await world.applyActions(null, actions); 
+                    world.actions_queue.add(null, actions); 
                 }
 
                 // play sound on client

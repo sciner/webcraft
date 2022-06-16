@@ -1,7 +1,6 @@
 import {Vector} from "./helpers.js";
 import {TBlock, BlockNeighbours, CC, TypedBlocks as TB} from "./typed_blocks.js";
-import {getChunkAddr} from "./chunk.js";
-import { VectorCollector1D, TypedBlocks2 as TB2 } from './typed_blocks2.js';
+import {getChunkAddr} from "./chunk_const.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
@@ -10,10 +9,80 @@ export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);
 }
 
+export const MASK_VERTEX_MOD = 128;
+export const MASK_VERTEX_PACK = 127;
+
+// VectorCollector...
+export class VectorCollector1D {
+    constructor(dims, list) {
+        this.dims = dims;
+        this.sy = dims.x * dims.z;
+        this.sz = dims.x;
+        this.clear(list);
+    }
+
+    clear(list) {
+        this.list = list ? list : new Map();
+        this.size = this.list.size;
+    }
+
+    set(vec, value) {
+        const {sy, sz, list} = this;
+        let ind = vec.x + vec.y * sy + vec.z * sz;
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        list.set(ind, value);
+        if (this.size < list.size) {
+            this.size = list.size;
+            return true;
+        }
+        return false;
+    }
+
+    add(vec, value) {
+        const {sy, sz, list} = this;
+        let ind = vec.x + vec.y * sy + vec.z * sz;
+        if(!list.get(ind)) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            list.set(ind, value);
+        }
+        this.size = list.size;
+        return list.get(ind);
+    }
+
+    delete(vec) {
+        const {sy, sz, list} = this;
+        let ind = vec.x + vec.y * sy + vec.z * sz;
+        if(list.delete(ind)) {
+            this.size = list.size;
+            return true;
+        }
+        return false;
+    }
+
+    has(vec) {
+        const {sy, sz, list} = this;
+        let ind = vec.x + vec.y * sy + vec.z * sz;
+        return list.has(ind) || false;
+    }
+
+    get(vec) {
+        const {sy, sz, list} = this;
+        let ind = vec.x + vec.y * sy + vec.z * sz;
+        return list.get(ind) || null;
+    }
+
+    *[Symbol.iterator]() {
+        for (let value of this.list.values()) {
+            yield value;
+        }
+    }
+}
+
 export class TypedBlocks3 {
-
-    #neightbours_chunks;
-
     constructor(coord, chunkSize) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
@@ -23,7 +92,6 @@ export class TypedBlocks3 {
         this.entity_id  = new VectorCollector1D(chunkSize);
         this.texture    = new VectorCollector1D(chunkSize);
         this.extra_data = new VectorCollector1D(chunkSize);
-        this.vertices   = new VectorCollector1D(chunkSize);
         this.falling    = new VectorCollector1D(chunkSize);
         //
         this.shapes     = new VectorCollector1D(chunkSize);
@@ -32,31 +100,50 @@ export class TypedBlocks3 {
         this.non_zero   = 0;
 
         this.dataChunk = new DataChunk({ size: chunkSize, strideBytes: 2 }).setPos(coord);
+        /**
+         * store resourcepack_id and number of vertices here
+         * @type {Uint8Array}
+         */
+        this.vertices  = null;
         this.id = this.dataChunk.uint16View;
+    }
+
+    ensureVertices() {
+        if (!this.vertices) {
+            this.vertices = new Uint8Array(2 * this.dataChunk.outerLen);
+            return true;
+        }
+        return false;
     }
 
     //
     getNeightboursChunks(world) {
-        if(this.#neightbours_chunks) {
-            return this.#neightbours_chunks;
+        const {dataChunk, addr} = this;
+        let nc = {};
+        for (let i=0;i<dataChunk.portals.length;i++) {
+            if (dataChunk.portals[i].volume > 8) {
+                const other = dataChunk.portals[i].toRegion.rev.pos;
+                if (addr.x < this.addr.x) {
+                    nc.nx = other;
+                } else
+                if (addr.x > this.addr.x) {
+                    nc.px = other;
+                } else
+                if (addr.y < this.addr.y) {
+                    nc.ny = other;
+                } else
+                if (addr.y > this.addr.y) {
+                    nc.py = other;
+                } else
+                if (addr.z < this.addr.z) {
+                    nc.nz = other;
+                } else
+                if (addr.z > this.addr.z) {
+                    nc.pz = other;
+                }
+            }
         }
-        //
-        const nc = this.#neightbours_chunks = {
-            // center
-            that: {addr: this.addr, chunk: null},
-            // sides
-            nx: {addr: new Vector(this.addr.x - 1, this.addr.y, this.addr.z), chunk: null},
-            px: {addr: new Vector(this.addr.x + 1, this.addr.y, this.addr.z), chunk: null},
-            ny: {addr: new Vector(this.addr.x, this.addr.y - 1, this.addr.z), chunk: null},
-            py: {addr: new Vector(this.addr.x, this.addr.y + 1, this.addr.z), chunk: null},
-            nz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z - 1), chunk: null},
-            pz: {addr: new Vector(this.addr.x, this.addr.y, this.addr.z + 1), chunk: null}
-        };
-        //
-        for(let i in this.#neightbours_chunks) {
-            const n = this.#neightbours_chunks[i];
-            n.chunk = world.chunkManager.getChunk(n.addr);
-        }
+
         return nc;
     }
 
@@ -70,7 +157,6 @@ export class TypedBlocks3 {
         this.entity_id  = new VectorCollector1D(chunkSize, state.entity_id);
         this.texture    = new VectorCollector1D(chunkSize, state.texture);
         this.extra_data = new VectorCollector1D(chunkSize, state.extra_data);
-        this.vertices   = new VectorCollector1D(chunkSize, state.vertices);
         this.shapes     = new VectorCollector1D(chunkSize, state.shapes);
         this.falling    = new VectorCollector1D(chunkSize, state.falling);
         if(refresh_non_zero) {
@@ -86,7 +172,6 @@ export class TypedBlocks3 {
             entity_id: this.entity_id.list,
             texture: this.texture.list,
             extra_data: this.extra_data.list,
-            vertices: this.vertices.list,
             shapes: this.shapes.list,
             falling: this.falling.list,
         }
@@ -197,16 +282,19 @@ export class TypedBlocks3 {
 
     delete(vec) {
         let block           = this.get(vec);
-        block.id            = null;
+        block.id            = 0;
         block.power         = 0;
         block.rotate        = null;
         block.entity_id     = null;
         block.texture       = null;
         block.extra_data    = null;
-        block.vertices      = null;
         block.falling       = null;
         block.shapes        = null;
         block.position      = null;
+
+        if (this.vertices) {
+            this.vertices[block.index * 2 + 1] = MASK_VERTEX_MOD;
+        }
     }
 
     /**
@@ -301,7 +389,7 @@ export class TypedBlocks3 {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties.is_water) {
+            if(properties && properties.is_water) {
                 is_water_count++;
             }
         }
@@ -352,6 +440,65 @@ export class TypedBlocks3 {
         }
 
         return pcnt;
+    }
+
+    static tempAABB = new AABB();
+    static tempAABB2 = new AABB();
+    static tempVec = new Vector();
+
+    setDirtyBlocks(x, y, z) {
+        const { vertices } = this;
+        if (!vertices) {
+            return;
+        }
+        const { cx, cy, cz, portals, pos, safeAABB, shiftCoord} = this.dataChunk;
+        const wx = x + pos.x;
+        const wy = y + pos.y;
+        const wz = z + pos.z;
+
+        let cnt = 0;
+        const aabb = TypedBlocks3.tempAABB;
+        const aabb2 = TypedBlocks3.tempAABB2;
+        const vec = TypedBlocks3.tempVec;
+        aabb.set(wx - 1, wy - 1, wz - 1, wx + 2, wy + 2, wz + 2);
+        aabb2.setIntersect(aabb, this.dataChunk.aabb);
+        for (let x = aabb2.x_min; x < aabb2.x_max; x++)
+            for (let y = aabb2.y_min; y < aabb2.y_max; y++)
+                for (let z = aabb2.z_min; z < aabb2.z_max; z++) {
+                    let index2 = cx * x + cy * y + cz * z + shiftCoord;
+                    //TODO: what do we have return actually?
+                    if (vertices[index2 * 2] !== 0
+                        || vertices[index2 * 2 + 1] !== 0) {
+                        cnt++;
+                    }
+                    vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                }
+        if (safeAABB.contains(wx, wy, wz)) {
+            return 0;
+        }
+        //TODO: use only face-portals
+        for (let i = 0; i < portals.length; i++) {
+            if (portals[i].aabb.contains(wx, wy, wz)) {
+                const other = portals[i].toRegion;
+                const vertices2 = other.rev.tblocks.vertices;
+                if (!vertices2) {
+                    continue;
+                }
+                aabb2.setIntersect(other.aabb, aabb);
+                for (let x = aabb2.x_min; x < aabb2.x_max; x++)
+                    for (let y = aabb2.y_min; y < aabb2.y_max; y++)
+                        for (let z = aabb2.z_min; z < aabb2.z_max; z++) {
+                            let index2 = other.indexByWorld(x, y, z);
+                            if (vertices2[index2 * 2] !== 0
+                                || vertices2[index2 * 2 + 1] !== 0) {
+                                cnt++;
+                            }
+                            vertices2[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                        }
+            }
+        }
+
+        return cnt;
     }
 }
 

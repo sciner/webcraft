@@ -22,6 +22,8 @@
     #define NO_FOG_FLAG 3
     #define LOOK_AT_CAMERA 4
     #define FLAG_ANIMATED 5
+    #define TEXTURE_SCROLL 6
+    #define NO_CAN_TAKE_AO 7
 #endif
 
 #ifdef global_uniforms
@@ -100,6 +102,7 @@
     out float v_lightId;
     out vec4 v_lightOffset;
     out vec3 v_aoOffset;
+    out float v_noCanTakeAO;
 
     //--
 #endif
@@ -120,6 +123,7 @@
     in float v_useFog;
     in float v_lightId;
     in vec4 v_lightOffset;
+    in float v_noCanTakeAO;
 
     out vec4 outColor;
 #endif
@@ -240,9 +244,12 @@
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
+    int flagScroll = (flags >> TEXTURE_SCROLL) & 1;
+    int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
+    v_noCanTakeAO = float(flagNoCanTakeAO);
     //--
 #endif
 

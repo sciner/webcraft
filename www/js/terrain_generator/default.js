@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';

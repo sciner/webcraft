@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 
 export const CC = [
@@ -140,12 +140,12 @@ export class TBlock {
 
     // properties
     get properties() {
-        return BLOCK.BLOCK_BY_ID.get(this.id) || null;
+        return BLOCK.BLOCK_BY_ID[this.id] || null;
     }
 
     // material
     get material() {
-        return BLOCK.BLOCK_BY_ID.get(this.id) || null;
+        return BLOCK.BLOCK_BY_ID[this.id] || null;
     }
 
     //
@@ -159,7 +159,7 @@ export class TBlock {
         return this.id;
     }
     getProperties() {
-        return this.properties;
+        return this.material;
     }
     // position
     get position() {

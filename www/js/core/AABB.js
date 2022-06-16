@@ -7,6 +7,8 @@ const defaultPivot      = [0.5, 0.5, 0.5];
 const defalutCenter     = [0, 0, 0];
 const defaultMatrix     = mat4.create();
 const tempMatrix        = mat3.create();
+const _size             = [0, 0, 0];
+const _dist             = [0, 0, 0];
 
 const PLANES = {
     up: {
@@ -272,12 +274,17 @@ export class AABBPool {
 export class AABBSideParams {
 
     constructor(uv, flag, anim, lm = null, axes = null, autoUV) {
+        this.set(uv, flag, anim, lm, axes, autoUV)
+    }
+
+    set(uv, flag, anim, lm = null, axes = null, autoUV) {
         this.uv     = uv;
         this.flag   = flag;
         this.anim   = anim;
         this.lm     = lm;
         this.axes   = axes;
         this.autoUV = autoUV;
+        return this;
     }
 
 }
@@ -361,18 +368,14 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
     const y               = center.y;
     const z               = center.z;
 
-    const size = [
-        aabb.width, 
-        aabb.depth, // fucking flipped ZY
-        aabb.height
-    ];
+    _size[0] = aabb.width;
+    _size[1] = aabb.depth; // fucking flipped ZY
+    _size[2] = aabb.height;
 
     // distance from center to minimal position
-    const dist = [
-        aabb.x_min - x,
-        aabb.z_min - z, // fucking flipped ZY
-        aabb.y_min - y
-    ];
+    _dist[0] = aabb.x_min - x;
+    _dist[1] = aabb.z_min - z; // fucking flipped ZY
+    _dist[2] = aabb.y_min - y;
 
     for(const key in sides) {
 
@@ -395,8 +398,8 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
         let uvSize1;
 
         if(autoUV) {
-            uvSize0 = vec3.dot(axes[0], size) * (uv[2]) * flip[0];
-            uvSize1 = -vec3.dot(axes[1], size) * (uv[3]) * flip[1];
+            uvSize0 = vec3.dot(axes[0], _size) * (uv[2]) * flip[0];
+            uvSize1 = -vec3.dot(axes[1], _size) * (uv[3]) * flip[1];
         } else {
             uvSize0 = uv[2];
             uvSize1 = -uv[3];
@@ -407,17 +410,17 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
             // center
             x, z, y,
             // offset
-            size[0] * offset[0] + dist[0],
-            size[1] * offset[1] + dist[1],
-            size[2] * offset[2] + dist[2],
+            _size[0] * offset[0] + _dist[0],
+            _size[1] * offset[1] + _dist[1],
+            _size[2] * offset[2] + _dist[2],
             // axisx
-            size[0] * axes[0][0],
-            size[1] * axes[0][1],
-            size[2] * axes[0][2],
+            _size[0] * axes[0][0],
+            _size[1] * axes[0][1],
+            _size[2] * axes[0][2],
             // axisY
-            size[0] * axes[1][0],
-            size[1] * axes[1][1],
-            size[2] * axes[1][2],
+            _size[0] * axes[1][0],
+            _size[1] * axes[1][1],
+            _size[2] * axes[1][2],
             // UV center
             uv[0], uv[1],
             // UV size

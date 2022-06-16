@@ -8,6 +8,7 @@ const DAY_TIMES = {
 function addWorldTime(world, value) {
     world.info.add_time += value;
     world.db.updateAddTime(world.info.guid, world.info.add_time);
+    world.updateWorldCalendar();
     world.sendUpdatedInfo();
 }
 
@@ -21,7 +22,6 @@ export default class Chat_Time {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            console.log(cmd);
             switch(cmd) {
                 case '/time': {
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
@@ -51,7 +51,6 @@ export default class Chat_Time {
                             if(target_time < 0 || target_time > GAME_DAY_SECONDS) {
                                 throw 'error_time_value';
                             }
-                            world.updateWorldCalendar();
                             let age = world.info.calendar.age + world.info.calendar.day_time / GAME_DAY_SECONDS;
                             let day_time = (age - Math.floor(age)) * GAME_DAY_SECONDS;
                             addWorldTime(world, Math.round(target_time - day_time));
