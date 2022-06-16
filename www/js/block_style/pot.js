@@ -1,5 +1,5 @@
 import {DIRECTION, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, FakeTBlock} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
@@ -18,41 +18,6 @@ let a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
-
-class FakeBlock {
-
-    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
-        this.id = id;
-        this.extra_data = extra_data;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.tags = tags;
-        this.pivot = pivot;
-        this.matrix = matrix;
-        this.biome = biome;
-        this.dirt_color = dirt_color;
-    }
-
-    getCardinalDirection() {
-        return BLOCK.getCardinalDirection(this.rotate);
-    }
-
-    hasTag(tag) {
-        const mat = this.material;
-        if(!mat) {
-            return false;
-        }
-        if(!Array.isArray(mat.tags)) {
-            return false;
-        }
-        return mat.tags.indexOf(tag) >= 0;
-    }
-
-    get material() {
-        return BLOCK.fromId(this.id);
-    }
-
-};
 
 // Горшок
 export default class style {
@@ -169,7 +134,7 @@ export default class style {
         }
 
         if(flower_block_id) {
-            const fb = new FakeBlock(
+            const fb = new FakeTBlock(
                 flower_block_id,
                 null,
                 new Vector(x, y + 3/16, z),

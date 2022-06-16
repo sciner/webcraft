@@ -51,6 +51,47 @@ class Block {
 
 }
 
+//
+export class FakeTBlock {
+
+    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
+        this.id = id;
+        this.extra_data = extra_data;
+        this.pos = pos;
+        this.rotate = rotate;
+        this.pivot = pivot;
+        this.matrix = matrix;
+        this.tags = tags;
+        this.biome = biome;
+        this.dirt_color = dirt_color;
+    }
+
+    getCardinalDirection() {
+        return BLOCK.getCardinalDirection(this.rotate);
+    }
+
+    hasTag(tag) {
+        const mat = this.material;
+        if(!mat) {
+            return false;
+        }
+        if(!Array.isArray(mat.tags)) {
+            return false;
+        }
+        let resp = mat.tags.indexOf(tag) >= 0;
+        if(!resp && this.tags) {
+            resp = this.tags.indexOf(tag) >= 0;
+        }
+        return resp;
+    }
+
+    get material() {
+        return BLOCK.fromId(this.id);
+    }
+
+}
+
+//
 class Block_Material {
 
     static materials = {
