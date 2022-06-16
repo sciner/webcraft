@@ -51,7 +51,6 @@ export class GeometryTerrain18 {
         }
 
         this.size = this.data.length / this.strideFloats;
-        this.chunkIds = null;
         /**
          *
          * @type {BaseBuffer}
@@ -107,6 +106,7 @@ export class GeometryTerrain18 {
         gl.vertexAttribDivisor(attribs.a_uvSize, 1);
         gl.vertexAttribDivisor(attribs.a_color, 1);
         gl.vertexAttribDivisor(attribs.a_flags, 1);
+        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
 
         this.quad.bind();
 
@@ -152,11 +152,9 @@ export class GeometryTerrain18 {
         this.uploadID = this.updateID;
 
         this.buffer.data = this.data;
-        this.bufferChunkIds.data = this.chunkIds;
 
         if (gl) {
             this.buffer.bind();
-            this.bufferChunkIds.bind();
         }
     }
 
