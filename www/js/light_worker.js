@@ -1129,14 +1129,14 @@ function run() {
         // if (endTime > startTime + msLimit) {
         //     break;
         // }
-        if (world.dayLightSrc.doIter(20000)) {
+        if (world.dayLightSrc.doIter(40000)) {
             ready--;
         }
         // if (endTime > startTime + msLimit) {
         //     break;
         // }
         endTime = performance.now();
-        if (world.dayLight.doIter(40000)) {
+        if (world.dayLight.doIter(20000)) {
             ready--;
         }
         endTime = performance.now();
@@ -1340,8 +1340,10 @@ async function onMessageFunc(e) {
             }
         }
         case 'setPotentialCenter': {
-            world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
-            world.checkPotential();
+            if (args.pos) {
+                world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
+                world.checkPotential();
+            }
             break;
         }
     }
