@@ -1136,7 +1136,7 @@ function run() {
         //     break;
         // }
         endTime = performance.now();
-        if (world.dayLight.doIter(10000)) {
+        if (world.dayLight.doIter(40000)) {
             ready--;
         }
         endTime = performance.now();
