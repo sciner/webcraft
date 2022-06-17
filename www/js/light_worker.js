@@ -27,9 +27,13 @@ const world = {
     light: null,
     dayLight: null,
     dayLightSrc: null,
+    isEmptyQueue: true,
 }
 
 const maxLight = 31;
+const maxPotential = 400;
+const defPageSize = 1 << 12;
+
 const MASK_SRC_AMOUNT = 31;
 const MASK_SRC_BLOCK = 96;
 const MASK_SRC_AO = 128;
@@ -182,10 +186,23 @@ class MultiQueue {
     }
 }
 
+world.getPotential = function(wx, wy, wz) {
+    const {activePotentialCenter} = world.chunkManager;
+    if (!activePotentialCenter) {
+        return 0;
+    }
+    const dist = (Math.abs(wx - activePotentialCenter.x)
+        + Math.abs(wy - activePotentialCenter.y)
+        + Math.abs(wz - activePotentialCenter.z)) * dlen[0];
+    return maxPotential - Math.min(maxPotential, dist);
+}
+
 class LightQueue {
     constructor({offset, dirCount, capacity}) {
-        // deque structure
-        this.deque = new MultiQueue({maxPriority: maxLight, pageSize: 1 << 16});
+        // deque structure=
+        this.deque = new MultiQueue({
+            maxPriority: maxLight + maxPotential,
+            pageSize: defPageSize});
         this.filled = 0;
         // offset in data
         this.qOffset = offset || 0;
@@ -198,8 +215,8 @@ class LightQueue {
      * @param waveNum
      */
     add(chunk, coord, waveNum, force) {
-        if (waveNum < 0 || waveNum > maxLight) {
-            waveNum = maxLight;
+        if (waveNum < 0 || waveNum > maxLight + maxPotential) {
+            waveNum = maxLight + maxPotential;
         }
         this.deque.push(waveNum, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
         this.filled++;
@@ -207,9 +224,11 @@ class LightQueue {
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque} = this;
+        const {qOffset, dirCount, deque, neibPotential} = this;
         const {chunkById} = world.chunkManager;
-        let wn = maxLight;
+        const apc = world.chunkManager.activePotentialCenter;
+
+        let wn = deque.maxPriority;
 
         let chunk = null;
         let lightChunk = null;
@@ -230,7 +249,6 @@ class LightQueue {
                 return true;
             }
 
-            const prevLight = wn;
             //that's a pop
             let coord = deque.shift(wn);
             const force = coord & MASK_QUEUE_FORCE;
@@ -272,6 +290,14 @@ class LightQueue {
             y += outerAABB.y_min;
             z += outerAABB.z_min;
 
+            let prevLight = wn;
+            let curPotential = 0, curDist = 0;
+            if (apc) {
+                curDist = (Math.abs(x - apc.x) + Math.abs(y - apc.y) + Math.abs(z - apc.z)) * dlen[0];
+                curPotential = maxPotential - Math.min(maxPotential, curDist);
+                prevLight = wn - curPotential;
+            }
+
             let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT;
             const old = uint8View[coordBytes + OFFSET_LIGHT];
@@ -309,6 +335,7 @@ class LightQueue {
 
             // TODO: swap -1 to real -dlen
             const waveNum = Math.max(Math.max(old, val) - 1, 0);
+            let neibDist = 0, neibPotential = 0;
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
                 for (let d = 0; d < dirCount; d++) {
@@ -321,7 +348,13 @@ class LightQueue {
                     if (light >= prevLight && light >= val && light >= old) {
                         continue;
                     }
-                    this.add(chunk, coord2, waveNum);
+                    if (apc) {
+                        neibDist = (Math.abs(x - apc.x + dx[d])
+                            + Math.abs(y - apc.y + dy[d])
+                            + Math.abs(z - apc.z + dz[d])) * dlen[0];
+                        neibPotential = maxPotential - Math.min(maxPotential, neibDist);
+                    }
+                    this.add(chunk, coord2, neibPotential + waveNum);
                 }
             } else {
                 let mask2 = 0;
@@ -348,7 +381,14 @@ class LightQueue {
                             if (light >= prevLight && light >= val && light >= old) {
                                 continue;
                             }
-                            this.add(chunk2.rev, coord2, waveNum);
+
+                            if (apc) {
+                                neibDist = (Math.abs(x2 - apc.x)
+                                    + Math.abs(y2 - apc.y)
+                                    + Math.abs(z2 - apc.z)) * dlen[0];
+                                neibPotential = maxPotential - Math.min(maxPotential, neibDist);
+                            }
+                            this.add(chunk2.rev, coord2, neibPotential + waveNum);
                         }
                     }
                 }
@@ -361,7 +401,13 @@ class LightQueue {
                         z2 = z + dz[d];
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        this.add(chunk, coord2, waveNum);
+                        if (apc) {
+                            neibDist = (Math.abs(x2 - apc.x)
+                                + Math.abs(y2 - apc.y)
+                                + Math.abs(z2 - apc.z)) * dlen[0];
+                            neibPotential = maxPotential - Math.min(maxPotential, neibDist);
+                        }
+                        this.add(chunk, coord2, neibPotential + waveNum);
                     }
                 }
             }
@@ -458,7 +504,7 @@ class DirLightQueue {
             }
             while (!curWave) {
                 if (waveLevels.length === 0) {
-                    return;
+                    return true;
                 }
                 curWave = waveLevels.pop();
                 if (curWave.coords.length === 0) {
@@ -550,10 +596,10 @@ class DirLightQueue {
             if (maxVal < val) {
                 // mxdl-13 not obvious, good for big amount of lights
                 maxVal = uint8View[coordBytes + OFFSET_LIGHT] = val;
-                world.dayLight.add(chunk, coord, maxVal, true);
+                world.dayLight.add(chunk, coord, maxVal + world.getPotential(x, y, z), true);
                 chunk.lastID++;
             } else {
-                world.dayLight.add(chunk, coord, maxVal);
+                world.dayLight.add(chunk, coord, maxVal + world.getPotential(x, y, z));
             }
             //TODO: copy to neib chunks
             if (safeAABB.contains(x, y, z)) {
@@ -647,6 +693,8 @@ class ChunkManager {
         const INF = 1000000000;
         this.lightBase = new BaseChunk({size: new Vector(INF, INF, INF)}).setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
         this.chunkById = [null];
+        this.activePotentialCenter = null;
+        this.nextPotentialCenter = null;
     }
 
     // Get
@@ -826,7 +874,7 @@ class Chunk {
                         m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT);
                     }
                     if (m > 0) {
-                        world.light.add(this, coord, m);
+                        world.light.add(this, coord, m + world.getPotential(x, y, z));
                     }
                     found = found || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0;
 
@@ -857,7 +905,7 @@ class Chunk {
                             m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_LIGHT]);
                         }
                         if (m > 0) {
-                            world.dayLight.add(this, coord, m);
+                            world.dayLight.add(this, coord, m + world.getPotential(x, y, z));
                         }
                     }
         } else {
@@ -1073,7 +1121,7 @@ function run() {
     let endChunks = 0;
     let ready;
     do {
-        ready = 2;
+        ready = 3;
         if (world.light.doIter(10000)) {
             ready--;
         }
@@ -1093,6 +1141,9 @@ function run() {
         }
         endTime = performance.now();
     } while (endTime < startTime + msLimit && ready > 0);
+
+    world.isEmptyQueue = ready === 0;
+    world.checkPotential();
 
     world.chunkManager.list.forEach((chunk) => {
         if (chunk.waveCounter !== 0)
@@ -1126,6 +1177,12 @@ function run() {
             return;
         }
     })
+}
+
+world.checkPotential = function() {
+    if (world.isEmptyQueue && world.chunkManager.nextPotentialCenter) {
+        world.chunkManager.activePotentialCenter = world.chunkManager.nextPotentialCenter;
+    }
 }
 
 let renderFormat = 'rgba8';
@@ -1260,13 +1317,14 @@ async function onMessageFunc(e) {
                 const src = adjustSrc(light_source);
                 const old_src = uint8View[ind * strideBytes + OFFSET_SOURCE];
                 uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
-                world.light.add(chunk, ind, Math.max(light, src));
+                const potential = world.getPotential(x, y, z);
+                world.light.add(chunk, ind, Math.max(light, src) + potential);
                 // push ao
                 const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
                 //TODO: move it to adjust func
                 if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
                     world.dayLightSrc.add(chunk, ind);
-                    world.dayLight.add(chunk, ind, maxLight);
+                    world.dayLight.add(chunk, ind, maxLight + potential);
                 }
                 for (let i = 0; i < portals.length; i++) {
                     const portal = portals[i];
@@ -1280,6 +1338,11 @@ async function onMessageFunc(e) {
                     }
                 }
             }
+        }
+        case 'setPotentialCenter': {
+            world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
+            world.checkPotential();
+            break;
         }
     }
 }

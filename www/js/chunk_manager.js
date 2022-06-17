@@ -295,6 +295,9 @@ export class ChunkManager {
 
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
+
+            this.postLightWorkerMessage(['setPotentialCenter', { pos: Game.player.pos }]);
+
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
