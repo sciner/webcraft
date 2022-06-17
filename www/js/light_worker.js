@@ -37,11 +37,13 @@ const MASK_SRC_REST = 224;
 
 const OFFSET_SOURCE = 0;
 const OFFSET_LIGHT = 1;
-const OFFSET_PREV = 2;
-const OFFSET_SOURCE_PREV = 3;
-const OFFSET_DAY = 3;
+const OFFSET_DAY = 2;
 
-const BITS_BLOCK_ID = 16;
+const BITS_QUEUE_BLOCK_INDEX = 16;
+const BITS_QUEUE_CHUNK_ID = 15;
+const MASK_QUEUE_BLOCK_INDEX = (1 << BITS_QUEUE_BLOCK_INDEX) - 1;
+const MASK_QUEUE_CHUNK_ID = ((1 << BITS_QUEUE_CHUNK_ID) - 1) << BITS_QUEUE_BLOCK_INDEX;
+const MASK_QUEUE_FORCE = (1 << 31);
 
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
@@ -96,7 +98,7 @@ initMasks();
 class MultiQueuePage {
     constructor(size) {
         this.size = size;
-        this.arr = new Int32Array(size);
+        this.arr = new Uint32Array(size);
         this.clear();
     }
 
@@ -195,11 +197,11 @@ class LightQueue {
      * @param coord
      * @param waveNum
      */
-    add(chunk, coord, waveNum) {
+    add(chunk, coord, waveNum, force) {
         if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }
-        this.deque.push(waveNum, chunk.dataIdShift + coord);
+        this.deque.push(waveNum, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
         this.filled++;
         chunk.waveCounter++;
     }
@@ -227,10 +229,14 @@ class LightQueue {
             if (wn < 0) {
                 return true;
             }
+
+            const prevLight = wn;
             //that's a pop
-            const pos = deque.shift(wn);
-            const newChunk = chunkById[pos >> BITS_BLOCK_ID];
-            const coord = pos & ((1 << BITS_BLOCK_ID) - 1);
+            let coord = deque.shift(wn);
+            const force = coord & MASK_QUEUE_FORCE;
+            coord = coord & ~MASK_QUEUE_FORCE;
+            const newChunk = chunkById[coord >> BITS_QUEUE_BLOCK_INDEX];
+            coord = coord & MASK_QUEUE_BLOCK_INDEX;
             this.filled--;
             // pop end
             if (!newChunk || newChunk.removed) {
@@ -269,11 +275,10 @@ class LightQueue {
             let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT;
             const old = uint8View[coordBytes + OFFSET_LIGHT];
-            const prev = uint8View[coordBytes + OFFSET_PREV];
             if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                 val = 0;
             } else {
-                if (val === maxLight && val === old && val === prev) {
+                if (val === maxLight && val === old && !force) {
                     continue;
                 }
                 for (let d = 0; d < dirCount; d++) {
@@ -292,11 +297,10 @@ class LightQueue {
                     val = Math.max(val, light - dlen[d]);
                 }
             }
-            if (old === val && prev === val) {
+            if (old === val && !force) {
                 continue;
             }
             uint8View[coordBytes + OFFSET_LIGHT] = val;
-            uint8View[coordBytes + OFFSET_PREV] = val;
             if (old !== val) {
                 chunk.lastID++;
             }
@@ -314,7 +318,7 @@ class LightQueue {
                     let coord2 = coord + dif26[d];
                     const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
                     // a4fa-12 , not obvious optimization
-                    if (light >= prev && light >= val && light >= old) {
+                    if (light >= prevLight && light >= val && light >= old) {
                         continue;
                     }
                     this.add(chunk, coord2, waveNum);
@@ -341,7 +345,7 @@ class LightQueue {
                             const light = chunk2.uint8ByInd(coord2, qOffset + OFFSET_LIGHT);
                             mask |= 1 << d;
                             // a4fa-12 , not obvious optimization
-                            if (light >= prev && light >= val && light >= old) {
+                            if (light >= prevLight && light >= val && light >= old) {
                                 continue;
                             }
                             this.add(chunk2.rev, coord2, waveNum);
@@ -419,12 +423,12 @@ class DirLightQueue {
         return waveLevels[R];
     }
 
-    add(chunk, coord) {
+    add(chunk, coord, force) {
         const {outerSize} = chunk;
         let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
 
         const wave = this.getWave(lvl);
-        wave.coords.push(chunk.dataIdShift + coord);
+        wave.coords.push(chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
         chunk.waveCounter++;
     }
 
@@ -469,8 +473,10 @@ class DirLightQueue {
             }
 
             let coord = curWave.coords.pop();
-            const newChunk = chunkById[coord >> BITS_BLOCK_ID];
-            coord = coord & ((1 << BITS_BLOCK_ID) - 1);
+            const force = coord & MASK_QUEUE_FORCE;
+            coord = coord & ~MASK_QUEUE_FORCE;
+            const newChunk = chunkById[coord >> BITS_QUEUE_BLOCK_INDEX];
+            coord = coord & MASK_QUEUE_BLOCK_INDEX;
             if (!newChunk || newChunk.removed) {
                 continue;
             }
@@ -508,13 +514,12 @@ class DirLightQueue {
             const coordBytes = coord * strideBytes + qOffset;
             const old = uint8View[coordBytes + OFFSET_SOURCE];
             let val;
-            const prev = uint8View[coordBytes + OFFSET_SOURCE_PREV];
             if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_REST) > 0) {
                 val = 0;
             } else {
                 val = uint8View[coordBytes + sy * strideBytes + OFFSET_SOURCE];
                 if (disperse > 0) {
-                    if (val === maxLight && val === old && val === prev) {
+                    if (val === maxLight && val === old && !force) {
                         continue;
                     }
                     let cnt = 0;
@@ -535,22 +540,21 @@ class DirLightQueue {
                     }
                 }
             }
-            if (old === val && prev === val) {
+            if (old === val && !force) {
                 continue;
             }
-            let changedDisperse = (disperse > 0) && (((val === maxLight) ^ (prev === maxLight)) || (old !== prev));
+            let changedDisperse = (disperse > 0) && (((val === maxLight) ^ (old === maxLight)) || force);
             uint8View[coordBytes + OFFSET_SOURCE] = val;
-            uint8View[coordBytes + OFFSET_SOURCE_PREV] = val;
-
             // add to queue for light calc
-
             let maxVal = uint8View[coordBytes + OFFSET_LIGHT];
             if (maxVal < val) {
                 // mxdl-13 not obvious, good for big amount of lights
                 maxVal = uint8View[coordBytes + OFFSET_LIGHT] = val;
+                world.dayLight.add(chunk, coord, maxVal, true);
                 chunk.lastID++;
+            } else {
+                world.dayLight.add(chunk, coord, maxVal);
             }
-            world.dayLight.add(chunk, coord, maxVal);
             //TODO: copy to neib chunks
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
@@ -670,7 +674,7 @@ class ChunkManager {
 class Chunk {
     constructor(args) {
         this.dataId = args.dataId;
-        this.dataIdShift = args.dataId << BITS_BLOCK_ID;
+        this.dataIdShift = args.dataId << BITS_QUEUE_BLOCK_INDEX;
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.lastID = 0;
@@ -681,7 +685,7 @@ class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 7
+            strideBytes: 4
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
@@ -865,7 +869,6 @@ class Chunk {
                                 coordBytes = coord * strideBytes + OFFSET_DAY
                             uint8View[coordBytes + OFFSET_SOURCE] = defLight;
                             uint8View[coordBytes + OFFSET_LIGHT] = defLight
-                            uint8View[coordBytes + OFFSET_PREV] = defLight
                         }
                 // copy found dayLight to portals
                 for (let i = 0; i < portals.length; i++) {
