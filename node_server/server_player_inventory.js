@@ -136,13 +136,17 @@ export class ServerPlayerInventory extends Inventory {
             let b = BLOCK.fromId(mat.previous_part.id);
             mat = {id: b.id, previous_part: b.previous_part};
         }
-        mat = BLOCK.convertItemToInventoryItem(mat);
+        const cloned_block = BLOCK.convertItemToInventoryItem(mat);
+        delete(cloned_block.extra_data);
+        if('power' in cloned_block && cloned_block.power == 0) {
+            delete(cloned_block.power);
+        }
         // Search same material with count < max
         for(let k in Object.keys(this.items)) {
             k = parseInt(k);
             if(this.items[k]) {
                 let item = this.items[k];
-                if(item.id == mat.id) {
+                if(item.id == cloned_block.id) {
                     if(k >= this.hotbar_count) {
                         // swith with another from inventory
                         this.items[k] = this.items[this.current.index];
@@ -152,7 +156,7 @@ export class ServerPlayerInventory extends Inventory {
                     } else {
                         // select if on hotbar
                         if(k == this.current.index) {
-                            const block = BLOCK.fromId(mat.id);
+                            const block = BLOCK.fromId(cloned_block.id);
                             item.count = Math.min(item.count + 1, block.max_in_stack);
                         }
                         this.select(k);
@@ -168,7 +172,7 @@ export class ServerPlayerInventory extends Inventory {
         if(this.current.index < this.hotbar_count) {
             let k = this.current.index;
             if(!this.items[k]) {
-                this.items[k] = Object.assign({count: 1}, mat);
+                this.items[k] = Object.assign({count: 1}, cloned_block);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
                 return this.refresh(true);
@@ -180,7 +184,7 @@ export class ServerPlayerInventory extends Inventory {
                 break;
             }
             if(!this.items[k]) {
-                this.items[k] = Object.assign({count: 1}, mat);
+                this.items[k] = Object.assign({count: 1}, cloned_block);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
                 return this.refresh(true);
@@ -189,7 +193,7 @@ export class ServerPlayerInventory extends Inventory {
         // Replace current cell
         if(this.current.index < this.hotbar_count) {
             let k = this.current.index;
-            this.items[k] = Object.assign({count: 1}, mat);
+            this.items[k] = Object.assign({count: 1}, cloned_block);
             delete(this.items[k].texture);
             this.select(parseInt(k));
             return this.refresh(true);

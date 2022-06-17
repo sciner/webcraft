@@ -1102,6 +1102,7 @@
     {
         "id": 201,
         "name": "SPONGE",
+        "sound": "madcraft:block.cloth",
         "material": {
             "id": "clay"
         },
