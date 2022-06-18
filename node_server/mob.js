@@ -77,7 +77,7 @@ export class Mob {
         // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
         // store in DB
-        const result = await world.db.createMob(params);
+        const result = await world.db.mobs.create(params);
         for(let k in result) {
             params[k] = result[k];
         }
@@ -109,7 +109,7 @@ export class Mob {
 
     // Save mob state to DB
     async save() {
-        await this.#world.db.saveMob(this);
+        await this.#world.db.mobs.save(this);
     }
 
     //
