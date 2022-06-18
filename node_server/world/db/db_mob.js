@@ -77,8 +77,8 @@ export class DBWorldMob {
         if(!this.chunkHasMobs(addr)) {
             return resp;
         }
-        if(!globalThis.sdfgdhj) globalThis.sdfgdhj = 0;
-        console.log(++globalThis.sdfgdhj);
+        // if(!globalThis.sdfgdhj) globalThis.sdfgdhj = 0;
+        // console.log(++globalThis.sdfgdhj);
         const rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND is_dead = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,

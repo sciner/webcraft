@@ -18,15 +18,6 @@ export default class packet_reader {
         if(!player.game_mode.canDropItems()) {
             return true;
         }
-        
-        let perf = performance.now();
-        let addr = new Vector(-0.5, -0.5, -0.5);
-        const size = new Vector(160000000, 400000000, 100000006);
-        //for(let i = 0; i < 0; i++) {
-            let mobs = await player.world.db.mobs.loadInChunk(addr, size);
-        //}
-        console.log(performance.now() - perf, mobs.size)
-        //
         player.inventory.dropItem();
         return true;
     }
