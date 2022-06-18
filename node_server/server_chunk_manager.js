@@ -219,12 +219,12 @@ export class ServerChunkManager {
 
     // chunkMobsIsGenerated
     async chunkMobsIsGenerated(chunk_addr_hash) {
-        return await this.world.db.chunkMobsIsGenerated(chunk_addr_hash);
+        return await this.world.db.mobs.chunkMobsIsGenerated(chunk_addr_hash);
     }
 
     // chunkSetMobsIsGenerated
     async chunkSetMobsIsGenerated(chunk_addr_hash) {
-        return await this.world.db.chunkMobsSetGenerated(chunk_addr_hash, 1);
+        return await this.world.db.mobs.chunkMobsSetGenerated(chunk_addr_hash, 1);
     }
 
     // Return chunks inside AABB

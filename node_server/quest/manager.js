@@ -7,7 +7,7 @@ export class QuestManager {
     }
 
     async init() {
-        this.default_quests = await this.#world.db.loadDefaultQuests();
+        this.default_quests = await this.#world.db.quests.defaults();
     }
 
     getDefaultQuests() {
@@ -15,19 +15,19 @@ export class QuestManager {
     }
 
     async savePlayerQuest(player, quest) {
-        return await this.#world.db.savePlayerQuest(player, quest);
+        return await this.#world.db.quests.savePlayerQuest(player, quest);
     }
 
     async loadPlayerQuests(player) {
-        return await this.#world.db.loadPlayerQuests(player);
+        return await this.#world.db.quests.loadPlayerQuests(player);
     }
 
     async questsUserStarted(player) {
-        return await this.#world.db.questsUserStarted(player);
+        return await this.#world.db.quests.userStarted(player);
     }
 
     async loadQuest(quest_id) {
-        return await this.#world.db.loadQuest(quest_id);
+        return await this.#world.db.quests.load(quest_id);
     }
 
 }

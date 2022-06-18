@@ -395,7 +395,7 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         //
-        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks

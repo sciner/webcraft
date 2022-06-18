@@ -187,7 +187,7 @@ export class ServerWorld {
             await this.onLeave(existing_player);
         }
         // 2. Insert to DB if new player
-        player.init(await this.db.registerUser(this, player));
+        player.init(await this.db.registerPlayer(this, player));
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
