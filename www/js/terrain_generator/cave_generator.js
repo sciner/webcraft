@@ -61,7 +61,7 @@ export class CaveGenerator {
             if(dist < -5 * dens || dist > 5 * dens) {
                 continue;
             }
-            return cell.value;
+            return cell.density;
         }
         return null;
     }
