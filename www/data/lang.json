@@ -49,7 +49,7 @@
         "submit": {"en": "Submit", "ru": "Отправить","fr": "Soumettre","es":"Enviar"},
         "back": {"en": "Back", "ru": "Назад", "fr": "Arriere","es":"atrás"},
         "login": {"en": "Login", "ru": "Авторизация","fr": "Se Loguer","es":"Acceso"},
-        "enter": {"en": "Enter", "ru": "Вход","fr": "Entrer","es":""},
+        "enter": {"en": "Enter", "ru": "Вход","fr": "Entrer","es":"Entrar"},
         "quests": {"en": "Quests", "ru": "Квесты","fr": "Aventure","es":""},
         "tasks": {"en": "Task(s)", "ru": "Задания","fr": "Tâches","es":""},
         "rewards": {"en": "Reward(s)", "ru": "Награды","fr": "Recompenses","es":""},
