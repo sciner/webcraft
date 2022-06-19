@@ -2,6 +2,7 @@ import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
 import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
 import {BIOMES} from "./biomes.js";
+import { Cave3DGenerator } from './cave3d_generator.js';
 import { CaveGenerator } from './cave_generator.js';
 import { OreGenerator } from './ore_generator.js';
 
@@ -240,7 +241,8 @@ export class TerrainMapManager {
             }
         }
         this.maps_cache.set(chunk.addr, map);
-        map.caves = new CaveGenerator(chunk.coord, noisefn);
+        map.caves = new Cave3DGenerator(this.noisefn3d);
+        // map.caves = new CaveGenerator(chunk.coord,noisefn);
         map.ores = new OreGenerator(this.seed, chunk.addr, noisefn, this.noisefn3d, map);
         
         // console.log(`Actual maps count: ${this.maps_cache.size}`);

@@ -18,8 +18,8 @@ function checkVersion(module_name, current) {
         process.exit();
     }
 }
-checkVersion('nodejs', process.version);
-checkVersion('sqlite3', sqlite3.VERSION);
+//checkVersion('nodejs', process.version);
+//checkVersion('sqlite3', sqlite3.VERSION);
 
 import {Lang} from "../www/js/lang.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -50,6 +50,7 @@ global.randomUUID       = () => {
 console.log('Server config', config);
 
 // Init environment
+console.log(__dirname + '/../data/block_style.json');
 await BLOCK.init({
     _json_url: __dirname + '/../data/block_style.json',
     _resource_packs_url: __dirname + '/../data/resource_packs.json'
