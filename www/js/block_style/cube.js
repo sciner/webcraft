@@ -321,30 +321,32 @@ export default class style {
             // Rotate
             const rotate = block.rotate || DEFAULT_ROTATE;
             const cardinal_direction = block.getCardinalDirection();
-            matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
 
             // Can rotate
             if(material.can_rotate && rotate) {
-                DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-                DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-                DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-                DIRECTION_LEFT          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
-                //
-                if (
-                    CubeSym.matrices[cardinal_direction][4] <= 0 ||
-                    (material.tags.indexOf('rotate_by_pos_n') >= 0 && rotate.y != 0)
-                ) {
-                    // @todo: calculate canDrawUP and neighbours based on rotation
-                    canDrawUP = true;
-                    canDrawDOWN = true;
-                    canDrawSOUTH = true;
-                    canDrawNORTH = true;
-                    canDrawWEST = true;
-                    canDrawEAST = true;
-                    DIRECTION_BACK = DIRECTION.BACK;
-                    DIRECTION_RIGHT = DIRECTION.RIGHT;
-                    DIRECTION_FORWARD = DIRECTION.FORWARD;
-                    DIRECTION_LEFT = DIRECTION.LEFT;
+                if(rotate.x != 0 || rotate.y != 1 || rotate.z != 0) {
+                    matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
+                    DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+                    DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+                    DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+                    DIRECTION_LEFT          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+                    //
+                    if (
+                        CubeSym.matrices[cardinal_direction][4] <= 0 ||
+                        (material.tags.indexOf('rotate_by_pos_n') >= 0 && rotate.y != 0)
+                    ) {
+                        // @todo: calculate canDrawUP and neighbours based on rotation
+                        canDrawUP = true;
+                        canDrawDOWN = true;
+                        canDrawSOUTH = true;
+                        canDrawNORTH = true;
+                        canDrawWEST = true;
+                        canDrawEAST = true;
+                        DIRECTION_BACK = DIRECTION.BACK;
+                        DIRECTION_RIGHT = DIRECTION.RIGHT;
+                        DIRECTION_FORWARD = DIRECTION.FORWARD;
+                        DIRECTION_LEFT = DIRECTION.LEFT;
+                    }
                 }
             }
 

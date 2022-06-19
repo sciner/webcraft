@@ -23,9 +23,13 @@ export class DBWorld {
     constructor(db, world) {
         this.db = db;
         this.world = world;
-        this.mobs = new DBWorldMob(db, world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
-        this.migrations = new DBWorldMigration(db, world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
-        this.quests = new DBWorldQuest(db, world);
+    }
+
+    async init() {
+        this.migrations = new DBWorldMigration(this.db, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        await this.migrations.apply();
+        this.mobs = new DBWorldMob(this.db, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        this.quests = new DBWorldQuest(this.db, this.world);
     }
 
     // Open database and return provider
@@ -47,13 +51,14 @@ export class DBWorld {
             await copyFile(template_db_filename, filename);
         }
         // Open SQLIte3 fdatabase file
-        let dbc = await open({
+        const dbc = await open({
             filename: filename,
             driver: sqlite3.Database
         }).then(async (conn) => {
             return new DBWorld(conn, world);
         });
-        await dbc.migrations.apply();
+        // Init DB
+        await dbc.init();
         return dbc;
     }
 

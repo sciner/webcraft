@@ -564,7 +564,7 @@ export class BLOCK {
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
         block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
-        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 199, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
+        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
         block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
         block.is_dirt           = ['GRASS_DIRT', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM'].indexOf(block.name) >= 0;
         block.is_leaves         = block.tags.indexOf('leaves') >= 0;

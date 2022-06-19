@@ -8,18 +8,21 @@ export class DBWorldMigration {
         this.getDefaultPlayerIndicators = getDefaultPlayerIndicators;
     }
 
+    //
     async apply() {
         let version = 0;
-        try {
-            // Read options
-            let row = await this.db.get('SELECT version FROM options');
-            version = row.version;
-        } catch(e) {
+        // Read options
+        const table_exists = await this.db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='options'`);
+        if(table_exists) {
+            const row = await this.db.get('SELECT version FROM options');
+            version = row.version;    
+        } else {
             await this.db.get('BEGIN TRANSACTION');
             await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
             await this.db.get('INSERT INTO options(version) values(0)');
             await this.db.get('COMMIT');
         }
+        //
         const migrations = [];
         migrations.push({version: 1, queries: [
             'ALTER TABLE user ADD COLUMN indicators text',

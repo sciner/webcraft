@@ -43,7 +43,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
         this.material = this.resource_pack.getMaterial(block.material_key);
 
         if(!chunk.dirt_colors) {
-            debugger
+            this.life = 0;
+            return
         }
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
