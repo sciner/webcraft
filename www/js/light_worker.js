@@ -862,18 +862,19 @@ class Chunk {
             for (let z = aabb.z_min; z < aabb.z_max; z++)
                 for (let x = aabb.x_min; x < aabb.x_max; x++) {
                     const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
-
+                    // just in case chunk is reloaded, need to check past
                     let m = 0;
-                    for (let d = 0; d < 6; d++) {
-                        m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_LIGHT]);
-                    }
-                    m = Math.max(m, uint8View[coordBytes + OFFSET_LIGHT]);
+                    const past = uint8View[coordBytes + OFFSET_LIGHT];
                     const isBlock = (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK;
                     if (!isBlock) {
                         //TODO: check if its water or something advanced blocking light
+                        for (let d = 0; d < 6; d++) {
+                            m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_LIGHT]);
+                        }
+                        m = Math.max(m, past);
                         m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT);
                     }
-                    if (m > 0) {
+                    if (m > 0 || past > 0) {
                         world.light.add(this, coord, m + world.getPotential(x, y, z));
                     }
                     found = found || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0;
