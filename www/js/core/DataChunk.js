@@ -1,8 +1,9 @@
 import {BaseChunk} from "./BaseChunk.js";
+import {Vector} from "../helpers.js";
 
 export class DataChunk extends BaseChunk {
-    constructor({size, strideBytes}) {
-        super({size});
+    constructor({size, strideBytes, nibble}) {
+        super({size, nibble});
         this.initData(strideBytes);
     }
 
@@ -17,6 +18,14 @@ export class DataChunk extends BaseChunk {
         }
         if ((strideBytes & 3) === 0) {
             this.uint32View = new Uint32Array(this.dataBuf);
+        }
+
+        if (this.nibbleSize) {
+            this.nibbleBuf = new ArrayBuffer(this.nibbleStrideBytes * this.nibbleOuterLen)
+            this.nibbles = new Uint8Array(this.nibbleBuf);
+        } else {
+            this.nibbleBuf = null;
+            this.nibbles = null;
         }
     }
 
