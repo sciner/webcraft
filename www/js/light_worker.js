@@ -1070,18 +1070,18 @@ class Chunk {
                     const boundZ = (z === outerSize.z - 1) ? sz : 0;
 
                     let coord = coord0 - boundX - boundY - boundZ + OFFSET_LIGHT;
-                    let A = Math.max(Math.max(Math.max(uint8View[coord], uint8View[coord + sx])),
-                        Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
-                        Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
-                            Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
+                    let A = Math.max(uint8View[coord],              uint8View[coord + sx],
+                                     uint8View[coord + sy],         uint8View[coord + sx + sy],
+                                     uint8View[coord + sz],         uint8View[coord + sx + sz],
+                                     uint8View[coord + sy + sz],    uint8View[coord + sx + sy + sz]);
                     A = adjustLight(A);
 
                     // add day light
                     coord = coord0 - boundX - boundY - boundZ + OFFSET_DAY + OFFSET_LIGHT;
-                    let A2 = Math.max(Math.max(Math.max(uint8View[coord], uint8View[coord + sx])),
-                        Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
-                        Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
-                            Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
+                    let A2 = Math.max(uint8View[coord],             uint8View[coord + sx],
+                                      uint8View[coord + sy],        uint8View[coord + sx + sy],
+                                      uint8View[coord + sz],        uint8View[coord + sx + sz],
+                                      uint8View[coord + sy + sz],   uint8View[coord + sx + sy + sz]);
                     A2 = adjustLight(A2);
 
                     addResult1(A, A2, (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
