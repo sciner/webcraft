@@ -291,6 +291,12 @@ canvas {
     button {
         clip-path: none;
         font-size: 1rem;
+        margin-right: .5em;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        /*
         &:not(:first-child) {
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
@@ -298,9 +304,9 @@ canvas {
         &:not(:last-child) {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
-        }
+        }*/
         &:not(.active) {
-            background-color: rgba(255,255,255,.3);
+            background-color: transparent; // rgba(255,255,255,.3);
             &:hover {
                 background: #ffffff77;
             }

@@ -157,6 +157,29 @@ class Block_Material {
 
 }
 
+// getBlockNeighbours
+function getBlockNeighbours(world, pos) {
+    const neighbours = {
+        UP: null,
+        DOWN: null,
+        SOUTH: null,
+        NORTH: null,
+        WEST: null,
+        EAST: null
+    };
+    let v = new Vector(0, 0, 0);
+    // обходим соседние блоки
+    for(let i = 0; i < 6; i ++) {
+        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
+        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
+        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
+        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
+        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
+        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
+    }
+    return neighbours;
+}
+
 export class BLOCK {
 
     static list                     = new Map();
@@ -290,7 +313,7 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos, orientation) {
+    static makeExtraData(block, pos, orientation, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
         let extra_data = null;
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
@@ -343,6 +366,21 @@ export class BLOCK {
         if(block.is_chest) {
             extra_data = extra_data || {};
             Object.assign(extra_data, { can_destroy: true, slots: {} });
+        }
+        // if mushroom block
+        if(block.is_mushroom_block && world) {
+            const neighbours = getBlockNeighbours(world, pos);
+            let t = 0;
+            if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
+            if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
+            if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
+            if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
+            if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
+            if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
+            if(t != 0) {
+                extra_data = extra_data || {};
+                extra_data.t = t;
+            }
         }
         return extra_data;
     }
@@ -424,13 +462,13 @@ export class BLOCK {
         if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
             return true;
         }
-        let block = BLOCK.BLOCK_BY_ID[block_id];
-        if(block.is_fluid) {
+        const mat = BLOCK.BLOCK_BY_ID[block_id];
+        if(mat.is_fluid) {
             return true;
         }
-        if(block.is_layering) {
-            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
-            return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
+        if(mat.is_layering) {
+            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
+            return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
         }
         return false;
     }
