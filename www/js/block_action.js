@@ -575,6 +575,8 @@ export class PickatActions {
 export async function doBlockAction(e, world, player, currentInventoryItem) {
 
     const actions = new PickatActions(e.id);
+    const destroyBlocks = new DestroyBlocks(world, player, actions);
+
     if(e.pos == false) {
         return actions;
     }
@@ -603,7 +605,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     // 2. Destroy
     if(e.destroyBlock) {
         const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
-        const destroyBlocks = new DestroyBlocks(world, player, actions);
         let can_destroy = true;
         if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
             can_destroy = world_block.extra_data.can_destroy;
@@ -810,21 +811,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
 
         // 8. Некоторые блоки можно ставить только на что-то сверху
-        const setOnlyToTop = !!mat_block.is_layering && !mat_block.layering.slab;
-        if(setOnlyToTop && pos.n.y != 1) {
+        if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
             return actions;
         }
 
         // 9. Некоторые блоки можно только подвешивать на потолок
-        const placeOnlyToCeil = mat_block.tags.indexOf('place_only_to_ceil') >= 0;
-        if(placeOnlyToCeil && pos.n.y != -1) {
+        if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
             return actions;
         }
 
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-        const is_layering = (world_material.id == mat_block.id) && world_material.is_layering;
-        // console.log(`${world_material.id} == ${mat_block.id} && ${world_material.is_layering} = ${is_layering}`)
-        if(is_layering && pos.n.y == 1) {
+        if((world_material.id == mat_block.id) && world_material.is_layering && pos.n.y == 1) {
             const layering = world_material.layering;
             let new_extra_data = null;
             pos.y--;
@@ -850,8 +847,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
 
         // 11. Факелы можно ставить только на определенные виды блоков!
-        const isTorch = mat_block.style == 'torch';
-        if(isTorch) {
+        if(mat_block.style == 'torch') {
             if(!replaceBlock && (
                         ['default', 'fence', 'wall'].indexOf(world_material.style) < 0 ||
                         (world_material.style == 'fence' && pos.n.y != 1) ||
@@ -1027,9 +1023,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         }
                     }
                 }
-                //
-                const is_sign = mat_block.tags.indexOf('sign') >= 0;
-                if(is_sign) {
+                // Open edit window if sign
+                if(mat_block.tags.indexOf('sign') >= 0) {
                     if(orientation.y != 0) {
                         orientation.x = player.rotate.z / 90;
                     }
@@ -1038,7 +1033,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         args: {pos: new Vector(pos)}
                     };
                 }
-                //
+                /*
+                // Destroy connected part
                 if(replaceBlock && world_material.next_part) {
                     const part = world_material.next_part;
                     if(part) {
@@ -1049,6 +1045,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         }
                     }
                 }
+                */
                 pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
                 for(let pb of pushed_blocks) {
                     pushBlock(pb);
