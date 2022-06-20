@@ -654,7 +654,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     
         // Получаем материал выбранного блока в инвентаре
         let mat_block = currentInventoryItem ? BLOCK.fromId(currentInventoryItem.id) : null;
-        if(mat_block.item?.emit_on_set) {
+        if(mat_block && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
