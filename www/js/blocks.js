@@ -70,6 +70,10 @@ export class FakeTBlock {
         return BLOCK.getCardinalDirection(this.rotate);
     }
 
+    get posworld() {
+        return this.pos;
+    }
+
     hasTag(tag) {
         const mat = this.material;
         if(!mat) {
