@@ -282,6 +282,18 @@
                 "base": "textures/zombie/zombie.png",
                 "husk": "textures/zombie/husk.png"
             }
+        },
+        "parrot": {
+            "type": "json",
+            "geom": "json/parrot.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/parrot/parrot_red_blue.png",
+                "blue": "textures/parrot/parrot_blue.png",
+                "green": "textures/parrot/parrot_green.png",
+                "grey": "textures/parrot/parrot_grey.png",
+                "yellow_blue": "textures/parrot/parrot_yellow_blue.png"
+            }
         }
     }
 }

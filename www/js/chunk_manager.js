@@ -76,7 +76,13 @@ export class ChunkManager {
                                     break;
                                 }
                                 case 'campfire': {
-                                    meshes.addEffectParticle('campfire_flame', item.pos);
+                                    if(!item.tblock) {
+                                        item.tblock = world.getBlock(item.pos);
+                                    }
+                                    const extra_data = item.tblock.extra_data;
+                                    if(extra_data && extra_data.active) {
+                                        meshes.addEffectParticle('campfire_flame', item.pos);
+                                    }
                                     break;
                                 }
                             }

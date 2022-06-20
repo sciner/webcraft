@@ -179,13 +179,13 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 }
             }
             //
-            if(dropItem.count + dragItem.count < item_max_count) {
+            if(dropItem.count + dragItem.count < max_stack_count) {
                 dropItem.count += dragItem.count;
                 // clear result slot
                 this.setItem(null);
             } else {
-                let remains = (dropItem.count + dragItem.count) - item_max_count;
-                dropItem.count = item_max_count;
+                let remains = (dropItem.count + dragItem.count) - max_stack_count;
+                dropItem.count = max_stack_count;
                 dragItem.count = remains;
             }
             //

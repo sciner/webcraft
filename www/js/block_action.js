@@ -1290,6 +1290,11 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
         }
         return true;
     }
+    if(world_material.name == 'CAMPFIRE') {
+        extra_data.active = false;
+        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        return true;
+    }
     return false;
 }
 
