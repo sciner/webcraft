@@ -85,7 +85,7 @@ export class WorldMobManager {
             return false;
         }
         //
-        await world.db.activateMob(entity_id, spawn_pos, rotate);
+        await world.db.mobs.activateMob(entity_id, spawn_pos, rotate);
         const mob = await world.db.mobs.load(entity_id);
         if(mob) {
             chunk.addMob(mob)
