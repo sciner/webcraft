@@ -780,6 +780,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
         }
+
         const pushed_blocks = [];
 
         // Если этот блок кровать
@@ -797,6 +798,15 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             };
             pushed_blocks.push(next_block);
             check_poses.push(next_block.pos);
+        }
+
+        // Проверяем, что все блоки можем установить
+        for(let cp of check_poses) {
+            const cp_block = world.getBlock(cp);
+            if(!BLOCK.canReplace(cp_block.id, cp_block.extra_data, mat_block.id)) {
+                actions.error = 'error_block_cannot_be_replace';
+                return actions;
+            }
         }
 
         // 8. Некоторые блоки можно ставить только на что-то сверху
@@ -979,13 +989,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     if(world_material.transparent && world_material.style != 'default') {
                         return actions;
                     }
-                    if(pos.n.y == 0) {
-                        if(pos.n.z != 0) {
-                            // z
-                        } else {
-                            // x
-                        }
-                    } else {
+                    if(pos.n.y != 0) {
                         let cardinal_direction = orientation.x;
                         let ok = false;
                         for(let i = 0; i < 4; i++) {
