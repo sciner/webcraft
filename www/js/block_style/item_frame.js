@@ -173,7 +173,12 @@ export default class style {
             matRotate[9] = matrix[10] * scale;
             matRotate[10] = -matrix[9] * depth;
 
-            const mesh = new DropItemVertices(block.extra_data.item_id, new Vector(x, y, z), rotate, matRotate, vg.vertices);
+            // old version compatibility
+            if(!('rot' in block.extra_data)) {
+                block.extra_data.rot = 0;
+            }
+
+            const mesh = new DropItemVertices(block.extra_data.item_id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
             return [mesh];
         }
 

@@ -910,14 +910,18 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
     }
     extra_data = extra_data ? extra_data : {};
     if(extra_data.item_id) {
-        // do nothing
-        // actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
+        if(!('rot' in extra_data)) {
+            extra_data.rot = 0;
+        }
+        extra_data.rot = (extra_data.rot + 1) % 8;
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     } else {
         extra_data.item_id = mat_block.id;
+        extra_data.rot = 0;
         actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
         actions.decrement = true;
     }
+    actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
     return true;
 }
 

@@ -4577,7 +4577,7 @@
         "can_rotate": true,
         "inventory": {
             "style": "extruder",
-            "texture": [7, 2]
+            "texture": [8, 2]
         },
         "mining_time": 0,
         "extra_data": {"item_id": null},

@@ -312,6 +312,7 @@ export class Chunk {
 
                 // Push vertices
                 const vertices = block.vertice_groups[material_key];
+                // block.extra_data.rot
                 const zeroVector = [0, 0, 0];
                 for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
                     pushTransformed(buf.vertices, block.matrix, zeroVector,
