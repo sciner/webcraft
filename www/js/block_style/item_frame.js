@@ -156,7 +156,7 @@ export default class style {
         // return item in frame
         if(block.extra_data && block.extra_data.item_id) {
             const vg = worker.drop_item_meshes[block.extra_data.item_id];
-            const mesh = new DropItemVertices(block.extra_data.item_id, new Vector(x, y, z), vg.vertices);
+            const mesh = new DropItemVertices(block.extra_data.item_id, new Vector(x, y, z), rotate, matrix, vg.vertices);
             return [mesh];
         }
 

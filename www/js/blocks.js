@@ -98,8 +98,8 @@ export class FakeTBlock {
 //
 export class DropItemVertices extends FakeTBlock {
     
-    constructor(id, pos, vertice_groups) {
-        super(id, null, pos, null, null, null, null, null, null);
+    constructor(id, pos, rotate, matrix, vertice_groups) {
+        super(id, null, pos, rotate, null, matrix, null, null, null);
         this.vertice_groups = vertice_groups;
     }
 
