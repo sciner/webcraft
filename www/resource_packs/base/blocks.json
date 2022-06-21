@@ -4570,19 +4570,29 @@
     },
     {
         "id": 616,
-        "name": "FRAME",
-        "spawnable": false,
-        "inventory_style": "extruder",
+        "name": "ITEM_FRAME",
+        "style": "item_frame",
         "sound": "madcraft:block.wood",
+        "transparent": true,
+        "can_rotate": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [7, 2]
+        },
+        "mining_time": 0,
+        "extra_data": {"item_id": null},
+        "tags": [
+            "item_frame",
+            "rotate_by_pos_n",
+            "pot",
+            "no_drop_ao"
+        ],
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "no_drop_ao"
-        ],
         "texture": {
-            "id": "default",
-            "side": [21, 19]
+            "side": [10, 2],
+            "down": [10, 2]
         }
     },
     {

@@ -121,7 +121,7 @@ export class MeshGroup {
      * @param {*} tz
      * @param {bool} force_inventory_style
      */
-    buildVertices(tx, ty, tz, force_inventory_style) {
+    buildVertices(tx, ty, tz, force_inventory_style, matrix, pivot) {
         const dirt_color = new Color(850 / 1024, 930 / 1024, 0, 0);
         const biome = {
             code:       'GRASSLAND',
@@ -171,7 +171,9 @@ export class MeshGroup {
                 biome,
                 dirt_color,
                 ds,
-                force_tex
+                force_tex,
+                matrix,
+                pivot
             );
         }
 

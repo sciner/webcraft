@@ -588,8 +588,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removePlantFromPot]) {
-                if(await func(e, world, pos, player, world_block, world_material, null, extra_data, null, actions)) {
+            for(let func of [removeFromPot]) {
+                if(await func(e, world, pos, player, world_block, world_material, null, extra_data, rotate, null, actions)) {
                     return actions;
                 }
             }
@@ -675,7 +675,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
 
         // 2. Проверка выполняемых действий с блоками в мире
-        for(let func of [putPlantIntoPot, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop]) {
+        for(let func of [putIntoPot, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, extra_data, rotate, null, actions)) {
                 return actions;
             }
@@ -895,15 +895,17 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 }
 
 // Put into pot
-async function putPlantIntoPot(e, world, pos, player, world_block, world_material, mat_block, extra_data, rotate, replace_block, actions) {
-    const putPlantIntoPot = !e.shiftKey && world_material &&
+async function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, extra_data, rotate, replace_block, actions) {
+    const item_frame = world_material && world_material.tags.indexOf('item_frame') >= 0;
+    const putIntoPot = !e.shiftKey && world_material &&
                             (world_material.tags.indexOf('pot') >= 0) &&
                             (
+                                item_frame ||
                                 mat_block.planting ||
                                 [BLOCK.CACTUS.id].indexOf(mat_block.id) >= 0 ||
                                 mat_block.tags.indexOf('can_put_info_pot') >= 0
                             );
-    if(!putPlantIntoPot) {
+    if(!putIntoPot) {
         return false;
     }
     extra_data = extra_data ? extra_data : {};
@@ -912,7 +914,7 @@ async function putPlantIntoPot(e, world, pos, player, world_block, world_materia
         // actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
     } else {
         extra_data.item_id = mat_block.id;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
         actions.decrement = true;
     }
@@ -1162,14 +1164,14 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
 }
 
 // Remove plant from pot
-async function removePlantFromPot(e, world, pos, player, world_block, world_material, mat_block, extra_data, rotate, replace_block, actions) {
+async function removeFromPot(e, world, pos, player, world_block, world_material, mat_block, extra_data, rotate, replace_block, actions) {
     if(world_material && world_material.tags.indexOf('pot') >= 0) {
         if(extra_data?.item_id) {
             let drop_item_id = extra_data?.item_id;
             extra_data = extra_data ? extra_data : {};
             extra_data.item_id = null;
             delete(extra_data.item_id);
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
             actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: drop_item_id, count: 1}], force: true});

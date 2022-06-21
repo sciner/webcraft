@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, calcRotateMatrix, fromMat3} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -20,8 +20,9 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import { RAINDROP_NEW_INTERVAL } from "./constant.js";
+import { CubeSym } from "./core/CubeSym.js";
 
-const {mat4} = glMatrix;
+const {mat3, mat4} = glMatrix;
 
 /**
 * Renderer
@@ -82,6 +83,19 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+
+        //
+        this.drop_item_meshes = Array(4096); // new Map();
+    }
+
+    //
+    addDropItemMesh(block_id, material_id, vertices) {
+        let div = this.drop_item_meshes[block_id]; // .get(block_id);
+        if(!div) {
+            div = {vertices: {}};
+            this.drop_item_meshes[block_id] = div;
+        }
+        div.vertices[material_id] = vertices;
     }
 
     nextCameraMode() {
@@ -200,6 +214,9 @@ export class Renderer {
         }
 
         this.generatePrev();
+
+        world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
+        
     }
 
     generatePrev(callback) {
@@ -298,6 +315,8 @@ export class Renderer {
                     debugger;
                 }
 
+                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
+
                 // use linear for inventory
                 mesh.material.texture.minFilter = 'linear';
                 mesh.material.texture.magFilter = 'linear';
@@ -317,6 +336,22 @@ export class Renderer {
         });
 
         this.renderBackend.endPass();
+
+        // Drop for extruded blocks 
+        extruded.forEach((mat) => {
+            const b = {id: mat.id};
+            //
+            let cardinal_direction = 0;
+            let mx = mat3.create();
+            let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+            mat3.fromMat4(mx, mx4);
+            //
+            const pv = new Vector(.5, .5, .5);
+            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, null, null);
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
+                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
+            });
+        });
 
         // render target to Canvas
         target.toImage('canvas').then((data) => {

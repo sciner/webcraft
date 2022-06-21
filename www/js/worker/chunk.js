@@ -1,4 +1,4 @@
-import {BLOCK, POWER_NO} from "../blocks.js";
+import {BLOCK, POWER_NO, DropItemVertices} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {BlockNeighbours, TBlock} from "../typed_blocks.js";
 import {newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK} from "../typed_blocks3.js";
@@ -7,6 +7,7 @@ import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 import {WorkerInstanceBuffer} from "./WorkerInstanceBuffer.js";
+import GeometryTerrain from "../geometry_terrain.js";
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -279,6 +280,61 @@ export class Chunk {
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
 
+        // Process drop item
+        const processDropItem = (block, neightbours, useCache) => {
+
+            const pos = block.pos;
+
+            for(let material_key in block.vertice_groups) {
+
+                const tmp = material_key.split('/');
+                const material_group = tmp[1];
+
+                // material.group, material_key
+                if (!materialToId.has(material_key)) {
+                    materialToId.set(material_key, materialToId.size);
+                }
+
+                const matId = materialToId.get(material_key);
+                let buf = vertexBuffers.get(matId);
+                if (!buf) {
+                    vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
+                        material_group: material_group,
+                        material_key: material_key,
+                        geometryPool: verticesPool,
+                        chunkDataId: dataId
+                    }));
+                }
+                buf.touch();
+                buf.skipCache(0);
+
+                // Push vertices
+                const last = buf.vertices.filled;
+                const vertices = block.vertice_groups[material_key];
+                for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
+                    const v = vertices.slice(i, i + GeometryTerrain.strideFloats);
+                    v[0] += pos.x + .5;
+                    v[1] += pos.z + .5;
+                    v[2] += pos.y + .5;
+                    buf.vertices.push(...v);
+                }
+
+                if (useCache) {
+                    if (last === buf.vertices.filled) {
+                        vertices[block.index * 2] = 0;
+                        vertices[block.index * 2 + 1] = 0;
+                    } else {
+                        vertices[block.index * 2] = buf.vertices.filled - last;
+                        vertices[block.index * 2 + 1] = matId;
+                    }
+                }
+
+            }
+
+            return null;
+
+        }
+
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
             const material = block.material;
 
@@ -421,10 +477,15 @@ export class Chunk {
             const fake_neighbours = new BlockNeighbours();
             for (let [index, eblocks] of this.emitted_blocks) {
                 for (let eb of eblocks) {
-                    processBlock(eb, fake_neighbours,
-                        eb.biome, eb.dirt_color,
-                        eb.matrix, eb.pivot,
-                        false);
+                    if(eb instanceof DropItemVertices) {
+                        eb.index = index;
+                        processDropItem(eb, fake_neighbours, false);
+                    } else {
+                        processBlock(eb, fake_neighbours,
+                            eb.biome, eb.dirt_color,
+                            eb.matrix, eb.pivot,
+                            false);
+                    }
                 }
             }
         }

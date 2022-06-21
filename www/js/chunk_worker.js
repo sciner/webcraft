@@ -263,6 +263,10 @@ async function onMessageFunc(e) {
             }
             break;
         }
+        case 'setDropItemMeshes': {
+            worker.drop_item_meshes = args;
+            break;
+        }
         case 'createMaps': {
             /*let pn = performance.now();
             const addr = new Vector(args.addr);

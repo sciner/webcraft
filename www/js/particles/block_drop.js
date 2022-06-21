@@ -14,7 +14,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     static mesh_groups_cache = new Map();
 
     // Constructor
-    constructor(gl, entity_id, items, pos) {
+    constructor(gl, entity_id, items, pos, matrix, pivot) {
 
         super(
             new Vector(pos.x, pos.y, pos.z),
@@ -93,7 +93,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             // 6. Draw all blocks
-            this.mesh_group.buildVertices(x, y, z, true);
+            this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             // 7.
             Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
