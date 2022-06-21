@@ -8,6 +8,7 @@ import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 import {WorkerInstanceBuffer} from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
+import {pushTransformed} from '../block_style/extruder.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -281,9 +282,10 @@ export class Chunk {
         const block = this.tblocks.get(new Vector(0, 0, 0), null, cw);
 
         // Process drop item
-        const processDropItem = (block, neightbours, useCache) => {
+        const processDropItem = (block, neightbours) => {
 
             const pos = block.pos;
+            const rotate = block.rotate;
 
             for(let material_key in block.vertice_groups) {
 
@@ -309,26 +311,16 @@ export class Chunk {
                 buf.skipCache(0);
 
                 // Push vertices
-                const last = buf.vertices.filled;
                 const vertices = block.vertice_groups[material_key];
+                const zeroVector = [0, 0, 0];
                 for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
-                    const v = vertices.slice(i, i + GeometryTerrain.strideFloats);
-                    v[0] += pos.x + .5;
-                    v[1] += pos.z + .5;
-                    v[2] += pos.y + .5;
-                    buf.vertices.push(...v);
+                    pushTransformed(buf.vertices, block.matrix, zeroVector,
+                        pos.x + 0.5, pos.z + 0.5, pos.y + 0.5,
+                        vertices[i] + 0,
+                        vertices[i + 1] + 1.4,
+                        vertices[i + 2] + 0,
+                        ...vertices.slice(i + 3, i + GeometryTerrain.strideFloats));
                 }
-
-                if (useCache) {
-                    if (last === buf.vertices.filled) {
-                        vertices[block.index * 2] = 0;
-                        vertices[block.index * 2 + 1] = 0;
-                    } else {
-                        vertices[block.index * 2] = buf.vertices.filled - last;
-                        vertices[block.index * 2 + 1] = matId;
-                    }
-                }
-
             }
 
             return null;
@@ -479,7 +471,7 @@ export class Chunk {
                 for (let eb of eblocks) {
                     if(eb instanceof DropItemVertices) {
                         eb.index = index;
-                        processDropItem(eb, fake_neighbours, false);
+                        processDropItem(eb, fake_neighbours);
                     } else {
                         processBlock(eb, fake_neighbours,
                             eb.biome, eb.dirt_color,

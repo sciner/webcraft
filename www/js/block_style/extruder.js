@@ -5,6 +5,7 @@ const {mat3, mat4} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
+const tempMatrix = mat3.create();
 
 export function pushTransformed(
     vertices, mat, pivot,
