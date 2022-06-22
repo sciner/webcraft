@@ -518,7 +518,7 @@ export class BLOCK {
             block.is_leaves ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
-            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
+            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa' || block.style == 'item_frame'
             ) {
             group = 'doubleface';
         }

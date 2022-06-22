@@ -285,7 +285,6 @@ export class Chunk {
         const processDropItem = (block, neightbours) => {
 
             const pos = block.pos;
-            const rotate = block.rotate;
 
             for(let material_key in block.vertice_groups) {
 
@@ -312,13 +311,12 @@ export class Chunk {
 
                 // Push vertices
                 const vertices = block.vertice_groups[material_key];
-                // block.extra_data.rot
                 const zeroVector = [0, 0, 0];
                 for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
                     pushTransformed(buf.vertices, block.matrix, zeroVector,
                         pos.x + 0.5, pos.z + 0.5, pos.y + 0.5,
                         vertices[i] + 0,
-                        vertices[i + 1] + 1.4,
+                        vertices[i + 1] + 1.5,
                         vertices[i + 2] + 0,
                         ...vertices.slice(i + 3, i + GeometryTerrain.strideFloats));
                 }
@@ -328,6 +326,7 @@ export class Chunk {
 
         }
 
+        // Process block
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
             const material = block.material;
 

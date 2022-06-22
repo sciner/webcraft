@@ -346,7 +346,6 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const pv = new Vector(.5, .5, .5);
             const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, null, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);

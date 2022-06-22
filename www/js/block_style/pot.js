@@ -74,7 +74,7 @@ export default class style {
 
         matrix = mat4.create();
 
-        // Center
+        // outer
         let aabb_down = new AABB();
         aabb_down.set(
             x + .5 - WIDTH/2,
@@ -85,7 +85,7 @@ export default class style {
             z + .5 + WIDTH/2,
         );
 
-        // Push vertices down
+        // Push vertices outer
         pushAABB(
             vertices,
             aabb_down,
@@ -112,7 +112,7 @@ export default class style {
             z + .5 + WIDTH_INNER/2,
         );
 
-        // Push vertices down
+        // Push vertices inner
         pushAABB(
             vertices,
             aabb_down,

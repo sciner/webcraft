@@ -93,6 +93,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             // 6. Draw all blocks
+            matrix = mat4.create();
+            mat4.rotateY(matrix, matrix, -Math.PI / 2);
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             // 7.

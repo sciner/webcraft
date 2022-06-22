@@ -1,12 +1,12 @@
 import {calcRotateMatrix, DIRECTION, Vector} from '../helpers.js';
-import {BLOCK, FakeTBlock, DropItemVertices} from "../blocks.js";
+import {BLOCK, DropItemVertices} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 
-const {mat4, mat3} = glMatrix;
+const {mat4} = glMatrix;
 
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -14,8 +14,8 @@ const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const WIDTH =  12 / 16;
 const HEIGHT = 1 / 16;
 
-const WIDTH_INNER = 4/16;
-const HEIGHT_INNER = 1/16;
+const WIDTH_INNER = 10/16;
+const HEIGHT_INNER = .5/16;
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -74,9 +74,9 @@ export default class style {
         const material = block.material;
 
         // Textures
-        const c_top = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.EAST);
+        const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
         const c_inner_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
         c_side[1] += 10/32/32;
@@ -99,8 +99,8 @@ export default class style {
         const cardinal_direction = block.getCardinalDirection();
         matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
 
-        // Center
-        let aabb_down = new AABB();
+        // outer
+        const aabb_down = new AABB();
         aabb_down.set(
             x + .5 - WIDTH/2,
             y,
@@ -110,15 +110,15 @@ export default class style {
             z + .5 + WIDTH/2,
         );
 
-        // Push vertices down
+        //
         pushAABB(
             vertices,
             aabb_down,
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_top, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
-                down:   new AABBSideParams(c_down, 0, 1, null, null, true),
+                up:     new AABBSideParams(c_up, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
+                down:   new AABBSideParams(c_side, 0, 1, null, null, true),
                 south:  new AABBSideParams(c_side, 0, 1, null, null, true),
                 north:  new AABBSideParams(c_side, 0, 1, null, null, true),
                 west:   new AABBSideParams(c_side, 0, 1, null, null, true),
@@ -127,7 +127,7 @@ export default class style {
             new Vector(x, y, z)
         );
 
-        // Inner
+        // inner
         aabb_down.set(
             x + .5 - WIDTH_INNER/2,
             y + HEIGHT - HEIGHT_INNER,
@@ -137,7 +137,6 @@ export default class style {
             z + .5 + WIDTH_INNER/2,
         );
 
-        // Push vertices down
         pushAABB(
             vertices,
             aabb_down,
@@ -177,6 +176,19 @@ export default class style {
             if(!('rot' in block.extra_data)) {
                 block.extra_data.rot = 0;
             }
+
+            // Rotate item in frame
+            const angle = Math.PI / 4 * block.extra_data.rot;
+            const rot = [0, 0, 0];
+            if(rotate.y == 0) {
+                if(rotate.x == CubeSym.ROT_X) rot[2] = 1;
+                if(rotate.x == 18) rot[2] = -1;
+                if(rotate.x == 22) rot[0] = 1;
+                if(rotate.x == 13) rot[0] = -1;
+            } else {
+                rot[1] = -1 * rotate.y;
+            }
+            mat4.rotate(matRotate, matRotate, angle, rot);
 
             const mesh = new DropItemVertices(block.extra_data.item_id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
             return [mesh];
