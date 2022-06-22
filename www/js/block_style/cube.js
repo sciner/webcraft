@@ -101,7 +101,7 @@ export default class style {
 
         //
         if(!for_physic) {
-            // aabb.pad(1/500);
+            aabb.pad(1/500);
         }
 
         return [aabb];
