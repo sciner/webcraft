@@ -474,6 +474,10 @@ export class ServerWorld {
         if (actions.decrement) {
             server_player.inventory.decrement(actions.decrement, actions.ignore_creative_game_mode);
         }
+        // Decrement (extended)
+        if (actions.decrement_extended) {
+            server_player.inventory.decrementExtended(actions.decrement_extended);
+        }
         // Decrement instrument
         if (actions.decrement_instrument) {
             server_player.inventory.decrement_instrument(actions.decrement_instrument);

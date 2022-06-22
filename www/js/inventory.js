@@ -196,6 +196,34 @@ export class Inventory {
         this.refresh(true);
     }
 
+    // Decrement extended (ver. 2)
+    decrementExtended(params) {
+        if(!this.current_item) {
+            return;
+        }
+        if(!params.ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        const count_mode = params.mode == 'count';
+        if(!count_mode && current_item_material.item?.instrument_id) {
+            this.decrement_instrument();
+        } else {
+            this.current_item.count = Math.max(this.current_item.count - 1, 0);
+            if(this.current_item.count < 1) {
+                if(!count_mode && current_item_material.item && current_item_material.item?.name == 'bucket') {
+                    if(current_item_material.item.emit_on_set) {
+                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        this.items[this.current.index] = {id: emptyBucket.id, count: 1};
+                    }
+                } else {
+                    this.items[this.current.index] = null;
+                }
+            }
+        }
+        this.refresh(true);
+    }
+
     // decrementByItemID
     decrementByItemID(item_id, count, dont_refresh) {
         for(let i in this.items) {

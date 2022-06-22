@@ -3277,6 +3277,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [20, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3327,6 +3331,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [21, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3377,6 +3385,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [22, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3427,6 +3439,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [23, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3477,6 +3493,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [24, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3527,6 +3547,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [25, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3577,6 +3601,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [26, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3627,6 +3655,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [27, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"
@@ -3677,6 +3709,10 @@
         "transparent": true,
         "style": "door",
         "sound": "madcraft:block.wooden_trapdoor",
+        "inventory": {
+            "style": "extruder",
+            "texture": [28, 12]
+        },
         "tags": [
             "door",
             "no_drop_ao"

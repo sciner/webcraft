@@ -129,8 +129,8 @@ export default class style {
         );
 
         let flower_block_id = null;
-        if(block.extra_data && block.extra_data.item_id) {
-            flower_block_id = block.extra_data.item_id;
+        if(block.extra_data && block.extra_data?.item?.id) {
+            flower_block_id = block.extra_data?.item.id;
         }
 
         if(flower_block_id) {

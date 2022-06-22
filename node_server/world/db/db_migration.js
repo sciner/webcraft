@@ -443,6 +443,10 @@ export class DBWorldMigration {
             );`,
         ]});
 
+        migrations.push({version: 58, queries: [
+            `UPDATE world_modify SET extra_data = '{}' WHERE block_id in (616, 650)`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

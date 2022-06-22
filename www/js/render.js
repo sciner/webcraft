@@ -214,9 +214,34 @@ export class Renderer {
         }
 
         this.generatePrev();
+        this.generateDropItemVertices();
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
         
+    }
+
+    // Generate drop item vertices
+    generateDropItemVertices() {
+        const all_blocks = BLOCK.getAll();
+        // Drop for item in frame
+        const frame_matrix = mat4.create();
+        mat4.rotateY(frame_matrix, frame_matrix, -Math.PI / 2);
+        all_blocks.forEach((mat) => {
+            if(mat.id < 1 || mat.deprecated) {
+                return;
+            }
+            const b = {id: mat.id};
+            //
+            let cardinal_direction = 0;
+            let mx = mat3.create();
+            let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+            mat3.fromMat4(mx, mx4);
+            //
+            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
+                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
+            });
+        });
     }
 
     generatePrev(callback) {
@@ -336,24 +361,6 @@ export class Renderer {
         });
 
         this.renderBackend.endPass();
-
-        // Drop for item in frame
-        const frame_matrix = mat4.create();
-        mat4.rotateY(frame_matrix, frame_matrix, -Math.PI / 2);
-        all_blocks.forEach((mat) => {
-            if(mat.id < 1 || mat.deprecated) return;
-            const b = {id: mat.id};
-            //
-            let cardinal_direction = 0;
-            let mx = mat3.create();
-            let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
-            mat3.fromMat4(mx, mx4);
-            //
-            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
-            drop.mesh_group.meshes.forEach((mesh, _, map) => {
-                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
-            });
-        });
 
         // render target to Canvas
         target.toImage('canvas').then((data) => {

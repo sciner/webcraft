@@ -153,8 +153,8 @@ export default class style {
         );
 
         // return item in frame
-        if(block.extra_data && block.extra_data.item_id) {
-            const vg = worker.drop_item_meshes[block.extra_data.item_id];
+        if(block.extra_data && block.extra_data.item) {
+            const vg = worker.drop_item_meshes[block.extra_data.item.id];
 
             const scale = 0.3;
             const depth = 0.3;
@@ -190,7 +190,7 @@ export default class style {
             }
             mat4.rotate(matRotate, matRotate, angle, rot);
 
-            const mesh = new DropItemVertices(block.extra_data.item_id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
+            const mesh = new DropItemVertices(block.extra_data.item.id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
             return [mesh];
         }
 
