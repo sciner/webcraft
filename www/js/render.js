@@ -772,6 +772,7 @@ export class Renderer {
         }
     }
 
+    // Draw shadows
     drawShadows() {
         const world = Game.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
@@ -802,11 +803,22 @@ export class Renderer {
                 for(let y = 0; y >= -2; y--) {
                     vec.copyFrom(pos).addScalarSelf(x, y, z).flooredSelf();
                     const block = world.getBlock(vec);
-                    if(block.id == 0) continue;
-                    const block_shapes = BLOCK.getShapes(vec, block, world, false, true);
+                    if(!block?.material?.can_take_shadow) {
+                        continue;
+                    }
+                    const block_shapes = BLOCK.getShapes(vec, block, world, false, false);
                     for(let i = 0; i < block_shapes.length; i++) {
-                        const s = block_shapes[i];
-                        if(s[4] + y <= pos.y) {
+                        const s = [...block_shapes[i]];
+                        if(s[0] < 0) s[0] = 0;
+                        if(s[1] < 0) s[1] = 0;
+                        if(s[2] < 0) s[2] = 0;
+                        if(s[3] > 1) s[3] = 1;
+                        if(s[4] > 1) s[4] = 1;
+                        if(s[5] > 1) s[5] = 1;
+                        if(block.material.tags.indexOf('bed') >= 0) {
+                            console.log(s)
+                        }
+                        if(s[4] + y <= pos.y + .5) {
                             s[0] += x;
                             s[1] += y;
                             s[2] += z;
@@ -816,6 +828,7 @@ export class Renderer {
                             shapes.push(s);
                         }
                     }
+                    break;
                 }
             }
         }
@@ -852,7 +865,7 @@ export class Renderer {
             let c1 = Math.floor(z1 + pos.z) + c[1];
             const dist = Math.sqrt((pos.x - c0) * (pos.x - c0) + (pos.z - c1) * (pos.z - c1));
             //
-            if(dist <= 1) {
+            if(dist <= 1.1) {
                 c0 = pos.x - c0 - .5;
                 c1 = pos.z - c1 - .5;
                 vertices.push(x, z, y_top,

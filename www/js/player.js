@@ -422,7 +422,7 @@ export class Player {
 
     // getBlockPos
     getBlockPos() {
-        return this._block_pos.copyFrom(this.pos).floored();
+        return this._block_pos.copyFrom(this.lerpPos).floored();
     }
 
     //

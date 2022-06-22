@@ -629,6 +629,7 @@ export class BLOCK {
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
+        block.can_take_shadow   = BLOCK.canTakeShadow(block);
         // rotate_by_pos_n_plus
         if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
             block.tags.push('rotate_by_pos_n');
@@ -712,6 +713,22 @@ export class BLOCK {
             texture_id = material.texture.id;
         }
         return `${resource_pack.id}/${mat_group}/${texture_id}`;
+    }
+
+    //
+    static canTakeShadow(mat) {
+        if(mat.id < 1 || !mat) {
+            return false;
+        }
+        const is_slab = !!mat.is_layering;
+        const is_bed = mat.style == 'bed';
+        const is_dirt = mat.tags.indexOf('dirt') >= 0;
+        const is_carpet = mat.tags.indexOf('carpet') >= 0;
+        const is_farmland = mat.name.indexOf('FARMLAND') == 0;
+        if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
+            return false;
+        }
+        return true;
     }
 
     // Return tx_cnt from resource pack texture
