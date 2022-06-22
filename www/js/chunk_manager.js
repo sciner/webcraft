@@ -38,6 +38,7 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+        this.block_sets             = 0;
 
         this.lightPool = null;
         this.lightTexFormat         = 'rgba8unorm';
@@ -75,7 +76,13 @@ export class ChunkManager {
                                     break;
                                 }
                                 case 'campfire': {
-                                    meshes.addEffectParticle('campfire_flame', item.pos);
+                                    if(!item.tblock) {
+                                        item.tblock = world.getBlock(item.pos);
+                                    }
+                                    const extra_data = item.tblock.extra_data;
+                                    if(extra_data && extra_data.active) {
+                                        meshes.addEffectParticle('campfire_flame', item.pos);
+                                    }
                                     break;
                                 }
                             }
@@ -169,7 +176,7 @@ export class ChunkManager {
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
-                return this.properties;
+                return this.material;
             }
         };
         this.AIR = {
@@ -294,6 +301,9 @@ export class ChunkManager {
 
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
+
+            this.postLightWorkerMessage(['setPotentialCenter', { pos: Game.player.pos }]);
+
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
@@ -424,9 +434,9 @@ export class ChunkManager {
 
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
-        let prepare = this.chunks_prepare.get(state.addr);
+        const prepare = this.chunks_prepare.get(state.addr);
         if(prepare) {
-            let chunk = new Chunk(state.addr, state.modify_list, this);
+            const chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.addr, chunk);
             this.chunk_added = true;
@@ -609,7 +619,8 @@ export class ChunkManager {
                 deleted:    new VectorCollector()
             };
         }
-        if (this.nearby.deleted.length > 0) {
+        // if (this.nearby.deleted.length > 0) {
+        if(this.nearby.deleted.list.size > 0) {
             this.update();
         }
         for(let item of data.added) {

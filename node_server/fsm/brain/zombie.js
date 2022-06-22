@@ -20,7 +20,7 @@ export class Brain extends FSMBrain {
             stepHeight: 1
         });
 
-        this.widtn = 0.6;
+        this.width = 0.6;
         this.height = 1.95;
 
         this.follow_distance = 20;
@@ -116,7 +116,7 @@ export class Brain extends FSMBrain {
         this.stack.replaceState(this.doStand);
     }
 
-    onKill(actor, type_demage) {
+    onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {

@@ -4,7 +4,7 @@ import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -16,6 +16,10 @@ export default class packet_reader {
 
     //
     static async read(player, packet) {
+        if(!player.game_mode.canBlockClone()) {
+            return true;
+        }
+        //
         const pos = new Vector(packet.data);
         const chunk_addr = getChunkAddr(pos);
         const chunk = player.world.chunks.get(chunk_addr);

@@ -108,7 +108,7 @@ export class SpectatorPlayerControl {
             .mul(new Vector(p, 1, p));
         //
         let passable = 1;
-        let mul = (this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8;
+        let mul = (this.controls.sprint ? this.player_state.flying ? 1.15 * 1 : 1.5 : 1) * passable / 2.8;
         this.player.entity.position.set(
             Math.round(((this.player.entity.position.x + this.player_state.vel.x * delta * mul)) * 1000) / 1000,
             Math.round(((this.player.entity.position.y + this.player_state.vel.y * delta)) * 1000) / 1000,

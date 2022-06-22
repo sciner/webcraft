@@ -1371,5 +1371,21 @@
             "item": "madcraft:bone_meal",
             "count": 3
         }
+    },
+    {
+        "id": "899aaf13-9627-4ba6-a64f-faee1f7e3c74",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "S"
+        ],
+        "key": {
+            "S": {
+                "item": "madcraft:melon_slice"
+            }
+        },
+        "result": {
+            "item": "madcraft:melon_seeds",
+            "count": 1
+        }
     }
 ]

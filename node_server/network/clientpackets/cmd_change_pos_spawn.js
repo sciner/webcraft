@@ -3,7 +3,7 @@ import { ServerClient } from "../../../www/js/server_client.js";
 // Change spawn position
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return false;
     }

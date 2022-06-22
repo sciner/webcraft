@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color, calcRotateMatrix, fromMat3} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -11,18 +11,23 @@ import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
-import Particles_Raindrop from "./particles/raindrop.js";
+// import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
+import Particles_Rain from "./particles/rain.js";
 
 import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import { RAINDROP_NEW_INTERVAL } from "./constant.js";
+<<<<<<< HEAD
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
+=======
+import { CubeSym } from "./core/CubeSym.js";
+>>>>>>> main
 
-const {mat4} = glMatrix;
+const {mat3, mat4} = glMatrix;
 
 /**
 * Renderer
@@ -83,6 +88,19 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+
+        //
+        this.drop_item_meshes = Array(4096); // new Map();
+    }
+
+    //
+    addDropItemMesh(block_id, material_id, vertices) {
+        let div = this.drop_item_meshes[block_id]; // .get(block_id);
+        if(!div) {
+            div = {vertices: {}};
+            this.drop_item_meshes[block_id] = div;
+        }
+        div.vertices[material_id] = vertices;
     }
 
     nextCameraMode() {
@@ -201,6 +219,34 @@ export class Renderer {
         }
 
         this.generatePrev();
+        this.generateDropItemVertices();
+
+        world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
+        
+    }
+
+    // Generate drop item vertices
+    generateDropItemVertices() {
+        const all_blocks = BLOCK.getAll();
+        // Drop for item in frame
+        const frame_matrix = mat4.create();
+        mat4.rotateY(frame_matrix, frame_matrix, -Math.PI / 2);
+        all_blocks.forEach((mat) => {
+            if(mat.id < 1 || mat.deprecated) {
+                return;
+            }
+            const b = {id: mat.id};
+            //
+            let cardinal_direction = 0;
+            let mx = mat3.create();
+            let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+            mat3.fromMat4(mx, mx4);
+            //
+            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
+                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
+            });
+        });
     }
 
     generatePrev(callback) {
@@ -298,6 +344,8 @@ export class Renderer {
                     console.log(mesh)
                     debugger;
                 }
+
+                // this.addDropItemMesh(drop.block.id, _, mesh.vertices);
 
                 // use linear for inventory
                 mesh.material.texture.minFilter = 'linear';
@@ -533,7 +581,7 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
+            const block = BLOCK.BLOCK_BY_ID[this.player.currentInventoryItem.id];
             const power = block.light_power_number;
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
@@ -651,9 +699,9 @@ export class Renderer {
     }
 
     // rainDrop
-    rainDrop(pos) {
-        this.meshes.add(new Particles_Raindrop(this, pos));
-    }
+    //rainDrop(pos) {
+    //    this.meshes.add(new Particles_Raindrop(this, pos));
+    //}
 
     // addAsteroid
     addAsteroid(pos, rad) {
@@ -668,18 +716,12 @@ export class Renderer {
 
     // setRain
     setRain(value) {
-        if(value) {
-            if(!this.rainTim) {
-                this.rainTim = setInterval(() => {
-                    this.rainDrop(this.player.pos.clone());
-                }, RAINDROP_NEW_INTERVAL);
-            }
-        } else {
-            if(this.rainTim) {
-                clearInterval(this.rainTim);
-                this.rainTim = null;
-            }
+        let rain = this.meshes.get('rain');
+        if(!rain) {
+            rain = new Particles_Rain(this);
+            this.meshes.add(rain, 'rain');
         }
+        rain.enabled = value;
     }
 
     // drawPlayers
@@ -862,9 +904,9 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
-        
+
         const tmp = mat4.create();
-        
+
         // Shake camera on damage
         if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
             let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;

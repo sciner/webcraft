@@ -49,7 +49,7 @@ export class ServerGame {
                 this.worlds.set(world_guid, world);
                 console.log('World started');
             }
-            let player = new ServerPlayer();
+            const player = new ServerPlayer();
             player.onJoin(query.session_id, query.skin, conn, world);
             await this.db.IncreasePlayCount(game_world.id, query.session_id);
         });

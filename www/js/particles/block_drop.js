@@ -14,7 +14,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     static mesh_groups_cache = new Map();
 
     // Constructor
-    constructor(gl, entity_id, items, pos) {
+    constructor(gl, entity_id, items, pos, matrix, pivot, use_cache = false) {
 
         super(
             new Vector(pos.x, pos.y, pos.z),
@@ -41,7 +41,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         }
 
         // Get from cache
-        this.mesh_group = Particles_Block_Drop.mesh_groups_cache.get(block.id);
+        this.mesh_group = use_cache ? Particles_Block_Drop.mesh_groups_cache.get(block.id) : null;
 
         if(this.mesh_group) {
             // do nothing
@@ -93,7 +93,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             // 6. Draw all blocks
-            this.mesh_group.buildVertices(x, y, z, true);
+            matrix = matrix || mat4.create();
+            this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             // 7.
             Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
@@ -125,7 +126,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     // Update player
     updatePlayer(player, delta) {
 
-        if(this.now_draw) {
+        if(this.now_draw || !player.game_mode.canPickupItems()) {
             return false;
         }
 

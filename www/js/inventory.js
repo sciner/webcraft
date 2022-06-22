@@ -75,7 +75,7 @@ export class Inventory {
         if(mat.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
+        const block = BLOCK.BLOCK_BY_ID[mat.id];
         if(!block) {
             throw 'error_invalid_block_id';
         }
@@ -87,20 +87,22 @@ export class Inventory {
         const item_max_count = block.max_in_stack;
         // 1. update cell if exists
         let need_refresh = false;
-        for(let i in this.items) {
-            const item = this.items[i];
-            if(item) {
-                if(item.id == mat.id) {
-                    if(item.count < item_max_count) {
-                        if(item.count + mat.count <= item_max_count) {
-                            updated.set(i, Math.min(item.count + mat.count, item_max_count));
-                            mat.count = 0;
-                            need_refresh = true;
-                            break;
-                        } else {
-                            mat.count = (item.count + mat.count) - item_max_count;
-                            updated.set(i, item_max_count);
-                            need_refresh = true;
+        if(!mat.entity_id) {
+            for(let i in this.items) {
+                const item = this.items[i];
+                if(item) {
+                    if(item.id == mat.id) {
+                        if(item.count < item_max_count) {
+                            if(item.count + mat.count <= item_max_count) {
+                                updated.set(i, Math.min(item.count + mat.count, item_max_count));
+                                mat.count = 0;
+                                need_refresh = true;
+                                break;
+                            } else {
+                                mat.count = (item.count + mat.count) - item_max_count;
+                                updated.set(i, item_max_count);
+                                need_refresh = true;
+                            }
                         }
                     }
                 }
@@ -165,7 +167,7 @@ export class Inventory {
             this.refresh(true);
         }
     }
-    
+
     // Decrement
     decrement(decrement_item, ignore_creative_game_mode) {
         if(!this.current_item) {
@@ -183,6 +185,34 @@ export class Inventory {
                 let matBlock = BLOCK.fromId(this.current_item.id);
                 if(matBlock.item && matBlock.item?.name == 'bucket') {
                     if(matBlock.item.emit_on_set) {
+                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        this.items[this.current.index] = {id: emptyBucket.id, count: 1};
+                    }
+                } else {
+                    this.items[this.current.index] = null;
+                }
+            }
+        }
+        this.refresh(true);
+    }
+
+    // Decrement extended (ver. 2)
+    decrementExtended(params) {
+        if(!this.current_item) {
+            return;
+        }
+        if(!params.ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        const count_mode = params.mode == 'count';
+        if(!count_mode && current_item_material.item?.instrument_id) {
+            this.decrement_instrument();
+        } else {
+            this.current_item.count = Math.max(this.current_item.count - 1, 0);
+            if(this.current_item.count < 1) {
+                if(!count_mode && current_item_material.item && current_item_material.item?.name == 'bucket') {
+                    if(current_item_material.item.emit_on_set) {
                         const emptyBucket = BLOCK.BUCKET_EMPTY;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
@@ -271,7 +301,7 @@ export class Inventory {
     getRightIndex() {
         return this.current.index;
     }
-    
+
     //
     setItem(index, item) {
         this.items[index] = item;
@@ -282,7 +312,7 @@ export class Inventory {
     next() {
         this.select(++this.current.index);
     }
-    
+
     prev() {
         this.select(--this.current.index);
     }
@@ -333,7 +363,7 @@ export class Inventory {
             if(existing_item.count < 1) {
                 items.delete(item_key);
             }
-            this.items = Array.from(items.values());    
+            this.items = Array.from(items.values());
         } else {
             this.decrementByItemID(item.id, item.count, true);
         }

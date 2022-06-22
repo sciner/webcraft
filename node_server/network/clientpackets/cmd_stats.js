@@ -2,7 +2,7 @@ import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return false;
     }
@@ -44,9 +44,9 @@ export default class packet_reader {
         minute %= 60;
         hours %= 24;
         const resp = [];
-        if(day > 0) resp.push(day + ' дней');
-        if(hours > 0) resp.push(hours + ' часов');
-        resp.push(minute + ' минут');
+        if(day > 0) resp.push(day + ' days');
+        if(hours > 0) resp.push(hours + ' hours');
+        resp.push(minute + ' minutes');
         return resp.join(' ');
     }
 

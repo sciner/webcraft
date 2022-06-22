@@ -49,7 +49,7 @@
         "submit": {"en": "Submit", "ru": "Отправить","fr": "Soumettre","es":"Enviar"},
         "back": {"en": "Back", "ru": "Назад", "fr": "Arriere","es":"atrás"},
         "login": {"en": "Login", "ru": "Авторизация","fr": "Se Loguer","es":"Acceso"},
-        "enter": {"en": "Enter", "ru": "Вход","fr": "Entrer","es":""},
+        "enter": {"en": "Enter", "ru": "Вход","fr": "Entrer","es":"Entrar"},
         "quests": {"en": "Quests", "ru": "Квесты","fr": "Aventure","es":""},
         "tasks": {"en": "Task(s)", "ru": "Задания","fr": "Tâches","es":""},
         "rewards": {"en": "Reward(s)", "ru": "Награды","fr": "Recompenses","es":""},
@@ -60,6 +60,21 @@
         "stat_distance": {"en": "Distance traveled", "ru": "Пройдено","fr": "Distance parcouru","es":""},
         "browser_not_supported_1": {"en": "The browser you are using is not supported.", "ru": "Браузер, который вы используете, не поддерживается.","fr": "Le navigateur que vous utilisez n'est pas pris en charge.","es":""},
         "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible","es":""},
-        "press_lshift_for_dismount": {"en": "Press LSHIFT for dismount", "ru": "Пожалуйста нажмите LSHIFT (левый шифт), чтобы слезть", "fr": "", "es": ""}
+        "press_lshift_for_dismount": {"en": "Press LSHIFT for dismount", "ru": "Пожалуйста нажмите LSHIFT (левый шифт), чтобы слезть", "fr": "", "es": ""},
+        "kb_help_wasd": {"en": "Moving", "ru": "Движение", "fr": "", "es": ""},
+        "kb_help_f4": {"en": "Set position as spawnpoint", "ru": "Установить точку возрождения", "fr": "", "es": ""},
+        "kb_help_r": {"en": "Respawn", "ru": "Телепорт на спавн", "fr": "", "es": ""},
+        "kb_help_09": {"en": "Select block", "ru": "Выбрать блок", "fr": "", "es": ""},
+        "kb_help_lm": {"en": "Remove block", "ru": "Удалить блок", "fr": "", "es": ""},
+        "kb_help_rm": {"en": "Set block", "ru": "Установить блок", "fr": "", "es": ""},
+        "kb_help_mm": {"en": "Clone block under cursor", "ru": "Копировать блок под курсором", "fr": "", "es": ""},
+        "kb_help_ctrlw": {"en": "Running", "ru": "Бег", "fr": "", "es": ""},
+        "mouse_button_left": {"en": "Left mouse button", "ru": "Левая кнопка мыши", "fr": "", "es": ""},
+        "mouse_button_right": {"en": "Right mouse button", "ru": "Правая кнопка мыши", "fr": "", "es": ""},
+        "mouse_wheel": {"en": "Mouse wheel", "ru": "Колесо прокрутки", "fr": "", "es": ""},
+        "kb_help_ctrlw_key": {"en": "Ctrl, Double W", "ru": "Ctrl или Двойной W", "fr": "", "es": ""},
+        "days": {"en": "days", "ru": "дней", "fr": "", "es": ""},
+        "hours": {"en": "hours", "ru": "часов", "fr": "", "es": ""},
+        "minutes": {"en": "minutes", "ru": "минут", "fr": "", "es": ""}
     }
 }

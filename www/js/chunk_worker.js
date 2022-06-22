@@ -6,9 +6,10 @@ let VectorCollector     = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
+let CHUNK_SIZE_X        = null;
+let CHUNK_SIZE_Y        = null;
+let CHUNK_SIZE_Z        = null;
 // let world               = null;
-
-const CHUNK_SIZE_X = 16;
 
 const worker = globalThis.worker = {
 
@@ -21,7 +22,7 @@ const worker = globalThis.worker = {
                 this.parentPort.on('message', onMessageFunc);
                 //options.context.parentPort = module.parentPort;
                 //options.context.parentPort.on('message', onMessageFunc);
-                
+
             });
         } else {
             onmessage = onMessageFunc
@@ -57,6 +58,9 @@ async function preLoad () {
     // load module
     await import('./chunk_const.js').then(module => {
         getChunkAddr = module.getChunkAddr;
+        CHUNK_SIZE_X = module.CHUNK_SIZE_X;
+        CHUNK_SIZE_Y = module.CHUNK_SIZE_Y;
+        CHUNK_SIZE_Z = module.CHUNK_SIZE_Z;
     });
     // load module
     await import('./blocks.js').then(module => {
@@ -131,6 +135,7 @@ async function onMessageFunc(e) {
                         key:            chunk.key,
                         addr:           chunk.addr,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
+
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
                     }]);
@@ -190,19 +195,40 @@ async function onMessageFunc(e) {
         }
         case 'setBlock': {
             let chunks = new VectorCollector();
-            let chunk_addr = new Vector(0, 0, 0);
+            const chunk_addr = new Vector(0, 0, 0);
             const pos_world = new Vector(0, 0, 0);
+            //
+            const neighbour_chunk_addr = new Vector(0, 0, 0);
+            const addNeighbourChunk = (chunk, vec_add) => {
+                // console.log(chunk.tblocks.getNeightboursChunks());
+                neighbour_chunk_addr.copyFrom(chunk.addr).addSelf(vec_add);
+                if(chunks.has(neighbour_chunk_addr)) {
+                    return false;
+                }
+                const neighbour = world.getChunk(neighbour_chunk_addr);
+                if(neighbour) {
+                    chunks.set(neighbour.addr, neighbour);
+                }
+            };
+            //
             for(let i = 0; i < args.length; i++) {
                 const m = args[i];
                 // 1. Get chunk
                 getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
-                let chunk = world.getChunk(chunk_addr);
+                const chunk = world.getChunk(chunk_addr);
                 if(chunk) {
                     // 2. Set block
                     if(m.type) {
                         chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
-                    pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z)
+                    pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z);
+                    //
+                    if(pos_world.x == CHUNK_SIZE_X - 1) addNeighbourChunk(chunk, Vector.XP);
+                    if(pos_world.x == 0) addNeighbourChunk(chunk, Vector.XN);
+                    if(pos_world.y == CHUNK_SIZE_Y - 1) addNeighbourChunk(chunk, Vector.YP);
+                    if(pos_world.y == 0) addNeighbourChunk(chunk, Vector.YN);
+                    if(pos_world.z == CHUNK_SIZE_Z - 1) addNeighbourChunk(chunk, Vector.ZP);
+                    if(pos_world.z == 0) addNeighbourChunk(chunk, Vector.ZN);
                     // 3. Clear vertices for block and around near
                     chunk.setDirtyBlocks(pos_world);
                     chunks.set(chunk_addr, chunk);
@@ -235,6 +261,10 @@ async function onMessageFunc(e) {
             } catch(e) {
                 console.error(e);
             }
+            break;
+        }
+        case 'setDropItemMeshes': {
+            worker.drop_item_meshes = args;
             break;
         }
         case 'createMaps': {
@@ -277,12 +307,15 @@ if(typeof process !== 'undefined') {
     onmessage = onMessageFunc
 }
 
+const buildSettings = {
+    enableCache : true,
+}
 // Rebuild vertices list
 function buildVertices(chunk, return_map) {
     let prev_dirty = chunk.dirty;
     let pm = performance.now();
     chunk.dirty = true;
-    let is_builded = chunk.buildVertices();
+    let is_builded = chunk.buildVertices(buildSettings);
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;
@@ -291,7 +324,7 @@ function buildVertices(chunk, return_map) {
     let resp = {
         key:                    chunk.key,
         addr:                   chunk.addr,
-        vertices:               Object.fromEntries(chunk.vertices),
+        vertices:               chunk.serializedVertices,
         gravity_blocks:         chunk.gravity_blocks,
         fluid_blocks:           chunk.fluid_blocks,
         timers:                 chunk.timers,

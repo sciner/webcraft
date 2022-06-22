@@ -4,14 +4,21 @@ import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
-import { default as default_style, TX_CNT, TX_SIZE} from './default.js';
+import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
 const DEFAULT_PLANES = [
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0.7853975, 0]},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -0.7853975, 0]}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}}
+];
+
+const AGRICULTURE_PLANES = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 4/12, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": -4/12, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 4/12}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": -4/12}}
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
@@ -19,8 +26,9 @@ const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
+const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
+const randoms = new Array(RANDOMS_COUNT);
+const a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
@@ -79,7 +87,7 @@ export default class style {
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
-        style.lm.b = BLOCK.getAnimations(block.material, 'up');
+        style.lm.b = BLOCK.getAnimations(material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
         }
@@ -97,7 +105,9 @@ export default class style {
         }
 
         //
-        const is_grass = block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id;
+        const is_flower = block.hasTag('flower');
+        const is_agriculture = block.hasTag('agriculture');
+        const is_grass = material.is_grass;
         if(is_grass) {
             dy -= .15;
         }
@@ -105,11 +115,10 @@ export default class style {
         // Matrix
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
-            let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-            const r = randoms[index] * 4/16 - 2/16;
-            dx = 0.5 - 0.5 + r;
-            dz = 0.5 - 0.5 + r;
-            if(is_grass) {
+            if(is_grass || is_flower) {
+                let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
+                dx = randoms[index] * 12/16 - 6/16;
+                dz = randoms[RANDOMS_COUNT - index] * 12/16 - 6/16;
                 dy -= .2 * randoms[index];
                 if(!matrix) {
                     matrix = mat4.create();
@@ -125,7 +134,7 @@ export default class style {
         }
 
         // Planes
-        const planes = material.planes || DEFAULT_PLANES;
+        const planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : DEFAULT_PLANES);
         for(let i = 0; i < planes.length; i++) {
             const plane = planes[i];
             // fill object
@@ -133,7 +142,11 @@ export default class style {
             _pl.uv       = plane.uv;
             _pl.rot      = plane.rot;
             _pl.lm       = style.lm;
-            _pl.pos      = _vec.set(x + dx, y + dy, z + dz);
+            _pl.pos      = _vec.set(
+                x + dx + (plane.move?.x || 0),
+                y + dy + (plane.move?.y || 0),
+                z + dz + (plane.move?.z || 0)
+            );
             _pl.matrix   = matrix;
             _pl.flag     = flag;
             _pl.texture  = texture;

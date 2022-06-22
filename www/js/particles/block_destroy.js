@@ -42,6 +42,11 @@ export default class Particles_Block_Destroy extends Particles_Base {
         this.resource_pack = block.resource_pack;
         this.material = this.resource_pack.getMaterial(block.material_key);
 
+        if(!chunk.dirt_colors) {
+            this.life = 0;
+            return
+        }
+
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             const pos_floored = pos.clone().flooredSelf();
             const index = ((pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (pos_floored.x - chunk.coord.x)) * 2;

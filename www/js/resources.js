@@ -44,6 +44,7 @@ export class Resources {
         this.models             = {};
         this.sounds             = {};
         this.sound_sprite_main  = {};
+        this.weather            = {};
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -52,6 +53,8 @@ export class Resources {
         let all = [];
 
         // Others
+        all.push(loadImage('media/rain.png').then((img) => { this.weather.rain = img}));
+        all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(loadImage('media/shadow.png').then((img) => { this.shadow.main = img}));
         all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
@@ -404,6 +407,9 @@ export class Resources {
                         break;
                     case 'wall':
                         all.push(import('./block_style/wall.js').then(module => {resp.add(module.default);}));
+                        break;
+                    case 'item_frame':
+                        all.push(import('./block_style/item_frame.js').then(module => {resp.add(module.default);}));
                         break;
                     case 'default':
                         all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));

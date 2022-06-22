@@ -1,6 +1,7 @@
 import {getChunkAddr} from "../www/js/chunk_const.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
+import { ServerClient } from "../www/js/server_client.js";
 
 await Brains.init();
 
@@ -16,13 +17,15 @@ export class Mob {
 
     constructor(world, params) {
         this.#world         = world;
+        // Read params
         this.id             = params.id,
         this.entity_id      = params.entity_id,
         this.type           = params.type;
         this.skin           = params.skin;
         this.indicators     = params.indicators;
+        this.is_active      = params.is_active;
         this.pos            = new Vector(params.pos);
-        this.pos_spawn      = params.pos_spawn;
+        this.pos_spawn      = new Vector(params.pos_spawn);
         this.rotate         = new Vector(params.rotate);
         this.extra_data     = params.extra_data || {};
         // Private properties
@@ -34,16 +37,6 @@ export class Mob {
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
         world.mobs.add(this);
         this.save_offset = Math.round(Math.random() * this.save_per_tick);
-    }
-
-    //
-    static convertRowToExtraData(row) {
-        const extra_data = (row.extra_data ? JSON.parse(row.extra_data) : {}) || {};
-        extra_data.is_alive = !!row.is_active;
-        if(!('play_death_animation' in extra_data)) {
-            extra_data.play_death_animation = true;
-        }
-        return extra_data;
     }
 
     get chunk_addr() {
@@ -61,21 +54,40 @@ export class Mob {
     getWorld() {
         return this.#world;
     }
+    
+    getBrain() {
+        return this.#brain;
+    }
 
     // Create new mob
     static async create(world, params) {
-        let model = world.models.list.get(params.type);
+        const model = world.models.list.get(params.type);
         if(!model) {
-            throw "Can't locate model for: " + params.type;
+            throw `Can't locate model for: ${params.type}`;
         }
         if(!(params.skin in model.skins)) {
-            throw "Can't locate skin for: " + params.type + '/' + params.skin;
+            throw `Can't locate skin for: ${params.type}/${params.skin}`;
         }
+        // make extra_data
+        if(!params.extra_data) {
+            params.extra_data = {};
+        }
+        params.extra_data.is_alive = true;
+        params.extra_data.play_death_animation = true;
+        // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
-        let result = await world.db.createMob(params);
-        params.id = result.id;
-        params.entity_id = result.entity_id;
-        params.extra_data = Mob.convertRowToExtraData(result);
+        // store in DB
+        const result = await world.db.mobs.create(params);
+        for(let k in result) {
+            params[k] = result[k];
+        }
+        //
+        switch(params.type) {
+            case 'bee': {
+                params.extra_data.pollen = 0;
+                break;
+            }
+        }
         return new Mob(world, params);
     }
 
@@ -97,13 +109,27 @@ export class Mob {
 
     // Save mob state to DB
     async save() {
-        await this.#world.db.saveMob(this);
+        await this.#world.db.mobs.save(this);
     }
 
+    //
     async onUnload() {
         console.log(`Mob unloaded ${this.entity_id}, ${this.id}`);
+        const world = this.#world;
         await this.save();
-        this.#world.mobs.delete(this.id);
+        world.mobs.delete(this.id);
+        //
+        const chunk = world.chunkManager.get(this.chunk_addr);
+        if(chunk) {
+            const connections = Array.from(chunk.connections.keys());
+            const packets = [{
+                name: ServerClient.CMD_MOB_DELETE,
+                data: [this.id]
+            }];
+            world.sendSelected(packets, connections, []);
+        } else {
+            // throw 'error_no_mob_chunk';
+        }
     }
 
     async punch(server_player, params) {
@@ -134,7 +160,7 @@ export class Mob {
                // velocity.y = .5;
                 //this.addVelocity(velocity);
                 //this.#brain.runPanic();
-                this.#brain.onDemage(server_player, 5);
+                this.#brain.onDamage(server_player, 5);
             }
         }
     }
@@ -164,6 +190,13 @@ export class Mob {
         this.#brain.sendState();
     }
 
+    // Deactivate
+    async deactivate() {
+        this.is_active = false;
+        await this.save();
+        await this.onUnload();
+    }
+
     isAlive() {
         return this.indicators.live.value > 0;
     }
@@ -171,6 +204,22 @@ export class Mob {
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать
     playerCanBeAtacked(player) {
         return !player || player.is_dead || !player.game_mode.getCurrent().can_take_damage;
+    }
+
+    //
+    static fromRow(world, row) {
+        return new Mob(world, {
+            id:         row.id,
+            rotate:     JSON.parse(row.rotate),
+            pos_spawn:  JSON.parse(row.pos_spawn),
+            pos:        new Vector(row.x, row.y, row.z),
+            entity_id:  row.entity_id,
+            type:       row.type,
+            skin:       row.skin,
+            is_active:  row.is_active != 0,
+            extra_data: JSON.parse(row.extra_data),
+            indicators: JSON.parse(row.indicators)
+        });
     }
 
 }

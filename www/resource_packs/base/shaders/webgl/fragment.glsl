@@ -66,12 +66,15 @@ void main() {
             }
         }
 
-        #include<local_light_pass>
-        #include<ao_light_pass>
-        #include<sun_light_pass>
+        if(v_noCanTakeAO == 0.) {
+            #include<local_light_pass>
+            #include<ao_light_pass>
+            #include<sun_light_pass>
 
-        // Apply light
-        color.rgb *= light;
+            // Apply light
+            color.rgb *= light;
+        }
+
         outColor = color;
 
         #include<fog_frag>

@@ -58,7 +58,7 @@ export class ServerWorld {
         this.mobs           = new WorldMobManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
         //
-        this.players = new Map(); // new PlayerManager(this);
+        this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         //
         await this.models.init();
@@ -78,17 +78,17 @@ export class ServerWorld {
 
     // Return world info
     getInfo() {
-        console.log(this.info);
-        this.updateWorldCalendar();
         return this.info;
     }
 
     // updateWorldCalendar
     updateWorldCalendar() {
-        this.info.calendar = {
-            age: null,
-            day_time: null,
-        };
+        if(!this.info.calendar) {
+            this.info.calendar = {
+                age: null,
+                day_time: null,
+            };    
+        }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
         const diff_sec = currentTime - this.info.dt;
@@ -111,6 +111,7 @@ export class ServerWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
+        this.updateWorldCalendar();
         //
         this.ticks_stat.number++;
         this.ticks_stat.start();
@@ -179,16 +180,17 @@ export class ServerWorld {
 
     // onPlayer
     async onPlayer(player, skin) {
-        // 1. Insert to DB if new player
-        player.init(await this.db.registerUser(this, player));
+        // 1. Delete previous connections
+        const existing_player = this.players.get(player.session.user_id);
+        if(existing_player) {
+            console.log('OnPlayer delete previous connection for: ' + player.session.username);
+            await this.onLeave(existing_player);
+        }
+        // 2. Insert to DB if new player
+        player.init(await this.db.registerPlayer(this, player));
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
-        // 2. Add new connection
-        if (this.players.has(player.session.user_id)) {
-            console.log('OnPlayer delete previous connection for: ' + player.session.username);
-            this.onLeave(this.players.get(player.session.user_id));
-        }
         // 3. Insert to array
         this.players.set(player.session.user_id, player);
         // 4. Send about all other players
@@ -208,7 +210,7 @@ export class ServerWorld {
             data: player.exportState()
         }], []);
         // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' connected', this.players.keys());
         // 7. Drop item if stored
         const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
         if(drag_item) {
@@ -245,10 +247,10 @@ export class ServerWorld {
     async onLeave(player) {
         if (this.players.has(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
-            this.db.savePlayerState(player);
+            await this.db.savePlayerState(player);
             player.onLeave();
             // Notify other players about leave me
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_PLAYER_LEAVE,
                 data: {
                     id: player.session.user_id
@@ -281,11 +283,11 @@ export class ServerWorld {
      * @return {void}
      */
     sendSelected(packets, selected_players, except_players) {
-        for (let user_id of selected_players) {
+        for(let user_id of selected_players) {
             if (except_players && except_players.indexOf(user_id) >= 0) {
                 continue;
             }
-            let player = this.players.get(user_id);
+            const player = this.players.get(user_id);
             if (player) {
                 player.sendPackets(packets);
             }
@@ -364,7 +366,6 @@ export class ServerWorld {
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            console.log('e', e);
             let packets = [{
                 name: ServerClient.CMD_ERROR,
                 data: {
@@ -405,7 +406,7 @@ export class ServerWorld {
 
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if (!chunk) {
             throw 'Chunk not found';
         }
@@ -469,16 +470,13 @@ export class ServerWorld {
         if (actions.chat_message) {
             this.chat.sendMessage(server_player, actions.chat_message);
         }
-        // Create chest
-        if (actions.create_chest) {
-            const params = actions.create_chest;
-            params.item.extra_data = { can_destroy: true, slots: {} };
-            const b_params = { pos: params.pos, item: params.item, action_id: ServerClient.BLOCK_ACTION_CREATE };
-            actions.blocks.list.push(b_params);
-        }
         // Decrement item
         if (actions.decrement) {
-            server_player.inventory.decrement(actions.decrement);
+            server_player.inventory.decrement(actions.decrement, actions.ignore_creative_game_mode);
+        }
+        // Decrement (extended)
+        if (actions.decrement_extended) {
+            server_player.inventory.decrementExtended(actions.decrement_extended);
         }
         // Decrement instrument
         if (actions.decrement_instrument) {
@@ -722,6 +720,9 @@ export class ServerWorld {
             const chunk = chunks[i];
             for(let user_id of chunk.connections.keys()) {
                 const player = all_players.get(user_id);
+                if(!player) {
+                    continue
+                }
                 if(player.is_dead || player.game_mode.isSpectator()) {
                     continue;
                 }
@@ -735,6 +736,50 @@ export class ServerWorld {
             }
         }
         return Array.from(resp.values());
+    }
+
+    // Return mobs near pos by distance
+    getMobsNear(pos, max_distance) {
+        const world = this;
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
+            .expand(max_distance, max_distance, max_distance);
+        //
+        const chunks = world.chunks.getInAABB(aabb);
+        const resp = new Map();
+        //
+        for(let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            for(const [mob_id, mob] of chunk.mobs) {
+                // @todo check if not dead
+                const dist = new Vector(mob.pos).distance(pos);
+                if(dist <= max_distance) {
+                    resp.set(mob_id, mob);
+                }
+            }
+        }
+        return Array.from(resp.values());
+    }
+
+    // Return bee nests near pos by distance
+    getBeeNestsNear(pos, max_distance) {
+        const resp = [];
+        for(const addr of this.chunkManager.ticking_chunks.keys()) {
+            const chunk = this.chunkManager.get(addr);
+            if(chunk) {
+                for(const [_, ticking_block] of chunk.ticking_blocks.blocks.entries()) {
+                    if(ticking_block.ticking.type == 'bee_nest') {
+                        const tblock = this.getBlock(ticking_block.pos);
+                        if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {
+                            const dist = tblock.posworld.distance(pos);
+                            if(dist <= max_distance) {
+                                resp.push(tblock);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return resp;
     }
 
 }

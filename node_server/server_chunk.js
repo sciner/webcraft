@@ -8,7 +8,7 @@ import {impl as alea} from '../www/vendors/alea.js';
 import {PickatActions} from "../www/js/block_action.js";
 
 const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
+for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace', 'bee_nest']) {
     await import(`./ticker/${fn}.js`).then((module) => {
         Tickers.set(module.default.type, module.default.func);
     });
@@ -160,7 +160,7 @@ class MobGenerator {
                 //
                 if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
                     let cnt = 0;
-                    let poses = [];
+                    const poses = [];
                     const pos_up = new Vector(0, 0, 0);
                     for(let [vec, y] of vc.entries()) {
                         if(cnt++ % 2 == 0) {
@@ -265,7 +265,8 @@ export class ServerChunk {
                 }
             ]
         ]);
-        // Разошлем чанк игрокам, которые его запросили
+
+        // Разошлем чанк игрокам, которые его запрашивали
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
             this.preq.clear();
@@ -297,14 +298,14 @@ export class ServerChunk {
             // Unload mobs for player
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
             if(this.mobs.size > 0) {
-                let packets = [{
-                    name: ServerClient.CMD_MOB_DELETED,
+                const packets = [{
+                    name: ServerClient.CMD_MOB_DELETE,
                     data: Array.from(this.mobs.keys())
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
             if(this.drop_items.size > 0) {
-                let packets = [{
+                const packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
                     data: Array.from(this.drop_items.keys())
                 }];
@@ -321,8 +322,8 @@ export class ServerChunk {
     // Add mob
     addMob(mob) {
         this.mobs.set(mob.id, mob);
-        let packets = [{
-            name: ServerClient.CMD_MOB_ADDED,
+        const packets = [{
+            name: ServerClient.CMD_MOB_ADD,
             data: [mob]
         }];
         this.sendAll(packets);
@@ -341,7 +342,7 @@ export class ServerChunk {
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
             data: {
                 addr:        this.addr,
@@ -358,7 +359,7 @@ export class ServerChunk {
             return;
         }
         let packets_mobs = [{
-            name: ServerClient.CMD_MOB_ADDED,
+            name: ServerClient.CMD_MOB_ADD,
             data: []
         }];
         for(const [_, mob] of this.mobs) {
@@ -394,7 +395,7 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         //
-        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
@@ -467,18 +468,17 @@ export class ServerChunk {
         }
 
         if (typeof pos == 'number') {
-            pos = new Vector(pos, y, z);
+            pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
         } else if (typeof pos == 'Vector') {
-            // do nothing
+            pos = pos.floored().subSelf(this.coord);
         } else if (typeof pos == 'object') {
-            pos = new Vector(pos);
+            pos = new Vector(pos).flooredSelf().subSelf(this.coord);
         }
 
-        pos = pos.floored().sub(this.coord);
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
             return this.getChunkManager().DUMMY;
         }
-        let block = this.tblocks.get(pos);
+        const block = this.tblocks.get(pos);
         return block;
     }
 

@@ -147,13 +147,15 @@ export class ServerChat {
                 }
                 break;
             case '/tp': {
-                try {
+                if(args.length == 4) {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
                     const pos = new Vector(args[1], args[2], args[3]);
                     this.world.teleportPlayer(player, {place_id: null, pos: pos});
-                } catch(e) {
+                } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
                     this.world.teleportPlayer(player, {place_id: args[1], pos: null});
+                } else {
+                    throw 'error_invalid_arguments_count';
                 }
                 break;
             }
@@ -201,6 +203,7 @@ export class ServerChat {
                     type:   args[4],
                     skin:   args[5],
                     pos:    player.state.pos.clone(),
+                    pos_spawn:    player.state.pos.clone(),
                     rotate: new Vector(0, 0, player.state.rotate.z)
                 }; 
                 // x
@@ -219,6 +222,7 @@ export class ServerChat {
                 this.world.mobs.spawn(player, params);
                break;
             }
+            case '/clear':
             case '/obj':
             case '/weather': {
                 break;
@@ -242,10 +246,10 @@ export class ServerChat {
     // parseCMD...
     parseCMD(args, format) {
         let resp = [];
-        if (args.legth != args.legth) {
-            throw 'error_invalid_arguments_count';
-        }
-        for (let i in args) {
+        //if (args.length != format.length) {
+        //    throw 'error_invalid_arguments_count';
+        //}
+        for(let i in args) {
             let ch = args[i];
             switch (format[i]) {
                 case 'int': {

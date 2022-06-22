@@ -234,7 +234,7 @@ export class ClusterBase {
             return false;
         }
         x -= this.coord.x;
-        y -= this.coord.y;
+        // y -= this.coord.y;
         z -= this.coord.z;
         const index = z * CLUSTER_SIZE.x + x;
         return this.near_mask[index] <= margin;

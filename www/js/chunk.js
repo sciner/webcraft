@@ -19,15 +19,6 @@ export class Chunk {
         this.addr                       = new Vector(addr); // относительные координаты чанка
         this.seed                       = chunkManager.world.info.seed;
 
-        // Run webworker method
-        chunkManager.postWorkerMessage(['createChunk', [
-            {
-                addr:           this.addr,
-                seed:           this.seed,
-                modify_list:    modify_list || []
-            }
-        ]]);
-
         //
         this.tblocks                    = null;
         this.size                       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
@@ -66,6 +57,15 @@ export class Chunk {
         this._dataTextureOffset = 0;
         this._dataTexture = null;
         this._dataTextureDirty = false;
+        // Run webworker method
+        chunkManager.postWorkerMessage(['createChunk', [
+            {
+                addr:           this.addr,
+                seed:           this.seed,
+                modify_list:    modify_list || [],
+                dataId: this.getDataTextureOffset()
+            }
+        ]]);
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -128,7 +128,7 @@ export class Chunk {
                     const index = cx * x + cy * y + cz * z + cw;
                     const block_id = id[index];
                     if(block_id !== prev_block_id) {
-                        block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                        block_material = BLOCK.BLOCK_BY_ID[block_id]
                         if(block_material) {
                             light_power_number = block_material.light_power_number;
                         } else {
@@ -247,9 +247,10 @@ export class Chunk {
         // Add chunk to renderer
         this.verticesList.length = 0;
         for(let [key, v] of Object.entries(args.vertices)) {
-            if(v.list.length > 0) {
+            if(v.list.length > 1) {
                 let temp = key.split('/');
-                this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
+
+                this.vertices_length += v.list[0];
                 let lastBuffer = this.vertices.get(key);
                 if (lastBuffer) { lastBuffer = lastBuffer.buffer }
                 v.resource_pack_id    = temp[0];
@@ -379,7 +380,7 @@ export class Chunk {
         //
         if(!is_modify) {
             let oldLight = 0;
-            let material = BLOCK.BLOCK_BY_ID.get(item.id);
+            let material = BLOCK.BLOCK_BY_ID[item.id];
             let pos = new Vector(x, y, z);
             let tblock           = this.tblocks.get(pos);
 

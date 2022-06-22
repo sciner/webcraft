@@ -51,6 +51,61 @@ class Block {
 
 }
 
+//
+export class FakeTBlock {
+
+    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
+        this.id = id;
+        this.extra_data = extra_data;
+        this.pos = pos;
+        this.rotate = rotate;
+        this.pivot = pivot;
+        this.matrix = matrix;
+        this.tags = tags;
+        this.biome = biome;
+        this.dirt_color = dirt_color;
+    }
+
+    getCardinalDirection() {
+        return BLOCK.getCardinalDirection(this.rotate);
+    }
+
+    get posworld() {
+        return this.pos;
+    }
+
+    hasTag(tag) {
+        const mat = this.material;
+        if(!mat) {
+            return false;
+        }
+        if(!Array.isArray(mat.tags)) {
+            return false;
+        }
+        let resp = mat.tags.indexOf(tag) >= 0;
+        if(!resp && this.tags) {
+            resp = this.tags.indexOf(tag) >= 0;
+        }
+        return resp;
+    }
+
+    get material() {
+        return BLOCK.fromId(this.id);
+    }
+
+}
+
+//
+export class DropItemVertices extends FakeTBlock {
+    
+    constructor(id, extra_data, pos, rotate, matrix, vertice_groups) {
+        super(id, extra_data, pos, rotate, null, matrix, null, null, null);
+        this.vertice_groups = vertice_groups;
+    }
+
+}
+
+//
 class Block_Material {
 
     static materials = {
@@ -110,6 +165,29 @@ class Block_Material {
         return mining_time;
     }
 
+}
+
+// getBlockNeighbours
+function getBlockNeighbours(world, pos) {
+    const neighbours = {
+        UP: null,
+        DOWN: null,
+        SOUTH: null,
+        NORTH: null,
+        WEST: null,
+        EAST: null
+    };
+    let v = new Vector(0, 0, 0);
+    // обходим соседние блоки
+    for(let i = 0; i < 6; i ++) {
+        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
+        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
+        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
+        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
+        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
+        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
+    }
+    return neighbours;
 }
 
 export class BLOCK {
@@ -245,8 +323,8 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos, orientation) {
-        block = BLOCK.BLOCK_BY_ID.get(block.id);
+    static makeExtraData(block, pos, orientation, world) {
+        block = BLOCK.BLOCK_BY_ID[block.id];
         let extra_data = null;
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
@@ -295,6 +373,25 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        if(block.is_chest) {
+            extra_data = extra_data || {};
+            Object.assign(extra_data, { can_destroy: true, slots: {} });
+        }
+        // if mushroom block
+        if(block.is_mushroom_block && world) {
+            const neighbours = getBlockNeighbours(world, pos);
+            let t = 0;
+            if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
+            if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
+            if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
+            if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
+            if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
+            if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
+            if(t != 0) {
+                extra_data = extra_data || {};
+                extra_data.t = t;
+            }
+        }
         return extra_data;
     }
 
@@ -324,6 +421,15 @@ export class BLOCK {
                             throw 'error_generator_items_not_set';
                         }
                         extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
+                        break;
+                    }
+                    case 'bees': {
+                        extra_data[g.name] = [];
+                        const count = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
+                        for(let i = 0; i < count; i++) {
+                            extra_data[g.name].push({pollen: 0});
+                        }
+                        break;
                     }
                 }
             }
@@ -333,8 +439,8 @@ export class BLOCK {
 
     // Returns a block structure for the given id.
     static fromId(id) {
-        if(this.BLOCK_BY_ID.has(id)) {
-            return this.BLOCK_BY_ID.get(id);
+        if(this.BLOCK_BY_ID[id]) {
+            return this.BLOCK_BY_ID[id];
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
@@ -366,13 +472,13 @@ export class BLOCK {
         if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
             return true;
         }
-        let block = BLOCK.BLOCK_BY_ID.get(block_id);
-        if(block.is_fluid) {
+        const mat = BLOCK.BLOCK_BY_ID[block_id];
+        if(mat.is_fluid) {
             return true;
         }
-        if(block.is_layering) {
-            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
-            return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
+        if(mat.is_layering) {
+            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
+            return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
         }
         return false;
     }
@@ -406,13 +512,13 @@ export class BLOCK {
         if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags && (block.tags.indexOf('alpha') >= 0))) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+        } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.id == 649 ||
-            block.tags.indexOf('leaves') >= 0 ||
+            block.is_leaves ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
-            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
+            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa' || block.style == 'item_frame'
             ) {
             group = 'doubleface';
         }
@@ -423,7 +529,7 @@ export class BLOCK {
         BLOCK.spawn_eggs             = [];
         BLOCK.ao_invisible_blocks    = [];
         BLOCK.list                   = new Map();
-        BLOCK.BLOCK_BY_ID            = new Map();
+        BLOCK.BLOCK_BY_ID            = new Array(1024);
         BLOCK.BLOCK_BY_TAGS          = new Map();
         BLOCK.list_arr               = [];
     }
@@ -448,7 +554,7 @@ export class BLOCK {
         if(!('name' in block) || !('id' in block)) {
             throw 'error_invalid_block';
         }
-        const existing_block = this.BLOCK_BY_ID.has(block.id) ? this.fromId(block.id) : null;
+        const existing_block = this.BLOCK_BY_ID[block.id] || null;
         const replace_block = existing_block && (block.name == existing_block.name);
         const original_props = Object.keys(block);
         if(existing_block) {
@@ -500,7 +606,6 @@ export class BLOCK {
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
-        block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
@@ -511,6 +616,12 @@ export class BLOCK {
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
         block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
+        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 504, 505, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
+        block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
+        block.is_dirt           = ['GRASS_DIRT', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM'].indexOf(block.name) >= 0;
+        block.is_leaves         = block.tags.indexOf('leaves') >= 0;
+        block.is_glass          = block.tags.indexOf('glass') >= 0;
+        block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
@@ -566,7 +677,7 @@ export class BLOCK {
             block = existing_block;
         } else {
             this[block.name] = block;
-            BLOCK.BLOCK_BY_ID.set(block.id, block);
+            BLOCK.BLOCK_BY_ID[block.id] = block;
             this.list.set(block.id, block);
         }
         // After add works
@@ -673,6 +784,10 @@ export class BLOCK {
             //c[2] *= -1;
             //c[3] *= -1;
         //}
+        // @todo (BEE NEST) убрать отсюда куда нибудь
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
+            c[1] += 4/32;
+        }
         return c;
     }
 
@@ -800,11 +915,11 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence' || block.properties.style == 'wall' || block.properties.style == 'pane');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'wall' || block.material.style == 'pane');
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane' || block.properties.style == 'fence');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'wall' || block.material.style == 'pane' || block.material.style == 'fence');
     }
 
     static canPaneConnect(block) {
@@ -812,7 +927,7 @@ export class BLOCK {
     };
 
     static canRedstoneDustConnect(block) {
-        return block.id > 0 && (block.properties && 'redstone' in block.properties);
+        return block.id > 0 && (block.material && 'redstone' in block.material);
     }
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
@@ -836,7 +951,7 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
-        const material = b.properties;
+        const material = b.material;
         if(!material) {
             return shapes;
         }

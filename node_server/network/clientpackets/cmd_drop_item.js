@@ -1,8 +1,9 @@
+import { Vec3, Vector } from "../../../www/js/helpers.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
 
-    // must be puto to queue
+    // must be put to queue
     static get queue() {
         return true;
     }
@@ -14,6 +15,9 @@ export default class packet_reader {
 
     // Drop item from hand
     static async read(player, packet) {
+        if(!player.game_mode.canDropItems()) {
+            return true;
+        }
         player.inventory.dropItem();
         return true;
     }

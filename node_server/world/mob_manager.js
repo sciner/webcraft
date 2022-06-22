@@ -35,11 +35,6 @@ export class WorldMobManager {
                 mob.death_time = performance.now();
             } else if(performance.now() - mob.death_time > 1000) {
                 await mob.onUnload();
-                const packets = [{
-                    name: ServerClient.CMD_MOB_DELETED,
-                    data: [mob_id]
-                }];
-                world.sendAll(packets);
             }
         }
     }
@@ -77,6 +72,23 @@ export class WorldMobManager {
                 }
             }];
             world.sendSelected(packets, [player.session.user_id], []);
+        }
+    }
+
+    //
+    async activate(entity_id, spawn_pos, rotate) {
+        const world = this.world;
+        //
+        const chunk = world.chunkManager.get(getChunkAddr(spawn_pos));
+        if(!chunk) {
+            console.error('error_chunk_not_loaded');
+            return false;
+        }
+        //
+        await world.db.mobs.activateMob(entity_id, spawn_pos, rotate);
+        const mob = await world.db.mobs.load(entity_id);
+        if(mob) {
+            chunk.addMob(mob)
         }
     }
 
