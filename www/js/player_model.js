@@ -142,7 +142,7 @@ export class PlayerModel extends MobModel {
             return;
         }
 
-        const block = BLOCK.BLOCK_BY_ID.get(id);
+        const block = BLOCK.fromId(id);
 
         if (!block.spawnable) {
             return;
