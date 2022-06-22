@@ -19,13 +19,9 @@ import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
-import { RAINDROP_NEW_INTERVAL } from "./constant.js";
-<<<<<<< HEAD
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
-=======
 import { CubeSym } from "./core/CubeSym.js";
->>>>>>> main
 
 const {mat3, mat4} = glMatrix;
 
