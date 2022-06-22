@@ -315,7 +315,7 @@ export class Renderer {
                     debugger;
                 }
 
-                this.addDropItemMesh(drop.block.id, _, mesh.vertices);
+                // this.addDropItemMesh(drop.block.id, _, mesh.vertices);
 
                 // use linear for inventory
                 mesh.material.texture.minFilter = 'linear';
@@ -337,8 +337,11 @@ export class Renderer {
 
         this.renderBackend.endPass();
 
-        // Drop for extruded blocks 
-        extruded.forEach((mat) => {
+        // Drop for item in frame
+        const frame_matrix = mat4.create();
+        mat4.rotateY(frame_matrix, frame_matrix, -Math.PI / 2);
+        all_blocks.forEach((mat) => {
+            if(mat.id < 1 || mat.deprecated) return;
             const b = {id: mat.id};
             //
             let cardinal_direction = 0;
@@ -346,7 +349,7 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, null, null);
+            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);
             });

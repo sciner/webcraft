@@ -14,7 +14,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     static mesh_groups_cache = new Map();
 
     // Constructor
-    constructor(gl, entity_id, items, pos, matrix, pivot) {
+    constructor(gl, entity_id, items, pos, matrix, pivot, use_cache = false) {
 
         super(
             new Vector(pos.x, pos.y, pos.z),
@@ -41,7 +41,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         }
 
         // Get from cache
-        this.mesh_group = Particles_Block_Drop.mesh_groups_cache.get(block.id);
+        this.mesh_group = use_cache ? Particles_Block_Drop.mesh_groups_cache.get(block.id) : null;
 
         if(this.mesh_group) {
             // do nothing
@@ -93,8 +93,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             // 6. Draw all blocks
-            matrix = mat4.create();
-            mat4.rotateY(matrix, matrix, -Math.PI / 2);
+            matrix = matrix || mat4.create();
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             // 7.
