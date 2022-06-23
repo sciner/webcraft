@@ -57,12 +57,16 @@ void main() {
             );
         }
 
-        if(color.a < 0.1) discard;
-        if (u_opaqueThreshold > 0.1) {
-            if (color.a < u_opaqueThreshold) {
-                discard;
-            } else {
-                color.a = 1.0;
+        if(v_flagFlagOpacity != 0.) {
+            color.a *=  v_color.b;
+        } else {
+            if(color.a < 0.1) discard;
+            if (u_opaqueThreshold > 0.1) {
+                if (color.a < u_opaqueThreshold) {
+                    discard;
+                } else {
+                    color.a = 1.0;
+                }
             }
         }
 

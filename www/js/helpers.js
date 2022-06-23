@@ -544,6 +544,17 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
+    subSelf(vec) {
+        this.x -= vec.x;
+        this.y -= vec.y;
+        this.z -= vec.z;
+        return this;
+    }
+
+    /**
+     * @param {Vector} vec
+     * @return {Vector}
+     */
     mul(vec) {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
@@ -926,6 +937,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
     QUAD_FLAGS.TEXTURE_SCROLL = 1 << 6;
     QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
+    QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

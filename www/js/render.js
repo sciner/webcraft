@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color, calcRotateMatrix, fromMat3} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -779,7 +779,7 @@ export class Renderer {
         // Material (shadow)
         if(!this.material_shadow) {
             const mat = this.renderBackend.createMaterial({
-                cullFace: true,
+                cullFace: false,
                 opaque: false,
                 blendMode: BLEND_MODES.MULTIPLY,
                 shader: this.defaultShader,
@@ -793,58 +793,73 @@ export class Renderer {
                 textureWrapMode: 'clamp_to_edge'
             }));
         }
-        const pos = Game.player.lerpPos;
-        const modelMatrix = mat4.create();
-        const shapes = [];
+        //
+        const a_pos = new Vector(0.5, 0.5, 0.5).addSelf(Game.player.blockPos);
+        // Build vertices for each player
+        const player_pos = Game.player.lerpPos;
+        const blockPosDiff = player_pos.sub(Game.player.blockPos);
+        const vertices = [];
         const vec = new Vector();
-
-        for(let x = -1; x <= 1; x++) {
-            for(let z = -1; z <= 1; z++) {
-                for(let y = 0; y >= -2; y--) {
-                    vec.copyFrom(pos).addScalarSelf(x, y, z).flooredSelf();
-                    const block = world.getBlock(vec);
-                    if(!block?.material?.can_take_shadow) {
-                        continue;
-                    }
-                    const block_shapes = BLOCK.getShapes(vec, block, world, false, false);
-                    for(let i = 0; i < block_shapes.length; i++) {
-                        const s = [...block_shapes[i]];
-                        if(s[0] < 0) s[0] = 0;
-                        if(s[1] < 0) s[1] = 0;
-                        if(s[2] < 0) s[2] = 0;
-                        if(s[3] > 1) s[3] = 1;
-                        if(s[4] > 1) s[4] = 1;
-                        if(s[5] > 1) s[5] = 1;
-                        if(block.material.tags.indexOf('bed') >= 0) {
-                            console.log(s)
+        for(let player of Game.world.players.list.values()) {
+            const pos = player.pos.clone();
+            const shapes = [];
+            for(let x = -1; x <= 1; x++) {
+                for(let z = -1; z <= 1; z++) {
+                    for(let y = 0; y >= -2; y--) {
+                        vec.copyFrom(pos).addScalarSelf(x, y, z).flooredSelf();
+                        const block = world.getBlock(vec);
+                        if(!block?.material?.can_take_shadow) {
+                            continue;
                         }
-                        if(s[4] + y <= pos.y + .5) {
-                            s[0] += x;
-                            s[1] += y;
-                            s[2] += z;
-                            s[3] += x;
-                            s[4] += y + 1/500;
-                            s[5] += z;
-                            shapes.push(s);
+                        const block_shapes = BLOCK.getShapes(vec, block, world, false, false);
+                        for(let i = 0; i < block_shapes.length; i++) {
+                            const s = [...block_shapes[i]];
+                            if(s[0] < 0) s[0] = 0;
+                            if(s[1] < 0) s[1] = 0;
+                            if(s[2] < 0) s[2] = 0;
+                            if(s[3] > 1) s[3] = 1;
+                            if(s[4] > 1) s[4] = 1;
+                            if(s[5] > 1) s[5] = 1;
+                            if(s[4] + y <= pos.y + .5) {
+                                s[0] += x;
+                                // s[1] += y;
+                                s[1] = (pos.y - a_pos.y - .5) - s[1] - y; // y;
+                                s[2] += z;
+                                s[3] += x;
+                                s[4] += y + 1/500;
+                                s[5] += z;
+                                shapes.push(s);
+                                s[1] = Math.min(Math.max(1.3 - s[1], 0), 1) * .8;
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
             }
+            const player_vertices = [];
+            this.createShadowVertices(player_vertices, shapes, pos, TARGET_TEXTURES);
+            if(player.username != Game.player.session.username) {
+                const dist = player_pos.sub(pos.flooredSelf()).subSelf(blockPosDiff)
+                for(let i = 0; i < player_vertices.length; i += GeometryTerrain.strideFloats) {
+                    player_vertices[i + 0] -= dist.x;
+                    player_vertices[i + 1] -= dist.z;
+                    player_vertices[i + 2] -= dist.y;
+                }
+            }
+            vertices.push(...player_vertices);
         }
-
-        const buf = this.createShadowBuffer(shapes, pos, TARGET_TEXTURES);
-        const half = new Vector(0.5, 0.5, 0.5);
-        const a_pos = half.addSelf(Game.player.blockPos);
+        // Create buffer, draw and destroy
+        const buf = new GeometryTerrain(vertices);
+        const modelMatrix = mat4.create();
         this.renderBackend.drawMesh(buf, this.material_shadow, a_pos, modelMatrix);
         buf.destroy();
+
     }
 
     // createShadowBuffer...
-    createShadowBuffer(shapes, pos, c) {
-        let vertices    = [];
-        let lm          = new Color(0, 0, 0);
-        let flags       = 0, sideFlags = 0, upFlags = 0;
+    createShadowVertices(vertices, shapes, pos, c) {
+        let lm          = new Color(0, 0, (performance.now() / 1000) % 1);
+        let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = 0;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             let x1 = shape[0];
@@ -854,11 +869,12 @@ export class Renderer {
             let y2 = shape[4];
             let z2 = shape[5];
             let xw = x2 - x1; // ширина по оси X
-            let yw = y2 - y1; // ширина по оси Y
+            // let yw = y2 - y1; // толщина по оси Y
             let zw = z2 - z1; // ширина по оси Z
             let x = -.5 + x1 + xw/2;
             let y_top = -.5 + y2;
-            let y_bottom = -.5 + y1;
+            lm.b = y1;
+            // let y_bottom = -.5 + y1;
             let z = -.5 + z1 + zw/2;
             //
             let c0 = Math.floor(x1 + pos.x) + c[0];
@@ -875,7 +891,6 @@ export class Renderer {
                     lm.r, lm.g, lm.b, flags | upFlags);
             }
         }
-        return new GeometryTerrain(vertices);
     }
 
     /**
