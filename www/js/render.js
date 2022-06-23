@@ -800,8 +800,7 @@ export class Renderer {
         const blockPosDiff = player_pos.sub(Game.player.blockPos);
         const vertices = [];
         const vec = new Vector();
-        for(let player of Game.world.players.list.values()) {
-            const pos = player.pos.clone();
+        const appendPos = (pos) => {
             const shapes = [];
             for(let x = -1; x <= 1; x++) {
                 for(let z = -1; z <= 1; z++) {
@@ -823,13 +822,16 @@ export class Renderer {
                             if(s[4] + y <= pos.y + .5) {
                                 s[0] += x;
                                 // s[1] += y;
-                                s[1] = (pos.y - a_pos.y - .5) - s[1] - y; // y;
+                                s[1] = (pos.y - a_pos.y - .5) - s[1] - y; // opacity value for shader
                                 s[2] += z;
                                 s[3] += x;
                                 s[4] += y + 1/500;
                                 s[5] += z;
                                 shapes.push(s);
                                 s[1] = Math.min(Math.max(1.3 - s[1], 0), 1) * .8;
+                                // const scale = 0.3;
+                                // s[0] -= (s[0] - (pos.x - Math.floor(pos.x) + x - .5)) * (1 - scale);
+                                // s[2] -= (s[2] - (pos.z - Math.floor(pos.z) + z - .5)) * (1 - scale);
                             }
                         }
                         break;
@@ -838,16 +840,28 @@ export class Renderer {
             }
             const player_vertices = [];
             this.createShadowVertices(player_vertices, shapes, pos, TARGET_TEXTURES);
-            if(player.username != Game.player.session.username) {
+            //if(player.username != Game.player.session.username) {
                 const dist = player_pos.sub(pos.flooredSelf()).subSelf(blockPosDiff)
                 for(let i = 0; i < player_vertices.length; i += GeometryTerrain.strideFloats) {
                     player_vertices[i + 0] -= dist.x;
                     player_vertices[i + 1] -= dist.z;
                     player_vertices[i + 2] -= dist.y;
                 }
-            }
+            //}
             vertices.push(...player_vertices);
+        };
+        // draw players shadow
+        for(let player of Game.world.players.list.values()) {
+            const pos = player.pos.clone();
+            appendPos(pos);
         }
+        /*
+        // draw drop items shadow
+        for(let drop_item of Game.world.drop_items.list.values()) {
+            const pos = drop_item.pos.clone();
+            appendPos(pos);
+        }
+        */
         // Create buffer, draw and destroy
         const buf = new GeometryTerrain(vertices);
         const modelMatrix = mat4.create();
@@ -869,12 +883,10 @@ export class Renderer {
             let y2 = shape[4];
             let z2 = shape[5];
             let xw = x2 - x1; // ширина по оси X
-            // let yw = y2 - y1; // толщина по оси Y
             let zw = z2 - z1; // ширина по оси Z
             let x = -.5 + x1 + xw/2;
             let y_top = -.5 + y2;
             lm.b = y1;
-            // let y_bottom = -.5 + y1;
             let z = -.5 + z1 + zw/2;
             //
             let c0 = Math.floor(x1 + pos.x) + c[0];
@@ -884,6 +896,11 @@ export class Renderer {
             if(dist <= 1.1) {
                 c0 = pos.x - c0 - .5;
                 c1 = pos.z - c1 - .5;
+                //
+                // const scale = 0.3;
+                // xw *= scale;
+                // zw *= scale;
+                //
                 vertices.push(x, z, y_top,
                     xw, 0, 0,
                     0, zw, 0,
