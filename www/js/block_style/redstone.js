@@ -90,7 +90,7 @@ export default class style {
 
         // Texture color multiplier
         // @todo from extra_data.signal
-        const lm                = new Color(20.5 / tx_cnt, 1 / 16 / tx_cnt, 0, 0);
+        const lm                = new Color(25.5 / tx_cnt, (31.5 + 1 / 16) / tx_cnt, 0, 0);
         const posworld          = block.posworld;
 
         const upper_neighbours_connect = {

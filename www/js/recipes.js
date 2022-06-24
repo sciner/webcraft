@@ -1,9 +1,8 @@
 import {RecipeWindow} from "./window/index.js";
-import {Resources} from "./resources.js";
+import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { md5 } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
-import {COLOR_PALETTE} from './resource_pack_manager.js';
 
 export class RecipeManager {
 

@@ -90,7 +90,7 @@ export default class style {
             z + cubeSymAxis[rotate.x][1] * 0.2,
         ));
 
-        if(typeof worker != 'undefined') {
+        if(typeof worker != 'undefined' && block.id == 50) {
             worker.postMessage(['add_torch', {
                 block_pos: chunk.coord.add(new Vector(x, y, z)),
                 pos: torch_pos,

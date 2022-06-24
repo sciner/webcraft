@@ -447,6 +447,14 @@ export class DBWorldMigration {
             `UPDATE world_modify SET extra_data = '{}' WHERE block_id in (616, 650)`
         ]});
 
+        migrations.push({version: 59, queries: [
+            `DELETE FROM world_modify WHERE block_id IN(29, 33, 136, 161, 174, 212)`
+        ]});
+
+        migrations.push({version: 60, queries: [
+            `DELETE FROM world_modify WHERE block_id IN(104)`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

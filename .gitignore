@@ -14,3 +14,5 @@ node_modules
 package-lock.json
 Mickey Mouse.obj
 .DS_Store
+www/resource_packs/base/blocks.json
+www/resource_packs/base/textures/*.png

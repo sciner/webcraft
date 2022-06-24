@@ -1,5 +1,24 @@
 import { Helpers } from "./helpers.js";
 
+export const COLOR_PALETTE = {
+    white: [0, 0],      // Белая керамика - white_terracotta
+    orange: [2, 1],     // Оранжевая керамика - orange_terracotta
+    magenta: [2, 3],    // Сиреневая керамика - magenta_terracotta
+    light_blue: [3, 2], // Светло-синяя керамика - light_blue_terracotta
+    yellow: [3, 1],     // Жёлтая керамика - yellow_terracotta
+    lime: [0, 2],       // Лаймовая керамика - lime_terracotta
+    pink: [3, 3],       // Розовая керамика - pink_terracotta
+    gray: [2, 0],       // Серая керамика - gray_terracotta
+    light_gray: [1, 0], // Светло-серая керамика - light_gray_terracotta
+    cyan: [2, 2],       // Бирюзовая керамика - cyan_terracotta
+    purple: [1, 3],     // Фиолетовая керамика - purple_terracotta
+    blue: [0, 3],       // Синяя керамика - blue_terracotta
+    brown: [0, 1],      // Коричневая керамика - brown_terracotta
+    green: [1, 2],      // Зелёная керамика - green_terracotta
+    red: [1, 1],        // Красная керамика - red_terracotta
+    black: [3, 0],      // Чёрная керамика - black_terracotta
+};
+
 export class Resources {
 
     static async getModelAsset(key) {

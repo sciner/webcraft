@@ -574,7 +574,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 1. Change extra data
     if(e.changeExtraData) {
         for(let func of [editSign]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, rotate, null, actions)) {
+            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, rotate, null, actions)) {
                 return actions;
             }
         }

@@ -21,6 +21,18 @@ function checkVersion(module_name, current) {
 checkVersion('nodejs', process.version);
 checkVersion('sqlite3', sqlite3.VERSION);
 
+// Require compiled resource pack
+try {
+    if(!fs.existsSync('../www/resource_packs/base/blocks.json')) {
+        console.error('Resource pack not compiled.\nPlease run `npm run compile-texture-pack` in directory ./node_server/ ');
+        process.exit();
+    }
+} catch(err) {
+    console.error(err)
+    process.exit();
+}
+
+//
 import {Lang} from "../www/js/lang.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";

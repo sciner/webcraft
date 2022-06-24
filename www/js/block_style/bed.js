@@ -1,4 +1,4 @@
-import {DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
+import {Color, DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
@@ -81,7 +81,7 @@ export default class style {
 
         // flags
         const flags = QUAD_FLAGS.MASK_BIOME;
-        const lm = block.material.mask_color.clone();
+        const lm = new Color(block.material.mask_color.r, block.material.mask_color.g, 0, 0);
         const mask_shift = lm.b = 4;
 
         // textures

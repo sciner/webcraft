@@ -803,7 +803,7 @@ export class BLOCK {
         //}
         // @todo (BEE NEST) убрать отсюда куда нибудь
         if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
-            c[1] += 4/32;
+            c[0] += 1/32;
         }
         return c;
     }
@@ -814,9 +814,9 @@ export class BLOCK {
             return 0;
         }
         if(side in material.texture_animations) {
-            return material.texture_animations[side];
+            return material.texture_animations[side] | 0;
         } else if('side' in material.texture_animations) {
-            return material.texture_animations['side'];
+            return material.texture_animations['side'] | 0;
         }
         return 0;
     }

@@ -1,16 +1,2 @@
 [
-    {
-        "id": 518,
-        "name": "LODESTONE",
-        "sound": "madcraft:block.stone",
-        "material": {
-            "id": "stone"
-        },
-        "texture": {
-            "id": "lodestone",
-            "side": [1, 0],
-            "up": [0, 0],
-            "down": [0, 0]
-        }
-    }
 ]

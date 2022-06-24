@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "install-ff":"(cd ../ff-worker && npm install)",
-    "install-all":"npm run install-ff && npm install",
+    "install-ff": "(cd ../ff-worker && npm install)",
+    "install-all": "npm run install-ff && npm install",
     "start": "node --experimental-json-modules --no-warnings ./index.js",
+    "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",
     "start-rebuild": "npm run rollup && npm run start"
   },
@@ -10,6 +11,7 @@
     "compression": "^1.7.4",
     "express": "^4.17.1",
     "simplex-noise": "^3.0.1",
+    "skia-canvas": "^0.9.30",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.8",
     "uuid": "^8.3.2",
