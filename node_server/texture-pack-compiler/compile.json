@@ -1507,7 +1507,10 @@
             "texture": "block/oak_planks.png",
             "material": {
                 "id": "wood"
-            }
+            },
+            "tags": [
+                "no_drop_ao"
+            ]
         },
         {
             "id": 76,
