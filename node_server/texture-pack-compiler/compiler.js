@@ -156,7 +156,7 @@ export class Compiler {
                             x_size = 2;
                         } else {
                             x_size = Math.ceil(img.width / spritesheet.tx_sz);
-                            y_size = Math.min(img.height / spritesheet.tx_sz, 32);
+                            y_size = Math.min(img.height / spritesheet.tx_sz, spritesheet.tx_cnt);
                         }
                         if(block.texture_animations) {
                             if(k in block.texture_animations) {
