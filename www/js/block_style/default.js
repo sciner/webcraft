@@ -68,7 +68,9 @@ export default class style {
         tex[1] += (add_uv[1] / TX_CNT);
 
         const faces = {
-            west: new AABBSideParams(tex, plane.flag, plane?.lm?.b || 1, plane.lm, null, true)
+            // lm.b used for store count of blocks need to shift
+            // where begin texture mask (default 0, but in shader used max(mask_shift, 1.))
+            west: new AABBSideParams(tex, plane.flag, plane?.lm?.b || 0, plane.lm, null, true)
         };
 
         // Push vertices

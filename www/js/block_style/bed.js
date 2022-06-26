@@ -82,7 +82,7 @@ export default class style {
         // flags
         const flags = QUAD_FLAGS.MASK_BIOME;
         const lm = new Color(block.material.mask_color.r, block.material.mask_color.g, 0, 0);
-        const mask_shift = lm.b = 4;
+        const mask_shift = lm.b = 4/32; // offset for mask
 
         // textures
         const c_head = BLOCK.calcMaterialTexture(block.material, DIRECTION.SOUTH);
