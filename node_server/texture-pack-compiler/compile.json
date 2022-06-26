@@ -3024,6 +3024,7 @@
             "tags": [
                 "mask_color"
             ],
+            "mask_color": {"r": 0.125, "g": 0.1875, "b": 0},
             "fluid": {
                 "max_power": 1,
                 "still_block_id": 202
@@ -3053,6 +3054,7 @@
             },
             "texture": {
                 "id": "lava_still",
+                "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
             "spawnable": false
@@ -3083,6 +3085,7 @@
             },
             "texture": {
                 "id": "lava_still",
+                "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
             "spawnable": false
