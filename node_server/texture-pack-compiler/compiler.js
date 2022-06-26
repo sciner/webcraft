@@ -14,6 +14,8 @@ export class Compiler {
 
     constructor(options) {
         this.spritesheets = new Map();
+        options.textures_dir = options.texture_pack_dir + '/assets/minecraft/textures';
+        options.blockstates_dir = options.texture_pack_dir + '/assets/minecraft/blockstates';
         this.options = options;
     }
 
@@ -22,7 +24,7 @@ export class Compiler {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
             const tx_cnt = this.base_conf.textures[id].tx_cnt;
-            spritesheet = new Spritesheet(id, tx_cnt, this.options.TX_SZ, this.options.textures_dir);
+            spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options.textures_dir);
             this.spritesheets.set(id, spritesheet);
         }
         return spritesheet;
