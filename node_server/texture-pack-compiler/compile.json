@@ -2996,7 +2996,10 @@
             "tags": [
                 "mask_color"
             ],
-            "mask_color": {"r": 0.0654296875, "g": 0.24609375, "b": 0},
+            "compile": {
+                "overlay_mask": "./textures/water_overlay.png"
+            },
+            "mask_color": {"r": 0.125, "g": 0.1875, "b": 0},
             "spawnable": false
         },
         {

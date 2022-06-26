@@ -146,6 +146,7 @@ export class Compiler {
                     let y_size = 1;
                     const has_mask = tags.indexOf('mask_biome') >= 0 || tags.indexOf('mask_color') >= 0;
                     if(!tex) {
+                        const compile = block.compile;
                         const img = await spritesheet.loadTextureImage(value);
                         //
                         if(block.name == BLOCK_NAMES.DIRT) {
@@ -183,7 +184,7 @@ export class Compiler {
                             spritesheet.drawImage(img, pos.x, pos.y + 1, has_mask);
                             spritesheet.drawImage(img_glow, pos.x, pos.y + 1, has_mask);
                         } else {
-                            spritesheet.drawImage(img, pos.x, pos.y, has_mask);
+                            await spritesheet.drawImage(img, pos.x, pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null);
                         }
                         tex = {
                             pos,
@@ -193,8 +194,7 @@ export class Compiler {
                         };
                         spritesheet.textures.set(value, tex);
                         // check compile rules
-                        if(block.compile) {
-                            const compile = block.compile;
+                        if(compile) {
                             const ctx = spritesheet.ctx;
                             const x = pos.x * spritesheet.tx_sz;
                             const y = pos.y * spritesheet.tx_sz;

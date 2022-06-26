@@ -65,7 +65,7 @@ export class Spritesheet {
     }
 
     // drawImage
-    drawImage(img, x, y, has_mask, globalCompositeOperation = null) {
+    async drawImage(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null) {
         if(globalCompositeOperation) {
             this.ctx.globalCompositeOperation = globalCompositeOperation;
         }
@@ -73,10 +73,18 @@ export class Spritesheet {
         const sh = Math.max(img.height, this.tx_sz);
         this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
         if(has_mask) {
-            this.ctx.globalCompositeOperation = 'difference';
-            this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
-            this.ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
-            this.ctx.globalCompositeOperation = 'source-over';
+            if(overlay_mask) {
+                this.ctx.globalCompositeOperation = 'difference';
+                this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+                this.ctx.globalCompositeOperation = 'source-over';
+                overlay_mask = await this.loadTextureImage(overlay_mask);
+                this.ctx.drawImage(overlay_mask, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+            } else {
+                this.ctx.globalCompositeOperation = 'difference';
+                this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+                this.ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+                this.ctx.globalCompositeOperation = 'source-over';
+            }
         }
         const sx = Math.ceil(img.width / this.tx_sz);
         const sy = Math.ceil(img.height / this.tx_sz);
