@@ -1098,6 +1098,10 @@ export class Renderer {
         this.make_screenshot = true;
     }
 
+    downloadTextImage() {
+        Helpers.downloadImage(Game.world.block_manager.resource_pack_manager.list.get('base').materials.get('base/regular/alphabet').texture.source, 'alphabet.png');
+    }
+
     downloadInventoryImage() {
         Helpers.downloadImage(Resources.inventory.image, 'inventory.png');
     }

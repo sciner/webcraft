@@ -47,7 +47,7 @@ export class Compiler {
         // Predefined textures
         for(let texture of this.compile_data.predefined_textures) {
             const spritesheet = this.getSpritesheet(texture.spritesheet_id);
-            const img = await skiaCanvas.loadImage(texture.image);
+            const img = await spritesheet.loadTextureImage(texture.image);
             spritesheet.drawImage(img, texture.x, texture.y);
         }
         try {
@@ -66,7 +66,7 @@ export class Compiler {
         const data = JSON.stringify(this.compile_data.blocks, null, 4);
         fs.writeFileSync(`${this.options.output_dir}/blocks.json`, data);
         // copy files
-        for(let fn of ['textures/painting.png']) {
+        for(let fn of this.options.copy_files) {
             fs.copyFile(`./${fn}`, `${this.options.output_dir}/${fn}`, (err) => {
                 if(err) {
                     throw err;

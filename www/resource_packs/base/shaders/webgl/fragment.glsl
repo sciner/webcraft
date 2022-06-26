@@ -35,6 +35,10 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
     return color;
 }
 
+float median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+}
+
 void main() {
 
     vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
@@ -43,12 +47,20 @@ void main() {
     vec2 biome = v_color.rg * (1. - 0.5 * step(0.5, u_mipmap));
 
     float light = 0.0;
+    // Read texture
+    vec4 color = sampleAtlassTexture (mipData, texClamped, biome);
 
     // Game
-    if(u_fogOn) {
+    if(v_flagQuadSDF == 1.) {
 
-        // Read texture
-        vec4 color = sampleAtlassTexture (mipData, texClamped, biome);
+        vec4 u_color = vec4(1, 1, 1, 1);
+        float dist = color.b;
+        if(dist < .5) discard;
+        color = u_color;
+
+    }
+    
+    if(u_fogOn) {
 
         if (v_animInterp > 0.0) {
             color = mix(

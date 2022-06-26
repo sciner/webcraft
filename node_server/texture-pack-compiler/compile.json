@@ -5,7 +5,17 @@
         {"spritesheet_id": "default", "x": 24, "y": 23, "image": "./textures/grass_palette.png"},
         {"spritesheet_id": "water_still", "x": 2, "y": 0, "image": "./textures/water_palette.png"},
         {"spritesheet_id": "default", "x": 26, "y": 31, "image": "./textures/bed_item.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"}
+        {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"},
+        {"spritesheet_id": "default", "x": 0, "y": 31, "image": "block/destroy_stage_0.png"},
+        {"spritesheet_id": "default", "x": 1, "y": 31, "image": "block/destroy_stage_1.png"},
+        {"spritesheet_id": "default", "x": 2, "y": 31, "image": "block/destroy_stage_2.png"},
+        {"spritesheet_id": "default", "x": 3, "y": 31, "image": "block/destroy_stage_3.png"},
+        {"spritesheet_id": "default", "x": 4, "y": 31, "image": "block/destroy_stage_4.png"},
+        {"spritesheet_id": "default", "x": 5, "y": 31, "image": "block/destroy_stage_5.png"},
+        {"spritesheet_id": "default", "x": 6, "y": 31, "image": "block/destroy_stage_6.png"},
+        {"spritesheet_id": "default", "x": 7, "y": 31, "image": "block/destroy_stage_7.png"},
+        {"spritesheet_id": "default", "x": 8, "y": 31, "image": "block/destroy_stage_8.png"},
+        {"spritesheet_id": "default", "x": 9, "y": 31, "image": "block/destroy_stage_9.png"}
     ],
     "blocks" : [
         {
@@ -4755,9 +4765,9 @@
                 "no_drop_ao"
             ],
             "texture": {
-                "up": "./textures/potted_azalea_bush_top.png",
+                "up": "./textures/azalea_top.png",
                 "side": "./textures/azalea_side.png",
-                "down": "./textures/potted_azalea_bush_plant.png"
+                "down": "./textures/azalea_plant.png"
             }
         },
         {
@@ -4778,7 +4788,7 @@
             "texture": {
                 "up": "./textures/flowering_azalea_top.png",
                 "side": "./textures/flowering_azalea_side.png",
-                "down": "./textures/potted_azalea_bush_plant.png"
+                "down": "./textures/azalea_plant.png"
             }
         },
         {

@@ -1,4 +1,4 @@
-import {AlphabetTexture, Vector} from '../helpers.js';
+import {AlphabetTexture, QUAD_FLAGS, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
 // Табличка
@@ -33,7 +33,6 @@ export default class style {
         const LETTER_H              = (aabb.height / 4) * .6;
         const LETTER_SPACING_MUL    = .5;
         const PADDING               = style._padding.set(LETTER_W / 4, -LETTER_H / 4, 0);
-        const char_size             = AlphabetTexture.char_size_norm;
 
         // Letter position
         let cx                      = 0;
@@ -52,10 +51,10 @@ export default class style {
             }
             // Letter texture
             let c = [
-                char.xn + char_size.width / 2,
-                char.yn + char_size.height / 2,
-                char_size.width,
-                char_size.height
+                char.xn + char.width / 2,
+                char.yn + char.height / 2,
+                char.width,
+                char.height
             ];
             // Letter position
             aabbc.copyFrom(aabb);
@@ -63,7 +62,11 @@ export default class style {
             aabbc.x_max = aabbc.x_min + LETTER_W;
             aabbc.y_min = aabbc.y_max - (cy+1) * LETTER_H;
             aabbc.y_max = aabbc.y_min + LETTER_H;
-            aabbc.translate(PADDING.x, PADDING.y, PADDING.z);
+            aabbc.translate(
+                PADDING.x - aabbc.width * char.shift_x,
+                PADDING.y - aabbc.height * char.shift_y,
+                PADDING.z
+            );
             // Push letter vertices
             pushAABB(
                 vertices,
@@ -71,7 +74,7 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    south:  new AABBSideParams(c, 0, 1, null, null, false)
+                    south:  new AABBSideParams(c, QUAD_FLAGS.QUAD_FLAG_SDF, 1, null, null, false)
                 },
                 center
             );
@@ -92,10 +95,10 @@ export default class style {
                 }
                 // Letter texture
                 let c = [
-                    char.xn + char_size.width / 2,
-                    char.yn + char_size.height / 2,
-                    char_size.width,
-                    char_size.height
+                    char.xn + char.width / 2,
+                    char.yn + char.height / 2,
+                    char.width,
+                    char.height
                 ];
                 // Letter position
                 aabbc.copyFrom(aabb);
@@ -111,7 +114,7 @@ export default class style {
                     pivot,
                     matrix,
                     {
-                        south:  new AABBSideParams(c, 0, 1, null, null, false)
+                        south:  new AABBSideParams(c, QUAD_FLAGS.QUAD_FLAG_SDF, 1, null, null, false)
                     },
                     center
                 );

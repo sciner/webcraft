@@ -41,8 +41,11 @@
             "tx_cnt": 32
         },
         "alphabet": {
-            "canvas": {"width": 1024, "height": 1024},
-            "tx_cnt": 32
+            "image": "/textures/alphabet.png",
+            "_canvas": {"width": 1024, "height": 1024},
+            "tx_cnt": 32,
+            "minFilter": "linear",
+            "magFilter": "linear"
         }
     }
 }

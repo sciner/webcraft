@@ -25,6 +25,7 @@
     #define TEXTURE_SCROLL 6
     #define NO_CAN_TAKE_AO 7
     #define QUAD_FLAG_OPACITY 8
+    #define QUAD_FLAG_SDF 9
 #endif
 
 #ifdef global_uniforms
@@ -105,6 +106,7 @@
     out vec3 v_aoOffset;
     out float v_noCanTakeAO;
     out float v_flagFlagOpacity;
+    out float v_flagQuadSDF;
 
     //--
 #endif
@@ -127,6 +129,7 @@
     in vec4 v_lightOffset;
     in float v_noCanTakeAO;
     in float v_flagFlagOpacity;
+    in float v_flagQuadSDF;
 
     out vec4 outColor;
 #endif
@@ -250,11 +253,13 @@
     int flagScroll = (flags >> TEXTURE_SCROLL) & 1;
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
     int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
+    int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     v_noCanTakeAO = float(flagNoCanTakeAO);
     v_flagFlagOpacity = float(flagFlagOpacity);
+    v_flagQuadSDF = float(flagQuadSDF);
     //--
 #endif
 

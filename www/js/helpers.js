@@ -938,6 +938,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.TEXTURE_SCROLL = 1 << 6;
     QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
     QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
+    QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
@@ -1440,37 +1441,77 @@ export class AlphabetTexture {
     static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
     static chars            = new Map();
 
-    static default_runes = RuneStrings.toArray('�•█—абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789~`@#№$;:\\/*-+()[]{}-^_&?!%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾');
-
+    // init...
     static init() {
         if(this.chars_x) {
             return false;
         }
         this.chars_x = Math.floor(this.width / this.char_size.width);
-        this.getStringUVs(AlphabetTexture.default_runes.join(''), true);
+
+        /*
+        // {
+        //    "id":9608,
+        //    "index":1283,
+        //    "char":"█",
+        //    "width":25,
+        //    "height":46,
+        //    "xoffset":-2,
+        //    "yoffset":-4,
+        //    "xadvance":21,
+        //    "chnl":15,
+        //    "x":0,
+        //    "y":0,
+        //    "page":0
+        // }
+        const uvs = globalThis.alphabet.msdf;
+        const sprite_size = uvs.common.scaleW;
+        for(let uv of uvs.chars) {
+            const char = uv.char;
+            const shift_x = 0; // (uv.originX / uv.height);
+            const shift_y = 0; // (uv.height - uv.originY) / uv.height;
+            let pos = {
+                uv,
+                xn: uv.x / sprite_size,
+                yn: uv.y / sprite_size,
+                width: uv.width / sprite_size,
+                height: uv.height / sprite_size,
+                shift_x: shift_x,
+                shift_y: shift_y,
+                char
+            };
+            this.chars.set(char, pos);
+        }
+        */
+
+        const uvs = globalThis.alphabet.sdf;
+        const sprite_size = uvs.width;
+        for(let char in uvs.characters) {
+            const uv = uvs.characters[char] || uvs.characters["�"];
+            const shift_x = 0;
+            const shift_y = (uv.height - uv.originY) / uv.height;
+            let pos = {
+                uv,
+                xn: uv.x / sprite_size,
+                yn: uv.y / sprite_size,
+                width: uv.width / sprite_size,
+                height: uv.height / sprite_size,
+                shift_x: shift_x,
+                shift_y: shift_y,
+                char
+            };
+            this.chars.set(char, pos);
+        }
+
     }
 
-    static indexToPos(index) {
-        const x = (index % this.chars_x) * this.char_size.width;
-        const y = Math.floor(index / this.chars_x) * this.char_size.height;
-        return {x: x, y: y};
-    }
-
+    // getStringUVs...
     static getStringUVs(str, init_new) {
-        this.init();
-        let chars = RuneStrings.toArray(str);
-        let resp = [];
+        AlphabetTexture.init();
+        const chars = RuneStrings.toArray(str);
+        const resp = [];
+        const def_char = this.chars.get('�');
         for(let char of chars) {
-            if(init_new && !this.chars.has(char)) {
-                const index = this.chars.size;
-                let pos = this.indexToPos(index);
-                pos.xn = pos.x / this.width;
-                pos.yn = pos.y / this.height;
-                pos.char = char;
-                pos.index = index;
-                this.chars.set(char, pos);
-            }
-            let item = this.chars.has(char) ? this.chars.get(char) : this.chars.get('�');
+            const item = this.chars.has(char) ? this.chars.get(char) : def_char;
             if(char == "\r") {
                 item.char = char;
             }

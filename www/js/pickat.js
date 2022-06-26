@@ -92,7 +92,7 @@ export class PickAt {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
                 damage_block.mesh.destroy();
-                damage_block.mesh = this.createDamageBuffer(pos, BLOCK.calcTexture([new_frame, 15]));
+                damage_block.mesh = this.createDamageBuffer(pos, BLOCK.calcTexture([new_frame, 31]));
             }
         }
     }
