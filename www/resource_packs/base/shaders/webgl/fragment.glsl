@@ -35,14 +35,15 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
     return color;
 }
 
-float median(float r, float g, float b) {
-    return max(min(r, g), min(max(r, g), b));
+float median(vec4 p) {
+    return max(min(p.r, p.g), min(max(p.r, p.g), p.b));
 }
 
 void main() {
 
+    vec2 size = vec2(textureSize(u_texture, 0));
     vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
-    vec4 mipData = manual_mip (v_texcoord0, vec2(textureSize(u_texture, 0)));
+    vec4 mipData = manual_mip (v_texcoord0, size);
 
     vec2 biome = v_color.rg * (1. - 0.5 * step(0.5, u_mipmap));
 
@@ -52,12 +53,20 @@ void main() {
 
     // Game
     if(v_flagQuadSDF == 1.) {
+        float msdfThreshold = 0.5;
 
-        vec4 u_color = vec4(1, 1, 1, 1);
-        float dist = color.b;
-        if(dist < .5) discard;
-        color = u_color;
+        vec4 msdfColor = vec4(1, 1, 1, 1);
+        float msdfSize = 100.0;
 
+        float msdfFactor = 0.5 * length(fwidth(v_texcoord0) * msdfSize);
+        float dist = median(color);
+        float fill = smoothstep(
+            msdfThreshold - msdfFactor, 
+            msdfThreshold + msdfFactor, 
+            dist
+        );
+
+        color = mix(vec4(0.0), msdfColor, fill);
     }
     
     if(u_fogOn) {
@@ -70,15 +79,17 @@ void main() {
             );
         }
 
-        if(v_flagFlagOpacity != 0.) {
-            color.a *=  v_color.b;
-        } else {
-            if(color.a < 0.1) discard;
-            if (u_opaqueThreshold > 0.1) {
-                if (color.a < u_opaqueThreshold) {
-                    discard;
-                } else {
-                    color.a = 1.0;
+        if (v_flagQuadSDF != 1.0) {
+            if(v_flagFlagOpacity != 0.) {
+                color.a *= v_color.b;
+            } else {
+                if(color.a < 0.1) discard;
+                if (u_opaqueThreshold > 0.1) {
+                    if (color.a < u_opaqueThreshold) {
+                        discard;
+                    } else {
+                        color.a = 1.0;
+                    }
                 }
             }
         }

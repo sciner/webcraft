@@ -33,7 +33,7 @@
             "tx_cnt": 32
         },
         "alphabet": {
-            "image": "/textures/alphabet.png",
+            "image": "/textures/alphabet_msdf.png",
             "_canvas": {"width": 1024, "height": 1024},
             "tx_cnt": 32,
             "minFilter": "linear",
