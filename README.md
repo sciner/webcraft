@@ -7,7 +7,6 @@ Minecraft clone on JS
 - Reddit: https://www.reddit.com/r/madcraft/
 
 ## Third Party
-+ [Faithful Resource Pack](https://www.faithfulpack.net/license)
 + [XM player](https://github.com/a1k0n/jsxm/)
 
 ## Run and play
