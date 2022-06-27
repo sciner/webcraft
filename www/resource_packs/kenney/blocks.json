@@ -202,37 +202,37 @@
 
     {"id": 606, "name": "WOODEN_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [0, 1]
         }
     },
     {"id": 607, "name": "STONE_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [1, 1]
         }
     },
     {"id": 608, "name": "IRON_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [2, 1]
         }
     },
     {"id": 609, "name": "GOLD_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [3, 1]
         }
     },
     {"id": 610, "name": "DIAMOND_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [4, 1]
         }
     },
     {"id": 611, "name": "NETHERITE_SWORD",
         "texture": {
-            "id": "tool",
+            "id": "default",
             "side": [5, 1]
         }
     }

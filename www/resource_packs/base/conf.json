@@ -12,25 +12,9 @@
             "image": "/textures/default.png",
             "tx_cnt": 32
         },
-        "egg": {
-            "image": "/textures/egg.png",
-            "tx_cnt": 8
-        },
-        "item": {
-            "image": "/textures/item.png",
-            "tx_cnt": 8
-        },
-        "fluids": {
-            "image": "/textures/fluids.png",
-            "tx_cnt": 32
-        },
-        "tool": {
-            "image": "/textures/tool.png",
-            "tx_cnt": 16
-        },
         "painting": {
             "image": "/textures/painting.png",
-            "tx_cnt": 32
+            "tx_cnt": 16
         },
         "alphabet": {
             "image": "/textures/alphabet_msdf.png",

@@ -143,7 +143,7 @@ export class CompileData {
                 "can_rotate": true,
                 "inventory": {
                     "style": "extruder",
-                    "texture": "26|31"
+                    "texture": "14|30"
                 },
                 "mask_color": mask_color,
                 "tags": [
