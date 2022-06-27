@@ -149,9 +149,9 @@ export default class style {
         const center                = style._center.set(x, y, z);
 
         aabb.copyFrom(block.extra_data.aabb).pad(.1 / 16);
-        aabb.x_min += 1 / 32;
+        aabb.x_min += 1 / 16;
         aabb.y_min += 1 / 16;
-        aabb.x_max -= 1 / 32;
+        aabb.x_max -= 1 / 16;
         aabb.y_max -= 1 / 32;
 
 
