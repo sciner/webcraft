@@ -3,7 +3,7 @@
         {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/palette.png"},
         {"spritesheet_id": "default", "x": 25, "y": 31, "image": "./textures/redstone_palette.png"},
         {"spritesheet_id": "default", "x": 24, "y": 23, "image": "./textures/grass_palette.png"},
-        {"spritesheet_id": "water_still", "x": 2, "y": 0, "image": "./textures/water_palette.png"},
+        {"spritesheet_id": "fluids", "x": 2, "y": 0, "image": "./textures/water_palette.png"},
         {"spritesheet_id": "default", "x": 26, "y": 31, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"},
         {"spritesheet_id": "default", "x": 0, "y": 31, "image": "block/destroy_stage_0.png"},
@@ -2999,7 +2999,7 @@
                 "side": 0
             },
             "texture": {
-                "id": "water_still",
+                "id": "fluids",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -3027,7 +3027,7 @@
                 "side": 0
             },
             "texture": {
-                "id": "water_still",
+                "id": "fluids",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -3063,7 +3063,7 @@
                 "side": 0
             },
             "texture": {
-                "id": "lava_still",
+                "id": "fluids",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -3094,7 +3094,7 @@
                 "side": 0
             },
             "texture": {
-                "id": "lava_still",
+                "id": "fluids",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -3111,7 +3111,6 @@
                 "id": "plant"
             },
             "texture": {
-                "id": "seagrass",
                 "side": "block/seagrass.png"
             },
             "texture_animations": {
