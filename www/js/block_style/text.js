@@ -1,5 +1,28 @@
 import {AlphabetTexture, QUAD_FLAGS, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+/**
+ * @typedef {object} CharUV
+ * @property {number} width - width
+ * @property {number} height - height 
+ * @property {number} xadvance
+ * @property {number} yoffset
+ * @property {number} x - x
+ * @property {number} y - y
+ * @property {string} char - char
+ * 
+ */
+
+/**
+ * @typedef {object} Char
+ * @property {number} width - normalised width
+ * @property {number} height - normalised height 
+ * @property {number} xn - normalised x
+ * @property {number} yn - normalised y
+ * @property {number} shift_x - normalised shift x
+ * @property {number} shift_y - normalised shift y
+ * @property {string} char - char
+ * @property {CharUV} uv - original uv
+ */
 
 // Табличка
 export default class style {
@@ -31,7 +54,7 @@ export default class style {
 
         const LETTER_W              = (aabb.width / 8) * .7;
         const LETTER_H              = (aabb.height / 4) * .6;
-        const LETTER_SPACING_MUL    = .5;
+        const LETTER_SPACING_MUL    = 1;
         const PADDING               = style._padding.set(LETTER_W / 4, -LETTER_H / 4, 0);
 
         // Letter position
@@ -44,7 +67,12 @@ export default class style {
         }
 
         // Each over all text chars
-        for(let char of block.extra_data.chars) {
+        /**
+         * @type {Char[]}
+         */
+        const chars = block.extra_data.chars;
+
+        for(let char of chars) {
             if(char.char == "\r") {
                 wrap();
                 continue;
