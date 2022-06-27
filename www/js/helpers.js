@@ -1448,7 +1448,6 @@ export class AlphabetTexture {
         }
         this.chars_x = Math.floor(this.width / this.char_size.width);
 
-        /*
         // {
         //    "id":9608,
         //    "index":1283,
@@ -1481,8 +1480,8 @@ export class AlphabetTexture {
             };
             this.chars.set(char, pos);
         }
-        */
 
+        /*
         const uvs = globalThis.alphabet.sdf;
         const sprite_size = uvs.width;
         for(let char in uvs.characters) {
@@ -1501,6 +1500,7 @@ export class AlphabetTexture {
             };
             this.chars.set(char, pos);
         }
+        */
 
     }
 
