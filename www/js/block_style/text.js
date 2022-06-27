@@ -47,15 +47,18 @@ export default class style {
             return;
         }
 
+        const LETTER_PER_LINE       = 20;
+        const LINES                 = 4;
+
         const aabb                  = style._aabb;
         const aabbc                 = style._aabbc;
         const center                = style._center.set(x, y, z);
         aabb.copyFrom(block.extra_data.aabb).pad(.1 / 16);
 
-        const LETTER_W              = (aabb.width / 8) * .7;
-        const LETTER_H              = (aabb.height / 4) * .6;
+        const LETTER_W              = aabb.width / (LETTER_PER_LINE + 2);
+        const LETTER_H              = aabb.height / (LINES + 2);
         const LETTER_SPACING_MUL    = 1;
-        const PADDING               = style._padding.set(LETTER_W / 4, -LETTER_H / 4, 0);
+        const PADDING               = style._padding.set(LETTER_W, -LETTER_H / 2, 0);
 
         // Letter position
         let cx                      = 0;
