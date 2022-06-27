@@ -20,16 +20,8 @@
             "image": "/textures/item.png",
             "tx_cnt": 8
         },
-        "water_still": {
-            "image": "/textures/water_still.png",
-            "tx_cnt": 32
-        },
-        "lava_still": {
-            "image": "/textures/lava_still.png",
-            "tx_cnt": 32
-        },
-        "seagrass": {
-            "image": "/textures/seagrass.png",
+        "fluids": {
+            "image": "/textures/fluids.png",
             "tx_cnt": 32
         },
         "tool": {
