@@ -381,7 +381,7 @@ export class CompileData {
                     ]
                 },
                 "texture": {
-                    "id": "egg",
+                    "id": "default",
                     "side": `item/spawn_egg.png;type=${egg.type}` // disable cache for every egg
                 }
             };

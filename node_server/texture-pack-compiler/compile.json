@@ -3,21 +3,208 @@
         {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/palette.png"},
         {"spritesheet_id": "default", "x": 25, "y": 31, "image": "./textures/redstone_palette.png"},
         {"spritesheet_id": "default", "x": 24, "y": 23, "image": "./textures/grass_palette.png"},
-        {"spritesheet_id": "fluids", "x": 2, "y": 0, "image": "./textures/water_palette.png"},
-        {"spritesheet_id": "default", "x": 26, "y": 31, "image": "./textures/bed_item.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 15, "image": "./textures/water_palette.png"},
+        {"spritesheet_id": "default", "x": 14, "y": 30, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"},
-        {"spritesheet_id": "default", "x": 0, "y": 31, "image": "block/destroy_stage_0.png"},
-        {"spritesheet_id": "default", "x": 1, "y": 31, "image": "block/destroy_stage_1.png"},
-        {"spritesheet_id": "default", "x": 2, "y": 31, "image": "block/destroy_stage_2.png"},
-        {"spritesheet_id": "default", "x": 3, "y": 31, "image": "block/destroy_stage_3.png"},
-        {"spritesheet_id": "default", "x": 4, "y": 31, "image": "block/destroy_stage_4.png"},
-        {"spritesheet_id": "default", "x": 5, "y": 31, "image": "block/destroy_stage_5.png"},
-        {"spritesheet_id": "default", "x": 6, "y": 31, "image": "block/destroy_stage_6.png"},
-        {"spritesheet_id": "default", "x": 7, "y": 31, "image": "block/destroy_stage_7.png"},
-        {"spritesheet_id": "default", "x": 8, "y": 31, "image": "block/destroy_stage_8.png"},
-        {"spritesheet_id": "default", "x": 9, "y": 31, "image": "block/destroy_stage_9.png"}
+        {"spritesheet_id": "default", "x": 14, "y": 31, "image": "block/destroy_stage_0.png"},
+        {"spritesheet_id": "default", "x": 15, "y": 31, "image": "block/destroy_stage_1.png"},
+        {"spritesheet_id": "default", "x": 16, "y": 31, "image": "block/destroy_stage_2.png"},
+        {"spritesheet_id": "default", "x": 17, "y": 31, "image": "block/destroy_stage_3.png"},
+        {"spritesheet_id": "default", "x": 18, "y": 31, "image": "block/destroy_stage_4.png"},
+        {"spritesheet_id": "default", "x": 19, "y": 31, "image": "block/destroy_stage_5.png"},
+        {"spritesheet_id": "default", "x": 20, "y": 31, "image": "block/destroy_stage_6.png"},
+        {"spritesheet_id": "default", "x": 21, "y": 31, "image": "block/destroy_stage_7.png"},
+        {"spritesheet_id": "default", "x": 22, "y": 31, "image": "block/destroy_stage_8.png"},
+        {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"}
     ],
     "blocks" : [
+        {
+            "id": 202,
+            "name": "STILL_WATER",
+            "transparent": true,
+            "passable": 0.4,
+            "selflit": true,
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "id": "default",
+                "up": "block/water_still.png",
+                "side": "block/water_still.png"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "compile": {
+                "overlay_mask": "./textures/water_overlay.png"
+            },
+            "mask_color": {"r": 0.8105, "g": 0.615, "b": 0},
+            "spawnable": false
+        },
+        {
+            "id": 200,
+            "name": "FLOWING_WATER",
+            "passable": 0.4,
+            "transparent": true,
+            "selflit": true,
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "id": "default",
+                "up": "block/water_still.png",
+                "side": "block/water_still.png"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 0.8105, "g": 0.615, "b": 0},
+            "fluid": {
+                "max_power": 1,
+                "still_block_id": 202
+            },
+            "spawnable": false
+        },
+        {
+            "id": 171,
+            "name": "STILL_LAVA",
+            "transparent": true,
+            "passable": 0.25,
+            "selflit": true,
+            "gravity": true,
+            "is_fluid": true,
+            "material": {
+                "id": "lava"
+            },
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "id": "default",
+                "up": "block/lava_still.png",
+                "side": "block/lava_still.png"
+            },
+            "spawnable": false
+        },
+        {
+            "id": 170,
+            "name": "FLOWING_LAVA",
+            "passable": 0.25,
+            "transparent": true,
+            "selflit": true,
+            "is_fluid": true,
+            "material": {
+                "id": "lava"
+            },
+            "fluid": {
+                "max_power": 1,
+                "still_block_id": 171
+            },
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "id": "default",
+                "up": "block/lava_still.png",
+                "side": "block/lava_still.png"
+            },
+            "spawnable": false
+        },
+        {
+            "id": 540,
+            "name": "SEAGRASS",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "block/seagrass.png"
+            },
+            "texture_animations": {
+                "side": null
+            },
+            "spawnable": true
+        },
+        {
+            "id": 627,
+            "name": "WARPED_STEM",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/warped_stem.png",
+                "up": "block/warped_stem_top.png",
+                "down": "block/warped_stem_top.png"
+            },
+            "texture_animations": {
+                "side": null,
+                "up": 0,
+                "down": 0
+            }
+        },
+        {
+            "id": 660,
+            "name": "CAMPFIRE",
+            "style": "campfire",
+            "can_rotate": true,
+            "transparent": true,
+            "is_fire": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/campfire.png"
+            },
+            "extra_data": {
+                "active": true
+            },
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "side": "block/campfire_log.png",
+                "up": "block/campfire_fire.png"
+            }
+        },
         {
             "id": -1,
             "name": "DUMMY",
@@ -109,7 +296,7 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/wooden_shovel.png"
             },
             "light": null
@@ -128,7 +315,7 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stone_shovel.png"
             },
             "light": null
@@ -147,7 +334,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/iron_shovel.png"
             },
             "light": null
@@ -166,7 +353,7 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/golden_shovel.png"
             },
             "light": null
@@ -185,7 +372,7 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/diamond_shovel.png"
             },
             "light": null
@@ -204,7 +391,7 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/netherite_shovel.png"
             },
             "light": null
@@ -222,7 +409,7 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/wooden_hoe.png"
             },
             "light": null
@@ -241,7 +428,7 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stone_hoe.png"
             },
             "light": null
@@ -260,7 +447,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/iron_hoe.png"
             },
             "light": null
@@ -279,7 +466,7 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/golden_hoe.png"
             },
             "light": null
@@ -298,7 +485,7 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/diamond_hoe.png"
             },
             "light": null
@@ -317,7 +504,7 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/netherite_hoe.png"
             },
             "light": null
@@ -334,7 +521,7 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/wooden_axe.png"
             }
         },
@@ -351,7 +538,7 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stone_axe.png"
             }
         },
@@ -368,7 +555,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/iron_axe.png"
             }
         },
@@ -385,7 +572,7 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/golden_axe.png"
             }
         },
@@ -402,7 +589,7 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/diamond_axe.png"
             }
         },
@@ -419,7 +606,7 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/netherite_axe.png"
             }
         },
@@ -436,7 +623,7 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/wooden_pickaxe.png"
             }
         },
@@ -453,7 +640,7 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stone_pickaxe.png"
             }
         },
@@ -470,7 +657,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/iron_pickaxe.png"
             }
         },
@@ -487,7 +674,7 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/golden_pickaxe.png"
             }
         },
@@ -504,7 +691,7 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/diamond_pickaxe.png"
             }
         },
@@ -521,7 +708,7 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/netherite_pickaxe.png"
             }
         },
@@ -537,7 +724,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/shears.png"
             }
         },
@@ -1115,7 +1302,7 @@
             "item": {"name": "stick"},
             "diagonal": true,
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stick.png"
             },
             "material": {
@@ -2869,7 +3056,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "item",
+                "id": "default",
                 "side": "item/bucket.png"
             }
         },
@@ -2883,7 +3070,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "item",
+                "id": "default",
                 "side": "item/lava_bucket.png"
             }
         },
@@ -2897,7 +3084,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "item",
+                "id": "default",
                 "side": "item/water_bucket.png"
             }
         },
@@ -2911,7 +3098,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "item",
+                "id": "default",
                 "side": "./textures/powder_snow_bucket.png"
             }
         },
@@ -2925,7 +3112,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "item",
+                "id": "default",
                 "side": "item/milk_bucket.png"
             }
         },
@@ -2983,140 +3170,6 @@
             "texture": {
                 "side": "block/granite.png"
             }
-        },
-        {
-            "id": 202,
-            "name": "STILL_WATER",
-            "transparent": true,
-            "passable": 0.4,
-            "selflit": true,
-            "is_fluid": true,
-            "material": {
-                "id": "water"
-            },
-            "texture_animations": {
-                "up": null,
-                "side": 0
-            },
-            "texture": {
-                "id": "fluids",
-                "up": "block/water_still.png",
-                "side": "block/water_still.png"
-            },
-            "tags": [
-                "mask_color"
-            ],
-            "compile": {
-                "overlay_mask": "./textures/water_overlay.png"
-            },
-            "mask_color": {"r": 0.125, "g": 0.1875, "b": 0},
-            "spawnable": false
-        },
-        {
-            "id": 200,
-            "name": "FLOWING_WATER",
-            "passable": 0.4,
-            "transparent": true,
-            "selflit": true,
-            "is_fluid": true,
-            "material": {
-                "id": "water"
-            },
-            "texture_animations": {
-                "up": null,
-                "side": 0
-            },
-            "texture": {
-                "id": "fluids",
-                "up": "block/water_still.png",
-                "side": "block/water_still.png"
-            },
-            "tags": [
-                "mask_color"
-            ],
-            "mask_color": {"r": 0.125, "g": 0.1875, "b": 0},
-            "fluid": {
-                "max_power": 1,
-                "still_block_id": 202
-            },
-            "spawnable": false
-        },
-        {
-            "id": 171,
-            "name": "STILL_LAVA",
-            "transparent": true,
-            "passable": 0.25,
-            "selflit": true,
-            "gravity": true,
-            "is_fluid": true,
-            "material": {
-                "id": "lava"
-            },
-            "light_power": {
-                "r": 253,
-                "g": 200,
-                "b": 80,
-                "a": 255
-            },
-            "texture_animations": {
-                "up": null,
-                "side": 0
-            },
-            "texture": {
-                "id": "fluids",
-                "up": "block/lava_still.png",
-                "side": "block/lava_still.png"
-            },
-            "spawnable": false
-        },
-        {
-            "id": 170,
-            "name": "FLOWING_LAVA",
-            "passable": 0.25,
-            "transparent": true,
-            "selflit": true,
-            "is_fluid": true,
-            "material": {
-                "id": "lava"
-            },
-            "fluid": {
-                "max_power": 1,
-                "still_block_id": 171
-            },
-            "light_power": {
-                "r": 253,
-                "g": 200,
-                "b": 80,
-                "a": 255
-            },
-            "texture_animations": {
-                "up": null,
-                "side": 0
-            },
-            "texture": {
-                "id": "fluids",
-                "up": "block/lava_still.png",
-                "side": "block/lava_still.png"
-            },
-            "spawnable": false
-        },
-        {
-            "id": 540,
-            "name": "SEAGRASS",
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "sound": "madcraft:block.grass",
-            "material": {
-                "id": "plant"
-            },
-            "texture": {
-                "side": "block/seagrass.png"
-            },
-            "texture_animations": {
-                "side": null
-            },
-            "spawnable": true
         },
         {
             "id": 550,
@@ -3874,7 +3927,7 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/wooden_sword.png"
             },
             "light": null
@@ -3892,7 +3945,7 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/stone_sword.png"
             },
             "light": null
@@ -3910,7 +3963,7 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/iron_sword.png"
             },
             "light": null
@@ -3928,7 +3981,7 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/golden_sword.png"
             },
             "light": null
@@ -3946,7 +3999,7 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/diamond_sword.png"
             },
             "light": null
@@ -3964,7 +4017,7 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "tool",
+                "id": "default",
                 "side": "item/netherite_sword.png"
             },
             "light": null
@@ -4177,23 +4230,6 @@
             },
             "texture": "block/iron_bars.png",
             "can_rotate": true
-        },
-        {
-            "id": 627,
-            "name": "WARPED_STEM",
-            "material": {
-                "id": "wood"
-            },
-            "texture": {
-                "up": "block/warped_stem_top.png",
-                "down": "block/warped_stem_top.png",
-                "side": "block/warped_stem.png"
-            },
-            "texture_animations": {
-                "side": null,
-                "up": 0,
-                "down": 0
-            }
         },
         {
             "id": 628,
@@ -4854,42 +4890,6 @@
                 "type": "bamboo",
                 "max_stage": 3,
                 "times_per_stage": 24
-            }
-        },
-        {
-            "id": 660,
-            "name": "CAMPFIRE",
-            "style": "campfire",
-            "can_rotate": true,
-            "transparent": true,
-            "is_fire": true,
-            "inventory": {
-                "style": "extruder",
-                "texture": "item/campfire.png"
-            },
-            "extra_data": {
-                "active": true
-            },
-            "sound": "madcraft:block.wood",
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "no_drop_ao"
-            ],
-            "light_power": {
-                "r": 255,
-                "g": 235,
-                "b": 35,
-                "a": 255
-            },
-            "texture_animations": {
-                "up": null,
-                "side": 0
-            },
-            "texture": {
-                "side": "block/campfire_log.png",
-                "up": "block/campfire_fire.png"
             }
         },
         {

@@ -94,6 +94,15 @@ export class Spritesheet {
                 this.map[index] = true;
             }                        
         }
+        // 
+        if(overlay_mask) {
+            for(let i = 0; i < sx; i++) {
+                for(let j = 0; j < sy; j++) {
+                    const index = this.XYToIndex(x + i + 1, y + j);
+                    this.map[index] = true;
+                }                        
+            }
+        }
     }
 
     // findPlace
