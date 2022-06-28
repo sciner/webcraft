@@ -3,5 +3,7 @@ version: '2'
 services:
   app: 
     build: .
+    volumes:
+      - ./world:/app/world
     ports:
       - 5700:5700
