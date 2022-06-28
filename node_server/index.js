@@ -24,7 +24,7 @@ checkVersion('sqlite3', sqlite3.VERSION);
 // Require compiled resource pack
 try {
     if(!fs.existsSync('../www/resource_packs/base/blocks.json')) {
-        console.error('Resource pack not compiled.\nPlease run `npm run compile-texture-pack` in directory ./node_server/ ');
+        console.error('Resource pack not compiled.\nPlease compile it using texture-pack-compiler tools');
         process.exit();
     }
 } catch(err) {

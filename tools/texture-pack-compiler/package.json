@@ -1,0 +1,10 @@
+{
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "node ."
+    },
+    "dependencies": {
+        "skia-canvas": "^0.9.30"
+    }
+}
