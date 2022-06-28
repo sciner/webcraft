@@ -9,11 +9,11 @@
         ],
         "key": {
             "W": {
-                "item": "madcraft:birch_trunk"
+                "item": "madcraft:birch_log"
             }
         },
         "result": {
-            "item": "madcraft:birch_plank",
+            "item": "madcraft:birch_planks",
             "count": 4
         }
     },
@@ -27,11 +27,11 @@
         ],
         "key": {
             "W": {
-                "item": "madcraft:oak_trunk"
+                "item": "madcraft:oak_log"
             }
         },
         "result": {
-            "item": "madcraft:oak_plank",
+            "item": "madcraft:oak_planks",
             "count": 4
         }
     },
@@ -45,11 +45,11 @@
         ],
         "key": {
             "W": {
-                "item": "madcraft:acacia_trunk"
+                "item": "madcraft:acacia_log"
             }
         },
         "result": {
-            "item": "madcraft:acacia_plank",
+            "item": "madcraft:acacia_planks",
             "count": 4
         }
     },
@@ -61,11 +61,11 @@
         ],
         "key": {
             "W": {
-                "item": "madcraft:spruce_trunk"
+                "item": "madcraft:spruce_log"
             }
         },
         "result": {
-            "item": "madcraft:spruce_plank",
+            "item": "madcraft:spruce_planks",
             "count": 4
         }
     },
@@ -79,7 +79,7 @@
         ],
         "key": {
             "W": {
-                "item": ["madcraft:oak_plank", "madcraft:birch_plank", "madcraft:spruce_plank", "madcraft:acacia_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:oak_planks", "madcraft:birch_planks", "madcraft:spruce_planks", "madcraft:acacia_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -115,7 +115,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             }
         },
         "result": {
@@ -133,7 +133,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             }
         },
         "result": {
@@ -186,7 +186,7 @@
         ],
         "key": {
             "P": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -245,7 +245,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -287,7 +287,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -329,7 +329,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -347,7 +347,7 @@
         ],
         "key": {
             "#": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             }
         },
         "result": {
@@ -365,7 +365,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_plank"
+                "item": "madcraft:birch_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -386,7 +386,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -407,7 +407,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:acacia_plank"
+                "item": "madcraft:acacia_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -428,7 +428,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:spruce_plank"
+                "item": "madcraft:spruce_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -449,7 +449,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_plank"
+                "item": "madcraft:birch_planks"
             }
         },
         "result": {
@@ -467,7 +467,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             }
         },
         "result": {
@@ -485,7 +485,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:acacia_plank"
+                "item": "madcraft:acacia_planks"
             }
         },
         "result": {
@@ -503,7 +503,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:spruce_plank"
+                "item": "madcraft:spruce_planks"
             }
         },
         "result": {
@@ -617,7 +617,7 @@
         ],
         "key": {
             "#": {
-                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
+                "item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]
             },
             "S": {
                 "item": "madcraft:stick"
@@ -995,7 +995,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             }
         },
         "result": {
@@ -1013,7 +1013,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:acacia_plank"
+                "item": "madcraft:acacia_planks"
             }
         },
         "result": {
@@ -1031,7 +1031,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:spruce_plank"
+                "item": "madcraft:spruce_planks"
             }
         },
         "result": {
@@ -1049,7 +1049,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:birch_plank"
+                "item": "madcraft:birch_planks"
             }
         },
         "result": {
@@ -1067,7 +1067,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:dark_oak_plank"
+                "item": "madcraft:dark_oak_planks"
             }
         },
         "result": {
@@ -1085,7 +1085,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:jungle_plank"
+                "item": "madcraft:jungle_planks"
             }
         },
         "result": {
@@ -1121,7 +1121,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_plank"
+                "item": "madcraft:birch_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -1142,7 +1142,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:oak_plank"
+                "item": "madcraft:oak_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -1163,7 +1163,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:acacia_plank"
+                "item": "madcraft:acacia_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -1184,7 +1184,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:spruce_plank"
+                "item": "madcraft:spruce_planks"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -1204,7 +1204,7 @@
             "PPP"
         ],
         "key": {
-            "P": {"item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]},
+            "P": {"item": ["madcraft:birch_planks", "madcraft:oak_planks", "madcraft:acacia_planks", "madcraft:spruce_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]},
             "#": {"item": "madcraft:diamond"}
         },
         "result": {
@@ -1223,7 +1223,7 @@
         "key": {
             "S": {"item": "madcraft:stick"},
             "C": {"item": "madcraft:coal"},
-            "P": {"item": ["madcraft:oak_trunk", "madcraft:birch_trunk", "madcraft:spruce_trunk", "madcraft:acacia_trunk", "madcraft:jungle_trunk", "madcraft:dark_oak_trunk"]}
+            "P": {"item": ["madcraft:oak_log", "madcraft:birch_log", "madcraft:spruce_log", "madcraft:acacia_log", "madcraft:jungle_log", "madcraft:dark_oak_log"]}
         },
         "result": {
             "item": "madcraft:campfire",

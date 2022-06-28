@@ -172,7 +172,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
         if(rb < .2) {
             return BLOCK.MOSS_BLOCK.id;
         } else if (rb < .8) {
-            return BLOCK.STONE_BRICK.id;
+            return BLOCK.STONE_BRICKS.id;
         } else {
             return BLOCK.MOSSY_STONE_BRICKS.id;
         }
@@ -228,8 +228,8 @@ export default class Demo_Map extends Default_Terrain_Generator {
         await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
             let palette = {
                 81: BLOCK.CONCRETE,
-                97: BLOCK.OAK_PLANK,
-                121: BLOCK.STONE_BRICK,
+                97: BLOCK.OAK_PLANKS,
+                121: BLOCK.STONE_BRICKS,
                 122: BLOCK.SMOOTH_STONE,
                 123: BLOCK.GRAVEL,
             };
@@ -238,20 +238,20 @@ export default class Demo_Map extends Default_Terrain_Generator {
         await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
             let palette = {
                 93: BLOCK.GRAVEL,
-                106: BLOCK.STONE_BRICK,
+                106: BLOCK.STONE_BRICKS,
                 114: BLOCK.CONCRETE,
                 72: BLOCK.GRASS_DIRT,
                 235: BLOCK.POWDER_SNOW,
-                54: BLOCK.SPRUCE_PLANK,
+                54: BLOCK.SPRUCE_PLANKS,
                 150: BLOCK.OAK_LEAVES,
                 139: BLOCK.OAK_LEAVES,
-                58: BLOCK.OAK_TRUNK,
+                58: BLOCK.OAK_LOG,
                 107: BLOCK.GRASS_DIRT,
                 144: BLOCK.OAK_LEAVES,
                 143: BLOCK.GRASS_DIRT,
-                253: BLOCK.OAK_PLANK,
-                238: BLOCK.SPRUCE_PLANK,
-                79: BLOCK.BIRCH_PLANK,
+                253: BLOCK.OAK_PLANKS,
+                238: BLOCK.SPRUCE_PLANKS,
+                79: BLOCK.BIRCH_PLANKS,
                 184: BLOCK.GRASS_DIRT,
                 174: BLOCK.GRASS_DIRT,
             };

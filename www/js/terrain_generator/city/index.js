@@ -46,7 +46,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(r < .2) {
                 BRICK = BLOCK.CONCRETE;
             } else if (r < .4) {
-                BRICK = BLOCK.STONE_BRICK;
+                BRICK = BLOCK.STONE_BRICKS;
             }
 
             // ЖД через каждые 9 кварталов
@@ -70,10 +70,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     // ЖД
                     for(let z = 0; z < chunk.size.z; z++) {
                         // рельсы
-                        this.setBlock(chunk, 7, 12, z, BLOCK.OAK_PLANK, false);
+                        this.setBlock(chunk, 7, 12, z, BLOCK.OAK_PLANKS, false);
                         // по краям рельс
-                        this.setBlock(chunk, 6, 12, z, BLOCK.STONE_BRICK, false);
-                        this.setBlock(chunk, 7, 12, z, BLOCK.STONE_BRICK, false);
+                        this.setBlock(chunk, 6, 12, z, BLOCK.STONE_BRICKS, false);
+                        this.setBlock(chunk, 7, 12, z, BLOCK.STONE_BRICKS, false);
                         // шпалы
                         if(z % 2 == 0) {
                             for(let a of [4, 5, 6, 7, 8, 9]) {
@@ -88,8 +88,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // столбы
                         if(z == 4) {
                             for(let y = 0; y < 12; y++) {
-                                this.setBlock(chunk, 5, y, z, BLOCK.STONE_BRICK, false);
-                                this.setBlock(chunk, 8, y, z, BLOCK.STONE_BRICK, false);
+                                this.setBlock(chunk, 5, y, z, BLOCK.STONE_BRICKS, false);
+                                this.setBlock(chunk, 8, y, z, BLOCK.STONE_BRICKS, false);
                             }
                         }
                     }
@@ -177,7 +177,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 height: (aleaRandom.double() * 4 | 0) + 5,
                                 type: {
                                     style: 'wood',
-                                    trunk: BLOCK.SPRUCE_TRUNK.id,
+                                    trunk: BLOCK.SPRUCE_LOG.id,
                                     leaves: BLOCK.SPRUCE_LEAVES.id,
                                     height: 7
                                 }

@@ -28,7 +28,7 @@
     },
     {
         "id": 162,
-        "name": "BIRCH_TRUNK",
+        "name": "BIRCH_LOG",
         "texture": {
             "up": [20, 17],
             "down": [20, 17],
@@ -37,7 +37,7 @@
     },
     {
         "id": 3,
-        "name": "OAK_TRUNK",
+        "name": "OAK_LOG",
         "texture": {
             "up": [21, 17],
             "down": [21, 17],
@@ -46,7 +46,7 @@
     },
     {
         "id": 165,
-        "name": "ACACIA_TRUNK",
+        "name": "ACACIA_LOG",
         "texture": {
             "up": [22, 17],
             "down": [22, 17],
@@ -55,7 +55,7 @@
     },
     {
         "id": 138,
-        "name": "SPRUCE_TRUNK",
+        "name": "SPRUCE_LOG",
         "texture": {
             "up": [23, 17],
             "down": [23, 17],
@@ -78,10 +78,10 @@
         "texture": [10, 21]
     },
 
-    {"id": 456, "name": "BIRCH_PLANK", "texture": [20, 19]},
-    {"id": 7, "name": "OAK_PLANK", "texture": [21, 19]},
-    {"id": 457, "name": "ACACIA_PLANK", "texture": [22, 19]},
-    {"id": 460, "name": "SPRUCE_PLANK", "texture": [23, 19]},
+    {"id": 456, "name": "BIRCH_PLANKS", "texture": [20, 19]},
+    {"id": 7, "name": "OAK_PLANKS", "texture": [21, 19]},
+    {"id": 457, "name": "ACACIA_PLANKS", "texture": [22, 19]},
+    {"id": 460, "name": "SPRUCE_PLANKS", "texture": [23, 19]},
 
     {"id": 458, "name": "BIRCH_SLAB", "texture": [20, 19]},
     {"id": 126, "name": "OAK_SLAB", "texture": [21, 19]},
@@ -234,7 +234,7 @@
     },
     {
         "id": 5,
-        "name": "BOOKCASE",
+        "name": "BOOKSHELF",
         "texture": {
             "up": [21, 19],
             "down": [21, 19],
@@ -257,7 +257,7 @@
     },
     {
         "id": 98,
-        "name": "STONE_BRICK",
+        "name": "STONE_BRICKS",
         "texture": [6, 3]
     },
     {

@@ -493,7 +493,7 @@ export class BLOCK {
         let blocks = [
             Object.assign({count: 5}, this.RED_MUSHROOM),
             Object.assign({count: 64}, this.SAND),
-            Object.assign({count: 6}, this.BOOKCASE),
+            Object.assign({count: 6}, this.BOOKSHELF),
             Object.assign({count: 20}, this.GLOWSTONE),
             Object.assign({count: 4}, this.TEST)
         ];

@@ -84,17 +84,17 @@ export class CompileData {
     initButtons() {
         let i = 0;
         const materials = [
-            this.getBlock('OAK_PLANK'),
-            this.getBlock('BIRCH_PLANK'),
-            this.getBlock('SPRUCE_PLANK'),
-            this.getBlock('ACACIA_PLANK'),
-            this.getBlock('JUNGLE_PLANK'),
-            this.getBlock('DARK_OAK_PLANK'),
-            this.getBlock('WARPED_PLANK'),
+            this.getBlock('OAK_PLANKS'),
+            this.getBlock('BIRCH_PLANKS'),
+            this.getBlock('SPRUCE_PLANKS'),
+            this.getBlock('ACACIA_PLANKS'),
+            this.getBlock('JUNGLE_PLANKS'),
+            this.getBlock('DARK_OAK_PLANKS'),
+            this.getBlock('WARPED_PLANKS'),
             this.getBlock('CONCRETE')
         ];
         for(let mat of materials) {
-            let name_prefix = mat.name.replace('_PLANK', '');
+            let name_prefix = mat.name.replace('_PLANKS', '');
             const b = {
                 "id": START_BUTTON_ID + i,
                 "name": name_prefix + '_BUTTON',

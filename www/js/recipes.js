@@ -254,7 +254,7 @@ export class RecipeManager {
                 ],
                 "key": {
                     "W": {"item": [`madcraft:${color}_wool`]},
-                    "P": {"item": ["madcraft:oak_plank", "madcraft:birch_plank", "madcraft:spruce_plank", "madcraft:acacia_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]}
+                    "P": {"item": ["madcraft:oak_planks", "madcraft:birch_planks", "madcraft:spruce_planks", "madcraft:acacia_planks", "madcraft:jungle_planks", "madcraft:dark_oak_planks"]}
                 },
                 "result": {
                     "item": `madcraft:${name}`,

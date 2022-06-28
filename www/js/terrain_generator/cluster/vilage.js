@@ -32,7 +32,7 @@ export class ClusterVilage extends ClusterBase {
         if(!this.is_empty) {
             this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
-            this.wall_block         = this.flat ? BLOCK.STONE_BRICK.id : BLOCK.OAK_PLANK.id;
+            this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createPalette(this.flat ? [
                 {value: BLOCK.ANDESITE, chance: .5},
                 {value: BLOCK.CONCRETE, chance: 1}

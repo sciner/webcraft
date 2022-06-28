@@ -20,11 +20,11 @@ export class TREES {
         if(TREES.BIRCH) {
             return false;
         }
-        TREES.BIRCH             = {trunk: BLOCK.BIRCH_TRUNK.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
-        TREES.OAK               = {trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
-        TREES.ACACIA            = {trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: 5, max: 12}};
-        TREES.SPRUCE            = {trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}};
-        TREES.TROPICAL_TREE     = {trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 22}};
+        TREES.BIRCH             = {trunk: BLOCK.BIRCH_LOG.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
+        TREES.OAK               = {trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
+        TREES.ACACIA            = {trunk: BLOCK.ACACIA_LOG.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: 5, max: 12}};
+        TREES.SPRUCE            = {trunk: BLOCK.SPRUCE_LOG.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}};
+        TREES.TROPICAL_TREE     = {trunk: BLOCK.JUNGLE_LOG.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 22}};
         TREES.RED_MUSHROOM      = {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
         TREES.BROWN_MUSHROOM    = {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
         return true;
@@ -126,7 +126,7 @@ export class  BIOMES {
         };
         
         BIOMES.JUNGLE = {
-            block:      BLOCK.OAK_PLANK.id,
+            block:      BLOCK.OAK_PLANKS.id,
             code:       'JUNGLE',
             color:      '#4eb41c',
             dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
@@ -158,7 +158,7 @@ export class  BIOMES {
         };
         
         BIOMES.SUBTROPICAL_DESERT = {
-            block:      BLOCK.OAK_PLANK.id,
+            block:      BLOCK.OAK_PLANKS.id,
             code:       'SUBTROPICAL_DESERT',
             color:      '#c19a6b',
             dirt_color: new Color(845 / 1024, 990 / 1024, 0, 0),
@@ -207,7 +207,7 @@ export class  BIOMES {
         };
         
         BIOMES.BARE = {
-            block: BLOCK.OAK_TRUNK.id,
+            block: BLOCK.OAK_LOG.id,
             code:       'BARE',
             color:      '#CCCCCC',
             dirt_color: new Color(960 / 1024, 950 / 1024, 0, 0),
@@ -220,7 +220,7 @@ export class  BIOMES {
         };
         
         BIOMES.TUNDRA = {
-            block: BLOCK.SPRUCE_TRUNK.id,
+            block: BLOCK.SPRUCE_LOG.id,
             code:       'TUNDRA',
             color:      '#74883c',
             dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0),
@@ -231,7 +231,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.01, ...TREES.SPRUCE, height: {min: 6, max: 24}},
                     {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
                     {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN_TOP.id, style: 'stump', height: {min: 1, max: 1}},
@@ -251,7 +251,7 @@ export class  BIOMES {
         };
         
         BIOMES.TAIGA = {
-            block: BLOCK.OAK_TRUNK.id,
+            block: BLOCK.OAK_LOG.id,
             code:       'TAIGA',
             dirt_color: new Color(1000 / 1024, 990 / 1024, 0, 0),
             color:      '#879b89',
@@ -262,7 +262,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.99, ...TREES.SPRUCE, height: {min: 7, max: TREE_MAX_HEIGHT}}
                 ]
             },
@@ -284,7 +284,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.99, ...TREES.SPRUCE, height: {min: 7, max: TREE_MAX_HEIGHT}}
                 ]
             },
@@ -356,7 +356,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.99, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
                 ]
             },
@@ -381,7 +381,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
                 ]
             },
@@ -404,7 +404,7 @@ export class  BIOMES {
             trees:      {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
                 ]
             },
@@ -428,7 +428,7 @@ export class  BIOMES {
             trees:      {
                 frequency: .0085,
                 list: [
-                    {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.69, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}},
                     {percent: 0.15, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}}
                 ]

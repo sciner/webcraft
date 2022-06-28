@@ -200,9 +200,9 @@ export class MineGenerator {
         this.genBox(chunk, node, 1, 1, 12, 15, 3, 14, dir);
 
         // floor as bridge over air
-        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANK, 1, true);
-        this.genBox(chunk, node, 1, 0, 12, 15, 0, 14, dir, BLOCK.OAK_PLANK, 1, true);
-        this.genBox(chunk, node, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLANK, 1, true);
+        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANKS, 1, true);
+        this.genBox(chunk, node, 1, 0, 12, 15, 0, 14, dir, BLOCK.OAK_PLANKS, 1, true);
+        this.genBox(chunk, node, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLANKS, 1, true);
 
         let interval = Math.round(node.random.double()) + 4;
 
@@ -250,7 +250,7 @@ export class MineGenerator {
         this.genBox(chunk, node, 1, 1, 0, 3, 3, 15, dir);
 
         // floor
-        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANK, 1, true);
+        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANKS, 1, true);
 
         let interval = Math.round(node.random.double()) + 4;
         for (let n = 0; n <= 15; n += interval) {
@@ -263,7 +263,7 @@ export class MineGenerator {
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
 
-            this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK, 0.25);
+            this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANKS, 0.25);
 
             this.genBoxAir(chunk, node, 1, 3, n - 1, 1, 3, n + 1, dir, BLOCK.COBBLESTONE, 0.25); // добавить из окружения
             this.genBoxAir(chunk, node, 3, 3, n - 1, 3, 3, n + 1, dir, BLOCK.DIRT, 0.25);

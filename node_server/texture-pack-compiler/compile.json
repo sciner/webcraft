@@ -851,7 +851,7 @@
         },
         {
             "id": 456,
-            "name": "BIRCH_PLANK",
+            "name": "BIRCH_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -865,7 +865,7 @@
         },
         {
             "id": 7,
-            "name": "OAK_PLANK",
+            "name": "OAK_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -879,7 +879,7 @@
         },
         {
             "id": 457,
-            "name": "ACACIA_PLANK",
+            "name": "ACACIA_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -893,7 +893,7 @@
         },
         {
             "id": 460,
-            "name": "SPRUCE_PLANK",
+            "name": "SPRUCE_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -907,7 +907,7 @@
         },
         {
             "id": 528,
-            "name": "DARK_OAK_PLANK",
+            "name": "DARK_OAK_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -921,7 +921,7 @@
         },
         {
             "id": 529,
-            "name": "JUNGLE_PLANK",
+            "name": "JUNGLE_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -935,7 +935,7 @@
         },
         {
             "id": 661,
-            "name": "WARPED_PLANK",
+            "name": "WARPED_PLANKS",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
@@ -1929,12 +1929,12 @@
         },
         {
             "id": 98,
-            "name": "STONE_BRICK",
+            "name": "STONE_BRICKS",
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone_brick.png"
+            "texture": "block/stone_bricks.png"
         },
         {
             "id": 99,
@@ -2213,7 +2213,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "OAK_PLANK"
+                "full_block_name": "OAK_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2229,7 +2229,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "DARK_OAK_PLANK"
+                "full_block_name": "DARK_OAK_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2245,7 +2245,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "JUNGLE_PLANK"
+                "full_block_name": "JUNGLE_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2261,7 +2261,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "BIRCH_PLANK"
+                "full_block_name": "BIRCH_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2277,7 +2277,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "ACACIA_PLANK"
+                "full_block_name": "ACACIA_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2293,7 +2293,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "SPRUCE_PLANK"
+                "full_block_name": "SPRUCE_PLANKS"
             },
             "material": {
                 "id": "wood"
@@ -2551,7 +2551,7 @@
         },
         {
             "id": 162,
-            "name": "BIRCH_TRUNK",
+            "name": "BIRCH_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2570,7 +2570,7 @@
         },
         {
             "id": 3,
-            "name": "OAK_TRUNK",
+            "name": "OAK_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2589,7 +2589,7 @@
         },
         {
             "id": 165,
-            "name": "ACACIA_TRUNK",
+            "name": "ACACIA_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2608,7 +2608,7 @@
         },
         {
             "id": 138,
-            "name": "SPRUCE_TRUNK",
+            "name": "SPRUCE_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2627,7 +2627,7 @@
         },
         {
             "id": 530,
-            "name": "DARK_OAK_TRUNK",
+            "name": "DARK_OAK_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2646,7 +2646,7 @@
         },
         {
             "id": 531,
-            "name": "JUNGLE_TRUNK",
+            "name": "JUNGLE_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
@@ -2665,7 +2665,7 @@
         },
         {
             "id": 5,
-            "name": "BOOKCASE",
+            "name": "BOOKSHELF",
             "sound": "madcraft:block.wood",
             "material": {
                 "id": "wood"
@@ -4145,6 +4145,17 @@
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png"
+        },
+        {
+            "id": 1462,
+            "name": "STONE_BRICK_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/stone_bricks.png"
         },
         {
             "id": 620,

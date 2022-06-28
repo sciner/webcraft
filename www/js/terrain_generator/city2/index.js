@@ -42,13 +42,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
         this.palette = {
             150: BLOCK.OAK_LEAVES,
-            80: BLOCK.OAK_TRUNK,
+            80: BLOCK.OAK_LOG,
             112: BLOCK.SAND,
             252: BLOCK.CONCRETE,
             192: BLOCK.ICE,
             235: BLOCK.IRON,
             248: BLOCK.SMOOTH_STONE,
-            106: BLOCK.BIRCH_PLANK,
+            106: BLOCK.BIRCH_PLANKS,
             38: BLOCK.RED_TERRACOTTA,
             236: BLOCK.CYAN_TERRACOTTA,
             29: BLOCK.GRAY_TERRACOTTA,
@@ -71,8 +71,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         
             238: BLOCK.TEST,
         
-            // 97: BLOCK.OAK_PLANK,
-            // 121: BLOCK.STONE_BRICK,
+            // 97: BLOCK.OAK_PLANKS,
+            // 121: BLOCK.STONE_BRICKS,
             // 122: BLOCK.SMOOTH_STONE,
             // 123: BLOCK.GRAVEL,
         };

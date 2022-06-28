@@ -238,7 +238,7 @@ export class Farmland extends Building {
         this.drawBasement(cluster, chunk, 4, BLOCK.DIRT.id);
         const building = this;
         cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size.add(new Vector(0, 5, 0)), BLOCK.AIR);
-        cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_TRUNK);
+        cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_LOG);
         let inner_size = building.size.clone().addSelf(new Vector(-2, -1, -2));
         let pos = building.coord.clone().addSelf(new Vector(1, 0, 1));
         cluster.drawQuboid(chunk, pos, inner_size, BLOCK.FARMLAND_WET);
@@ -351,7 +351,7 @@ export class WaterWell extends Building {
         }
         if(seed < .75) {
             this.wallBlocks = this.cluster.createPalette([
-                {value: BLOCK.OAK_PLANK, chance: 1}
+                {value: BLOCK.OAK_PLANKS, chance: 1}
             ]);
             this.blocks.list.push(...[
                 {move: new Vector(0, 1, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
@@ -434,10 +434,10 @@ export class Building1 extends Building {
         if(cluster.flat) {
             if(seed < .5) {
                 this.materials  = {
-                    wall: BLOCK.STONE_BRICK,
+                    wall: BLOCK.STONE_BRICKS,
                     door: BLOCK.SPRUCE_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    roof_block: BLOCK.DARK_OAK_PLANKS,
                     light: BLOCK.LANTERN
                 };
             } else {
@@ -445,25 +445,25 @@ export class Building1 extends Building {
                     wall: BLOCK.BRICKS,
                     door: BLOCK.DARK_OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    roof_block: BLOCK.DARK_OAK_PLANKS,
                     light: BLOCK.LANTERN
                 };
             }
         } else {
             if(seed < .5) {
                 this.materials  = {
-                    wall: BLOCK.OAK_PLANK,
+                    wall: BLOCK.OAK_PLANKS,
                     door: BLOCK.OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    roof_block: BLOCK.DARK_OAK_PLANKS,
                     light: BLOCK.TORCH
                 };
             } else {
                 this.materials  = {
-                    wall: BLOCK.OAK_PLANK,
+                    wall: BLOCK.OAK_PLANKS,
                     door: BLOCK.OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    roof_block: BLOCK.DARK_OAK_PLANKS,
                     light: BLOCK.TORCH
                 };
             }
@@ -480,17 +480,17 @@ export class Building1 extends Building {
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
         const has_bed            = this.randoms.double() <= .6;
-        const has_bookcases      = this.randoms.double();
+        const has_bookshelfs      = this.randoms.double();
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
             list:           [
-                {move: new Vector(-1, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
-                {move: new Vector(-1, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
-                {move: new Vector(0, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
-                {move: new Vector(0, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
-                {move: new Vector(1, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
-                {move: new Vector(1, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(-1, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+                {move: new Vector(-1, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
+                {move: new Vector(0, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+                {move: new Vector(0, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
+                {move: new Vector(1, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+                {move: new Vector(1, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
                 {move: new Vector(2, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id},
                 {move: new Vector(2, 2, 4), block_id: BLOCK.SPRUCE_SLAB.id},
                 {move: new Vector(3, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id},
@@ -532,18 +532,18 @@ export class Building1 extends Building {
             this.blocks.list.push({move: new Vector(1, 0, 4), block_id: carpet_block_id, rotate: {x: 0, y: 1, z: 0}});
         }
         // Book cases
-        if(has_bookcases < .6) {
+        if(has_bookshelfs < .6) {
             let bc_start_pos = null;
-            if(has_bookcases < .2) {
+            if(has_bookshelfs < .2) {
                 bc_start_pos = new Vector(3, 0, 4);
-            } else if(has_bookcases < .4) {
+            } else if(has_bookshelfs < .4) {
                 bc_start_pos = new Vector(-1, 0, 1);
             }
             if(bc_start_pos) {
-                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 0)), block_id: BLOCK.BOOKCASE.id});
-                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 1)), block_id: BLOCK.BOOKCASE.id});
-                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 0)), block_id: BLOCK.BOOKCASE.id});
-                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 1)), block_id: BLOCK.BOOKCASE.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 0)), block_id: BLOCK.BOOKSHELF.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 1)), block_id: BLOCK.BOOKSHELF.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 0)), block_id: BLOCK.BOOKSHELF.id});
+                this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 1)), block_id: BLOCK.BOOKSHELF.id});
             }
         }
     }
@@ -629,9 +629,9 @@ export class BuildingS extends Building {
         this.materials  = {
             wall:           BLOCK.COBBLESTONE,
             door:           BLOCK.SPRUCE_DOOR,
-            wall_corner:    BLOCK.OAK_TRUNK,
+            wall_corner:    BLOCK.OAK_LOG,
             roof:           BLOCK.OAK_STAIRS,
-            roof_block:     BLOCK.OAK_PLANK,
+            roof_block:     BLOCK.OAK_PLANKS,
             light:          BLOCK.TORCH
         };
         //
