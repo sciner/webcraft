@@ -1,0 +1,7 @@
+version: '2'
+
+services:
+  app: 
+    build: .
+    ports:
+      - 5700:5700

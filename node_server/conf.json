@@ -1,7 +1,7 @@
 {
     "AppVersion": "0.0.3",
     "AppCode": "madcraft",
-    "ServerIP": "127.0.0.1",
+    "ServerIP": "0.0.0.0",
     "Port": 5700,
     "Addr": ":5700",
     "JSONRPCEndpoint": "/api/",
