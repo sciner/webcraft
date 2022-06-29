@@ -7,6 +7,8 @@ const START_BUTTON_ID           = 770; // ...799
 const START_BED_ID              = 1200; // ...1215
 const START_TERRACOTTA          = 1300; // 1315
 const START_GLAZED_TERRACOTTA   = 1400; // 1415
+const START_STAINED_GLASS       = 470; // ... 485
+const START_STAINED_GLASS_PANE  = 1478; //
 
 // CompileData
 export class CompileData {
@@ -34,6 +36,8 @@ export class CompileData {
         this.initBed();
         this.initGlazedTerracotta();
         this.initSpawnEggs();
+        this.initStainedGlass();
+        this.initStainedGlassPane();
     }
 
     async initDiscs() {
@@ -386,6 +390,55 @@ export class CompileData {
                 }
             };
             this.blocks.push(b);
+        }
+    }
+
+    //
+    initStainedGlass() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_STAINED_GLASS + i,
+                "name": color.toUpperCase() + '_STAINED_GLASS',
+                "material": {"id": "glass"},
+                "transparent": true,
+                "sound": "madcraft:block.glass",
+                "texture": `block/${color}_stained_glass.png`
+            };
+            this.blocks.push(b);
+            i++;
+        }
+    }
+
+    //
+    initStainedGlassPane() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_STAINED_GLASS_PANE + i,
+                "name": color.toUpperCase() + '_STAINED_GLASS_PANE',
+                "material": {"id": "glass"},
+                "transparent": true,
+                "style": "pane",
+                "sound": "madcraft:block.glass",
+                "inventory_style": "extruder",
+                "can_rotate": true,
+                "texture": `block/${color}_stained_glass.png`
+            };
+            this.blocks.push(b);
+            i++;
         }
     }
 

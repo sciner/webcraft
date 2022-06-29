@@ -9,15 +9,17 @@ export class PluginManager {
         const pluginFolder = './plugins/';
         fs.readdir(pluginFolder, (err, files) => {
             files.forEach(file => {
-                import(pluginFolder + file).then(module => {
-                    for(let target of module.default.targets) {
-                        if(!this.targets.has(target)) {
-                            throw 'invalid_plugin_target|' + file + ':' + target;
+                if(fs.lstatSync(pluginFolder + file).isFile()) {
+                    import(pluginFolder + file).then(module => {
+                        for(let target of module.default.targets) {
+                            if(!this.targets.has(target)) {
+                                throw 'invalid_plugin_target|' + file + ':' + target;
+                            }
+                            this.targets.get(target).push(module.default);
+                            console.log('Plugin loaded: ' + file);
                         }
-                        this.targets.get(target).push(module.default);
-                        console.log('Plugin loaded: ' + file);
-                    }
-                });
+                    });
+                }
             });
         });
     }

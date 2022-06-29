@@ -2009,97 +2009,6 @@
             "spawnable": false
         },
         {
-            "id": 470,
-            "name": "BLUE_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/blue_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 471,
-            "name": "BLACK_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/black_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 472,
-            "name": "PINK_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/pink_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 473,
-            "name": "RED_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/red_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 474,
-            "name": "WHITE_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/white_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 475,
-            "name": "YELLOW_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/yellow_stained_glass.png",
-            "can_rotate": true
-        },
-        {
-            "id": 476,
-            "name": "GREEN_STAINED_GLASS",
-            "transparent": true,
-            "style": "pane",
-            "inventory_style": "extruder",
-            "sound": "madcraft:block.glass",
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/green_stained_glass.png",
-            "can_rotate": true
-        },
-        {
             "id": 108,
             "name": "BRICK_STAIRS",
             "style": "stairs",
@@ -2391,7 +2300,7 @@
             "tags": [
                 "stairs"
             ],
-            "texture": "block/spruce_planks.png",
+            "texture": "block/dark_oak_planks.png",
             "can_rotate": true
         },
         {
@@ -5402,6 +5311,237 @@
             "item": {"name": "seeds"},
             "material": {
                 "id": "plant"
+            }
+        },
+        {
+            "id": 1463,
+            "name": "STRIPPED_BIRCH_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_birch_log.png"
+        },
+        {
+            "id": 1464,
+            "name": "STRIPPED_OAK_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_oak_log.png"
+        },
+        {
+            "id": 1465,
+            "name": "STRIPPED_ACACIA_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_acacia_log.png"
+        },
+        {
+            "id": 1466,
+            "name": "STRIPPED_SPRUCE_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_spruce_log.png"
+        },
+        {
+            "id": 1467,
+            "name": "STRIPPED_DARK_OAK_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_dark_oak_log.png"
+        },
+        {
+            "id": 1468,
+            "name": "STRIPPED_JUNGLE_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_jungle_log.png"
+        },
+        {
+            "id": 1469,
+            "name": "STRIPPED_WARPED_WOOD",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/stripped_warped_stem.png"
+        },
+        {
+            "id": 1470,
+            "name": "STRIPPED_BIRCH_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_birch_log.png",
+                "up": "block/stripped_birch_log_top.png",
+                "down": "block/stripped_birch_log.png"
+            }
+        },
+        {
+            "id": 1471,
+            "name": "STRIPPED_OAK_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_oak_log.png",
+                "up": "block/stripped_oak_log_top.png",
+                "down": "block/stripped_oak_log_top.png"
+            }
+        },
+        {
+            "id": 1472,
+            "name": "STRIPPED_ACACIA_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_acacia_log.png",
+                "up": "block/stripped_acacia_log_top.png",
+                "down": "block/stripped_acacia_log_top.png"
+            }
+        },
+        {
+            "id": 1473,
+            "name": "STRIPPED_SPRUCE_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_spruce_log.png",
+                "up": "block/stripped_spruce_log_top.png",
+                "down": "block/stripped_spruce_log_top.png"
+            }
+        },
+        {
+            "id": 1474,
+            "name": "STRIPPED_DARK_OAK_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_dark_oak_log.png",
+                "up": "block/stripped_dark_oak_log_top.png",
+                "down": "block/stripped_dark_oak_log_top.png"
+            }
+        },
+        {
+            "id": 1475,
+            "name": "STRIPPED_JUNGLE_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_jungle_log.png",
+                "up": "block/stripped_jungle_log_top.png",
+                "down": "block/stripped_jungle_log_top.png"
+            }
+        },
+        {
+            "id": 1476,
+            "name": "STRIPPED_WARPED_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/stripped_warped_stem.png",
+                "up": "block/stripped_warped_stem_top.png",
+                "down": "block/stripped_warped_stem_top.png"
+            }
+        },
+        {
+            "id": 1477,
+            "name": "ENCHANTING_TABLE",
+            "sound": "madcraft:block.wood",
+            "height": 0.666,
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/enchanting_table_side.png",
+                "up": "block/enchanting_table_top.png",
+                "down": "block/enchanting_table_bottom.png"
             }
         }
     ]

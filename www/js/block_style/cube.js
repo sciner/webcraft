@@ -298,12 +298,12 @@ export default class style {
 
             // Glass
             if(material.transparent && material.is_glass) {
-                if(neighbours.SOUTH.material.is_glass) canDrawSOUTH = false;
-                if(neighbours.NORTH.material.is_glass) canDrawNORTH = false;
-                if(neighbours.WEST.material.is_glass) canDrawWEST = false;
-                if(neighbours.EAST.material.is_glass) canDrawEAST = false;
-                if(neighbours.UP.material.is_glass) canDrawUP = false;
-                if(neighbours.DOWN.material.is_glass) canDrawDOWN = false;
+                if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.style == material.style) canDrawSOUTH = false;
+                if(neighbours.NORTH.material.is_glass && neighbours.NORTH.material.style == material.style) canDrawNORTH = false;
+                if(neighbours.WEST.material.is_glass && neighbours.WEST.material.style == material.style) canDrawWEST = false;
+                if(neighbours.EAST.material.is_glass && neighbours.EAST.material.style == material.style) canDrawEAST = false;
+                if(neighbours.UP.material.is_glass && neighbours.UP.material.style == material.style) canDrawUP = false;
+                if(neighbours.DOWN.material.is_glass && neighbours.DOWN.material.style == material.style) canDrawDOWN = false;
             }
 
             // Texture color multiplier
