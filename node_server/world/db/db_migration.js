@@ -455,6 +455,11 @@ export class DBWorldMigration {
             `DELETE FROM world_modify WHERE block_id IN(104)`
         ]});
 
+        migrations.push({version: 61, queries: [
+            `UPDATE world_modify SET block_id = 1509 WHERE block_id = 504;`,
+            `UPDATE world_modify SET block_id = 1504 WHERE block_id = 505;`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

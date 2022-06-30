@@ -12,7 +12,7 @@ export default class Ticker {
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
         if(v.ticks % extra_data.max_ticks == 0) {
-            updated_blocks.push({pos: v.pos.clone(), item: {id: BLOCK.GRASS_DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated_blocks.push({pos: v.pos.clone(), item: {id: BLOCK.GRASS_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
             // Delete completed block from tickings
             this.delete(v.pos);
         }

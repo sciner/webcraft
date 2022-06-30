@@ -43,7 +43,12 @@ export default class WorldEdit {
                 if(!chat.world.admins.checkIsAdmin(player)) {
                     throw 'error_not_permitted';
                 }
-                await f.call(this, chat, player, cmd, args);
+                try {
+                    await f.call(this, chat, player, cmd, args);
+                } catch(e) {
+                    console.log(e);
+                    throw e;
+                }
                 return true;
             }
         });
@@ -235,7 +240,8 @@ export default class WorldEdit {
             throw 'error_not_copied_blocks';
         }
         const pn_set = performance.now();
-        const actions = new PickatActions(null, null, true, false);
+        const actions_list = [];
+        let actions = new PickatActions(null, null, true, false);
         //
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
@@ -247,9 +253,15 @@ export default class WorldEdit {
             let new_pos = player_pos.add(shift);
             actions.addBlocks([{pos: new_pos, item: item}]);
             affected_count++;
+            if(affected_count % 10000 == 0) {
+                actions_list.push(actions);
+                actions = new PickatActions(null, null, true, false);
+            }
         }
         //
-        chat.world.actions_queue.add(null, actions);
+        for(let actions of actions_list) {
+            chat.world.actions_queue.add(null, actions);
+        }
         let msg = `${affected_count} block(s) affected`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         console.log('Time took: ' + (performance.now() - pn_set));
@@ -383,7 +395,7 @@ export default class WorldEdit {
     }
 
     //set 10%0,20%dirt
-    //set 10%dirt,gold
+    //set 10%dirt,gold_block
     createBlocksPalette(args) {
         args = new String(args);
         let blocks = args.trim().split(',');
@@ -500,7 +512,13 @@ export default class WorldEdit {
         const action = args[1];
         const blocks = new VectorCollector();
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
+        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         let msg = null;
+        const replaced_names = {
+            BARRIER: 'AIR',
+            CAVE_AIR: 'AIR',
+            COCOA: 'COCOA_BEANS'
+        };
         //
         switch(action) {
             case 'save': {
@@ -516,32 +534,63 @@ export default class WorldEdit {
                 // each all blocks
                 await schematic.forEach((block, pos) => {
                     bpos.copyFrom(pos);
-                    const name = block.name.toUpperCase();
+                    let name = block.name.toUpperCase();
+                    if(name in replaced_names) {
+                        name = replaced_names[name];
+                    }
+                    if(name == 'AIR') {
+                        return;
+                    }
                     const b = BLOCK[name];
+                    let new_block = null;
                     if(b) {
-                        const new_block = this.createBlockFromSchematic(block, b);
-                        if(!new_block) {
-                            return;
-                        }
-                        blocks.set(bpos, new_block);
+                        new_block = this.createBlockFromSchematic(block, b);
                     } else {
+                        if(name.indexOf('POTTED_') === 0) {
+                            const in_pot_block_name = name.substring(7);
+                            const in_pot_block = BLOCK.fromName(in_pot_block_name);
+                            if(in_pot_block && in_pot_block.id > 0) {
+                                new_block = {
+                                    id: FLOWER_POT_BLOCK_ID,
+                                    extra_data: {item: {id: in_pot_block.id}}
+                                };
+                            }
+                        } else if(name.indexOf('INFESTED_') === 0) {
+                            // e.g. INFESTED_STONE_BRICKS
+                            const name2 = name.substring(9);
+                            const b2 = BLOCK.fromName(name2);
+                            if(b2 && b2.id > 0) {
+                                new_block = {
+                                    id: b2.id,
+                                    extra_data: {infested: true}
+                                };
+                            }
+                        } else if(name.indexOf('_WALL_SIGN') >= 0) {
+                            const name2 = name.replace('_WALL_', '_');
+                            const b2 = BLOCK.fromName(name2);
+                            if(b2 && b2.id > 0) {
+                                new_block = {
+                                    id: b2.id
+                                };
+                            }
+                        }
+                    }
+                    if(!new_block) {
                         if(!not_found_blocks.has(name)) {
                             not_found_blocks.set(name, name);
                         }
-                        blocks.set(bpos, TEST_BLOCK);
+                        new_block = {...TEST_BLOCK};
+                        new_block.extra_data = {
+                            name: name,
+                            props: block._properties
+                        }
+                    }
+                    blocks.set(bpos, new_block);
+                    if(name == 'TALL_GRASS' || name == 'COCOA_BEANS') {
+                        console.log(block);
                     }
                     cnt++;
                 });
-                // ENCHANTING_TABLE
-                // ANVIL
-                // BLAST_FURNACE
-                // BARREL
-                // CAULDRON
-                // LOOM
-                // LILAC
-                // WHITE_WALL_BANNER
-                // HOPPER
-                // GRINDSTONE
                 console.log('Not found blocks: ', Array.from(not_found_blocks.keys()).join('; '));
                 if(cnt > 0) {
                     player._world_edit_copy = {
@@ -565,7 +614,7 @@ export default class WorldEdit {
     //
     createBlockFromSchematic(block, b) {
         const props = block._properties;
-        const new_block = {
+        let new_block = {
             id: b.id
         };
         if(new_block.id == 0) {
@@ -599,7 +648,7 @@ export default class WorldEdit {
             if(new_block.rotate && 'facing' in props) {
                 const facings = ['south', 'west', 'north', 'east'];
                 new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
-                if(['stairs', 'door'].indexOf(b.style) >= 0) {
+                if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
                     new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                 }
             }
@@ -637,6 +686,23 @@ export default class WorldEdit {
                     }
                 }
             }
+            // vine
+            if(b.name == 'VINE') {
+                // _properties: { west: false, up: false, south: false, north: true, east: false }
+                const facings = ['south', 'west', 'north', 'east'/*, 'up'*/];
+                new_block.rotate = new Vector(0, 0, 0);
+                for(let f of facings) {
+                    if(f in props && props[f]) {
+                        new_block.rotate.x = (facings.indexOf(f) + 2) % 4;
+                    }
+                }
+            }
+            // cocoa_beans
+            if(b.name == 'COCOA_BEANS') {
+                if('age' in props) {
+                    setExtraData('stage', props.age);
+                }
+            }
             // part: 'head', occupied: false, facing: 'north' }
             // _properties: { part: 'foot
             // slabs
@@ -645,6 +711,9 @@ export default class WorldEdit {
                     setExtraData('point', {x: 0, y: 0.9, z: 0});
                 } else if(props.type == 'bottom') {
                     setExtraData('point', {x: 0, y: 0.1, z: 0});
+                } else if(props.type == 'double') {
+                    const double_block = BLOCK.fromName(b.layering.full_block_name);
+                    new_block = {id: double_block.id};
                 }
             }
         }
@@ -671,9 +740,9 @@ export default class WorldEdit {
         //        half: 'top',
         //        facing: 'north'
         //    }
-        if(b.name == 'RED_BED') {
-            console.log(block);
-        }
+        //if(b.name == 'RED_BED') {
+        //    console.log(block);
+        //}
         return new_block;
     }
 

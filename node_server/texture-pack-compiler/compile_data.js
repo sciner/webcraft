@@ -9,6 +9,7 @@ const START_TERRACOTTA          = 1300; // 1315
 const START_GLAZED_TERRACOTTA   = 1400; // 1415
 const START_STAINED_GLASS       = 470; // ... 485
 const START_STAINED_GLASS_PANE  = 1478; //
+const START_CONCRETE            = 1500; // ... 1515
 
 // CompileData
 export class CompileData {
@@ -38,6 +39,7 @@ export class CompileData {
         this.initSpawnEggs();
         this.initStainedGlass();
         this.initStainedGlassPane();
+        this.initConcrete();
     }
 
     async initDiscs() {
@@ -95,7 +97,7 @@ export class CompileData {
             this.getBlock('JUNGLE_PLANKS'),
             this.getBlock('DARK_OAK_PLANKS'),
             this.getBlock('WARPED_PLANKS'),
-            this.getBlock('CONCRETE')
+            this.getBlock('STONE')
         ];
         for(let mat of materials) {
             let name_prefix = mat.name.replace('_PLANKS', '');
@@ -436,6 +438,27 @@ export class CompileData {
                 "inventory_style": "extruder",
                 "can_rotate": true,
                 "texture": `block/${color}_stained_glass.png`
+            };
+            this.blocks.push(b);
+            i++;
+        }
+    }
+
+    initConcrete() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_CONCRETE + i,
+                "name": color.toUpperCase() + '_CONCRETE',
+                "material": {"id": "stone"},
+                "sound": "madcraft:block.stone",
+                "texture": `block/${color}_concrete.png`
             };
             this.blocks.push(b);
             i++;

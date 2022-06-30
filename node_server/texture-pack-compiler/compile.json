@@ -258,7 +258,7 @@
         },
         {
             "id": 2,
-            "name": "GRASS_DIRT",
+            "name": "GRASS_BLOCK",
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "DIRT", "count": 1, "chance": 1},
             "tags": [
@@ -822,7 +822,7 @@
             "name": "JUNGLE_LEAVES",
             "transparent": false,
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "TROPICAL_TREE_SAPLING", "count": 1, "chance": 0.05},
+            "drop_item": {"name": "JUNGLE_SAPLING", "count": 1, "chance": 0.05},
             "texture": "block/jungle_leaves.png",
             "material": {
                 "id": "leaves"
@@ -964,31 +964,13 @@
         },
         {
             "id": 9,
-            "name": "CONCRETE",
+            "name": "STONE",
             "sound": "madcraft:block.stone",
             "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},
             "material": {
                 "id": "stone"
             },
             "texture": "block/stone.png"
-        },
-        {
-            "id": 504,
-            "name": "CONCRETE_CYAN",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
-            },
-            "texture": "block/cyan_concrete.png"
-        },
-        {
-            "id": 505,
-            "name": "CONCRETE_YELLOW",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
-            },
-            "texture": "block/yellow_concrete.png"
         },
         {
             "id": 70,
@@ -1137,7 +1119,7 @@
         },
         {
             "id": 1001,
-            "name": "TROPICAL_TREE_SAPLING",
+            "name": "JUNGLE_SAPLING",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1148,7 +1130,7 @@
                 "type": "sapling"
             },
             "extra_data": {
-                "style": "tropical_tree",
+                "style": "jungle",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [3, 22]},
                     {"type": "random_int", "name": "max_ticks", "min_max": [100, 750]}
@@ -1158,7 +1140,7 @@
         },
         {
             "id": 13,
-            "name": "IRON",
+            "name": "IRON_BLOCK",
             "texture": "block/iron_block.png",
             "material": {
                 "id": "iron"
@@ -1166,7 +1148,7 @@
         },
         {
             "id": 69,
-            "name": "GOLD",
+            "name": "GOLD_BLOCK",
             "sound": "madcraft:block.stone",
             "texture": "block/gold_block.png",
             "material": {
@@ -1268,7 +1250,7 @@
         },
         {
             "id": 22,
-            "name": "LAPIS_LAZULI",
+            "name": "LAPIS_BLOCK",
             "texture": "block/lapis_block.png",
             "material": {
                 "id": "stone"
@@ -1345,7 +1327,7 @@
         },
         {
             "id": 106,
-            "name": "VINES",
+            "name": "VINE",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
             "transparent": true,
@@ -1396,7 +1378,7 @@
         },
         {
             "id": 38,
-            "name": "TULIP",
+            "name": "RED_TULIP",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1409,7 +1391,7 @@
         },
         {
             "id": 509,
-            "name": "FLOWER_ALLIUM",
+            "name": "ALLIUM",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1423,7 +1405,7 @@
         },
         {
             "id": 510,
-            "name": "FLOWER_BLUE_ORCHID",
+            "name": "BLUE_ORCHID",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1437,7 +1419,7 @@
         },
         {
             "id": 511,
-            "name": "FLOWER_OXEYE_DAISY",
+            "name": "OXEYE_DAISY",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1451,7 +1433,7 @@
         },
         {
             "id": 512,
-            "name": "FLOWER_LILY_OF_THE_VALLEY",
+            "name": "LILY_OF_THE_VALLEY",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1465,7 +1447,7 @@
         },
         {
             "id": 513,
-            "name": "FLOWER_CORNFLOWER",
+            "name": "CORNFLOWER",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1479,7 +1461,7 @@
         },
         {
             "id": 514,
-            "name": "FLOWER_PEONY",
+            "name": "PEONY",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -1500,7 +1482,7 @@
         },
         {
             "id": 515,
-            "name": "FLOWER_PEONY_TOP",
+            "name": "PEONY_TOP",
             "spawnable": false,
             "passable": 1,
             "transparent": true,
@@ -1521,7 +1503,7 @@
         },
         {
             "id": 516,
-            "name": "FLOWER_LILAC",
+            "name": "LILAC",
             "inventory": {
                 "style": "extruder",
                 "texture": "block/lilac_top.png"
@@ -1545,7 +1527,7 @@
         },
         {
             "id": 517,
-            "name": "FLOWER_LILAC_TOP",
+            "name": "LILAC_TOP",
             "spawnable": false,
             "passable": 1,
             "transparent": true,
@@ -1619,6 +1601,22 @@
                 "full_block_name": "COBBLESTONE"
             },
             "texture": "block/cobblestone.png"
+        },
+        {
+            "id": 1496,
+            "name": "POLISHED_ANDESITE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_ANDESITE"
+            },
+            "texture": "block/polished_andesite.png"
         },
         {
             "id": 48,
@@ -1967,6 +1965,123 @@
             }
         },
         {
+            "id": 101,
+            "name": "STONE_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "STONE_BRICKS"
+            },
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/stone_bricks.png"
+        },
+        {
+            "id": 103,
+            "name": "CHISELED_STONE_BRICKS",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/chiseled_stone_bricks.png"
+        },
+        {
+            "id": 104,
+            "name": "POLISHED_BLACKSTONE",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone.png"
+        },
+        {
+            "id": 105,
+            "name": "POLISHED_BLACKSTONE_BRICKS",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone_bricks.png"
+        },
+        {
+            "id": 107,
+            "name": "POLISHED_BLACKSTONE_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_BLACKSTONE_BRICKS"
+            },
+            "texture": "block/polished_blackstone_bricks.png"
+        },
+        {
+            "id": 111,
+            "name": "POLISHED_BLACKSTONE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/polished_blackstone.png",
+            "can_rotate": true
+        },
+        {
+            "id": 115,
+            "name": "POLISHED_BLACKSTONE_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/polished_blackstone_bricks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 116,
+            "name": "POLISHED_BLACKSTONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_BLACKSTONE"
+            },
+            "texture": "block/polished_blackstone.png"
+        },
+        {
+            "id": 118,
+            "name": "POLISHED_BLACKSTONE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone.png"
+        },
+        {
             "id": 995,
             "name": "MUSHROOM_STRIPE",
             "material": {
@@ -2060,6 +2175,41 @@
             ],
             "texture": "block/nether_bricks.png",
             "can_rotate": true
+        },
+        {
+            "id": 119,
+            "name": "NETHER_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "netherite"
+            },
+            "texture": "block/nether_bricks.png"
+        },
+        {
+            "id": 122,
+            "name": "QUARTZ_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "quartz"
+            },
+            "texture": {
+                "up": "block/quartz_block_top.png",
+                "side": "block/quartz_block_side.png",
+                "down": "block/quartz_block_bottom.png"
+            }
+        },
+        {
+            "id": 123,
+            "name": "CUT_SANDSTONE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "up": "block/sandstone_top.png",
+                "side": "block/cut_sandstone.png",
+                "down": "block/sandstone_top.png"
+            }
         },
         {
             "id": 117,
@@ -2887,6 +3037,26 @@
                 "trapdoor"
             ],
             "texture": "block/jungle_trapdoor.png",
+            "extra_data": {
+                "opened": false,
+                "point": {"x":0, "y":0, "z":0}
+            },
+            "can_rotate": true
+        },
+        {
+            "id": 1495,
+            "name": "IRON_TRAPDOOR",
+            "transparent": true,
+            "style": "trapdoor",
+            "sound": "madcraft:block.wooden_trapdoor",
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "no_drop_ao",
+                "trapdoor"
+            ],
+            "texture": "block/iron_trapdoor.png",
             "extra_data": {
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
@@ -5542,6 +5712,30 @@
                 "side": "block/enchanting_table_side.png",
                 "up": "block/enchanting_table_top.png",
                 "down": "block/enchanting_table_bottom.png"
+            }
+        },
+
+        {
+            "id": 1494,
+            "name": "POLISHED_ANDESITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_andesite.png",
+            "can_rotate": true
+        },
+        {
+            "id": 1497,
+            "name": "COAL_BLOCK",
+            "sound": "madcraft:block.stone",
+            "texture": "block/coal_block.png",
+            "material": {
+                "id": "stone"
             }
         }
     ]

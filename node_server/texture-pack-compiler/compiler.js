@@ -6,7 +6,7 @@ import { CompileData } from "./compile_data.js";
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
     MOB_SPAWN: 'MOB_SPAWN',
-    GRASS_DIRT: 'GRASS_DIRT'
+    GRASS_BLOCK: 'GRASS_BLOCK'
 };
 
 // Compiler
@@ -174,7 +174,7 @@ export class Compiler {
                             y_size
                         };
                         spritesheet.textures.set(value, tex);
-                        if(block.name == BLOCK_NAMES.GRASS_DIRT && tid == 'side') {
+                        if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
                             spritesheet.drawImage(dirt_image, tex.pos.x, tex.pos.y);
                             spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y);
                             spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y, false, 'difference');

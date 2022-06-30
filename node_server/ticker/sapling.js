@@ -101,6 +101,7 @@ class TreeGenerator extends Default_Terrain_Generator {
         //
         const chunk = {
             coord: world_chunk.coord,
+            size: world_chunk.size,
             tblocks: {
                 get: function() {
                     return {id: 0};

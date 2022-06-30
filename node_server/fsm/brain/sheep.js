@@ -85,7 +85,7 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
             } else {
-                if (block.legs.id == BLOCK.GRASS_DIRT.id) {
+                if (block.legs.id == BLOCK.GRASS_BLOCK.id) {
                     const actions = new PickatActions();
                     actions.addBlocks([
                         {
