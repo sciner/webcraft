@@ -80,13 +80,9 @@
 
     {"id": 456, "name": "BIRCH_PLANKS", "texture": [20, 19]},
     {"id": 7, "name": "OAK_PLANKS", "texture": [21, 19]},
-    {"id": 457, "name": "ACACIA_PLANKS", "texture": [22, 19]},
-    {"id": 460, "name": "SPRUCE_PLANKS", "texture": [23, 19]},
 
     {"id": 458, "name": "BIRCH_SLAB", "texture": [20, 19]},
     {"id": 126, "name": "OAK_SLAB", "texture": [21, 19]},
-    {"id": 459, "name": "ACACIA_SLAB", "texture": [22, 19]},
-    {"id": 461, "name": "SPRUCE_SLAB", "texture": [23, 19]},
     {"id": 44, "name": "SMOOTH_STONE_SLAB", "texture": [6, 0]},
 
     {
@@ -143,16 +139,6 @@
         "id": 85,
         "name": "OAK_FENCE",
         "texture": [21, 19]
-    },
-    {
-        "id": 188,
-        "name": "ACACIA_FENCE",
-        "texture": [22, 19]
-    },
-    {
-        "id": 191,
-        "name": "SPRUCE_FENCE",
-        "texture": [23, 19]
     },
     {
         "id": 462,
@@ -212,16 +198,6 @@
         "id": 53,
         "name": "OAK_STAIRS",
         "texture": [21, 19]
-    },
-    {
-        "id": 163,
-        "name": "ACACIA_STAIRS",
-        "texture": [22, 19]
-    },
-    {
-        "id": 134,
-        "name": "SPRUCE_STAIRS",
-        "texture": [23, 19]
     },
     {
         "id": 4,
@@ -300,26 +276,6 @@
         "name": "LADDER",
         "texture": {
             "side": [3, 5]
-        }
-    },
-    {
-        "id": 61,
-        "name": "FURNACE",
-        "texture": {
-            "up": [14, 3],
-            "down": [14, 3],
-            "north": [12, 2],
-            "side": [13, 2]
-        }
-    },
-    {
-        "id": 62,
-        "name": "BURNING_FURNACE",
-        "texture": {
-            "up": [14, 3],
-            "down": [14, 3],
-            "north": [13, 3],
-            "side": [13, 2]
         }
     },
     {

@@ -189,16 +189,6 @@
             "side": [13, 2]
         }
     },
-    {"id": 58, "name": "CRAFTING_TABLE",
-        "texture": {
-            "up": [11, 2],
-            "down": [21, 19],
-            "north": [12, 3],
-            "south": [12, 3],
-            "east": [11, 3],
-            "west": [11, 3]
-        }
-    },
 
     {"id": 606, "name": "WOODEN_SWORD",
         "texture": {

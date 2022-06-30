@@ -820,7 +820,7 @@
         {
             "id": 527,
             "name": "JUNGLE_LEAVES",
-            "transparent": false,
+            "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "JUNGLE_SAPLING", "count": 1, "chance": 0.05},
             "texture": "block/jungle_leaves.png",
