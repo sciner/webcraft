@@ -5597,6 +5597,7 @@
             "name": "STRIPPED_OAK_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5615,6 +5616,7 @@
             "name": "STRIPPED_ACACIA_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5633,6 +5635,7 @@
             "name": "STRIPPED_SPRUCE_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5651,6 +5654,7 @@
             "name": "STRIPPED_DARK_OAK_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5669,6 +5673,7 @@
             "name": "STRIPPED_JUNGLE_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5687,6 +5692,7 @@
             "name": "STRIPPED_WARPED_LOG",
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
+            "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
                 "rotate_by_pos_n_plus"
@@ -5737,6 +5743,245 @@
             "material": {
                 "id": "stone"
             }
+        },
+        {
+            "id": 124,
+            "name": "DEEPSLATE_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/deepslate_bricks.png"
+        },
+        {
+            "id": 125,
+            "name": "DEEPSLATE_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DEEPSLATE_BRICKS"
+            },
+            "texture": "block/deepslate_bricks.png"
+        },
+        {
+            "id": 127,
+            "name": "DEEPSLATE_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/deepslate_bricks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 133,
+            "name": "DEEPSLATE_TILES",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/deepslate_tiles.png"
+        },
+        {
+            "id": 136,
+            "name": "DEEPSLATE_TILE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DEEPSLATE_TILES"
+            },
+            "texture": "block/deepslate_tiles.png"
+        },
+        {
+            "id": 140,
+            "name": "DEEPSLATE_TILE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/deepslate_tiles.png",
+            "can_rotate": true
+        },
+        {
+            "id": 141,
+            "name": "DEEPSLATE_TILE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/deepslate_tiles.png"
+        },
+        {
+            "id": 143,
+            "name": "NETHERITE_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/netherite_block.png"
+        },
+        {
+            "id": 144,
+            "name": "MOSSY_COBBLESTONE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/mossy_cobblestone.png"
+        },
+        {
+            "id": 146,
+            "name": "MOSSY_COBBLESTONE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "cobblestone"
+            },
+            "texture": "block/mossy_cobblestone.png"
+        },
+        {
+            "id": 147,
+            "name": "MOSSY_COBBLESTONE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "cobblestone"
+            },
+            "texture": "block/mossy_cobblestone.png",
+            "can_rotate": true
+        },
+        {
+            "id": 148,
+            "name": "WAXED_COPPER_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "block/copper_block.png"
+        },
+        {
+            "id": 149,
+            "name": "FLOWERING_AZALEA_LEAVES",
+            "sound": "madcraft:block.grass",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": "./textures/flowering_azalea_leaves.png"
+        },
+        {
+            "id": 151,
+            "name": "MAGMA_BLOCK",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "no_drop_ao"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
+            "texture_animations": {
+                "side": null
+            },
+            "texture": "block/magma.png"
+        },
+        {
+            "id": 152,
+            "name": "WAXED_CUT_COPPER",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "block/cut_copper.png"
+        },
+        {
+            "id": 153,
+            "name": "WAXED_CUT_COPPER_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "iron"
+            },
+            "texture": "block/cut_copper.png",
+            "can_rotate": true
+        },
+        {
+            "id": 154,
+            "name": "SOUL_LANTERN",
+            "style": "lantern",
+            "sound": "madcraft:block.stone",
+            "transparent": true,
+            "can_rotate": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/soul_lantern.png"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 35,
+                "b": 255,
+                "a": 255
+            },
+            "texture_animations": {
+                "side": null
+            },
+            "texture": {
+                "side": "block/soul_lantern.png"
+            }
+        },
+        {
+            "id": 157,
+            "name": "MOSSY_STONE_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/mossy_stone_bricks.png",
+            "can_rotate": true
         }
     ]
 }

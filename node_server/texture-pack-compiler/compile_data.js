@@ -10,6 +10,7 @@ const START_GLAZED_TERRACOTTA   = 1400; // 1415
 const START_STAINED_GLASS       = 470; // ... 485
 const START_STAINED_GLASS_PANE  = 1478; //
 const START_CONCRETE            = 1500; // ... 1515
+const START_CONCRETE_POWDER     = 1516; //
 
 // CompileData
 export class CompileData {
@@ -40,6 +41,7 @@ export class CompileData {
         this.initStainedGlass();
         this.initStainedGlassPane();
         this.initConcrete();
+        this.initConcretePowder();
     }
 
     async initDiscs() {
@@ -459,6 +461,27 @@ export class CompileData {
                 "material": {"id": "stone"},
                 "sound": "madcraft:block.stone",
                 "texture": `block/${color}_concrete.png`
+            };
+            this.blocks.push(b);
+            i++;
+        }
+    }
+
+    initConcretePowder() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_CONCRETE_POWDER + i,
+                "name": color.toUpperCase() + '_CONCRETE_POWDER',
+                "material": {"id": "stone"},
+                "sound": "madcraft:block.stone",
+                "texture": `block/${color}_concrete_powder.png`
             };
             this.blocks.push(b);
             i++;

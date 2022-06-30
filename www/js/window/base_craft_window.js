@@ -2,6 +2,7 @@ import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import {Label, Window} from "../../tools/gui/wm.js";
+import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
 export class CraftTableSlot extends Label {
 
@@ -62,7 +63,7 @@ export class CraftTableSlot extends Label {
         }
 
         const size = image.width;
-        const frame = size / 16;
+        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
         const zoom = this.zoom;
         const mat = BLOCK.fromId(item.id);
 

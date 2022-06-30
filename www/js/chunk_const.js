@@ -8,6 +8,10 @@ export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
 export const ALLOW_NEGATIVE_Y               = true;
 
+export const INVENTORY_ICON_COUNT_PER_TEX   = 32;
+export const INVENTORY_ICON_TEX_WIDTH       = 3200
+export const INVENTORY_ICON_TEX_HEIGHT      = 3200
+
 // Возвращает адрес чанка по глобальным абсолютным координатам
 export function getChunkAddr(x, y, z, v = null) {
     if(x instanceof Vector || typeof x == 'object') {

@@ -3,6 +3,7 @@ import {RecipeManager} from "./recipes.js";
 import {Resources} from "./resources.js";
 import { Inventory } from "./inventory.js";
 import { INVENTORY_DRAG_SLOT_INDEX } from "./constant.js";
+import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
 
 // Player inventory
 export class PlayerInventory extends Inventory {
@@ -109,7 +110,7 @@ export class PlayerInventory extends Inventory {
                 const icon = bm.getInventoryIconPos(
                     mat.inventory_icon_id,
                     this.inventory_image.width,
-                    this.inventory_image.width / 16
+                    this.inventory_image.width / INVENTORY_ICON_COUNT_PER_TEX
                 );
                 hud.ctx.drawImage(
                     this.inventory_image,

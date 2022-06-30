@@ -2,9 +2,7 @@ import {BLOCK} from "../../www/js/blocks.js";
 import {getChunkAddr} from "../../www/js/chunk_const.js";
 import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {PickatActions} from "../../www/js/block_action.js";
-
-import {Schematic} from "prismarine-schematic";
-import {promises as fs} from 'fs';
+import { SchematicReader } from "./worldedit/schematic_reader.js";
 
 const MAX_SET_BLOCK = 30000;
 
@@ -239,6 +237,7 @@ export default class WorldEdit {
         if(!player._world_edit_copy) {
             throw 'error_not_copied_blocks';
         }
+        const MAX_BLOCKS_PER_ACTIONS = 10000;
         const pn_set = performance.now();
         const actions_list = [];
         let actions = new PickatActions(null, null, true, false);
@@ -249,14 +248,17 @@ export default class WorldEdit {
         const data = player._world_edit_copy;
         const blockIter = data.blocks.entries();
         for(let [bpos, item] of blockIter) {
-            let shift = bpos;
-            let new_pos = player_pos.add(shift);
+            const shift = bpos;
+            const new_pos = player_pos.add(shift);
             actions.addBlocks([{pos: new_pos, item: item}]);
             affected_count++;
-            if(affected_count % 10000 == 0) {
+            if(affected_count % MAX_BLOCKS_PER_ACTIONS == 0) {
                 actions_list.push(actions);
                 actions = new PickatActions(null, null, true, false);
             }
+        }
+        if(actions.blocks.list.length > 0) {
+            actions_list.push(actions);
         }
         //
         for(let actions of actions_list) {
@@ -510,15 +512,7 @@ export default class WorldEdit {
     async schematic(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'string', 'string']);
         const action = args[1];
-        const blocks = new VectorCollector();
-        const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
-        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         let msg = null;
-        const replaced_names = {
-            BARRIER: 'AIR',
-            CAVE_AIR: 'AIR',
-            COCOA: 'COCOA_BEANS'
-        };
         //
         switch(action) {
             case 'save': {
@@ -526,80 +520,16 @@ export default class WorldEdit {
                 break;
             }
             case 'load': {
-                const file_name = './plugins/schematics/' + args[2];
-                const schematic = await Schematic.read(await fs.readFile(file_name))
-                const not_found_blocks = new Map();
-                const bpos = new Vector(0, 0, 0);
-                let cnt = 0;
-                // each all blocks
-                await schematic.forEach((block, pos) => {
-                    bpos.copyFrom(pos);
-                    let name = block.name.toUpperCase();
-                    if(name in replaced_names) {
-                        name = replaced_names[name];
-                    }
-                    if(name == 'AIR') {
-                        return;
-                    }
-                    const b = BLOCK[name];
-                    let new_block = null;
-                    if(b) {
-                        new_block = this.createBlockFromSchematic(block, b);
-                    } else {
-                        if(name.indexOf('POTTED_') === 0) {
-                            const in_pot_block_name = name.substring(7);
-                            const in_pot_block = BLOCK.fromName(in_pot_block_name);
-                            if(in_pot_block && in_pot_block.id > 0) {
-                                new_block = {
-                                    id: FLOWER_POT_BLOCK_ID,
-                                    extra_data: {item: {id: in_pot_block.id}}
-                                };
-                            }
-                        } else if(name.indexOf('INFESTED_') === 0) {
-                            // e.g. INFESTED_STONE_BRICKS
-                            const name2 = name.substring(9);
-                            const b2 = BLOCK.fromName(name2);
-                            if(b2 && b2.id > 0) {
-                                new_block = {
-                                    id: b2.id,
-                                    extra_data: {infested: true}
-                                };
-                            }
-                        } else if(name.indexOf('_WALL_SIGN') >= 0) {
-                            const name2 = name.replace('_WALL_', '_');
-                            const b2 = BLOCK.fromName(name2);
-                            if(b2 && b2.id > 0) {
-                                new_block = {
-                                    id: b2.id
-                                };
-                            }
-                        }
-                    }
-                    if(!new_block) {
-                        if(!not_found_blocks.has(name)) {
-                            not_found_blocks.set(name, name);
-                        }
-                        new_block = {...TEST_BLOCK};
-                        new_block.extra_data = {
-                            name: name,
-                            props: block._properties
-                        }
-                    }
-                    blocks.set(bpos, new_block);
-                    if(name == 'TALL_GRASS' || name == 'COCOA_BEANS') {
-                        console.log(block);
-                    }
-                    cnt++;
-                });
-                console.log('Not found blocks: ', Array.from(not_found_blocks.keys()).join('; '));
-                if(cnt > 0) {
+                const reader = new SchematicReader();
+                await reader.read(args[2]);
+                if(reader.blocks.size > 0) {
                     player._world_edit_copy = {
                         quboid: null,
-                        blocks: blocks,
+                        blocks: reader.blocks,
                         player_pos: null
                     };
                 }
-                msg = `... loaded (${cnt} blocks). Paste it with //paste`;
+                msg = `... loaded (${reader.blocks.size} blocks). Paste it with //paste`;
                 // console.log(schematic.toJSON());
                 break;
             }
@@ -609,141 +539,6 @@ export default class WorldEdit {
             }
         }
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
-    }
-
-    //
-    createBlockFromSchematic(block, b) {
-        const props = block._properties;
-        let new_block = {
-            id: b.id
-        };
-        if(new_block.id == 0) {
-            return new_block;
-        }
-        if(b.item || /*b.next_part || b.previous_part ||*/ b.style == 'extruder' || b.style == 'text') {
-            return null;
-        }
-        if(b.is_chest) {
-            new_block.extra_data = { can_destroy: true, slots: {} };
-        } else if(b.tags.indexOf('sign') >= 0) {
-            new_block.extra_data = {
-                text: 'Hello, World!',
-                username: 'Server',
-                dt: new Date().toISOString()
-            };
-        }
-        if(b.can_rotate) {
-            new_block.rotate = new Vector(0, 1, 0);
-        }
-        //
-        const setExtraData = (k, v) => {
-            if(!new_block.extra_data) {
-                new_block.extra_data = {};
-            }
-            new_block.extra_data[k] = v;
-        };
-        //
-        if(props) {
-            // rotate
-            if(new_block.rotate && 'facing' in props) {
-                const facings = ['south', 'west', 'north', 'east'];
-                new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
-                if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
-                    new_block.rotate.x = (new_block.rotate.x + 2) % 4;
-                }
-            }
-            // trapdoors and doors
-            if(new_block.rotate && 'half' in props) {
-                if(props.half == 'top') {
-                    setExtraData('point', {x: 0, y: 0.9, z: 0});
-                } else if(props.half == 'bottom') {
-                    setExtraData('point', {x: 0, y: 0.1, z: 0});
-                } else if(props.half == 'upper') {
-                    new_block.id++;
-                    setExtraData('point', {x: 0, y: 0.9, z: 0});
-                }
-            }
-            if('open' in props) {
-                setExtraData('opened', props.open);
-            }
-            if('hinge' in props) {
-                setExtraData('left', props.hinge == 'left');
-            }
-            // lantern
-            if('hanging' in props) {
-                if(!new_block.rotate) {
-                    new_block.rotate = {x: 0, y: 0.9, z: 0};
-                }
-                new_block.rotate.y = props.hanging ? -1 : 1;
-            }
-            // bed
-            if(b.style == 'bed') {
-                if('part' in props) {
-                    const is_head = props.part == 'head';
-                    setExtraData('is_head', is_head);
-                    if(!is_head && 'rotate' in new_block) {
-                        new_block.rotate.x = (new_block.rotate.x + 2) % 4;
-                    }
-                }
-            }
-            // vine
-            if(b.name == 'VINE') {
-                // _properties: { west: false, up: false, south: false, north: true, east: false }
-                const facings = ['south', 'west', 'north', 'east'/*, 'up'*/];
-                new_block.rotate = new Vector(0, 0, 0);
-                for(let f of facings) {
-                    if(f in props && props[f]) {
-                        new_block.rotate.x = (facings.indexOf(f) + 2) % 4;
-                    }
-                }
-            }
-            // cocoa_beans
-            if(b.name == 'COCOA_BEANS') {
-                if('age' in props) {
-                    setExtraData('stage', props.age);
-                }
-            }
-            // part: 'head', occupied: false, facing: 'north' }
-            // _properties: { part: 'foot
-            // slabs
-            if(b.layering && b.layering.slab && 'type' in props) {
-                if(props.type == 'top') {
-                    setExtraData('point', {x: 0, y: 0.9, z: 0});
-                } else if(props.type == 'bottom') {
-                    setExtraData('point', {x: 0, y: 0.1, z: 0});
-                } else if(props.type == 'double') {
-                    const double_block = BLOCK.fromName(b.layering.full_block_name);
-                    new_block = {id: double_block.id};
-                }
-            }
-        }
-        //
-        // _properties: { part: 'head', occupied: false, facing: 'north' }
-        // _properties: { part: 'foot', occupied: false, facing: 'north' }
-        //
-        // door {hinge: left|right, open: true|false}
-        //  _properties: {
-        //    waterlogged: false,
-        //    powered: false,
-        //    open: false,
-        //    half: 'top',
-        //    facing: 'west'
-        //  }
-        // CHEST
-        //     ._properties: { waterlogged: false, type: 'right', facing: 'north' }
-        //     .metadata = 3; 5
-        //
-        // OAK_STAIRS
-        // _properties: {
-        //        waterlogged: false,
-        //        shape: 'straight',
-        //        half: 'top',
-        //        facing: 'north'
-        //    }
-        //if(b.name == 'RED_BED') {
-        //    console.log(block);
-        //}
-        return new_block;
     }
 
 }

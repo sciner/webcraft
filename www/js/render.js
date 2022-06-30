@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
-import {CHUNK_SIZE_X} from "./chunk_const.js";
+import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -246,15 +246,16 @@ export class Renderer {
     }
 
     generatePrev(callback) {
+
         const target = this.renderBackend.createRenderTarget({
-            width: 2048,
-            height: 2048 + 2048,
+            width: INVENTORY_ICON_TEX_WIDTH,
+            height: INVENTORY_ICON_TEX_HEIGHT,
             depth: true
         });
 
         const ASPECT = target.height / target.width;
         const ZERO = new Vector();
-        const GRID_X = 16;
+        const GRID_X = INVENTORY_ICON_COUNT_PER_TEX;
         const GRID_Y = GRID_X * ASPECT;
         const all_blocks = BLOCK.getAll();
 
