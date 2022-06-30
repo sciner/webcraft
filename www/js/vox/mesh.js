@@ -34,7 +34,7 @@ export class Vox_Mesh {
             if(!block || block.id != block_id) {
                 block = palette.get(block_id);
                 if(!block) {
-                    block = BLOCK.CONCRETE;
+                    block = BLOCK.STONE;
                 }
             }
             //

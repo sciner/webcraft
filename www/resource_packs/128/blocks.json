@@ -1,7 +1,7 @@
 [
     {
         "id": 2,
-        "name": "GRASS_DIRT",
+        "name": "GRASS_BLOCK",
         "texture": {
             "up": [0, 16],
             "down": [2, 0],
@@ -20,7 +20,7 @@
     },
     {
         "id": 106,
-        "name": "VINES",
+        "name": "VINE",
         "texture": {
             "south": [6, 16],
             "side": [6, 16]
@@ -101,7 +101,7 @@
     },
     {
         "id": 9,
-        "name": "CONCRETE",
+        "name": "STONE",
         "texture": [1, 0]
     },
     {
@@ -272,7 +272,7 @@
     },
     {
         "id": 38,
-        "name": "TULIP",
+        "name": "RED_TULIP",
         "texture": [12, 0]
     },
     {

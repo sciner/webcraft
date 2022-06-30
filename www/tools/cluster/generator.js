@@ -7,14 +7,14 @@ await BLOCK.init({
 
 const blocks = BLOCK.getAll();
 
-BLOCK.GRASS_DIRT.color = '#15810e';
+BLOCK.GRASS_BLOCK.color = '#15810e';
 BLOCK.OAK_PLANKS.color = '#725c39';
 BLOCK.COBBLESTONE.color = '#555';
 BLOCK.GRAVEL.color = '#535b64';
 BLOCK.TORCH.color = '#552';
 BLOCK.CHEST.color = '#552';
 BLOCK.CRAFTING_TABLE.color = '#cc8';
-BLOCK.GOLD.color = '#ffff00';
+BLOCK.GOLD_BLOCK.color = '#ffff00';
 BLOCK.OAK_FENCE.color = '#725c39';
 BLOCK.STONE_BRICKS.color = '#515151';
 BLOCK.SPRUCE_STAIRS.color = '#846645';
@@ -27,7 +27,7 @@ BLOCK.DIRT_PATH.color = '#746645';
 BLOCK.POLISHED_ANDESITE.color = '#aaa';
 BLOCK.LANTERN.color = '#aaa';
 BLOCK.HAY_BLOCK.color = '#fc0';
-BLOCK.CONCRETE.color = '#ccc';
+BLOCK.STONE.color = '#ccc';
 BLOCK.ANDESITE.color = '#bbb';
 
 const colors = new Map();

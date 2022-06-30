@@ -638,7 +638,7 @@ export class BuildingS extends Building {
         this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: .33},
             {value: BLOCK.ANDESITE, chance: .66},
-            {value: BLOCK.CONCRETE, chance: 1},
+            {value: BLOCK.STONE, chance: 1},
         ]);
         //
         if(orig_size.x > 11 && orig_size.z > 11) {

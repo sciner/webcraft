@@ -22,7 +22,7 @@ const sides = [
 ];
 
 //
-const ABS_CONCRETE              = 16;
+const ABS_STONE                 = 16;
 const MOSS_HUMIDITY             = .75;
 const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
@@ -62,8 +62,8 @@ export function generateBottomCaves(chunk, aleaRandom) {
                     noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
                 ) / 2;
 
-                if(xyz.y > -ABS_CONCRETE) {
-                    const dist = xyz.y / -ABS_CONCRETE + .2;
+                if(xyz.y > -ABS_STONE) {
+                    const dist = xyz.y / -ABS_STONE + .2;
                     density += dist;
                 }
 
@@ -120,7 +120,7 @@ export function generateBottomCaves(chunk, aleaRandom) {
                     continue;
                 }
 
-                let stone_block_id = BLOCK.CONCRETE.id;
+                let stone_block_id = BLOCK.STONE.id;
                 xyz_stone_density.set(xyz.x + 100000, xyz.y + 100000, xyz.z + 100000);
                 let stone_density = noise3d(xyz_stone_density.x / 20, xyz_stone_density.z / 20, xyz_stone_density.y / 20) / 2 + .5;
 

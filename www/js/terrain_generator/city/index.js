@@ -44,7 +44,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             let r = aleaRandom.double();
             if(r < .2) {
-                BRICK = BLOCK.CONCRETE;
+                BRICK = BLOCK.STONE;
             } else if (r < .4) {
                 BRICK = BLOCK.STONE_BRICKS;
             }
@@ -60,9 +60,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             if(x == 0 || x >= 14) {
                                 this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                             } else if (x == 1 || x == 13) {
-                                this.setBlock(chunk, x, 0, z, BLOCK.CONCRETE, false);
+                                this.setBlock(chunk, x, 0, z, BLOCK.STONE, false);
                             } else if(x) {
-                                this.setBlock(chunk, x, 0, z, BLOCK.GRASS_DIRT, false);
+                                this.setBlock(chunk, x, 0, z, BLOCK.GRASS_BLOCK, false);
                             }
                         }
                     }
@@ -77,7 +77,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // шпалы
                         if(z % 2 == 0) {
                             for(let a of [4, 5, 6, 7, 8, 9]) {
-                                this.setBlock(chunk, a, 12 + 1, z, BLOCK.CONCRETE, false);
+                                this.setBlock(chunk, a, 12 + 1, z, BLOCK.STONE, false);
                             }
                         }
                         // рельсы
@@ -123,9 +123,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     // территория строений
                                     // трава
                                     if (x >= 2 && x <= 12 && z >= 3 && z <= 13) {
-                                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT, false);
+                                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK, false);
                                     } else {
-                                        this.setBlock(chunk, x, y, z, BLOCK.CONCRETE, false);
+                                        this.setBlock(chunk, x, y, z, BLOCK.STONE, false);
                                     }
                                 } else {
                                     // дороги вокруг дома
@@ -142,8 +142,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // Тачка
                         let carColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                         if(aleaRandom.double() < .1) {
-                            this.setBlock(chunk, 6, 1, 0, BLOCK.CONCRETE, false);
-                            this.setBlock(chunk, 8, 1, 0, BLOCK.CONCRETE, false);
+                            this.setBlock(chunk, 6, 1, 0, BLOCK.STONE, false);
+                            this.setBlock(chunk, 8, 1, 0, BLOCK.STONE, false);
                             for(let cv = 5; cv < 10; cv++) {
                                 this.setBlock(chunk, cv, 2, 0, carColor, false);
                             }
@@ -154,8 +154,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // Тачка 2
                         carColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                         if(aleaRandom.double() < .1) {
-                            this.setBlock(chunk, 15, 1, 6, BLOCK.CONCRETE, false);
-                            this.setBlock(chunk, 15, 1, 8, BLOCK.CONCRETE, false);
+                            this.setBlock(chunk, 15, 1, 6, BLOCK.STONE, false);
+                            this.setBlock(chunk, 15, 1, 8, BLOCK.STONE, false);
                             for(let cv = 5; cv < 10; cv++) {
                                 this.setBlock(chunk, 15, 2, cv, carColor, false);
                             }
@@ -170,7 +170,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         let y = 1;
                         for(let x = 3; x <= 11; x++) {
                             for(let z = 4; z <= 12; z++) {
-                                this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT, false);
+                                this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK, false);
                             }
                         }
                         this.plantTree({

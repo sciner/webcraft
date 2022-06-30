@@ -1,7 +1,7 @@
 [
     {
         "id": 2,
-        "name": "GRASS_DIRT",
+        "name": "GRASS_BLOCK",
         "texture": {
             "up": [0, 16],
             "down": [2, 0],
@@ -20,7 +20,7 @@
     },
     {
         "id": 106,
-        "name": "VINES",
+        "name": "VINE",
         "texture": {
             "south": [6, 16],
             "side": [6, 16]
@@ -91,7 +91,7 @@
 
     {"id": 1, "name": "BEDROCK","texture": [1, 1]},
     {"id": 8, "name": "COBBLESTONE", "texture": [0, 1]},
-    {"id": 9, "name": "CONCRETE", "texture": [1, 0]},
+    {"id": 9, "name": "STONE", "texture": [1, 0]},
     {"id": 10, "name": "BRICKS", "texture": [7, 0]},
     {"id": 11, "name": "SAND", "texture": [2, 1]},
     {"id": 12, "name": "GRAVEL", "texture": [3, 1]},
@@ -168,7 +168,7 @@
     {"id": 98, "name": "STONE_BRICKS", "texture": [6, 3]},
     {"id": 39, "name": "BROWN_MUSHROOM", "texture": [13, 1]},
     {"id": 40, "name": "RED_MUSHROOM", "texture": [12, 1]},
-    {"id": 38, "name": "TULIP", "texture": [12, 0]},
+    {"id": 38, "name": "RED_TULIP", "texture": [12, 0]},
     {"id": 36, "name": "DANDELION", "texture": [13, 0]},
     {"id": 79, "name": "ICE", "texture": [3, 4]},
     {"id": 109, "name": "STONE_STAIRS", "texture": [1, 0]},

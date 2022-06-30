@@ -104,7 +104,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
                 chunk.setBlockIndirect(x, y_int - 1, z, block.id);
             }
             if(y_abs % 16 == 1) {
-                block = BLOCK.GOLD;
+                block = BLOCK.GOLD_BLOCK;
             }
             if(y_abs % 32 == 1) {
                 block = BLOCK.DIAMOND_ORE;
@@ -134,14 +134,14 @@ export default class Demo_Map extends Default_Terrain_Generator {
             if(dist < island.rad) {
                 if(xyz.y < island.pos.y) {
                     if(xyz.y < island.pos.y - 3) {
-                        chunk.setBlockIndirect(x, y, z, BLOCK.CONCRETE.id);
+                        chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id);
                         return true;
                     } else {
                         if(dist < island.rad * 0.9) {
-                            chunk.setBlockIndirect(x, y, z, BLOCK.CONCRETE.id);
+                            chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id);
                             return true;
                         } else {
-                            chunk.setBlockIndirect(x, y, z, BLOCK.GRASS_DIRT.id);
+                            chunk.setBlockIndirect(x, y, z, BLOCK.GRASS_BLOCK.id);
                             return true;
                         }
                     }
@@ -227,7 +227,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
         }
         await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
             let palette = {
-                81: BLOCK.CONCRETE,
+                81: BLOCK.STONE,
                 97: BLOCK.OAK_PLANKS,
                 121: BLOCK.STONE_BRICKS,
                 122: BLOCK.SMOOTH_STONE,
@@ -239,21 +239,21 @@ export default class Demo_Map extends Default_Terrain_Generator {
             let palette = {
                 93: BLOCK.GRAVEL,
                 106: BLOCK.STONE_BRICKS,
-                114: BLOCK.CONCRETE,
-                72: BLOCK.GRASS_DIRT,
+                114: BLOCK.STONE,
+                72: BLOCK.GRASS_BLOCK,
                 235: BLOCK.POWDER_SNOW,
                 54: BLOCK.SPRUCE_PLANKS,
                 150: BLOCK.OAK_LEAVES,
                 139: BLOCK.OAK_LEAVES,
                 58: BLOCK.OAK_LOG,
-                107: BLOCK.GRASS_DIRT,
+                107: BLOCK.GRASS_BLOCK,
                 144: BLOCK.OAK_LEAVES,
-                143: BLOCK.GRASS_DIRT,
+                143: BLOCK.GRASS_BLOCK,
                 253: BLOCK.OAK_PLANKS,
                 238: BLOCK.SPRUCE_PLANKS,
                 79: BLOCK.BIRCH_PLANKS,
-                184: BLOCK.GRASS_DIRT,
-                174: BLOCK.GRASS_DIRT,
+                184: BLOCK.GRASS_BLOCK,
+                174: BLOCK.GRASS_BLOCK,
             };
             vox_templates.castle = {chunk: chunks[0], palette: palette};
         });

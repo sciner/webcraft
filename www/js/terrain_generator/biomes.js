@@ -24,7 +24,7 @@ export class TREES {
         TREES.OAK               = {trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
         TREES.ACACIA            = {trunk: BLOCK.ACACIA_LOG.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: 5, max: 12}};
         TREES.SPRUCE            = {trunk: BLOCK.SPRUCE_LOG.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}};
-        TREES.TROPICAL_TREE     = {trunk: BLOCK.JUNGLE_LOG.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 22}};
+        TREES.JUNGLE            = {trunk: BLOCK.JUNGLE_LOG.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'jungle', height: {min: 1, max: 22}};
         TREES.RED_MUSHROOM      = {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
         TREES.BROWN_MUSHROOM    = {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
         return true;
@@ -50,7 +50,7 @@ export class  BIOMES {
             dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
             title:      'ОКЕАН',
             max_height: 64,
-            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id, BLOCK.CLAY.id],
+            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.CLAY.id],
             no_smooth:  false,
             trees:      {
                 frequency: 0,
@@ -69,7 +69,7 @@ export class  BIOMES {
             dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
             title:      'ОКЕАН',
             max_height: 64,
-            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: 0,
@@ -132,15 +132,15 @@ export class  BIOMES {
             dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
             title:      'ДЖУНГЛИ',
             max_height: 48,
-            dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 4,
                 list: [
-                    {percent: .025, ...TREES.TROPICAL_TREE, height: {min: 16, max: 22}},
-                    {percent: .1, ...TREES.TROPICAL_TREE, height: {min: 9, max: 14}},
-                    {percent: .4, ...TREES.TROPICAL_TREE, height: {min: 3, max: 8}},
-                    {percent: .2, ...TREES.TROPICAL_TREE, height: {min: 1, max: 1}},
+                    {percent: .025, ...TREES.JUNGLE, height: {min: 16, max: 22}},
+                    {percent: .1, ...TREES.JUNGLE, height: {min: 9, max: 14}},
+                    {percent: .4, ...TREES.JUNGLE, height: {min: 3, max: 8}},
+                    {percent: .2, ...TREES.JUNGLE, height: {min: 1, max: 1}},
                     // bamboo
                     {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
                 ]
@@ -150,7 +150,7 @@ export class  BIOMES {
                 list: [
                     {percent: .6, block: {id: BLOCK.OAK_LEAVES.id}},
                     {percent: .37, block: {id: BLOCK.GRASS.id}},
-                    {percent: .01, block: {id: BLOCK.TULIP.id}},
+                    {percent: .01, block: {id: BLOCK.RED_TULIP.id}},
                     {percent: .005, block: {id: BLOCK.MELON.id}},
                     {percent: .005, block: {id: BLOCK.DANDELION.id}}
                 ]
@@ -164,7 +164,7 @@ export class  BIOMES {
             dirt_color: new Color(845 / 1024, 990 / 1024, 0, 0),
             title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
             max_height: 6,
-            dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
@@ -177,14 +177,14 @@ export class  BIOMES {
                 frequency: .5,
                 list: [
                     {percent: .98, block: {id: BLOCK.GRASS.id}},
-                    {percent: .01, block: {id: BLOCK.TULIP.id}},
+                    {percent: .01, block: {id: BLOCK.RED_TULIP.id}},
                     {percent: .01, block: {id: BLOCK.DANDELION.id}}
                 ]
             }
         };
         
         BIOMES.SCORCHED = {
-            block: BLOCK.CONCRETE.id,
+            block:      BLOCK.STONE.id,
             code:       'SCORCHED',
             color:      '#ff5500',
             dirt_color: new Color(770 / 1024, 990 / 1024, 0, 0),
@@ -213,7 +213,7 @@ export class  BIOMES {
             dirt_color: new Color(960 / 1024, 950 / 1024, 0, 0),
             title:      'ПУСТОШЬ',
             max_height: 64,
-            dirt_block: [BLOCK.CONCRETE.id],
+            dirt_block: [BLOCK.STONE.id],
             no_smooth:  false,
             trees:      {},
             plants:     {frequency: 0}
@@ -226,7 +226,7 @@ export class  BIOMES {
             dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0),
             title:      'ТУНДРА',
             max_height: 48,
-            dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.PODZOL.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.PODZOL.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
@@ -257,7 +257,7 @@ export class  BIOMES {
             color:      '#879b89',
             title:      'ТАЙГА',
             max_height: 12,
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
@@ -300,7 +300,7 @@ export class  BIOMES {
             color:      '#316033',
             dirt_color: new Color(880 / 1024, 870 / 1024, 0, 0),
             title:      'КУСТАРНИКИ',
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             max_height: 8,
             trees:      {frequency: 0},
@@ -313,27 +313,27 @@ export class  BIOMES {
         };
         
         BIOMES.GRASSLAND = {
-            block:      BLOCK.GRASS_DIRT.id,
+            block:      BLOCK.GRASS_BLOCK.id,
             code:       'GRASSLAND',
             color:      '#98a136',
             dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
             title:      'ТРАВЯНАЯ ЗЕМЛЯ',
             max_height: 18,
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             plants: {
                 frequency: .5,
                 list: [
                     {percent: .800, block: {id: BLOCK.GRASS.id}},
-                    {percent: .025, block: {id: BLOCK.TULIP.id}},
-                    {percent: .025, block: {id: BLOCK.FLOWER_ALLIUM.id}},
-                    {percent: .025, block: {id: BLOCK.FLOWER_BLUE_ORCHID.id}},
-                    {percent: .025, block: {id: BLOCK.FLOWER_OXEYE_DAISY.id}},
-                    {percent: .025, block: {id: BLOCK.FLOWER_LILY_OF_THE_VALLEY.id}},
-                    {percent: .025, block: {id: BLOCK.FLOWER_CORNFLOWER.id}},
+                    {percent: .025, block: {id: BLOCK.RED_TULIP.id}},
+                    {percent: .025, block: {id: BLOCK.ALLIUM.id}},
+                    {percent: .025, block: {id: BLOCK.BLUE_ORCHID.id}},
+                    {percent: .025, block: {id: BLOCK.OXEYE_DAISY.id}},
+                    {percent: .025, block: {id: BLOCK.LILY_OF_THE_VALLEY.id}},
+                    {percent: .025, block: {id: BLOCK.CORNFLOWER.id}},
                     {percent: .025, block: {id: BLOCK.DANDELION.id}},
                     {percent: .015, block: {id: BLOCK.PUMPKIN.id}},
-                    {percent: .025, trunk: BLOCK.FLOWER_LILAC.id, leaves: BLOCK.FLOWER_LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
+                    {percent: .025, trunk: BLOCK.LILAC.id, leaves: BLOCK.LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
                 ]
             },
             trees:      {
@@ -351,7 +351,7 @@ export class  BIOMES {
             dirt_color: new Color(800 / 1024, 880 / 1024, 0, 0),
             title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
             max_height: 48,
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
@@ -376,7 +376,7 @@ export class  BIOMES {
             dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
             title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
             max_height: 15,
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
@@ -399,7 +399,7 @@ export class  BIOMES {
             // dirt_color: new Color(900 / 1024, 965 / 1024, 0, 0),
             title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
             max_height: 32,
-            dirt_block: [BLOCK.GRASS_DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY / 2,
@@ -423,7 +423,7 @@ export class  BIOMES {
             dirt_color: new Color(860 / 1024, 910 / 1024, 0, 0),
             title:      'ГРИБНОЙ',
             max_height: 64,
-            dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.MYCELIUM.id, BLOCK.MOSS_BLOCK.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.MYCELIUM.id, BLOCK.MOSS_BLOCK.id],
             no_smooth:  false,
             trees:      {
                 frequency: .0085,

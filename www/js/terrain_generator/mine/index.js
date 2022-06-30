@@ -18,7 +18,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     for(let y = 0; y <= 6; y++) {
-                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT);
+                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK);
                     }
                 }
             }

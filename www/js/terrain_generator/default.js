@@ -148,8 +148,8 @@ export class Default_Terrain_Generator {
                 break;
             }
             // тропическое дерево
-            case 'tropical_tree': {
-                this.plantTropicalTree(options, chunk, x, y, z, check_chunk_size)
+            case 'jungle': {
+                this.plantJungle(options, chunk, x, y, z, check_chunk_size)
                 break;
             }
 
@@ -426,7 +426,7 @@ export class Default_Terrain_Generator {
     }
 
     // Тропическое дерево
-    plantTropicalTree(options, chunk, x, y, z, check_chunk_size = true) {
+    plantJungle(options, chunk, x, y, z, check_chunk_size = true) {
         const TREE_HEIGHT = options.height - 2 // рандомная высота дерева, переданная из генератора
         let ystart = y + TREE_HEIGHT
         let maxW = Math.floor(TREE_HEIGHT / 2)
@@ -454,7 +454,7 @@ export class Default_Terrain_Generator {
         let random = new alea('tree' + xyz.toHash());
         for (let p = y; p < ystart; p++) {
             this.setBlock(chunk, x, p, z, this.temp_block, true)
-            let block_id = BLOCK.VINES.id;
+            let block_id = BLOCK.VINE.id;
             let extra_data = null;
             const makeCocoa = () => {
                 if(random.double() < .04 && p < y + 4) {
@@ -530,7 +530,7 @@ export class Default_Terrain_Generator {
                                             a,
                                             y + h - t,
                                             b,
-                                            { id: BLOCK.VINES.id },
+                                            { id: BLOCK.VINE.id },
                                             false,
                                             {
                                                 x: a == dx ? 3 : a == dx + w ? 1 : b == dz + w ? 2 : 0,
@@ -565,7 +565,6 @@ export class Default_Terrain_Generator {
                 }
                 this.setBlock(chunk, x1, y + pos + dy, z1, this.temp_block, true)
             }
-
             this.temp_block.id = options.type.leaves
             generateLeaves(x1, y + pos + dy + 1, z1, rad, arr)
         }

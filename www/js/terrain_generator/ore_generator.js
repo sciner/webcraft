@@ -131,7 +131,7 @@ export class OreGenerator {
                 }
             }
         }
-        return stone_block_id || BLOCK.CONCRETE.id;
+        return stone_block_id || BLOCK.STONE.id;
     }
 
 }

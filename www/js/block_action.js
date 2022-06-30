@@ -1210,7 +1210,7 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
     if(!underBlock) {
         return true;
     }
-    if([BLOCK.GRASS_DIRT.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
+    if([BLOCK.GRASS_BLOCK.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
         return true;
     }
     // Посадить семена можно только на вспаханную землю
@@ -1300,7 +1300,7 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
     if(mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'shovel') {
         return false;
     }
-    if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT.id) {
+    if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
         pos.x -= pos.n.x;
         pos.y -= pos.n.y;
@@ -1325,7 +1325,7 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
     if(mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'hoe') {
         return false;
     }
-    if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
+    if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
         pos.x -= pos.n.x;
         pos.y -= pos.n.y;

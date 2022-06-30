@@ -6,6 +6,7 @@ www/js-gen
 *.bak
 .idea/
 .vs/
+.vscode/
 *.sqlite3
 *.BASE.*
 *.LOCAL.*

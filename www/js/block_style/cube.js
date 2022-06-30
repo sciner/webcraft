@@ -54,7 +54,7 @@ export default class style {
 
         // Button
         if(material.is_button) {
-            if(block.extra_data.pressed) {
+            if(block.extra_data?.pressed) {
                 height /= 2;
             }
         }
@@ -193,7 +193,7 @@ export default class style {
         }
         // Button
         if(material.is_button) {
-            if(block.extra_data.pressed) {
+            if(block.extra_data?.pressed) {
                 height /= 2;
             }
         } else if(material.is_fluid) {
@@ -373,7 +373,7 @@ export default class style {
             }
 
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
-            if(block.id == BLOCK.GRASS_DIRT.id || block.id == BLOCK.SAND.id) {
+            if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id) {
                 const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
                 axes_up = UP_AXES[rv % 4];
                 autoUV = false;

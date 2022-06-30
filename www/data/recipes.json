@@ -521,7 +521,7 @@
         ],
         "key": {
             "D": {
-                "item": "madcraft:grass_dirt"
+                "item": "madcraft:grass_block"
             },
             "G": {
                 "item": "madcraft:gravel"
@@ -542,7 +542,7 @@
         ],
         "key": {
             "D": {
-                "item": "madcraft:grass_dirt"
+                "item": "madcraft:grass_block"
             },
             "G": {
                 "item": "madcraft:gravel"
@@ -1386,6 +1386,40 @@
         "result": {
             "item": "madcraft:melon_seeds",
             "count": 1
+        }
+    },
+    {
+        "id": "04130a7c-ae6f-4246-992a-f7b19d502b64",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "CCC",
+            "CCC",
+            "CCC"
+        ],
+        "key": {
+            "C": {
+                "item": "madcraft:coal"
+            }
+        },
+        "result": {
+            "item": "madcraft:coal_block",
+            "count": 1
+        }
+    },
+    {
+        "id": "41267333-9cd2-47ce-8778-6a6c80ea3a13",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "B"
+        ],
+        "key": {
+            "B": {
+                "item": "madcraft:coal_block"
+            }
+        },
+        "result": {
+            "item": "madcraft:coal",
+            "count": 9
         }
     }
 ]

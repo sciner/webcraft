@@ -15,7 +15,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     generate(chunk) {
 
         // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANKS.id : BLOCK.BIRCH_PLANKS.id;
-        let block_id = BLOCK.GRASS_DIRT.id;
+        let block_id = BLOCK.GRASS_BLOCK.id;
 
         const { cx, cy, cz, cw } = chunk.dataChunk;
 

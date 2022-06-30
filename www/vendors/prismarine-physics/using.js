@@ -34,7 +34,7 @@ class FakeWorld {
                 water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
                 lava:           [BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id],
                 ladder:         BLOCK.LADDER,
-                vine:           BLOCK.VINES,
+                vine:           BLOCK.VINE,
                 honey_block:    null,
                 seagrass:       null,
                 kelp:           null,

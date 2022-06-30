@@ -35,7 +35,7 @@ export class ClusterVilage extends ClusterBase {
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createPalette(this.flat ? [
                 {value: BLOCK.ANDESITE, chance: .5},
-                {value: BLOCK.CONCRETE, chance: 1}
+                {value: BLOCK.STONE, chance: 1}
             ] : [
                 {value: BLOCK.DIRT_PATH, chance: 1}
             ]);

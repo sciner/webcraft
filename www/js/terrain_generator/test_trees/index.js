@@ -15,7 +15,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     generate(chunk) {
 
-        let block_id = Math.abs(chunk.addr.x + chunk.addr.z) % 2 == 1 ? BLOCK.GRASS_DIRT.id : BLOCK.DIRT.id;
+        let block_id = Math.abs(chunk.addr.x + chunk.addr.z) % 2 == 1 ? BLOCK.GRASS_BLOCK.id : BLOCK.DIRT.id;
         const aleaRandom = new alea(chunk.id);
 
         // setBlock

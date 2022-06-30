@@ -28,7 +28,7 @@ export default class style {
         let flags       = 0;
 
         // Texture color multiplier
-        if(block.id == BLOCK.VINES.id) {
+        if(block.id == BLOCK.VINE.id) {
             c = BLOCK.calcTexture(texture, DIRECTION.BACK);
             lm = dirt_color;
             flags = QUAD_FLAGS.MASK_BIOME;
