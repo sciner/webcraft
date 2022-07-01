@@ -5982,6 +5982,47 @@
             ],
             "texture": "block/mossy_stone_bricks.png",
             "can_rotate": true
+        },
+        {
+            "id": 159,
+            "name": "DARK_PRISMARINE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/dark_prismarine.png"
+        },
+        {
+            "id": 160,
+            "name": "QUARTZ_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "QUARTZ_BLOCK"
+            },
+            "texture": "block/quartz_block_top.png"
+        },
+        {
+            "id": 161,
+            "name": "STONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "STONE"
+            },
+            "texture": "block/stone.png"
         }
     ]
 }
