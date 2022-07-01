@@ -6237,6 +6237,34 @@
                 "id": "stone"
             },
             "texture": "block/emerald_block.png"
+        },
+        {
+            "id": 185,
+            "name": "CHISELED_RED_SANDSTONE",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/chiseled_red_sandstone.png",
+                "up": "block/red_sandstone_top.png",
+                "down": "block/red_sandstone_bottom.png"
+            }
+        },
+        {
+            "id": 186,
+            "name": "AZURE_BLUET",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "texture": "block/azure_bluet.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
         }
     ]
 }

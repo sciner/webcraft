@@ -2,23 +2,13 @@ import { BLOCK } from "../../../www/js/blocks.js";
 import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
-import { Console } from "console";
 
 // SchematicReader...
 export class SchematicReader {
 
     constructor() {
         this.blocks = new VectorCollector();
-    }
-
-    async read(file_name) {
-        file_name = `./plugins/worldedit/schematics/${file_name}`;
-        const schematic = await Schematic.read(await fs.readFile(file_name))
-        const not_found_blocks = new Map();
-        const bpos = new Vector(0, 0, 0);
-        const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
-        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
-        const replaced_names = {
+        this.replaced_names = {
             BARRIER:    'AIR',
             CAVE_AIR:   'AIR',
             LAVA:       'STILL_LAVA',
@@ -26,27 +16,20 @@ export class SchematicReader {
             WHEAT:      'WHEAT_SEEDS',
             COCOA:      'COCOA_BEANS'
         };
+    }
+
+    // Read schematic file
+    async read(file_name) {
+        file_name = `./plugins/worldedit/schematics/${file_name}`;
+        const schematic = await Schematic.read(await fs.readFile(file_name))
+        const not_found_blocks = new Map();
+        const bpos = new Vector(0, 0, 0);
+        const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
+        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         // each all blocks
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
-            //
-            if(block.name == 'wall_sign') {
-                block.name == 'oak_wall_sign';
-            }
-            block.on_wall = block.name.indexOf('_wall_sign') >= 0;
-            if(block.on_wall) {
-                block.name = block.name.replace('_wall_', '_');
-            }
-            if(block.name == 'wall_torch') {
-                block.on_wall = true;
-                block.name = 'torch';
-            }
-            //
-            let name = block.name.toUpperCase();
-            //
-            if(name in replaced_names) {
-                name = replaced_names[name];
-            }
+            let name = this.parseBlockName(block);
             if(name == 'AIR') {
                 return;
             }
@@ -76,10 +59,12 @@ export class SchematicReader {
                     }
                 }
             }
+            // If not implemented block
             if(!new_block) {
                 if(!not_found_blocks.has(name)) {
                     not_found_blocks.set(name, name);
                 }
+                // replace with TEST block and store original to his extra_data
                 new_block = {...TEST_BLOCK};
                 new_block.extra_data = {
                     name: name,
@@ -89,6 +74,26 @@ export class SchematicReader {
             this.blocks.set(bpos, new_block);
         });
         console.log('Not found blocks: ', Array.from(not_found_blocks.keys()).join('; '));
+    }
+
+    //
+    parseBlockName(block) {
+        if(block.name == 'wall_sign') {
+            block.name = 'oak_wall_sign';
+        }
+        block.on_wall = block.name.indexOf('_wall_sign') >= 0;
+        if(block.on_wall) {
+            block.name = block.name.replace('_wall_', '_');
+        }
+        if(block.name == 'wall_torch') {
+            block.on_wall = true;
+            block.name = 'torch';
+        }
+        let name = block.name.toUpperCase();
+        if(name in this.replaced_names) {
+            name = this.replaced_names[name];
+        }
+        return name;
     }
 
     //

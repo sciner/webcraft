@@ -3,9 +3,8 @@
         {"code": "en", "title": "English", "short_title": "En"},
         {"code": "ru", "title": "Русский", "short_title": "Ру"},
         {"code": "fr", "title": "Francais", "short_title": "Fr"},
-         {"code": "es", "title": "Español", "short_title": "Es"},
+        {"code": "es", "title": "Español", "short_title": "Es"},
         {"code": "man", "title": "Mandarin", "short_title": "普通话"}
-        
     ],
     "strings": {
         "btn_exit": {"en": "Exit", "ru": "Выйти","fr": "Sortir","es":"Salida","man":"出口"},
