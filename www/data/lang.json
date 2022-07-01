@@ -44,7 +44,7 @@
         "error_player_exists_in_selected_world": {"en": "You already exists in this world", "ru": "Этот мир уже есть в списке","fr": "Vous etes deja dans ce monde","es":"Ya existes en este mundo","man":"你已经存在于这个世界"},
         "error_not_permitted": {"en": "Not permitted", "ru": "Запрещено","fr": "Non permis","es":"No permitido","man":"不允许"},
         "share_game_with_friends": {"en": "Share world with friends", "ru": "Пришласите друзей в этот мир","fr": "Partager ce monde avec des amis","es":"Compartir mundo con amigos","man":"与朋友分享世界"},
-        "error_not_logged": {"en": "Login before open invite link", "ru": "Пожалуйста сперва авторизутесь и затем попробуйте ещё раз","fr": "Entrer avans de partager avec amis","es":"Iniciar sesión antes de abrir el enlace de invitación","man":"打开邀请链接前先登录"},
+        "error_not_logged": {"en": "Login before open invite link", "ru": "Пожалуйста сперва авторизуйтесь и затем попробуйте ещё раз","fr": "Entrer avans de partager avec amis","es":"Iniciar sesión antes de abrir el enlace de invitación","man":"打开邀请链接前先登录"},
         "copied": {"en": "Copied", "ru": "Скопировано","fr": "Deja Copier!","es":"Copiado","man":"已复制"},
         "copy": {"en": "Copy", "ru": "Копировать","fr": "Copier","es":"Copiar","man":"复制"},
         "registration": {"en": "Registration", "ru": "Регистрация","fr": "Registration","es":"Registro","man":"登记"},
