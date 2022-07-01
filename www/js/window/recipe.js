@@ -1,6 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {Resources} from "../resources.js";
+import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
 export class RecipeSlot extends Window {
 
@@ -73,7 +74,7 @@ export class RecipeSlot extends Window {
         }
 
         const size = inventory_image.width;
-        const frame = size / 16;
+        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
 
         ctx.imageSmoothingEnabled = false;
         // 
