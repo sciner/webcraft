@@ -6023,6 +6023,220 @@
                 "full_block_name": "STONE"
             },
             "texture": "block/stone.png"
+        },
+        {
+            "id": 164,
+            "name": "DARK_PRISMARINE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/dark_prismarine.png",
+            "can_rotate": true
+        },
+        {
+            "id": 166,
+            "name": "PRISMARINE_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/prismarine_bricks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 167,
+            "name": "PRISMARINE_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/prismarine_bricks.png"
+        },
+        {
+            "id": 168,
+            "name": "RED_SANDSTONE",
+            "sound": "madcraft:block.stone",
+            "texture": {
+                "side": "block/red_sandstone.png",
+                "up": "block/red_sandstone_top.png",
+                "down": "block/red_sandstone_bottom.png"
+            },
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 169,
+            "name": "RED_SANDSTONE_STAIRS",
+            "sound": "madcraft:block.stone",
+            "style": "stairs",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/red_sandstone.png",
+            "can_rotate": true
+        },
+        {
+            "id": 172,
+            "name": "RED_SANDSTONE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/red_sandstone.png"
+        },
+        {
+            "id": 174,
+            "name": "SMOOTH_SANDSTONE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/sandstone_top.png"
+        },
+        {
+            "id": 175,
+            "name": "SMOOTH_SANDSTONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SMOOTH_SANDSTONE"
+            },
+            "texture": "block/sandstone_top.png"
+        },
+        {
+            "id": 176,
+            "name": "SMOOTH_SANDSTONE_STAIRS",
+            "sound": "madcraft:block.stone",
+            "style": "stairs",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/sandstone_top.png",
+            "can_rotate": true
+        },
+        {
+            "id": 177,
+            "name": "CUT_RED_SANDSTONE",
+            "sound": "madcraft:block.stone",
+            "texture": {
+                "side": "block/cut_red_sandstone.png",
+                "up": "block/red_sandstone_top.png",
+                "down": "block/red_sandstone_top.png"
+            },
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 178,
+            "name": "CUT_RED_SANDSTONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "CUT_RED_SANDSTONE"
+            },
+            "texture": "block/cut_red_sandstone.png"
+        },
+        {
+            "id": 179,
+            "name": "PRISMARINE_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "PRISMARINE_BRICKS"
+            },
+            "texture": "block/prismarine_bricks.png"
+        },
+        {
+            "id": 180,
+            "name": "REDSTONE_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/redstone_block.png"
+        },
+        {
+            "id": 181,
+            "name": "SNOW_BLOCK",
+            "sound": "madcraft:block.snow",
+            "material": {
+                "id": "snow"
+            },
+            "texture": "block/snow.png"
+        },
+        {
+            "id": 182,
+            "name": "NETHER_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/nether_bricks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 183,
+            "name": "POPPY",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.grass",
+            "texture": "block/poppy.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 184,
+            "name": "EMERALD_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/emerald_block.png"
         }
     ]
 }

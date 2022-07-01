@@ -30,10 +30,18 @@ export class SchematicReader {
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
             //
-            block.is_wall_sign = block.name.indexOf('_wall_sign') >= 0;
-            if(block.is_wall_sign) {
+            if(block.name == 'wall_sign') {
+                block.name == 'oak_wall_sign';
+            }
+            block.on_wall = block.name.indexOf('_wall_sign') >= 0;
+            if(block.on_wall) {
                 block.name = block.name.replace('_wall_', '_');
             }
+            if(block.name == 'wall_torch') {
+                block.on_wall = true;
+                block.name = 'torch';
+            }
+            //
             let name = block.name.toUpperCase();
             //
             if(name in replaced_names) {
@@ -211,7 +219,13 @@ export class SchematicReader {
                 if(block.signText) {
                     setExtraData('text', block.signText);
                 }
-                if(block.is_wall_sign) {
+                if(block.on_wall) {
+                    new_block.rotate.y = 0;
+                }
+            }
+            // torch
+            if(b.style == 'torch') {
+                if(block.on_wall) {
                     new_block.rotate.y = 0;
                 }
             }
