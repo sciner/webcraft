@@ -10,6 +10,17 @@ Minecraft clone on JS
 + [XM player](https://github.com/a1k0n/jsxm/)
 
 ## Run and play
+
+Compilate texture pack. It require for first run the game, because textures not included in repo.
+For example you can download this texture pack from https://polyflore.net/projects/depixel
+```
+1. extract resource pack to directory ../resource-packs/1 (one level up from project root directory)
+2. cd ./node_server
+3. npm install
+4. npm run compile-texture-pack
+```
+
+Start server:
 ```
 // Run NodeJS v17.9.0 server!
 cd ./node_server
