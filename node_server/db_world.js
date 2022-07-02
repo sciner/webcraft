@@ -291,13 +291,10 @@ export class DBWorld {
     // Chunk became modified
     async chunkBecameModified() {
         let resp = new Set();
-        let rows = await this.db.all(`SELECT DISTINCT
-            cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
-            cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
-            cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
+        let rows = await this.db.all(`SELECT DISTINCT chunk_x, chunk_y, chunk_z
         FROM world_modify`);
         for(let row of rows) {
-            let addr = new Vector(row.x, row.y, row.z);
+            let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
             resp.add(addr);
         }
         return resp
@@ -352,43 +349,43 @@ export class DBWorld {
 
     // Load chunk modify list
     async loadChunkModifiers(addr, size) {
-        const mul = new Vector(10, 10, 10); // 116584
         let resp = new Map();
-        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
-            ':x_min': addr.x * size.x,
-            ':x_max': addr.x * size.x + size.x,
-            ':y_min': addr.y * size.y,
-            ':y_max': addr.y * size.y + size.y,
-            ':z_min': addr.z * size.z,
-            ':z_max': addr.z * size.z + size.z
+        const pos = new Vector(0, 0, 0);
+        let prev_block_id = null;
+        let prev_block = null;
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks, block_id FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE chunk_x = :chunk_x AND chunk_y = :chunk_y AND chunk_z = :chunk_z GROUP BY x, y, z)", {
+            ':chunk_x': addr.x,
+            ':chunk_y': addr.y,
+            ':chunk_z': addr.z
         });
         for(let row of rows) {
-            let params = row.params ? JSON.parse(row.params) : null;
             // @BlockItem
-            let item = {
-                id: params && ('id' in params) ? params.id : 0
+            const item = {
+                id: row.block_id || 0
             };
             if(item.id > 2) {
+                const params = row.params ? JSON.parse(row.params) : null;
+                if(params && 'rotate' in params && params.rotate) {
+                    if(!prev_block_id || prev_block_id != item.id) {
+                        prev_block_id = item.id;
+                        prev_block = BLOCK.fromId(item.id);
+                    }
+                    if(prev_block?.can_rotate) {
+                        item.rotate = new Vector(params.rotate).roundSelf(2);
+                    }
+                }
                 if(row.ticks) {
                     item.ticks = row.ticks;
                 }
-                if('rotate' in params && params.rotate) {
-                    if(BLOCK.fromId(item.id)?.can_rotate) {
-                        item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
-                    }
-                }
-                if('power' in params) {
-                    item.power = params.power;
-                }
-                if('entity_id' in params && params.entity_id) {
-                    item.entity_id = params.entity_id;
+                if(row.entity_id) {
+                    item.entity_id = row.entity_id;
                 }
                 if(row.extra_data !== null) {
                     item.extra_data = JSON.parse(row.extra_data);
                 }
             }
             //
-            let pos = new Vector(row.x, row.y, row.z);
+            pos.set(row.x, row.y, row.z);
             resp.set(pos.toHash(), item);
         }
         return resp;
@@ -419,7 +416,6 @@ export class DBWorld {
             }
         }
         let need_insert = true;
-        // console.log('db.setblock:', is_modify, params.pos.x, params.pos.y, params.pos.z);
         if(is_modify) {
             let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
                 ':x': params.pos.x,
@@ -438,13 +434,16 @@ export class DBWorld {
             }
         }
         if(need_insert) {
-            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id)', {
+            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z)', {
                 ':user_id':     player?.session.user_id || null,
                 ':dt':          ~~(Date.now() / 1000),
                 ':world_id':    world.info.id,
                 ':x':           params.pos.x,
                 ':y':           params.pos.y,
                 ':z':           params.pos.z,
+                ':chunk_x':     Math.floor(params.pos.x / CHUNK_SIZE_X),
+                ':chunk_y':     Math.floor(params.pos.y / CHUNK_SIZE_Y),
+                ':chunk_z':     Math.floor(params.pos.z / CHUNK_SIZE_Z),
                 ':params':      item ? JSON.stringify(item) : null,
                 ':entity_id':   item?.entity_id ? item.entity_id : null,
                 ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,

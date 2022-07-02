@@ -1,3 +1,5 @@
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
+
 // Migrations
 export class DBWorldMigration {
 
@@ -465,6 +467,55 @@ export class DBWorldMigration {
             `UPDATE world_modify SET extra_data = REPLACE(extra_data,'"id":505,','"id":1504,');`,
             `UPDATE world_modify SET params = REPLACE(params,'"id":504','"id":1509');`,
             `UPDATE world_modify SET params = REPLACE(params,'"id":505','"id":1504');`
+        ]});
+
+        migrations.push({version: 63, queries: [
+            `DROP INDEX "main"."world_modify_xyz";`,
+
+            `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20220703_2";`,
+            
+            `CREATE TABLE "main"."world_modify" (
+              "id" INTEGER,
+              "world_id" INTEGER NOT NULL,
+              "dt" integer,
+              "user_id" INTEGER,
+              "params" TEXT,
+              "user_session_id" integer,
+              "x" integer NOT NULL,
+              "y" integer NOT NULL,
+              "z" integer NOT NULL,
+              "entity_id" text,
+              "extra_data" text,
+              "ticks" INTEGER DEFAULT NULL,
+              "block_id" integer DEFAULT NULL,
+              PRIMARY KEY ("id")
+            );`,
+            
+            `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id" FROM "main"."_world_modify_old_20220703_2";`,
+            
+            `CREATE INDEX "main"."world_modify_xyz"
+            ON "world_modify" (
+              "x" ASC,
+              "y" ASC,
+              "z" ASC
+            );`,
+
+            `ALTER TABLE world_modify ADD COLUMN "chunk_x" integer NOT NULL DEFAULT 0`,
+            `ALTER TABLE world_modify ADD COLUMN "chunk_y" integer NOT NULL DEFAULT 0`,
+            `ALTER TABLE world_modify ADD COLUMN "chunk_z" integer NOT NULL DEFAULT 0`,
+
+            `UPDATE world_modify
+            SET chunk_x = floor(cast(x as real) / ${CHUNK_SIZE_X}.),
+            chunk_y = floor(cast(y as real) / ${CHUNK_SIZE_Y}.),
+            chunk_z = floor(cast(z as real) / ${CHUNK_SIZE_Z}.)`,
+
+            `CREATE INDEX "main"."world_modify_chunk_xyz"
+            ON "world_modify" (
+              "chunk_x" ASC,
+              "chunk_y" ASC,
+              "chunk_z" ASC
+            );`,
+
         ]});
 
         for(let m of migrations) {
