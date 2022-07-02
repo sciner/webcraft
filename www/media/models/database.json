@@ -279,8 +279,7 @@
             "geom": "json/steve.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/zombie/zombie.png",
-                "husk": "textures/zombie/husk.png"
+                "base": "textures/zombie/zombie.png"
             }
         },
         "parrot": {
