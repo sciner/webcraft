@@ -5711,6 +5711,7 @@
             "name": "ENCHANTING_TABLE",
             "sound": "madcraft:block.wood",
             "height": 0.666,
+            "transparent": true,
             "material": {
                 "id": "wood"
             },
@@ -6265,6 +6266,186 @@
             "material": {
                 "id": "plant"
             }
+        },
+        {
+            "id": 187,
+            "name": "PRISMARINE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/prismarine.png"
+        },
+        {
+            "id": 192,
+            "name": "PRISMARINE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture_animations": {
+                "side": null
+            },
+            "texture": "block/prismarine.png"
+        },
+        {
+            "id": 37,
+            "name": "SMOOTH_QUARTZ",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/quartz_block_top.png"
+        },
+        {
+            "id": 49,
+            "name": "SMOOTH_QUARTZ_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/quartz_block_top.png",
+            "can_rotate": true
+        },
+        {
+            "id": 55,
+            "name": "SANDSTONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "texture": {
+                "side": "block/sandstone.png",
+                "up": "block/sandstone_top.png",
+                "down": "block/sandstone_bottom.png"
+            },
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SANDSTONE"
+            }
+        },
+        {
+            "id": 57,
+            "name": "RED_SANDSTONE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "texture": {
+                "side": "block/red_sandstone.png",
+                "up": "block/red_sandstone_top.png",
+                "down": "block/red_sandstone_bottom.png"
+            },
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "RED_SANDSTONE"
+            }
+        },
+        {
+            "id": 64,
+            "name": "PRISMARINE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/prismarine.png",
+            "can_rotate": true
+        },
+        {
+            "id": 66,
+            "name": "END_STONE_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/end_stone_bricks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 68,
+            "name": "END_STONE_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/end_stone_bricks.png"
+        },
+        {
+            "id": 71,
+            "name": "END_STONE_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "texture": "block/end_stone_bricks.png",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "END_STONE_BRICKS"
+            }
+        },
+        {
+            "id": 83,
+            "name": "CRACKED_STONE_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/cracked_stone_bricks.png"
+        },
+        {
+            "id": 519,
+            "name": "BONE_BLOCK",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "material": {
+                "id": "bone"
+            },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_plus"
+            ],
+            "texture": {
+                "up": "block/bone_block_top.png",
+                "down": "block/bone_block_top.png",
+                "side": "block/bone_block_side.png"
+            }
+        },
+        {
+            "id": 614,
+            "name": "ANDESITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/andesite.png",
+            "can_rotate": true
         }
     ]
 }

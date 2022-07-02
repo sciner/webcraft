@@ -430,6 +430,9 @@ export class Resources {
                     case 'item_frame':
                         all.push(import('./block_style/item_frame.js').then(module => {resp.add(module.default);}));
                         break;
+                    case 'candle':
+                        all.push(import('./block_style/candle.js').then(module => {resp.add(module.default);}));
+                        break;
                     case 'default':
                         all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
                         break;

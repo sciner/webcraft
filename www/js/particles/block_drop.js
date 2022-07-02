@@ -33,7 +33,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.block_material = this.block.material;
 
         // draw_style
-        let draw_style      = this.block_material.inventory_style
+        let draw_style = this.block_material.inventory_style
             ? this.block_material.inventory_style 
             : this.block_material.style;
         if('inventory' in this.block_material) {
@@ -98,6 +98,10 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
             // 7.
             Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
+        }
+
+        if(this.block_material?.inventory?.scale) {
+            this.scale.multiplyScalar(this.block_material?.inventory?.scale);
         }
 
         this.modelMatrix = mat4.create();

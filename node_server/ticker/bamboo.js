@@ -71,7 +71,7 @@ export default class Ticker {
                             }
                         }
                     } else {
-                        if(extra_data.stage == 2) {
+                        if(extra_data.stage == 2 && extra_data.pos) {
                             if(over1.id == tblock.id && under1.id == tblock.id) {
                                 if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
                                     if(over1.posworld.distance(extra_data.pos) < extra_data.max_height - 1) {

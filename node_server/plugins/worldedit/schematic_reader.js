@@ -252,6 +252,13 @@ export class SchematicReader {
                     }
                 }
             }
+            // candles
+            if('candles' in props) {
+                setExtraData('candles', parseInt(props.candles));
+            }
+            if('lit' in props) {
+                setExtraData('lit', props.lit);
+            }
         }
         return new_block;
     }

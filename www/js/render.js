@@ -11,7 +11,6 @@ import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
-// import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
 import Particles_Rain from "./particles/rain.js";
 
@@ -348,11 +347,19 @@ export class Renderer {
                 mesh.material.texture.minFilter = 'linear';
                 mesh.material.texture.magFilter = 'linear';
 
+                let pers_matrix = null;
+                if(drop.block_material.inventory?.scale) {
+                    const icon_scale = drop.block_material.inventory?.scale;
+                    pers_matrix = [...(multipart ? matrix_empty : matrix)];
+                    mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
+                    mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
+                }
+
                 this.renderBackend.drawMesh(
                     mesh.buffer,
                     mesh.material,
                     new Vector(x, y, 0),
-                    multipart ? matrix_empty : matrix
+                    pers_matrix ? pers_matrix : (multipart ? matrix_empty : matrix)
                 );
 
                 mesh.material.texture.minFilter = 'nearest';
@@ -393,9 +400,13 @@ export class Renderer {
                 const resource_pack = material.resource_pack;
                 let texture_id = 'default';
                 let texture = material.texture;
+                let mask_color = material.mask_color;
                 if('inventory' in material) {
                     if('texture' in material.inventory) {
                         texture = material.inventory.texture;
+                    }
+                    if('mask_color' in material.inventory) {
+                        mask_color = material.inventory.mask_color;
                     }
                 }
                 if(typeof texture == 'object' && 'id' in texture) {
@@ -414,15 +425,16 @@ export class Renderer {
 
                 const tint = material.tags && (
                     material.tags.indexOf('mask_biome') > -1 ||
-                    material.tags.indexOf('mask_color') > -1
+                    material.tags.indexOf('mask_color') > -1 ||
+                    mask_color
                 );
 
                 ctx.globalCompositeOperation = 'source-over';
 
                 if (tint) {
                     tmpContext.globalCompositeOperation = 'source-over';
-                    if(material.mask_color) {
-                        tmpContext.fillStyle = tex.getColorAt(material.mask_color.r, material.mask_color.g).toHex();
+                    if(mask_color) {
+                        tmpContext.fillStyle = tex.getColorAt(mask_color.r, mask_color.g).toHex();
                     } else {
                         // default grass color
                         tmpContext.fillStyle = "#7ba83d";

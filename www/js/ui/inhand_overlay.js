@@ -63,7 +63,11 @@ export class InHandOverlay {
         }
 
         try {
-            this.inHandItemMesh = new Particles_Block_Drop(null, null, [block], Vector.ZERO);
+            const m = mat4.create();
+            if(block.inventory?.scale) {
+                mat4.scale(m, m, [block.inventory?.scale, block.inventory?.scale, block.inventory?.scale]);
+            }
+            this.inHandItemMesh = new Particles_Block_Drop(null, null, [block], Vector.ZERO, m);
         } catch(e) {
             console.log(e);
             //

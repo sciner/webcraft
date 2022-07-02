@@ -10,7 +10,11 @@ const START_GLAZED_TERRACOTTA   = 1400; // 1415
 const START_STAINED_GLASS       = 470; // ... 485
 const START_STAINED_GLASS_PANE  = 1478; //
 const START_CONCRETE            = 1500; // ... 1515
-const START_CONCRETE_POWDER     = 1516; //
+const START_CONCRETE_POWDER     = 1516; // ... 1531
+const START_CANDLE              = 1532; // ... 1547
+const START_WOOD_ID             = 221;
+
+const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
 // CompileData
 export class CompileData {
@@ -42,6 +46,8 @@ export class CompileData {
         this.initStainedGlassPane();
         this.initConcrete();
         this.initConcretePowder();
+        this.initCandle();
+        this.initWood();
     }
 
     async initDiscs() {
@@ -485,6 +491,59 @@ export class CompileData {
             };
             this.blocks.push(b);
             i++;
+        }
+    }
+
+    //
+    initCandle() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_CANDLE + i,
+                "name": color.toUpperCase() + '_CANDLE',
+                "material": {"id": "clay"},
+                "sound": "madcraft:block.wood",
+                "inventory": {
+                    "scale": 3
+                },
+                "transparent": true,
+                "style": "candle",
+                "texture": `block/${color}_candle.png`,
+                "tags": [
+                    "no_set_on_top",
+                    "no_drop_ao"
+                ],
+                "light_power": {
+                    "r": 255,
+                    "g": 235,
+                    "b": 35,
+                    "a": 255
+                }
+            };
+            this.blocks.push(b);
+            i++;
+        }
+    }
+
+    //
+    initWood() {
+        let id = START_WOOD_ID;
+        for(let w of WOOD_PALETTE) {
+            const w_lower = w.toLowerCase();
+            const b = {
+                "id":       id++,
+                "name":     w + '_WOOD',
+                "material": {"id": "wood"},
+                "sound":    "madcraft:block.wood",
+                "texture":  `block/${w_lower}_log.png`
+            };
+            this.blocks.push(b);
         }
     }
 

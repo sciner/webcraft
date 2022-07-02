@@ -48,7 +48,7 @@ export class Compiler {
         for(let texture of this.compile_data.predefined_textures) {
             const spritesheet = this.getSpritesheet(texture.spritesheet_id);
             const img = await spritesheet.loadTextureImage(texture.image);
-            spritesheet.drawImage(img, texture.x, texture.y);
+            spritesheet.drawImage(img, texture.x, texture.y, texture.has_mask);
         }
         try {
             await this.compileBlocks(this.compile_data.blocks);

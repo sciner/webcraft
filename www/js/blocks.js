@@ -518,7 +518,7 @@ export class BLOCK {
             block.is_leaves ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
-            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa' || block.style == 'item_frame'
+            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa' || block.style == 'item_frame' || block.style == 'candle'
             ) {
             group = 'doubleface';
         }
@@ -1280,6 +1280,27 @@ export class BLOCK {
         for(let b of all_blocks) {
             BLOCK.list_arr.push(b);
         }
+    }
+
+    // Print free spaces id block id's
+    static findPlace() {
+        const ranges = [];
+        let start = null;
+        for(let id = 0; id < BLOCK.max_id; id++) {
+            const b = BLOCK.BLOCK_BY_ID[id];
+            if(b) {
+                if(start !== null) {
+                    ranges.push({start: start, end: id - 1, len: id - start});
+                }
+                start = null;
+            } else {
+                if(start === null) {
+                    start = id;
+                }
+            }
+        }
+        ranges.sort((a, b) => {return a.len - b.len;});
+        console.table(ranges);
     }
 
 };

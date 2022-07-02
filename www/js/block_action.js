@@ -664,7 +664,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // 1. Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, null, actions)) {
                 return actions;
             }
@@ -1388,5 +1388,26 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     }
     actions.reset_target_pos = true;
     actions.decrement = true;
+    return true;
+}
+
+// Add candle
+function addCandle(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    const add = !e.shiftKey &&
+                (world_material && (world_material.style == 'candle')) &&
+                (current_inventory_item && current_inventory_item.id == world_material.id);
+    if(!add) {
+        return false;
+    }
+    if(!extra_data || typeof extra_data.candles == 'undefined') {
+        extra_data = {candles: 1};
+    }
+    if(('candles' in extra_data) && extra_data.candles < 4) {
+        extra_data.candles++;
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+        actions.reset_target_pos = true;
+        actions.decrement = true;
+    }
     return true;
 }
