@@ -17,6 +17,9 @@ export class Vox_Mesh {
         // Palette
         if(model.palette) {
             for (var i in model.palette) {
+                if(!model.palette[i]) {
+                    console.log(i, model.palette[i])
+                }
                 palette.set(parseInt(i), {id: model.palette[i].id});
             }
         }
