@@ -146,6 +146,7 @@ export default class style {
         // Sunflower
         if (material.name == 'SUNFLOWER') {
             dy = 0;
+            flag = flag | QUAD_FLAGS.NO_CAN_TAKE_AO;
             if (block.extra_data.is_head) {
                 planes = SUNFLOWER_PLANES;
             } else {
