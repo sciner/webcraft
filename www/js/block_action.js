@@ -642,25 +642,16 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         };
     
         const pushBlock = (params) => {
-            // @todo only work block id = 19
-            if (params.item.id == 19) {
-                actions.addBlocks([params]);
+            optimizePushedItem(params.item);
+            actions.addBlocks([params]);
+            const block = BLOCK.fromId(params.item.id); 
+            if(block.next_part) {
+                // Если этот блок имеет "пару"
                 const next_params = JSON.parse(JSON.stringify(params));
-                next_params.item.extra_data.is_head = true;
-                next_params.pos = new Vector(next_params.pos).add(new Vector(0,1,0));
-                actions.addBlocks([next_params]);
-            } else {
-                optimizePushedItem(params.item);
-                actions.addBlocks([params]);
-                const block = BLOCK.fromId(params.item.id); 
-                if(block.next_part) {
-                    // Если этот блок имеет "пару"
-                    const next_params = JSON.parse(JSON.stringify(params));
-                    next_params.item.id = block.next_part.id;
-                    optimizePushedItem(next_params.item);
-                    next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
-                    pushBlock(next_params);
-                }
+                next_params.item.id = block.next_part.id;
+                optimizePushedItem(next_params.item);
+                next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
+                pushBlock(next_params);
             }
         };
     
@@ -858,6 +849,21 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
             */
             pushed_blocks.push({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
+            //
+            if(mat_block.name == 'SUNFLOWER') {
+                const next_params = {
+                    pos: new Vector(pos).addSelf(new Vector(0, 1, 0)),
+                    item: {
+                        id: new_item.id,
+                        extra_data: {
+                            is_head: true
+                        }
+                    },
+                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                };
+                pushed_blocks.push(next_params);
+            }
+            //
             for(let pb of pushed_blocks) {
                 pushBlock(pb);
             }
