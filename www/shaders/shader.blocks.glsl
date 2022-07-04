@@ -26,6 +26,7 @@
     #define NO_CAN_TAKE_AO 7
     #define QUAD_FLAG_OPACITY 8
     #define QUAD_FLAG_SDF 9
+    #define NO_CAN_TAKE_LIGHT 10
 #endif
 
 #ifdef global_uniforms
@@ -107,6 +108,7 @@
     out float v_noCanTakeAO;
     out float v_flagFlagOpacity;
     out float v_flagQuadSDF;
+    out float v_noCanTakeLight;
 
     //--
 #endif
@@ -130,6 +132,7 @@
     in float v_noCanTakeAO;
     in float v_flagFlagOpacity;
     in float v_flagQuadSDF;
+    in float v_noCanTakeLight;
 
     out vec4 outColor;
 #endif
@@ -254,12 +257,14 @@
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
     int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
     int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
+    int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     v_noCanTakeAO = float(flagNoCanTakeAO);
     v_flagFlagOpacity = float(flagFlagOpacity);
     v_flagQuadSDF = float(flagQuadSDF);
+    v_noCanTakeLight = float(flagNoCanTakeLight);
     //--
 #endif
 
