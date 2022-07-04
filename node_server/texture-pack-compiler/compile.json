@@ -19,6 +19,23 @@
     ],
     "blocks" : [
         {
+            "id": 19,
+            "name": "SUNFLOWER",
+            "style": "planting",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "north": "block/sunflower_front.png",
+                "south": "block/sunflower_back.png",
+                "up": "block/sunflower_bottom.png",
+                "down": "block/sunflower_top.png"
+            }, 
+            "extra_data": {
+                "is_head": false
+            }
+        },{
             "id": 202,
             "name": "STILL_WATER",
             "transparent": true,

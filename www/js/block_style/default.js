@@ -44,7 +44,12 @@ export default class style {
         // Matrix
         let matrix = mat4.create();
         if(plane.rot && !isNaN(plane.rot[0])) {
-            mat4.rotateY(matrix, matrix, plane.rot[1]);
+            if (plane.rot[1] != 0) {
+                mat4.rotateY(matrix, matrix, plane.rot[1]);
+            }
+            if (plane.rot[0] != 0) {
+                mat4.rotateX(matrix, matrix, plane.rot[0]);
+            }
         }
         if(plane.matrix) {
             matrix = mat4.multiply(matrix, matrix, plane.matrix);
