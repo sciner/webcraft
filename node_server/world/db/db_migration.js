@@ -467,6 +467,13 @@ export class DBWorldMigration {
             `UPDATE world_modify SET params = REPLACE(params,'"id":505','"id":1504');`
         ]});
 
+        migrations.push({version: 63, queries: [
+            `UPDATE world_modify SET block_id = 514, params = '{"id":514}', extra_data = '{"is_head": true}' WHERE block_id = 515;`,
+            `UPDATE world_modify SET block_id = 516, params = '{"id":516}', extra_data = '{"is_head": true}' WHERE block_id = 517;`,
+            `UPDATE world_modify SET block_id = 572, params = '{"id":572}', extra_data = '{"is_head": true}' WHERE block_id = 573;`,
+            `UPDATE world_modify SET block_id = 993, params = '{"id":993}', extra_data = '{"is_head": true}' WHERE block_id = 994;`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

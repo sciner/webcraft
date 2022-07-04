@@ -156,7 +156,7 @@ export default class Terrain_Generator extends Demo_Map {
                         plant_pos.y -= chunk.coord.y;
                         if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
                             chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
-                            chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS_TOP.id);
+                            chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS.id, null, {is_head: true});
                         } else {
                             const extra_data = plant.extra_data || null;
                             chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);

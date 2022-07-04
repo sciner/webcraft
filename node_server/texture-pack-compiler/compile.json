@@ -1470,36 +1470,15 @@
                 "texture": "block/peony_top.png"
             },
             "sound": "madcraft:block.grass",
-            "texture": "block/peony_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/peony_top.png",
+                "down": "block/peony_bottom.png"
+            },
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 515
             }
-        },
-        {
-            "id": 515,
-            "name": "PEONY_TOP",
-            "spawnable": false,
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "sound": "madcraft:block.grass",
-            "texture": "block/peony_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 514
-            },
-            "tags": [
-                "flower",
-                "no_drop"
-            ]
         },
         {
             "id": 516,
@@ -1512,38 +1491,16 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "halfs": {"up": 517},
-            "texture": "block/lilac_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/lilac_top.png",
+                "down": "block/lilac_bottom.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "flower"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 517
-            }
-        },
-        {
-            "id": 517,
-            "name": "LILAC_TOP",
-            "spawnable": false,
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "sound": "madcraft:block.grass",
-            "texture": "block/lilac_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 516
-            },
-            "tags": [
-                "flower",
-                "no_drop"
             ]
         },
         {
@@ -3269,39 +3226,22 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.75},
-            "texture": "block/tall_grass_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "inventory": {
+                "style": "extruder",
+                "texture": "block/tall_grass_top.png"
+            },
+            "texture": {
+                "up": "block/tall_grass_top.png",
+                "down": "block/tall_grass_bottom.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "no_drop",
                 "mask_biome"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 573
-            }
-        },
-        {
-            "id": 573,
-            "name": "TALL_GRASS_TOP",
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.grass",
-            "texture": "block/tall_grass_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "tags": [
-                "no_drop",
-                "mask_biome"
-            ],
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 572
-            }
+            ]
         },
         {
             "id": 574,
@@ -5038,39 +4978,22 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "texture": "block/large_fern_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/large_fern_top.png",
+                "down": "block/large_fern_bottom.png"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "block/large_fern_top.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "no_drop",
                 "mask_biome"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 994
-            }
-        },
-        {
-            "id": 994,
-            "name": "LARGE_FERN_TOP",
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.grass",
-            "texture": "block/large_fern_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "tags": [
-                "no_drop",
-                "mask_biome"
-            ],
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 993
-            }
+            ]
         },
         {
             "id": 1002,
@@ -6452,6 +6375,7 @@
             "name": "SUNFLOWER",
             "style": "planting",
             "transparent": true,
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "material": {
                 "id": "plant"
             },
@@ -6460,9 +6384,6 @@
                 "south": "block/sunflower_back.png",
                 "up": "block/sunflower_top.png",
                 "down": "block/sunflower_bottom.png"
-            }, 
-            "extra_data": {
-                "is_head": false
             }
         }
     ]

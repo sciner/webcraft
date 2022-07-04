@@ -88,7 +88,13 @@ export default class style {
 
         const material = block.material;
         const cardinal_direction = block.getCardinalDirection();
-        let texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+
+        // Get texture
+        let texture_dir = DIRECTION.DOWN;
+        if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+            texture_dir = DIRECTION.UP;
+        }
+        let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block);
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;

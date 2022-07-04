@@ -330,10 +330,14 @@ export class BLOCK {
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
         let is_slab = block.is_layering && block.layering.slab;
+        //
+        const setExtra = (k, v) => {
+            extra_data = extra_data || {};
+            extra_data[k] = v;
+        };
+        //
         if(is_trapdoor || is_stairs || is_door || is_slab) {
-            extra_data = {
-                point: pos.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0)
-            };
+            setExtra('point', pos.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0));
             // Trapdoor
             if(is_trapdoor) {
                 extra_data.opened = false;
@@ -373,9 +377,14 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        // is_chest
         if(block.is_chest) {
-            extra_data = extra_data || {};
-            Object.assign(extra_data, { can_destroy: true, slots: {} });
+            setExtra('can_destroy', true);
+            setExtra('slots', {});
+        }
+        // is_head
+        if(block.has_head) {
+            setExtra('is_head', false);
         }
         // if mushroom block
         if(block.is_mushroom_block && world) {
@@ -388,8 +397,7 @@ export class BLOCK {
             if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
             if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
             if(t != 0) {
-                extra_data = extra_data || {};
-                extra_data.t = t;
+                setExtra('t', t);
             }
         }
         return extra_data;
@@ -469,7 +477,7 @@ export class BLOCK {
         if(block_id == 0) {
             return true;
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id].indexOf(block_id) >= 0) {
             return true;
         }
         const mat = BLOCK.BLOCK_BY_ID[block_id];
@@ -618,7 +626,7 @@ export class BLOCK {
         block.is_layering       = !!block.layering;
         block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600].indexOf(block.id) >= 0;
         block.is_qube           = block.style == 'default' && !('width' in block) && !('height' in block)
-        block.is_grass          = ['GRASS', 'TALL_GRASS', 'TALL_GRASS_TOP'].indexOf(block.name) >= 0;
+        block.is_grass          = ['GRASS', 'TALL_GRASS'].indexOf(block.name) >= 0;
         block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM'].indexOf(block.name) >= 0;
         block.is_leaves         = block.tags.indexOf('leaves') >= 0;
         block.is_glass          = block.tags.indexOf('glass') >= 0 || (block.material.id == 'glass');

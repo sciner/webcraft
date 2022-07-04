@@ -160,6 +160,7 @@ export class CompileData {
                     "texture": "14|30"
                 },
                 "mask_color": mask_color,
+                "has_head": {"pos": {"x": 0, "y": 0, "z": 1}},
                 "tags": [
                     "bed",
                     "rotate_by_pos_n",
