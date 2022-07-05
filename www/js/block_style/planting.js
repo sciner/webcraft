@@ -10,8 +10,8 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 const {mat4} = glMatrix;
 
 const DEFAULT_PLANES = [
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
 ];
 
 const AGRICULTURE_PLANES = [
@@ -19,6 +19,13 @@ const AGRICULTURE_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": -4/12, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 4/12}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": -4/12}}
+];
+
+const SUNFLOWER_PLANES = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, -Math.PI / 8, 0], "move": {"x": 0.1, "y": 0, "z": 0}, "material": DIRECTION.NORTH},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, -Math.PI / 8, 0], "move": {"x": 0.098, "y": 0, "z": 0}, "material": DIRECTION.SOUTH}
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
@@ -81,7 +88,13 @@ export default class style {
 
         const material = block.material;
         const cardinal_direction = block.getCardinalDirection();
-        const texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+
+        // Get texture
+        let texture_dir = DIRECTION.DOWN;
+        if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+            texture_dir = DIRECTION.UP;
+        }
+        let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block);
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
@@ -134,10 +147,25 @@ export default class style {
         }
 
         // Planes
-        const planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : DEFAULT_PLANES);
+        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : DEFAULT_PLANES);
+
+        // Sunflower
+        if (material.name == 'SUNFLOWER') {
+            dy = 0;
+            flag = flag | QUAD_FLAGS.NO_CAN_TAKE_AO;
+            if (block.extra_data?.is_head) {
+                planes = SUNFLOWER_PLANES;
+            } else {
+                texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+            }
+        }
+        
         for(let i = 0; i < planes.length; i++) {
             const plane = planes[i];
             // fill object
+            if (!isNaN(plane.material)) {
+                texture = BLOCK.calcMaterialTexture(material, plane.material);
+            }
             _pl.size     = plane.size;
             _pl.uv       = plane.uv;
             _pl.rot      = plane.rot;

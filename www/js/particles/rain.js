@@ -208,7 +208,7 @@ export default class Particles_Rain {
 
         const vertices  = [];
         const lm        = new Color(RAIN_SPEED / 5, -RAIN_SPEED, 0);
-        const sideFlags = QUAD_FLAGS.TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_AO;
+        const sideFlags = QUAD_FLAGS.TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
         const pivot     = null;
         const matrix    = null;
 

@@ -1470,36 +1470,15 @@
                 "texture": "block/peony_top.png"
             },
             "sound": "madcraft:block.grass",
-            "texture": "block/peony_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/peony_top.png",
+                "down": "block/peony_bottom.png"
+            },
             "tags": ["flower"],
             "material": {
                 "id": "plant"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 515
             }
-        },
-        {
-            "id": 515,
-            "name": "PEONY_TOP",
-            "spawnable": false,
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "sound": "madcraft:block.grass",
-            "texture": "block/peony_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 514
-            },
-            "tags": [
-                "flower",
-                "no_drop"
-            ]
         },
         {
             "id": 516,
@@ -1512,38 +1491,16 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "halfs": {"up": 517},
-            "texture": "block/lilac_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/lilac_top.png",
+                "down": "block/lilac_bottom.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "flower"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 517
-            }
-        },
-        {
-            "id": 517,
-            "name": "LILAC_TOP",
-            "spawnable": false,
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "sound": "madcraft:block.grass",
-            "texture": "block/lilac_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 516
-            },
-            "tags": [
-                "flower",
-                "no_drop"
             ]
         },
         {
@@ -3269,39 +3226,22 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.75},
-            "texture": "block/tall_grass_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "inventory": {
+                "style": "extruder",
+                "texture": "block/tall_grass_top.png"
+            },
+            "texture": {
+                "up": "block/tall_grass_top.png",
+                "down": "block/tall_grass_bottom.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "no_drop",
                 "mask_biome"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 573
-            }
-        },
-        {
-            "id": 573,
-            "name": "TALL_GRASS_TOP",
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.grass",
-            "texture": "block/tall_grass_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "tags": [
-                "no_drop",
-                "mask_biome"
-            ],
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 572
-            }
+            ]
         },
         {
             "id": 574,
@@ -3318,42 +3258,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/birch_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/birch_door_top.png",
+                "down": "block/birch_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 575
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 575,
-            "name": "BIRCH_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/birch_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 574
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3372,42 +3287,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/oak_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/oak_door_top.png",
+                "down": "block/oak_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 577
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 577,
-            "name": "OAK_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/oak_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 576
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3426,42 +3316,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/acacia_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/acacia_door_top.png",
+                "down": "block/acacia_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 579
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 579,
-            "name": "ACACIA_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/acacia_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 578
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3480,42 +3345,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/spruce_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/spruce_door_top.png",
+                "down": "block/spruce_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 581
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 581,
-            "name": "SPRUCE_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/spruce_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 580
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3534,42 +3374,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/dark_oak_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/dark_oak_door_top.png",
+                "down": "block/dark_oak_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 583
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 583,
-            "name": "DARK_OAK_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/dark_oak_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 582
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3588,42 +3403,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/jungle_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/jungle_door_top.png",
+                "down": "block/jungle_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 585
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 585,
-            "name": "JUNGLE_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/jungle_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 584
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3642,42 +3432,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/warped_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/warped_door_top.png",
+                "down": "block/warped_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 587
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 587,
-            "name": "WARPED_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/warped_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 586
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3696,42 +3461,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/crimson_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/crimson_door_top.png",
+                "down": "block/crimson_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 589
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 589,
-            "name": "CRIMSON_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/crimson_door_top.png",
-            "material": {
-                "id": "wood"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 588
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -3750,42 +3490,17 @@
                 "door",
                 "no_drop_ao"
             ],
-            "texture": "block/iron_door_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/iron_door_top.png",
+                "down": "block/iron_door_bottom.png"
+            },
             "material": {
                 "id": "wood"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 591
             },
             "extra_data": {
                 "opened": false,
                 "left": false,
-                "point": {"x":0, "y":0, "z":0}
-            }
-        },
-        {
-            "id": 591,
-            "name": "IRON_DOOR_TOP",
-            "passable": 0,
-            "transparent": true,
-            "spawnable": false,
-            "style": "door",
-            "sound": "madcraft:block.wooden_trapdoor",
-            "tags": [
-                "door",
-                "no_drop_ao"
-            ],
-            "texture": "block/iron_door_top.png",
-            "material": {
-                "id": "iron"
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 590
-            },
-            "extra_data": {
-                "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             }
         },
@@ -5038,39 +4753,22 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "texture": "block/large_fern_bottom.png",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/large_fern_top.png",
+                "down": "block/large_fern_bottom.png"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "block/large_fern_top.png"
+            },
             "material": {
                 "id": "plant"
             },
             "tags": [
                 "no_drop",
                 "mask_biome"
-            ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 994
-            }
-        },
-        {
-            "id": 994,
-            "name": "LARGE_FERN_TOP",
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.grass",
-            "texture": "block/large_fern_top.png",
-            "material": {
-                "id": "plant"
-            },
-            "tags": [
-                "no_drop",
-                "mask_biome"
-            ],
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 993
-            }
+            ]
         },
         {
             "id": 1002,
@@ -6446,6 +6144,22 @@
             },
             "texture": "block/andesite.png",
             "can_rotate": true
+        },
+        {
+            "id": 19,
+            "name": "SUNFLOWER",
+            "style": "planting",
+            "transparent": true,
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "north": "block/sunflower_front.png",
+                "south": "block/sunflower_back.png",
+                "up": "block/sunflower_top.png",
+                "down": "block/sunflower_bottom.png"
+            }
         }
     ]
 }

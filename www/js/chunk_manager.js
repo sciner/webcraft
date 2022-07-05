@@ -640,7 +640,7 @@ export class ChunkManager {
         let all_blocks = BLOCK.getAll();
         const set_block_list = [];
         for(let mat of all_blocks) {
-            if(mat.deprecated || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || mat.style == 'extruder' || mat.style == 'text') {
+            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].indexOf(mat.style) >= 0) {
                 continue;
             }
             if(cnt % d == 0) {
@@ -650,8 +650,7 @@ export class ChunkManager {
             pos.x += 2;
             const item = {
                 id:         mat.id,
-                extra_data: null,
-                rotate:     mat.id
+                extra_data: null
             };
             if(mat.is_chest) {
                 item.extra_data = { can_destroy: true, slots: {} };
@@ -675,6 +674,21 @@ export class ChunkManager {
                 rotate:     item.rotate,
                 extra_data: item.extra_data
             });
+            if(mat.has_head) {
+                if(item.rotate) {
+                    item.rotate.x = 2;
+                }
+                const head_extra_data = {...item.extra_data};
+                head_extra_data.is_head = true;
+                set_block_list.push({
+                    pos:        pos.clone().addSelf(mat.has_head.pos),
+                    type:       item,
+                    is_modify:  false,
+                    power:      null,
+                    rotate:     item.rotate,
+                    extra_data: head_extra_data
+                });
+            }
             // this.setBlock(pos.x, pos.y, pos.z, mat, true, null, item.rotate, null, item.extra_data, ServerClient.BLOCK_ACTION_CREATE);
             cnt++;
         }

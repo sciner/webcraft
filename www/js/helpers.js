@@ -890,20 +890,22 @@ export class Vector {
     addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
-        dir = dir % 4;
         this.y += vec.y;
-        if(dir == DIRECTION.SOUTH) {
-            this.x -= vec.x * x_sign;
-            this.z -= vec.z * z_sign;
-        } else if(dir == DIRECTION.NORTH) {
-            this.x += vec.x * x_sign;
-            this.z += vec.z * z_sign;
-        } else if(dir == DIRECTION.WEST) {
-            this.z += vec.x * x_sign;
-            this.x -= vec.z * z_sign;
-        } else  if(dir == DIRECTION.EAST) {
-            this.z -= vec.x * x_sign;
-            this.x += vec.z * z_sign;
+        if(dir !== null) {
+            dir = dir % 4;
+            if(dir == DIRECTION.SOUTH) {
+                this.x -= vec.x * x_sign;
+                this.z -= vec.z * z_sign;
+            } else if(dir == DIRECTION.NORTH) {
+                this.x += vec.x * x_sign;
+                this.z += vec.z * z_sign;
+            } else if(dir == DIRECTION.WEST) {
+                this.z += vec.x * x_sign;
+                this.x -= vec.z * z_sign;
+            } else  if(dir == DIRECTION.EAST) {
+                this.z -= vec.x * x_sign;
+                this.x += vec.z * z_sign;
+            }
         }
         return this;
     }
@@ -939,6 +941,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
     QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
     QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
+    QUAD_FLAGS.NO_CAN_TAKE_LIGHT = 1 << 10;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

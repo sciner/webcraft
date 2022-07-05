@@ -62,9 +62,6 @@ export default class style {
         matrix = mat4.create();
         if(block.rotate) {
             let rot = block.rotate.x;
-            if(is_head) {
-                rot += 2;
-            }
             mat4.rotateY(matrix, matrix, ((rot % 4) / 4) * (2 * Math.PI));
         }
 

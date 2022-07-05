@@ -353,11 +353,26 @@ class DestroyBlocks {
                 }
             }
         }
-        // Удаляем второй блок кровати
-        if(block.material.tags.indexOf('bed') >= 0) {
-            const connected_pos = new Vector(pos).addByCardinalDirectionSelf(new Vector(0, 0, 1), block.rotate.x + 2);
-            let block_connected = world.getBlock(connected_pos);
-            this.add(block_connected, connected_pos, true);
+        // Удаляем второй блок (кровати, высокая трава и высокие цветы)
+        if(block.material.has_head) {
+            const head_pos = new Vector(block.material.has_head.pos);
+            const connected_pos = new Vector(pos);
+            if(block.rotate && head_pos.z) {
+                let rot = block.rotate.x;
+                if(!block.extra_data.is_head) {
+                    rot += 2;
+                }
+                connected_pos.addByCardinalDirectionSelf(head_pos, rot);
+            } else {
+                if(block.extra_data?.is_head) {
+                    head_pos.multiplyScalar(-1);
+                }
+                connected_pos.addSelf(head_pos);
+            }
+            const block_connected = world.getBlock(connected_pos);
+            if(block_connected.id == block.id) {
+                this.add(block_connected, connected_pos, true);
+            }
         }
         // Destroy chain blocks to down
         if(block.material.destroy_to_down) {
@@ -626,32 +641,6 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 4. Create
     if(e.createBlock) {
-
-        const optimizePushedItem = (item) => {
-            if('extra_data' in item && !item.extra_data) {
-                delete(item.extra_data);
-            }
-            if('rotate' in item) {
-                const block = BLOCK.fromId(item.id);
-                if(!block.can_rotate) {
-                    delete(item.rotate);
-                }
-            }
-        };
-    
-        const pushBlock = (params) => {
-            optimizePushedItem(params.item);
-            actions.addBlocks([params]);
-            const block = BLOCK.fromId(params.item.id);
-            if(block.next_part) {
-                // Если этот блок имеет "пару"
-                const next_params = JSON.parse(JSON.stringify(params));
-                next_params.item.id = block.next_part.id;
-                optimizePushedItem(next_params.item);
-                next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
-                pushBlock(next_params);
-            }
-        };
     
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
@@ -737,63 +726,17 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         }
 
-        // 7. Проверка места, куда игрок пытается установить блок(и)
-        let new_pos = new Vector(pos);
-        const check_poses = [new_pos];
-        // Если этот блок имеет "пару"
-        if(mat_block.next_part) {
-            let offset = mat_block.next_part.offset_pos;
-            let next = BLOCK.fromId(mat_block.next_part.id);
-            while(next) {
-                new_pos = new_pos.add(offset);
-                check_poses.push(new_pos);
-                if(next.next_part) {
-                    offset = next.next_part.offset_pos;
-                    next = BLOCK.fromId(next.next_part.id);
-                } else {
-                    next = null;
-                }
-            }
-        }
-
-        // Если этот блок кровать
-        const pushed_blocks = [];
-        if(mat_block.tags.indexOf('bed') >= 0) {
-            const new_rotate = orientation.add(new Vector(2, 0, 0));
-            new_rotate.x %= 4;
-            const next_block = {
-                pos: new_pos.clone().addByCardinalDirectionSelf(new Vector(0, 0, 1), orientation.x + 2),
-                item: {
-                    id: mat_block.id,
-                    rotate: new_rotate,
-                    extra_data: {is_head: true}
-                },
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            };
-            pushed_blocks.push(next_block);
-            check_poses.push(next_block.pos);
-        }
-
-        // Проверяем, что все блоки можем установить
-        for(let cp of check_poses) {
-            const cp_block = world.getBlock(cp);
-            if(!BLOCK.canReplace(cp_block.id, cp_block.extra_data, mat_block.id)) {
-                actions.error = 'error_block_cannot_be_replace';
-                return actions;
-            }
-        }
-
-        // 8. Некоторые блоки можно ставить только на что-то сверху
+        // 7. Некоторые блоки можно ставить только на что-то сверху
         if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
             return actions;
         }
 
-        // 9. Некоторые блоки можно только подвешивать только на потолок
+        // 8. Некоторые блоки можно только подвешивать только на потолок
         if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
             return actions;
         }
 
-        // 11. Запрет на списание инструментов как блоков
+        // 9. Запрет на списание инструментов как блоков
         if(mat_block.item) {
             // Use intruments
             for(let func of [useShovel, useHoe]) {
@@ -833,32 +776,110 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     args: {pos: new Vector(pos)}
                 };
             }
-            /*
-            // Destroy connected part when replace
-            if(replaceBlock && world_material.next_part) {
-                const part = world_material.next_part;
-                if(part) {
-                    const connected_pos = new Vector(pos).add(part.offset_pos);
-                    const block_connected = world.getBlock(connected_pos);
-                    if(block_connected.id == part.id) {
-                        destroyBlocks.add(block_connected, pos);
-                    }
+            //
+            if(setActionBlock(actions, world, new Vector(pos), orientation, mat_block, new_item)) {
+                if(mat_block.sound) {
+                    actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                 }
+                actions.decrement = true;
+                actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
             }
-            */
-            pushed_blocks.push({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
-            for(let pb of pushed_blocks) {
-                pushBlock(pb);
-            }
-            if(mat_block.sound) {
-                actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
-            }
-            actions.decrement = true;
-            actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
         }
         return actions;
     }
 
+}
+
+// Set action block
+function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
+    const pushed_blocks = [];
+    const pushed_poses = new VectorCollector();
+    const pushBlock = (params) => {
+        if(pushed_poses.has(params.pos)) {
+            return false;
+        }
+        const optimizePushedItem = (item) => {
+            if('extra_data' in item && !item.extra_data) {
+                delete(item.extra_data);
+            }
+            if('rotate' in item) {
+                const block = BLOCK.fromId(item.id);
+                if(!block.can_rotate) {
+                    delete(item.rotate);
+                }
+            }
+        };
+        optimizePushedItem(params.item);
+        pushed_blocks.push(params);
+        pushed_poses.set(params.pos, true);
+        const block = BLOCK.fromId(params.item.id); 
+        if(block.next_part) {
+            // Если этот блок имеет "пару"
+            const next_params = JSON.parse(JSON.stringify(params));
+            next_params.item.id = block.next_part.id;
+            optimizePushedItem(next_params.item);
+            next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
+            pushBlock(next_params);
+        }
+    };
+    //
+    pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
+    // Установить головной блок, если устанавливаемый блок двух-блочный
+    if(mat_block.has_head) {
+        // const new_rotate = orientation.add(new Vector(2, 0, 0));
+        const new_rotate = orientation.clone();
+        new_rotate.x %= 4;
+        const next_block = {
+            pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
+            item: {
+                id: mat_block.id,
+                rotate: new_rotate,
+                extra_data: {is_head: true}
+            },
+            action_id: ServerClient.BLOCK_ACTION_CREATE
+        };
+        pushBlock(next_block);
+    }
+    // Проверяем, что все блоки можем установить
+    for(let pb of pushed_blocks) {
+        const pb_block = world.getBlock(pb.pos);
+        // Если блок не заменяемый, то ничего не устанавливаем вообще
+        if(!BLOCK.canReplace(pb_block.id, pb_block.extra_data, mat_block.id)) {
+            actions.error = 'error_block_cannot_be_replace';
+            return false;
+        }
+        // Если блок заменяемый, то проверяем и удаляем его пару (при наличии)
+        if(pb_block.material.has_head) {
+            const connected_pos = new Vector(pb.pos);
+            const head_pos = new Vector(pb_block.material.has_head.pos);
+            if(head_pos.z) {
+                connected_pos.addByCardinalDirectionSelf(head_pos, pb_block.rotate.x + 2);
+            } else {
+                if(pb_block.extra_data?.is_head) {
+                    head_pos.multiplyScalar(-1);
+                }
+                connected_pos.addSelf(head_pos);
+            }
+            const connected_block = world.getBlock(connected_pos);
+            if(connected_block.id == pb_block.id) {
+                // если это не один из установленныъ только что блоков
+                if(!pushed_poses.has(connected_pos)) {
+                    // затираем блок-пару
+                    const clear_block = {
+                        pos: connected_pos,
+                        item: {id: 0},
+                        action_id: ServerClient.BLOCK_ACTION_CREATE
+                    };
+                    pushBlock(clear_block);
+                }
+            }
+        }
+    }
+    // Add blocks to actions
+    for(let pb of pushed_blocks) {
+        actions.addBlocks([pb]);
+    }
+    return true;
 }
 
 // Если ткнули на предмет с собственным окном
@@ -1170,14 +1191,16 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
     actions.reset_target_pos = true;
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     // Если блок имеет пару (двери)
-    for(let cn of ['next_part', 'previous_part']) {
-        let part = world_material[cn];
-        if(part) {
-            let connected_pos = new Vector(pos).add(part.offset_pos);
-            let block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == part.id) {
-                actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-            }
+    if(world_material.has_head) {
+        const head_pos = new Vector(world_material.has_head.pos);
+        if(extra_data.is_head) {
+            head_pos.multiplyScalar(-1);
+        }
+        const connected_pos = new Vector(pos).addSelf(head_pos);
+        const block_connected = world.getBlock(connected_pos);
+        if(block_connected.id == world_material.id) {
+            block_connected.extra_data.opened = extra_data.opened;
+            actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: block_connected.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         }
     }
     return true;

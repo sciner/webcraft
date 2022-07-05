@@ -234,7 +234,7 @@ export class  BIOMES {
                     {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.01, ...TREES.SPRUCE, height: {min: 6, max: 24}},
                     {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
-                    {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN_TOP.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.681, ...TREES.SPRUCE, height: {min: 6, max: 11}}
                 ]
             },
@@ -333,7 +333,8 @@ export class  BIOMES {
                     {percent: .025, block: {id: BLOCK.CORNFLOWER.id}},
                     {percent: .025, block: {id: BLOCK.DANDELION.id}},
                     {percent: .015, block: {id: BLOCK.PUMPKIN.id}},
-                    {percent: .025, trunk: BLOCK.LILAC.id, leaves: BLOCK.LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
+                    {percent: .011, block: [{id: BLOCK.PEONY.id}, {id: BLOCK.PEONY.id, extra_data: {is_head: true}}]},
+                    {percent: .014, block: [{id: BLOCK.LILAC.id}, {id: BLOCK.LILAC.id, extra_data: {is_head: true}}]}
                 ]
             },
             trees:      {

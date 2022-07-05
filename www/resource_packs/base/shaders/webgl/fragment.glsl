@@ -94,11 +94,12 @@ void main() {
             }
         }
 
-        if(v_noCanTakeAO == 0.) {
+        if(v_noCanTakeLight == 0.) {
             #include<local_light_pass>
             #include<ao_light_pass>
-            #include<sun_light_pass>
-
+            if(v_noCanTakeAO == .0) {
+                #include<sun_light_pass>
+            }
             // Apply light
             color.rgb *= light;
         }
