@@ -522,7 +522,7 @@ export class DBWorldMigration {
             `UPDATE world_modify SET block_id = 514, params = '{"id":514}', extra_data = '{"is_head": true}' WHERE block_id = 515;`,
             `UPDATE world_modify SET block_id = 516, params = '{"id":516}', extra_data = '{"is_head": true}' WHERE block_id = 517;`,
             `UPDATE world_modify SET block_id = 572, params = '{"id":572}', extra_data = '{"is_head": true}' WHERE block_id = 573;`,
-            `UPDATE world_modify SET block_id = 993, params = '{"id":993}', extra_data = '{"is_head": true}' WHERE block_id = 994;`
+            `UPDATE world_modify SET block_id = 993, params = '{"id":993}', extra_data = '{"is_head": true}' WHERE block_id = 994;`,
             `UPDATE world_modify SET block_id = 574, params = replace(params, '"id":575', '"id":574'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 575;`,
             `UPDATE world_modify SET block_id = 576, params = replace(params, '"id":577', '"id":576'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 577;`,
             `UPDATE world_modify SET block_id = 578, params = replace(params, '"id":579', '"id":578'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 579;`,
