@@ -358,7 +358,11 @@ class DestroyBlocks {
             const head_pos = new Vector(block.material.has_head.pos);
             const connected_pos = new Vector(pos);
             if(block.rotate && head_pos.z) {
-                connected_pos.addByCardinalDirectionSelf(head_pos, block.rotate.x + 2);
+                let rot = block.rotate.x;
+                if(!block.extra_data.is_head) {
+                    rot += 2;
+                }
+                connected_pos.addByCardinalDirectionSelf(head_pos, rot);
             } else {
                 if(block.extra_data?.is_head) {
                     head_pos.multiplyScalar(-1);
@@ -822,7 +826,8 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     pushBlock({pos: new Vector(pos), item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
     if(mat_block.has_head) {
-        const new_rotate = orientation.add(new Vector(2, 0, 0));
+        // const new_rotate = orientation.add(new Vector(2, 0, 0));
+        const new_rotate = orientation.clone();
         new_rotate.x %= 4;
         const next_block = {
             pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
@@ -1186,14 +1191,16 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
     actions.reset_target_pos = true;
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     // Если блок имеет пару (двери)
-    for(let cn of ['next_part', 'previous_part']) {
-        let part = world_material[cn];
-        if(part) {
-            let connected_pos = new Vector(pos).add(part.offset_pos);
-            let block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == part.id) {
-                actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-            }
+    if(world_material.has_head) {
+        const head_pos = new Vector(world_material.has_head.pos);
+        if(extra_data.is_head) {
+            head_pos.multiplyScalar(-1);
+        }
+        const connected_pos = new Vector(pos).addSelf(head_pos);
+        const block_connected = world.getBlock(connected_pos);
+        if(block_connected.id == world_material.id) {
+            block_connected.extra_data.opened = extra_data.opened;
+            actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: block_connected.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         }
     }
     return true;

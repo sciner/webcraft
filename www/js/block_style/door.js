@@ -34,6 +34,7 @@ export default class style {
             debugger;
         }
 
+        const material              = block.material;
         let texture                 = block.material.texture;
         let opened                  = block.extra_data.opened;
 
@@ -78,9 +79,14 @@ export default class style {
             };
         }
 
-        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
-        let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+        // Get texture
+        let texture_dir = DIRECTION.DOWN;
+        if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+            texture_dir = DIRECTION.UP;
+        }
+        let tex_up_down = BLOCK.calcTexture(texture, texture_dir);
+        let tex_front  = BLOCK.calcTexture(texture, texture_dir);
+        let tex_side = BLOCK.calcTexture(texture, texture_dir);
         let x_pos = 0;
         let z_pos = 0;
         let y_pos = 0; // нарисовать в нижней части блока

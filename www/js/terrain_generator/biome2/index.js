@@ -150,16 +150,24 @@ export default class Terrain_Generator extends Demo_Map {
                     plant_pos.x = x;
                     plant_pos.z = z;
                     plant_pos.y = value;
-                    const plant = map.plants.get(plant_pos);
-                    if(plant) {
-                        const block_id = plant.id;
-                        plant_pos.y -= chunk.coord.y;
-                        if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                            chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
-                            chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS.id, null, {is_head: true});
+                    const plants = map.plants.get(plant_pos);
+                    if(plants) {
+                        if(Array.isArray(plants)) {
+                            for(let i = 0; i < plants.length; i++) {
+                                const plant = plants[i];
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y - chunk.coord.y + i, plant_pos.z, plant.id, null, plant.extra_data || null);
+                            }
                         } else {
-                            const extra_data = plant.extra_data || null;
-                            chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);
+                            const plant = plants;
+                            const block_id = plant.id;
+                            plant_pos.y -= chunk.coord.y;
+                            if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS.id, null, {is_head: true});
+                            } else {
+                                const extra_data = plant.extra_data || null;
+                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);
+                            }
                         }
                     }
                 }

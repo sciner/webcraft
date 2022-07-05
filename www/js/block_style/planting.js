@@ -153,7 +153,7 @@ export default class style {
         if (material.name == 'SUNFLOWER') {
             dy = 0;
             flag = flag | QUAD_FLAGS.NO_CAN_TAKE_AO;
-            if (block.extra_data.is_head) {
+            if (block.extra_data?.is_head) {
                 planes = SUNFLOWER_PLANES;
             } else {
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);

@@ -474,6 +474,22 @@ export class DBWorldMigration {
             `UPDATE world_modify SET block_id = 993, params = '{"id":993}', extra_data = '{"is_head": true}' WHERE block_id = 994;`
         ]});
 
+        migrations.push({version: 64, queries: [
+            `UPDATE world_modify SET block_id = 574, params = replace(params, '"id":575', '"id":574'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 575;`,
+            `UPDATE world_modify SET block_id = 576, params = replace(params, '"id":577', '"id":576'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 577;`,
+            `UPDATE world_modify SET block_id = 578, params = replace(params, '"id":579', '"id":578'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 579;`,
+            `UPDATE world_modify SET block_id = 580, params = replace(params, '"id":581', '"id":580'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 581;`,
+            `UPDATE world_modify SET block_id = 582, params = replace(params, '"id":583', '"id":582'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 583;`,
+            `UPDATE world_modify SET block_id = 584, params = replace(params, '"id":585', '"id":584'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 585;`,
+            `UPDATE world_modify SET block_id = 586, params = replace(params, '"id":587', '"id":586'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 587;`,
+            `UPDATE world_modify SET block_id = 588, params = replace(params, '"id":589', '"id":588'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 589;`,
+            `UPDATE world_modify SET block_id = 590, params = replace(params, '"id":591', '"id":590'), extra_data = replace(extra_data, '"point":', '"is_head": true, "point":') WHERE block_id = 591;`
+        ]});
+
+        migrations.push({version: 65, queries: [
+            `UPDATE world_modify SET params = json_set(params, '$.rotate.x', json_extract(params, '$.rotate.x') + 2 % 4) WHERE block_id BETWEEN 1200 and 1215 AND json_extract(extra_data, '$.is_head')`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
