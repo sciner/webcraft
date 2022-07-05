@@ -2576,7 +2576,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/birch_log_top.png",
@@ -2595,7 +2595,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/oak_log_top.png",
@@ -2614,7 +2614,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/acacia_log_top.png",
@@ -2633,7 +2633,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/spruce_log_top.png",
@@ -2652,7 +2652,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/dark_oak_log_top.png",
@@ -2671,7 +2671,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/jungle_log_top.png",
@@ -3911,7 +3911,10 @@
             "style": "painting",
             "inventory": {
                 "style": "extruder",
-                "texture": "item/painting.png"
+                "texture": {
+                    "id": "default",
+                    "image": "item/painting.png"
+                }
             },
             "height": 0.125,
             "transparent": true,
@@ -5279,7 +5282,7 @@
             "fuel_time": 16,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5298,7 +5301,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5317,7 +5320,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5336,7 +5339,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5355,7 +5358,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5374,7 +5377,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -5393,7 +5396,7 @@
             "can_rotate": true,
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "material": {
                 "id": "wood"
@@ -6123,7 +6126,7 @@
             },
             "tags": [
                 "can_put_info_pot",
-                "rotate_by_pos_n_plus"
+                "rotate_by_pos_n_xyz"
             ],
             "texture": {
                 "up": "block/bone_block_top.png",

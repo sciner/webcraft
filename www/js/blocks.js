@@ -639,8 +639,8 @@ export class BLOCK {
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
-        // rotate_by_pos_n_plus
-        if(block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
+        // rotate_by_pos_n_xyz
+        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0) {
             block.tags.push('rotate_by_pos_n');
         }
         //
@@ -768,7 +768,7 @@ export class BLOCK {
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
     static calcMaterialTexture(material, dir, width, height, block, force_tex) {
-        const tx_cnt = material.tx_cnt;
+        const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
         let texture = force_tex || material.texture;
         // Stages
         if(block && material.stage_textures && block && block.extra_data) {

@@ -1,7 +1,6 @@
 import {Vector} from '../helpers.js';
 import { NetworkPhysicObject } from '../network_physic_object.js';
 import { MeshGroup, FakeTBlock } from '../mesh/group.js';
-import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../vendors/prismarine-physics/using.js";
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();

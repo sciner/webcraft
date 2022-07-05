@@ -353,7 +353,7 @@ class DestroyBlocks {
                 }
             }
         }
-        // Удаляем второй блок (кровати, высокая трава и высокие цветы)
+        // Удаляем второй блок (кровати, двери, высокая трава и высокие цветы)
         if(block.material.has_head) {
             const head_pos = new Vector(block.material.has_head.pos);
             const connected_pos = new Vector(pos);
@@ -578,7 +578,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     let world_block         = world.getBlock(pos);
     let world_material      = world_block && world_block.id > 0 ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
-    let rotate              = world_block ? world_block.rotate : null;
+    let world_block_rotate  = world_block ? world_block.rotate : null;
 
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
@@ -589,7 +589,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 1. Change extra data
     if(e.changeExtraData) {
         for(let func of [editSign]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, rotate, null, actions)) {
+            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, world_block.extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
         }
@@ -605,7 +605,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
             for(let func of [removeFromPot]) {
-                if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, rotate, null, actions)) {
+                if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
             }
@@ -652,9 +652,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             return actions;
         }
 
-        // 1. Проверка выполняемых действий с блоками в мире
+        // Проверка выполняемых действий с блоками в мире
         for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle]) {
-            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, null, actions)) {
+            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
         }
@@ -664,112 +664,100 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             return actions;
         }
 
-        // 2. Проверка выполняемых действий с блоками в мире
+        // Проверка выполняемых действий с блоками в мире
         for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop]) {
-            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, null, actions)) {
+            if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
         }
 
-        // rotate_by_pos_n
-        let orientation = null;
-        if(mat_block.tags.indexOf('rotate_by_pos_n') >= 0) {
-            orientation = calcRotateByPosN(player.rotate, pos.n);
-            if(mat_block.tags.indexOf('rotate_by_pos_n_plus') >= 0) {
-                if(orientation.x < 0) orientation.x *= -1;
-                if(orientation.y < 0) orientation.y *= -1;
-                if(orientation.z < 0) orientation.z *= -1;
-                // 7+18; 13+22
-                if(orientation.x == 18) orientation.x = 7;
-                if(orientation.x == 22) orientation.x = 13;
-            }
-        } else {
-            orientation = calcRotate(player.rotate, pos.n);
-        }
-
-        // 5.
-        const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
-        if(replaceBlock) {
-            if(world_material.previous_part || world_material.next_part || current_inventory_item.style == 'ladder') {
-                return actions;
-            }
-            pos.n.x = 0;
-            pos.n.y = 1;
-            pos.n.z = 0;
-            orientation = calcRotateByPosN(player.rotate, pos.n);
-        } else {
-            if(await increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, null, actions)) {
-                return actions;
-            }
-            pos.x += pos.n.x;
-            pos.y += pos.n.y;
-            pos.z += pos.n.z;
-            const block_on_posn = world.getBlock(pos);
-            // Запрет установки блока, если на позиции уже есть другой блок
-            if(!block_on_posn.canReplace()) {
-                return actions;
-            }
-        }
-
-        // 6. Запрет установки блока на блоки, которые занимает игрок
-        if(!mat_block.passable > 0) {
-            _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
-            if(_createBlockAABB.intersect({
-                x_min: player.pos.x - player.radius / 2,
-                x_max: player.pos.x - player.radius / 2 + player.radius,
-                y_min: player.pos.y,
-                y_max: player.pos.y + player.height,
-                z_min: player.pos.z - player.radius / 2,
-                z_max: player.pos.z - player.radius / 2 + player.radius
-            })) {
-                return actions;
-            }
-        }
-
-        // 7. Некоторые блоки можно ставить только на что-то сверху
-        if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
-            return actions;
-        }
-
-        // 8. Некоторые блоки можно только подвешивать только на потолок
-        if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
-            return actions;
-        }
-
-        // 9. Запрет на списание инструментов как блоков
+        // Другие действия с инструментами
         if(mat_block.item) {
             // Use intruments
             for(let func of [useShovel, useHoe]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replaceBlock, actions)) {
+                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions)) {
                     return actions;
                 }
             }
         } else {
+
+            // Calc orientation
+            let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+    
+            // Check if replace
+            const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
+            if(replaceBlock) {
+                if(world_material.previous_part || world_material.next_part || current_inventory_item.style == 'ladder') {
+                    return actions;
+                }
+                pos.n.x = 0;
+                pos.n.y = 1;
+                pos.n.z = 0;
+                orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+            } else {
+                if(await increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                    return actions;
+                }
+                pos.x += pos.n.x;
+                pos.y += pos.n.y;
+                pos.z += pos.n.z;
+                const block_on_posn = world.getBlock(pos);
+                // Запрет установки блока, если на позиции уже есть другой блок
+                if(!block_on_posn.canReplace()) {
+                    return actions;
+                }
+            }
+    
+            // Запрет установки блока на блоки, которые занимает игрок
+            if(!mat_block.passable > 0) {
+                _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
+                if(_createBlockAABB.intersect({
+                    x_min: player.pos.x - player.radius / 2,
+                    x_max: player.pos.x - player.radius / 2 + player.radius,
+                    y_min: player.pos.y,
+                    y_max: player.pos.y + player.height,
+                    z_min: player.pos.z - player.radius / 2,
+                    z_max: player.pos.z - player.radius / 2 + player.radius
+                })) {
+                    return actions;
+                }
+            }
+    
+            // Некоторые блоки можно ставить только на что-то сверху
+            if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
+                return actions;
+            }
+    
+            // Некоторые блоки можно только подвешивать на потолок
+            if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
+                return actions;
+            }
+
             // Create block
             const new_item = {
-                id: mat_block.id
+                id: mat_block.id,
+                rotate: orientation
             };
-            for(const prop of ['entity_id', 'extra_data', 'power', 'rotate']) {
+            for(const prop of ['entity_id', 'extra_data', 'power']) {
                 if(prop in current_inventory_item) {
                     new_item[prop] = current_inventory_item[prop];
                 }
             }
-            new_item.rotate = orientation;
-            new_item.extra_data = new_item.extra_data || BLOCK.makeExtraData(mat_block, pos, orientation, world);
+            new_item.extra_data = new_item.extra_data || BLOCK.makeExtraData(mat_block, pos, new_item.rotate, world);
             // If painting
             if(mat_block.id == BLOCK.PAINTING.id) {
                 new_item.extra_data = await createPainting(e, world, pos);
             }
-            // Ограничения материалов
+            // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replaceBlock, actions)) {
+                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions)) {
                     return actions;
                 }
             }
             // Auto open edit window if sign
             if(mat_block.tags.indexOf('sign') >= 0) {
-                if(orientation.y != 0) {
-                    orientation.x = player.rotate.z / 90;
+                if(new_item.rotate.y != 0) {
+                    new_item.rotate.x = player.rotate.z / 90;
                 }
                 actions.open_window = {
                     id: 'frmEditSign',
@@ -777,7 +765,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 };
             }
             //
-            if(setActionBlock(actions, world, new Vector(pos), orientation, mat_block, new_item)) {
+            if(setActionBlock(actions, world, new Vector(pos), new_item.rotate, mat_block, new_item)) {
                 if(mat_block.sound) {
                     actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
                 }
@@ -785,10 +773,27 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
             }
         }
+
         return actions;
     }
 
 }
+
+//
+function calcBlockOrientation(mat_block, rotate, n) {
+    let resp = null;
+    if(mat_block.tags.indexOf('rotate_by_pos_n') >= 0) {
+        resp = calcRotateByPosN(rotate, n);
+        if(mat_block.tags.indexOf('rotate_by_pos_n_xyz') >= 0) {
+            if(resp.y) resp.set(0, 1, 0);
+            if(resp.x == 18) resp.set(7, 0, 0);
+            if(resp.x == 22) resp.set(13, 0, 0);
+        }
+    } else {
+        resp = calcRotate(rotate, n);
+    }
+    return resp;
+};
 
 // Set action block
 function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
@@ -834,7 +839,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
             item: {
                 id: mat_block.id,
                 rotate: new_rotate,
-                extra_data: {is_head: true}
+                extra_data: {...new_item.extra_data, is_head: true}
             },
             action_id: ServerClient.BLOCK_ACTION_CREATE
         };

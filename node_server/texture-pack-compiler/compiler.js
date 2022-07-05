@@ -236,9 +236,15 @@ export class Compiler {
 
                 // inventory icon
                 if(block?.inventory?.texture) {
-                    const spritesheet = this.getSpritesheet('default');
-                    const value = block.inventory.texture;
+                    let spritesheet_id = 'default';
+                    let value = block.inventory.texture;
                     let tex = null;
+                    if(typeof value == 'object' && 'image' in value && 'id' in value) {
+                        spritesheet_id = value.id;
+                        value = value.image;
+                    }
+                    //
+                    const spritesheet = this.getSpritesheet(spritesheet_id);
                     if(value.indexOf('|') >= 0) {
                         const pos_arr = value.split('|');
                         tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
@@ -250,7 +256,11 @@ export class Compiler {
                             spritesheet.drawImage(img, tex.pos.x, tex.pos.y);
                         }
                     }
-                    block.inventory.texture = [tex.pos.x, tex.pos.y];
+                    block.inventory.texture = {
+                        id: spritesheet_id,
+                        tx_cnt: spritesheet.tx_cnt,
+                        side: [tex.pos.x, tex.pos.y]
+                    }
                 }
 
                 // stage textures (eg. seeds)
