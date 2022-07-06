@@ -262,8 +262,12 @@ export class SchematicReader {
                 } else if(props.type == 'bottom') {
                     setExtraData('point', {x: 0, y: 0.1, z: 0});
                 } else if(props.type == 'double') {
-                    const double_block = BLOCK.fromName(b.layering.full_block_name);
+                    const double_block = b.layering.full_block_name ? BLOCK.fromName(b.layering.full_block_name) : b;
                     new_block = {id: double_block.id};
+                    if(double_block.layering) {
+                        setExtraData('height', 1);
+                        setExtraData('point', new Vector(0, 0, 0));
+                    }
                 }
             }
             // sign
