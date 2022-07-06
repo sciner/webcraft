@@ -953,6 +953,8 @@ export class BLOCK {
                 block.material.style == 'wall' ||
                 block.material.style == 'pane' ||
                 block.material.style == 'fence'
+            ) && (
+                block.material.material.id != 'leaves'
             );
     }
 

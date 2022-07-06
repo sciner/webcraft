@@ -29,6 +29,7 @@ export class SchematicReader {
         // each all blocks
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
+            bpos.z *= -1;
             let name = this.parseBlockName(block);
             if(name == 'AIR') {
                 return;
@@ -39,6 +40,9 @@ export class SchematicReader {
                 new_block = this.createBlockFromSchematic(block, b);
             } else {
                 if(name.indexOf('POTTED_') === 0) {
+                    // POTTED_PINK_TULIP - ALLIUM
+                    // POTTED_WITHER_ROSE - LILY OF THE VALEY
+                    console.log(block)
                     const in_pot_block_name = name.substring(7);
                     const in_pot_block = BLOCK.fromName(in_pot_block_name);
                     if(in_pot_block && in_pot_block.id > 0) {
@@ -136,70 +140,100 @@ export class SchematicReader {
                         let x = facings[props.facing] || 0;
                         new_block.rotate.x = x;
                     } else {
-                        const facings = ['south', 'west', 'north', 'east'];
+                        const facings = ['north', 'west', 'south', 'east'];
                         new_block.rotate = new Vector(0, 0, 0);
                         new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
                     }
                     return new_block;
                 }
             }
-            // rotate
-            if(new_block.rotate && 'facing' in props) {
-                const facings = ['south', 'west', 'north', 'east'];
-                new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
-                if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
-                    new_block.rotate.x = (new_block.rotate.x + 2) % 4;
-                }
-            }
-            // trapdoors and doors
-            if(new_block.rotate && 'half' in props) {
-                if(props.half == 'top') {
-                    setExtraData('point', {x: 0, y: 0.9, z: 0});
-                } else if(props.half == 'bottom') {
-                    setExtraData('point', {x: 0, y: 0.1, z: 0});
-                } else if(props.half == 'upper') {
-                    new_block.id++;
-                    setExtraData('point', {x: 0, y: 0.9, z: 0});
-                }
-            }
-            if('open' in props) {
-                setExtraData('opened', props.open);
-            }
-            if('hinge' in props) {
-                setExtraData('left', props.hinge == 'left');
-            }
-            // lantern
+            // lantern (подвешен)
             if('hanging' in props) {
                 if(!new_block.rotate) {
                     new_block.rotate = {x: 0, y: 0.9, z: 0};
                 }
                 new_block.rotate.y = props.hanging ? -1 : 1;
             }
+            //
+            if('open' in props) {
+                setExtraData('opened', props.open);
+            }
+            // петли
+            if('hinge' in props) {
+                setExtraData('left', props.hinge == 'left');
+            }
+            // rotate
+            if(new_block.rotate) {
+                // wesn
+                if('west' in props && 'east' in props && 'south' in props && 'north' in props) {
+                    // vine
+                    if(b.name == 'VINE') {
+                        // _properties: { west: false, up: false, south: false, north: true, east: false }
+                        const facings = ['north', 'west', 'south', 'east'/*, 'up'*/];
+                        new_block.rotate = new Vector(0, 0, 0);
+                        for(let f of facings) {
+                            if(f in props && props[f]) {
+                                new_block.rotate.x = (facings.indexOf(f) + 2) % 4;
+                            }
+                        }
+                    } else {
+                        // _properties: { west: true, waterlogged: false, south: false, north: false, east: true }
+                        const facings = ['north', 'west', 'south', 'east'/*, 'up'*/];
+                        new_block.rotate = new Vector(0, 0, 0);
+                        for(let f of facings) {
+                            if(f in props && props[f]) {
+                                new_block.rotate.x = (facings.indexOf(f) + 1) % 4;
+                            }
+                        }
+                    }
+                }
+                // facing
+                if('facing' in props) {
+                    const facings = ['north', 'west', 'south', 'east'];
+                    new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
+                    if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
+                        new_block.rotate.x = (new_block.rotate.x + 2) % 4;
+                    }
+                }
+            }
+            // trapdoors and doors
+            // top|bottom|lower|upper
+            if('half' in props) {
+                switch(props.half) {
+                    case 'top': {
+                        setExtraData('point', {x: 0, y: 0.9, z: 0});
+                        break;
+                    }
+                    case 'bottom': {
+                        if(b.has_head) {
+                            //
+                        } else {
+                            setExtraData('point', {x: 0, y: 0.1, z: 0});
+                        }
+                        break;
+                    }
+                    case 'upper': {
+                        if(b.has_head) {
+                            setExtraData('is_head', true);
+                        } else {
+                            setExtraData('point', {x: 0, y: 0.9, z: 0});
+                        }
+                        break;
+                    }
+                }
+            }
             // bed
             if(b.style == 'bed') {
                 if('part' in props) {
                     const is_head = props.part == 'head';
                     setExtraData('is_head', is_head);
-                    if(!is_head && 'rotate' in new_block) {
-                        new_block.rotate.x = (new_block.rotate.x + 2) % 4;
-                    }
+                    new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                 }
             }
             // fluids
             if(b.is_fluid) {
                 if('level' in props) {
                     setExtraData('level', props.level);
-                }
-            }
-            // vine
-            if(b.name == 'VINE') {
-                // _properties: { west: false, up: false, south: false, north: true, east: false }
-                const facings = ['south', 'west', 'north', 'east'/*, 'up'*/];
-                new_block.rotate = new Vector(0, 0, 0);
-                for(let f of facings) {
-                    if(f in props && props[f]) {
-                        new_block.rotate.x = (facings.indexOf(f) + 2) % 4;
-                    }
                 }
             }
             // COCOA_BEANS | WHEAT

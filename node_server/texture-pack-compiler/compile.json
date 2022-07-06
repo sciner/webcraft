@@ -1528,6 +1528,58 @@
             }
         },
         {
+            "id": 20,
+            "name": "WITHER_ROSE",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "texture": "block/wither_rose.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 46,
+            "name": "WHITE_TULIP",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "texture": "block/white_tulip.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 47,
+            "name": "ORANGE_TULIP",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "texture": "block/orange_tulip.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 51,
+            "name": "PINK_TULIP",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "texture": "block/pink_tulip.png",
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
             "id": 44,
             "name": "SMOOTH_STONE_SLAB",
             "transparent": true,
@@ -2953,7 +3005,7 @@
                 "no_drop_ao",
                 "trapdoor"
             ],
-            "texture": "block/acacia_trapdoor.png",
+            "texture": "block/spruce_trapdoor.png",
             "extra_data": {
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}

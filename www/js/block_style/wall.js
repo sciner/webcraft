@@ -7,14 +7,6 @@ const CONNECT_Z         = 8 / 16;
 const CONNECT_HEIGHT    = 14 / 16;
 const CONNECT_BOTTOM    = 0 / 16;
 
-const fake_neighbour = {
-    id: 1,
-    properties: {
-        transparent: false,
-        style: 'wall'
-    }
-}
-
 // Забор
 export default class style {
 
