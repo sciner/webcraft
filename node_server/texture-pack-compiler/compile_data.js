@@ -50,6 +50,7 @@ export class CompileData {
         this.initCandle();
         this.initWood();
         this.initPetrifiedSlab();
+        this.initPressurePlate();
     }
 
     async initDiscs() {
@@ -573,6 +574,42 @@ export class CompileData {
             this.blocks.push(b);
         }
 
+    }
+
+    initPressurePlate() {
+
+        const plates = [
+            {id: 72, name: 'OAK', texture: 'block/oak_planks.png', material: 'wood'},
+            {id: 579, name: 'STONE', texture: 'block/stone.png', material: 'stone'},
+            {id: 581, name: 'POLISHED_BLACKSTONE', texture: 'block/polished_blackstone.png', material: 'stone'},
+            {id: 583, name: 'LIGHT_WEIGHTED', texture: 'block/gold_block.png', material: 'stone'},
+            {id: 585, name: 'HEAVY_WEIGHTED', texture: 'block/iron_block.png', material: 'stone'},
+            {id: 587, name: 'SPRUCE', texture: 'block/spruce_planks.png', material: 'wood'},
+            {id: 589, name: 'BIRCH', texture: 'block/birch_planks.png', material: 'wood'},
+            {id: 591, name: 'JUNGLE', texture: 'block/jungle_planks.png', material: 'wood'},
+            {id: 619, name: 'ACACIA', texture: 'block/acacia_planks.png', material: 'wood'},
+            {id: 994, name: 'DARK_OAK', texture: 'block/dark_oak_planks.png', material: 'wood'},
+            {id: 996, name: 'CRIMSON', texture: 'block/crimson_planks.png', material: 'wood'},
+            {id: 74, name: 'WARPED', texture: 'block/warped_planks.png', material: 'wood'},
+        ];
+
+        for(let p of plates) {
+            this.blocks.push({
+                "id": p.id,
+                "name": `${p.name}_PRESSURE_PLATE`,
+                "sound": `madcraft:block.${p.material}`,
+                "width": 14/16,
+                "height": 0.03125,
+                "texture": p.texture,
+                "transparent": true,
+                "material": {
+                    "id": p.material
+                },
+                "tags": [
+                    "no_drop_ao"
+                ]
+            });
+        }
     }
 
 }

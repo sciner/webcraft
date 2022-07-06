@@ -1704,19 +1704,6 @@
             "can_rotate": true
         },
         {
-            "id": 72,
-            "name": "OAK_PLATE",
-            "sound": "madcraft:block.wood",
-            "height": 0.03125,
-            "texture": "block/oak_planks.png",
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "no_drop_ao"
-            ]
-        },
-        {
             "id": 76,
             "name": "REDSTONE_TORCH",
             "spawnable": true,
@@ -6297,6 +6284,20 @@
             "tags": ["flower"],
             "material": {
                 "id": "plant"
+            }
+        },
+        {
+            "id": 577,
+            "name": "CHISELED_SANDSTONE",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/chiseled_sandstone.png",
+                "up": "block/sandstone_top.png",
+                "down": "block/sandstone_bottom.png"
             }
         }
     ]

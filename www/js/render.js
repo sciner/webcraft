@@ -787,6 +787,9 @@ export class Renderer {
 
     // Draw shadows
     drawShadows() {
+        if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera_mode) < 0) {
+            return false;
+        }
         const world = Game.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
         // Material (shadow)

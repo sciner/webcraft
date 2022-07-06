@@ -34,6 +34,7 @@ export class SchematicReader {
     async read(file_name) {
         file_name = `./plugins/worldedit/schematics/${file_name}`;
         const schematic = await Schematic.read(await fs.readFile(file_name))
+        console.log('version', schematic.version);
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
@@ -54,7 +55,6 @@ export class SchematicReader {
                 if(name.indexOf('POTTED_') === 0) {
                     // POTTED_PINK_TULIP - ALLIUM
                     // POTTED_WITHER_ROSE - LILY OF THE VALEY
-                    console.log(block)
                     const in_pot_block_name = name.substring(7);
                     const in_pot_block = BLOCK.fromName(in_pot_block_name);
                     if(in_pot_block && in_pot_block.id > 0) {
@@ -310,8 +310,26 @@ export class SchematicReader {
             if('lit' in props) {
                 setExtraData('lit', props.lit);
             }
-            if(b.name == 'BARREL' && props.facing != 'up') {
-                console.log(props.facing, new_block);
+            // bamboo
+            if(b.name == 'BAMBOO') {
+                switch(props?.leaves) {
+                    case 'none': {
+                        if('extra_data' in new_block) {
+                            delete(new_block.extra_data);
+                        }
+                        break;
+                    }
+                    case 'small': {
+                        setExtraData('stage', 1);
+                        setExtraData('notick', true);
+                        break;
+                    }
+                    case 'large': {
+                        setExtraData('stage', 2);
+                        setExtraData('notick', true);
+                        break;
+                    }
+                }
             }
         }
         return new_block;
