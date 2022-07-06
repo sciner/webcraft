@@ -2878,6 +2878,27 @@
             }
         },
         {
+            "id": 52,
+            "name": "BARREL",
+            "window": "frmChest",
+            "is_entity": true,
+            "is_chest": true,
+            "transparent": true,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "tags": [
+                "rotate_by_pos_n_6"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "up": "block/barrel_top.png",
+                "down": "block/barrel_bottom.png",
+                "side": "block/barrel_side.png"
+            }
+        },
+        {
             "id": 65,
             "name": "LADDER",
             "width": 0.0625,
@@ -6214,6 +6235,60 @@
                 "south": "block/sunflower_back.png",
                 "up": "block/sunflower_top.png",
                 "down": "block/sunflower_bottom.png"
+            }
+        },
+        {
+            "id": 515,
+            "name": "PACKED_ICE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/packed_ice.png"
+        },
+        {
+            "id": 517,
+            "name": "BLUE_ICE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/blue_ice.png"
+        },
+        {
+            "id": 573,
+            "name": "END_ROD",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "can_rotate": true,
+            "style": "end_rod",
+            "tags": [
+                "rotate_by_pos_n_6"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/end_rod.png"
+        },
+        {
+            "id": 575,
+            "name": "ROSE_BUSH",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "inventory": {
+                "style": "extruder",
+                "texture": "block/rose_bush_top.png"
+            },
+            "sound": "madcraft:block.grass",
+            "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
+            "texture": {
+                "up": "block/rose_bush_top.png",
+                "down": "block/rose_bush_bottom.png"
+            },
+            "tags": ["flower"],
+            "material": {
+                "id": "plant"
             }
         }
     ]

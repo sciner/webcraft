@@ -1376,6 +1376,9 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
 async function increaseLayering(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     //
     const pos_n = pos.n;
+    if(pos_n.y == 0) {
+        return false;
+    }
     pos = new Vector(pos);
     //
     const block_touched = world.getBlock(pos);
@@ -1407,16 +1410,43 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     } else {
         new_extra_data = {height: layering.height};
     }
+    if(!('height' in new_extra_data)) {
+        new_extra_data.height = world_material.height;
+    }
+    //
+    if(new_extra_data.height == 1) {
+        return false;
+    }
+    //
+    if(pos_n.y == -1) {
+        if(new_extra_data.point.y < .5) {
+            return false;
+        } else {
+            new_extra_data.point.y = 0;
+        }
+    }
+    //
+    if(pos_n.y == 1) {
+        if(new_extra_data.point.y >= .5) {
+            return false;
+        }
+    }
+    //
     new_extra_data.height += layering.height;
     if(new_extra_data.height < 1) {
         // add part
         actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
     } else {
-        // replace to full block
-        const full_block = BLOCK.fromName(layering.full_block_name);
-        actions.addBlocks([{pos: new Vector(pos), item: {id: full_block.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
-        actions.addPlaySound({tag: full_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+        if(layering.full_block_name) {
+            // replace to full block
+            const full_block = BLOCK.fromName(layering.full_block_name);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: full_block.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+            actions.addPlaySound({tag: full_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+        } else {
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});    
+        }
     }
     actions.reset_target_pos = true;
     actions.decrement = true;

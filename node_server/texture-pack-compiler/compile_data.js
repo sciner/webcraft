@@ -13,6 +13,7 @@ const START_CONCRETE            = 1500; // ... 1515
 const START_CONCRETE_POWDER     = 1516; // ... 1531
 const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
+const START_PETRIFIED_SLAB_ID   = 203; // 
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -48,6 +49,7 @@ export class CompileData {
         this.initConcretePowder();
         this.initCandle();
         this.initWood();
+        this.initPetrifiedSlab();
     }
 
     async initDiscs() {
@@ -123,7 +125,7 @@ export class CompileData {
                 "extra_data": {pressed: 0},
                 "tags": [
                     "no_drop_ao",
-                    "rotate_by_pos_n",
+                    "rotate_by_pos_n_12",
                     "button"
                 ]
             };
@@ -546,6 +548,31 @@ export class CompileData {
             };
             this.blocks.push(b);
         }
+    }
+
+    //
+    initPetrifiedSlab() {
+        let id = START_PETRIFIED_SLAB_ID;
+        for(let w of WOOD_PALETTE) {
+            const w_lower = w.toLowerCase();
+            const b = {
+                "id":       id++,
+                "name":     `PETRIFIED_${w}_SLAB`,
+                "transparent": true,
+                "sound": "madcraft:block.stone",
+                "height": 0.5,
+                "layering": {
+                    "height": 0.5,
+                    "slab": true
+                },
+                "material": {
+                    "id": "stone"
+                },
+                "texture": `block/${w_lower}_planks.png`
+            };
+            this.blocks.push(b);
+        }
+
     }
 
 }

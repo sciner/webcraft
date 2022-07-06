@@ -320,10 +320,11 @@ export default class style {
 
             // Rotate
             const rotate = block.rotate || DEFAULT_ROTATE;
-            const cardinal_direction = block.getCardinalDirection();
+            let cardinal_direction = block.getCardinalDirection();
 
             // Can rotate
             if(material.can_rotate && rotate) {
+
                 if(rotate.x != 0 || rotate.y != 1 || rotate.z != 0) {
                     matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
                     DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);

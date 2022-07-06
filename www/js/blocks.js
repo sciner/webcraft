@@ -524,9 +524,10 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.id == 649 ||
             block.is_leaves ||
-            block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
-            block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
-            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa' || block.style == 'item_frame' || block.style == 'candle'
+            [
+                'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle'
+            ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';
         }
@@ -640,7 +641,7 @@ export class BLOCK {
         block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         // rotate_by_pos_n_xyz
-        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0) {
+        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0 || block.tags.indexOf('rotate_by_pos_n_6') >= 0 || block.tags.indexOf('rotate_by_pos_n_12') >= 0) {
             block.tags.push('rotate_by_pos_n');
         }
         //

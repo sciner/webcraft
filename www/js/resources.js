@@ -433,6 +433,9 @@ export class Resources {
                     case 'candle':
                         all.push(import('./block_style/candle.js').then(module => {resp.add(module.default);}));
                         break;
+                    case 'end_rod':
+                        all.push(import('./block_style/end_rod.js').then(module => {resp.add(module.default);}));
+                        break;
                     case 'default':
                         all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
                         break;

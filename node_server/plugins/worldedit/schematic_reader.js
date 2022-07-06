@@ -3,6 +3,18 @@ import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 
+const facings4 = ['north', 'west', 'south', 'east'];
+const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
+
+const SIX_VECS = {
+    south: new Vector(7, 0, 0),
+    west: new Vector(22, 0, 0),
+    north: new Vector(18, 0, 0),
+    east: new Vector(13, 0, 0),
+    up: new Vector(0, 1, 0),
+    down: new Vector(0, -1, 0)
+};
+
 // SchematicReader...
 export class SchematicReader {
 
@@ -131,21 +143,21 @@ export class SchematicReader {
         if(props) {
             // button
             if(b.is_button) {
-                // { powered: false, facing: 'south', face: 'wall' }
-                if('face' in props && 'facing' in props) {
-                    const face = props.face;
-                    if(face == 'wall') {
-                        const facings = {south: 18, west: 22, north: 7, east: 13};
-                        new_block.rotate = new Vector(0, 0, 0);
-                        let x = facings[props.facing] || 0;
-                        new_block.rotate.x = x;
-                    } else {
-                        const facings = ['north', 'west', 'south', 'east'];
-                        new_block.rotate = new Vector(0, 0, 0);
-                        new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
+                if(b.tags.indexOf('rotate_by_pos_n_12') >= 0) {
+                    if('face' in props && 'facing' in props) {
+                        // ceiling wall floor
+                        if(props.face == 'ceiling') {
+                            new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
+                            new_block.rotate.y = -1;
+                        } else if(props.face == 'floor') {
+                            new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
+                            new_block.rotate.y = 1;
+                        } else {
+                            new_block.rotate = SIX_VECS[props.facing];
+                        }
                     }
-                    return new_block;
                 }
+                return new_block;
             }
             // lantern (подвешен)
             if('hanging' in props) {
@@ -169,30 +181,31 @@ export class SchematicReader {
                     // vine
                     if(b.name == 'VINE') {
                         // _properties: { west: false, up: false, south: false, north: true, east: false }
-                        const facings = ['north', 'west', 'south', 'east'/*, 'up'*/];
                         new_block.rotate = new Vector(0, 0, 0);
-                        for(let f of facings) {
+                        for(let f of facings6) {
                             if(f in props && props[f]) {
-                                new_block.rotate.x = (facings.indexOf(f) + 2) % 4;
+                                new_block.rotate.x = (facings6.indexOf(f) + 2) % 4;
                             }
                         }
                     } else {
-                        // _properties: { west: true, waterlogged: false, south: false, north: false, east: true }
-                        const facings = ['north', 'west', 'south', 'east'/*, 'up'*/];
                         new_block.rotate = new Vector(0, 0, 0);
-                        for(let f of facings) {
+                        for(let f of facings4) {
                             if(f in props && props[f]) {
-                                new_block.rotate.x = (facings.indexOf(f) + 1) % 4;
+                                new_block.rotate.x = (facings4.indexOf(f) + 1) % 4;
                             }
                         }
                     }
                 }
                 // facing
                 if('facing' in props) {
-                    const facings = ['north', 'west', 'south', 'east'];
-                    new_block.rotate.x = Math.max(facings.indexOf(props.facing), 0);
-                    if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
-                        new_block.rotate.x = (new_block.rotate.x + 2) % 4;
+                    if(b.tags.indexOf('rotate_by_pos_n_6') >= 0) {
+                        new_block.rotate = SIX_VECS[props.facing].clone();
+                    } else {
+                        new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
+                        if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
+                            new_block.rotate.x = (new_block.rotate.x + 2) % 4;
+                        }
+                        new_block.rotate.y = 0;
                     }
                 }
             }
@@ -292,6 +305,9 @@ export class SchematicReader {
             }
             if('lit' in props) {
                 setExtraData('lit', props.lit);
+            }
+            if(b.name == 'BARREL' && props.facing != 'up') {
+                console.log(props.facing, new_block);
             }
         }
         return new_block;
