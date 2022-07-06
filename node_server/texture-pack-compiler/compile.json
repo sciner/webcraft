@@ -6263,10 +6263,18 @@
             "can_rotate": true,
             "style": "end_rod",
             "tags": [
-                "rotate_by_pos_n_6"
+                "rotate_by_pos_n_6",
+                "no_drop_ao"
             ],
             "material": {
                 "id": "stone"
+            },
+            "mining_time": 0,
+            "light_power": {
+                "r": 253,
+                "g": 241,
+                "b": 131,
+                "a": 224
             },
             "texture": "block/end_rod.png"
         },

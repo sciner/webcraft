@@ -43,7 +43,7 @@ export default class style {
             0,
             0 + .5 - WIDTH / 2,
             0 + .5 + WIDTH / 2,
-            0 + HEIGHT,
+            0 + 1,
             0 + .5 + WIDTH / 2,
         );
         //
