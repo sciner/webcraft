@@ -521,7 +521,7 @@ export default class WorldEdit {
             }
             case 'load': {
                 const reader = new SchematicReader();
-                await reader.read(args[2]);
+                const schem = await reader.read(args[2]);
                 if(reader.blocks.size > 0) {
                     player._world_edit_copy = {
                         quboid: null,
@@ -529,7 +529,8 @@ export default class WorldEdit {
                         player_pos: null
                     };
                 }
-                msg = `... loaded (${reader.blocks.size} blocks). Paste it with //paste`;
+                console.log('schematic version', schem.version);
+                msg = `... loaded (${reader.blocks.size} blocks). Version: ${schem.version}. Paste it with //paste`;
                 // console.log(schematic.toJSON());
                 break;
             }

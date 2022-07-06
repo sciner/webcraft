@@ -1797,6 +1797,15 @@
             "texture": "item/brick.png"
         },
         {
+            "id": 119,
+            "name": "NETHER_BRICKS",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "netherite"
+            },
+            "texture": "block/nether_bricks.png"
+        },
+        {
             "id": 1418,
             "name": "NETHER_BRICK",
             "item": {"name": "brick"},
@@ -2148,17 +2157,6 @@
             "can_rotate": true
         },
         {
-            "id": 112,
-            "name": "NETHER_BRICK",
-            "sound": "madcraft:block.stone",
-            "deprecated": true,
-            "spawnable": false,
-            "material": {
-                "id": "netherite"
-            },
-            "texture": "block/nether_bricks.png"
-        },
-        {
             "id": 114,
             "name": "NETHER_STAIRS",
             "sound": "madcraft:block.stone",
@@ -2171,15 +2169,6 @@
             ],
             "texture": "block/nether_bricks.png",
             "can_rotate": true
-        },
-        {
-            "id": 119,
-            "name": "NETHER_BRICKS",
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "netherite"
-            },
-            "texture": "block/nether_bricks.png"
         },
         {
             "id": 122,
@@ -6299,6 +6288,52 @@
                 "up": "block/sandstone_top.png",
                 "down": "block/sandstone_bottom.png"
             }
+        },
+        {
+            "id": 75,
+            "name": "WARPED_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.wood",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/warped_planks.png",
+            "can_rotate": true
+        },
+        {
+            "id": 77,
+            "name": "WARPED_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "WARPED_PLANKS"
+            },
+            "texture": "block/warped_planks.png"
+        },
+        {
+            "id": 78,
+            "name": "NETHER_BRICK_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "WARPED_PLANKS"
+            },
+            "texture": "block/nether_bricks.png"
         }
     ]
 }

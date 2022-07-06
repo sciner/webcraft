@@ -538,6 +538,10 @@ export class DBWorldMigration {
             `UPDATE world_modify SET params = json_set(params, '$.rotate.x', json_extract(params, '$.rotate.x') + 2 % 4) WHERE block_id BETWEEN 1200 and 1215 AND json_extract(extra_data, '$.is_head')`
         ]});
 
+        migrations.push({version: 66, queries: [
+            `DELETE FROM world_modify WHERE block_id = 112;`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

@@ -34,7 +34,6 @@ export class SchematicReader {
     async read(file_name) {
         file_name = `./plugins/worldedit/schematics/${file_name}`;
         const schematic = await Schematic.read(await fs.readFile(file_name))
-        console.log('version', schematic.version);
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
@@ -90,6 +89,7 @@ export class SchematicReader {
             this.blocks.set(bpos, new_block);
         });
         console.log('Not found blocks: ', Array.from(not_found_blocks.keys()).join('; '));
+        return schematic;
     }
 
     //

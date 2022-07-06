@@ -121,7 +121,13 @@ export class Compiler {
                 if(typeof block.texture === 'string' || block.texture instanceof String) {
                     block.texture = {side: block.texture};
                 }
+                // Tags
+                block.tags = block.tags || [];
+                if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
+                    block.tags.push('no_drop_ao');
+                }
                 const tags = ('tags' in block) ? block.tags : [];
+                //
                 for(let tid in block.texture) {
                     const value = block.texture[tid];
                     if(Array.isArray(value)) {
