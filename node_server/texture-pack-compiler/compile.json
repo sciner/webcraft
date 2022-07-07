@@ -6334,6 +6334,18 @@
                 "full_block_name": "WARPED_PLANKS"
             },
             "texture": "block/nether_bricks.png"
+        },
+        {
+            "id": 112,
+            "name": "SUGAR",
+            "style": "extruder",
+            "texture": "item/sugar.png",
+            "item": {
+                "name": "food"
+            },
+            "material": {
+                "id": "food"
+            }
         }
     ]
 }

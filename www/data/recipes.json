@@ -1421,5 +1421,32 @@
             "item": "madcraft:coal",
             "count": 9
         }
+    },
+    {
+        "id": "cdae4881-c51c-4cad-9155-0d81058ac1be",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "MMM",
+            "SES",
+            "WWW"
+        ],
+        "key": {
+            "M": {
+                "item": "madcraft:bucket_milk"
+            },
+            "W": {
+                "item": "madcraft:wheat"
+            },
+            "E": {
+                "item": "madcraft:egg"
+            },
+            "S": {
+                "item": "madcraft:sugar"
+            }
+        },
+        "result": {
+            "item": "madcraft:cake",
+            "count": 1
+        }
     }
 ]
