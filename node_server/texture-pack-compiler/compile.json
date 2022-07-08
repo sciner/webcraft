@@ -6331,7 +6331,7 @@
             "layering": {
                 "height": 0.5,
                 "slab": true,
-                "full_block_name": "WARPED_PLANKS"
+                "full_block_name": "NETHER_BRICKS"
             },
             "texture": "block/nether_bricks.png"
         },
