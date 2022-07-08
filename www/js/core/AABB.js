@@ -182,6 +182,18 @@ export class AABB {
             && z >= this.z_min && z < this.z_max;
     }
 
+    intersectsColumn(x, z, y, y2) {
+        return x >= this.x_min && x < this.x_max
+            && z >= this.z_min && z < this.z_max
+            && y2 > this.y_min && y < this.y_max;
+    }
+
+    containsColumn(x, z, y, y2) {
+        return x >= this.x_min && x < this.x_max
+            && z >= this.z_min && z < this.z_max
+            && y >= this.y_min && y2 <= this.y_max;
+    }
+
     intersect(box) {
         return (box.x_min < this.x_max && this.x_min < box.x_max
             && box.y_min < this.y_max && this.y_min < box.y_max
@@ -360,7 +372,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;
-    pivot  = pivot  || defaultPivot; 
+    pivot  = pivot  || defaultPivot;
 
     const lm_default      = MULTIPLY.COLOR.WHITE;
     const globalFlags     = 0;
