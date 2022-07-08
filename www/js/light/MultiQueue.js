@@ -131,6 +131,7 @@ export class MultiQueue {
             this.freeQueueStack.push(null);
         } else {
             q = this.freeQueueStack[--this.freeQueueCount];
+            this.freeQueueStack[this.freeQueueCount] = null;
             q.priority = priority;
         }
         this.queueMap.set(priority, q);
@@ -142,8 +143,8 @@ export class MultiQueue {
         // free queue
         if (q.priority >= 0 && q.priority <= this.maxPriority) {
         } else {
-            q.clear();
             this.queueMap.delete(q.priority);
+            q.clear();
             this.freeQueueStack[this.freeQueueCount++] = q;
         }
     }
