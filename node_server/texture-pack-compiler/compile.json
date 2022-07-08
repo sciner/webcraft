@@ -6334,6 +6334,58 @@
                 "full_block_name": "WARPED_PLANKS"
             },
             "texture": "block/nether_bricks.png"
+        },
+        {
+            "id": 96,
+            "name": "PURPUR_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/purpur_block.png"
+        },
+        {
+            "id": 97,
+            "name": "PURPUR_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "PURPUR_BLOCK"
+            },
+            "texture": "block/purpur_block.png"
+        },
+        {
+            "id": 112,
+            "name": "PURPUR_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/purpur_block.png",
+            "can_rotate": true
+        },
+        {
+            "id": 598,
+            "name": "CHISELED_QUARTZ_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/chiseled_quartz_block.png",
+                "up": "block/chiseled_quartz_block_top.png",
+                "down": "block/chiseled_quartz_block_top.png"
+            }
         }
     ]
 }

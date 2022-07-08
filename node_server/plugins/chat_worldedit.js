@@ -520,6 +520,7 @@ export default class WorldEdit {
                 break;
             }
             case 'load': {
+                let p = performance.now();
                 const reader = new SchematicReader();
                 const schem = await reader.read(args[2]);
                 if(reader.blocks.size > 0) {
@@ -529,9 +530,10 @@ export default class WorldEdit {
                         player_pos: null
                     };
                 }
+                p = Math.round((performance.now() - p) * 1000) / 1000000;
                 console.log('schematic version', schem.version);
-                msg = `... loaded (${reader.blocks.size} blocks). Version: ${schem.version}. Paste it with //paste`;
-                // console.log(schematic.toJSON());
+                const size = new Vector(schem.size).toHash();
+                msg = `... loaded (${reader.blocks.size} blocks, size: ${size}, load time: ${p} sec). Version: ${schem.version}. Paste it with //paste`;
                 break;
             }
             default: {

@@ -5,7 +5,7 @@ const START_WOOL_ID             = 350; // ... 365
 const START_CARPET_ID           = 800; // ... 815
 const START_BUTTON_ID           = 770; // ...799
 const START_BED_ID              = 1200; // ...1215
-const START_TERRACOTTA          = 1300; // 1315
+const START_TERRACOTTA          = 1300; // 1316
 const START_GLAZED_TERRACOTTA   = 1400; // 1415
 const START_STAINED_GLASS       = 470; // ... 485
 const START_STAINED_GLASS_PANE  = 1478; //
@@ -178,7 +178,7 @@ export class CompileData {
     // Терракота (terracotta)
     initTerracotta() {
         const palette_pos = {x: 24, y: 31};
-        let i = 0;
+        let id = START_TERRACOTTA;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
             const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
@@ -186,7 +186,7 @@ export class CompileData {
             mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
             const b = {
-                "id": START_TERRACOTTA + i,
+                "id": id++,
                 "name": color.toUpperCase() + '_TERRACOTTA',
                 "material": {"id": "stone"},
                 "sound": "madcraft:block.stone",
@@ -198,8 +198,18 @@ export class CompileData {
                 ]
             };
             this.blocks.push(b);
-            i++;
         }
+        //
+        this.blocks.push({
+            "id": id,
+            "name": 'TERRACOTTA',
+            "material": {"id": "stone"},
+            "sound": "madcraft:block.stone",
+            "texture": {"side": "block/terracotta.png"},
+            "tags": [
+                "can_put_info_pot"
+            ]
+        });
     }
 
     // Carpets
