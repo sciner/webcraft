@@ -523,11 +523,13 @@ export class ServerWorld {
                 await this.db.TransactionBegin();
             }
             try {
+                const all_chunks = new VectorCollector();
                 let all = [];
                 for (let params of actions.blocks.list) {
                     params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
+                        all_chunks.set(chunk_addr.clone(), true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
@@ -595,6 +597,11 @@ export class ServerWorld {
                     }
                 }
                 await Promise.all(all);
+                for(const [vec, _] of all_chunks.entries()) {
+                    // let p = performance.now();
+                    await this.db.updateChunk(vec);
+                    // console.log(vec.toHash(), performance.now() - p);
+                }
                 if (use_tx) {
                     await this.db.TransactionCommit();
                 }

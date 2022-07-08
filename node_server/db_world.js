@@ -350,35 +350,21 @@ export class DBWorld {
 
     // Load chunk modify list
     async loadChunkModifiers(addr) {
-        /*const file_name = `./${addr.x}_${addr.y}_${addr.z}.json`;
-        if (fs.existsSync(file_name)) {
-            let binary = fs.readFileSync(file_name);
-            return JSON.parse(binary);
-        }*/
-        const resp = {};
+        let resp = {};
         await this.db.each(`
-                SELECT
-                    "index",
-                    json_patch(
-                        'null',
-                        json_object(
-                            'id',           COALESCE(block_id, 0),
-                            'extra_data',   json(extra_data),
-                            'entity_id',    entity_id,
-                            'ticks',        ticks,
-                            'rotate',       json_extract(params, '$.rotate')
-                        )
-                    ) AS item
-                FROM world_modify
-                WHERE chunk_x = :chunk_x AND chunk_y = :chunk_y AND chunk_z = :chunk_z
-                ORDER BY id ASC`, {
-            ':chunk_x': addr.x,
-            ':chunk_y': addr.y,
-            ':chunk_z': addr.z
+                SELECT data
+                FROM world_modify_chunks
+                WHERE x = :x AND y = :y AND z = :z`, {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z
         }, function(err, row) {
-            resp[row.index] = JSON.parse(row.item);
+            if(err) {
+                console.error(err);
+            } else {
+                resp = JSON.parse(row.data);
+            }
         });
-        // fs.writeFileSync(file_name, JSON.stringify(resp));
         return resp;
     }
 
@@ -506,6 +492,25 @@ export class DBWorld {
             ":y": y + 0.5,
             ":z": z
         });
+    }
+
+    //
+    async updateChunk(addr) {
+        await this.db.run(`INSERT INTO world_modify_chunks(x, y, z, data)
+        SELECT chunk_x, chunk_y, chunk_z,
+            json_group_object(cast(m."index" as TEXT),
+            json_patch(
+                'null',
+                json_object(
+                    'id',           COALESCE(m.block_id, 0),
+                    'extra_data',   json(m.extra_data),
+                    'entity_id',    m.entity_id,
+                    'ticks',        m.ticks,
+                    'rotate',       json_extract(m.params, '$.rotate')
+                )
+            ))
+        FROM world_modify m WHERE m.chunk_x = ${addr.x} AND m.chunk_y = ${addr.y} AND m.chunk_z = ${addr.z}
+        ORDER BY m.id ASC`);
     }
 
 }

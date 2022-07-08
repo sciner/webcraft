@@ -550,6 +550,43 @@ export class DBWorldMigration {
             ((x - chunk_x * ${CHUNK_SIZE_X}) % ${CHUNK_SIZE_X})`
         ]});
 
+        // @important Added triggers
+        migrations.push({version: 68, queries: [
+            `CREATE TABLE "main"."world_modify_chunks" (
+                "x" integer NOT NULL DEFAULT 0,
+                "y" integer NOT NULL DEFAULT 0,
+                "z" integer NOT NULL DEFAULT 0,
+                "data" TEXT,
+            PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
+
+            `with chunks AS (select distinct chunk_x, chunk_y, chunk_z from world_modify)
+
+            INSERT INTO world_modify_chunks(x, y, z, data)
+            select chunk_x, chunk_y, chunk_z, (SELECT  
+                json_group_object(cast(m."index" as TEXT),
+                json_patch(
+                    'null',
+                    json_object(
+                            'id',           COALESCE(m.block_id, 0),
+                            'extra_data',   json(m.extra_data),
+                            'entity_id',    m.entity_id,
+                            'ticks',        m.ticks,
+                            'rotate',       json_extract(m.params, '$.rotate')
+                    )
+                ))
+            FROM world_modify m WHERE m.chunk_x = o.chunk_x AND m.chunk_y = o.chunk_y AND m.chunk_z = o.chunk_z
+            ORDER BY m.id ASC)
+            FROM chunks o`,
+
+            `CREATE INDEX "main"."world_modify_chunks_xyz"
+                ON "world_modify_chunks" (
+                "x" ASC,
+                "y" ASC,
+                "z" ASC
+            );`,
+
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
