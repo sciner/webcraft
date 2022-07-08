@@ -542,6 +542,14 @@ export class DBWorldMigration {
             `DELETE FROM world_modify WHERE block_id = 112;`,
         ]});
 
+        // @important This need if change chunk size
+        migrations.push({version: 67, queries: [
+            `ALTER TABLE world_modify ADD COLUMN "index" INTEGER`,
+            `UPDATE world_modify SET "index" = (${CHUNK_SIZE_X} * ${CHUNK_SIZE_Z}) * ((y - chunk_y * ${CHUNK_SIZE_Y}) % ${CHUNK_SIZE_Y}) +
+            (((z - chunk_z * ${CHUNK_SIZE_Z}) % ${CHUNK_SIZE_Z}) * ${CHUNK_SIZE_X}) +
+            ((x - chunk_x * ${CHUNK_SIZE_X}) % ${CHUNK_SIZE_X})`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

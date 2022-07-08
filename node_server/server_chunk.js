@@ -216,7 +216,7 @@ export class ServerChunk {
         this.coord          = this.addr.mul(this.size);
         this.connections    = new Map();
         this.preq           = new Map();
-        this.modify_list    = new Map();
+        this.modify_list    = {};
         this.mobs           = new Map();
         this.drop_items     = new Map();
         this.ticking_blocks = new TickingBlockManager(this);
@@ -251,7 +251,7 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADING);
         if(this.world.chunkHasModifiers(this.addr)) {
-            this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
+            this.modify_list = await this.world.db.loadChunkModifiers(this.addr);
             this.ticking = new Map();
         }
         this.setState(CHUNK_STATE_LOADED);
@@ -261,7 +261,7 @@ export class ServerChunk {
                 {
                     update:         true,
                     addr:           this.addr,
-                    modify_list:    Object.fromEntries(this.modify_list)
+                    modify_list:    this.modify_list
                 }
             ]
         ]);
@@ -346,7 +346,7 @@ export class ServerChunk {
             name: ServerClient.CMD_CHUNK_LOADED,
             data: {
                 addr:        this.addr,
-                modify_list: Object.fromEntries(this.modify_list),
+                modify_list: this.modify_list
             }
         }];
         this.world.sendSelected(packets, player_ids, []);
@@ -416,26 +416,26 @@ export class ServerChunk {
         let block = null;
         let pos = new Vector(0, 0, 0);
         // 1. Check modified blocks
-        for(let k of this.modify_list.keys()) {
-            let temp = k.split(',');
-            pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
-            const current_block_on_pos = this.modify_list.get(k);
+        for(let index in this.modify_list) {
+            const current_block_on_pos = this.modify_list[index];
+            if(!current_block_on_pos) {
+                continue;
+            }
+            pos.fromFlatChunkIndex(index);
             // @todo if chest
-            // this.modify_list.set(k, chest.entity.item);
             if(!block || block.id != current_block_on_pos.id) {
                 block = BLOCK.fromId(current_block_on_pos.id);
             }
             if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
-                this.ticking_blocks.add(block.id, pos, block.ticking);
+                this.ticking_blocks.add(block.id, pos.add(this.coord), block.ticking);
             }
         }
         // 2. Check generated blocks
         if(ticking_blocks.length > 0) {
             for(let k of ticking_blocks) {
-                if(!this.modify_list.has(k)) {
-                    let temp = k.split(',');
-                    pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
-                    let block = this.getBlock(pos);
+                pos.fromHash(k);
+                if(!this.modify_list[pos.getFlatIndexInChunk()]) {
+                    const block = this.getBlock(pos);
                     if(block.material.ticking && block.extra_data && !('notick' in block.extra_data)) {
                         this.ticking_blocks.add(block.id, pos, block.material.ticking);
                     }
@@ -578,7 +578,7 @@ export class ServerChunk {
 
     // Store in modify list
     addModifiedBlock(pos, item) {
-        this.modify_list.set(pos.toHash(), item);
+        this.modify_list[pos.getFlatIndexInChunk()] = item;
         if(item && item.id) {
             let block = BLOCK.fromId(item.id);
             if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {

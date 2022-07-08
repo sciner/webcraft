@@ -10,6 +10,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
 import { INVENTORY_SLOT_COUNT } from '../www/js/constant.js';
+import fs from 'fs';
 
 //
 import { DBWorldMob } from './world/db/db_mob.js';
@@ -348,46 +349,36 @@ export class DBWorld {
     }
 
     // Load chunk modify list
-    async loadChunkModifiers(addr, size) {
-        let resp = new Map();
-        const pos = new Vector(0, 0, 0);
-        let prev_block_id = null;
-        let prev_block = null;
-        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks, block_id FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE chunk_x = :chunk_x AND chunk_y = :chunk_y AND chunk_z = :chunk_z GROUP BY x, y, z)", {
+    async loadChunkModifiers(addr) {
+        /*const file_name = `./${addr.x}_${addr.y}_${addr.z}.json`;
+        if (fs.existsSync(file_name)) {
+            let binary = fs.readFileSync(file_name);
+            return JSON.parse(binary);
+        }*/
+        const resp = {};
+        await this.db.each(`
+                SELECT
+                    "index",
+                    json_patch(
+                        'null',
+                        json_object(
+                            'id',           COALESCE(block_id, 0),
+                            'extra_data',   json(extra_data),
+                            'entity_id',    entity_id,
+                            'ticks',        ticks,
+                            'rotate',       json_extract(params, '$.rotate')
+                        )
+                    ) AS item
+                FROM world_modify
+                WHERE chunk_x = :chunk_x AND chunk_y = :chunk_y AND chunk_z = :chunk_z
+                ORDER BY id ASC`, {
             ':chunk_x': addr.x,
             ':chunk_y': addr.y,
             ':chunk_z': addr.z
+        }, function(err, row) {
+            resp[row.index] = JSON.parse(row.item);
         });
-        for(let row of rows) {
-            // @BlockItem
-            const item = {
-                id: row.block_id || 0
-            };
-            if(item.id > 2) {
-                const params = row.params ? JSON.parse(row.params) : null;
-                if(params && 'rotate' in params && params.rotate) {
-                    if(!prev_block_id || prev_block_id != item.id) {
-                        prev_block_id = item.id;
-                        prev_block = BLOCK.fromId(item.id);
-                    }
-                    if(prev_block?.can_rotate) {
-                        item.rotate = new Vector(params.rotate).roundSelf(2);
-                    }
-                }
-                if(row.ticks) {
-                    item.ticks = row.ticks;
-                }
-                if(row.entity_id) {
-                    item.entity_id = row.entity_id;
-                }
-                if(row.extra_data !== null) {
-                    item.extra_data = JSON.parse(row.extra_data);
-                }
-            }
-            //
-            pos.set(row.x, row.y, row.z);
-            resp.set(pos.toHash(), item);
-        }
+        // fs.writeFileSync(file_name, JSON.stringify(resp));
         return resp;
     }
 
@@ -429,12 +420,13 @@ export class DBWorld {
                     ':params':      item ? JSON.stringify(item) : null,
                     ':entity_id':   item?.entity_id ? item.entity_id : null,
                     ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
-                    ':block_id':    item?.id
+                    ':block_id':    item?.id,
+                    //':rotate':      item?.rotate ? JSON.stringify(item.rotate) : null
                 });
             }
         }
         if(need_insert) {
-            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z)', {
+            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z, "index") VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z, :index)', {
                 ':user_id':     player?.session.user_id || null,
                 ':dt':          ~~(Date.now() / 1000),
                 ':world_id':    world.info.id,
@@ -447,7 +439,9 @@ export class DBWorld {
                 ':params':      item ? JSON.stringify(item) : null,
                 ':entity_id':   item?.entity_id ? item.entity_id : null,
                 ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
-                ':block_id':    item?.id
+                ':block_id':    item?.id,
+                ':index':       params.pos.getFlatIndexInChunk()
+                //':rotate':      item?.rotate ? JSON.stringify(item.rotate) : null
             });
         }
         if (item && 'extra_data' in item) {
