@@ -537,7 +537,7 @@ export class ServerWorld {
                     all.push(this.db.blockSet(this, server_player, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
-                    if (chunk) {
+                    if (chunk && chunk.tblocks) {
                         const block_pos = new Vector(params.pos).floored();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
@@ -583,13 +583,11 @@ export class ServerWorld {
                                     data: { pos: params.pos, block_id: params.destroy_block_id }
                                 });
                             } else if (params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
-                                if (server_player) {
-                                    PlayerEvent.trigger({
-                                        type: PlayerEvent.SET_BLOCK,
-                                        player: server_player,
-                                        data: { pos: block_pos.clone(), block: params.item }
-                                    });
-                                }
+                                PlayerEvent.trigger({
+                                    type: PlayerEvent.SET_BLOCK,
+                                    player: server_player,
+                                    data: { pos: block_pos.clone(), block: params.item }
+                                });
                             }
                         }
                     } else {
