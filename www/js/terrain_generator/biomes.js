@@ -234,7 +234,6 @@ export class  BIOMES {
                     {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.01, ...TREES.SPRUCE, height: {min: 6, max: 24}},
                     {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
-                    {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN.id, style: 'stump', height: {min: 1, max: 1}},
                     {percent: 0.681, ...TREES.SPRUCE, height: {min: 6, max: 11}}
                 ]
             },
@@ -245,7 +244,8 @@ export class  BIOMES {
                     {percent: .3, block: {id: BLOCK.FERN.id}},
                     {percent: .001, block: {id: BLOCK.BROWN_MUSHROOM.id}},
                     {percent: .008, block: {id: BLOCK.SWEET_BERRY.id, extra_data: {'stage': 3, 'complete': true}}},
-                    {percent: .007, block: {id: BLOCK.DEAD_BUSH.id}}
+                    {percent: .007, block: {id: BLOCK.DEAD_BUSH.id}},
+                    {percent: .011, block: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
                 ]
             }
         };
