@@ -172,7 +172,7 @@ export class MineGenerator {
     genNodeEnter(chunk, node) {
         const dir = node.dir;
         this.genBox(chunk, node, 0, 1, 8, 15, 3, 15, dir);
-        this.genBox(chunk, node, 0, 0, 0, 15, 0, 15, dir, BLOCK.OAK_PLANK);
+        this.genBox(chunk, node, 0, 0, 0, 15, 0, 15, dir, BLOCK.OAK_PLANKS);
 
         const addFloorDecor = (vec, block) => {
             let temp_block_over = this.getBlock(chunk, node, vec.x, vec.y + 1, vec.z);
@@ -215,11 +215,11 @@ export class MineGenerator {
             // опоры
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
+            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANKS);
 
             this.genBox(chunk, node, n, 1, 14, n, 2, 14, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 1, 12, n, 2, 12, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANK);
+            this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANKS);
 
             const sign = dir % 2 == 1 ? -1 : 1;
             let torch_dir = dir + 1 * sign;
@@ -261,7 +261,7 @@ export class MineGenerator {
 
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
+            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANKS);
 
             this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANKS, 0.25);
 
