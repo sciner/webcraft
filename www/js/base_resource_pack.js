@@ -71,8 +71,8 @@ export class BaseResourcePack {
         const image = await Resources.loadImage(url, true);
 
         const texture = renderBackend.createTexture({
-            source: await this.genMipMapTexture(image, settings),
-            style: this.genTextureStyle(image, settings),
+            source: await this.genMipMapTexture(image, settings, textureInfo),
+            style: this.genTextureStyle(image, settings, textureInfo),
             minFilter: textureInfo?.minFilter || 'nearest',
             magFilter: textureInfo?.magFilter ||'nearest',
         });
@@ -240,8 +240,8 @@ export class BaseResourcePack {
     }
 
     //
-    async genMipMapTexture(image, settings) {
-        if (!settings.mipmap) {
+    async genMipMapTexture(image, settings, texInfo) {
+        if (!settings.mipmap || texInfo.mip === false) {
             if (image instanceof  self.ImageBitmap) {
                 return  image;
             }
