@@ -98,17 +98,17 @@
     out vec2 v_texcoord1_diff;
     out vec4 v_texClamp0;
     out vec3 v_normal;
-    out vec4 v_color;
-    out float v_animInterp;
-    out float v_lightMode;
-    out float v_useFog;
-    out float v_lightId;
-    out vec4 v_lightOffset;
-    out vec3 v_aoOffset;
-    out float v_noCanTakeAO;
-    out float v_flagFlagOpacity;
-    out float v_flagQuadSDF;
-    out float v_noCanTakeLight;
+    flat out vec4 v_color;
+    flat out float v_animInterp;
+    flat out float v_lightMode;
+    flat out float v_useFog;
+    flat out float v_lightId;
+    flat out vec4 v_lightOffset;
+    flat out vec3 v_aoOffset;
+    flat out float v_noCanTakeAO;
+    flat out float v_flagFlagOpacity;
+    flat out float v_flagQuadSDF;
+    flat out float v_noCanTakeLight;
 
     //--
 #endif
@@ -119,20 +119,20 @@
     in vec2 v_texcoord0;
     in vec2 v_texcoord1_diff;
     in vec4 v_texClamp0;
-    in vec4 v_color;
+    flat in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in float v_animInterp;
-    in float v_lightMode;
-    in float v_useFog;
-    in float v_lightId;
-    in vec4 v_lightOffset;
-    in float v_noCanTakeAO;
-    in float v_flagFlagOpacity;
-    in float v_flagQuadSDF;
-    in float v_noCanTakeLight;
+    flat in float v_animInterp;
+    flat in float v_lightMode;
+    flat in float v_useFog;
+    flat in float v_lightId;
+    flat in vec4 v_lightOffset;
+    flat in float v_noCanTakeAO;
+    flat in float v_flagFlagOpacity;
+    flat in float v_flagQuadSDF;
+    flat in float v_noCanTakeLight;
 
     out vec4 outColor;
 #endif

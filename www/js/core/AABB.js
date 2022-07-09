@@ -285,17 +285,18 @@ export class AABBPool {
 
 export class AABBSideParams {
 
-    constructor(uv, flag, anim, lm = null, axes = null, autoUV) {
-        this.set(uv, flag, anim, lm, axes, autoUV)
+    constructor(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null) {
+        this.set(uv, flag, anim, lm, axes, autoUV, rawColor)
     }
 
-    set(uv, flag, anim, lm = null, axes = null, autoUV) {
-        this.uv     = uv;
-        this.flag   = flag;
-        this.anim   = anim;
-        this.lm     = lm;
-        this.axes   = axes;
-        this.autoUV = autoUV;
+    set(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null) {
+        this.uv       = uv;
+        this.flag     = flag;
+        this.anim     = anim;
+        this.lm       = lm;
+        this.axes     = axes;
+        this.autoUV   = autoUV;
+        this.rawColor = rawColor;
         return this;
     }
 
@@ -400,7 +401,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
         } = PLANES[key];
 
         const {
-            uv, flag = 0, anim = 1, autoUV = true
+            uv, flag = 0, anim = 1, autoUV = true, rawColor
         } = sides[key];
 
         const lm = sides[key].lm || lm_default;
@@ -408,6 +409,16 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
 
         let uvSize0;
         let uvSize1;
+
+        let r = lm.r;
+        let g = lm.g;
+        let b = anim;
+
+        if (rawColor) {
+            r = rawColor[0];
+            g = rawColor[1];
+            b = rawColor[2];
+        }
 
         if(autoUV) {
             uvSize0 = vec3.dot(axes[0], _size) * (uv[2]) * flip[0];
@@ -437,10 +448,10 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
             uv[0], uv[1],
             // UV size
             uvSize0, uvSize1,
-            // tint location
-            lm.r, lm.g,
-            // animation
-            anim,
+            // tint location or RG
+            r, g,
+            // animation or b color
+            b,
             // flags
             globalFlags | flag
         );
