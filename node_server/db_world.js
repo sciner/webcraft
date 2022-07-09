@@ -394,15 +394,15 @@ export class DBWorld {
         }
         let need_insert = true;
         if(is_modify) {
-            let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            let rows = await this.db.all('SELECT _rowid_ FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
                 ':x': params.pos.x,
                 ':y': params.pos.y,
                 ':z': params.pos.z
             });
             for(let row of rows) {
                 need_insert = false;
-                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE id = :id', {
-                    ':id':          row.id,
+                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE _rowid_ = :_rowid_', {
+                    ':_rowid_':     row._rowid_,
                     ':params':      item ? JSON.stringify(item) : null,
                     ':entity_id':   item?.entity_id ? item.entity_id : null,
                     ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
@@ -433,6 +433,61 @@ export class DBWorld {
         if (item && 'extra_data' in item) {
             // @todo Update extra data
         }
+    }
+
+    // Bulk block set
+    async blockSetBulk(world, player, data) {
+        const user_id = player?.session.user_id || null;
+        const dt =  ~~(Date.now() / 1000);
+        const world_id = world.info.id;
+        for (var i = 0; i < data.length; i++) {
+            const params = data[i];
+            const item = params.item;
+            data[i] = [
+                user_id,
+                dt,
+                world_id,
+                // params
+                JSON.stringify(item),
+                params.pos.x,
+                params.pos.y,
+                params.pos.z,
+                // chunk xyz
+                Math.floor(params.pos.x / CHUNK_SIZE_X),
+                Math.floor(params.pos.y / CHUNK_SIZE_Y),
+                Math.floor(params.pos.z / CHUNK_SIZE_Z),
+                item.entity_id ? item.entity_id : null,
+                item.extra_data ? JSON.stringify(item.extra_data) : null,
+                // block_id
+                item.id,
+                // index
+                params.pos.getFlatIndexInChunk()
+            ];
+        }
+        const resp = await this.db.run('INSERT INTO world_modify_import_bulk(data) VALUES(:data)', {
+            ':data': JSON.stringify(data)
+        });
+        const lastID = parseInt(resp.lastID);
+        await this.db.run(`INSERT INTO world_modify(
+                user_id, dt, world_id, params, x, y, z, chunk_x, chunk_y, chunk_z,
+                entity_id, extra_data, block_id, "index"
+            )
+            SELECT
+                json_extract(value, '$[0]'),
+                json_extract(value, '$[1]'),
+                json_extract(value, '$[2]'),
+                json_extract(value, '$[3]'),
+                json_extract(value, '$[4]'),
+                json_extract(value, '$[5]'),
+                json_extract(value, '$[6]'),
+                json_extract(value, '$[7]'),
+                json_extract(value, '$[8]'),
+                json_extract(value, '$[9]'),
+                json_extract(value, '$[10]'),
+                json_extract(value, '$[11]'),
+                json_extract(value, '$[12]'),
+                json_extract(value, '$[13]')
+            FROM json_each((SELECT data FROM world_modify_import_bulk WHERE _rowid_ = ${lastID}))`);
     }
 
     // Change player game mode
@@ -495,9 +550,9 @@ export class DBWorld {
     }
 
     //
-    async updateChunk(addr) {
+    async updateChunks(address_list) {
         await this.db.run(`INSERT INTO world_modify_chunks(x, y, z, data)
-        SELECT chunk_x, chunk_y, chunk_z,
+        SELECT json_extract(value, '$.x') x, json_extract(value, '$.y') y, json_extract(value, '$.z') z, (SELECT
             json_group_object(cast(m."index" as TEXT),
             json_patch(
                 'null',
@@ -509,8 +564,14 @@ export class DBWorld {
                     'rotate',       json_extract(m.params, '$.rotate')
                 )
             ))
-        FROM world_modify m WHERE m.chunk_x = ${addr.x} AND m.chunk_y = ${addr.y} AND m.chunk_z = ${addr.z}
-        ORDER BY m.id ASC`);
+        FROM world_modify m
+        WHERE m.chunk_x = json_extract(value, '$.x') AND
+              m.chunk_y = json_extract(value, '$.y') AND
+              m.chunk_z = json_extract(value, '$.z')
+        ORDER BY m.id ASC)
+        FROM json_each(:address_list) addrs`, {
+            ':address_list': JSON.stringify(address_list)
+        });
     }
 
 }

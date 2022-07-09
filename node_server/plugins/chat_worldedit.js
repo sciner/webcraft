@@ -3,8 +3,10 @@ import {getChunkAddr} from "../../www/js/chunk_const.js";
 import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {PickatActions} from "../../www/js/block_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
+import { ServerClient } from "../../www/js/server_client.js";
 
-const MAX_SET_BLOCK = 30000;
+const MAX_SET_BLOCK         = 30000;
+const MAX_BLOCKS_PER_PASTE  = 10000;
 
 export default class WorldEdit {
 
@@ -237,10 +239,9 @@ export default class WorldEdit {
         if(!player._world_edit_copy) {
             throw 'error_not_copied_blocks';
         }
-        const MAX_BLOCKS_PER_ACTIONS = 10000;
         const pn_set = performance.now();
         const actions_list = [];
-        let actions = new PickatActions(null, null, true, false);
+        let actions = new PickatActions(null, null, true, false/*, false*/);
         //
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
@@ -250,11 +251,11 @@ export default class WorldEdit {
         for(let [bpos, item] of blockIter) {
             const shift = bpos;
             const new_pos = player_pos.add(shift);
-            actions.addBlocks([{pos: new_pos, item: item}]);
+            actions.addBlocks([{pos: new_pos, item: item, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
             affected_count++;
-            if(affected_count % MAX_BLOCKS_PER_ACTIONS == 0) {
+            if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
                 actions_list.push(actions);
-                actions = new PickatActions(null, null, true, false);
+                actions = new PickatActions(null, null, true, false/*, false*/);
             }
         }
         if(actions.blocks.list.length > 0) {

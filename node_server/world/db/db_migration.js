@@ -550,6 +550,11 @@ export class DBWorldMigration {
             ((x - chunk_x * ${CHUNK_SIZE_X}) % ${CHUNK_SIZE_X})`
         ]});
 
+        migrations.push({version: 68, queries: [
+            `DROP INDEX IF EXISTS "main"."world_modify_id";`,
+            `DROP INDEX IF EXISTS "main"."world_modify_index";`
+        ]});
+
         // @important Added triggers
         migrations.push({version: 68, queries: [
             `CREATE TABLE "main"."world_modify_chunks" (
@@ -605,6 +610,9 @@ export class DBWorldMigration {
                 console.info('Migration applied: ' + version);
             }
         }
+
+        // Create temporary table for bulk insert block modificators
+        this.db.run(`CREATE TEMPORARY TABLE world_modify_import_bulk(data TEXT);`);
 
     }
 

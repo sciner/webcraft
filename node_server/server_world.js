@@ -523,18 +523,24 @@ export class ServerWorld {
                 await this.db.TransactionBegin();
             }
             try {
-                const all_chunks = new VectorCollector();
+                let pm = performance.now();
+                const modified_chunks = new VectorCollector();
                 let all = [];
+                const create_block_list = [];
                 for (let params of actions.blocks.list) {
                     params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
-                        all_chunks.set(chunk_addr.clone(), true);
+                        modified_chunks.set(chunk_addr.clone(), true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
                     // await this.db.blockSet(this, server_player, params);
-                    all.push(this.db.blockSet(this, server_player, params));
+                    if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                        create_block_list.push(params);
+                    } else {
+                        all.push(this.db.blockSet(this, server_player, params));
+                    }
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     if (chunk && chunk.tblocks) {
@@ -594,15 +600,15 @@ export class ServerWorld {
                         // console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
-                await Promise.all(all);
-                for(const [vec, _] of all_chunks.entries()) {
-                    // let p = performance.now();
-                    await this.db.updateChunk(vec);
-                    // console.log(vec.toHash(), performance.now() - p);
+                if(create_block_list.length > 0) {
+                    all.push(this.db.blockSetBulk(this, server_player, create_block_list));
                 }
+                await Promise.all(all);
+                await this.db.updateChunks(Array.from(modified_chunks.keys()));
                 if (use_tx) {
                     await this.db.TransactionCommit();
                 }
+                console.log(performance.now() - pm);
             } catch (e) {
                 console.log('error', e);
                 if (use_tx) {
