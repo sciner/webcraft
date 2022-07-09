@@ -6386,6 +6386,18 @@
                 "up": "block/chiseled_quartz_block_top.png",
                 "down": "block/chiseled_quartz_block_top.png"
             }
+        },
+        {
+            "id": 599,
+            "name": "SUGAR",
+            "style": "extruder",
+            "texture": "item/sugar.png",
+            "item": {
+                "name": "food"
+            },
+            "material": {
+                "id": "food"
+            }
         }
     ]
 }
