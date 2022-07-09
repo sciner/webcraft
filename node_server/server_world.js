@@ -608,7 +608,7 @@ export class ServerWorld {
                 if (use_tx) {
                     await this.db.TransactionCommit();
                 }
-                console.log(performance.now() - pm);
+                // console.log(performance.now() - pm);
             } catch (e) {
                 console.log('error', e);
                 if (use_tx) {

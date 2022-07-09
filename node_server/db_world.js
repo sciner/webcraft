@@ -394,7 +394,7 @@ export class DBWorld {
         }
         let need_insert = true;
         if(is_modify) {
-            let rows = await this.db.all('SELECT _rowid_ FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            let rows = await this.db.all('SELECT _rowid_ AS rowid FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
                 ':x': params.pos.x,
                 ':y': params.pos.y,
                 ':z': params.pos.z
@@ -402,7 +402,7 @@ export class DBWorld {
             for(let row of rows) {
                 need_insert = false;
                 await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE _rowid_ = :_rowid_', {
-                    ':_rowid_':     row._rowid_,
+                    ':_rowid_':     row.rowid,
                     ':params':      item ? JSON.stringify(item) : null,
                     ':entity_id':   item?.entity_id ? item.entity_id : null,
                     ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
