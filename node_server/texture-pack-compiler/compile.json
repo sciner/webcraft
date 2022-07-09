@@ -1811,7 +1811,7 @@
             "item": {"name": "brick"},
             "style": "extruder",
             "material": {
-                "id": "stone"
+                "id": "netherite"
             },
             "texture": "item/nether_brick.png"
         },
@@ -1893,11 +1893,11 @@
         {
             "id": 113,
             "name": "NETHER_BRICK_FENCE",
-            "sound": "madcraft:block.wood",
+            "sound": "madcraft:block.stone",
             "transparent": true,
             "style": "fence",
             "material": {
-                "id": "wood"
+                "id": "netherite"
             },
             "texture": "block/nether_bricks.png"
         },
@@ -5958,7 +5958,7 @@
             "style": "stairs",
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "stone"
+                "id": "netherite"
             },
             "tags": [
                 "stairs"
@@ -6323,9 +6323,9 @@
             "id": 78,
             "name": "NETHER_BRICK_SLAB",
             "transparent": true,
-            "sound": "madcraft:block.wood",
+            "sound": "madcraft:block.stone",
             "material": {
-                "id": "wood"
+                "id": "netherite"
             },
             "height": 0.5,
             "layering": {
