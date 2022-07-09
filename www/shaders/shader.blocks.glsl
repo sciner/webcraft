@@ -98,7 +98,7 @@
     out vec2 v_texcoord1_diff;
     out vec4 v_texClamp0;
     out vec3 v_normal;
-    out vec4 v_color;
+    flat out vec4 v_color;
     flat out float v_animInterp;
     flat out float v_lightMode;
     flat out float v_useFog;
@@ -119,7 +119,7 @@
     in vec2 v_texcoord0;
     in vec2 v_texcoord1_diff;
     in vec4 v_texClamp0;
-    in vec4 v_color;
+    flat in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
     in vec3 v_world_pos;

@@ -25,7 +25,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
 
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
 
-    if (v_color.r > 0.0) {
+    if (v_color.a > 0.0) {
         float mask_shift = v_color.b * 32.;
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texture(u_texture, biomPos);
@@ -57,20 +57,27 @@ void main() {
             // ignore a lot of pipeline passes
             vec4 data = texture(u_texture, texClamped);
 
-            float msdfThreshold = 0.5;
+            float threshold = 0.6;
+            float outline = 0.2;
 
-            vec4 msdfColor = vec4(1.0);
             float msdfSize = 100.0;
 
-            float msdfFactor = 0.5 * length(fwidth(v_texcoord0) * msdfSize);
+            vec4 msdfColor = vec4(v_color.rgb, 1.0);
+            vec4 outlineColor = vec4(1.0 - v_color.rgb, 0.8);
+
+            float msdfFactor =  0.5 * length(fwidth(v_texcoord0) * msdfSize);
+            float totalThreshold = threshold - outline;
+
             float dist = median(data);
             float fill = smoothstep(
-                msdfThreshold - msdfFactor, 
-                msdfThreshold + msdfFactor, 
+                totalThreshold - msdfFactor, 
+                totalThreshold + msdfFactor, 
                 dist
             );
 
             color = mix(vec4(0.0), msdfColor, fill);
+
+            color = mix(color, outlineColor, 1. - smoothstep(totalThreshold - msdfFactor, threshold, dist)) * color.a;
 
             // discard transparency
             // for smooth edge value should be lower than visible step

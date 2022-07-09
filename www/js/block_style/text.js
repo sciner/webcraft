@@ -50,6 +50,7 @@ export default class style {
         matrix,
         center,
         alignCenter = false,
+        color = [1, 1, 1]
     }) {
         const aabbc = style._aabbc;
         const totalHeight = baseHeight * lines;
@@ -128,7 +129,7 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    south:  new AABBSideParams(c, QUAD_FLAGS.QUAD_FLAG_SDF, 1, null, null, false)
+                    south:  new AABBSideParams(c, QUAD_FLAGS.QUAD_FLAG_SDF, 1, null, null, false, color)
                 },
                 center
             );

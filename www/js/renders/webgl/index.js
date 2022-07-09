@@ -28,7 +28,8 @@ const TEXTURE_TYPE_FORMAT = {
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
-    'nearest': 'NEAREST'
+    'nearest': 'NEAREST',
+    'linear_mipmap_linear': 'LINEAR_MIPMAP_LINEAR',
 }
 
 const TEXTURE_MODE = {
@@ -245,6 +246,10 @@ export class WebGLTexture extends BaseTexture {
                     gl[formats.type],
                     null
                 );
+            }
+            
+            if (this.minFilter && this.minFilter.indexOf('mipmap') > -1) {
+                gl.generateMipmap(type);
             }
 
             this._applyStyle();

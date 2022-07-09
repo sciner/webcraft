@@ -59,7 +59,7 @@ void main() {
 
     if(u_fogOn) {
         if (flagBiome == 0) {
-            v_color.r = -1.0;
+            v_color.a = 0.0;
         }
     }
 
