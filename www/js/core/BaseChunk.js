@@ -4,17 +4,24 @@ import {Vector} from "../helpers.js";
 const tempAABB = new AABB();
 
 export class BaseChunk {
-    constructor({size}) {
+    constructor({size, nibble}) {
         this.outerAABB = new AABB();
         this.safeAABB = new AABB();
         this.pos = new Vector();
         this.subRegions = [];
         this.subMaxWidth = 0;
         this.portals = [];
+        this.facetPortals = [];
         this.initSize(size);
         this.setPos(Vector.ZERO);
         this.dif26 = [];
         this.rev = null;
+
+        if (nibble) {
+            this.initNibble(nibble);
+        } else {
+            this.clearNibble();
+        }
     }
 
     initSize(size) {
@@ -32,6 +39,27 @@ export class BaseChunk {
         this.cy = outerSize.x * outerSize.z;
         this.cz = outerSize.x;
         this.cw = padding * (this.cx + this.cy + this.cz);
+    }
+
+    clearNibble() {
+        this.nibbleDims = null;
+        this.nibbleStrideBytes = 0;
+        this.nibbleSize = null;
+        this.nibbleOuterSize = null;
+        this.nibbleOuterLen = 0;
+    }
+
+    initNibble({dims, strideBytes}) {
+        const {padding} = this;
+
+        this.nibbleDims = dims;
+        this.nibbleStrideBytes = strideBytes;
+        this.nibbleSize = new Vector(Math.ceil(this.size.x / dims.x),
+            Math.ceil(this.size.y / dims.y),
+            Math.ceil(this.size.z / dims.z));
+
+        const outerSize = this.nibbleOuterSize = new Vector().copyFrom(this.nibbleSize).addScalarSelf(padding * 2, padding * 2, padding * 2);
+        this.nibbleOuterLen = outerSize.x * outerSize.y * outerSize.z;
     }
 
     /**
@@ -124,7 +152,34 @@ export class BaseChunk {
         this.portals.push(portal);
 
         const inner = this.safeAABB;
-        const aabb = portal.aabb;
+        const {aabb, toRegion} = portal;
+
+        const nibbleSize1 = this.nibbleSize;
+        const nibbleSize2 = toRegion.nibbleSize;
+
+        let nibbleCompatibleX = false;
+        let nibbleCompatibleY = false;
+        let nibbleCompatibleZ = false;
+        if (nibbleSize1 && nibbleSize2) {
+            //TODO: check corner nibble
+            nibbleCompatibleX = nibbleSize1.x === nibbleSize2.x && (this.aabb.x_min - toRegion.aabb.x_min) % nibbleSize1.x === 0
+            nibbleCompatibleY = nibbleSize1.y === nibbleSize2.y && (this.aabb.y_min - toRegion.aabb.y_min) % nibbleSize1.y === 0
+            nibbleCompatibleZ = nibbleSize1.z === nibbleSize2.z && (this.aabb.z_min - toRegion.aabb.z_min) % nibbleSize1.z === 0
+        }
+        if (aabb.x_max - aabb.x_min === 2) {
+            portal.nibbleCompatible = nibbleCompatibleY && nibbleCompatibleZ;
+        } else
+        if (aabb.y_max - aabb.y_min === 2) {
+            portal.nibbleCompatible = nibbleCompatibleX && nibbleCompatibleZ;
+        } else
+        if (aabb.z_max - aabb.z_min === 2) {
+            portal.nibbleCompatible = nibbleCompatibleX && nibbleCompatibleY;
+        }
+
+        if (portal.isFacet) {
+            this.facetPortals.push(portal);
+        }
+
         tempAABB.setIntersect(inner, aabb);
         if (tempAABB.isEmpty()) {
             return;
@@ -209,22 +264,42 @@ export class BaseChunk {
         for (let i = 0; i < this.portals.length; i++) {
             const portal = this.portals[i];
             const {rev} = portal;
-            const ind = rev.fromRegion.portals.indexOf(rev);
+            let ind = rev.fromRegion.portals.indexOf(rev);
             if (ind >= 0) {
                 rev.fromRegion.portals.splice(ind, 1);
             } else {
                 // WTF?
             }
+            if (portal.isFacet) {
+                ind = rev.fromRegion.facetPortals.indexOf(rev);
+                if (ind >= 0) {
+                    rev.fromRegion.facetPortals.splice(ind, 1);
+                }
+            }
         }
         this.portals.length = 0;
+        this.facetPortals.length = 0;
     }
 }
 
 export class Portal {
     constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
-        this.volume = (aabb.maxX - aabb.minX) * (aabb.maxY - aabb.minY) * (aabb.maxZ - aabb.minZ);
+        this.volume = (aabb.x_max - aabb.x_min) * (aabb.y_max - aabb.y_min) * (aabb.z_max - aabb.z_min);
         this.fromRegion = fromRegion;
         this.toRegion = toRegion;
+        this.nibbleCompatible = false;
+
+        let facet = 0;
+        if (aabb.x_max - aabb.x_min > 2) {
+            facet++;
+        }
+        if (aabb.y_max - aabb.y_min > 2) {
+            facet++;
+        }
+        if (aabb.z_max - aabb.z_min > 2) {
+            facet++;
+        }
+        this.isFacet = facet >= 2;
     }
 }

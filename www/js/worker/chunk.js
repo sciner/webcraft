@@ -137,10 +137,10 @@ export class Chunk {
         }
         const pos = new Vector(0, 0, 0);
         const block_index = new Vector(0, 0, 0);
-        for(let key of Object.keys(this.modify_list)) {
-            let m           = this.modify_list[key];
-            let pos_temp         = key.split(',');
-            pos.set(pos_temp[0], pos_temp[1], pos_temp[2])
+        for(let index in this.modify_list) {
+            const m = this.modify_list[index];
+            if(!m) continue;
+            pos.fromFlatChunkIndex(index);
             if(m.id < 1) {
                 BLOCK.getBlockIndex(pos, null, null, block_index);
                 this.tblocks.delete(block_index);
@@ -204,6 +204,7 @@ export class Chunk {
         if(power === 0) {
             power = null;
         }
+        const pos = new Vector(x, y, z);
         //
         if(is_modify) {
             let modify_item = {
@@ -211,9 +212,8 @@ export class Chunk {
                 power: power,
                 rotate: rotate
             };
-            this.modify_list[[x, y, z]] = modify_item;
+            this.modify_list[pos.getFlatIndexInChunk()] = modify_item;
         }
-        let pos = new Vector(x, y, z);
         BLOCK.getBlockIndex(pos, null, null, pos);
         x = pos.x;
         y = pos.y;

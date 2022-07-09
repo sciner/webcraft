@@ -2,6 +2,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 
 const {mat4} = glMatrix;
 
@@ -918,6 +919,31 @@ export class Vector {
         return this;
     }
 
+    // Return flat index of chunk block
+    getFlatIndexInChunk() {
+        let x = (this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X) % CHUNK_SIZE_X;
+        let y = (this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y) % CHUNK_SIZE_Y;
+        let z = (this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z) % CHUNK_SIZE_Z;
+        return (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+    }
+
+    //
+    fromFlatChunkIndex(index) {
+        index = parseInt(index);
+        this.x = index % CHUNK_SIZE_X;
+        this.y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
+        this.z = (index % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - this.x) / CHUNK_SIZE_X;
+        return this;
+    }
+
+    //
+    fromHash(hash) {
+        let temp = hash.split(',');
+        this.x = temp[0] | 0
+        this.y = temp[1] | 0;
+        this.z = temp[2] | 0;
+        return this;
+    }
 
 }
 
