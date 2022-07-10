@@ -4,7 +4,7 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../www/js/chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../../www/js/chunk_const.js";
 import {Vector} from "../../www/js/helpers.js";
 import {ServerClient} from "../../www/js/server_client.js";
 import {BLOCK} from "../../www/js/blocks.js";
@@ -77,8 +77,9 @@ export class DBWorld {
                 game_mode:  row.game_mode,
                 generator:  JSON.parse(row.generator),
                 pos_spawn:  JSON.parse(row.pos_spawn),
+                rules:      JSON.parse(row.rules),
                 state:      null,
-                add_time:   row.add_time
+                add_time:   row.add_time,
             }
         }
         // Insert new world to Db
@@ -179,7 +180,7 @@ export class DBWorld {
         }
         const default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
-        const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
+        await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
@@ -210,7 +211,7 @@ export class DBWorld {
 
     // savePlayerInventory...
     async savePlayerInventory(player, params) {
-        const result = await this.db.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
+        await this.db.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
             ':id':              player.session.user_id,
             ':inventory':       JSON.stringify(params)
         });
@@ -219,7 +220,7 @@ export class DBWorld {
     // savePlayerState...
     async savePlayerState(player) {
         player.position_changed = false;
-        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
+        await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
             ':id':              player.session.user_id,
             ':pos':             JSON.stringify(player.state.pos),
             ':rotate':          JSON.stringify(player.state.rotate),
@@ -245,10 +246,10 @@ export class DBWorld {
         });
     }
 
-    // Вычитка списка администраторов
+    // Return admin list
     async loadAdminList(world_id)  {
-        let resp = [];
-        let rows = await this.db.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+        const resp = [];
+        const rows = await this.db.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
         for(let row of rows) {
             resp.push(row.username);
         }
@@ -257,7 +258,7 @@ export class DBWorld {
 
     // findPlayer...
     async findPlayer(world_id, username) {
-        let row = await this.db.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        const row = await this.db.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
         if(!row) {
             return null;
         }
@@ -266,24 +267,27 @@ export class DBWorld {
 
     // setAdmin...
     async setAdmin(world_id, user_id, is_admin) {
-        let result = await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
+        await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
     // saveChestSlots...
     async saveChestSlots(chest) {
-        let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+        const rows = await this.db.all('SELECT _rowid_ AS rowid, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
             ':x': chest.pos.x,
             ':y': chest.pos.y,
             ':z': chest.pos.z
         });
         for(let row of rows) {
-            let extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
+            const extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
             extra_data.slots = chest.slots;
             extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
+            // save slots
             await this.db.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
                 ':extra_data':  JSON.stringify(extra_data),
-                ':id':          row.id
+                ':id':          row.rowid
             });
+            // update chunk
+            this.updateChunks([getChunkAddr(chest.pos)]);
             return true;
         }
         return false;
@@ -304,7 +308,7 @@ export class DBWorld {
     // Create drop item
     async createDropItem(params) {
         const entity_id = uuid();
-        const result = await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
+        await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
             ':items':           JSON.stringify(params.items),
@@ -313,13 +317,13 @@ export class DBWorld {
             ':z':               params.pos.z
         });
         return {
-            entity_id: entity_id
+            entity_id
         };
     }
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        const result = await this.db.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
+        await this.db.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
             ':is_deleted': 1,
             ':entity_id': entity_id
         });
@@ -327,7 +331,7 @@ export class DBWorld {
 
     // Load drop items
     async loadDropItems(addr, size) {
-        let rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -335,9 +339,9 @@ export class DBWorld {
             ':z_min': addr.z * size.z,
             ':z_max': addr.z * size.z + size.z
         });
-        let resp = new Map();
+        const resp = new Map();
         for(let row of rows) {
-            let item = new DropItem(this.world, {
+            const item = new DropItem(this.world, {
                 id:         row.id,
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
@@ -504,7 +508,7 @@ export class DBWorld {
      * @return {Object} список доступных точек для телепортации
      */
     async getListTeleportPoints(id) {
-        let rows = await this.db.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
+        const rows = await this.db.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
             ":id" : parseInt(id)
         });
         if(!rows) {
@@ -519,8 +523,8 @@ export class DBWorld {
      * @param {string} title имя точки
      */
     async getTeleportPoint(id, title) {
-        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
-        let row = await this.db.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
+        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        const row = await this.db.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
             ":id" : parseInt(id),
             ":title": clear_title
         });
@@ -531,21 +535,21 @@ export class DBWorld {
     }
 
     /**
-     * TO DO EN добавлят положение игрока в список с именем title
-     * @param {number} id id игрока
+     * TO DO EN добавляет положение игрока в список с именем title
+     * @param {number} user_id id игрока
      * @param {string} title имя точки
      * @param {number} x x точки
      * @param {number} y y точки
      * @param {number} z z точки
      */
-    async addTeleportPoint(id, title, x, y, z) {
-        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
-        await this.db.run("INSERT INTO teleport_points (user_id, title, x, y, z) VALUES (:id, :title, :x, :y, :z)", {
-            ":id" : parseInt(id),
-            ":title": clear_title,
-            ":x": x,
-            ":y": y + 0.5,
-            ":z": z
+    async addTeleportPoint(user_id, title, x, y, z) {
+        const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        await this.db.run("INSERT INTO teleport_points(user_id, title, x, y, z) VALUES (:user_id, :title, :x, :y, :z)", {
+            ":user_id": parseInt(user_id),
+            ":title":   clear_title,
+            ":x":       x,
+            ":y":       y + 0.5,
+            ":z":       z
         });
     }
 
@@ -571,6 +575,14 @@ export class DBWorld {
         ORDER BY m.id ASC)
         FROM json_each(:address_list) addrs`, {
             ':address_list': JSON.stringify(address_list)
+        });
+    }
+
+    //
+    async saveGameRules(world_guid, rules) {
+        await this.db.run('UPDATE world SET rules = :rules WHERE guid = :world_guid', {
+            ':world_guid':  world_guid,
+            ':rules':    JSON.stringify(rules)
         });
     }
 

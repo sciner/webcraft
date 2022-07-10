@@ -599,6 +599,10 @@ export class DBWorldMigration {
 
         ]});
 
+        migrations.push({version: 70, queries: [
+            `ALTER TABLE world ADD COLUMN "rules" TEXT NOT NULL DEFAULT '{}'`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

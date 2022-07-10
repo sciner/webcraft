@@ -156,12 +156,22 @@ export class World {
         const minutes_string = minutes.toFixed(0).padStart(2, '0');
         const hours_string   = hours.toFixed(0).padStart(2, '0');
 
+        let time_visible = time;
+
+        // If daylight cycle stop by rules
+        if('doDaylightCycle' in this.info.rules) {
+            if(!this.info.rules.doDaylightCycle) {
+                time_visible = this.info.rules.doDaylightCycleTime;
+            }
+        }
+
         return {
-            time:       time, // max value is 24_000
-            day:        age,
-            hours:      hours,
-            minutes:    minutes,
-            string:     hours_string + ':' + minutes_string
+            time:           time, // max value is 24_000
+            time_visible:   time_visible,
+            day:            age,
+            hours:          hours,
+            minutes:        minutes,
+            string:         hours_string + ':' + minutes_string
         };
     }
 

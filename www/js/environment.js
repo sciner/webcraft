@@ -690,7 +690,7 @@ export class Environment {
         let dayTime = dayTimeTics / 2; // default
 
         if (gameTime) {
-            dayTime = gameTime.time;
+            dayTime = gameTime.time_visible;
         }
 
         const phase = Math.PI * 2 * dayTime / dayTimeTics;

@@ -37,8 +37,8 @@ export class ServerGame {
         // New player connection
         this.wsServer.on('connection', async (conn, req) => {
             console.log('New player connection');
-            const query           = url.parse(req.url, true).query;
-            const world_guid      = query.world_guid;
+            const query         = url.parse(req.url, true).query;
+            const world_guid    = query.world_guid;
             let world           = this.worlds.get(world_guid);
             const game_world    = await this.db.getWorld(world_guid);
             Log.append('WsConnected', {world_guid, session_id: query.session_id});

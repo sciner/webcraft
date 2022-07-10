@@ -43,8 +43,8 @@ export class ServerWorld {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
-        this.db = db_world;
-        this.info = await this.db.getWorld(world_guid);
+        this.db             = db_world;
+        this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
@@ -68,7 +68,7 @@ export class ServerWorld {
         await this.chunks.initWorker();
         //
         this.saveWorldTimer = setInterval(() => {
-            let pn = performance.now();
+            // let pn = performance.now();
             this.save();
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
@@ -157,7 +157,7 @@ export class ServerWorld {
     }
 
     save() {
-        for (let player of this.players.values()) {
+        for(let player of this.players.values()) {
             this.db.savePlayerState(player);
         }
     }
@@ -380,7 +380,6 @@ export class ServerWorld {
 
     /**
      * Restore modified chunks list
-     * @return {boolean}
      */
     async restoreModifiedChunks() {
         this.chunkModifieds = new VectorCollector();
@@ -791,6 +790,61 @@ export class ServerWorld {
             }
         }
         return resp;
+    }
+
+    // Return game rule
+    getGameRule(rule_code) {
+        switch(rule_code) {
+            case 'doDaylightCycle': {
+                return this.info.rules[rule_code] || true;
+                break;
+            }
+            default: {
+                throw 'error_incorrect_rule_code';
+            }
+        }
+    }
+
+    // Set world game rule value
+    async setGameRule(rule_code, value) {
+        //
+        function parseFloatValue(value) {
+            value = value.toLowerCase().trim();
+            if(['true', 'false'].indexOf(value) < 0) {
+                throw 'error_invalid_value_type';
+            }
+            return value == 'true';
+        }
+        //
+        const rules = this.info.rules;
+        //
+        switch(rule_code) {
+            case 'doDaylightCycle': {
+                // /gamerule doDaylightCycle false|true
+                value = parseFloatValue(value);
+                if(value) {
+                    delete(rules.doDaylightCycleTime);
+                } else {
+                    // fix current day_time
+                    this.updateWorldCalendar();
+                    rules.doDaylightCycleTime = this.info.calendar.day_time;
+                }
+                break;
+            }
+            default: {
+                throw 'error_incorrect_rule_code';
+            }
+        }
+        // Apply changes if not equal with current
+        if(rules[rule_code] == value) {
+            return false;
+        }
+        rules[rule_code] = value;
+        // Save to DB and send to players
+        await this.db.saveGameRules(this.info.guid, this.info.rules);
+        this.sendUpdatedInfo();
+        this.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, this.players.keys());
+        return true;
     }
 
 }
