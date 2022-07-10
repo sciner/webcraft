@@ -126,14 +126,6 @@ void main() {
 
         outColor = color;
 
-        if (u_fogOn) {
-            #include<fog_frag>
-            if(u_crosshairOn) {
-                #include<crosshair_call_func>
-            }
-            #include<vignetting_call_func>
-        }
-
     } else {
         outColor = texture(u_texture, texClamped);
         if(outColor.a < 0.1) discard;
