@@ -12,24 +12,24 @@ export class ServerAPI {
             try {
                 switch(req.originalUrl) {
                     case '/api/User/Registration': {
-                        let session = await Game.db.Registration(req.body.username, req.body.password);
+                        const session = await Game.db.Registration(req.body.username, req.body.password);
                         Log.append('Registration', {username: req.body.username});
                         res.status(200).json(session);
                         break;
                     }
                     case '/api/User/Login': {
-                        let session = await Game.db.Login(req.body.username, req.body.password);
+                        const session = await Game.db.Login(req.body.username, req.body.password);
                         Log.append('Login', {username: req.body.username});
                         res.status(200).json(session);
                         break;
                     }
                     case '/api/Game/CreateWorld': {
-                        let title       = req.body.title;
-                        let seed        = req.body.seed;
-                        let generator   = req.body.generator;
-                        let game_mode   = 'survival';
-                        let session     = await Game.db.GetPlayerSession(req.get('x-session-id'));
-                        let world       = await Game.db.InsertNewWorld(session.user_id, generator, seed, title, game_mode);
+                        const title       = req.body.title;
+                        const seed        = req.body.seed;
+                        const generator   = req.body.generator;
+                        const game_mode   = 'survival';
+                        const session     = await Game.db.GetPlayerSession(req.get('x-session-id'));
+                        const world       = await Game.db.InsertNewWorld(session.user_id, generator, seed, title, game_mode);
                         Log.append('InsertNewWorld', {user_id: session.user_id, generator, seed, title, game_mode});
                         res.status(200).json(world);
                         break;
@@ -43,13 +43,13 @@ export class ServerAPI {
                         break;
                     }
                     case '/api/Game/MyWorlds': {
-                        let session = await Game.db.GetPlayerSession(req.get('x-session-id'));
-                        let result = await Game.db.MyWorlds(session.user_id);
+                        const session = await Game.db.GetPlayerSession(req.get('x-session-id'));
+                        const result = await Game.db.MyWorlds(session.user_id);
                         res.status(200).json(result);
                         break;
                     }
                     case '/api/Game/Online': {
-                        let session = await Game.db.GetPlayerSession(req.get('x-session-id'));
+                        const session = await Game.db.GetPlayerSession(req.get('x-session-id'));
                         ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
                         const resp = {
                             dt_started: Game.dt_started,

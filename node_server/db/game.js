@@ -4,11 +4,11 @@ import {open} from 'sqlite'
 import { v4 as uuid } from 'uuid';
 import { copyFile } from 'fs/promises';
 
-import {Vector} from '../www/js/helpers.js';
+import {Vector} from '../../www/js/helpers.js';
 
 export class DBGame {
 
-    static TEMPLATE_DB = './game.sqlite3.template';
+    static TEMPLATE_DB = './db/game.sqlite3.template';
 
     constructor(db) {
         this.db = db;
@@ -29,7 +29,7 @@ export class DBGame {
         // If DB file not exists, then create it from template
         if (!fs.existsSync(filename)) {
             // create db from template
-            let template_db_filename = path.resolve(DBGame.TEMPLATE_DB);
+            const template_db_filename = path.resolve(DBGame.TEMPLATE_DB);
             await copyFile(template_db_filename, filename);
         }
         // Open SQLIte3 fdatabase file

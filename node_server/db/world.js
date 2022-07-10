@@ -4,22 +4,22 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
-import {Vector} from "../www/js/helpers.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {BLOCK} from "../www/js/blocks.js";
-import { DropItem } from './drop_item.js';
-import { INVENTORY_SLOT_COUNT } from '../www/js/constant.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../www/js/chunk_const.js";
+import {Vector} from "../../www/js/helpers.js";
+import {ServerClient} from "../../www/js/server_client.js";
+import {BLOCK} from "../../www/js/blocks.js";
+import { DropItem } from '../drop_item.js';
+import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
 import fs from 'fs';
 
 //
-import { DBWorldMob } from './world/db/db_mob.js';
-import { DBWorldMigration } from './world/db/db_migration.js';
-import { DBWorldQuest } from './world/db/db_world_quest.js';
+import { DBWorldMob } from './world/mob.js';
+import { DBWorldMigration } from './world/migration.js';
+import { DBWorldQuest } from './world/quest.js';
 
 export class DBWorld {
 
-    static TEMPLATE_DB = './world.sqlite3.template';
+    static TEMPLATE_DB = './db/world.sqlite3.template';
 
     constructor(db, world) {
         this.db = db;

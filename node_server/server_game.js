@@ -1,8 +1,8 @@
 import url from 'url';
 import {WebSocketServer, WebSocket} from "ws";
 
-import {DBGame} from "./db_game.js";
-import {DBWorld} from "./db_world.js";
+import {DBGame} from "./db/game.js";
+import {DBWorld} from "./db/world.js";
 import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
