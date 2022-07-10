@@ -5,7 +5,7 @@ import {PickatActions} from "../../www/js/block_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 
-const MAX_SET_BLOCK         = 30000;
+const MAX_SET_BLOCK         = 100000;
 const MAX_BLOCKS_PER_PASTE  = 10000;
 
 export default class WorldEdit {
@@ -330,9 +330,48 @@ export default class WorldEdit {
     }
 
     //
+    checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id) {
+        let total_count = qi.volume;
+        const size = new Vector(qi.volx, qi.voly, qi.volz);
+        const WALL_WIDTH = 1;
+        switch(quboid_fill_type_id) {
+            // full
+            case 1: {
+                // do nothing
+                break;
+            }
+            // only walls
+            case 2: {
+                size.x -= WALL_WIDTH * 2;
+                size.z -= WALL_WIDTH * 2;
+                if(size.x > 0 && size.y > 0 && size.z > 0) {
+                    total_count -= (size.x * size.y * size.z);
+                }
+                break;
+            }
+            // only faces
+            case 3: {
+                size.x -= WALL_WIDTH * 2;
+                size.y -= WALL_WIDTH * 2;
+                size.z -= WALL_WIDTH * 2;
+                if(size.x > 0 && size.y > 0 && size.z > 0) {
+                    total_count -= (size.x * size.y * size.z);
+                }
+                break;
+            }
+        }
+        if(total_count > MAX_SET_BLOCK) {
+            throw 'error_volume_max_' + MAX_SET_BLOCK;
+        }
+    }
+
+    //
     async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
         const pn_set = performance.now();
-        const actions = new PickatActions(null, null, true, false);
+        let actions = new PickatActions(null, null, true, false);
+        let affected_count = 0;
+        this.checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id);
+        //
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -357,16 +396,21 @@ export default class WorldEdit {
                             break;
                         }
                     }
-                    let bpos = new Vector(qi.pos1.x, qi.pos1.y, qi.pos1.z);
+                    affected_count++;
+                    const bpos = new Vector(qi.pos1.x, qi.pos1.y, qi.pos1.z);
                     bpos.x += x * qi.signx;
                     bpos.y += y * qi.signy;
                     bpos.z += z * qi.signz;
-                    actions.addBlocks([{pos: bpos, item: palette.nextAsItem()}]);
+                    if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
+                        chat.world.actions_queue.add(null, actions);
+                        actions = new PickatActions(null, null, true, false);
+                    }
+                    actions.addBlocks([{pos: bpos, item: palette.nextAsItem(), action_id: ServerClient.BLOCK_ACTION_CREATE}]);
                 }
             }
         }
         chat.world.actions_queue.add(null, actions);
-        chat.sendSystemChatMessageToSelectedPlayers(`${qi.volume} blocks changed`, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(`${affected_count} blocks changed`, [player.session.user_id]);
         console.log('Time took: ' + (performance.now() - pn_set));
     }
 
@@ -381,9 +425,6 @@ export default class WorldEdit {
         const volume = player.pos1.volume(player.pos2);
         if(volume < 1) {
             throw 'error_volume_0';
-        }
-        if(volume > MAX_SET_BLOCK) {
-            throw 'error_volume_max_' + MAX_SET_BLOCK;
         }
         return {
             pos1: player.pos1.clone(),
