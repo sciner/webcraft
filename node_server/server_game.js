@@ -28,7 +28,7 @@ export class ServerGame {
         this.hotbar = new FakeHotbar();
     }
 
-    // startWS...
+    // Start websocket server
     async startWS() {
         this.db = await DBGame.openDB('.');
         global.Log = new GameLog(this.db);
@@ -37,14 +37,14 @@ export class ServerGame {
         // New player connection
         this.wsServer.on('connection', async (conn, req) => {
             console.log('New player connection');
-            let query           = url.parse(req.url, true).query;
-            let world_guid      = query.world_guid;
+            const query           = url.parse(req.url, true).query;
+            const world_guid      = query.world_guid;
             let world           = this.worlds.get(world_guid);
             const game_world    = await this.db.getWorld(world_guid);
             Log.append('WsConnected', {world_guid, session_id: query.session_id});
             if(!world) {
                 world = new ServerWorld();
-                let db_world = await DBWorld.openDB('../world/' + world_guid, world);
+                const db_world = await DBWorld.openDB('../world/' + world_guid, world);
                 await world.initServer(world_guid, db_world);
                 this.worlds.set(world_guid, world);
                 console.log('World started');

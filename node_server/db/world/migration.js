@@ -443,6 +443,8 @@ export class DBWorldMigration {
               "y" ASC,
               "z" ASC
             );`,
+
+            `DROP TABLE _world_modify_old_20220614`,
         ]});
 
         migrations.push({version: 58, queries: [
@@ -516,6 +518,8 @@ export class DBWorldMigration {
               "chunk_z" ASC
             );`,
 
+            `DROP TABLE _world_modify_old_20220703_2`,
+
         ]});
 
         migrations.push({version: 64, queries: [
@@ -555,9 +559,9 @@ export class DBWorldMigration {
             `DROP INDEX IF EXISTS "main"."world_modify_index";`
         ]});
 
-        // @important Added triggers
-        migrations.push({version: 68, queries: [
-            `CREATE TABLE "main"."world_modify_chunks" (
+        //
+        migrations.push({version: 69, queries: [
+            `CREATE TABLE IF NOT EXISTS "main"."world_modify_chunks" (
                 "x" integer NOT NULL DEFAULT 0,
                 "y" integer NOT NULL DEFAULT 0,
                 "z" integer NOT NULL DEFAULT 0,
@@ -583,12 +587,15 @@ export class DBWorldMigration {
             ORDER BY m.id ASC)
             FROM chunks o`,
 
-            `CREATE INDEX "main"."world_modify_chunks_xyz"
+            `CREATE INDEX IF NOT EXISTS "main"."world_modify_chunks_xyz"
                 ON "world_modify_chunks" (
                 "x" ASC,
                 "y" ASC,
                 "z" ASC
             );`,
+
+            `DROP TABLE IF EXISTS _world_modify_old_20220614;`,
+            `DROP TABLE IF EXISTS _world_modify_old_20220703_2;`,
 
         ]});
 
