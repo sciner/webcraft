@@ -1,9 +1,6 @@
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import {CubeSym} from "../core/CubeSym.js";
 import {Resources} from "../resources.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-
-const {mat4} = glMatrix;
+import { Vector } from '../helpers.js';
 
 Resources.loadPainting();
 
