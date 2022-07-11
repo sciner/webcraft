@@ -528,7 +528,7 @@ export class DirNibbleQueue {
                         }
                     }
                     if (neibLight > light) {
-                        world.dayLight.add(chunk, coord, neibLight + world.getPotential(x, y, z));
+                        this.world.dayLight.add(chunk, coord, neibLight + this.world.getPotential(x, y, z));
                     }
                 }
         // add to queue NIBBLE neibs that have lighted neighbours
