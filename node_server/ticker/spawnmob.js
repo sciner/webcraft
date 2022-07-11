@@ -11,12 +11,32 @@ export default class Ticker {
         const tblock = v.tblock;
         const ticking = v.ticking;
         const extra_data = tblock.extra_data;
-        const updated_blocks = [];
-        
+        //console.log(extra_data);
         if(v.ticks % extra_data.max_ticks == 0) {
-            extra_data.max_ticks = Math.random() * 600 | 0 + 200;
             const pos = v.pos.clone();
             
+            //Один раз спаун
+            if (extra_data.limit.count && extra_data.limit.count == 1) {
+                const spawn_pos = pos.add(new Vector(.5, 0, .5));
+                const params = {
+                    type           : extra_data.type,
+                    skin           : extra_data.skin,
+                    pos            : spawn_pos,
+                    pos_spawn      : spawn_pos.clone(),
+                    rotate         : new Vector(0, 0, 0).toAngles()
+                };
+                
+                // Spawn mob
+                await world.mobs.create(params); 
+                const updated_blocks = [];
+                updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                console.log('One spawn mob', pos.toHash());
+                // Delete completed block from tickings
+                this.delete(v.pos);
+                return updated_blocks;
+            }
+            
+            extra_data.max_ticks = Math.random() * 600 | 0 + 200;
              //Проврерям наличие игроков в радиусе 16 блоков
             const players = world.getPlayersNear(pos, 16, false);
             if (players.length == 0) {
@@ -27,6 +47,7 @@ export default class Ticker {
             const mobs = world.getMobsNear(pos, 9);
             if (mobs.length >= 6) {
                 console.log("mobs.length >= 6")
+                console.log(mobs)
                 return;
             }
             
@@ -60,7 +81,7 @@ export default class Ticker {
                 if (body.id != 0) {
                     blocking = true;
                 }
-                console.log('blocking');
+                console.log('blocking: ' + blocking);
                 if (!blocking) {
                     const params = {
                         type           : extra_data.type,
@@ -74,6 +95,8 @@ export default class Ticker {
                 }
             }
         }
+        
+        return;
     }
 
 }
