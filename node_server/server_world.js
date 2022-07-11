@@ -717,7 +717,7 @@ export class ServerWorld {
     }
 
     // Return players near pos by distance
-    getPlayersNear(pos, max_distance, not_in_creative) {
+    getPlayersNear(pos, max_distance, not_in_creative, in_spectator) {
         const world = this;
         const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
             .expand(max_distance, max_distance, max_distance);
@@ -733,7 +733,10 @@ export class ServerWorld {
                 if(!player) {
                     continue
                 }
-                if(player.is_dead || player.game_mode.isSpectator()) {
+                if(player.is_dead) {
+                    continue;
+                }
+                if(player.game_mode.isSpectator() && !in_spectator) {
                     continue;
                 }
                 if(not_in_creative && !player.game_mode.mayGetDamaged()) {

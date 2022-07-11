@@ -40,7 +40,7 @@ export default class Ticker {
             
             extra_data.max_ticks = Math.random() * 600 | 0 + 200;
              //Проврерям наличие игроков в радиусе 16 блоков
-            const players = world.getPlayersNear(pos, 16, false);
+            const players = world.getPlayersNear(pos, 16, false, true);
             if (players.length == 0) {
                 return;
             }
