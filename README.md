@@ -87,3 +87,34 @@ const packets = [{
 }];
 chunk.sendAll(packets, []);
 ```
+## Manage server by chat commands
+- ### /gamerule doDaylightCycle false|true
+    You can stop the day and night shift with the command /gamerule doDaylightCycle false
+    To disable the day and night shift, you need to assign false to the rule
+    At this moment, the current position of the sun and moon will be "fixed".
+    Time will go on, but the change of day and night will freeze until you set the rule to true
+
+    **Note!**  
+    The command works only in worlds where the player has admin rights or he is its creator.  
+    If you need to stop the daylight time, and it's dark now, then before disabling the day and night shift, you first need to set the daylight time with the command /time set day
+
+- ### /time set day|midnight|night|noon
+    You can change current world time by following commands
+    * `/time set  day` equal to 07:00
+    * `/time set  midnight` equal to 00
+    * `/time set  night` equal to 19:00
+    * `/time set  noon` equal to 12:00
+
+    You can set specific daytime `/time set 16500` it equal to 16:30.  
+    You can increase time by /add argument `/time add 1000`, this add one hour to current time.  
+
+    **Note!**  
+    The command works only in worlds where the player has admin rights or he is its creator.
+
+- ### /vdist 2-16
+    You can change view distance by this command
+    * `/vdist 2` means 2 chunks showed around player
+    * `/vdist 16` means 16 chunks render around player
+
+    **Note!**  
+    View distance can take number from 2 to 16
