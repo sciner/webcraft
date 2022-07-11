@@ -293,7 +293,7 @@ export class DirNibbleQueue {
         const {shiftCoord, cx, cy, cz, dif26} = lightChunk;
         const {nibbles, nibbleDims, nibbleSize, nibbleStrideBytes} = lightChunk;
         const {portals, facetPortals} = lightChunk;
-        const {defDayLight} = world;
+        const {defDayLight} = this.world;
 
         let nibDim = nibbleDims.y;
         let nibHeight = nibbleSize.y;
