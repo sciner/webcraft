@@ -86,7 +86,7 @@ export class LightWorld {
     }
 
     setBlock({addr, light_source, x, y, z}) {
-        let chunk = world.chunkManager.getChunk(addr);
+        let chunk = this.chunkManager.getChunk(addr);
         if (!chunk) {
             return;
         }
@@ -97,14 +97,14 @@ export class LightWorld {
         const src = adjustSrc(light_source);
         const old_src = uint8View[ind * strideBytes + OFFSET_SOURCE];
         uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
-        const potential = world.getPotential(x, y, z);
-        world.light.add(chunk, ind, Math.max(light, src) + potential);
+        const potential = this.getPotential(x, y, z);
+        this.light.add(chunk, ind, Math.max(light, src) + potential);
         // push ao
         const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
         //TODO: move it to adjust func
         if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
-            world.dayLightSrc.addWithChange(chunk, ind);
-            world.dayLight.add(chunk, ind, world.defDayLight + potential);
+            this.dayLightSrc.addWithChange(chunk, ind);
+            this.dayLight.add(chunk, ind, this.defDayLight + potential);
         }
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];

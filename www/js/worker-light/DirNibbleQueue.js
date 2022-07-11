@@ -434,7 +434,7 @@ export class DirNibbleQueue {
                                         if (srcBlock) {
                                             invalidateOther = true;
                                         } else {
-                                            world.dayLight.add(other.rev, coord2 / strideBytes, defDayLight + world.getPotential(x, y, z));
+                                            this.world.dayLight.add(other.rev, coord2 / strideBytes, defDayLight + this.world.getPotential(x, y, z));
                                         }
                                         break;
                                     }
