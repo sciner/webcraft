@@ -28,9 +28,11 @@ export default class Ticker {
                 
                 // Spawn mob
                 await world.mobs.create(params); 
+                
                 const updated_blocks = [];
                 updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 console.log('One spawn mob', pos.toHash());
+                
                 // Delete completed block from tickings
                 this.delete(v.pos);
                 return updated_blocks;
@@ -47,7 +49,6 @@ export default class Ticker {
             const mobs = world.getMobsNear(pos, 9);
             if (mobs.length >= 6) {
                 console.log("mobs.length >= 6")
-                console.log(mobs)
                 return;
             }
             
@@ -56,11 +57,10 @@ export default class Ticker {
                 const x = (Math.random() * 4 | 0) - (Math.random() * 4 | 0);
                 const z = (Math.random() * 4 | 0) - (Math.random() * 4 | 0);
                 const y = Math.random() * 2 | 0;
-                const spawn_pos = pos.addSelf(new Vector(x, y, z)).flooredSelf();
+                const spawn_pos = pos.addSelf(new Vector(x, y, z)).floored();
                 let blocking = false;
                 for (let player of players) { 
                     player.state.pos.flooredSelf();
-                    console.log("player.state.pos:" + player.state.pos);
                     if (player.state.pos.x == spawn_pos.x && player.state.pos.z == spawn_pos.z) {
                         blocking = true;
                         break;
@@ -69,7 +69,6 @@ export default class Ticker {
                 
                 for (let mob of mobs) {
                     mob.pos.flooredSelf();
-                    console.log("mob.pos:" + mob.pos);
                     if (mob.pos.x == spawn_pos.x && mob.pos.z == spawn_pos.z) {
                         blocking = true;
                         break;
@@ -81,7 +80,7 @@ export default class Ticker {
                 if (body.id != 0) {
                     blocking = true;
                 }
-                console.log('blocking: ' + blocking);
+                
                 if (!blocking) {
                     const params = {
                         type           : extra_data.type,
