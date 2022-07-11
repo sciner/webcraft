@@ -4514,11 +4514,11 @@
                 "type": "spawnmob"
             },
             "extra_data": {
-                "type": "mob",
+                "type": "zombie",
                 "limit": {},
                 "calculated": [
-                    {"type": "random_item", "name": "skin", "items": []},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [1000000, 1000000]}
+                    {"type": "random_item", "name": "skin", "items": ["base"]},
+                    {"type": "random_int", "name": "max_ticks", "min_max": [600, 800]}
                 ]
             },
             "texture_animations": {
