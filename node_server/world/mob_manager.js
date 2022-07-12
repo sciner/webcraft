@@ -28,8 +28,22 @@ export class WorldMobManager {
 
     async tick(delta) {
         const world = this.world;
+        // !Warning. All mobs must update chunks before ticks
         for(let [mob_id, mob] of this.list) {
-            if (mob.isAlive()) {
+            if(mob.isAlive()) {
+                const chunk_addr = mob.chunk_addr;
+                if(!mob.chunk_addr_o.equal(chunk_addr)) {
+                    const chunk_old = world.chunks.get(mob.chunk_addr_o);
+                    const chunk_new = world.chunks.get(chunk_addr);
+                    mob.chunk_addr_o.copyFrom(chunk_addr);
+                    chunk_old.mobs.delete(mob_id);
+                    chunk_new.mobs.set(mob_id, mob);
+                }
+            }
+        }
+        // Ticks
+        for(let [mob_id, mob] of this.list) {
+            if(mob.isAlive()) {
                 mob.tick(delta);
             } else if(!mob.death_time) {
                 mob.death_time = performance.now();

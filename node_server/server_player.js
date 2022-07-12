@@ -8,6 +8,7 @@ import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
+import { ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
 
 export class NetworkMessage {
     constructor({
@@ -21,7 +22,9 @@ export class NetworkMessage {
     }
 }
 
-const EMULATED_PING = config.Debug ? Math.random() * 100 : 0;
+const EMULATED_PING             = config.Debug ? Math.random() * 100 : 0;
+const MAX_COORD                 = 2000000000;
+const MAX_RANDOM_TELEPORT_COORD = 2000000;
 
 async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
@@ -335,6 +338,64 @@ export class ServerPlayer extends Player {
     async initQuests() {
         this.quests = new QuestPlayer(this.world.quests, this);
         await this.quests.init();
+    }
+
+    // changePosition...
+    changePosition(params) {
+        if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
+            this.teleport({
+                place_id: 'spawn'
+            })
+            return;
+        }
+        this.state.pos = new Vector(params.pos);
+        this.state.rotate = new Vector(params.rotate);
+        this.state.sneak = !!params.sneak;
+        this.position_changed = true;
+    }
+
+    /**
+     * Teleport
+     * @param {Object} params
+     * @return {void}
+     */
+     teleport(params) {
+        const world = this.world;
+        var new_pos = null;
+        if (params.pos) {
+            new_pos = params.pos;
+        } else if (params.place_id) {
+            switch (params.place_id) {
+                case 'spawn': {
+                    new_pos = this.state.pos_spawn;
+                    break;
+                }
+                case 'random': {
+                    new_pos = new Vector(
+                        (Math.random() * MAX_RANDOM_TELEPORT_COORD - Math.random() * MAX_RANDOM_TELEPORT_COORD),
+                        120,
+                        (Math.random() * MAX_RANDOM_TELEPORT_COORD - Math.random() * MAX_RANDOM_TELEPORT_COORD)
+                    ).roundSelf();
+                    break;
+                }
+            }
+        }
+        if(new_pos) {
+            if (Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
+                console.log('error_too_far');
+                throw 'error_too_far';
+            }
+            const packets = [{
+                name: ServerClient.CMD_TELEPORT,
+                data: {
+                    pos: new_pos,
+                    place_id: params.place_id
+                }
+            }];
+            world.sendSelected(packets, [this.session.user_id], []);
+            this.state.pos = new_pos;
+            world.chunks.checkPlayerVisibleChunks(this, true);
+        }
     }
 
 }

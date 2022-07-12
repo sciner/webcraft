@@ -18,7 +18,7 @@ export default class packet_reader {
         player.state.indicators.live.value = 20;
         player.is_dead = false;
         new CMD_ENTITY_INDICATORS(player);
-        player.world.teleportPlayer(player, {
+        player.teleport({
             place_id: 'spawn',
         });
         return true;

@@ -16,27 +16,20 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { getChunkAddr, ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
+import { getChunkAddr} from "../www/js/chunk_const.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
-
-export const MAX_BLOCK_PLACE_DIST = 14;
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
-    temp_vec = new Vector();
-
     constructor() {
+        this.temp_vec = new Vector();
         this.block_manager = BLOCK;
-    }
-
-    get serverTime() {
-        return Date.now() + SERVE_TIME_LAG;
     }
 
     async initServer(world_guid, db_world) {
@@ -74,6 +67,10 @@ export class ServerWorld {
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
         await this.tick();
+    }
+
+    get serverTime() {
+        return Date.now() + SERVE_TIME_LAG;
     }
 
     // Return world info
@@ -142,7 +139,7 @@ export class ServerWorld {
         this.ticks_stat.add('actions_queue');
         //
         if(this.ticks_stat.number % 100 != 0) {
-            this.checkDestroyMap();
+            this.chunks.checkDestroyMap();
             this.ticks_stat.add('maps_clear');
         }
         //
@@ -160,22 +157,6 @@ export class ServerWorld {
         for(let player of this.players.values()) {
             this.db.savePlayerState(player);
         }
-    }
-
-    //
-    checkDestroyMap() {
-        if(this.players.size == 0) {
-            return;
-        }
-        const players = [];
-        for (let [_, p] of this.players.entries()) {
-            players.push({
-                pos: p.state.pos,
-                chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
-                chunk_render_dist: p.state.chunk_render_dist
-            });
-        }
-        this.chunks.postWorkerMessage(['destroyMap', { players }]);
     }
 
     // onPlayer
@@ -294,79 +275,21 @@ export class ServerWorld {
         }
     }
 
+    //
     sendUpdatedInfo() {
-        for (let p of this.players.values()) {
+        for(let p of this.players.values()) {
             p.sendWorldInfo(true);
         }
-    }
-
-    /**
-     * Teleport player
-     * @param {ServerPlayer} player
-     * @param {Object} params
-     * @return {void}
-     */
-    teleportPlayer(player, params) {
-        var new_pos = null;
-        if (params.pos) {
-            new_pos = params.pos;
-        } else if (params.place_id) {
-            switch (params.place_id) {
-                case 'spawn': {
-                    new_pos = player.state.pos_spawn;
-                    break;
-                }
-                case 'random': {
-                    new_pos = new Vector(
-                        (Math.random() * 2000000 - Math.random() * 2000000) | 0,
-                        120,
-                        (Math.random() * 2000000 - Math.random() * 2000000) | 0
-                    );
-                    break;
-                }
-            }
-        }
-        if (new_pos) {
-            let MAX_COORD = 2000000000;
-            if (Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
-                console.log('error_too_far');
-                throw 'error_too_far';
-            }
-            const packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos: new_pos,
-                    place_id: params.place_id
-                }
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-            player.state.pos = new_pos;
-            this.chunks.checkPlayerVisibleChunks(player, true);
-        }
-    }
-
-    // changePlayerPosition...
-    changePlayerPosition(player, params) {
-        if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
-            this.teleportPlayer(player, {
-                place_id: 'spawn'
-            })
-            return;
-        }
-        player.state.pos = new Vector(params.pos);
-        player.state.rotate = new Vector(params.rotate);
-        player.state.sneak = !!params.sneak;
-        player.position_changed = true;
     }
 
     // Create drop items
     async createDropItems(player, pos, items, velocity) {
         try {
-            let drop_item = await DropItem.create(this, pos, items, velocity);
+            const drop_item = await DropItem.create(this, pos, items, velocity);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch (e) {
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_ERROR,
                 data: {
                     message: e
@@ -421,30 +344,11 @@ export class ServerWorld {
         return chunk.getBlock(pos);
     }
 
-    // Create entity
-    async createEntity(player, params) {
-        // @ParamBlockSet
-        let addr = getChunkAddr(params.pos);
-        let chunk = this.chunks.get(addr);
-        if (chunk) {
-            await chunk.doBlockAction(player, params, false, false, true);
-            await this.db.blockSet(this, player, params);
-            this.chunkBecameModified(addr);
-        } else {
-            console.log('createEntity: Chunk not found', addr);
-        }
-    }
-
     /**
      * @return {ServerChunkManager}
      */
     get chunkManager() {
         return this.chunks;
-    }
-
-    //
-    pickAtAction(server_player, params) {
-        this.pickat_action_queue.add(server_player, params);
     }
 
     //

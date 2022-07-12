@@ -41,7 +41,7 @@ export default class TeleportPlugin {
                             let y = parseFloat(args[3]);
                             let z = parseFloat(args[4]);
                             let pos = new Vector(x, y, z);
-                            world.teleportPlayer(player, {place_id: null, pos: pos});
+                            player.teleport({place_id: null, pos: pos});
                             return true;
                         }
                     } else if (args.length == 3){
@@ -63,11 +63,11 @@ export default class TeleportPlugin {
                             }
                             return true;
                         } else if (subcmd == "go") {
-                            if (this.chTitle(title)){
-                                let row = await world.db.getTeleportPoint(id, title);
+                            if(this.chTitle(title)) {
+                                const row = await world.db.getTeleportPoint(id, title);
                                 if (row) {
-                                    let pos = new Vector(row.x, row.y, row.z);
-                                    world.teleportPlayer(player, {place_id: null, pos: pos});
+                                    const pos = new Vector(row.x, row.y, row.z);
+                                    player.teleport({place_id: null, pos: pos});
                                 } else{
                                     this.sendMessage("Точка с именем " + title + " не найдена", player);
                                 }

@@ -30,6 +30,7 @@ export class Mob {
         this.extra_data     = params.extra_data || {};
         // Private properties
         this.#chunk_addr    = new Vector();
+        this.chunk_addr_o   = getChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = Brains.get(this.type, this);
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
@@ -95,7 +96,9 @@ export class Mob {
         if(this.indicators.live.value == 0) {
             return false;
         }
+        //
         this.#brain.tick(delta);
+        //
         if(this.save_offset++ % this.save_per_tick == 0) {
             // console.log('Mob state saved ' + this.entity_id);
             this.save();
@@ -121,6 +124,7 @@ export class Mob {
         //
         const chunk = world.chunkManager.get(this.chunk_addr);
         if(chunk) {
+            chunk.mobs.delete(this.id);
             const connections = Array.from(chunk.connections.keys());
             const packets = [{
                 name: ServerClient.CMD_MOB_DELETE,

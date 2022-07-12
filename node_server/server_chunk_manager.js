@@ -165,7 +165,6 @@ export class ServerChunkManager {
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };
                         nearby.added.push(item);
-                        // await this.world.loadChunkForPlayer(player, addr);
                         player.nearby_chunk_addrs.set(addr, addr);
                         let chunk = this.get(addr);
                         if(!chunk) {
@@ -237,6 +236,23 @@ export class ServerChunkManager {
             resp.push(chunk);
         }
         return resp;
+    }
+
+    // Send command to server worker
+    checkDestroyMap() {
+        const world = this.world;
+        if(world.players.size == 0) {
+            return;
+        }
+        const players = [];
+        for (let [_, p] of world.players.entries()) {
+            players.push({
+                pos:                p.state.pos,
+                chunk_addr:         getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
+                chunk_render_dist:  p.state.chunk_render_dist
+            });
+        }
+        this.postWorkerMessage(['destroyMap', { players }]);
     }
 
 }

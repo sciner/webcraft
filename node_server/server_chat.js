@@ -150,10 +150,10 @@ export class ServerChat {
                 if(args.length == 4) {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
                     const pos = new Vector(args[1], args[2], args[3]);
-                    this.world.teleportPlayer(player, {place_id: null, pos: pos});
+                    player.teleport({place_id: null, pos: pos});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
-                    this.world.teleportPlayer(player, {place_id: args[1], pos: null});
+                    player.teleport({place_id: args[1], pos: null});
                 } else {
                     throw 'error_invalid_arguments_count';
                 }
