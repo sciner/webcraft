@@ -2,7 +2,7 @@ import { Vector } from "../helpers.js";
 import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
 
 export class BaseChestWindow extends Window {
 
@@ -212,7 +212,7 @@ export class BaseChestWindow extends Window {
     // Prepare slots based on specific window type
     prepareSlots() {
         const resp  = [];
-        const count = 27;
+        const count = DEFAULT_CHEST_SLOT_COUNT;
         const xcnt  = 9;
         const sx    = 14 * this.zoom;
         const sy    = 34 * this.zoom;
@@ -270,20 +270,19 @@ export class BaseChestWindow extends Window {
             return;
         }
         ct.inventory_slots  = [];
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
         // нижний ряд (видимые на хотбаре)
-        let sx          = 14 * this.zoom;
-        let sy          = 282 * this.zoom;
-        let xcnt        = 9;
-        for(let i = 0; i < 9; i++) {
+        let sx = 14 * this.zoom;
+        let sy = 282 * this.zoom;
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        sx              = 14 * this.zoom;
-        sy              = 166 * this.zoom;
-        xcnt            = 9;
         // верхние 3 ряда
-        for(let i = 0; i < 27; i++) {
+        sx = 14 * this.zoom;
+        sy = 166 * this.zoom;
+        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);

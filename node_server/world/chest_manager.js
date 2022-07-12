@@ -162,40 +162,40 @@ export class WorldChestManager {
         // @todo Generate random treasure chest content
         const rnd = new alea(this.world.seed + pos.toHash());
         const slots = {};
+        const bm = this.world.block_manager;
         const items_kit = [
-            {id: 637, count: [1, 1, 1, 1, 2, 2, 3, 5]}, // IRON_INGOT
-            {id: 59, count: [0, 0, 1, 2, 3, 8]}, // WHEAT_SEEDS
-            {id: 635, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // CARROT_SEEDS
-            {id: 607, count: [0, 0, 0, 0, 0, 1]}, // STONE_SWORD
-            {id: 561, count: [0, 0, 0, 0, 1]}, // STONE_SHOVEL
-            {id: 634, count: [1, 1, 2]}, // BREAD
-            {id: 633, count: [1, 1, 2, 2, 3]}, // WHEAT
-            {id: 613, count: [0, 0, 0, 0, 1]}, // APPLE
-            {id: 643, count: [0, 0, 0, 1, 1, 2, 2, 3]}, // OAK_SIGN
-            {id: 8, count: [0, 0, 0, 4, 4, 8, 8, 16]}, // COBBLESTONE
-            //
-            {id: 903, count: [0, 0, 1]}, // MUSIC_DISC 3
+            {id: bm.fromName('IRON_INGOT').id,          count: [1, 1, 1, 1, 2, 2, 3, 5]},
+            {id: bm.fromName('WHEAT_SEEDS').id,         count: [0, 0, 1, 2, 3, 8]},
+            {id: bm.fromName('CARROT_SEEDS').id,        count: [0, 0, 0, 2, 2, 4, 4, 8]},
+            {id: bm.fromName('STONE_SWORD').id,         count: [0, 0, 0, 0, 0, 1]},
+            {id: bm.fromName('STONE_SHOVEL').id,        count: [0, 0, 0, 0, 1]},
+            {id: bm.fromName('BREAD').id,               count: [1, 1, 2]},
+            {id: bm.fromName('WHEAT').id,               count: [1, 1, 2, 2, 3]},
+            {id: bm.fromName('APPLE').id,               count: [0, 0, 0, 0, 1]},
+            {id: bm.fromName('OAK_SIGN').id,            count: [0, 0, 0, 1, 1, 2, 2, 3]},
+            {id: bm.fromName('COBBLESTONE').id,         count: [0, 0, 0, 4, 4, 8, 8, 16]},
+            {id: bm.fromName('MUSIC_DISC_3').id,        count: [0, 0, 1]},
         ];
         //
         if(['treasure_room', 'cave_mines'].indexOf(params.source) >= 0) {
             items_kit.push(...[
-                {id: 638, count: [0, 0, 1, 1, 2, 2, 3, 3, 4]}, // GOLD_INGOT
-                {id: 610, count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}, // DIAMOND_SWORD
-                {id: 84, count: [0, 0, 0, 1]}, // JUKEBOX
-                {id: 641, count: [0, 0, 0, 0, 1, 2]}, // DIAMOND
-                {id: 626, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // IRON_BARS
-                {id: 901, count: [0, 0, 0, 1]}, // MUSIC_DISC 1
-                {id: 902, count: [0, 0, 0, 1]}, // MUSIC_DISC 2
-                // 903 removed, because it in regular generated chests
-                {id: 904, count: [0, 0, 0, 1]}, // MUSIC_DISC 4
-                {id: 905, count: [0, 0, 0, 1]}, // MUSIC_DISC 5
-                {id: 906, count: [0, 0, 1]}, // MUSIC_DISC 6
-                {id: 907, count: [0, 0, 0, 1]}, // MUSIC_DISC 7
-                {id: 908, count: [0, 0, 0, 0, 0, 0, 1]}, // MUSIC_DISC 8
+                {id: bm.fromName('GOLD_INGOT').id,      count: [0, 0, 1, 1, 2, 2, 3, 3, 4]},
+                {id: bm.fromName('DIAMOND_SWORD').id,   count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
+                {id: bm.fromName('JUKEBOX').id,         count: [0, 0, 0, 1]},
+                {id: bm.fromName('DIAMOND').id,         count: [0, 0, 0, 0, 1, 2]},
+                {id: bm.fromName('IRON_BARS').id,       count: [0, 0, 0, 2, 2, 4, 4, 8]},
+                {id: bm.fromName('MUSIC_DISC_1').id,    count: [0, 0, 0, 1]},
+                {id: bm.fromName('MUSIC_DISC_2').id,    count: [0, 0, 0, 1]},
+                // MUSIC_DISC_3 removed, because it in regular generated chests
+                {id: bm.fromName('MUSIC_DISC_4').id,    count: [0, 0, 0, 1]},
+                {id: bm.fromName('MUSIC_DISC_5').id,    count: [0, 0, 0, 1]},
+                {id: bm.fromName('MUSIC_DISC_6').id,    count: [0, 0, 1]},
+                {id: bm.fromName('MUSIC_DISC_7').id,    count: [0, 0, 0, 1]},
+                {id: bm.fromName('MUSIC_DISC_8').id,    count: [0, 0, 0, 0, 0, 0, 1]},
             ]);
         }
         //
-        for(let i = 0; i < 27; i++) {
+        for(let i = 0; i < DEFAULT_CHEST_SLOT_COUNT; i++) {
             if(rnd.double() > .8) {
                 continue;
             }

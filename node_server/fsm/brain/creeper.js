@@ -166,7 +166,8 @@ export class Brain extends FSMBrain {
             if (rnd_count_flesh > 0) {
                 const actions = new PickatActions();
 
-                actions.addDropItem({ pos: mob.pos, items: [{ id: 1445, count: rnd_count_flesh }] });
+                const drop_block = world.block_manager.fromName('GUNPOWDER');
+                actions.addDropItem({ pos: mob.pos, items: [{ id: drop_block.id, count: rnd_count_flesh }] });
 
                 actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'death', pos: mob.pos.clone() });
 

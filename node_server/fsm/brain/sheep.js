@@ -140,7 +140,8 @@ export class Brain extends FSMBrain {
             const actions = new PickatActions();
 
             const rnd_count = ((Math.random() * 2) | 0) + 1;
-            actions.addDropItem({ pos: mob.pos, items: [{ id: 350, count: rnd_count }] });
+            const drop_block = world.block_manager.fromName('WHITE_WOOL');
+            actions.addDropItem({ pos: mob.pos, items: [{ id: drop_block.id, count: rnd_count }] });
 
             world.actions_queue.add(actor, actions);
         }
@@ -156,7 +157,8 @@ export class Brain extends FSMBrain {
             let drop_item = { pos: mob.pos, items: [] };
             drop_item.items.push({ id: BLOCK.MUTTON.id, count: rnd_count_mutton });
             if (!this.is_shaered) {
-                drop_item.items.push({ id: 350, count: 1 });
+                const drop_block = world.block_manager.fromName('WHITE_WOOL');
+                drop_item.items.push({ id: drop_block.id, count: 1 });
             }
             actions.addDropItem(drop_item);
 

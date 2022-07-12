@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
@@ -547,27 +547,26 @@ export class BaseCraftWindow extends Window {
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
     */
-     createInventorySlots(sz) {
+    createInventorySlots(sz) {
         const ct = this;
         if(ct.inventory_slots) {
             console.error('createInventorySlots() already created');
             return;
         }
         ct.inventory_slots  = [];
+        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
         // нижний ряд (видимые на хотбаре)
-        let sx          = 14 * this.zoom;
-        let sy          = 282 * this.zoom;
-        let xcnt        = 9;
-        for(let i = 0; i < 9; i++) {
+        let sx = 14 * this.zoom;
+        let sy = 282 * this.zoom;
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        sx              = 14 * this.zoom;
-        sy              = 166 * this.zoom;
-        xcnt            = 9;
         // верхние 3 ряда
-        for(let i = 0; i < 27; i++) {
+        sx = 14 * this.zoom;
+        sy = 166 * this.zoom;
+        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
