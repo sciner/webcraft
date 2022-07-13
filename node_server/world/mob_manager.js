@@ -35,9 +35,11 @@ export class WorldMobManager {
                 if(!mob.chunk_addr_o.equal(chunk_addr)) {
                     const chunk_old = world.chunks.get(mob.chunk_addr_o);
                     const chunk_new = world.chunks.get(chunk_addr);
-                    mob.chunk_addr_o.copyFrom(chunk_addr);
-                    chunk_old.mobs.delete(mob_id);
-                    chunk_new.mobs.set(mob_id, mob);
+                    if(chunk_old && chunk_new) {
+                        mob.chunk_addr_o.copyFrom(chunk_addr);
+                        chunk_old.mobs.delete(mob_id);
+                        chunk_new.mobs.set(mob_id, mob);
+                    }
                 }
             }
         }
