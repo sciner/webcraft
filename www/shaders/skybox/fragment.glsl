@@ -15,7 +15,7 @@ uniform vec2 u_resolution; // global
 in vec3 v_texCoord;
 out vec4 outColor;
 
-const vec3 sunColor = vec3(1., 0.93, 0.29);
+const vec3 sunColor = vec3(0.95, 0.88, 0.25);
 const vec3 moonColor = vec3(0.9);
 const vec3 baseColor = vec3(0.4627, 0.767, 1.0);
 
@@ -59,12 +59,19 @@ void main() {
 
     float fogFade = smoothstep(0., 0.5, max(0., norm.y + r));
 
-    float fogFade2  = sqrt(fogFade);
+    float fogFade2  = smoothstep(0., 0.1, norm.y);
 
-    float sunDisk = sdfFunc(norm, sun, 0.05, 0.95);
+    float sunDisk = sdfFunc(norm, sun, 0.03, 0.98);
 
     //sun
-    overlay = vec4(sunColor, sunDisk * fogFade2);
+    overlay = vec4(sunColor, sunDisk);
+
+    // glow intensity of sun
+    float sunGlow = sdfFunc(norm, sun + vec3(r), 0.05, 0.7) * 0.45;
+
+    overlay += vec4(sunGlow) * smoothstep(-0.05, 0.05, sun.y);
+
+    // overlay *= fogFade2;
 
     //moon
     vec3 moonPos = -sun;
