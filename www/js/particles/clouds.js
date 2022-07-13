@@ -3,10 +3,15 @@ import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
+import { AABB } from '../core/AABB.js';
 
 const {mat4} = glMatrix;
 
 const push_cube = push_cube_style.getRegInfo().func;
+
+const CLOUDS_TEX_SIZE = 64;
+const CLOUDS_TEX_SCALE = new Vector(16, 4, 16);
+const WIND_SPEED_MUL = 1;
 
 class TBlock {
 
@@ -32,37 +37,25 @@ const FakeCloudWorld = {
     blocks_pushed: 0,
     clouds: {
         imgData: null,
-        size: new Vector(256, 1, 256),
-        blocks: Array(256).fill(null).map(el => Array(256).fill(null)),
+        blocks: [],
         init: function(aabb) {
-            let index = 0;
-            for(let x = 0; x < this.size.x; x++) {
-                for(let z = 0; z < this.size.z; z++) {
-                    if(x >= aabb.min_x && x < aabb.max_x && z >= aabb.min_z && z < aabb.max_z) {
-                        const is_cloud = this.imgData.data[index + 3] > 10;
-                        if(is_cloud) {
-                            this.blocks[x][z] = new TBlock(BLOCK.CLOUD.id);
-                        }
+            this.blocks = new Array(aabb.x_max * aabb.z_max).fill(null);
+            for(let x = 0; x < aabb.x_max; x++) {
+                for(let z = 0; z < aabb.z_max; z++) {
+                    const index = (z * this.imgData.width + x);
+                    const is_cloud = this.imgData.data[index * 4 + 3] > 10;
+                    if(is_cloud) {
+                        this.blocks[index] = new TBlock(BLOCK.CLOUD.id);
                     }
-                    index += 4;
                 }
             }
         }
     },
     chunkManager: {
         getBlock: function(x, y, z) {
-            if(y == 0) {
-                let clouds = FakeCloudWorld.clouds;
-                if(x >= 0 && x < clouds.size.x) {
-                    if(z >= 0 && z < clouds.size.z) {
-                        let resp = clouds.blocks[x][z]
-                        //if(resp) {
-                            return resp;
-                        //}
-                    }
-                }
-            }
-            return null;
+            const clouds = FakeCloudWorld.clouds;
+            const index = (z * clouds.imgData.width + x);
+            return clouds.blocks[index] || null;
         }
     }
 }
@@ -72,17 +65,9 @@ export default class Particles_Clouds {
     // Constructor
     constructor(gl, pos) {
         //
-        const clouds = FakeCloudWorld.clouds;
-        this.size = 64; // Временно, чтобы сильно не напрягать проц
-        const aabb = {
-            min_x: clouds.size.x / 2 - this.size / 2,
-            max_x: clouds.size.x / 2 + this.size / 2,
-            min_z: clouds.size.z / 2 - this.size / 2,
-            max_z: clouds.size.z / 2 + this.size / 2
-        };
+        const aabb = new AABB();
+        aabb.set(0, 0, 0, CLOUDS_TEX_SIZE, 0, CLOUDS_TEX_SIZE);
         //
-        FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
-        this.scale      = new Vector(16, 4, 16);
         this.pn         = performance.now();
         this.yaw        = -Math.PI;
         this.life       = 0.5;
@@ -90,13 +75,8 @@ export default class Particles_Clouds {
         this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.vertices   = [];
         //
+        FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
         FakeCloudWorld.clouds.init(aabb);
-        //
-        const cloud_movement = 128;
-        this.pos.x += cloud_movement * this.scale.x;
-        this.pos.z += cloud_movement * this.scale.z;
-        //
-        this.posOrig = this.pos.clone();
         //
         const neighbours  = {
             UP: null,
@@ -107,9 +87,9 @@ export default class Particles_Clouds {
             EAST: null
         };
         const y = 0;
-        for(let x = aabb.min_x; x < aabb.max_x; x++) {
-            for(let z = aabb.min_z; z < aabb.max_z; z++) {
-                let block  = FakeCloudWorld.chunkManager.getBlock(x, 0, z);
+        for(let x = 0; x < aabb.x_max; x++) {
+            for(let z = 0; z < aabb.z_max; z++) {
+                const block  = FakeCloudWorld.chunkManager.getBlock(x, 0, z);
                 if(block && block.id > 0) {
                     neighbours.NORTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z + 1);
                     neighbours.SOUTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z - 1);
@@ -121,22 +101,36 @@ export default class Particles_Clouds {
         }
         this.modelMatrix = mat4.create();
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
-        mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
+        mat4.scale(this.modelMatrix, this.modelMatrix, CLOUDS_TEX_SCALE.swapYZ().toArray());
         //
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
-
         this.buffer.changeFlags(QUAD_FLAGS.NO_FOG | QUAD_FLAGS.NO_AO, 'replace');
         this.buffer.updateInternal();
     }
 
     // Draw
     draw(render, delta) {
+        const cam_pos = Game.render.camPos.clone();
+        cam_pos.y = 128.1;
+
+        const size = CLOUDS_TEX_SIZE * CLOUDS_TEX_SCALE.x;
+
         // движение на восток
-        const wind_move = (performance.now() - this.pn) / 1000;
-        this.pos.set(this.posOrig.x - wind_move, this.posOrig.y, this.posOrig.z);
-        render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.transparent, this.pos, this.modelMatrix);
+        const wind_move = ((performance.now() - this.pn) / 1000 * WIND_SPEED_MUL) % size;
+
+        const x = Math.floor(cam_pos.x / size) * size - wind_move;
+        const z = Math.floor(cam_pos.z / size) * size;
+        const material = render.defaultShader.materials.transparent;
+
+        for(let mx = -2; mx <= 2; mx++) {
+            for(let mz = -2; mz <= 2; mz++) {
+                this.pos.set(x + mx * size, this.pos.y, z + mz * size);
+                render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);        
+            }
+        }
+
     }
 
     destroy(render) {

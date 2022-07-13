@@ -17,3 +17,5 @@ export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const PLAYER_HEIGHT                  = 1.7;
 export const SNEAK_MINUS_Y_MUL              = 0.2; // decrease player height to this percent value
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
+
+export const SPECTATOR_SPEED_MUL            = 1;

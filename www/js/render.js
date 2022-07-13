@@ -586,7 +586,7 @@ export class Renderer {
 
         // Clouds
         if(!this.clouds) {
-            let pos = new Vector(player.pos);
+            const pos = new Vector(player.pos);
             pos.y = 128.1;
             this.clouds = this.createClouds(pos);
         }
