@@ -99,10 +99,6 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
         }
 
-        if(this.block_material?.inventory?.scale) {
-            this.scale.multiplyScalar(this.block_material?.inventory?.scale);
-        }
-
         this.modelMatrix = mat4.create();
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
 

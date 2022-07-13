@@ -281,6 +281,28 @@ export class RecipeManager {
                 }
             });
         }
+        // banner
+        for(let color in COLOR_PALETTE) {
+            let name = `${color}_banner`;
+            recipes.push(
+            {
+                "id": md5s(name),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "WWW",
+                    "WWW",
+                    " S "
+                ],
+                "key": {
+                    "W": {"item": [`madcraft:${color}_wool`]},
+                    "S": {"item": [`madcraft:stick`]}
+                },
+                "result": {
+                    "item": `madcraft:${name}`,
+                    "count": 3
+                }
+            });
+        }
         //
         for(let item of recipes) {
             if(!('id' in item)) {

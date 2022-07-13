@@ -15,7 +15,10 @@
         {"spritesheet_id": "default", "x": 20, "y": 31, "image": "block/destroy_stage_6.png"},
         {"spritesheet_id": "default", "x": 21, "y": 31, "image": "block/destroy_stage_7.png"},
         {"spritesheet_id": "default", "x": 22, "y": 31, "image": "block/destroy_stage_8.png"},
-        {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"}
+        {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
+        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"}
     ],
     "blocks" : [
         {
@@ -2355,7 +2358,11 @@
             "tags": [
                 "stairs"
             ],
-            "texture": "block/sandstone.png",
+            "texture": {
+                "side": "block/sandstone.png",
+                "up": "block/sandstone_bottom.png",
+                "down": "block/sandstone_bottom.png"
+            },
             "can_rotate": true
         },
         {

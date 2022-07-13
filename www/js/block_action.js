@@ -763,10 +763,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 if(new_item.rotate.y != 0) {
                     new_item.rotate.x = player.rotate.z / 90;
                 }
-                actions.open_window = {
-                    id: 'frmEditSign',
-                    args: {pos: new Vector(pos)}
-                };
+                if(mat_block.style == 'sign') {
+                    actions.open_window = {
+                        id: 'frmEditSign',
+                        args: {pos: new Vector(pos)}
+                    };
+                }
             }
             //
             if(setActionBlock(actions, world, new Vector(pos), new_item.rotate, mat_block, new_item)) {

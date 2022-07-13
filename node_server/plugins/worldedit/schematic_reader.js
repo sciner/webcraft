@@ -42,14 +42,14 @@ export class SchematicReader {
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
             bpos.z *= -1;
-            let name = this.parseBlockName(block);
+            let {name, extra_data} = this.parseBlockName(block);
             if(name == 'AIR') {
                 return;
             }
-            const b = BLOCK[name];
+            let b = BLOCK[name];
             let new_block = null;
             if(b) {
-                new_block = this.createBlockFromSchematic(block, b);
+                new_block = this.createBlockFromSchematic(block, b, extra_data);
             } else {
                 if(name.indexOf('POTTED_') === 0) {
                     // POTTED_PINK_TULIP - ALLIUM
@@ -74,7 +74,7 @@ export class SchematicReader {
                     }
                 }
             }
-            // If not implemented block
+            // If not implemented block 
             if(!new_block) {
                 if(!not_found_blocks.has(name)) {
                     not_found_blocks.set(name, name);
@@ -94,26 +94,34 @@ export class SchematicReader {
 
     //
     parseBlockName(block) {
+        let extra_data = null;
         if(block.name == 'wall_sign') {
             block.name = 'oak_wall_sign';
-        }
-        block.on_wall = block.name.indexOf('_wall_sign') >= 0;
-        if(block.on_wall) {
-            block.name = block.name.replace('_wall_', '_');
         }
         if(block.name == 'wall_torch') {
             block.on_wall = true;
             block.name = 'torch';
+        } else if(block.name.endsWith('_sign')) {
+            block.on_wall = block.name.endsWith('_wall_sign');
+            if(block.on_wall) {
+                block.name = block.name.replace('_wall_', '_');
+            }
+        } else if(block.name.endsWith('_banner')) {
+            block.on_wall = block.name.endsWith('_wall_banner');
+            if(block.on_wall) {
+                block.name = block.name.replace('_wall_', '_');
+            }
         }
+        //
         let name = block.name.toUpperCase();
         if(name in this.replaced_names) {
             name = this.replaced_names[name];
         }
-        return name;
+        return {name, extra_data};
     }
 
     //
-    createBlockFromSchematic(block, b) {
+    createBlockFromSchematic(block, b, extra_data) {
         const props = block._properties;
         let new_block = {
             id: b.id
@@ -127,7 +135,7 @@ export class SchematicReader {
         if(b.is_chest) {
             new_block.extra_data = { can_destroy: true, slots: {} };
         } else if(b.tags.indexOf('sign') >= 0) {
-            new_block.extra_data = null;
+            new_block.extra_data = new_block.extra_data || null;
         }
         if(b.can_rotate) {
             new_block.rotate = new Vector(0, 1, 0);
@@ -139,6 +147,12 @@ export class SchematicReader {
             }
             new_block.extra_data[k] = v;
         };
+        //
+        if(extra_data) {
+            for(let k in extra_data) {
+                setExtraData(k, extra_data[k]);
+            }
+        }
         //
         if(props) {
             // button
@@ -165,6 +179,13 @@ export class SchematicReader {
                     new_block.rotate = {x: 0, y: 0.9, z: 0};
                 }
                 new_block.rotate.y = props.hanging ? -1 : 1;
+            }
+            // banner
+            if('rotation' in props) {
+                if(!new_block.rotate) {
+                    new_block.rotate = {x: 0, y: 1, z: 0};
+                }
+                new_block.rotate.x = (((parseInt(props.rotation) + 8) % 16) / 16) * 4;
             }
             //
             if('open' in props) {
@@ -271,7 +292,7 @@ export class SchematicReader {
                 }
             }
             // sign
-            if(b.style == 'sign') {
+            if(b.tags.indexOf('sign') >= 0) {
                 if(block.signText) {
                     setExtraData('text', block.signText);
                 }

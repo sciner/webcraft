@@ -348,12 +348,31 @@ export class Renderer {
                 mesh.material.texture.magFilter = 'linear';
 
                 let pers_matrix = null;
+                if(drop.block_material.inventory?.rotate) {
+                    const icon_rotate = new Vector(drop.block_material.inventory?.rotate).toArray()
+                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
+                    for(let i = 0; i < icon_rotate.length; i++) {
+                        if(!icon_rotate[i]) continue;
+                        const rot_arr = [0, 0, 0];
+                        rot_arr[i] = 1;
+                        mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i], rot_arr);
+                    }
+                }
                 if(drop.block_material.inventory?.scale) {
                     const icon_scale = drop.block_material.inventory?.scale;
-                    pers_matrix = [...(multipart ? matrix_empty : matrix)];
+                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
                     mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
                     mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
                 }
+                if(drop.block_material.inventory?.move) {
+                    const icon_move = drop.block_material.inventory?.move;
+                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
+                    mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
+                }
+
+        //if(this.block_material?.inventory?.move) {
+        //    mat4.translate(this.modelMatrix, this.modelMatrix, new Vector(this.block_material?.inventory?.move).toArray());
+        //}
 
                 this.renderBackend.drawMesh(
                     mesh.buffer,

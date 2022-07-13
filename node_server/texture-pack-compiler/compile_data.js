@@ -14,6 +14,7 @@ const START_CONCRETE_POWDER     = 1516; // ... 1531
 const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
 const START_PETRIFIED_SLAB_ID   = 203; // 
+const START_BANNER_ID           = 778;
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -51,6 +52,7 @@ export class CompileData {
         this.initWood();
         this.initPetrifiedSlab();
         this.initPressurePlate();
+        this.initBanner();
     }
 
     async initDiscs() {
@@ -619,6 +621,44 @@ export class CompileData {
                     "no_drop_ao"
                 ]
             });
+        }
+    }
+
+    initBanner() {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        const TX_CNT = 32;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 4/32, 0);
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_BANNER_ID + i,
+                "name": color.toUpperCase() + '_BANNER',
+                "material": {"id": "wood"},
+                "transparent": true,
+                "style": "banner",
+                "max_in_stack": 1,
+                "sound": "madcraft:block.wood",
+                "can_rotate": true,
+                "mask_color": mask_color,
+                "texture": {
+                    "side": "16|24"
+                },
+                "inventory": {
+                    "scale": .75,
+                    "rotate": {"x": 0, "y": 0, "z": Math.PI * .9},
+                    "move": {"x": 0, "y": 0, "z": 0.5}
+                },
+                "tags": [
+                    "sign",
+                    "no_drop_ao",
+                    "mask_color"
+                ]
+            };
+            this.blocks.push(b);
+            i++;
         }
     }
 

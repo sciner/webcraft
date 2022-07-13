@@ -1,5 +1,5 @@
 import {DIRECTION, AlphabetTexture, Vector} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
@@ -10,7 +10,6 @@ const CENTER_WIDTH      = 1.9 / 16;
 const CONNECT_X         = 16 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
-const CONNECT_BOTTOM    = 9 / 16;
 const BOTTOM_HEIGHT     = .6;
 
 const cubeSymAxis = [
@@ -19,23 +18,6 @@ const cubeSymAxis = [
     [0, 1],
     [-1, 0]
 ];
-
-class FakeBlock {
-
-    constructor(id, extra_data, pos, rotate, pivot, matrix) {
-        this.id = id;
-        this.extra_data = extra_data;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.pivot = pivot;
-        this.matrix = matrix;
-    }
-
-    get material() {
-        return BLOCK.fromId(this.id);
-    }
-
-};
 
 // Табличка
 export default class style {
@@ -100,7 +82,7 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+        if(!block || typeof block == 'undefined') {
             return;
         }
 
@@ -182,7 +164,7 @@ export default class style {
         if(block.extra_data) {
             let text = block.extra_data?.text;
             if(text) {
-                return [new FakeBlock(
+                return [new FakeTBlock(
                     BLOCK.TEXT.id,
                     {
                         ...block.extra_data,
