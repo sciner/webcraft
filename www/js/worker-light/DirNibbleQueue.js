@@ -205,7 +205,7 @@ export class DirNibbleQueue {
                 const newLight = (nibColumn >= 0 && val > nibColumn) ? defLight : 0;
                 if ((newLight !== defLight) ^ (curLight !== defLight)) {
                     //TODO: maybe set 0 or defLight here and FORCE
-                    world.dayLight.add(chunk, coord, Math.max(newLight, curLight) + world.getPotential(x, y, z));
+                    world.dayLight.add(chunk, coord, Math.max(newLight, curLight), world.getPotential(x, y, z));
                 }
                 coord += cy;
             }
@@ -434,7 +434,8 @@ export class DirNibbleQueue {
                                         if (srcBlock) {
                                             invalidateOther = true;
                                         } else {
-                                            this.world.dayLight.add(other.rev, coord2 / strideBytes, defDayLight + this.world.getPotential(x, y, z));
+                                            this.world.dayLight.add(other.rev, coord2 / strideBytes,
+                                                defDayLight, this.world.getPotential(x, y, z));
                                         }
                                         break;
                                     }
@@ -528,7 +529,7 @@ export class DirNibbleQueue {
                         }
                     }
                     if (neibLight > light) {
-                        this.world.dayLight.add(chunk, coord, neibLight + this.world.getPotential(x, y, z));
+                        this.world.dayLight.add(chunk, coord, neibLight, this.world.getPotential(x, y, z));
                     }
                 }
         // add to queue NIBBLE neibs that have lighted neighbours

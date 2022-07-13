@@ -11,7 +11,8 @@ export const MASK_SRC_REST = 224;
 
 export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
-export const OFFSET_DAY = 2;
+export const OFFSET_WAVE = 2;
+export const OFFSET_DAY = 3;
 
 export const OFFSET_COLUMN_TOP = 0;
 export const OFFSET_COLUMN_BOTTOM = 1;

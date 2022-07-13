@@ -98,13 +98,13 @@ export class LightWorld {
         const old_src = uint8View[ind * strideBytes + OFFSET_SOURCE];
         uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
         const potential = this.getPotential(x, y, z);
-        this.light.add(chunk, ind, Math.max(light, src) + potential);
+        this.light.add(chunk, ind, Math.max(light, src), potential);
         // push ao
         const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
         //TODO: move it to adjust func
         if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
             this.dayLightSrc.addWithChange(chunk, ind);
-            this.dayLight.add(chunk, ind, this.defDayLight + potential);
+            this.dayLight.add(chunk, ind, this.defDayLight, potential);
         }
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];

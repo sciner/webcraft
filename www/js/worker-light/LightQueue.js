@@ -9,7 +9,7 @@ import {
     MASK_QUEUE_BLOCK_INDEX,
     OFFSET_SOURCE,
     OFFSET_LIGHT,
-    MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP,
+    MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP, OFFSET_WAVE,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -22,6 +22,16 @@ export class LightQueue {
         // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
+
+        this.counter = {
+            incr: 0,
+            decr: 0,
+        }
+
+        this.tmpLights = [];
+        for (let i = 0; i < this.dirCount; i++) {
+            this.tmpLights.push(0);
+        }
     }
 
     /**
@@ -29,17 +39,29 @@ export class LightQueue {
      * @param coord
      * @param waveNum
      */
-    add(chunk, coord, waveNum, force) {
-        if (waveNum < 0 || waveNum > maxLight + maxPotential) {
-            waveNum = maxLight + maxPotential;
+    add(chunk, coord, waveNum, potential, force) {
+        if (waveNum < 0 || waveNum > maxLight) {
+            waveNum = maxLight;
         }
-        this.deque.push(waveNum, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
+        const {uint8View, strideBytes} = chunk.lightChunk;
+        const coordBytes = coord * strideBytes + this.qOffset + OFFSET_WAVE;
+        if (uint8View[coordBytes] > waveNum) {
+            return;
+        }
+        uint8View[coordBytes] = waveNum + 1;
+        if (potential < 0) {
+            potential = 0;
+        }
+        if (potential > maxPotential) {
+            potential = maxPotential;
+        }
+        this.deque.push(waveNum + potential, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
         this.filled++;
         chunk.waveCounter++;
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque, world, nibbleSource} = this;
+        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights} = this;
         const {chunkById} = world.chunkManager;
         const apc = world.chunkManager.activePotentialCenter;
 
@@ -107,7 +129,6 @@ export class LightQueue {
                     continue;
                 }
             }
-
             const coordBytes = coord * strideBytes + qOffset;
 
             let tmp = coord;
@@ -129,9 +150,8 @@ export class LightQueue {
                 curPotential = maxPotential - Math.min(maxPotential, curDist);
                 prevLight = wn - curPotential;
             }
-
-            let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
+            uint8View[coordBytes + OFFSET_WAVE] = 0
             if (nibbleSource) {
                 //TODO: maybe use extra memory here, with OFFSET_SOURCE?
                 const localY = y - aabb.y_min;
@@ -142,48 +162,77 @@ export class LightQueue {
                 val = (nibColumn >= 0 && nibbles[nibCoord + OFFSET_COLUMN_DAY] > nibColumn) ? world.defDayLight : 0;
             }
             const old = uint8View[coordBytes + OFFSET_LIGHT];
-            if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
+            let blockMask = 0, decrMask = 0;
+            let block = (uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK;
+            if (block) {
                 val = 0;
-            } else {
-                if (val === maxLight && val === old && !force) {
+            }
+            if (!force) {
+                prevLight = old;
+                if (val === maxLight && old === maxLight) {
                     continue;
                 }
-                for (let d = 0; d < dirCount; d++) {
-                    if ((mask & (1 << d)) !== 0) {
-                        // if (d >= 6 && mask >= DIR_MAX_MASK) {
-                        //     break;
-                        // }
-                        continue;
-                    }
-                    let coord2 = coord + dif26[d];
-                    let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
-                    if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
-                        light = 0;
-                        mask |= dmask[d];
-                    }
-                    val = Math.max(val, light - dlen[d]);
-                }
             }
-            if (old === val && !force) {
+            let isDecrease = val < prevLight;
+            for (let d = 0; d < dirCount; d++) {
+                let coord2 = coord + dif26[d];
+                let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                const dist = dlen[d];
+                if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
+                    light = 0;
+                    blockMask |= dmask[d];
+                } else if (isDecrease && light > 0 && light === prevLight - dist) {
+                    decrMask |= 1 << d;
+                } else if ((blockMask & (1 << d)) === 0) {
+                    if (!block) {
+                        val = Math.max(val, light - dist);
+                    }
+                }
+                tmpLights[d] = light;
+            }
+            isDecrease = val < prevLight;
+            let modMask = 0;
+            if (old !== val || force) {
+                modMask = (((1 << dirCount) - 1) & ~blockMask);
+                if (isDecrease) {
+                    modMask |= decrMask;
+                }
+            } else if (!isDecrease) {
+                // look for increase for neighbour cells, just in case
+                let incrMask = 0
+                for (let d = 0; d < dirCount; d++) {
+                    if ((blockMask & (1 << d)) === 0) {
+                        let light = tmpLights[d];
+                        const dist = dlen[d];
+                        if (light < val - dist) {
+                            incrMask |= 1 << d;
+                        }
+                    }
+                }
+                modMask = incrMask;
+            }
+            if (old !== val) {
+                uint8View[coordBytes + OFFSET_LIGHT] = val;
+                chunk.lastID++;
+            } else if (modMask === 0) {
                 continue;
             }
-            uint8View[coordBytes + OFFSET_LIGHT] = val;
-            if (old !== val) {
-                chunk.lastID++;
+            if (old > val) {
+                this.counter.decr++;
+            } else {
+                this.counter.incr++;
             }
-
             //TODO: copy to neib chunks
 
-            // TODO: swap -1 to real -dlen
             let neibDist = 0, neibPotential = 0;
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
                 for (let d = 0; d < dirCount; d++) {
-                    if ((mask & (1 << d)) !== 0) {
+                    if ((modMask & (1 << d)) === 0) {
                         continue;
                     }
                     let coord2 = coord + dif26[d];
-                    const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                    const light = tmpLights[d];
                     // a4fa-12 , not obvious optimization
                     if (light >= prevLight && light >= val && light >= old) {
                         continue;
@@ -193,27 +242,29 @@ export class LightQueue {
                         neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                     }
                     const waveNum = Math.max(light, val - dlen[d]);
-                    this.add(chunk, coord2, neibPotential + waveNum);
+                    this.add(chunk, coord2, waveNum, neibPotential);
                 }
             } else {
-                let mask2 = 0;
                 for (let p = 0; p < portals.length; p++) {
                     const chunk2 = portals[p].toRegion;
                     if (!portals[p].aabb.contains(x, y, z)) {
                         continue;
                     }
-                    mask2 |= 1 << p;
                     chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
                     chunk2.rev.lastID++;
                     for (let d = 0; d < DIR_COUNT; d++) {
-                        if ((mask & (1 << d)) !== 0) {
+                        if (modMask === 0) {
+                            break;
+                        }
+                        if ((modMask & (1 << d)) === 0) {
                             continue;
                         }
+                        modMask = modMask & ~(1 << d);
                         let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                         if (chunk2.aabb.contains(x2, y2, z2)) {
                             const coord2 = chunk2.indexByWorld(x2, y2, z2);
-                            const light = chunk2.uint8ByInd(coord2, qOffset + OFFSET_LIGHT);
-                            mask |= 1 << d;
+                            const light = tmpLights[d];
+                            blockMask |= 1 << d;
                             // a4fa-12 , not obvious optimization
                             if (light >= prevLight && light >= val && light >= old) {
                                 continue;
@@ -223,18 +274,22 @@ export class LightQueue {
                                 neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                             }
                             const waveNum = Math.max(light, val - dlen[d]);
-                            this.add(chunk2.rev, coord2, neibPotential + waveNum);
+                            this.add(chunk2.rev, coord2, waveNum, neibPotential);
                         }
                     }
                 }
                 for (let d = 0; d < dirCount; d++) {
-                    if ((mask & (1 << d)) !== 0) {
+                    if (modMask === 0) {
+                        break;
+                    }
+                    if ((modMask & (1 << d)) === 0) {
                         continue;
                     }
+                    modMask = modMask & ~(1 << d);
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                        const light = tmpLights[d];
                         // a4fa-12 , not obvious optimization
                         if (light >= prevLight && light >= val && light >= old) {
                             continue;
@@ -244,7 +299,7 @@ export class LightQueue {
                             neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                         }
                         const waveNum = Math.max(light, val - dlen[d]);
-                        this.add(chunk, coord2, neibPotential + waveNum);
+                        this.add(chunk, coord2, waveNum, neibPotential);
                     }
                 }
             }
