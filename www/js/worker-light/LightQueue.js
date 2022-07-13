@@ -181,6 +181,7 @@ export class LightQueue {
                 if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                     light = 0;
                     blockMask |= dmask[d];
+                    //TODO: in case set block, dir=26, invalidate all diagonal neibs
                 } else if (isDecrease && light > 0 && light === prevLight - dist) {
                     decrMask |= 1 << d;
                 } else if ((blockMask & (1 << d)) === 0) {
@@ -190,25 +191,27 @@ export class LightQueue {
                 }
                 tmpLights[d] = light;
             }
-            isDecrease = val < prevLight;
-            let modMask = 0;
-            if (old !== val || force) {
-                modMask = (((1 << dirCount) - 1) & ~blockMask);
-                if (isDecrease) {
-                    modMask |= decrMask;
-                }
-            } else if (!isDecrease) {
-                // look for increase for neighbour cells, just in case
-                let incrMask = 0
-                for (let d = 0; d < dirCount; d++) {
-                    if ((blockMask & (1 << d)) === 0) {
-                        let light = tmpLights[d];
-                        const dist = dlen[d];
-                        if (light < val - dist) {
-                            incrMask |= 1 << d;
-                        }
+            let incrMask = 0;
+            for (let d = 0; d < dirCount; d++) {
+                if ((blockMask & (1 << d)) === 0) {
+                    let light = tmpLights[d];
+                    const dist = dlen[d];
+                    if (light < val - dist) {
+                        incrMask |= 1 << d;
                     }
                 }
+            }
+            isDecrease = val < prevLight;
+            let modMask = 0;
+            if (force) {
+                modMask = (((1 << dirCount) - 1) & ~blockMask);
+            } else if (old !== val) {
+                if (isDecrease) {
+                    modMask = decrMask | incrMask;
+                } else {
+                    modMask = (((1 << dirCount) - 1) & ~blockMask);
+                }
+            } else if (val > 0) {
                 modMask = incrMask;
             }
             if (old !== val) {
