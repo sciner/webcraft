@@ -195,17 +195,18 @@ export class LightQueue {
                 }
                 tmpLights[d] = light;
             }
-            let modMask = (~blockMask & ((1 << dirCount) - 1));
+            let incMask = 0;
+            for (let d = 0; d < dirCount; d++) {
+                if ((blockMask & (1 << d)) === 0) {
+                    if (tmpLights[d] < val - dlen[d]) {
+                        incMask |= 1 << d;
+                    }
+                }
+            }
+            // let modMask = (~blockMask & ((1 << dirCount) - 1));
+            let modMask = incMask | decrMask;
             if (old === val && !force) {
-                // check only SMALLER things
-                modMask = 0;
-                // for (let d = 0; d < dirCount; d++) {
-                //     if ((blockMask & (1 << d)) === 0) {
-                //         if (tmpLights[d] < val - dlen[d]) {
-                //             modMask |= 1 << d;
-                //         }
-                //     }
-                // }
+                modMask = incMask;
                 if (modMask === 0) {
                     continue;
                 }
