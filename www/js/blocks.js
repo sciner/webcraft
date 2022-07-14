@@ -336,6 +336,9 @@ export class BLOCK {
             extra_data[k] = v;
         };
         //
+        if(orientation.y == 1 && pos.point) {
+            pos.point.y = 0;
+        }
         if(is_trapdoor || is_stairs || is_door || is_slab) {
             setExtra('point', pos?.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0));
             // Trapdoor
