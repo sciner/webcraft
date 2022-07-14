@@ -186,7 +186,7 @@ export class LightQueue {
                     light = 0;
                     blockMask |= dmask[d];
                 } else {
-                    if (val < prevLight && light === prevLight - dlen[d]) {
+                    if (val < prevLight && light > 0 && light === prevLight - dlen[d]) {
                         // dependant cell - dont update val on it!
                         decrMask |= 1 << d;
                     } else if (!block) {
