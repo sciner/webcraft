@@ -13,6 +13,8 @@ export class ServerChunkManager {
     constructor(world) {
         this.world                  = world;
         this.all                    = new VectorCollector();
+        this.chunk_queue_load       = new VectorCollector();
+        this.chunk_queue_gen_mobs   = new VectorCollector();
         this.ticking_chunks         = new VectorCollector();
         this.invalid_chunks_queue   = [];
         //
@@ -73,28 +75,45 @@ export class ServerChunkManager {
         this.worker.postMessage(cmd);
     }
 
-    add(chunk) {
-        this.all.set(chunk.addr, chunk);
+    chunkStateChanged(chunk, state_id) {
+        switch(state_id) {
+            case CHUNK_STATE_BLOCKS_GENERATED: {
+                this.chunk_queue_gen_mobs.set(chunk.addr, chunk);
+                break;
+            }
+        }
     }
 
     async tick(delta) {
         this.unloadInvalidChunks();
-        //
-        for(let chunk of this.all) {
-            if(chunk.load_state == CHUNK_STATE_NEW) {
-                chunk.load();
-            } else if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                chunk.generateMobs();
+        // 1. queue chunks for load
+        if(this.chunk_queue_load.size > 0) {
+            for(const [addr, chunk] of this.chunk_queue_load.entries()) {
+                this.chunk_queue_load.delete(addr);
+                if(chunk.load_state == CHUNK_STATE_NEW) {
+                    chunk.load();
+                }
             }
         }
-        // Tick for chunks
-        for(let addr of this.ticking_chunks) {
-            let chunk = this.get(addr);
-            if(!chunk) {
-                this.ticking_chunks.delete(addr);
-                continue;
+        // 2. queue chunks for generate mobs
+        if(this.chunk_queue_gen_mobs.size > 0) {
+            for(const [addr, chunk] of this.chunk_queue_gen_mobs.entries()) {
+                this.chunk_queue_gen_mobs.delete(addr);
+                if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                    chunk.generateMobs();
+                }
             }
-            await chunk.tick(delta);
+        }
+        // 3. tick for chunks
+        if(this.ticking_chunks.size > 0) {
+            for(let addr of this.ticking_chunks) {
+                let chunk = this.get(addr);
+                if(!chunk) {
+                    this.ticking_chunks.delete(addr);
+                    continue;
+                }
+                await chunk.tick(delta);
+            }
         }
     }
 
@@ -120,10 +139,15 @@ export class ServerChunkManager {
         while(this.invalid_chunks_queue.length > 0) {
             let chunk = this.invalid_chunks_queue.pop();
             if(chunk.connections.size == 0) {
-                this.all.delete(chunk.addr);
+                this.remove(chunk.addr);
                 chunk.onUnload();
             }
         }
+    }
+
+    add(chunk) {
+        this.chunk_queue_load.set(chunk.addr, chunk);
+        this.all.set(chunk.addr, chunk);
     }
 
     get(addr) {
@@ -131,6 +155,8 @@ export class ServerChunkManager {
     }
 
     remove(addr) {
+        this.chunk_queue_load.delete(addr);
+        this.chunk_queue_gen_mobs.delete(addr);
         this.all.delete(addr);
     }
 

@@ -179,6 +179,9 @@ export class VectorCollector {
     entries(aabb) {
         const that = this;
         return (function* () {
+            if(that.size == 0) {
+                return;
+            }
             const vec = new Vector(0, 0, 0);
             for (let [xk, x] of that.list) {
                 if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;

@@ -25,6 +25,25 @@ export class DBWorldMigration {
             await this.db.get('COMMIT');
         }
         //
+        const update_world_modify_chunks = `
+            WITH chunks AS (select distinct chunk_x, chunk_y, chunk_z from world_modify)
+            INSERT INTO world_modify_chunks(x, y, z, data)
+            select chunk_x, chunk_y, chunk_z, (SELECT  
+                json_group_object(cast(m."index" as TEXT),
+                json_patch(
+                    'null',
+                    json_object(
+                            'id',           COALESCE(m.block_id, 0),
+                            'extra_data',   json(m.extra_data),
+                            'entity_id',    m.entity_id,
+                            'ticks',        m.ticks,
+                            'rotate',       json_extract(m.params, '$.rotate')
+                    )
+                ))
+            FROM world_modify m WHERE m.chunk_x = o.chunk_x AND m.chunk_y = o.chunk_y AND m.chunk_z = o.chunk_z
+            ORDER BY m.id ASC)
+            FROM chunks o`;
+        //
         const migrations = [];
         migrations.push({version: 1, queries: [
             'ALTER TABLE user ADD COLUMN indicators text',
@@ -568,24 +587,7 @@ export class DBWorldMigration {
                 "data" TEXT,
             PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
 
-            `with chunks AS (select distinct chunk_x, chunk_y, chunk_z from world_modify)
-
-            INSERT INTO world_modify_chunks(x, y, z, data)
-            select chunk_x, chunk_y, chunk_z, (SELECT  
-                json_group_object(cast(m."index" as TEXT),
-                json_patch(
-                    'null',
-                    json_object(
-                            'id',           COALESCE(m.block_id, 0),
-                            'extra_data',   json(m.extra_data),
-                            'entity_id',    m.entity_id,
-                            'ticks',        m.ticks,
-                            'rotate',       json_extract(m.params, '$.rotate')
-                    )
-                ))
-            FROM world_modify m WHERE m.chunk_x = o.chunk_x AND m.chunk_y = o.chunk_y AND m.chunk_z = o.chunk_z
-            ORDER BY m.id ASC)
-            FROM chunks o`,
+            update_world_modify_chunks,
 
             `CREATE INDEX IF NOT EXISTS "main"."world_modify_chunks_xyz"
                 ON "world_modify_chunks" (
@@ -601,6 +603,12 @@ export class DBWorldMigration {
 
         migrations.push({version: 70, queries: [
             `ALTER TABLE world ADD COLUMN "rules" TEXT NOT NULL DEFAULT '{}'`,
+        ]});
+
+        migrations.push({version: 71, queries: [
+            `UPDATE world_modify SET extra_data = NULL WHERE extra_data = '{}';`,
+            `UPDATE world_modify SET extra_data = NULL WHERE block_id = 18 AND extra_data IS NOT NULL AND json_extract(extra_data, '$.max_ticks') IS NULL`,
+            update_world_modify_chunks,
         ]});
 
         for(let m of migrations) {

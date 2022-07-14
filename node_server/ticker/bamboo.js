@@ -31,7 +31,7 @@ export default class Ticker {
                         extra_data: {...block.extra_data}
                     };
                     new_item.extra_data.stage = stage;
-                    let b = world.getBlock(next_pos);
+                    const b = world.getBlock(next_pos);
                     if(!b || b.id == 0 || b.material.material.id == 'leaves') {
                         updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции

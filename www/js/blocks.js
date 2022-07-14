@@ -325,19 +325,19 @@ export class BLOCK {
     // Call before setBlock
     static makeExtraData(block, pos, orientation, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
-        let extra_data = null;
-        let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
-        let is_stairs = block.tags.indexOf('stairs') >= 0;
-        let is_door = block.tags.indexOf('door') >= 0;
-        let is_slab = block.is_layering && block.layering.slab;
+        const is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
+        const is_stairs = block.tags.indexOf('stairs') >= 0;
+        const is_door = block.tags.indexOf('door') >= 0;
+        const is_slab = block.is_layering && block.layering.slab;
         //
+        let extra_data = null;
         const setExtra = (k, v) => {
             extra_data = extra_data || {};
             extra_data[k] = v;
         };
         //
         if(is_trapdoor || is_stairs || is_door || is_slab) {
-            setExtra('point', pos.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0));
+            setExtra('point', pos?.point ? new Vector(pos.point.x, pos.point.y, pos.point.z) : new Vector(0, 0, 0));
             // Trapdoor
             if(is_trapdoor) {
                 extra_data.opened = false;
@@ -346,7 +346,7 @@ export class BLOCK {
             if(is_door) {
                 extra_data.opened = false;
                 extra_data.left = false;
-                if(!pos.point) {
+                if(!pos?.point) {
                     pos.point = new Vector(0, 0, 0);
                 }
                 switch(orientation.x) {
@@ -368,10 +368,10 @@ export class BLOCK {
                     }
                 }
             }
-            if(pos.n.y == 1) {
-                extra_data.point.y = 0;
-            } else if(pos.n.y == -1) {
+            if(pos.n.y == -1) {
                 extra_data.point.y = 1;
+            } else if(pos.n.y == -1) {
+                extra_data.point.y = 0;
             }
         } else if(block.extra_data) {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));

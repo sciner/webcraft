@@ -155,8 +155,8 @@ export default class WorldEdit {
      * @param {*} args
      */
     async cmd_set(chat, player, cmd, args) {
-        let types = ['//set', '//walls', '//faces'];
-        let quboid_fill_type_id = types.indexOf(cmd) + 1;
+        const types = ['//set', '//walls', '//faces'];
+        const quboid_fill_type_id = types.indexOf(cmd) + 1;
         const qi = this.getCuboidInfo(player);
         args = chat.parseCMD(args, ['string', 'string']);
         const palette = this.createBlocksPalette(args[1]);
@@ -442,8 +442,8 @@ export default class WorldEdit {
     //set 10%dirt,gold_block
     createBlocksPalette(args) {
         args = new String(args);
-        let blocks = args.trim().split(',');
-        let blockChances = [];
+        const blocks = args.trim().split(',');
+        const blockChances = [];
         // Parse blocks pattern
         for(let a of blocks) {
             let chance = 1;
@@ -461,55 +461,29 @@ export default class WorldEdit {
             });
         }
         // Check names and validate blocks
-        const block_extra_data_simple = new Map();
+        const fake_orientation = new Vector(0, 1, 0);
+        const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0)};
         for(let item of blockChances) {
-            let block_id = null;
+            let b = null;
             if(isNaN(item.name)) {
-                let b = BLOCK.fromName(item.name.toUpperCase());
-                if(b) {
-                    block_id = b.id;
-                }
+                b = BLOCK.fromName(item.name.toUpperCase());
             } else {
-                block_id = parseInt(item.name);
+                b = BLOCK.fromId(parseInt(item.name));
             }
-            let b = BLOCK.fromId(block_id);
-            if(!b || b.id < 0) {
-                throw 'error_invalid_block';
-            }
-            if(b.deprecated) {
-                throw 'error_block_is_deprecated';
-            }
-            let extra_data = b.extra_data;
-            if(b.item || b.next_part || b.previous_part || b.style == 'extruder' || b.style == 'text') {
-                throw 'error_this_block_cannot_be_setted';
-            }
-            if(b.is_chest) {
-                extra_data = { can_destroy: true, slots: {} };
-            } else if(b.tags.indexOf('sign') >= 0) {
-                extra_data = {
-                    text: 'Hello, World!',
-                    username: 'Server',
-                    dt: new Date().toISOString()
-                };
+            if(!b || b.id < 0) throw 'error_invalid_block';
+            if(b.deprecated) throw 'error_block_is_deprecated';
+            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style) >= 0) throw 'error_this_block_cannot_be_setted';
+            //
+            const block_id = b.id;
+            const extra_data = BLOCK.makeExtraData(b, fake_pos, fake_orientation, null);
+            if(extra_data) {
+                item.extra_data = extra_data;
             }
             if(b.can_rotate) {
-                item.rotate = new Vector(0, 1, 0);
+                item.rotate = fake_orientation;
             }
             item.block_id = block_id;
             item.name = b.name;
-            if(extra_data) {
-                item.extra_data = extra_data;
-                if(extra_data.calculated) {
-                    const simple = block_extra_data_simple.get(block_id);
-                    if(simple) {
-                        item.extra_data = simple; // block_extra_data_simple.get(block_id);
-                    } else {
-                        item.extra_data = JSON.parse(JSON.stringify(extra_data));
-                        delete(item.extra_data.calculated);
-                        block_extra_data_simple.set(block_id, item.extra_data);
-                    }
-                }
-            }
         }
         // Random fill
         let max = 0;

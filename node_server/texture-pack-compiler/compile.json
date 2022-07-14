@@ -6405,6 +6405,20 @@
             "material": {
                 "id": "food"
             }
+        },
+        {
+            "id": 33,
+            "name": "BASALT",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/basalt_side.png",
+                "up": "block/basalt_top.png",
+                "down": "block/basalt_top.png"
+            }
         }
     ]
 }

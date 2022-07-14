@@ -68,6 +68,7 @@ class TickingBlockManager {
     // deleteTickingBlock
     delete(pos) {
         const k = pos.toHash();
+        let c = this.blocks.size;
         this.blocks.delete(k);
         if(this.blocks.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
@@ -82,27 +83,30 @@ class TickingBlockManager {
         const check_pos         = new Vector(0, 0, 0);
         //
         for(let [k, v] of this.blocks.entries()) {
+            if(Math.random() <= .33) {
+                continue;
+            }
             const tblock = v.tblock;
             const ticking = v.ticking;
-            let extra_data = tblock.extra_data;
+            const extra_data = tblock.extra_data;
             const current_block = this.chunk.getBlock(v.pos);
             if(!extra_data || !current_block || current_block.id != tblock.id) {
                 this.delete(v.pos);
                 continue;
             }
-            if(Math.random() > .33) {
-                v.ticks++;
-                const ticker = Tickers.get(ticking.type);
-                if(ticker) {
-                    const upd_blocks = await ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
-                    if(Array.isArray(upd_blocks)) {
-                        updated_blocks.push(...upd_blocks);
-                    }
-                } else {
-                    console.log(`Invalid ticking type: ${ticking.type}`);
+            //
+            v.ticks++;
+            const ticker = Tickers.get(ticking.type);
+            if(ticker) {
+                const upd_blocks = await ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
+                if(Array.isArray(upd_blocks)) {
+                    updated_blocks.push(...upd_blocks);
                 }
+            } else {
+                console.log(`Invalid ticking type: ${ticking.type}`);
             }
         }
+        //
         if(updated_blocks.length > 0) {
             const actions = new PickatActions(null, this.#chunk.world, false, false);
             actions.addBlocks(updated_blocks);
@@ -233,6 +237,10 @@ export class ServerChunk {
     // Set chunk init state
     setState(state_id) {
         this.load_state = state_id;
+        const chunkManager = this.getChunkManager();
+        if (chunkManager) {
+            chunkManager.chunkStateChanged(this, state_id);
+        }
     }
 
     // generateMobs...
@@ -250,26 +258,34 @@ export class ServerChunk {
             return;
         }
         this.setState(CHUNK_STATE_LOADING);
-        if(this.world.chunkHasModifiers(this.addr)) {
-            this.modify_list = await this.world.db.loadChunkModifiers(this.addr);
+        //
+        const afterLoad = (modify_list) => {
+            this.modify_list = modify_list;
             this.ticking = new Map();
-        }
-        this.setState(CHUNK_STATE_LOADED);
-        // Send requet to worker for create blocks structure
-        this.world.chunks.postWorkerMessage(['createChunk',
-            [
-                {
-                    update:         true,
-                    addr:           this.addr,
-                    modify_list:    this.modify_list
-                }
-            ]
-        ]);
-
-        // Разошлем чанк игрокам, которые его запрашивали
-        if(this.preq.size > 0) {
-            this.sendToPlayers(Array.from(this.preq.keys()));
-            this.preq.clear();
+            this.setState(CHUNK_STATE_LOADED);
+            // Send requet to worker for create blocks structure
+            this.world.chunks.postWorkerMessage(['createChunk',
+                [
+                    {
+                        update:         true,
+                        addr:           this.addr,
+                        modify_list:    this.modify_list
+                    }
+                ]
+            ]);
+            // Разошлем чанк игрокам, которые его запрашивали
+            if(this.preq.size > 0) {
+                this.sendToPlayers(Array.from(this.preq.keys()));
+                this.preq.clear();
+            }
+        };
+        //
+        if(this.world.chunkHasModifiers(this.addr)) {
+            this.world.db.loadChunkModifiers(this.addr).then((result) => {
+                afterLoad(result);
+            });
+        } else {
+            afterLoad({});
         }
     }
 
