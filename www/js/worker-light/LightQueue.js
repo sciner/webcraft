@@ -9,7 +9,7 @@ import {
     MASK_QUEUE_BLOCK_INDEX,
     OFFSET_SOURCE,
     OFFSET_LIGHT,
-    MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP,
+    MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP, OFFSET_WAVE,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -22,6 +22,16 @@ export class LightQueue {
         // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
+
+        this.counter = {
+            incr: 0,
+            decr: 0,
+        }
+
+        this.tmpLights = [];
+        for (let i = 0; i < this.dirCount; i++) {
+            this.tmpLights.push(0);
+        }
     }
 
     /**
@@ -29,17 +39,29 @@ export class LightQueue {
      * @param coord
      * @param waveNum
      */
-    add(chunk, coord, waveNum, force) {
-        if (waveNum < 0 || waveNum > maxLight + maxPotential) {
-            waveNum = maxLight + maxPotential;
+    add(chunk, coord, waveNum, potential, force) {
+        if (waveNum < 0 || waveNum > maxLight) {
+            waveNum = maxLight;
         }
-        this.deque.push(waveNum, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
+        const {uint8View, strideBytes} = chunk.lightChunk;
+        const coordBytes = coord * strideBytes + this.qOffset + OFFSET_WAVE;
+        if (uint8View[coordBytes] > waveNum) {
+            return;
+        }
+        uint8View[coordBytes] = waveNum + 1;
+        if (potential < 0) {
+            potential = 0;
+        }
+        if (potential > maxPotential) {
+            potential = maxPotential;
+        }
+        this.deque.push(waveNum + potential, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
         this.filled++;
         chunk.waveCounter++;
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque, world, nibbleSource} = this;
+        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights} = this;
         const {chunkById} = world.chunkManager;
         const apc = world.chunkManager.activePotentialCenter;
 
@@ -107,7 +129,6 @@ export class LightQueue {
                     continue;
                 }
             }
-
             const coordBytes = coord * strideBytes + qOffset;
 
             let tmp = coord;
@@ -132,6 +153,7 @@ export class LightQueue {
 
             let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
+            uint8View[coordBytes + OFFSET_WAVE] = 0;
             if (nibbleSource) {
                 //TODO: maybe use extra memory here, with OFFSET_SOURCE?
                 const localY = y - aabb.y_min;
@@ -171,6 +193,11 @@ export class LightQueue {
             if (old !== val) {
                 chunk.lastID++;
             }
+            if (old > val) {
+                this.counter.decr++;
+            } else {
+                this.counter.incr++;
+            }
 
             //TODO: copy to neib chunks
 
@@ -193,7 +220,7 @@ export class LightQueue {
                         neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                     }
                     const waveNum = Math.max(light, val - dlen[d]);
-                    this.add(chunk, coord2, neibPotential + waveNum);
+                    this.add(chunk, coord2, waveNum, neibPotential);
                 }
             } else {
                 let mask2 = 0;
@@ -223,7 +250,7 @@ export class LightQueue {
                                 neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                             }
                             const waveNum = Math.max(light, val - dlen[d]);
-                            this.add(chunk2.rev, coord2, neibPotential + waveNum);
+                            this.add(chunk2.rev, coord2, waveNum, neibPotential);
                         }
                     }
                 }
@@ -244,7 +271,7 @@ export class LightQueue {
                             neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                         }
                         const waveNum = Math.max(light, val - dlen[d]);
-                        this.add(chunk, coord2, neibPotential + waveNum);
+                        this.add(chunk, coord2, waveNum, neibPotential);
                     }
                 }
             }
