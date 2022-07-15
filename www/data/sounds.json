@@ -358,6 +358,16 @@
         ]
     },
     {
+        "type": "madcraft:block.bone_meal",
+        "place": [
+            "Bonemeal1",
+            "Bonemeal2",
+            "Bonemeal3",
+            "Bonemeal4",
+            "Bonemeal5"
+        ]
+    },
+    {
         "type": "madcraft:block.grass",
         "dig": [
             "grass1",

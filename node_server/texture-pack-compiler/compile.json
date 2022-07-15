@@ -1673,6 +1673,7 @@
             "height": 0.9375,
             "texture": {
                 "up": "block/farmland.png",
+                "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
             "material": {
@@ -1686,6 +1687,7 @@
             "height": 0.9375,
             "texture": {
                 "up": "block/farmland_moist.png",
+                "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
             "material": {
@@ -2570,6 +2572,7 @@
             ],
             "texture": {
                 "up":  "block/dirt_path_top.png",
+                "down":  "block/dirt.png",
                 "side":  "block/dirt_path_side.png"
             }
         },
@@ -4917,7 +4920,8 @@
             "name": "BONE_MEAL",
             "style": "extruder",
             "texture": "item/bone_meal.png",
-            "item": {"name": "food"},
+            "sound": "madcraft:block.bone_meal",
+            "item": {"name": "bone_meal"},
             "material": {
                 "id": "food"
             }

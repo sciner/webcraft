@@ -675,11 +675,11 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         }
 
-        // Другие действия с инструментами
+        // Другие действия с инструментами/предметами в руке
         if(mat_block.item) {
             // Use intruments
-            for(let func of [useShovel, useHoe]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions)) {
+            for(let func of [useShovel, useHoe, useBoneMeal]) {
+                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
             }
@@ -1336,9 +1336,6 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
     }
     if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
-        pos.x -= pos.n.x;
-        pos.y -= pos.n.y;
-        pos.z -= pos.n.z;
         actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
         actions.decrement = true;
         if(mat_block.sound) {
@@ -1361,10 +1358,64 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
     }
     if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
-        pos.x -= pos.n.x;
-        pos.y -= pos.n.y;
-        pos.z -= pos.n.z;
         actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.decrement = true;
+        if(mat_block.sound) {
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+        }
+        return true;
+    }
+    return false;
+}
+
+//
+async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(mat_block.item.name != 'bone_meal' || !world_material) {
+        return false;
+    }
+    if(world_material.id == BLOCK.GRASS_BLOCK.id) {
+        const tblock_pos = new Vector(0, 0, 0);
+        const tblock_pos_over = new Vector(0, 0, 0);
+        const tblock_pos_over2 = new Vector(0, 0, 0);
+        const grass_palette = [
+            ...(new Array(64).fill(BLOCK.GRASS.id)),
+            ...(new Array(16).fill(BLOCK.AIR.id)),
+            ...(new Array(8).fill(BLOCK.DANDELION.id)),
+            ...(new Array(2).fill(BLOCK.OXEYE_DAISY.id)),
+            ...(new Array(2).fill(BLOCK.POPPY.id)),
+            BLOCK.LILY_OF_THE_VALLEY.id,
+            BLOCK.CORNFLOWER.id,
+            BLOCK.BLUE_ORCHID.id
+        ];
+        const random = new alea(e.id);
+        for(let x = -3; x <= 3; x++) {
+            for(let y = -3; y <= 3; y++) {
+                for(let z = -3; z <= 3; z++) {
+                    tblock_pos.copyFrom(pos).addScalarSelf(x, y, z);
+                    const tblock = world.getBlock(tblock_pos);
+                    if(tblock.id == BLOCK.GRASS_BLOCK.id) {
+                        tblock_pos_over.copyFrom(tblock_pos).addScalarSelf(0, 1, 0);
+                        const over1 = world.getBlock(tblock_pos_over);
+                        if(over1.id == BLOCK.AIR.id) {
+                            let flower_id = grass_palette[(random.double() * grass_palette.length) | 0];
+                            if(flower_id > 0) {
+                                if(flower_id == BLOCK.GRASS.id) {
+                                    if(random.double() < .1) {
+                                        tblock_pos_over2.copyFrom(tblock_pos_over).addScalarSelf(0, 1, 0);
+                                        const over2 = world.getBlock(tblock_pos_over2);
+                                        if(over2.id == BLOCK.AIR.id) {
+                                            flower_id = BLOCK.TALL_GRASS.id;
+                                            actions.addBlocks([{pos: tblock_pos_over2.clone(), item: {id: flower_id, extra_data: {is_head: true}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                                        }
+                                    }
+                                }
+                                actions.addBlocks([{pos: tblock_pos_over.clone(), item: {id: flower_id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         actions.decrement = true;
         if(mat_block.sound) {
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});

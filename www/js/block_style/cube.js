@@ -210,7 +210,7 @@ export default class style {
             }
         }
         if(material.is_dirt) {
-            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_dirt)) {
                 height = 1;
             }
         }
