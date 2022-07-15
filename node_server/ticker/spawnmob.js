@@ -51,7 +51,7 @@ export default class Ticker {
 
             // Спаунер перестает создавать мобов, если в зоне размером 17x9x17 находятся шесть или более мобов одного типа.
             // Проверяем количество мобов в радиусе(в радиусе 4 блоков не должно быть больше 5 мобов)
-            const mobs = world.getMobsNear(pos, 9);
+            const mobs = world.getMobsNear(pos, 9, [extra_data.type]);
             if (mobs.length > 5) {
                 console.warn('mobs.length >= 6');
                 return;

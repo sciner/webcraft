@@ -656,7 +656,7 @@ export class ServerWorld {
     }
 
     // Return mobs near pos by distance
-    getMobsNear(pos, max_distance) {
+    getMobsNear(pos, max_distance, filter_types = null) {
         const world = this;
         const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
             .expand(max_distance, max_distance, max_distance);
@@ -667,6 +667,13 @@ export class ServerWorld {
         for(let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
             for(const [mob_id, mob] of chunk.mobs) {
+                if(filter_types)  {
+                    if(Array.isArray(filter_types)) {
+                        if(filter_types.indexOf(mob.type) < 0) continue;
+                    } else {
+                        if(filter_types !== mob.type) continue;
+                    }
+                }
                 // @todo check if not dead
                 const dist = new Vector(mob.pos).distance(pos);
                 if(dist <= max_distance) {
