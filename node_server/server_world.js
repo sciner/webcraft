@@ -640,7 +640,7 @@ export class ServerWorld {
                 if(player.is_dead) {
                     continue;
                 }
-                if(player.game_mode.isSpectator() && !in_spectator) {
+                if(!in_spectator && player.game_mode.isSpectator()) {
                     continue;
                 }
                 if(not_in_creative && !player.game_mode.mayGetDamaged()) {
