@@ -48,9 +48,6 @@ export class LightQueue {
         if (uint8View[coordBytes] > waveNum) {
             return;
         }
-        if (force) {
-            console.log("USED FORCE");
-        }
         uint8View[coordBytes] = waveNum + 1;
         if (potential < 0) {
             potential = 0;
@@ -64,21 +61,25 @@ export class LightQueue {
     }
 
     addNow(chunk, coord, x, y, z, value) {
+        //test demo before force: {incr: 410461, decr: 68832}
+
         const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
         const coordBytes = coord * strideBytes + this.qOffset;
         if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
             return;
         }
         const old = uint8View[coord + OFFSET_LIGHT];
-        uint8View[coordBytes] = old + MASK_WAVE_FORCE;
+        uint8View[coordBytes + OFFSET_WAVE] = old + MASK_WAVE_FORCE;
         const waveNum = Math.max(value, old);
-
 
         let potential = this.world.getPotential(x, y, z);
         this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
+        this.filled++;
+        chunk.waveCounter++;
+        chunk.lastID++;
 
         //TODO: inline setting to dirNibbleQueue
-        uint8View[coord + OFFSET_LIGHT] = value;
+        uint8View[coordBytes + OFFSET_LIGHT] = value;
         if (!safeAABB.contains(x, y, z)) {
             for (let i = 0; i < portals.length; i++) {
                 if (portals[i].aabb.contains(x, y, z)) {
@@ -185,7 +186,9 @@ export class LightQueue {
             const old = uint8View[coordBytes + OFFSET_LIGHT];
             let prevLight = uint8View[coordBytes + OFFSET_WAVE];
             let force = prevLight >= MASK_WAVE_FORCE;
-            if (!force) {
+            if (force) {
+                prevLight -= MASK_WAVE_FORCE;
+            } else {
                 prevLight = old;
             }
             let decrMask = 0;
@@ -250,10 +253,6 @@ export class LightQueue {
                     }
                     let coord2 = coord + dif26[d];
                     const light = tmpLights[d];
-                    // a4fa-12 , not obvious optimization
-                    if (light >= prevLight && light >= val && light >= old) {
-                        continue;
-                    }
                     if (apc) {
                         neibDist = (Math.abs(x - apc.x + dx[d]) + Math.abs(y - apc.y + dy[d]) + Math.abs(z - apc.z + dz[d])) * dlen[0];
                         neibPotential = maxPotential - Math.min(maxPotential, neibDist);
@@ -283,10 +282,6 @@ export class LightQueue {
                             modMask &= ~(1 << d);
                             const coord2 = chunk2.indexByWorld(x2, y2, z2);
                             const light = tmpLights[d];
-                            // a4fa-12 , not obvious optimization
-                            if (light >= prevLight && light >= val && light >= old) {
-                                continue;
-                            }
                             if (apc) {
                                 neibDist = (Math.abs(x2 - apc.x) + Math.abs(y2 - apc.y) + Math.abs(z2 - apc.z)) * dlen[0];
                                 neibPotential = maxPotential - Math.min(maxPotential, neibDist);
@@ -304,10 +299,6 @@ export class LightQueue {
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
                         const light = tmpLights[d];
-                        // a4fa-12 , not obvious optimization
-                        if (light >= prevLight && light >= val && light >= old) {
-                            continue;
-                        }
                         if (apc) {
                             neibDist = (Math.abs(x2 - apc.x) + Math.abs(y2 - apc.y) + Math.abs(z2 - apc.z)) * dlen[0];
                             neibPotential = maxPotential - Math.min(maxPotential, neibDist);
