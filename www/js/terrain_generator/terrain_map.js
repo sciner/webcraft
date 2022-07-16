@@ -1,7 +1,7 @@
-import {impl as alea} from '../../vendors/alea.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
-import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
-import {BIOMES} from "./biomes.js";
+import { impl as alea } from '../../vendors/alea.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { Color, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
+import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
 import { OreGenerator } from './ore_generator.js';
 

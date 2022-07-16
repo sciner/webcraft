@@ -1,6 +1,5 @@
 import {BLOCK} from "../../www/js/blocks.js";
-import {getChunkAddr} from "../../www/js/chunk_const.js";
-import {Vector, VectorCollector} from "../../www/js/helpers.js";
+import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
 import {PickatActions} from "../../www/js/block_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";

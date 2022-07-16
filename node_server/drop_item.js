@@ -1,5 +1,4 @@
-import {getChunkAddr} from "../www/js/chunk_const.js";
-import { Vector } from "../www/js/helpers.js";
+import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import {ServerClient} from "../www/js/server_client.js";

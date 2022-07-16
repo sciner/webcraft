@@ -1,5 +1,4 @@
-import { getChunkAddr } from "./chunk_const.js";
-import { Vector } from "./helpers.js";
+import { getChunkAddr, Vector } from "./helpers.js";
 import { BLOCK, POWER_NO  } from "./blocks.js";
 
 export class ServerClient {

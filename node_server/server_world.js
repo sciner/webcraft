@@ -13,10 +13,9 @@ import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
 
-import { Vector, VectorCollector } from "../www/js/helpers.js";
+import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { getChunkAddr} from "../www/js/chunk_const.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";

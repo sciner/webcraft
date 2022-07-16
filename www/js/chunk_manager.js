@@ -1,12 +1,12 @@
-import {Helpers, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
 import {Chunk} from "./chunk.js";
-import {getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk_const.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
+import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;

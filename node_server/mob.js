@@ -1,6 +1,5 @@
-import {getChunkAddr} from "../www/js/chunk_const.js";
 import {Brains} from "./fsm/index.js";
-import { Vector } from "../www/js/helpers.js";
+import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 
 await Brains.init();

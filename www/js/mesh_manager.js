@@ -1,5 +1,4 @@
-import {Helpers, Vector} from "./helpers.js";
-import {getChunkAddr} from "./chunk_const.js";
+import {Helpers, getChunkAddr, Vector} from "./helpers.js";
 import {Particles_Effects} from "./particles/effects.js";
 
 export class Particle {

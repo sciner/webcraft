@@ -1,6 +1,5 @@
-import {Vector} from "./helpers.js";
+import { getChunkAddr, Vector } from "./helpers.js";
 import {TBlock, BlockNeighbours, CC, TypedBlocks as TB} from "./typed_blocks.js";
-import {getChunkAddr} from "./chunk_const.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';

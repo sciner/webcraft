@@ -157,6 +157,27 @@ export class IvanArray {
     }
 }
 
+// Возвращает адрес чанка по глобальным абсолютным координатам
+export function getChunkAddr(x, y, z, v = null) {
+    if(x instanceof Vector || typeof x == 'object') {
+        v = y;
+
+        y = x.y;
+        z = x.z;
+        x = x.x;
+    }
+    //
+    v = v || new Vector();
+    v.x = Math.floor(x / CHUNK_SIZE_X);
+    v.y = Math.floor(y / CHUNK_SIZE_Y);
+    v.z = Math.floor(z / CHUNK_SIZE_Z);
+    // Fix negative zero
+    if(v.x == 0) {v.x = 0;}
+    if(v.y == 0) {v.y = 0;}
+    if(v.z == 0) {v.z = 0;}
+    return v;
+}
+
 // VectorCollector...
 export class VectorCollector {
 

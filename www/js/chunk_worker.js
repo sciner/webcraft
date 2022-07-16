@@ -47,6 +47,7 @@ async function preLoad () {
     const start = performance.now();
 
     await import('./helpers.js').then(module => {
+        getChunkAddr = module.getChunkAddr;
         Vector = module.Vector;
         Helpers = module.Helpers;
         VectorCollector = module.VectorCollector;
@@ -63,7 +64,6 @@ async function preLoad () {
     });
     // load module
     await import('./chunk_const.js').then(module => {
-        getChunkAddr = module.getChunkAddr;
         CHUNK_SIZE_X = module.CHUNK_SIZE_X;
         CHUNK_SIZE_Y = module.CHUNK_SIZE_Y;
         CHUNK_SIZE_Z = module.CHUNK_SIZE_Z;
