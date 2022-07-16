@@ -6424,6 +6424,22 @@
                 "up": "block/basalt_top.png",
                 "down": "block/basalt_top.png"
             }
+        },
+        {
+            "id": 34,
+            "name": "FENCE_GATE",
+            "transparent": true,
+            "can_rotate": true,
+            "style": "fence_gate",
+            "sound": "madcraft:block.wooden_trapdoor",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/birch_planks.png",
+            "extra_data": {
+                "opened": false,
+                "facing": false
+            }
         }
     ]
 }

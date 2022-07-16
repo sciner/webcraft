@@ -946,7 +946,7 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'wall' || block.material.style == 'pane');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'fence_gate' || block.material.style == 'wall' || block.material.style == 'pane');
     }
 
     static canWallConnect(block) {

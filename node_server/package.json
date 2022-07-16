@@ -10,9 +10,9 @@
     "start-rebuild": "npm run rollup && npm run start"
   },
   "dependencies": {
-    "prismarine-schematic": "^1.2.3",
     "compression": "^1.7.4",
     "express": "^4.17.1",
+    "prismarine-schematic": "^1.2.3",
     "simplex-noise": "^3.0.1",
     "skia-canvas": "^0.9.30",
     "sqlite": "^4.0.23",

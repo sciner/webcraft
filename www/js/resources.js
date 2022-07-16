@@ -439,6 +439,9 @@ export class Resources {
                     case 'banner':
                         all.push(import('./block_style/banner.js').then(module => {resp.add(module.default);}));
                         break;
+                    case 'fence_gate':
+                        all.push(import('./block_style/fence_gate.js').then(module => {resp.add(module.default);}));
+                        break;
                     case 'default':
                         all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
                         break;
