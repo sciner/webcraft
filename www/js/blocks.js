@@ -380,6 +380,10 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        // facing
+        if(extra_data && 'facing' in extra_data) {
+            extra_data.facing = BLOCK.getFacing(orientation.x);
+        }
         // is_chest
         if(block.is_chest) {
             setExtra('can_destroy', true);
@@ -456,6 +460,15 @@ export class BLOCK {
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
+    }
+
+    //
+    static getFacing(orientation_x) {
+        const facings4 = ['north', 'west', 'south', 'east'];
+        if(orientation_x in facings4) {
+            return facings4[orientation_x];
+        }
+        return facings4[0];
     }
 
     // Returns a block structure for the given id.

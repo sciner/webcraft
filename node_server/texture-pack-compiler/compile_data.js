@@ -13,8 +13,9 @@ const START_CONCRETE            = 1500; // ... 1515
 const START_CONCRETE_POWDER     = 1516; // ... 1531
 const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
-const START_PETRIFIED_SLAB_ID   = 203; // 
+const START_PETRIFIED_SLAB_ID   = 203; //
 const START_BANNER_ID           = 778;
+const START_FENCE_GATE          = 911;
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -53,6 +54,7 @@ export class CompileData {
         this.initPetrifiedSlab();
         this.initPressurePlate();
         this.initBanner();
+        this.initFenceGate();
     }
 
     async initDiscs() {
@@ -659,6 +661,43 @@ export class CompileData {
             };
             this.blocks.push(b);
             i++;
+        }
+    }
+
+    // Fence gates
+    initFenceGate() {
+        let id = START_FENCE_GATE;
+        const FENCE_GATE_PALETTE = [
+            {name: 'BIRCH', 'texture': `block/birch_planks.png`},
+            {name: 'OAK', 'texture': `block/oak_planks.png`},
+            {name: 'ACACIA', 'texture': `block/acacia_planks.png`},
+            {name: 'SPRUCE', 'texture': `block/spruce_planks.png`},
+            {name: 'DARK_OAK', 'texture': `block/dark_oak_planks.png`},
+            {name: 'JUNGLE', 'texture': `block/jungle_planks.png`},
+            {name: 'CRIMSON', 'texture': `block/crimson_planks.png`},
+            {name: 'WARPED', 'texture': `block/warped_planks.png`},
+        ];
+        for(let p of FENCE_GATE_PALETTE) {
+            const b = {
+                "id":           id++,
+                "name":         `${p.name}_FENCE_GATE`,
+                "transparent":  true,
+                "can_rotate":   true,
+                "style":        "fence_gate",
+                "sound":        "madcraft:block.wooden_trapdoor",
+                "material":     {
+                    "id": "wood"
+                },
+                "texture":      p.texture,
+                "extra_data": {
+                    "opened": false,
+                    "facing": "north"
+                },
+                "tags": [
+                    "no_drop_ao"
+                ]
+            };
+            this.blocks.push(b);
         }
     }
 

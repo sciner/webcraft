@@ -1181,27 +1181,27 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     return true;
 }
 
-//Open fence gate
+// Open fence gate
 async function openFenceGate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || world_material.style != "fence_gate") {
+    if (!world_material || world_material.style != 'fence_gate') {
         return false;
     }
-    
-    if (rotate.x == 0 || rotate.x == 2) {
-        extra_data.facing = (pos.z - player.pos.z) > 0; 
-    } else {
-        extra_data.facing = (pos.x - player.pos.x) > 0; 
+    if(!extra_data) {
+        extra_data = {};
     }
-    
+    if (rotate.x == 0 || rotate.x == 2) {
+        extra_data.facing = (pos.z - player.pos.z) > 0 ? 'east' : 'west';
+    } else {
+        extra_data.facing = (pos.x - player.pos.x) > 0 ? 'north' : 'south';
+    }
     extra_data.opened = extra_data && !extra_data.opened;
-    
     if(world_material.sound) {
         actions.addPlaySound({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
     }
-    
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-    return false;
+    return true;
 }
+
 // Open door
 async function openDoor(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const isEditDoor = !e.shiftKey && world_material &&

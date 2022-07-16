@@ -15,28 +15,29 @@ export default class style {
         };
     }
     
-     // computeAABB
+    // computeAABB
     static computeAABB(block, for_physic) {
         let aabb = new AABB();
         const cardinal_direction = block.getCardinalDirection();
         if (!for_physic) {
             if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
-                aabb.set(7 * SIZE, 4 * SIZE, 0, 9 * SIZE, 16 * SIZE, 16 * SIZE);
+                aabb.set(6 * SIZE, 4 * SIZE, 0, 10 * SIZE, 16 * SIZE, 16 * SIZE);
             } else {
-                aabb.set(0, 4 * SIZE, 7 * SIZE, 16 * SIZE, 16 * SIZE, 9 * SIZE);
+                aabb.set(0, 4 * SIZE, 6 * SIZE, 16 * SIZE, 16 * SIZE, 10 * SIZE);
             }
         } else {
             if (!block.extra_data.opened) {
                 if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
-                    aabb.set(7 * SIZE, 0, 0, 9 * SIZE, 25 * SIZE, 16 * SIZE);
+                    aabb.set(6 * SIZE, 0, 0, 10 * SIZE, 25 * SIZE, 16 * SIZE);
                 } else {
-                    aabb.set(0, 0, 7 * SIZE, 16 * SIZE, 25 * SIZE, 9 * SIZE);
+                    aabb.set(0, 0, 6 * SIZE, 16 * SIZE, 25 * SIZE, 10 * SIZE);
                 }
             }
         }
         return [aabb];
     }
 
+    //
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
@@ -48,12 +49,12 @@ export default class style {
         const cardinal_direction = block.getCardinalDirection();
         
         if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
-            //Столбы
+            // Столбы
             push_part(vertices, texture, x + 8 * SIZE, y + 4 * SIZE, z + SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
             push_part(vertices, texture, x + 8 * SIZE, y + 4 * SIZE, z + 15 * SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
-            //Створки
+            // Створки
             if (block.extra_data.opened) {
-                if (block.extra_data.facing) {
+                if (['east', 'north'].indexOf(block.extra_data.facing) >= 0) {
                     push_half_gate(DIRECTION.FORWARD, x + 8 * SIZE, y,  z + SIZE, vertices, texture);
                     push_half_gate(DIRECTION.FORWARD, x + 8 * SIZE, y,  z + 15 * SIZE, vertices, texture);
                 } else {
@@ -65,12 +66,12 @@ export default class style {
                 push_half_gate(DIRECTION.LEFT, x + 8 * SIZE, y,  z + 15 * SIZE, vertices, texture);
             }
         } else {
-            //Столбы
+            // Столбы
             push_part(vertices, texture, x + SIZE, y + 4 * SIZE, z + 8 * SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
             push_part(vertices, texture, x + 15 * SIZE, y + 4 * SIZE, z + 8 * SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
-            //Створки
+            // Створки
             if (block.extra_data.opened) {
-                if (block.extra_data.facing) {
+                if (['east', 'north'].indexOf(block.extra_data.facing) >= 0) {
                     push_half_gate(DIRECTION.RIGHT, x + SIZE, y,  z + 8 * SIZE, vertices, texture);
                     push_half_gate(DIRECTION.RIGHT, x + 15 * SIZE, y,  z + 8 * SIZE, vertices, texture);
                 } else {
@@ -93,26 +94,26 @@ function push_half_gate(orientation, x, y, z, vertices, tex) {
             push_part(vertices, tex, x - 4 * SIZE, y + 6 * SIZE, z, 6 * SIZE, 2 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x - 4 * SIZE, y + 12 * SIZE, z, 6 * SIZE, 2 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x - 6 * SIZE, y + 8 * SIZE, z , 2 * SIZE, 2 * SIZE, 4 * SIZE);
+            break;
         }
-        break;
         case DIRECTION.RIGHT: {
             push_part(vertices, tex, x, y + 6 * SIZE, z + 4 * SIZE, 2 * SIZE, 6 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x, y + 12 * SIZE, z + 4 * SIZE, 2 * SIZE, 6 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x, y + 8 * SIZE, z + 6 * SIZE, 2 * SIZE, 2 * SIZE, 4 * SIZE);
+            break;
         }
-        break;
         case DIRECTION.LEFT: {
             push_part(vertices, tex, x, y + 6 * SIZE, z - 4 * SIZE, 2 * SIZE, 6 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x, y + 12 * SIZE, z - 4 * SIZE, 2 * SIZE, 6 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x, y + 8 * SIZE, z - 6 * SIZE, 2 * SIZE, 2 * SIZE, 4 * SIZE);
+            break;
         }
-        break;
         default: {
             push_part(vertices, tex, x + 4 * SIZE, y + 6 * SIZE, z, 6 * SIZE, 2 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x + 4 * SIZE, y + 12 * SIZE, z, 6 * SIZE, 2 * SIZE, 2 * SIZE);
             push_part(vertices, tex, x + 6 * SIZE, y + 8 * SIZE, z, 2 * SIZE, 2 * SIZE, 4 * SIZE);
+            break;
         }
-        break;
     }
 }
 
