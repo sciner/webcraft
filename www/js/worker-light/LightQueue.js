@@ -62,6 +62,7 @@ export class LightQueue {
 
     addNow(chunk, coord, x, y, z, value) {
         //test demo before force: {incr: 410461, decr: 68832}
+        //test demo with force: {incr: 422083, decr: 3503}
 
         const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
         const coordBytes = coord * strideBytes + this.qOffset;
@@ -85,6 +86,7 @@ export class LightQueue {
                 if (portals[i].aabb.contains(x, y, z)) {
                     let other = portals[i].toRegion;
                     other.setUint8ByInd(other.indexByWorld(x, y, z), this.qOffset + OFFSET_LIGHT, value);
+                    other.rev.lastID++;
                 }
             }
         }
