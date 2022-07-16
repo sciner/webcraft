@@ -4,9 +4,9 @@ import {
     dmask, dlen, dx, dy, dz,
     defPageSize, globalStepMs,
     DIR_COUNT,
-    MASK_QUEUE_FORCE,
     BITS_QUEUE_BLOCK_INDEX,
     MASK_QUEUE_BLOCK_INDEX,
+    MASK_WAVE_FORCE,
     OFFSET_SOURCE,
     OFFSET_LIGHT,
     MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP, OFFSET_WAVE,
@@ -48,6 +48,9 @@ export class LightQueue {
         if (uint8View[coordBytes] > waveNum) {
             return;
         }
+        if (force) {
+            console.log("USED FORCE");
+        }
         uint8View[coordBytes] = waveNum + 1;
         if (potential < 0) {
             potential = 0;
@@ -55,9 +58,35 @@ export class LightQueue {
         if (potential > maxPotential) {
             potential = maxPotential;
         }
-        this.deque.push(waveNum + potential, chunk.dataIdShift + coord + (force ? MASK_QUEUE_FORCE : 0));
+        this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
+    }
+
+    addNow(chunk, coord, x, y, z, value) {
+        const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
+        const coordBytes = coord * strideBytes + this.qOffset;
+        if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
+            return;
+        }
+        const old = uint8View[coord + OFFSET_LIGHT];
+        uint8View[coordBytes] = old + MASK_WAVE_FORCE;
+        const waveNum = Math.max(value, old);
+
+
+        let potential = this.world.getPotential(x, y, z);
+        this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
+
+        //TODO: inline setting to dirNibbleQueue
+        uint8View[coord + OFFSET_LIGHT] = value;
+        if (!safeAABB.contains(x, y, z)) {
+            for (let i = 0; i < portals.length; i++) {
+                if (portals[i].aabb.contains(x, y, z)) {
+                    let other = portals[i].toRegion;
+                    other.setUint8ByInd(other.indexByWorld(x, y, z), this.qOffset + OFFSET_LIGHT, value);
+                }
+            }
+        }
     }
 
     doIter(times) {
@@ -89,8 +118,6 @@ export class LightQueue {
             let wn = curWave.priority;
             //that's a pop
             let coord = curWave.shift();
-            const force = coord & MASK_QUEUE_FORCE;
-            coord = coord & ~MASK_QUEUE_FORCE;
             const newChunk = chunkById[coord >> BITS_QUEUE_BLOCK_INDEX];
             coord = coord & MASK_QUEUE_BLOCK_INDEX;
             this.filled--;
@@ -143,14 +170,6 @@ export class LightQueue {
             y += outerAABB.y_min;
             z += outerAABB.z_min;
 
-            let prevLight = wn;
-            let curPotential = 0, curDist = 0;
-            if (apc) {
-                curDist = (Math.abs(x - apc.x) + Math.abs(y - apc.y) + Math.abs(z - apc.z)) * dlen[0];
-                curPotential = maxPotential - Math.min(maxPotential, curDist);
-                prevLight = wn - curPotential;
-            }
-
             let blockMask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
             uint8View[coordBytes + OFFSET_WAVE] = 0;
@@ -164,6 +183,8 @@ export class LightQueue {
                 val = (nibColumn >= 0 && nibbles[nibCoord + OFFSET_COLUMN_DAY] > nibColumn) ? world.defDayLight : 0;
             }
             const old = uint8View[coordBytes + OFFSET_LIGHT];
+            let prevLight = uint8View[coordBytes + OFFSET_WAVE];
+            let force = prevLight >= MASK_WAVE_FORCE;
             if (!force) {
                 prevLight = old;
             }
@@ -173,7 +194,7 @@ export class LightQueue {
                 val = 0;
                 block = true;
             }
-            if (val === maxLight && val === old && !force) {
+            if (val === maxLight && val === old && val === prevLight) {
                 continue;
             }
             for (let d = 0; d < dirCount; d++) {
@@ -205,7 +226,7 @@ export class LightQueue {
             }
             // let modMask = (~blockMask & ((1 << dirCount) - 1));
             let modMask = incMask | decrMask;
-            if (old === val && !force) {
+            if (old === val && old === prevLight) {
                 modMask = incMask;
                 if (modMask === 0) {
                     continue;

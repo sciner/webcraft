@@ -10,7 +10,6 @@ import {
     OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
-import {DirLightQueue} from "./DirLightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
 
 export class ChunkManager {
