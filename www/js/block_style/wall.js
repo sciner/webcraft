@@ -1,11 +1,13 @@
-import {DIRECTION, MULTIPLY} from '../helpers.js';
+import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
+import { TBlock } from '../typed_blocks.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;
-const CONNECT_Z         = 8 / 16;
 const CONNECT_HEIGHT    = 14 / 16;
 const CONNECT_BOTTOM    = 0 / 16;
+
+const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
 
 // Забор
 export default class style {
@@ -29,38 +31,51 @@ export default class style {
         let zconnects = 0;
         let xconnects = 0;
 
+        //
+        const checkDiag = (n1, n2) => {
+            if(neighbours.UP?.material?.style != 'wall') {
+                return false;
+            }
+            if(neighbours[n1].tb) {
+                const east_neighbours = neighbours[n1].tb.getNeighbours(neighbours[n1], null, BLOCK_CACHE);
+                return east_neighbours[n2] && east_neighbours[n2].material.style == 'wall';
+            }
+            return false;
+        };
 
         // South and North
         const ss = BLOCK.canWallConnect(neighbours.SOUTH);
         const sn = BLOCK.canWallConnect(neighbours.NORTH);
-        const czsn = (ss && sn) ? 2 : CONNECT_Z;
         // South
         if(ss) {
-            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + czsn/4, CONNECT_X, czsn/2, CONNECT_HEIGHT);
+            let h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
+            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .25, CONNECT_X, .5, h);
             zconnects++;
         }
         // North
         if(sn) {
-            if(!ss) {
-                push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + 1 - CONNECT_Z/4, CONNECT_X, CONNECT_Z/2, CONNECT_HEIGHT);
-            }
+            let h = checkDiag('NORTH', 'UP') ? 1 : CONNECT_HEIGHT;
+            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .75, CONNECT_X, .5, h);
             zconnects++;
         }
 
         // West and East
         const sw = BLOCK.canWallConnect(neighbours.WEST);
         const se = BLOCK.canWallConnect(neighbours.EAST);
-        const czwe = (sw && se) ? 2 : CONNECT_Z;
         // West
         if(sw) {
-            push_part(vertices, c, x + czwe/4, y + CONNECT_BOTTOM, z + .5, czwe/2, CONNECT_X, CONNECT_HEIGHT);
+            let h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;
+            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            push_part(vertices, c2, x + .25, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
         // East
         if(se) {
-            if(!sw) {
-                push_part(vertices, c, x + 1. - CONNECT_Z/4, y + CONNECT_BOTTOM, z + .5, CONNECT_Z/2, CONNECT_X, CONNECT_HEIGHT);
-            }
+            let h = checkDiag('EAST', 'UP') ? 1 : CONNECT_HEIGHT;
+            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            push_part(vertices, c2, x + .75, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
 

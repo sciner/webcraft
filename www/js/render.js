@@ -21,6 +21,7 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
+import { DEFAULT_CLOUD_HEIGHT } from "./constant.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -142,13 +143,9 @@ export class Renderer {
         return this.renderBackend.gl;
     }
 
-    async init(world, settings) {
-        return this._init(world, settings);
-    }
-
     // todo
     // GO TO PROMISE
-    async _init(world, settings) {
+    async init(world, settings) {
         this.setWorld(world);
 
         const {renderBackend} = this;
@@ -166,7 +163,7 @@ export class Renderer {
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
-        this.setBrightness(1); // this.brightness = 1;
+        this.env.setBrightness(1);
         renderBackend.resize(this.canvas.width, this.canvas.height);
 
         // Init shaders for all resource packs
@@ -187,7 +184,7 @@ export class Renderer {
         }
 
         // Prepare base resource pack shader
-        let rp                  = BLOCK.resource_pack_manager.get('base');
+        const rp                = BLOCK.resource_pack_manager.get('base');
         this.defaultShader      = rp.shader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
@@ -204,17 +201,14 @@ export class Renderer {
         this.updateViewport();
 
         // HUD
-        // Build main HUD
-        this.HUD = {
-            tick: 0,
-            bufRect: null,
-            draw: function() {
-                Game.hud.draw();
-            }
-        }
+        this.HUD = Game.hud;
 
         this.generatePrev();
         this.generateDropItemVertices();
+
+        // Clouds
+        // @todo Переделать в связи с появлением TBlock
+        this.clouds = this.meshes.add(new Particles_Clouds(this, DEFAULT_CLOUD_HEIGHT));
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
         
@@ -370,9 +364,9 @@ export class Renderer {
                     mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
                 }
 
-        //if(this.block_material?.inventory?.move) {
-        //    mat4.translate(this.modelMatrix, this.modelMatrix, new Vector(this.block_material?.inventory?.move).toArray());
-        //}
+                //if(this.block_material?.inventory?.move) {
+                //    mat4.translate(this.modelMatrix, this.modelMatrix, new Vector(this.block_material?.inventory?.move).toArray());
+                //}
 
                 this.renderBackend.drawMesh(
                     mesh.buffer,
@@ -528,14 +522,6 @@ export class Renderer {
         this.player = player;
     }
 
-    /**
-     * @deprecated use a this.env.setBrightness
-     * @param {number} value
-     */
-    setBrightness(value) {
-        this.env.setBrightness(value);
-    }
-
     update(delta, args) {
 
         this.frame++;
@@ -584,13 +570,6 @@ export class Renderer {
 
         this.env.update(delta, args);
 
-        // Clouds
-        if(!this.clouds) {
-            const pos = new Vector(player.pos);
-            pos.y = 128.1;
-            this.clouds = this.createClouds(pos);
-        }
-
         const cm = this.world.chunkManager;
 
         // TODO: move to batcher
@@ -623,7 +602,7 @@ export class Renderer {
     }
 
     // Render one frame of the world to the canvas.
-    draw (delta, args) {
+    draw(delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
 
@@ -659,7 +638,7 @@ export class Renderer {
             }
             renderBackend.batch.flush();
             if(!transparent) {
-                let shader = this.defaultShader;
+                const shader = this.defaultShader;
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
@@ -685,9 +664,7 @@ export class Renderer {
         }
 
         // 4. Draw HUD
-        if(this.HUD) {
-            this.HUD.draw();
-        }
+        this.HUD.draw();
 
         // 5. Screenshot
         if(this.make_screenshot) {
@@ -726,20 +703,9 @@ export class Renderer {
         }
     }
 
-    // rainDrop
-    //rainDrop(pos) {
-    //    this.meshes.add(new Particles_Raindrop(this, pos));
-    //}
-
     // addAsteroid
     addAsteroid(pos, rad) {
         this.meshes.add(new Particles_Asteroid(this, pos, rad));
-    }
-
-    // createClouds
-    createClouds(pos) {
-        // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this, pos));
     }
 
     // setRain
@@ -902,7 +868,6 @@ export class Renderer {
         const modelMatrix = mat4.create();
         this.renderBackend.drawMesh(buf, this.material_shadow, a_pos, modelMatrix);
         buf.destroy();
-
     }
 
     // createShadowBuffer...
@@ -985,7 +950,7 @@ export class Renderer {
 
         // Shake camera on damage
         if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
-            let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
+            const percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);

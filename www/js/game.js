@@ -55,7 +55,7 @@ export class GameClass {
         // Create world
         await this.render.init(this.world, settings);
 
-        let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        const ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
 
         await this.world.connectToServer(ws);
 
@@ -254,6 +254,7 @@ export class GameClass {
                         if(!e.down) {
                             if(e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
+                                Game.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
                             } else {
                                 player.changeSpawnpoint();
                             }

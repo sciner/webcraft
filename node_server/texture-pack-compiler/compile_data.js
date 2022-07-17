@@ -228,10 +228,10 @@ export class CompileData {
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
             const b = {
                 "id": START_CARPET_ID + i,
+                "name": color.toUpperCase() + '_CARPET',
                 "transparent": true,
                 "height": 1/16,
                 "can_rotate": true,
-                "name": color.toUpperCase() + '_CARPET',
                 "material": {"id": "wool"},
                 "sound": "madcraft:block.cloth",
                 "texture": {"side": "block/white_wool.png"},

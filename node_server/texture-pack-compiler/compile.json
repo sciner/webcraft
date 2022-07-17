@@ -6414,7 +6414,6 @@
         {
             "id": 33,
             "name": "BASALT",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"

@@ -63,7 +63,7 @@ const FakeCloudWorld = {
 export default class Particles_Clouds {
 
     // Constructor
-    constructor(gl, pos) {
+    constructor(gl, height) {
         //
         const aabb = new AABB();
         aabb.set(0, 0, 0, CLOUDS_TEX_SIZE, 0, CLOUDS_TEX_SIZE);
@@ -72,7 +72,7 @@ export default class Particles_Clouds {
         this.yaw        = -Math.PI;
         this.life       = 0.5;
         this.loading    = false;
-        this.pos        = new Vector(pos.x, pos.y, pos.z);
+        this.pos        = new Vector(0, height, 0);
         this.vertices   = [];
         //
         FakeCloudWorld.clouds.imgData = Resources.clouds.texture;

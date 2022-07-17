@@ -42,15 +42,15 @@ export class Particles_Asteroid extends NetworkPhysicObject {
             BLOCK.DIORITE.id,
             BLOCK.ANDESITE.id,
             BLOCK.GRANITE.id,
-            BLOCK.GRASS.id,
             BLOCK.GRASS_BLOCK.id,
             BLOCK.STONE.id,
             BLOCK.OAK_STAIRS.id,
             BLOCK.GRAVEL.id,
             BLOCK.SAND.id,
-            BLOCK.TORCH.id,
             BLOCK.GOLD_ORE.id,
             BLOCK.IRON_ORE.id,
+            // BLOCK.GRASS.id,
+            // BLOCK.TORCH.id,
         ];
         let idx = 0;
 

@@ -68,25 +68,39 @@ export default class style {
         let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
         push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1);
 
+        const add_middle = false;
+
         // South
         if(BLOCK.canFenceConnect(neighbours.SOUTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16,);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16);
+            if(add_middle) {
+                push_part(vertices, tex, x + .5, y, z + 1/16, 4/16, 2/16, 1);
+            }
         }
         // North
         if(BLOCK.canFenceConnect(neighbours.NORTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
+            if(add_middle) {
+                push_part(vertices, tex, x + .5, y, z + 1 - 1/16, 4/16, 2/16, 1);
+            }
         }
         // West
         if(BLOCK.canFenceConnect(neighbours.WEST)) {
             push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
             push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
+            if(add_middle) {
+                push_part(vertices, tex, x + 1/16, y, z + .5, 2/16, 4/16, 1);
+            }
         }
         // East
         if(BLOCK.canFenceConnect(neighbours.EAST)) {
             push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
             push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
+            if(add_middle) {
+                push_part(vertices, tex, x + 1 - 1/16, y, z + .5, 2/16, 4/16, 1);
+            }
         }
 
     }

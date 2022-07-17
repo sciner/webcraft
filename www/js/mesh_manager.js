@@ -120,6 +120,7 @@ export class MeshManager {
             let effects = this.get(PARTICLE_EFFECTS_ID);
             if(!effects) {
                 effects = new Particles_Effects(this, this._chunk_addr, 'extend/transparent/effects');
+                // effects = new Particles_Effects(this, this._chunk_addr, 'base/regular/default');
                 this.add(effects, PARTICLE_EFFECTS_ID);
             }
             effects.add(p, particle);
