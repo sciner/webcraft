@@ -64,13 +64,13 @@ export class LightQueue {
     addNow(chunk, coord, x, y, z, value) {
         //test demo before force: {incr: 410461, decr: 68832}
         //test demo with force: {incr: 422083, decr: 3503}
-
-        const {uint8View, strideBytes, portals, safeAABB, qOffset} = chunk.lightChunk;
+        const qOffset = this.qOffset;
+        const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
         const coordBytes = coord * strideBytes + qOffset;
         if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
             return;
         }
-        const old = uint8View[coord + OFFSET_LIGHT];
+        const old = uint8View[coordBytes + OFFSET_LIGHT];
         uint8View[coordBytes + OFFSET_WAVE] = old + MASK_WAVE_FORCE;
         const waveNum = Math.max(value, old);
 
