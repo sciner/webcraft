@@ -277,7 +277,8 @@
         sunNormalLight = dot(minecraftSun, abs(v_normal));
     } else {
         // limit brightness to 0.2
-        sunNormalLight = max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        sunNormalLight = 1.0;
+        combinedLight = vec3(playerLight + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness);
     }
     //--
 #endif
