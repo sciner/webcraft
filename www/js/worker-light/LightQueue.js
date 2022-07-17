@@ -177,7 +177,6 @@ export class LightQueue {
 
             let blockMask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
-            uint8View[coordBytes + OFFSET_WAVE] = 0;
             if (nibbleSource) {
                 //TODO: maybe use extra memory here, with OFFSET_SOURCE?
                 const localY = y - aabb.y_min;
@@ -189,6 +188,7 @@ export class LightQueue {
             }
             const old = uint8View[coordBytes + OFFSET_LIGHT];
             let prevLight = uint8View[coordBytes + OFFSET_WAVE];
+            uint8View[coordBytes + OFFSET_WAVE] = 0;
             let force = prevLight >= MASK_WAVE_FORCE;
             if (force) {
                 prevLight -= MASK_WAVE_FORCE;
