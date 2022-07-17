@@ -36,6 +36,9 @@ function run() {
         }
         endTime = performance.now();
     } while (endTime < startTime + msLimit && ready > 0);
+    if (endTime - startTime > 0.3) {
+        console.log(`Light took ${endTime - startTime}`);
+    }
 
     world.isEmptyQueue = ready === 0;
     world.checkPotential();

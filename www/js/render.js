@@ -211,7 +211,13 @@ export class Renderer {
         this.clouds = this.meshes.add(new Particles_Clouds(this, DEFAULT_CLOUD_HEIGHT));
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
-        
+
+        this.blockDayLightTex = renderBackend.createTexture({
+            source: Resources.blockDayLight,
+            minFilter: 'linear',
+            magFilter: 'linear'
+        });
+        this.blockDayLightTex.bind(2);
     }
 
     // Generate drop item vertices

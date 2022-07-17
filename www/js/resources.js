@@ -64,14 +64,16 @@ export class Resources {
         this.sounds             = {};
         this.sound_sprite_main  = {};
         this.weather            = {};
+        this.blockDayLight      = null;
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
-        
+
         let all = [];
 
         // Others
+        all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
         all.push(loadImage('media/rain.png').then((img) => { this.weather.rain = img}));
         all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
@@ -102,7 +104,7 @@ export class Resources {
         // Shader blocks
 
         if (settings.wgsl) {
-            // not supported 
+            // not supported
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
@@ -146,7 +148,7 @@ export class Resources {
             percent:    0
         };
         for (const p of all) {
-            p.then(()=> {    
+            p.then(()=> {
                 d ++;
                 this.progress.loaded = d;
                 this.progress.percent = (d * 100) / all.length;
@@ -161,7 +163,7 @@ export class Resources {
 
     /**
      * Parse shader.blocks file defenition
-     * @param {string} text 
+     * @param {string} text
      * @param {{[key: string]: string}} blocks
      */
     static async parseShaderBlocks(text, blocks = {}) {
@@ -184,7 +186,7 @@ export class Resources {
 
             const source = lines.map((e) => {
                 return e.startsWith('    ') // remove first tab (4 space)
-                    ? e.substring(4).trimEnd() 
+                    ? e.substring(4).trimEnd()
                     : e.trimEnd();
             }).join('\n');
 
@@ -228,7 +230,7 @@ export class Resources {
     static loadTextFile(url, json = false) {
         return fetch(url).then(response => json ? response.json() : response.text());
     }
-    
+
     static loadImage(url,  imageBitmap) {
         if (imageBitmap) {
             return fetch(url)
@@ -284,7 +286,7 @@ export class Resources {
 
     static async loadJsonModel(dataModel, key, baseUrl) {
         const asset = await Resources.loadTextFile(baseUrl + dataModel.geom, true);
-    
+
         asset.type = dataModel.type;
         asset.source = dataModel;
         asset.key = key;
@@ -304,7 +306,7 @@ export class Resources {
 
             return asset.skins[id] = image;
         }
-    
+
         return asset;
     }
 
@@ -329,7 +331,7 @@ export class Resources {
         let resp = new Set();
         let all = [];
         let json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
-        
+
         await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module
@@ -337,23 +339,23 @@ export class Resources {
                 all.push(import('./block_style/' + code + '.js').then(module => {
                     resp.add(module.default);
                 }));*/
-               
+
                 switch (code) {
                     case 'azalea':
                         all.push( import('./block_style/azalea.js').then(module => {
                             resp.add(module.default);
                         }));
-                        break;   
+                        break;
                     case 'bamboo':
                         all.push( import('./block_style/bamboo.js').then(module => {
                             resp.add(module.default);
                         }));
-                        break;  
+                        break;
                     case 'bed':
                         all.push(import('./block_style/bed.js').then(module => {
                             resp.add(module.default);
                         }));
-                        break;   
+                        break;
                     case 'cake':
                         all.push(import('./block_style/cake.js').then(module => {
                             resp.add(module.default);
@@ -363,7 +365,7 @@ export class Resources {
                         all.push(import('./block_style/campfire.js').then(module => {
                             resp.add(module.default);
                         }));
-                        break;   
+                        break;
                     case 'cocoa':
                         all.push(import('./block_style/cocoa.js').then(module => {resp.add(module.default);}));
                         break;
@@ -372,7 +374,7 @@ export class Resources {
                         break;
                     case 'door':
                         all.push(import('./block_style/door.js').then(module => {resp.add(module.default);}));
-                        break; 
+                        break;
                     case 'extruder':
                         all.push(import('./block_style/extruder.js').then(module => {resp.add(module.default);}));
                         break;
@@ -387,7 +389,7 @@ export class Resources {
                         break;
                     case 'painting':
                         all.push(import('./block_style/painting.js').then(module => {resp.add(module.default);}));
-                        break;  
+                        break;
                     case 'pane':
                         all.push(import('./block_style/pane.js').then(module => {resp.add(module.default);}));
                         break;
@@ -451,7 +453,7 @@ export class Resources {
                             resp.add(module.default);
                         }));
                         break;*/
-                
+
             }
         }
         });
@@ -459,7 +461,7 @@ export class Resources {
         return resp;
     }
 
-  
+
     // Load skins
     static async loadSkins() {
         const resp = [];

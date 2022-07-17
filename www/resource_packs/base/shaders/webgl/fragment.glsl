@@ -46,9 +46,10 @@ void main() {
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     vec2 biome = vec2(0.0);
     vec4 color = vec4(0.0);
-    float light = 0.0;
+    float playerLight = 0.0, sunNormalLight = 1.0;
+    vec3 combinedLight = vec3(1.0);
 
-    // Game    
+    // Game
     if(u_fogOn) {
         if(v_flagQuadSDF > 0.5) {
             // sdf pipeline
@@ -70,8 +71,8 @@ void main() {
 
             float dist = median(data);
             float fill = smoothstep(
-                totalThreshold - msdfFactor, 
-                totalThreshold + msdfFactor, 
+                totalThreshold - msdfFactor,
+                totalThreshold + msdfFactor,
                 dist
             );
 
@@ -121,7 +122,7 @@ void main() {
                 #include<sun_light_pass>
             }
             // Apply light
-            color.rgb *= light;
+            color.rgb *= combinedLight * playerLight * sunNormalLight;
         }
 
         outColor = color;
