@@ -430,7 +430,7 @@
     daySample = daySample * (1.0 - aoSample);*/
 
     vec2 lutCoord = vec2(max(caveSample, playerLight), daySample * u_brightness);
-    lutCoord = (clamp(lutCoord, 0.0, 1.0) * 14.0 + 0.5) / 32.0;
+    lutCoord = (clamp(lutCoord, 0.0, 1.0) * 15.0 + 0.5) / 32.0;
     combinedLight = texture(u_blockDayLightSampler, lutCoord).rgb;
     // combinedLight = vec3(clamp((lutCoord.x + lutCoord.y) * 2.0, 0., 1.));
     combinedLight *= (1.0 - aoSample);
