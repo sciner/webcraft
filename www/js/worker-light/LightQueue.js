@@ -26,6 +26,7 @@ export class LightQueue {
         this.counter = {
             incr: 0,
             decr: 0,
+            now: 0,
         }
 
         this.tmpLights = [];
@@ -64,8 +65,8 @@ export class LightQueue {
         //test demo before force: {incr: 410461, decr: 68832}
         //test demo with force: {incr: 422083, decr: 3503}
 
-        const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
-        const coordBytes = coord * strideBytes + this.qOffset;
+        const {uint8View, strideBytes, portals, safeAABB, qOffset} = chunk.lightChunk;
+        const coordBytes = coord * strideBytes + qOffset;
         if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
             return;
         }
@@ -78,14 +79,15 @@ export class LightQueue {
         this.filled++;
         chunk.waveCounter++;
         chunk.lastID++;
+        this.counter.now++;
 
         //TODO: inline setting to dirNibbleQueue
         uint8View[coordBytes + OFFSET_LIGHT] = value;
         if (!safeAABB.contains(x, y, z)) {
-            for (let i = 0; i < portals.length; i++) {
-                if (portals[i].aabb.contains(x, y, z)) {
-                    let other = portals[i].toRegion;
-                    other.setUint8ByInd(other.indexByWorld(x, y, z), this.qOffset + OFFSET_LIGHT, value);
+            for (let p = 0; p < portals.length; p++) {
+                if (portals[p].aabb.contains(x, y, z)) {
+                    let other = portals[p].toRegion;
+                    other.setUint8ByInd(other.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, value);
                     other.rev.lastID++;
                 }
             }
