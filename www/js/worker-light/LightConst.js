@@ -11,7 +11,8 @@ export const MASK_SRC_REST = 224;
 
 export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
-export const OFFSET_DAY = 2;
+export const OFFSET_WAVE = 2;
+export const OFFSET_DAY = 3;
 
 export const OFFSET_COLUMN_TOP = 0;
 export const OFFSET_COLUMN_BOTTOM = 1;
@@ -22,6 +23,7 @@ export const BITS_QUEUE_CHUNK_ID = 15;
 export const MASK_QUEUE_BLOCK_INDEX = (1 << BITS_QUEUE_BLOCK_INDEX) - 1;
 export const MASK_QUEUE_CHUNK_ID = ((1 << BITS_QUEUE_CHUNK_ID) - 1) << BITS_QUEUE_BLOCK_INDEX;
 export const MASK_QUEUE_FORCE = (1 << 31);
+export const MASK_WAVE_FORCE = 128;
 
 export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
