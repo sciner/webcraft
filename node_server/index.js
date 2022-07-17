@@ -74,6 +74,18 @@ Resources.physics = {
 
 // http://expressjs.com/en/api.html#req.originalUrl
 var app = express();
+
+/**
+* Referrer logger
+*/
+app.use(async function(req, _res, next) {
+    const ref = req.get('Referrer');
+    if(ref && ref.indexOf(`//${req.get('host')}`) < 0) {
+        await Game.db.ReferrerAppend(ref, req.headers);
+    }
+    next();
+});
+
 // Compress all HTTP responses
 app.use(compression({
     // filter: Decide if the answer should be compressed or not,

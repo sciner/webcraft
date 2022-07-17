@@ -88,6 +88,14 @@ export class DBGame {
             `ALTER TABLE "world_player" ADD COLUMN "play_count" integer NOT NULL DEFAULT 0;`
         ]});
 
+        migrations.push({version: 6, queries: [
+            `CREATE TABLE "main"."referrer" (
+                "dt" text NOT NULL,
+                "url" TEXT,
+                "headers" TEXT
+            );`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -108,6 +116,14 @@ export class DBGame {
             ':dt':          ~~(Date.now() / 1000),
             ':event_name':  event_name,
             ':data':        JSON.stringify(data, null, 2)
+        });
+    }
+
+    async ReferrerAppend(url, headers) {
+        await this.db.run('INSERT INTO referrer(dt, url, headers) VALUES (:dt, :url, :headers)', {
+            ':dt':          new Date().toISOString(),
+            ':url':         url,
+            ':headers':     JSON.stringify(headers, null, 2)
         });
     }
 
