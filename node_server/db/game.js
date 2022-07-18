@@ -1,7 +1,6 @@
 import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
-import { v4 as uuid } from 'uuid';
 import { copyFile } from 'fs/promises';
 
 import {Vector} from '../../www/js/helpers.js';
@@ -132,7 +131,7 @@ export class DBGame {
         if(await this.db.get("SELECT id, username, guid, password FROM user WHERE LOWER(username) = ?", [username.toLowerCase()])) {
             throw 'error_player_exists';
         }
-        const guid = uuid();
+        const guid = randomUUID();
         const result = await this.db.run('INSERT INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        guid,
@@ -170,7 +169,7 @@ export class DBGame {
 
     // Регистрация новой сессии пользователя
     async CreatePlayerSession(user_row) {
-        const session_id = uuid();
+        const session_id = randomUUID();
         const result = await this.db.run('INSERT INTO user_session(dt, user_id, token) VALUES (:dt, :user_id, :session_id)', {
             ':dt':          ~~(Date.now() / 1000),
             ':user_id':     user_row.id,
@@ -210,7 +209,7 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        const guid = uuid();
+        const guid = randomUUID();
         let default_pos_spawn = new Vector(2895.7, 120, 2783.06);
         switch(generator?.id) {
             case 'city':

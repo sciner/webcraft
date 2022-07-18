@@ -1,5 +1,4 @@
 import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
-import {BLOCK} from "../www/js/blocks.js";
 import {ALLOW_NEGATIVE_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -19,11 +18,11 @@ export class ServerChunkManager {
         this.invalid_chunks_queue   = [];
         //
         this.DUMMY = {
-            id:         BLOCK.DUMMY.id,
-            name:       BLOCK.DUMMY.name,
+            id:         world.block_manager.DUMMY.id,
+            name:       world.block_manager.DUMMY.name,
             shapes:     [],
-            properties: BLOCK.DUMMY,
-            material:   BLOCK.DUMMY,
+            properties: world.block_manager.DUMMY,
+            material:   world.block_manager.DUMMY,
             getProperties: function() {
                 return this.material;
             }
@@ -34,11 +33,13 @@ export class ServerChunkManager {
     // Init worker
     async initWorker() {
         this.worker_inited = false;
-        this.worker = new Worker('../www/js/chunk_worker.js');
-        this.worker.on('message', (data) => {
-            let cmd = data[0];
-            let args = data[1];
-            // console.log(`worker: ${cmd}`);
+        this.worker = new Worker(globalThis.__dirname + '/../www/js/chunk_worker.js');
+        const onmessage = (data) => {
+            if(data instanceof MessageEvent) {
+                data = data.data;
+            }
+            const cmd = data[0];
+            const args = data[1];
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
@@ -56,12 +57,17 @@ export class ServerChunkManager {
                     console.log(`Ignore worker command: ${cmd}`);
                 }
             }
-        });
-        let promise = new Promise((resolve, reject) => {
+        };
+        if('onmessage' in this.worker) {
+            this.worker.onmessage = onmessage;
+        } else {
+            this.worker.on('message', onmessage);
+        }
+        const promise = new Promise((resolve, reject) => {
             this.resolve_worker = resolve;
         });
         // Init webworkers
-        let world_info = this.world.info;
+        const world_info = this.world.info;
         const generator = world_info.generator;
         const world_seed = world_info.seed;
         const world_guid = world_info.guid;

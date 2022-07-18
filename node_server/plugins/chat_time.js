@@ -1,3 +1,5 @@
+import { GAME_DAY_SECONDS } from "../../www/js/constant.js";
+
 const DAY_TIMES = {
     day: 7000,
     midnight: 0,

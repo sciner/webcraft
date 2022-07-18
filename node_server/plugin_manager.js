@@ -7,21 +7,20 @@ export class PluginManager {
         this.targets.set('world',  []);
         this.targets.set('chat',  []);
         const pluginFolder = './plugins/';
-        fs.readdir(pluginFolder, (err, files) => {
-            files.forEach(file => {
-                if(fs.lstatSync(pluginFolder + file).isFile()) {
-                    import(pluginFolder + file).then(module => {
-                        for(let target of module.default.targets) {
-                            if(!this.targets.has(target)) {
-                                throw 'invalid_plugin_target|' + file + ':' + target;
-                            }
-                            this.targets.get(target).push(module.default);
-                            console.log('Plugin loaded: ' + file);
-                        }
-                    });
+        for(let file of config.chat_plugins) {
+            if(file.indexOf('-') === 0) {
+                continue;
+            }
+            import(pluginFolder + file).then(module => {
+                for(let target of module.default.targets) {
+                    if(!this.targets.has(target)) {
+                        throw 'invalid_plugin_target|' + file + ':' + target;
+                    }
+                    this.targets.get(target).push(module.default);
+                    console.log('Plugin loaded: ' + file);
                 }
             });
-        });
+        }
     }
 
     initPlugins(target, instance) {

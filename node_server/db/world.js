@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import fs from 'fs';
 import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
@@ -10,7 +10,6 @@ import {ServerClient} from "../../www/js/server_client.js";
 import {BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
 import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
-import fs from 'fs';
 
 //
 import { DBWorldMob } from './world/mob.js';
@@ -307,7 +306,7 @@ export class DBWorld {
 
     // Create drop item
     async createDropItem(params) {
-        const entity_id = uuid();
+        const entity_id = randomUUID();
         await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,

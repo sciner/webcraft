@@ -1,11 +1,12 @@
 import url from 'url';
-import {WebSocketServer, WebSocket} from "ws";
+import {WebSocketServer} from "ws";
 
 import {DBGame} from "./db/game.js";
 import {DBWorld} from "./db/world.js";
 import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
+import { BLOCK } from '../www/js/blocks.js';
 
 class FakeHUD {
     add() {}
@@ -43,7 +44,7 @@ export class ServerGame {
             const game_world    = await this.db.getWorld(world_guid);
             Log.append('WsConnected', {world_guid, session_id: query.session_id});
             if(!world) {
-                world = new ServerWorld();
+                world = new ServerWorld(BLOCK);
                 const db_world = await DBWorld.openDB('../world/' + world_guid, world);
                 await world.initServer(world_guid, db_world);
                 this.worlds.set(world_guid, world);

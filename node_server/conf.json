@@ -10,5 +10,37 @@
     "UseSecureProtocol": false,
     "SSLCertFile": "/var/ssl/auth/fullchain.pem",
     "SSLKeyFile": "/var/ssl/auth/privkey.pem",
-    "Debug": false
+    "Debug": false,
+    "chat_plugins": [
+        "chat_teleport.js",
+        "chat_time.js",
+        "-chat_worldedit.js",
+        "gamerule.js",
+        "view_distance.js"
+    ],
+    "clientpackets": [
+        "cmd_block_clone.js",
+        "cmd_change_pos_spawn.js",
+        "cmd_change_render_dist.js",
+        "cmd_chat_send_message.js",
+        "cmd_chest_confirm.js",
+        "cmd_chunk_load.js",
+        "cmd_connect.js",
+        "cmd_drop_item.js",
+        "cmd_drop_item_pickup.js",
+        "cmd_gamemode_next.js",
+        "cmd_gamemode_set.js",
+        "cmd_inventory_new_state.js",
+        "cmd_inventory_select.js",
+        "cmd_load_chest.js",
+        "cmd_pickat_action.js",
+        "cmd_ping.js",
+        "cmd_player_state.js",
+        "cmd_quest_get_enabled.js",
+        "cmd_resurrection.js",
+        "cmd_standup_straight.js",
+        "cmd_stats.js",
+        "cmd_sync_time.js",
+        "cmd_teleport_request.js"
+    ]
 }

@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
 import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
@@ -121,7 +120,7 @@ export class DBWorldMob {
 
     // Create mob
     async create(params) {
-        const entity_id = uuid();
+        const entity_id = randomUUID();
         if(!('pos' in params)) {
             throw 'error_no_mob_pos';
         }

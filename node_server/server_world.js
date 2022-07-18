@@ -16,19 +16,18 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
-    constructor() {
+    constructor(block_manager) {
         this.temp_vec = new Vector();
-        this.block_manager = BLOCK;
+        this.block_manager = block_manager;
     }
 
     async initServer(world_guid, db_world) {
@@ -430,7 +429,7 @@ export class ServerWorld {
                 let all = [];
                 const create_block_list = [];
                 for (let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToDBItem(params.item);
+                    params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         modified_chunks.set(chunk_addr.clone(), true);
@@ -575,7 +574,7 @@ export class ServerWorld {
         if(actions.put_in_backet) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
-            if(currentInventoryItem && currentInventoryItem.id == BLOCK.BUCKET_EMPTY.id) {
+            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET_EMPTY.id) {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_backet;
                 // send new inventory state to player

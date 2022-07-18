@@ -50,11 +50,9 @@ Lang.init();
 global.__dirname        = path.resolve();
 global.Worker           = Worker;
 global.fs               = fs;
-global.BLOCK_CHEST      = 54;
-global.GAME_ONE_SECOND  = 72;
-global.GAME_DAY_SECONDS = 24000;
 global.config           = config;
 global.plugins          = new PluginManager();
+global.Game             = new ServerGame();
 global.randomUUID       = () => {
     return uuid();
 };
@@ -109,7 +107,6 @@ app.use(compression({
 ServerStatic.init(app);
 ServerAPI.init(app);
 
-global.Game = new ServerGame();
 Game.startWS();
 
 // Start express
