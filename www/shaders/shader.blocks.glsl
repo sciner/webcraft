@@ -22,7 +22,7 @@
     #define NO_FOG_FLAG 3
     #define LOOK_AT_CAMERA 4
     #define FLAG_ANIMATED 5
-    #define TEXTURE_SCROLL 6
+    #define FLAG_TEXTURE_SCROLL 6
     #define NO_CAN_TAKE_AO 7
     #define QUAD_FLAG_OPACITY 8
     #define QUAD_FLAG_SDF 9
@@ -253,7 +253,7 @@
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
-    int flagScroll = (flags >> TEXTURE_SCROLL) & 1;
+    int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
     int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
     int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;

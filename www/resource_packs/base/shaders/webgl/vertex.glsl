@@ -19,8 +19,8 @@ void main() {
 
     if (flagLookAtCamera > 0) {
         mat3 lookAtMat = inverse(mat3(u_worldView));
-        axisX = lookAtMat * axisX.xzy * a_color.r;
-        axisY = lookAtMat * axisY.xzy * a_color.r;
+        axisX = lookAtMat * axisX.xzy;
+        axisY = lookAtMat * axisY.xzy;
     }
 
     // Animated textures
@@ -47,8 +47,8 @@ void main() {
     vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 
     // Scrolled textures
-    // uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
-    // uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
+    uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
+    uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
     uvCenter0.y += float(flagScroll) * (u_time * v_color.g);
     uvCenter1.y += float(flagScroll) * (u_time * v_color.g);
 

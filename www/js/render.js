@@ -692,6 +692,8 @@ export class Renderer {
 
     // destroyBlock
     destroyBlock(block, pos, small) {
+        const block_manager = this.world.block_manager;
+        // Game.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
         this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
     }
 
@@ -710,12 +712,15 @@ export class Renderer {
 
     // setRain
     setRain(value) {
-        let rain = this.meshes.get('rain');
-        if(!rain) {
-            rain = new Particles_Rain(this);
-            this.meshes.add(rain, 'rain');
+        let rain = this.meshes.get('weather');
+        if(!rain || rain.type != value) {
+            if(rain) {
+                rain.destroy();
+            }
+            rain = new Particles_Rain(this, value);
+            this.meshes.add(rain, 'weather');
         }
-        rain.enabled = value;
+        rain.enabled = !!value;
     }
 
     // drawPlayers

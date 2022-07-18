@@ -170,8 +170,13 @@ export class Chat extends TextBox {
                         let name = temp[0].trim().toLowerCase();
                         switch(name) {
                             case 'rain': {
-                                Game.render.setRain(true);
+                                Game.render.setRain(name);
                                 chat.messages.addSystem('Установлена дождливая погода');
+                                break;
+                            }
+                            case 'snow': {
+                                Game.render.setRain(name);
+                                chat.messages.addSystem('Установлена снежная погода');
                                 break;
                             }
                             case 'clear': {
