@@ -442,6 +442,9 @@ export class Resources {
                     case 'fence_gate':
                         all.push(import('./block_style/fence_gate.js').then(module => {resp.add(module.default);}));
                         break;
+                    case 'rails':
+                        all.push(import('./block_style/rails.js').then(module => {resp.add(module.default);}));
+                        break;
                     case 'default':
                         all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
                         break;
