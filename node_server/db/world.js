@@ -1,8 +1,6 @@
-import fs from 'fs';
-import path from 'path'
-import sqlite3 from 'sqlite3'
-import {open} from 'sqlite'
-import { copyFile } from 'fs/promises';
+
+import { SQLiteServerConnector } from './connector/server.js';
+import { SQLiteWebkitConnector } from './connector/webkit.js';
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../www/js/chunk_const.js";
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
@@ -34,32 +32,11 @@ export class DBWorld {
 
     // Open database and return provider
     static async openDB(dir, world) {
-        let filename = dir + '/world.sqlite';
-        filename = path.resolve(filename);
-        // Check directory exists
-        if (!fs.existsSync(dir)) {
-            await fs.mkdirSync(dir, {recursive: true});
-        }
-        // Recheck directory exists
-        if (!fs.existsSync(dir)) {
-            throw 'World directory not found: ' + dir;
-        }
-        // If DB file not exists, then create it from template
-        if (!fs.existsSync(filename)) {
-            // create db from template
-            let template_db_filename = path.resolve(DBWorld.TEMPLATE_DB);
-            await copyFile(template_db_filename, filename);
-        }
-        // Open SQLIte3 fdatabase file
-        const dbc = await open({
-            filename: filename,
-            driver: sqlite3.Database
-        }).then(async (conn) => {
-            return new DBWorld(conn, world);
-        });
-        // Init DB
-        await dbc.init();
-        return dbc;
+        const filename = dir + '/world.sqlite';
+        const conn = await SQLiteServerConnector.openDB(dir, filename, './db/world.sqlite3.template');
+        const db = new DBWorld(conn, world);
+        await db.init();
+        return db;
     }
 
     // Возвращает мир по его GUID либо создает и возвращает его

@@ -9,6 +9,7 @@ import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
+import { LocalServerClient } from "./local/client.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -55,7 +56,8 @@ export class GameClass {
         // Create world
         await this.render.init(this.world, settings);
 
-        const ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        // const ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        const ws = new LocalServerClient(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
 
         await this.world.connectToServer(ws);
 

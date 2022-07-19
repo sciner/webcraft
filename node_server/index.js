@@ -74,13 +74,16 @@ Resources.physics = {
 var app = express();
 
 /**
-* Referrer logger
+* Prehook
 */
 app.use(async function(req, _res, next) {
+    // Log referrer
     const ref = req.get('Referrer');
     if(ref && ref.indexOf(`//${req.get('host')}`) < 0) {
         await Game.db.ReferrerAppend(ref, req.headers);
     }
+    // Rewrite
+    if(req.url.indexOf('/www') === 0) req.url = req.url.substring(4);
     next();
 });
 

@@ -1,7 +1,8 @@
 {
   "scripts": {
     "install-ff": "(cd ../ff-worker && npm install)",
-    "install-all": "npm run install-ff && npm install",
+    "install-local": "(cd ../local_server && npm install)",
+    "install-all": "npm run install-ff && npm run install-local && npm install",
     "start": "node --experimental-json-modules --no-warnings ./index.js",
     "inspect": "node --experimental-json-modules --no-warnings --inspect ./index.js",
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
@@ -15,6 +16,7 @@
     "prismarine-schematic": "^1.2.3",
     "simplex-noise": "^3.0.1",
     "skia-canvas": "^0.9.30",
+    "sql.js": "^1.7.0",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.8",
     "uuid": "^8.3.2",

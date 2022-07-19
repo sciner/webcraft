@@ -1,4 +1,5 @@
 import commonjs from '@rollup/plugin-commonjs';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 
 export default [{
     input: './chunk_worker_bundle.js',
@@ -9,7 +10,8 @@ export default [{
         format: 'cjs'//'es',//'cjs',
     },
     plugins: [
-        commonjs()
+        commonjs(),
+        dynamicImportVars({})
     ],
    
 }
@@ -22,6 +24,9 @@ export default [{
         file: '../www/js-gen/light_worker_bundle.js',
         format: 'cjs',
     },
-    plugins: [commonjs()]
+    plugins: [
+        commonjs(),
+        dynamicImportVars({})
+    ]
 }
 ]

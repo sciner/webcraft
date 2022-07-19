@@ -6,12 +6,11 @@ export class PluginManager {
         this.targets.set('game', []);
         this.targets.set('world',  []);
         this.targets.set('chat',  []);
-        const pluginFolder = './plugins/';
         for(let file of config.chat_plugins) {
             if(file.indexOf('-') === 0) {
                 continue;
             }
-            import(pluginFolder + file).then(module => {
+            import(`./plugins/${file}.js`).then(module => {
                 for(let target of module.default.targets) {
                     if(!this.targets.has(target)) {
                         throw 'invalid_plugin_target|' + file + ':' + target;

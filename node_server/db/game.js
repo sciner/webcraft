@@ -1,45 +1,28 @@
-import path from 'path'
-import sqlite3 from 'sqlite3'
-import {open} from 'sqlite'
-import { copyFile } from 'fs/promises';
-
 import {Vector} from '../../www/js/helpers.js';
+import { SQLiteServerConnector } from './connector/server.js';
+import { SQLiteWebkitConnector } from './connector/webkit.js';
 
 export class DBGame {
-
-    static TEMPLATE_DB = './db/game.sqlite3.template';
 
     constructor(db) {
         this.db = db;
     }
 
-    // Open database and return provider
     static async openDB(dir) {
-        let filename = dir + '/game.sqlite3';
-        filename = path.resolve(filename);
-        // Check directory exists
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, {recursive: true});
-        }
-        // Recheck directory exists
-        if (!fs.existsSync(dir)) {
-            throw 'Game directory not found: ' + dir;
-        }
-        // If DB file not exists, then create it from template
-        if (!fs.existsSync(filename)) {
-            // create db from template
-            const template_db_filename = path.resolve(DBGame.TEMPLATE_DB);
-            await copyFile(template_db_filename, filename);
-        }
-        // Open SQLIte3 fdatabase file
-        let dbc = await open({
-            filename: filename,
-            driver: sqlite3.Database
-        }).then(async (conn) => {
-            return new DBGame(conn);
-        });
-        await dbc.applyMigrations();
-        return dbc;
+        const filename = dir + '/game.sqlite3';
+        const conn = await SQLiteServerConnector.openDB(dir, filename, './db/game.sqlite3.template');
+        const db = new DBGame(conn);
+        await db.applyMigrations();
+        return db;
+    }
+
+    // Open database and return provider
+    static async openLocalDB(dir) {
+        const filename = dir + '/game.sqlite3';
+        const conn = await SQLiteWebkitConnector.openDB(dir, filename, './db/game.sqlite3.template');
+        const db = new DBGame(conn);
+        await db.applyMigrations();
+        return db;
     }
 
     // Migrations
