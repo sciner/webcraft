@@ -60,7 +60,7 @@ export class DBGame {
                 "generator" TEXT,
                 "pos_spawn" TEXT
             )`,
-            `INSERT INTO "world" ("id", "guid", "title", "user_id", "dt", "seed", "generator", "pos_spawn") VALUES (1, 'demo', '🤖 Demo public server', 1001, 1633540804, 'undefined', '{"id":"biome2"}', '{"x":2895.7,"y":90,"z":2783.06}');`
+            `INSERT INTO "world" ("id", "guid", "title", "user_id", "dt", "seed", "generator", "pos_spawn") VALUES (1, 'demo', '🤖 Demo public server', 1, 1633540804, 'undefined', '{"id":"biome2"}', '{"x":2895.7,"y":90,"z":2783.06}');`
         ]})
 
         migrations.push({version: 2, queries: [`CREATE TABLE "log" (

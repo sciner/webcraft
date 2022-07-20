@@ -40,7 +40,9 @@ export default [{
         nodeResolve({
             // use "jsnext:main" if possible
             // see https://github.com/rollup/rollup/wiki/jsnext:main
-            resolveOnly: ['sql.js', 'sql.js/dist/sql-wasm.js'],
+            resolveOnly: [
+                'sql.js'
+            ],
             jsnext: true
         }),
         copy({
