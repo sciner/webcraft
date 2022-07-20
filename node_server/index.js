@@ -108,9 +108,27 @@ app.use(compression({
     threshold: 0
 }));
 ServerStatic.init(app);
-ServerAPI.init(app);
 
-Game.startWS();
+// API
+app.use(express.json());
+app.use('/api', async(req, res) => {
+    try {
+        const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'));
+        res.status(200).json(resp);
+    } catch(e) {
+        console.log('> API: ' + e);
+        let message = e.code || e;
+        let code = 950;
+        if(message == 'error_invalid_session') {
+            code = 401;
+        }
+        res.status(200).json(
+            {"status":"error","code": code, "message": message}
+        );
+    }
+});
+
+Game.start();
 
 // Start express
 const server = app.listen(config.Port);

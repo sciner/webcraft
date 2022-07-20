@@ -8,6 +8,8 @@ import { PluginManager } from "../node_server/plugin_manager.js";
 import _config from "../node_server/conf.json" assert { type: "json" };
 import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 import { DBGame } from "../node_server/db/game.js";
+import { ServerAPI } from "../node_server/server_api.js";
+import { DBWorld } from "../node_server/db/world.js";
 
 // Hack ;)
 Resources.physics = {features}
@@ -18,151 +20,7 @@ globalThis.plugins      = new PluginManager();
 globalThis.randomUUID   = () => crypto.randomUUID();
 
 //
-class DBWorld {
-
-    constructor() {
-        // quests
-        this.quests = {
-            defaults: async () => [],
-            loadPlayerQuests: async () => [],
-            userStarted: async () => true
-        }
-        // mobs
-        this.mobs = {
-            loadInChunk: (addr, size) => new Map(),
-            chunkMobsIsGenerated: async (chunk_addr_hash) => true,
-            create: async (params) => {
-                return {
-                    id:         1,
-                    entity_id:  randomUUID(),
-                    pos_spawn:  params.pos.clone(),
-                    is_active:  true
-                };
-            }
-        }
-    }
-
-    loadAdminList(world_id) {
-        return [];
-    }
-
-    async chunkBecameModified() {
-        const resp = new Set();
-        return resp;
-    }
-
-    async getWorld(world_guid) {
-        return {
-            "id":           1,
-            "user_id":      1001,
-            "dt":           1658147042,
-            "guid":         world_guid,
-            "title":        "Local",
-            "seed":         "2860976949",
-            "game_mode":    "survival",
-            "generator":    {"id":"biome2","options":{"auto_generate_mobs":true}},
-            "pos_spawn":    {"x":2895.7,"y":120,"z":2783.06},
-            "rules":        {},
-            "state":        null,
-            "add_time":     -29080
-        };
-    }
-
-    async registerPlayer(world, player) {
-        return {
-            "state": {
-                "pos":                  {"x":1047.532,"y":75,"z":1835.253},
-                "pos_spawn":            {"x":2895.7,"y":120,"z":2783.06},
-                "rotate":               {"x":-0.2484,"y":0,"z":0.8477},
-                "indicators":           {"live":{"name":"live","value":20},"food":{"name":"food","value":20},"oxygen":{"name":"oxygen","value":10}},
-                "chunk_render_dist":    4,
-                "game_mode":            "creative",
-                "stats":                {"death": 0, "time": 1000, "pickat": 0, "distance": 679}
-            },
-            "inventory": {
-                "current":{"index":2,"index2":-1},
-                "items": [null,{"id":521,"count":1},{"id":8,"count":16},{"id":659,"count":3},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]
-            }
-        };
-    }
-
-    async loadDropItems(addr, size) {
-        return new Map();
-    }
-
-    async updateAddTime(world_guid, add_time) {}
-
-    async changeRenderDist(player, value) {}
-
-    async savePlayerState(player) {}
-
-    async savePlayerInventory(player, params) {}
-
-    async blockSetBulk(world, player, data) {}
-
-    async updateChunks(address_list) {}
-
-    async blockSet(world, player, params) {}
-
-    async TransactionBegin() {}
-
-    async TransactionCommit() {}
-
-    async TransactionRollback() {}
-
-    async loadChunkModifiers(addr) {}
-
-    async changeGameMode(player, game_mode) {}
-
-    getDefaultPlayerIndicators() {
-        return {
-            live: {
-                name:  'live',
-                value: 20,
-            },
-            food: {
-                name:  'food',
-                value: 20,
-            },
-            oxygen: {
-                name:  'oxygen',
-                value: 10,
-            },
-        };
-    }
-
-}
-
-/*
-//
-class LocalDBGame {
-
-    async GetPlayerSession(session_id) {
-        return {
-            "user_id":      1001,
-            "user_guid":    "e953ac26-5e68-432a-886a-226708ca1bbf",
-            "username":     "player",
-            "flags":        256,
-            "session_id":   session_id
-        }
-    }
-
-    async getWorld(world_guid)  {
-        return {
-            id:         1,
-            guid:       world_guid
-        };
-    }
-
-    async LogAppend(event_name, data) {}
-
-    async IncreasePlayCount(world_id, session_id) {}
-
-}
-*/
-
-//
-class Conn {
+class PlayerConnection {
 
     constructor() {
         this._on = new Map();
@@ -197,6 +55,7 @@ export class LocalGame {
     constructor() {
         this.dt_started = new Date();
         this.is_server = true;
+        this.packets_queue = [];
         // Worlds
         this.worlds = new Map();
         // Placeholder
@@ -204,11 +63,19 @@ export class LocalGame {
         this.hotbar = new FakeHotbar();
         //
         onmessage = this.onmessage.bind(this);
+        //
+        DBGame.openLocalDB('.').then((db) => {
+            this.db = db;
+            globalThis.Log = new GameLog(db);
+            console.debug(performance.now(), 'Game db inited!');
+            // Packets queue, because db was not inited
+            while(this.packets_queue.length > 0) {
+                this.onmessage(this.packets_queue.shift());
+            }
+        });
     }
 
-    async init() {
-        this.db = await DBGame.openLocalDB('.'); // new LocalDBGame();
-        globalThis.Log = new GameLog(this.db);
+    async start() {
         await BLOCK.init({
             json_url: '/data/block_style.json',
             resource_packs_url: '/data/resource_packs.json',
@@ -218,6 +85,11 @@ export class LocalGame {
     }
 
     async onmessage(e) {
+        if(!this.db) {
+            // Add event to packets queue, because db not inited
+            this.packets_queue.push(e);
+            return;
+        }
         const packet = JSON.parse(e.data);
         const cmd = packet.name;
         const data = packet.data;
@@ -232,15 +104,40 @@ export class LocalGame {
                 Log.append('WsConnected', {world_guid, session_id: session_id});
                 if(!world) {
                     world = new ServerWorld(BLOCK);
-                    const db_world = new DBWorld(world_guid); // await DBWorld.openDB('../world/' + world_guid, world);
+                    const db_world = await DBWorld.openLocalDB('/world/' + world_guid, world);
                     await world.initServer(world_guid, db_world);
                     this.worlds.set(world_guid, world);
                     console.log('World started');
                 }
                 const player = new ServerPlayer();
-                this.player_conn = new Conn();
+                this.player_conn = new PlayerConnection();
                 player.onJoin(session_id, skin, this.player_conn, world);
                 await this.db.IncreasePlayCount(game_world.id, session_id);
+                break;
+            }
+            case '_api': {
+                const {id, session_id, method, params} = data;
+                try {
+                    const result = await ServerAPI.call(method, params, session_id);
+                    this.postMessage({name: '_api_result', data: {id, result}});
+                } catch(e) {
+                    let message = e.code || e;
+                    let code = 950;
+                    if(message == 'error_invalid_session') {
+                        code = 401;
+                    }
+                    this.postMessage({
+                        name: '_api_result',
+                        data: {
+                            id,
+                            result: {
+                                code,
+                                message,
+                                status: 'error'
+                            }
+                        }
+                    });
+                }
                 break;
             }
             default: {
@@ -260,4 +157,4 @@ export class LocalGame {
 }
 
 globalThis.Game = new LocalGame();
-Game.init();
+Game.start();

@@ -16,7 +16,7 @@ export class PluginManager {
                         throw 'invalid_plugin_target|' + file + ':' + target;
                     }
                     this.targets.get(target).push(module.default);
-                    console.log('Plugin loaded: ' + file);
+                    console.debug('Plugin loaded: ' + file);
                 }
             });
         }

@@ -30,9 +30,12 @@ export class ServerGame {
     }
 
     // Start websocket server
-    async startWS() {
-        this.db = await DBGame.openDB('.');
-        global.Log = new GameLog(this.db);
+    async start() {
+        //
+        await DBGame.openDB('.').then((conn) => {
+            this.db = conn
+            global.Log = new GameLog(this.db);
+        });
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
         // New player connection

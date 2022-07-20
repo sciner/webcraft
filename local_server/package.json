@@ -12,6 +12,8 @@
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-dynamic-import-vars": "^1.4.3",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-replace": "^4.0.0"
+    "@rollup/plugin-replace": "^4.0.0",
+    "rollup-obfuscator": "^3.0.1",
+    "rollup-plugin-copy": "^3.4.0"
   }
 }

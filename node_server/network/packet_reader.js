@@ -43,7 +43,7 @@ export class PacketReader {
         for(let filename of config.clientpackets) {
             import(`./clientpackets/${filename}.js`).then(module => {
                 this.registered_readers.set(module.default.command, module.default);
-                console.info(`Registered client packet reader: ${module.default.command}`)
+                console.debug(`Registered client packet reader: ${module.default.command}`)
             });
         }
 

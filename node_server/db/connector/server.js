@@ -7,7 +7,7 @@ import { copyFile } from 'fs/promises';
 export class SQLiteServerConnector {
 
     // Open database and return provider
-    static async openDB(dir, filename, template_db_filename) {
+    static async openDB(dir, filename) {
         filename = path.resolve(filename);
         // Check directory exists
         if (!fs.existsSync(dir)) {
@@ -17,17 +17,14 @@ export class SQLiteServerConnector {
         if (!fs.existsSync(dir)) {
             throw 'Game directory not found: ' + dir;
         }
-        // If DB file not exists, then create it from template
-        if (!fs.existsSync(filename)) {
-            // create db from template
-            await copyFile(path.resolve(template_db_filename), filename);
-        }
-        // Open SQLIte3 fdatabase file
+        // Open SQLite3 database file
         const conn = await open({
             filename: filename,
             driver: sqlite3.Database
         }).then(async (conn) => {
             return conn;
+        }).catch(error => {
+            throw error;
         });
         return conn;
     }

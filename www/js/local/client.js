@@ -1,6 +1,8 @@
+import { LocalAPIClient } from "./api_client.js";
+
 export class LocalServerClient {
 
-    constructor(connection_string) {
+    constructor() {
 
         this.onopen = (event) => {};
         this.onmessage = (event) => {};
@@ -13,7 +15,8 @@ export class LocalServerClient {
         this.worker.onmessage = (event) => {
             if(event.data === 'connected') {
                 this.onopen({});
-                this.send(JSON.stringify({name: '_connect', data: connection_string}));
+            } else if(event.data?.name == '_api_result') {
+                this.getAPIClient()._onResult(event.data.data);
             } else {
                 this.onmessage(event);
             }
@@ -27,6 +30,11 @@ export class LocalServerClient {
 
     }
 
+    connect(connection_string) {
+        this.send(JSON.stringify({name: '_connect', data: connection_string}));
+        return this;
+    }
+
     // close server sonnection
     close(code) {
         this.worker.terminate();
@@ -36,6 +44,11 @@ export class LocalServerClient {
     // send message to server
     send(json) {
         this.worker.postMessage(json);
+    }
+
+    // Return local API client
+    getAPIClient() {
+        return this._api_client || (this._api_client = new LocalAPIClient(this));
     }
 
 }
