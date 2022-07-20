@@ -1,22 +1,17 @@
-
-import { SQLiteServerConnector } from './connector/server.js';
-import { SQLiteWebkitConnector } from './connector/webkit.js';
-
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../www/js/chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
-import {ServerClient} from "../../www/js/server_client.js";
-import {BLOCK} from "../../www/js/blocks.js";
+import { ServerClient } from "../../www/js/server_client.js";
+import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
 import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
 
-//
+// Database packages
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
 
+// World database provider
 export class DBWorld {
-
-    static TEMPLATE_DB = './db/world.sqlite3.template';
 
     constructor(conn, world) {
         this.conn = conn;
@@ -28,24 +23,12 @@ export class DBWorld {
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
+        return this;
     }
 
     // Open database and return provider
-    static async openDB(dir, world) {
-        const filename = dir + '/world.sqlite';
-        const conn = await SQLiteServerConnector.openDB(dir, filename);
-        const db = new DBWorld(conn, world);
-        await db.init();
-        return db;
-    }
-
-    // Open database and return provider
-    static async openLocalDB(dir, world) {
-        const filename = dir + '/world.sqlite';
-        const conn = await SQLiteWebkitConnector.openDB(dir, filename);
-        const db = new DBWorld(conn, world);
-        await db.init();
-        return db;
+    static async openDB(conn, world) {
+        return await new DBWorld(conn, world).init();
     }
 
     // Возвращает мир по его GUID либо создает и возвращает его
@@ -451,7 +434,7 @@ export class DBWorld {
                 params.pos.getFlatIndexInChunk()
             ];
         }
-        this.conn.run(`CREATE TEMPORARY TABLE world_modify_import_bulk(data TEXT);`);
+        this.conn.run(`CREATE TEMPORARY TABLE IF NOT EXISTS world_modify_import_bulk(data TEXT);`);
         const result = await this.conn.run('INSERT INTO world_modify_import_bulk(data) VALUES(:data)', {
             ':data': JSON.stringify(data)
         });

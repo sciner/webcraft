@@ -1,6 +1,4 @@
 import {Vector} from '../../www/js/helpers.js';
-import { SQLiteServerConnector } from './connector/server.js';
-import { SQLiteWebkitConnector } from './connector/webkit.js';
 
 export class DBGame {
 
@@ -8,21 +6,9 @@ export class DBGame {
         this.conn = conn;
     }
 
-    static async openDB(dir) {
-        const filename = dir + '/game.sqlite3';
-        const conn = await SQLiteServerConnector.openDB(dir, filename);
-        const db = new DBGame(conn);
-        await db.applyMigrations();
-        return db;
-    }
-
     // Open database and return provider
-    static async openLocalDB(dir) {
-        const filename = dir + '/game.sqlite3';
-        const conn = await SQLiteWebkitConnector.openDB(dir, filename);
-        const db = new DBGame(conn);
-        await db.applyMigrations();
-        return db;
+    static async openDB(conn) {
+        return await new DBGame(conn).applyMigrations();
     }
 
     // Migrations
@@ -124,6 +110,8 @@ export class DBGame {
                 console.debug('Migration applied: ' + version);
             }
         }
+
+        return this;
 
     }
 

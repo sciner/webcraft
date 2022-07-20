@@ -698,7 +698,7 @@ export class DBWorldMigration {
         }
 
         // Create temporary table for bulk insert block modificators
-        // this.db.run(`CREATE TEMPORARY TABLE world_modify_import_bulk(data TEXT);`);
+        this.db.run(`CREATE TEMPORARY TABLE IF NOT EXISTS world_modify_import_bulk(data TEXT);`);
 
     }
 

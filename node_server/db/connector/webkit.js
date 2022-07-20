@@ -3,8 +3,8 @@ import initSqlJs from "sql.js";
 // SQLite webkit client
 export class SQLiteWebkitConnector {
 
-    // Open database and return provider
-    static async openDB(dir, filename) {
+    // Connect to database and return provider
+    static async connect(filename) {
         return new Promise((resolve, reject) => {
             caches.open('game-cache').then(async (cache) => {
                 try {

@@ -10,6 +10,7 @@ import features from "../www/vendors/prismarine-physics/lib/features.json" asser
 import { DBGame } from "../node_server/db/game.js";
 import { ServerAPI } from "../node_server/server_api.js";
 import { DBWorld } from "../node_server/db/world.js";
+import { SQLiteWebkitConnector } from "../node_server/db/connector/webkit.js";
 
 // Hack ;)
 Resources.physics = {features}
@@ -64,7 +65,8 @@ export class LocalGame {
         //
         onmessage = this.onmessage.bind(this);
         //
-        DBGame.openLocalDB('.').then((db) => {
+        const conn = await SQLiteWebkitConnector.connect('/game.sqlite3');
+        DBGame.openDB(conn).then((db) => {
             this.db = db;
             globalThis.Log = new GameLog(db);
             console.debug(performance.now(), 'Game db inited!');
@@ -104,7 +106,8 @@ export class LocalGame {
                 Log.append('WsConnected', {world_guid, session_id: session_id});
                 if(!world) {
                     world = new ServerWorld(BLOCK);
-                    const db_world = await DBWorld.openLocalDB('/world/' + world_guid, world);
+                    const conn = await SQLiteWebkitConnector.connect('/world/' + world_guid);
+                    const db_world = await DBWorld.openDB(conn, world);
                     await world.initServer(world_guid, db_world);
                     this.worlds.set(world_guid, world);
                     console.log('World started');
