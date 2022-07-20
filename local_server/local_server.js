@@ -10,7 +10,7 @@ import features from "../www/vendors/prismarine-physics/lib/features.json" asser
 import { DBGame } from "../node_server/db/game.js";
 import { ServerAPI } from "../node_server/server_api.js";
 import { DBWorld } from "../node_server/db/world.js";
-import { SQLiteWebkitConnector } from "../node_server/db/connector/webkit.js";
+import { SQLiteWebkitConnector } from "./sqlite_webkit_connector.js";
 
 // Hack ;)
 Resources.physics = {features}
@@ -65,15 +65,16 @@ export class LocalGame {
         //
         onmessage = this.onmessage.bind(this);
         //
-        const conn = await SQLiteWebkitConnector.connect('/game.sqlite3');
-        DBGame.openDB(conn).then((db) => {
-            this.db = db;
-            globalThis.Log = new GameLog(db);
-            console.debug(performance.now(), 'Game db inited!');
-            // Packets queue, because db was not inited
-            while(this.packets_queue.length > 0) {
-                this.onmessage(this.packets_queue.shift());
-            }
+        SQLiteWebkitConnector.connect('/game.sqlite3').then((conn) => {
+            DBGame.openDB(conn).then((db) => {
+                this.db = db;
+                globalThis.Log = new GameLog(db);
+                console.debug(performance.now(), 'Game db inited!');
+                // Packets queue, because db was not inited
+                while(this.packets_queue.length > 0) {
+                    this.onmessage(this.packets_queue.shift());
+                }
+            });
         });
     }
 

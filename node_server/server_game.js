@@ -7,7 +7,7 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
-import { SQLiteServerConnector } from './db/connector/server.js';
+import { SQLiteServerConnector } from './db/connector/sqlite.js';
 
 class FakeHUD {
     add() {}
