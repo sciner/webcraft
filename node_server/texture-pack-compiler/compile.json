@@ -2124,6 +2124,12 @@
             "passable": 1,
             "selflit": true,
             "sound": "madcraft:block.wood",
+            "light_power": {
+                "r": 0,
+                "g": 0,
+                "b": 0,
+                "a": 0
+            },
             "material": {
                 "id": "air"
             },
