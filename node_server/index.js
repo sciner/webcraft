@@ -5,20 +5,22 @@ import fs from 'fs';
 import {Worker} from "worker_threads";
 import { v4 as uuid } from 'uuid';
 import sqlite3 from 'sqlite3'
+import semver from 'semver';
 
 // Check version of modules
 const required_versions = {
-    nodejs: ['v17.2.0', 'v17.9.0'],
-    sqlite3: ['3.38.4'] // 5.0.8
+    nodejs: '17.2.0 - 17.9.0',
+    sqlite3: '>= 3.38.4' // 5.0.8
 };
 function checkVersion(module_name, current) {
     const need_version = required_versions[module_name];
-    if(need_version.indexOf(current) < 0 ) {
+    if(!semver.satisfies(current, need_version) ) {
         console.error(`${module_name} required version ${need_version}, but present is ${current}`);
         process.exit();
     }
 }
-checkVersion('nodejs', process.version);
+
+checkVersion('nodejs', semver.coerce(process.version));
 checkVersion('sqlite3', sqlite3.VERSION);
 
 // Require compiled resource pack
