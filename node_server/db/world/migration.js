@@ -26,6 +26,19 @@ export class DBWorldMigration {
         }
         //
         const update_world_modify_chunks = `
+            UPDATE world_modify
+            SET
+            chunk_x = cast(floor(cast(x as float) / ${CHUNK_SIZE_X}.) as integer),
+            chunk_y = cast(floor(cast(y as float) / ${CHUNK_SIZE_Y}.) as integer),
+            chunk_z = cast(floor(cast(z as float) / ${CHUNK_SIZE_Z}.) as integer),
+                "index" = 
+                    (${CHUNK_SIZE_X}. * ${CHUNK_SIZE_Z}.) *
+                        ((y - floor(cast(y as float) / ${CHUNK_SIZE_Y}.) * ${CHUNK_SIZE_Y}.) % ${CHUNK_SIZE_Y}.) +
+                        (((z - floor(cast(z as float) / ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_Z}.) % ${CHUNK_SIZE_Z}.) * ${CHUNK_SIZE_X}.) +
+                        ((x - floor(cast(x as float) / ${CHUNK_SIZE_X}.) * ${CHUNK_SIZE_X}.) % ${CHUNK_SIZE_X}.);
+
+            DELETE FROM world_modify_chunks;
+
             WITH chunks AS (select distinct chunk_x, chunk_y, chunk_z from world_modify)
             INSERT INTO world_modify_chunks(x, y, z, data)
             select chunk_x, chunk_y, chunk_z, (SELECT  

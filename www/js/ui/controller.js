@@ -1,4 +1,4 @@
-import {Vector, Helpers} from '../helpers.js';
+import {Vector, Helpers, SpiralGenerator} from '../helpers.js';
 import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';

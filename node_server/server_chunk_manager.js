@@ -1,11 +1,9 @@
 import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
-import {ALLOW_NEGATIVE_Y} from "../www/js/chunk_const.js";
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
-
-export const MAX_Y_MARGIN = 3;
 
 export class ServerChunkManager {
 
@@ -176,7 +174,7 @@ export class ServerChunkManager {
             const added_vecs        = new VectorCollector();
             const chunk_render_dist = player.state.chunk_render_dist;
             const margin            = Math.max(chunk_render_dist + 1, 1);
-            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
 
             //
             const nearby = {

@@ -6,11 +6,10 @@ import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
-import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
+import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
-export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -307,7 +306,7 @@ export class ChunkManager {
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
             this.poses.length = 0;
             for (let i = 0; i < spiral_moves_3d.length; i++) {
                 const item = spiral_moves_3d[i];
