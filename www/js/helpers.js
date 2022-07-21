@@ -1256,12 +1256,16 @@ export class Helpers {
 
 // Make fetch functions
 if(typeof fetch === 'undefined') {
-    eval(`Helpers.fetch = async (url) => import(url);
+    // Hello eval ;)
+    const code = `Helpers.fetch = async (url) => import(url);
     Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
         let binary = fs.readFileSync(url);
         return binary.buffer;
-    };`);
+    };`;
+    var obj = Helpers;
+    var func = new Function("Helpers", "window", "'use strict';" + code);
+    func.call(obj, obj, obj);
 } else {
     Helpers.fetch = async (url) => fetch(url);
     Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
