@@ -15,6 +15,7 @@ export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
+export const MIN_BRIGHTNESS                 = 0.275;
 
 // player
 export const PLAYER_HEIGHT                  = 1.7;
