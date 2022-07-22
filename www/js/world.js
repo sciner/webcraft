@@ -258,7 +258,7 @@ export class World {
                     case ServerClient.BLOCK_ACTION_REPLACE:
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.chunkManager.torches.delete(mod.pos);
+                        this.chunkManager.animated_blocks.delete(mod.pos);
                         this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }

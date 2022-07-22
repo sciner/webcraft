@@ -631,7 +631,7 @@ export class GameClass {
             {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
         ];
         var cnt = 0;
-        for(let chunk of this.world.chunkManager.chunks.values()) {
+        for(let chunk of this.world.chunkManager.chunks) {
             if(chunk.timers) {
                 cnt++;
                 for(var tim of timers) {

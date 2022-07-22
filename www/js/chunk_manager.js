@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -35,19 +35,42 @@ export class ChunkManager {
         ChunkManager.instance = this;
 
         this.world                  = world;
-        this.chunks                 = new VectorCollector();
+        this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
 
-        this.lightPool = null;
+        this.lightPool              = null;
         this.lightTexFormat         = 'rgba8unorm';
 
-        this.bufferPool = null;
-        this.chunkDataTexture = new ChunkDataTexture();
+        this.bufferPool             = null;
+        this.chunkDataTexture       = new ChunkDataTexture();
 
-        // Torches
-        this.torches = {
-            list: new VectorCollector(),
+        // rendering
+        this.poses                  = [];
+        this.poses_need_update      = false;
+        this.poses_chunkPos         = new Vector();
+        this.rendered_chunks        = {fact: 0, total: 0};
+        this.renderList             = new Map();
+
+        this.update_chunks          = true;
+        this.vertices_length_total  = 0;
+        this.worker_inited          = false;
+        this.timer60fps             = 0;
+        this.dataWorld              = new DataWorld();
+
+        if (navigator.userAgent.indexOf('Firefox') > -1) {
+            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
+            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
+        } else {
+            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        }
+
+        const that = this;
+
+        // Animated blocks
+        this.animated_blocks = {
+            list: new VectorCollectorFlat(),
             add: function(args) {
                 this.list.set(args.block_pos, args);
             },
@@ -65,8 +88,8 @@ export class ChunkManager {
                     torch: 12,
                     campfire: 96
                 };
-                // Add torches animations if need
-                for(let [_, item] of this.list.entries()) {
+                // Play animations if need
+                for(let item of this.list) {
                     if(Math.random() < .23) {
                         if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
@@ -91,31 +114,8 @@ export class ChunkManager {
             }
         };
 
-        // rendering
-        this.poses                  = [];
-        this.poses_need_update      = false;
-        this.poses_chunkPos         = new Vector();
-        this.rendered_chunks        = {fact: 0, total: 0};
-        this.renderList             = new Map();
-
-        this.update_chunks          = true;
-        this.vertices_length_total  = 0;
-        // this.dirty_chunks           = [];
-        this.worker_inited          = false;
-        if (navigator.userAgent.indexOf('Firefox') > -1) {
-            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
-            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
-        } else {
-            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
-            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
-        }
-        this.sort_chunk_by_frustum  = false;
-        this.timer60fps             = 0;
-
-        const that = this;
-
-        // this.destruct_chunks_queue
-        this.destruct_chunks_queue  = {
+        // Destruct chunks queue
+        this.destruct_chunks_queue = {
             list: [],
             add(addr) {
                 this.list.push(addr.clone());
@@ -139,8 +139,8 @@ export class ChunkManager {
                     this.clear();
                 }
             }
-        }
-        this.dataWorld = new DataWorld();
+        };
+
     }
 
     get lightmap_count() {
@@ -189,8 +189,7 @@ export class ChunkManager {
             switch(cmd) {
                 case 'world_inited':
                 case 'worker_inited': {
-                    that.worker_counter--;
-                    that.worker_inited = that.worker_counter === 0;
+                    that.worker_inited = --that.worker_counter === 0;
                     break;
                 }
                 case 'blocks_generated': {
@@ -215,7 +214,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_torch': {
-                    that.torches.add(args);
+                    that.animated_blocks.add(args);
                     break;
                 }
                 case 'maps_created': {
@@ -232,8 +231,7 @@ export class ChunkManager {
             let args = e.data[1];
             switch(cmd) {
                 case 'worker_inited': {
-                    that.worker_counter--;
-                    that.worker_inited = that.worker_counter === 0;
+                    that.worker_inited = --that.worker_counter === 0;
                     break;
                 }
                 case 'light_generated': {
@@ -466,7 +464,7 @@ export class ChunkManager {
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
             // 1. Delete torch emmiters
-            this.torches.destroyAllInAABB(chunk.aabb);
+            this.animated_blocks.destroyAllInAABB(chunk.aabb);
             // 2. Destroy playing discs
             TrackerPlayer.destroyAllInAABB(chunk.aabb);
             // 3. Call chunk destructor
@@ -524,13 +522,13 @@ export class ChunkManager {
         this.prepareRenderList(Game.render);
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
-        // Update torches
+        // Update animated blocks
         this.timer60fps += delta;
         if(this.timer60fps >= 16.666) {
             this.timer60fps = 0;
-            this.torches.update(player_pos);
+            this.animated_blocks.update(player_pos);
         }
-        // stat['Update torches'] = (performance.now() - p); p = performance.now();
+        // stat['Update animated blocks'] = (performance.now() - p); p = performance.now();
 
         // Result
         //p2 = performance.now() - p2;

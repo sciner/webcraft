@@ -258,7 +258,7 @@ export class ServerClient {
                     extra_data: extra_data
                 });
                 //
-                chunkManager.torches.delete(pos);
+                chunkManager.animated_blocks.delete(pos);
                 //
                 if (chunkManager.use_light) {
                     const light         = material.light_power_number;

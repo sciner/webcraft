@@ -14,7 +14,7 @@
     "chat_plugins": [
         "chat_teleport.js",
         "chat_time.js",
-        "-chat_worldedit.js",
+        "chat_worldedit.js",
         "gamerule.js",
         "view_distance.js"
     ],

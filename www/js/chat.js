@@ -131,7 +131,8 @@ export class Chat extends TextBox {
         this.active = true;
         this.open_time = performance.now();
         Game.hud.refresh();
-        document.exitPointerLock();
+        // no need
+        // document.exitPointerLock();
     }
     
     close() {
