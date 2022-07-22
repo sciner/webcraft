@@ -56,6 +56,16 @@ export class AABB {
         this.z_max = 0;
     }
 
+    reset() {
+        this.x_min = Infinity;
+        this.y_min = Infinity;
+        this.z_min = Infinity;
+        this.x_max = -Infinity;
+        this.y_max = -Infinity;
+        this.z_max = -Infinity;
+        return this;
+    }
+
     /**
      * @type {Vector}
      */
