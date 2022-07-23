@@ -228,6 +228,8 @@ export class VectorCollectorFlat {
 
     add(vec, chunk) {
 
+        this.delete(vec);
+
         // work with flat
         const index = (this.free_indexes.length > 0) ? this.free_indexes.pop() : this.flat.length;
         this.flat[index] = chunk;

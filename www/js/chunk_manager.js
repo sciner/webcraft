@@ -85,28 +85,15 @@ export class ChunkManager {
             update(player_pos) {
                 const meshes = Game.render.meshes;
                 const type_distance = {
-                    torch: 12,
-                    campfire: 96
+                    torch_flame: 12,
+                    campfire_flame: 96
                 };
                 // Play animations if need
                 for(let item of this.list) {
                     if(Math.random() < .23) {
-                        if(player_pos.distance(item.pos) < type_distance[item.type]) {
-                            switch(item.type) {
-                                case 'torch': {
-                                    meshes.addEffectParticle('torch_flame', item.pos);
-                                    break;
-                                }
-                                case 'campfire': {
-                                    if(!item.tblock) {
-                                        item.tblock = world.getBlock(item.pos);
-                                    }
-                                    const extra_data = item.tblock.extra_data;
-                                    if(extra_data && extra_data.active) {
-                                        meshes.addEffectParticle('campfire_flame', item.pos);
-                                    }
-                                    break;
-                                }
+                        if(player_pos.distance(item.block_pos) < type_distance[item.type]) {
+                            for(let pos_index = 0; pos_index < item.pos.length; pos_index++) {
+                                meshes.addEffectParticle(item.type, item.pos[pos_index]);
                             }
                         }
                     }
@@ -213,7 +200,7 @@ export class ChunkManager {
                     TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
                     break;
                 }
-                case 'add_torch': {
+                case 'add_animated_block': {
                     that.animated_blocks.add(args);
                     break;
                 }

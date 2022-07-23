@@ -84,11 +84,10 @@ export class MeshManager {
     addEffectParticle(name, pos, params) {
 
         let material_key = 'extend/transparent/effects';
-        const p = {...pos};
 
         //
         const addParticle = (particle_pos, particle) => {
-            this._chunk_addr = getChunkAddr(p.x, p.y, p.z, this._chunk_addr);
+            this._chunk_addr = getChunkAddr(particle_pos.x, particle_pos.y, particle_pos.z, this._chunk_addr);
             const PARTICLE_EFFECTS_ID = `particles_effects/${this._chunk_addr.toHash()}/${material_key}`;
             let effects = this.get(PARTICLE_EFFECTS_ID);
             if(!effects) {
@@ -105,6 +104,7 @@ export class MeshManager {
         }
         const texture_index = Math.floor(textures.length * Math.random());
 
+        const p = new Vector(pos.x, pos.y, pos.z);
         switch(name) {
             case 'music_note': {
                 p.z += (Math.random() - Math.random()) * .3;

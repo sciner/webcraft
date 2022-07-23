@@ -113,7 +113,7 @@ let gameCtrl = async function($scope, $timeout) {
 
     await Lang.init();
 
-    window.Game                     = new GameClass();
+    globalThis.Game                 = new GameClass();
     $scope.App                      = Game.App = new UIApp();
     $scope.Lang                     = Lang;
 

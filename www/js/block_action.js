@@ -657,7 +657,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1348,6 +1348,20 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
         ['default', 'fence', 'wall'].indexOf(world_material.style) < 0 ||
         (['fence', 'wall'].indexOf(world_material.style) >= 0 && pos.n.y != 1)
     );
+}
+
+//
+async function useTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(mat_block.style != 'torch') {
+        return false;
+    }
+    if(world_material.name == 'CAMPFIRE' || world_material.style == 'candle') {
+        extra_data = extra_data || {};
+        extra_data.active = true;
+        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        return true;
+    }
+    return false;
 }
 
 //
