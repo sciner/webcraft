@@ -5,6 +5,7 @@ import {SkinManager} from './skin-manager.js';
 import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
+import { KEY, MOUSE } from "../constant.js";
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -52,55 +53,8 @@ function isSupported() {
 }
 
 // Mouse event enumeration
-globalThis.MOUSE = {};
-    MOUSE.DOWN    = 1;
-    MOUSE.UP      = 2;
-    MOUSE.MOVE    = 3;
-    MOUSE.CLICK   = 4;
-    MOUSE.BUTTON_LEFT   = 0;
-    MOUSE.BUTTON_WHEEL  = 1;
-    MOUSE.BUTTON_RIGHT  = 2;
-
-globalThis.KEY = {};
-    KEY.BACKSPACE   = 8;
-    KEY.TAB         = 9;
-    KEY.ENTER       = 13;
-    KEY.SHIFT       = 16;
-    KEY.ESC         = 27;
-    KEY.SPACE       = 32;
-    KEY.PAGE_UP     = 33;
-    KEY.PAGE_DOWN   = 34;
-    KEY.END         = 35;
-    KEY.HOME        = 36;
-    KEY.ARROW_LEFT  = 37;
-    KEY.ARROW_UP    = 38;
-    KEY.ARROW_RIGHT = 39;
-    KEY.ARROW_DOWN  = 40;
-    KEY.DEL         = 46;
-    KEY.A           = 65;
-    KEY.C           = 67;
-    KEY.D           = 68;
-    KEY.E           = 69;
-    KEY.Q           = 81;
-    KEY.R           = 82;
-    KEY.S           = 83;
-    KEY.T           = 84;
-    KEY.V           = 86;
-    KEY.W           = 87;
-    KEY.WIN         = 91;
-    KEY.F1          = 112;
-    KEY.F2          = 113;
-    KEY.F3          = 114;
-    KEY.F4          = 115;
-    KEY.F5          = 116;
-    KEY.F6          = 117;
-    KEY.F7          = 118;
-    KEY.F8          = 119;
-    KEY.F9          = 120;
-    KEY.F10         = 121;
-    KEY.F11         = 122;
-    KEY.SLASH       = 191;
-    KEY.F11         = 122;
+globalThis.MOUSE = MOUSE;
+globalThis.KEY = KEY;
 
 globalThis.randomUUID = () => {
     return crypto.randomUUID();

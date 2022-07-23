@@ -1,6 +1,6 @@
 "use strict";
 
-import { SPECTATOR_SPEED_MUL } from "./constant.js";
+import { KEY, SPECTATOR_SPEED_MUL } from "./constant.js";
 import { Vector } from "./helpers.js";
 
 export class PlayerControl  {

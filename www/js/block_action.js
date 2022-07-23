@@ -1352,7 +1352,7 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
 
 //
 async function useTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(mat_block.style != 'torch') {
+    if(!mat_block || mat_block.style != 'torch') {
         return false;
     }
     if(world_material.name == 'CAMPFIRE' || world_material.style == 'candle') {
