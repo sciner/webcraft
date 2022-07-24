@@ -5,7 +5,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
-import { DRAW_HUD_INFO_DEFAULT } from "./constant.js";
+import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -365,6 +365,7 @@ export class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
+        let pcnt = 0;
         for(let [id, p] of world.players.list) {
             this.text += '🙎‍♂️' + p.username;
             if(p.itsMe()) {
@@ -373,6 +374,12 @@ export class HUD {
                 this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
             }
             this.text += '\n';
+            if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {
+                break;
+            }
+        }
+        if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
+            this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
         }
         if(this.prevInfo == this.text) {
             return false;

@@ -26,7 +26,8 @@
         "chat_time.js",
         "-chat_worldedit.js",
         "gamerule.js",
-        "view_distance.js"
+        "view_distance.js",
+        "chat_ping.js"
     ],
     "clientpackets": [
         "cmd_block_clone.js",

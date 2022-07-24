@@ -362,8 +362,28 @@ export class ServerPlayer extends Player {
      teleport(params) {
         const world = this.world;
         var new_pos = null;
+        let teleported_player = this;
         if (params.pos) {
             new_pos = params.pos;
+        } else if (params.p2p) {
+            let from_player = null;
+            let to_player = null;
+            // tp to another player
+            for(let player of world.players.values()) {
+                const username = player.session?.username?.toLowerCase();
+                if(username == params.p2p.from.toLowerCase()) {
+                    from_player = player;
+                }
+                if(username == params.p2p.to.toLowerCase()) {
+                    to_player = player;
+                }
+            }
+            if(from_player && to_player) {
+                teleported_player = from_player;
+                new_pos = new Vector(to_player.state.pos);
+            } else {
+                throw 'error_invalid_usernames';
+            }
         } else if (params.place_id) {
             switch (params.place_id) {
                 case 'spawn': {
@@ -392,9 +412,10 @@ export class ServerPlayer extends Player {
                     place_id: params.place_id
                 }
             }];
-            world.sendSelected(packets, [this.session.user_id], []);
-            this.state.pos = new_pos;
-            world.chunks.checkPlayerVisibleChunks(this, true);
+            //
+            world.sendSelected(packets, [teleported_player.session.user_id], []);
+            teleported_player.state.pos = new_pos;
+            world.chunks.checkPlayerVisibleChunks(teleported_player, true);
         }
     }
 

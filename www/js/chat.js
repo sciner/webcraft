@@ -17,6 +17,9 @@ export class Chat extends TextBox {
             list: [],
             send: function(text) {
                 this.add('YOU', text);
+                if(text.trim().toLowerCase() == '/ping') {
+                    that.send_ping = performance.now();
+                }
                 that.player.world.server.SendMessage(text);
                 Game.setupMousePointer(true);
             },
@@ -96,6 +99,12 @@ export class Chat extends TextBox {
         Game.hud.add(this, 1);
         // Add listeners for server commands
         this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
+            if(cmd.data.is_system) {
+                if(cmd.data.text == 'pong') {
+                    const elpapsed = Math.round((performance.now() - that.send_ping) * 1000) / 1000;
+                    cmd.data.text += ` ${elpapsed} ms`;
+                }
+            }
             this.messages.add(cmd.data.username, cmd.data.text);
         });
         // Restore sent history

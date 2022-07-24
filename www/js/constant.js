@@ -3,6 +3,7 @@ export const GAME_DAY_SECONDS               = 24000;
 export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 128.1;
+export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;

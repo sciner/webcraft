@@ -45,7 +45,8 @@ export class ServerChat {
                 name: ServerClient.CMD_CHAT_SEND_MESSAGE,
                 data: {
                     username: '<MadCraft>',
-                    text: text
+                    text: text,
+                    is_system: true
                 }
             }
         ];
@@ -153,7 +154,24 @@ export class ServerChat {
                     player.teleport({place_id: null, pos: pos});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
-                    player.teleport({place_id: args[1], pos: null});
+                    if(args[1].startsWith('@')) {
+                        // teleport to another player
+                        player.teleport({p2p: {from: player.session.username, to: args[1].substring(1)}, pos: null});
+                    } else {
+                        // teleport by place id or to another player
+                        player.teleport({place_id: args[1], pos: null});
+                    }
+                } else if (args.length == 3) {
+                    // teleport to another player
+                    if(!this.world.admins.checkIsAdmin(player)) {
+                        throw 'error_not_permitted';
+                    }
+                    args = this.parseCMD(args, ['string', 'string', 'string']);
+                    if(args[1].startsWith('@') && args[2].startsWith('@')) {
+                        player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null});
+                    } else {
+                        throw 'error_invalid_arguments';
+                    }
                 } else {
                     throw 'error_invalid_arguments_count';
                 }
