@@ -25,9 +25,38 @@ export class ServerGame {
         this.is_server = true;
         // Worlds
         this.worlds = new Map();
+        this.worlds_loading = new Map();
         // Placeholder
         this.hud = new FakeHUD();
         this.hotbar = new FakeHotbar();
+        // load world queue
+        this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
+    }
+
+    //
+    async processWorldQueue() {
+        for(const [world_guid, _] of this.worlds_loading.entries()) {
+            console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
+            const p = performance.now();
+            const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
+            const world = new ServerWorld(BLOCK);
+            const db_world = await DBWorld.openDB(conn, world);
+            await world.initServer(world_guid, db_world);
+            this.worlds.set(world_guid, world);
+            this.worlds_loading.delete(world_guid);
+            console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
+            break;
+        }
+        this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
+    }
+
+    //
+    getLoadedWorld(world_guid) {
+        const world = this.worlds.get(world_guid);
+        if(world) return world;
+        if(this.worlds_loading.has(world_guid)) return null;
+        this.worlds_loading.set(world_guid, true);
+        return null;
     }
 
     // Start websocket server
@@ -45,19 +74,20 @@ export class ServerGame {
             console.log('New player connection');
             const query         = url.parse(req.url, true).query;
             const world_guid    = query.world_guid;
-            let world           = this.worlds.get(world_guid);
-            const game_world    = await this.db.getWorld(world_guid);
-            Log.append('WsConnected', {world_guid, session_id: query.session_id});
+            // Get loaded world
+            let world = this.getLoadedWorld(world_guid);
             if(!world) {
-                world = new ServerWorld(BLOCK);
-                const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
-                const db_world = await DBWorld.openDB(conn, world);
-                await world.initServer(world_guid, db_world);
-                this.worlds.set(world_guid, world);
-                console.log('World started');
+                await new Promise(resolve => setInterval(async () => {
+                    world = this.getLoadedWorld(world_guid);
+                    if(world) {
+                        resolve();
+                    }
+                }, 10));
             }
+            Log.append('WsConnected', {world_guid, session_id: query.session_id});
             const player = new ServerPlayer();
             player.onJoin(query.session_id, query.skin, conn, world);
+            const game_world = await this.db.getWorld(world_guid);
             await this.db.IncreasePlayCount(game_world.id, query.session_id);
         });
     }
