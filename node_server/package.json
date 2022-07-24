@@ -1,7 +1,8 @@
 {
   "scripts": {
     "install-ff": "(cd ../ff-worker && npm install)",
-    "install-all": "npm run install-ff && npm install",
+    "install-local": "(cd ../local_server && npm install)",
+    "install-all": "npm run install-ff && npm run install-local && npm install",
     "start": "node --experimental-json-modules --no-warnings ./index.js",
     "inspect": "node --experimental-json-modules --no-warnings --inspect ./index.js",
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",

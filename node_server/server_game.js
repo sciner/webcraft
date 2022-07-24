@@ -7,6 +7,7 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
+import { SQLiteServerConnector } from './db/connector/sqlite.js';
 
 class FakeHUD {
     add() {}
@@ -30,9 +31,13 @@ export class ServerGame {
     }
 
     // Start websocket server
-    async startWS() {
-        this.db = await DBGame.openDB('.');
-        global.Log = new GameLog(this.db);
+    async start() {
+        //
+        const conn = await SQLiteServerConnector.connect('./game.sqlite3');
+        await DBGame.openDB(conn).then((db) => {
+            this.db = db
+            global.Log = new GameLog(this.db);
+        });
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
         // New player connection
@@ -45,7 +50,8 @@ export class ServerGame {
             Log.append('WsConnected', {world_guid, session_id: query.session_id});
             if(!world) {
                 world = new ServerWorld(BLOCK);
-                const db_world = await DBWorld.openDB('../world/' + world_guid, world);
+                const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
+                const db_world = await DBWorld.openDB(conn, world);
                 await world.initServer(world_guid, db_world);
                 this.worlds.set(world_guid, world);
                 console.log('World started');

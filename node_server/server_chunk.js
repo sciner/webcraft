@@ -7,13 +7,6 @@ import { newTypedBlocks } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {PickatActions} from "../www/js/block_action.js";
 
-const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace', 'bee_nest']) {
-    await import(`./ticker/${fn}.js`).then((module) => {
-        Tickers.set(module.default.type, module.default.func);
-    });
-}
-
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
@@ -96,7 +89,7 @@ class TickingBlockManager {
             }
             //
             v.ticks++;
-            const ticker = Tickers.get(ticking.type);
+            const ticker = world.tickers.get(ticking.type);
             if(ticker) {
                 const upd_blocks = await ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
                 if(Array.isArray(upd_blocks)) {

@@ -59,7 +59,68 @@ export class DBWorldMigration {
         //
         const migrations = [];
         migrations.push({version: 1, queries: [
-            'ALTER TABLE user ADD COLUMN indicators text',
+            `CREATE TABLE "user_session"(
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "user_id" INTEGER NOT NULL,
+                "dt" integer,
+                "token" TEXT
+            )`,
+            `CREATE TABLE "chat_message"(
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "user_id" integer NOT NULL,
+                "dt" integer NOT NULL,
+                "text" TEXT,
+                "world_id" INTEGER,
+                "user_session_id" INTEGER
+            )`,
+            `CREATE TABLE "user"(
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "guid" text NOT NULL,
+                "username" TEXT,
+                "inventory" TEXT,
+                "indicators" TEXT,
+                "dt" integer,
+                "pos_spawn" TEXT,
+                "pos" TEXT,
+                "rotate" TEXT,
+                "dt_moved" integer
+            )`,
+            `CREATE TABLE "world"(
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "guid" text NOT NULL,
+                "title" TEXT,
+                "user_id" INTEGER,
+                "dt" integer,
+                "seed" TEXT,
+                "generator" TEXT,
+                "pos_spawn" TEXT
+            )`,
+            `CREATE TABLE "chest"(
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "dt" integer,
+                "user_id" INTEGER NOT NULL,
+                "entity_id" TEXT NOT NULL,
+                "item" TEXT NOT NULL,
+                "slots" TEXT NOT NULL,
+                "x" integer,
+                "y" integer,
+                "z" integer
+            )`,
+            `CREATE TABLE "world_modify"(
+                "id" INTEGER,
+                "world_id" INTEGER NOT NULL,
+                "dt" integer,
+                "user_id" INTEGER,
+                "params" TEXT,
+                "user_session_id" INTEGER,
+                "x" integer NOT NULL,
+                "y" integer NOT NULL,
+                "z" integer NOT NULL,
+                "entity_id" text,
+                "extra_data" text,
+                PRIMARY KEY("id"),
+                UNIQUE("entity_id") ON CONFLICT ABORT
+            )`,
             {
                 sql: 'UPDATE user SET indicators = :indicators',
                 placeholders: {
@@ -645,12 +706,12 @@ export class DBWorldMigration {
                 // Auto vacuum
                 await this.db.get('VACUUM');
                 version = m.version;
-                console.info('Migration applied: ' + version);
+                console.debug('Migration applied: ' + version);
             }
         }
 
         // Create temporary table for bulk insert block modificators
-        this.db.run(`CREATE TEMPORARY TABLE world_modify_import_bulk(data TEXT);`);
+        this.db.run(`CREATE TEMPORARY TABLE IF NOT EXISTS world_modify_import_bulk(data TEXT);`);
 
     }
 

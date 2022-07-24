@@ -1,8 +1,5 @@
-import {Brains} from "./fsm/index.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
-
-await Brains.init();
 
 export class Mob {
 
@@ -31,7 +28,7 @@ export class Mob {
         this.#chunk_addr    = new Vector();
         this.chunk_addr_o   = getChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
-        this.#brain         = Brains.get(this.type, this);
+        this.#brain         = world.brains.get(this.type, this);
         this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
         this.height         = this.#brain.pc.physics.playerHeight;
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам

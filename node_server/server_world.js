@@ -1,5 +1,6 @@
 import config from "./config.js";
 
+import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
@@ -34,6 +35,21 @@ export class ServerWorld {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
+        // Tickers
+        this.tickers = new Map();
+        for(let fn of config.tickers) {
+            await import(`./ticker/${fn}.js`).then((module) => {
+                this.tickers.set(module.default.type, module.default.func);
+            });
+        }
+        // Brains
+        this.brains = new Brains();
+        for(let fn of config.brains) {
+            await import(`./fsm/brain/${fn}.js`).then((module) => {
+                this.brains.add(fn, module.Brain);
+            });
+        }
+        //
         this.db             = db_world;
         this.info           = await this.db.getWorld(world_guid);
         //

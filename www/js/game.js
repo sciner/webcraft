@@ -55,7 +55,9 @@ export class GameClass {
         // Create world
         await this.render.init(this.world, settings);
 
-        const ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        // Connect to server
+        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;
+        const ws = this.local_server ? this.local_server.connect(connection_string) : new WebSocket(connection_string);
 
         await this.world.connectToServer(ws);
 
