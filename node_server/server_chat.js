@@ -36,11 +36,26 @@ export class ServerChat {
     }
 
     // sendSystemChatMessageToSelectedPlayers...
-    sendSystemChatMessageToSelectedPlayers(text, selected_players) {
+    sendSystemChatMessageToSelectedPlayers(text, selected_players, as_table = false) {
+        // send as table
+        if(as_table) {
+            let max_length = 0;
+            for(let [k, v] of Object.entries(text)) {
+                if(k.length > max_length) {
+                    max_length = k.length;
+                }
+            }
+            for(let [k, v] of Object.entries(text)) {
+                k = k.padEnd(max_length + 5, '.');
+                this.sendSystemChatMessageToSelectedPlayers(k + ': ' + v, selected_players);
+            }
+            return;
+        }
+        //
         if(typeof text == 'object' && 'message' in text) {
             text = text.message;
         }
-        let packets = [
+        const packets = [
             {
                 name: ServerClient.CMD_CHAT_SEND_MESSAGE,
                 data: {
@@ -188,13 +203,15 @@ export class ServerChat {
             }
             case '/tps2': {
                 console.log(this.world.ticks_stat);
+                const table = {};
                 for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
                     let temp = [];
                     for(let [vk, vv] of Object.entries(v)) {
                         temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
                     }
-                    this.sendSystemChatMessageToSelectedPlayers(k + ': ' + temp.join('; '), [player.session.user_id]);
+                    table[k] = temp.join('; ');
                 }
+                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
             case '/sysstat': {
@@ -202,12 +219,12 @@ export class ServerChat {
                     mobs_count: this.world.mobs.count(),
                     drop_items: this.world.all_drop_items.size,
                     players: this.world.players.size,
+                    chunks: this.world.chunkManager.all.size,
+                    net_in: this.world.network_stat.in + ` (cnt: ${this.world.network_stat.in_count})`,
+                    net_out: this.world.network_stat.out + ` (cnt: ${this.world.network_stat.out_count})`,
+                    working_time: Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
                 };
-                let temp = [];
-                for(let [k, v] of Object.entries(stat)) {
-                    temp.push(k + ': ' + v);
-                }
-                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers(stat, [player.session.user_id], true);
                 break;
             }
             case '/spawnpoint': {

@@ -134,6 +134,8 @@ export class ServerPlayer extends Player {
         if (EMULATED_PING) {
             await waitPing();
         }
+        this.world.network_stat.in += response.length;
+        this.world.network_stat.in_count++;
         const packet = JSON.parse(response);
         await this.world.packet_reader.read(this, packet);
     }
@@ -179,13 +181,17 @@ export class ServerPlayer extends Player {
             e.time = this.world.serverTime;
         });
 
-        if (!EMULATED_PING) {            
-            this.conn.send(JSON.stringify(packets));
+        packets = JSON.stringify(packets);
+        this.world.network_stat.out += packets.length;
+        this.world.network_stat.out_count++;
+
+        if (!EMULATED_PING) {
+            this.conn.send(packets);
             return;
         }
 
-        setTimeout(()=>{                
-            this.conn.send(JSON.stringify(packets));
+        setTimeout(() => {
+            this.conn.send(packets);
         }, EMULATED_PING);
     }
 

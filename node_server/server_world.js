@@ -56,7 +56,6 @@ export class ServerWorld {
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.ticks_stat     = new WorldTickStat();
         this.chunks         = new ServerChunkManager(this);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
@@ -64,6 +63,10 @@ export class ServerWorld {
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
+        // statistics
+        this.ticks_stat     = new WorldTickStat();
+        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
+        this.start_time     = performance.now();
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
