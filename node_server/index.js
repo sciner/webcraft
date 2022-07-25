@@ -39,12 +39,9 @@ import {Lang} from "../www/js/lang.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_game.js";
-import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 import config from './config.js';
-
-import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
 Lang.init();
 
@@ -68,16 +65,13 @@ await BLOCK.init({
 });
 
 // Hack ;)
-Resources.physics = {
-    features: features // (await import("../../vendors/prismarine-physics/lib/features.json")).default
-}
+import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+Resources.physics = {features}; // (await import("../../vendors/prismarine-physics/lib/features.json")).default
 
 // http://expressjs.com/en/api.html#req.originalUrl
-var app = express();
+const app = express();
 
-/**
-* Prehook
-*/
+// Prehook
 app.use(async function(req, _res, next) {
     // Log referrer
     const ref = req.get('Referrer');
@@ -109,7 +103,9 @@ app.use(compression({
     // body size before considering compression, the default is 1 kB
     threshold: 0
 }));
-ServerStatic.init(app);
+
+// Serves resources from public folder
+app.use(express.static('../www/'));
 
 // API
 app.use(express.json());

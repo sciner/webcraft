@@ -47,6 +47,7 @@ export class ServerGame {
             console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
             break;
         }
+        clearTimeout(this.timerLoadWorld);
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
     }
 
@@ -67,28 +68,36 @@ export class ServerGame {
             this.db = db
             global.Log = new GameLog(this.db);
         });
+
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
         // New player connection
-        this.wsServer.on('connection', async (conn, req) => {
+        this.wsServer.on('connection', (conn, req) => {
             console.log('New player connection');
             const query         = url.parse(req.url, true).query;
             const world_guid    = query.world_guid;
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
-            if(!world) {
-                await new Promise(resolve => setInterval(async () => {
-                    world = this.getLoadedWorld(world_guid);
-                    if(world) {
-                        resolve();
-                    }
-                }, 10));
+            const onWorld = async () => {
+                Log.append('WsConnected', {world_guid, session_id: query.session_id});
+                const player = new ServerPlayer();
+                player.onJoin(query.session_id, query.skin, conn, world);
+                const game_world = await this.db.getWorld(world_guid);
+                await this.db.IncreasePlayCount(game_world.id, query.session_id);
+            };
+            if(world) {
+                onWorld();
+            } else {
+                new Promise(resolve => {
+                    const hInterval = setInterval(() => {
+                        world = this.getLoadedWorld(world_guid);
+                        if(world) {
+                            clearInterval(hInterval);
+                            resolve();
+                        }
+                    }, 10);
+                }).then(onWorld);
             }
-            Log.append('WsConnected', {world_guid, session_id: query.session_id});
-            const player = new ServerPlayer();
-            player.onJoin(query.session_id, query.skin, conn, world);
-            const game_world = await this.db.getWorld(world_guid);
-            await this.db.IncreasePlayCount(game_world.id, query.session_id);
         });
     }
 

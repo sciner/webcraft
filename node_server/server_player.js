@@ -130,14 +130,14 @@ export class ServerPlayer extends Player {
     }
 
     // on message
-    async onMessage(response) {
+    async onMessage(message) {
         if (EMULATED_PING) {
             await waitPing();
         }
-        this.world.network_stat.in += response.length;
+        this.world.network_stat.in += message.length;
         this.world.network_stat.in_count++;
-        const packet = JSON.parse(response);
-        await this.world.packet_reader.read(this, packet);
+        const packet = JSON.parse(message);
+        this.world.packet_reader.read(this, packet);
     }
 
     // onLeave...
