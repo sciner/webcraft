@@ -104,14 +104,15 @@ export class HUD {
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                let txt = '';
+                const texts = [];
                 if(Resources.progress && Resources.progress.percent < 100) {
-                    txt = 'LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%';
+                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%');
                 } else if(cl == 0) {
-                    txt = 'CONNECTING TO SERVER...';
+                    texts.push('CONNECTING TO SERVER...');
                 } else {
-                    txt = 'GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%';
+                    texts.push('GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
                 }
+                texts.push('Press F11 to full screen');
                 //
                 let x = w / 2;
                 let y = h / 2;
@@ -119,29 +120,34 @@ export class HUD {
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
                 ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
-                // Measure text
-                if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
-                    this.prevSplashTextMeasure = {
-                        text: txt,
-                        measure: ctx.measureText(txt)
-                    };
+                //
+                for(let i = 0; i < texts.length; i++) {
+                    const txt = texts[i];
+                    // Measure text
+                    if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
+                        this.prevSplashTextMeasure = {
+                            text: txt,
+                            measure: ctx.measureText(txt)
+                        };
+                    }
+                    // get width of text
+                    let mt = this.prevSplashTextMeasure.measure;
+                    let width = mt.width;
+                    let height = mt.actualBoundingBoxDescent;
+                    // color for background
+                    ctx.fillStyle = 'rgba(255, 255, 255, .25)';
+                    // draw background rect assuming height of font
+                    ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
+                    // text color
+                    ctx.fillStyle = '#333';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
+                    // text color
+                    ctx.fillStyle = '#fff';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2, y - height / 2);
+                    y += height * 3;
                 }
-                // get width of text
-                let mt = this.prevSplashTextMeasure.measure;
-                let width = mt.width;
-                let height = mt.actualBoundingBoxDescent;
-                // color for background
-                ctx.fillStyle = 'rgba(255, 255, 255, .25)';
-                // draw background rect assuming height of font
-                ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
-                // text color
-                ctx.fillStyle = '#333';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
-                // text color
-                ctx.fillStyle = '#fff';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2, y - height / 2);
                 // restore original state
                 ctx.restore();
                 return true;

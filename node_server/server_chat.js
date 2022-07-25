@@ -258,10 +258,6 @@ export class ServerChat {
                break;
             }
             case '/clear':
-            case '/obj':
-            case '/weather': {
-                break;
-            }
             default: {
                 let ok = false;
                 for(let plugin_callback of this.onCmdCallbacks) {

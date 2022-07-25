@@ -98,6 +98,10 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
+            this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
+                Game.render.setWeather(cmd.data);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
                     TrackerPlayer.stop(params.pos);

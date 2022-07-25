@@ -34,7 +34,7 @@ npm run start-rebuild
 Game.player.teleport('random', null);
 
 // Toggle rain
-Game.render.setRain(true);
+Game.render.setWeather('rain'); // rain|snow|clear
 
 // Set block at current player coordinates
 let pp = Game.player.getBlockPos();

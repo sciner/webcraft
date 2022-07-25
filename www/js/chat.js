@@ -161,55 +161,19 @@ export class Chat extends TextBox {
         if(!this.active) {
             return;
         }
-        let world   = Game.world;
-        let player  = Game.player;
-        let chat    = Game.player.chat;
-        let text    = this.buffer.join('');
+        const text = this.buffer.join('');
         if(text != '' && text != '/') {
             this.messages.send(text);
+            //
+            const render    = Game.render;
+            const player    = this.player;
+            const chat      = player.chat;
             // Parse commands
-            let temp = text.replace(/  +/g, ' ').split(' ');
-            let cmd = temp.shift();
+            const temp      = text.replace(/  +/g, ' ').split(' ');
+            const cmd       = temp.shift();
             switch(cmd.trim().toLowerCase()) {
                 case '/clear': {
                     this.history.clear();
-                    break;
-                }
-                case '/weather': {
-                    if(temp.length == 1) {
-                        let name = temp[0].trim().toLowerCase();
-                        switch(name) {
-                            case 'rain': {
-                                Game.render.setRain(name);
-                                chat.messages.addSystem('Установлена дождливая погода');
-                                break;
-                            }
-                            case 'snow': {
-                                Game.render.setRain(name);
-                                chat.messages.addSystem('Установлена снежная погода');
-                                break;
-                            }
-                            case 'clear': {
-                                Game.render.setRain(false);
-                                chat.messages.addSystem('Установлена ясная погода');
-                                break;
-                            }
-                            default: {
-                                chat.messages.addError(`Incorrect argument for command`);
-                            }
-                        }
-                    }
-                    break;
-                }
-                case '/obj': {
-                    new Mesh_Default(
-                        Game.render.gl,
-                        player.pos,
-                        '/vendors/Mickey Mouse.obj',
-                        function(m) {
-                            world.meshes.add(m)
-                        }
-                    )
                     break;
                 }
             }

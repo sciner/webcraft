@@ -20,6 +20,7 @@ import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { Weather } from "../www/js/type.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -95,7 +96,7 @@ export class ServerWorld {
         return this.info;
     }
 
-    // updateWorldCalendar
+    // Update world calendar
     updateWorldCalendar() {
         if(!this.info.calendar) {
             this.info.calendar = {
@@ -776,6 +777,19 @@ export class ServerWorld {
         this.sendUpdatedInfo();
         this.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, this.players.keys());
         return true;
+    }
+
+    /**
+     * Set world global weather
+     * @param {Weather} weather 
+     */
+    setWeather(weather) {
+        this.weather = weather;
+        //
+        this.sendAll([{
+            name: ServerClient.CMD_SET_WEATHER,
+            data: weather
+        }], []);
     }
 
 }

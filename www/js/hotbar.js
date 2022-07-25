@@ -110,14 +110,7 @@ export class Hotbar {
         Game.sounds.play('madcraft:block.player', 'hit');
         this.last_damage_time = performance.now();
         console.error('error_not_implemented', damage_value, reason_text);
-        /*
-        if(damage_value > 0) {
-            Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
-            console.log('Damage ' + damage_value + ', reason: ' + reason_text);
-            // Play hit sound
-            Game.sounds.play('madcraft:block.player', 'hit');
-        }
-        */
+        this.inventory.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
     }
 
     setState(new_state) {

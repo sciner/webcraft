@@ -22,6 +22,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_MAX_DRAW_DISTANCE } from "./constant.js";
+import { Weather } from "./type.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -716,17 +717,20 @@ export class Renderer {
         this.meshes.add(new Particles_Asteroid(this, pos, rad));
     }
 
-    // setRain
-    setRain(value) {
+    /**
+     * Set weather
+     * @param {Weather} weather
+     */
+    setWeather(weather) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != value) {
+        if(!rain || rain.type != weather.name) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Particles_Rain(this, value);
+            rain = new Particles_Rain(this, weather.name);
             this.meshes.add(rain, 'weather');
         }
-        rain.enabled = !!value;
+        rain.enabled = weather.name != 'clear';
     }
 
     // drawPlayers
