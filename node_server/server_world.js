@@ -127,47 +127,49 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         this.updateWorldCalendar();
-        //
-        this.ticks_stat.number++;
-        this.ticks_stat.start();
-        // 1.
-        await this.chunks.tick(delta);
-        this.ticks_stat.add('chunks');
-        // 2.
-        await this.mobs.tick(delta);
-        this.ticks_stat.add('mobs');
-        // 3.
-        for (let player of this.players.values()) {
-            player.tick(delta);
+        if(!this.pause_ticks) {
+            //
+            this.ticks_stat.number++;
+            this.ticks_stat.start();
+            // 1.
+            await this.chunks.tick(delta);
+            this.ticks_stat.add('chunks');
+            // 2.
+            await this.mobs.tick(delta);
+            this.ticks_stat.add('mobs');
+            // 3.
+            for (let player of this.players.values()) {
+                player.tick(delta);
+            }
+            this.ticks_stat.add('players');
+            // 4.
+            for (let [_, drop_item] of this.all_drop_items) {
+                drop_item.tick(delta);
+            }
+            this.ticks_stat.add('drop_items');
+            // 6.
+            await this.packet_reader.queue.process();
+            this.ticks_stat.add('packet_reader_queue');
+            //
+            this.packets_queue.send();
+            this.ticks_stat.add('packets_queue_send');
+            //
+            await this.actions_queue.run();
+            this.ticks_stat.add('actions_queue');
+            //
+            if(this.ticks_stat.number % 100 != 0) {
+                this.chunks.checkDestroyMap();
+                this.ticks_stat.add('maps_clear');
+            }
+            //
+            this.ticks_stat.end();
         }
-        this.ticks_stat.add('players');
-        // 4.
-        for (let [_, drop_item] of this.all_drop_items) {
-            drop_item.tick(delta);
-        }
-        this.ticks_stat.add('drop_items');
-        // 6.
-        await this.packet_reader.queue.process();
-        this.ticks_stat.add('packet_reader_queue');
-        //
-        this.packets_queue.send();
-        this.ticks_stat.add('packets_queue_send');
-        //
-        await this.actions_queue.run();
-        this.ticks_stat.add('actions_queue');
-        //
-        if(this.ticks_stat.number % 100 != 0) {
-            this.chunks.checkDestroyMap();
-            this.ticks_stat.add('maps_clear');
-        }
-        //
-        this.ticks_stat.end();
         //
         const elapsed = performance.now() - started;
         setTimeout(async () => {
             await this.tick();
         },
-            elapsed < 50 ? (50 - elapsed) : 0
+            elapsed < 50 ? (50 - elapsed) : 1
         );
     }
 

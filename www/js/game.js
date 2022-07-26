@@ -9,6 +9,7 @@ import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -503,7 +504,7 @@ export class GameClass {
             }
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: this.current_player_state
+                data: compressPlayerStateC(this.current_player_state)
             });
         }
     }

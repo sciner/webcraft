@@ -4,6 +4,7 @@ import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
+import { compressNearby } from "../www/js/packet_compressor.js";
 
 export class ServerChunkManager {
 
@@ -218,10 +219,11 @@ export class ServerChunkManager {
 
             // Send new chunks
             if(nearby.added.length + nearby.deleted.length > 0) {
-                // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
+                const nearby_compressed = compressNearby(nearby);
                 const packets = [{
+                    // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
                     name: ServerClient.CMD_NEARBY_CHUNKS,
-                    data: nearby
+                    data: nearby_compressed
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
