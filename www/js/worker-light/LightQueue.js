@@ -68,6 +68,7 @@ export class LightQueue {
         const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
         const coordBytes = coord * strideBytes + qOffset;
         if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
+            uint8View[coordBytes + OFFSET_LIGHT] = value;
             return;
         }
         const old = uint8View[coordBytes + OFFSET_LIGHT];
