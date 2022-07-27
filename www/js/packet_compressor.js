@@ -14,7 +14,7 @@ export function compressNearby(nearby, use_start_vec = true) {
     if(nearby.added.length) {
         start_vec.copyFrom(nearby.added[0].addr);
     } else {
-        start_vec.copyFrom(nearby.deleted[0].addr);
+        start_vec.copyFrom(nearby.deleted[0]);
     }
     //
     nb.push(nearby.chunk_render_dist);

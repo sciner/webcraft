@@ -23,9 +23,6 @@ export default class Chat_Weather {
             switch(cmd) {
                 case '/weather': {
                     const world = player.world;
-                    world.pause_ticks = !world.pause_ticks;
-                    console.log(`world.pause_ticks: ${world.pause_ticks}`);
-                    /*
                     // if(!world.admins.checkIsAdmin(player)) {
                     //     throw 'error_not_permitted';
                     // }
@@ -40,7 +37,6 @@ export default class Chat_Weather {
                         }
                         return true;
                     }
-                    */
                     break;
                 }
             }

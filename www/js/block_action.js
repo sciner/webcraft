@@ -311,40 +311,40 @@ class DestroyBlocks {
     }
 
     //
-    add(block, pos, no_drop = false) {
+    add(tblock, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
         const actions   = this.actions;
-        if(cv.has(block.posworld)) {
+        if(cv.has(tblock.posworld)) {
             return false;
         }
-        cv.add(block.posworld, true);
-        actions.addBlocks([{pos: block.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: block.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+        cv.add(tblock.posworld, true);
+        actions.addBlocks([{pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
         //
-        if(block.material.sound) {
-            actions.addPlaySound({tag: block.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
+        if(tblock.material.sound) {
+            actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         //
-        if(block.material.is_jukebox) {
+        if(tblock.material.is_jukebox) {
             // If disc exists inside jukebox
-            if(block.extra_data && block.extra_data.disc) {
-                const disc_id = block.extra_data.disc.id;
+            if(tblock.extra_data && tblock.extra_data.disc) {
+                const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                dropBlock(player, new FakeTBlock(disc_id, null, block.posworld.clone(), null, null, null, null, null, null), actions, false);
+                dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false);
                 // Stop play disc
-                actions.stop_disc.push({pos: block.posworld.clone()});
+                actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            dropBlock(player, block, actions, false);
+            dropBlock(player, tblock, actions, false);
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
-            let part = block.material[cn];
+            let part = tblock.material[cn];
             if(part) {
-                const connected_pos = block.posworld.add(part.offset_pos);
+                const connected_pos = tblock.posworld.add(part.offset_pos);
                 if(!cv.has(connected_pos)) {
                     let block_connected = world.getBlock(connected_pos);
                     if(block_connected.id == part.id) {
@@ -354,33 +354,37 @@ class DestroyBlocks {
             }
         }
         // Удаляем второй блок (кровати, двери, высокая трава и высокие цветы)
-        if(block.material.has_head) {
-            const head_pos = new Vector(block.material.has_head.pos);
+        if(tblock.material.has_head) {
+            const head_pos = new Vector(tblock.material.has_head.pos);
             const connected_pos = new Vector(pos);
-            if(block.rotate && head_pos.z) {
-                let rot = block.rotate.x;
-                if(!block.extra_data.is_head) {
+            if(tblock.rotate && head_pos.z) {
+                let rot = tblock.rotate.x;
+                if(!tblock.extra_data.is_head) {
                     rot += 2;
                 }
                 connected_pos.addByCardinalDirectionSelf(head_pos, rot);
             } else {
-                if(block.extra_data?.is_head) {
+                if(tblock.extra_data?.is_head) {
                     head_pos.multiplyScalar(-1);
                 }
                 connected_pos.addSelf(head_pos);
             }
             const block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == block.id) {
+            if(block_connected.id == tblock.id) {
                 this.add(block_connected, connected_pos, true);
             }
         }
         // Destroy chain blocks to down
-        if(block.material.destroy_to_down) {
-            let npos = block.posworld.add(Vector.YN);
+        if(tblock.material.destroy_to_down) {
+            let npos = tblock.posworld.add(Vector.YN);
             let nblock = world.getBlock(npos);
-            if(nblock && block.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
+            if(nblock && tblock.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
                 this.add(nblock, pos);
             }
+        }
+        //
+        if(tblock.material.is_chest) {
+            actions.dropChest(tblock)
         }
     }
 
@@ -465,6 +469,26 @@ export class PickatActions {
         this.put_in_backet = item;
     }
 
+    //
+    dropChest(tblock) {
+        if(!tblock.extra_data?.slots) {
+            return false;
+        }
+        for(let i in tblock.extra_data.slots) {
+            const slot_item = tblock.extra_data.slots[i];
+            if(slot_item) {
+                this.addDropItem({
+                    force: true,
+                    pos: tblock.posworld,
+                    items: [
+                        // @todo need to calculate drop item ID and count
+                        slot_item
+                    ]
+                });
+            }
+        }
+    }
+
     makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
         const world = this.#world;
         const air = { id: 0 };
@@ -492,20 +516,8 @@ export class PickatActions {
                     { id: mat.id, count: 1 }
                 ]
             });
-            if(mat.is_chest && tblock.extra_data?.slots) {
-                for(let i in tblock.extra_data.slots) {
-                    const slot_item = tblock.extra_data.slots[i];
-                    if(slot_item) {
-                        this.addDropItem({
-                            force: true,
-                            pos: pos,
-                            items: [
-                                // @todo need to calculate drop item ID and count
-                                slot_item
-                            ]
-                        });
-                    }
-                }
+            if(mat.is_chest) {
+                this.dropChest(tblock)
             }
             return true;
         };
@@ -599,9 +611,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     if(e.destroyBlock) {
         const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
         let can_destroy = true;
-        if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
+        /*if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
             can_destroy = world_block.extra_data.can_destroy;
-        }
+        }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
             for(let func of [removeFromPot]) {
@@ -611,12 +623,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
             // 2.
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
-                const block = world.getBlock(pos);
-                if(block.id >= 0) {
-                    destroyBlocks.add(block, pos);
+                const tblock = world.getBlock(pos);
+                if(tblock.id >= 0) {
+                    destroyBlocks.add(tblock, pos);
                     //
-                    actions.decrement_instrument = {id: block.id};
-                    if(!block.material.destroy_to_down) {
+                    actions.decrement_instrument = {id: tblock.id};
+                    if(!tblock.material.destroy_to_down) {
                         // Destroyed block
                         pos = new Vector(pos);
                         // destroy plants over this block
@@ -1505,18 +1517,20 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     if(new_extra_data.height == 1) {
         return false;
     }
-    //
-    if(pos_n.y == -1) {
-        if(new_extra_data.point.y < .5) {
-            return false;
-        } else {
-            new_extra_data.point.y = 0;
+    // For slabs
+    if(new_extra_data.point) {
+        if(pos_n.y == -1) {
+            if(new_extra_data.point.y < .5) {
+                return false;
+            } else {
+                new_extra_data.point.y = 0;
+            }
         }
-    }
-    //
-    if(pos_n.y == 1) {
-        if(new_extra_data.point.y >= .5) {
-            return false;
+        //
+        if(pos_n.y == 1) {
+            if(new_extra_data.point.y >= .5) {
+                return false;
+            }
         }
     }
     //

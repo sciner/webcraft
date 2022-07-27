@@ -176,12 +176,12 @@ export default class style {
                 pivot,
                 item.matrix,
                 {
-                    up:     new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    down:   new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    south:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    north:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    west:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
-                    east:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
+                    up:     new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    down:   new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    south:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    north:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    west:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    east:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
                 },
                 pos
             );

@@ -77,8 +77,8 @@ export class Player {
         this.walking                = false; // идёт по земле
         this.in_water               = false; // ноги в воде
         this.in_water_o             = false;
-        this.eyes_in_water          = null; // глаза в воде
-        this.eyes_in_water_o        = null; // глаза в воде (предыдущее значение)
+        this.eyes_in_block          = null; // глаза в воде
+        this.eyes_in_block_o        = null; // глаза в воде (предыдущее значение)
         this.onGround               = false;
         this.onGroundO              = false;
         this.walking_frame          = 0;
@@ -561,17 +561,17 @@ export class Player {
                 this.overChunk          = this.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
-            // Внутри какого блока находится голова (в идеале глаза)
-            const hby                 = this.pos.y + this.height;
-            this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
-            this.eyes_in_water_o    = this.eyes_in_water;
-            this.eyes_in_water      = this.headBlock.material.is_fluid ? this.headBlock.material : null;
-            if(this.eyes_in_water) {
+            // Внутри какого блока находится глаза
+            const eye_y             = this.getEyePos().y;
+            this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, eye_y | 0, this.blockPos.z);
+            this.eyes_in_block_o    = this.eyes_in_block;
+            this.eyes_in_block      = this.headBlock.material.is_fluid ? this.headBlock.material : null;
+            if(this.eyes_in_block) {
                 // если в воде, то проверим еще высоту воды
-                let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
+                const headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (eye_y + 1) | 0, this.blockPos.z);
                 if(!headBlockOver.material.is_fluid) {
-                    let power = .9; // Math.min(this.headBlock.power, .9);
-                    this.eyes_in_water = (hby < (hby | 0) + power + .01) ? this.headBlock.material : null;
+                    let power = 1; // Math.min(this.headBlock.power, .9);
+                    this.eyes_in_block = (eye_y < (eye_y | 0) + power + .01) ? this.headBlock.material : null;
                 }
             }
             // Update FOV

@@ -16,6 +16,7 @@ const START_WOOD_ID             = 221;
 const START_PETRIFIED_SLAB_ID   = 203; //
 const START_BANNER_ID           = 778;
 const START_FENCE_GATE          = 911;
+const START_NUMBER              = 209;
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -55,6 +56,7 @@ export class CompileData {
         this.initPressurePlate();
         this.initBanner();
         this.initFenceGate();
+        this.initNumber();
     }
 
     async initDiscs() {
@@ -263,7 +265,7 @@ export class CompileData {
                 "uvlock": false,
                 "texture": {
                     "side":     `block/${name_lower}.png`,
-                    "up":       `block/${name_lower}.png;rc1`,
+                    "up":       `block/${name_lower}.png`,
                     "north":    `block/${name_lower}.png;rc1`,
                     "south":    `block/${name_lower}.png;rc1`,
                     "west":     `block/${name_lower}.png`,
@@ -692,6 +694,29 @@ export class CompileData {
                 "extra_data": {
                     "opened": false,
                     "facing": "north"
+                },
+                "tags": [
+                    "no_drop_ao"
+                ]
+            };
+            this.blocks.push(b);
+        }
+    }
+
+    initNumber() {
+        let id = START_NUMBER;
+        for(let i = 0; i < 2; i++) {
+            const b = {
+                "id":           id + i,
+                "name":         `NUM${i + 1}`,
+                "transparent":  true,
+                "sound":        "madcraft:block.wood",
+                "mining_time":  0,
+                "material": {
+                    "id": "wood"
+                },
+                "texture": {
+                    "side": `./textures/${i + 1}.png`
                 },
                 "tags": [
                     "no_drop_ao"

@@ -318,7 +318,7 @@ export class Renderer {
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.55 * 1.3;
+        gu.brightness = 0.55 * 1.0; // 1.3
         gu.sunDir = [-1, -1, 1];
         gu.useSunDir = true;
 
@@ -559,8 +559,8 @@ export class Renderer {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
-        if(player.eyes_in_water) {
-            if(player.eyes_in_water.is_water) {
+        if(player.eyes_in_block) {
+            if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
                 blockDist = 8; //
             } else {

@@ -2521,6 +2521,7 @@
             "id": 199,
             "name": "TEST",
             "sound": "madcraft:block.wood",
+            "mining_time": 0,
             "material": {
                 "id": "wood"
             },
