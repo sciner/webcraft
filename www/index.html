@@ -27,7 +27,6 @@
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
-    <!-- <script src="vendors/webgl-utils.js"></script> -->
     <script src="js/ui/controller.js" type="module"></script>
     <script>
         less = {
@@ -43,29 +42,43 @@
     </script>
     <script src="vendors/less.min.js" ="anonymous" referrerpolicy="no-referrer"></script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Game && login.logged}">
 
-	<canvas id="renderSurface" ng-click="Game.setupMousePointer(true)" style="background: #000;" width="1600" height="1200"></canvas>
+	<canvas id="renderSurface" ng-click="Game.setupMousePointer(true)" width="1600" height="1200"></canvas>
 
-    <div>
+    <canvas id="bg-canvas"></canvas>
 
-        <!-- shareGame -->
-        <div id="form-shareGame" class="form-normal visible_only_in_game_menu visible_in_game_menu" ng-if="shareGame.visible">
-            <div>
-                <span>{{Lang.share_game_with_friends}}</span>
-                <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
-            </div>
-            <input type="text" ng-value="shareGame.url">
-            <button class="btn2 btn-action" ng-click="shareGame.copy()">{{Lang.copy}}</button>
+    <!-- shareGame -->
+    <div id="form-shareGame" class="form-normal visible_only_in_game_menu visible_in_game_menu" ng-if="shareGame.visible">
+        <div>
+            <span>{{Lang.share_game_with_friends}}</span>
+            <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
         </div>
+        <input type="text" ng-value="shareGame.url">
+        <button class="btn2 btn-action" ng-click="shareGame.copy()">{{Lang.copy}}</button>
+    </div>
+
+    <div id="topbar" class="visible_in_game_menu visible_only_in_lobbi">
+
+        <!-- Logo -->
+        <img src="/media/design/logo.webp" class="cpointer" alt="MadCraft" ng-click="current_window.toggle('main')" ng-if="current_window.id != 'hello'">
 
         <!-- Languages -->
-        <div id="lang-pad" class="visible_in_game_menu visible_only_in_lobbi">
+        <div id="lang-pad">
             <button class="btn btn-main" ng-click="changeLang(item)" ng-class="{active: item.active}" ng-repeat="item in Lang.list">{{item.short_title}}</button>
         </div>
 
         <!-- Corner buttons -->
         <div id="btns-pad">
+            <button class="btn2 btn-success visible_in_game_menu" ng-click="skin.toggle()" ng-if="login.logged">
+                <span style="margin-right: 1em;">Change skin...</span>
+                <img src="/media/icon-head.png" style="height: 2em;" alt="Change skin...">
+                <div class="user-login">@{{Game.App.session.username}}</div>
+            </button>
+            <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
+                <span style="margin-right: 1em;">Settings</span>
+                <img src="/media/icon-settings.png" style="height: 2em;" alt="Settings">
+            </button>
             <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
                 <span style="margin-right: 1em;">Invite</span>
                 <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
@@ -76,230 +89,220 @@
             </a>
         </div>
 
-        <div id="main-pictures" class="flex0">
-            <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'" alt="MadCraft">
-            <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'" alt="Art">
-            <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'"  alt="MadCraft">
-        </div>
+    </div>
 
-        <!-- Hello -->
-        <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'hello'">
+    <div id="main-pictures" class="flex0" ng-if="Game && current_window.id == 'hello' && !login.logged">
+        <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'" alt="MadCraft">
+        <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'" alt="Art">
+        <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'"  alt="MadCraft">
+    </div>
+
+    <!-- Hello -->
+    <form id="form-hello" ng-if="Game && current_window.id == 'hello'">
+        <div class="flex0 flex-column">
+            <button class="btn btn-main" ng-click="current_window.show('login')" style="font-size: 200%; border-radius: 50px;">
+                <span>Start Game</span>
+            </button>
+            <!-- <button class="btn btn-warning" ng-click="current_window.show('registration')">
+                <span>{{Lang.registration}}</span>
+            </button> -->
+        </div>
+    </form>
+
+    <!-- Not supported browser -->
+    <form id="form-not-supported" ng-if="Game && current_window.id == 'not_supported_browser'">
+        <div>
+            {{Lang.browser_not_supported_1}}
+            <br/>{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
+        </div>
+    </form>
+
+    <!-- Login -->
+    <form id="form-login" class="animate__animated animate__fadeIn nice-form" ng-if="Game && current_window.id == 'login'">
+
+        <div class="flex0 flex-column">
+
+            <ul class="tabs">
+                <li><button class="active">{{Lang.login}}</button></li>
+                <li><button ng-click="current_window.show('registration')">{{Lang.registration}}</button></li>
+            </ul>
+    
             <div class="flex0 flex-column">
-                <button class="btn btn-main" ng-click="current_window.show('login')">
-                    <span>{{Lang.login}}</span>
+                <label>
+                    {{Lang.enter_your_name}}:
+                    <br><input type="text" ng-model="login.form.username" my-enter="login.submit()">
+                </label>
+                <label>
+                    {{Lang.enter_your_password}}:
+                    <br><input type="password" ng-model="login.form.password" my-enter="login.submit()">
+                </label>
+                <button class="btn btn-main" ng-click="login.submit()" ng-class="{disabled: !login.isValid()}">
+                    <span>{{Lang.enter}}</span>
                 </button>
-                <button class="btn btn-warning" ng-click="current_window.show('registration')">
-                    <span>{{Lang.registration}}</span>
+            </div>
+        </div>
+    </form>
+
+    <!-- Registration -->
+    <form id="form-registration" class="animate__animated animate__fadeIn nice-form" ng-if="Game && current_window.id == 'registration'">
+        <div class="flex0 flex-column">
+
+            <ul class="tabs">
+                <li><button ng-click="current_window.show('login')">{{Lang.login}}</button></li>
+                <li><button class="active">{{Lang.registration}}</button></li>
+            </ul>
+
+            <div class="flex0 flex-column">
+                <label>
+                    {{Lang.enter_your_name}}:
+                    <br><input type="text" ng-model="registration.form.username" my-enter="registration.submit()">
+                </label>
+                <label>
+                    {{Lang.enter_your_password}}:
+                    <br><input type="password" ng-model="registration.form.password" my-enter="registration.submit()">
+                </label>
+                <button class="btn btn-main" ng-click="registration.submit()" ng-class="{disabled: !registration.isValid()}">
+                    <span>{{Lang.submit}}</span>
                 </button>
             </div>
         </div>
+    </form>
 
-        <!-- Not supported browser -->
-        <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'not_supported_browser'">
-            <div class="flex0 flex-column flex-center" style="background: rgb(254, 84, 115); padding: 1em; height: 130px; max-width: 80%; border-radius: 5px; text-align: center; font-size: 1.1em; justify-content: center;">
-                <div>
-                    {{Lang.browser_not_supported_1}}
-                    <br/>{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Login -->
-        <div id="form-login" class="form-styled animate__animated animate__fadeIn" ng-if="Game && current_window.id == 'login'">
-
-            <div class="flex0 flex-column">
-                <div class="flex0 flex-column">
-                    <label>
-                        {{Lang.enter_your_name}}:
-                        <br><input type="text" ng-model="login.form.username" my-enter="login.submit()">
-                    </label>
-                    <label>
-                        {{Lang.enter_your_password}}:
-                        <br><input type="password" ng-model="login.form.password" my-enter="login.submit()">
-                    </label>
-                    <button class="btn btn-main" ng-click="login.submit()" ng-class="{disabled: !login.isValid()}">
-                        <span>{{Lang.enter}}</span>
-                    </button>
-                    <button class="btn btn-danger" ng-click="current_window.show('hello')">
-                        <span>{{Lang.back}}</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Registration -->
-        <div id="form-registration" class="form-styled animate__animated animate__fadeIn" ng-if="Game && current_window.id == 'registration'">
-            <div class="flex0 flex-column">
-                <div class="flex0 flex-column">
-                    <label>
-                        {{Lang.enter_your_name}}:
-                        <br><input type="text" ng-model="registration.form.username" my-enter="registration.submit()">
-                    </label>
-                    <label>
-                        {{Lang.enter_your_password}}:
-                        <br><input type="password" ng-model="registration.form.password" my-enter="registration.submit()">
-                    </label>
-                    <button class="btn btn-main" ng-click="registration.submit()" ng-class="{disabled: !registration.isValid()}">
-                        <span>{{Lang.submit}}</span>
-                    </button>
-                    <button class="btn btn-danger" ng-click="current_window.show('hello')">
-                        <span>{{Lang.back}}</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Main menu -->
+    <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Game && login.logged">
 
         <!-- Main menu -->
-        <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Game && login.logged">
+        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length > 0">
+            <div id="button-new-game" ng-click="newgame.open()"><span>{{Lang.new_world_do}}...</span></div>
+            <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn">
+                <button class="btn-delete" ng-click="DeleteWorld(item.guid)"><span>Удалить</span></button>
+                <div class="tit1 animate__animated animate__fadeInDown" style="font-size: 1.1em;">{{item.title}}<br><br></div>
+                <div class="tit2 animate__animated animate__fadeInUp" style="font-size: 1.1em;">{{item.title}}<br><br></div>
+                <button class="animate__animated animate__fadeInUp" ng-class="{'btn-secondary': !item.my}" ng-click="StartWorld(item.guid)"><span>Play</span></button>
+            </div>
+        </div>
+        
+        <!-- Settings -->
+        <form class="flex-column nice-form flex-justify-start animate__animated animate__fadeIn" ng-if="texture_pack.list && current_window.id == 'settings'">
 
-            <!-- Main menu -->
-            <div ng-show="current_window.id == 'main'" class="form-doubles">
-
-                <form>
+            <div style="margin-bottom: 1em;">
+                <!-- Texture pack -->
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <button ng-click="texture_pack.next()">{{Lang.textures}}:<strong style="margin-left: .25em;">{{texture_pack.getCurrent().name}}</strong></button>
+                </div>
+                <!-- Generate mipmap -->
+                <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
+                    <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
+                    <label for="input-mipmap">{{Lang.generate_mipmap}}</label>
+                </div>
+                <!-- Use light -->
+                <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
+                    <input type="checkbox" id="input-use_light" ng-model="settings.form.use_light" style="width: 20px; height: 20px; margin-right: 10px;"></input>
+                    <label for="input-use_light">{{Lang.use_light}}</label>
+                </div>
+                <!-- Render distance -->
+                <!-- <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
                     <div>
-                        <div class="my-worlds" ng-if="mygames.list.length > 0">
-                            <div ng-repeat="item in mygames.list track by item.id">
-                                <button class="btn" ng-class="{'btn-secondary': !item.my}" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
-                            </div>
-                        </div>
-                        <button class="btn btn-main" ng-click="newgame.open()">
-                            <span>{{Lang.new_world_do}}...</span>
-                        </button>
+                        <label for="input-render_distance">Render distance: <span style="width: 5em; display: inline-block;">{{settings.form.render_distance}}</span></label>
+                        <br><input type="range" id="input-render_distance" ng-model="settings.form.render_distance" min="2" max="16" style="width: 100%; height: 20px;"></input>
                     </div>
-                </form>
-
-                <form class="flex-column flex-justify-start" ng-if="texture_pack.list">
-
-                    <div class="form-profile">
-                        <div class="form-title">
-                            <span>@{{Game.App.session.username}}</span>
-                            <button class="btn btn-danger btn-round" ng-click="App.logout()">&times;</button>
-                        </div>
-                        <div class="form-content">
-                            <!-- Skin -->
-                            <button class="btn" ng-click="skin.open()">
-                                <span>{{Lang.change_skin}}</span>
-                            </button>
-                            <!-- Texture pack -->
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                <button class="btn" ng-click="texture_pack.next()">{{Lang.textures}}:<strong style="margin-left: .25em;">{{texture_pack.getCurrent().name}}</strong></button>
-                            </div>
-                            <!-- Generate mipmap -->
-                            <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                                <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
-                                <label for="input-mipmap">{{Lang.generate_mipmap}}</label>
-                            </div>
-                            <!-- Use light -->
-                            <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                                <input type="checkbox" id="input-use_light" ng-model="settings.form.use_light" style="width: 20px; height: 20px; margin-right: 10px;"></input>
-                                <label for="input-use_light">{{Lang.use_light}}</label>
-                            </div>
-                            <!-- Render distance -->
-                            <!-- <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                                <div>
-                                    <label for="input-render_distance">Render distance: <span style="width: 5em; display: inline-block;">{{settings.form.render_distance}}</span></label>
-                                    <br><input type="range" id="input-render_distance" ng-model="settings.form.render_distance" min="2" max="16" style="width: 100%; height: 20px;"></input>
-                                </div>
-                            </div> -->
-                        </div>
-                    </div>
-
-                    <div style="font-size: 14px; padding: 1em 0 2em 0;">
-                        <h4 class="text-center">{{Lang.lbl_commands}}:</h4>
-                        <div>
-                            <strong class="font-mono">WASD</strong> - {{Lang.kb_help_wasd}}
-                            <br><strong class="font-mono">F4</strong> - {{Lang.kb_help_f4}}
-                            <br><strong class="font-mono">R</strong> - {{Lang.kb_help_r}}
-                            <br><strong class="font-mono">0-9</strong> - {{Lang.kb_help_09}}
-                            <br><strong class="font-mono">{{Lang.mouse_button_left}}</strong> - {{Lang.kb_help_lm}}
-                            <br><strong class="font-mono">{{Lang.mouse_button_right}}</strong> - {{Lang.kb_help_rm}}
-                            <br><strong class="font-mono">{{Lang.mouse_wheel}}</strong> - {{Lang.kb_help_mm}}
-                            <br><strong class="font-mono">{{Lang.kb_help_ctrlw_key}}</strong> - {{Lang.kb_help_ctrlw}}
-                            <br><br>{{Lang.lbl_other}}:
-                            <br><strong class="font-mono">F10</strong> - {{Lang.change_game_mode}}
-                        </div>
-                    </div>
-                </form>
-
+                </div> -->
             </div>
 
-            <!-- Change skin -->
-            <div ng-show="current_window.id == 'skin'" style="text-align: center;">
-                <h4>{{Lang.select_skin}}:</h4>
-                <div ng-repeat="k in skin.list">
-                    <img ng-src="{{k.preview}}" ng-if="$index == skin.index" style="height: 350px;" alt="player skin">
-                </div>
-                <div style="padding-bottom: 1em;">
-                    {{skin.index + 1}} / {{skin.list.length}}
-                </div>
-                <div class="btn-bar">
-                    <button class="btn" ng-click="skin.prev()"><span>⬅️ {{Lang.short_prev}}</span></button>
-                    <button class="btn" ng-click="skin.next()"><span>{{Lang.short_next}} ➡️</span></button>
-                </div>
-                <div class="btn-bar">
-                    <button class="btn btn-main" ng-click="skin.save()">
-                        <span>✅ {{Lang.save}}</span>
-                    </button>
-                    <button class="btn btn-danger" ng-click="skin.close()">
-                        <span>❌ {{Lang.cancel}} </span>
-                    </button>
-                </div>
+            <div class="form-title" style="margin-top: 2em;">
+                <!-- <span>@{{Game.App.session.username}}</span> -->
+                <button class="btn btn-danger btn-small" ng-click="App.logout()">&times; logout</button>
             </div>
 
-            <!-- Loading -->
-            <div ng-show="current_window.id == 'loading'" style="color: white; text-align: center; padding: 15px; background: rgba(255,255,255,.25); font-size: 24px; text-transform: uppercase;">
-                {{Lang.loading_resources}}... <span ng-if="resource_loading_state">{{resource_loading_state.percent | number:0}} %</span>
-            </div>
-
-            <!-- New game -->
-            <div ng-show="current_window.id == 'newgame'" style="text-align: center;">
-                <h4>{{Lang.new_world}}:</h4>
+            <!-- <div>
+                <h4 class="text-center" style="margin-top: 0;">{{Lang.lbl_commands}}:</h4>
                 <div>
-                    {{Lang.world_name}}:
-                    <br><input type="text" ng-model="newgame.form.title" autofocus>
+                    <kbd>WASD</kbd> - {{Lang.kb_help_wasd}}
+                    <br><kbd>F4</kbd> - {{Lang.kb_help_f4}}
+                    <br><kbd>R</kbd> - {{Lang.kb_help_r}}
+                    <br><kbd>0-9</kbd> - {{Lang.kb_help_09}}
+                    <br><kbd>{{Lang.mouse_button_left}}</kbd> - {{Lang.kb_help_lm}}
+                    <br><kbd>{{Lang.mouse_button_right}}</kbd> - {{Lang.kb_help_rm}}
+                    <br><kbd>{{Lang.mouse_wheel}}</kbd> - {{Lang.kb_help_mm}}
+                    <br><kbd>{{Lang.kb_help_ctrlw_key}}</kbd> - {{Lang.kb_help_ctrlw}}
+                    <br><br>{{Lang.lbl_other}}:
+                    <br><kbd>F10</kbd> - {{Lang.change_game_mode}}
                 </div>
+            </div> -->
+
+        </form>
+        
+        <!-- Change skin -->
+        <form class="nice-form animate__animated animate__fadeIn" ng-show="current_window.id == 'skin'" style="text-align: center;">
+            <h4>{{Lang.select_skin}}:</h4>
+            <div class="flex0" style="align-items: center;">
+                <button ng-click="skin.prev()"><span>⬅️<!-- {{Lang.short_prev}} --></span></button>
                 <div>
-                    {{Lang.world_seed}}:
-                    <br><input type="text" ng-model="newgame.form.seed" autofocus>
-                </div>
-                <div>
-                    <button class="btn" ng-click="newgame.generators.next()">
-                        <span>{{Lang.world_generator_type}}: {{newgame.generators.getCurrent().title}}</span>
-                    </button>
-                    <!-- Options -->
-                    <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
-                        <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)" class="btn">
-                            <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
-                        </button>
+                    <div ng-repeat="k in skin.list">
+                        <img ng-src="{{k.preview}}" ng-if="$index == skin.index" style="height: 250px;" alt="player skin">
                     </div>
                 </div>
-                <div class="btn-bar">
-                    <button class="btn btn-main" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">
-                        <span>✅ {{Lang.create}}</span>
-                    </button>
-                    <button class="btn btn-danger" ng-click="newgame.close()">
-                        <span>❌ {{Lang.cancel}}</span>
-                    </button>
-                </div>
+                <button ng-click="skin.next()"><span><!-- {{Lang.short_next}}  -->➡️</span></button>
             </div>
+            <div style="padding-bottom: 1em;">
+                {{skin.index + 1}} / {{skin.list.length}}
+            </div>
+            <!-- <div class="btn-bar">
+                <button ng-click="skin.prev()"><span>⬅️ {{Lang.short_prev}}</span></button>
+                <button ng-click="skin.next()"><span>{{Lang.short_next}} ➡️</span></button>
+            </div> -->
+            <div class="btn-bar">
+                <button class="btn btn-main" ng-click="skin.save()">
+                    <span>✅ {{Lang.save}}</span>
+                </button>
+                <button class="btn btn-danger" ng-click="skin.close()">
+                    <span>❌ {{Lang.cancel}} </span>
+                </button>
+            </div>
+        </form>
 
+        <!-- Loading -->
+        <div ng-show="current_window.id == 'loading'" style="color: white; text-align: center; padding: 15px; background: rgba(255,255,255,.25); font-size: 24px; text-transform: uppercase;">
+            {{Lang.loading_resources}}... <span ng-if="resource_loading_state">{{resource_loading_state.percent | number:0}} %</span>
         </div>
 
-        <!--
-        <div style="position: absolute; right: 1em; bottom: 1em; z-index: 5000; background-color: #00000033; font-size: 10px; padding: 1em; border-radius: 1em;">
-            <input type="range" min="-1.5707" max="1.5707" step=".01" value="0" ng-model="sunDir.value.x" ng-change="sunDir.apply()">
-            <br><input type="range" min="-1.5707" max="1.5707" step=".01" value="0" ng-model="sunDir.value.y" ng-change="sunDir.apply()">
-            <br><input type="range" min="-1.5707" max="1.5707" step=".01" value="0" ng-model="sunDir.value.z" ng-change="sunDir.apply()">
-            <br><input ng-value="sunDir.getValue()">
-        </div>
-        -->
+        <!-- New game -->
+        <form class="nice-form animate__animated animate__fadeIn" ng-show="current_window.id == 'newgame'">
+            <h4>{{Lang.new_world}}:</h4>
+            <div>
+                {{Lang.world_name}}:
+                <br><input type="text" ng-model="newgame.form.title" autofocus>
+            </div>
+            <div>
+                {{Lang.world_seed}}:
+                <br><input type="text" ng-model="newgame.form.seed" autofocus>
+            </div>
+            <div>
+                <button ng-click="newgame.generators.next()">
+                    <span>{{Lang.world_generator_type}}: {{newgame.generators.getCurrent().title}}</span>
+                </button>
+                <!-- Options -->
+                <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
+                    <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)">
+                        <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="btn-bar">
+                <button class="btn-main" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">
+                    <span>✅ {{Lang.create}}</span>
+                </button>
+                <button class="btn btn-danger" ng-click="newgame.close()">
+                    <span>❌ {{Lang.cancel}}</span>
+                </button>
+            </div>
+        </form>
 
     </div>
 
     <script src="/vendors/vanilla-toast.min.js"></script>
-    <div style="font-family: Ubuntu; position: fixed; opacity: 0;">1</div>
 
-    <div id="loading" style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 2; background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);"></div>
+    <div id="loading"></div>
 
 </body>
 </html>
