@@ -1,5 +1,6 @@
 import path from 'path'
-import express from "express"; 
+import express from "express";
+import expressLess from "express-less";
 import compression from "compression";
 import fs from 'fs';
 import {Worker} from "worker_threads";
@@ -105,6 +106,7 @@ app.use(compression({
 }));
 
 // Serves resources from public folder
+app.use('/style', expressLess(__dirname + '/../www/style', { compress: true }));
 app.use(express.static('../www/'));
 
 // API

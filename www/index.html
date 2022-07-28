@@ -22,41 +22,18 @@
     <meta property="twitter:image" content="https://madcraft.io/media/card.png">
 	<!-- Stylesheet -->
     <link rel="stylesheet" href="vendors/animate.min.css" />
-    <link rel="stylesheet/less" href="style/main.less" type="text/css">
-    <link rel="stylesheet/less" href="style/ui.less" type="text/css" />
+    <link rel="stylesheet" href="style/main.css" type="text/css">
     <link rel="stylesheet" href="style/circles.css" />
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
     <script src="js/ui/controller.js" type="module"></script>
-    <script>
-        less = {
-            env: 'production',
-            async: false,
-            fileAsync: false,
-            poll: 1000,
-            functions: {},
-            dumpLineNumbers: 'comments',
-            relativeUrls: false,
-            rootpath: ":/a.com/"
-        };
-    </script>
-    <script src="vendors/less.min.js" ="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Game && login.logged}">
 
-    <div class="area">
+    <div id="bg-circles_area">
         <ul class="circles">
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
+            <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
         </ul>
     </div>
 
@@ -117,7 +94,7 @@
     <form id="form-hello" ng-if="Game && current_window.id == 'hello'">
         <div class="flex0 flex-column">
             <button class="btn btn-main" ng-click="current_window.show('login')" style="font-size: 200%; border-radius: 50px;">
-                <span>Start Game</span>
+                <span>{{Lang.start_game}}</span>
             </button>
             <!-- <button class="btn btn-warning" ng-click="current_window.show('registration')">
                 <span>{{Lang.registration}}</span>
@@ -201,6 +178,9 @@
         <!-- Settings -->
         <form class="flex-column nice-form flex-justify-start animate__animated animate__fadeIn" ng-if="texture_pack.list && current_window.id == 'settings'">
 
+            <h4>{{Lang.settings}}</h4>
+            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
+
             <div style="margin-bottom: 1em;">
                 <!-- Texture pack -->
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -249,24 +229,22 @@
         </form>
         
         <!-- Change skin -->
-        <form class="nice-form animate__animated animate__fadeIn" ng-show="current_window.id == 'skin'" style="text-align: center;">
-            <h4>{{Lang.select_skin}}:</h4>
-            <div class="flex0" style="align-items: center;">
-                <button ng-click="skin.prev()"><span>⬅️<!-- {{Lang.short_prev}} --></span></button>
+        <form id="form-skin" class="animate__animated animate__fadeIn" ng-if="current_window.id == 'skin'">
+            <h4>{{Lang.select_skin}}</h4>
+            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
+            <div style="position: fixed !important; top: -1000%; width: 0px; height: 0px; position: relative;"><img style="position: absolute; top: 0; left: 0;" ng-repeat="k in skin.list" ng-src="{{k.preview}}" alt="player skin"></div>
+            <div id="skin-selector">
+                <button ng-click="skin.prev()"><span>🡄<!-- {{Lang.short_prev}} --></span></button>
                 <div>
                     <div ng-repeat="k in skin.list">
-                        <img ng-src="{{k.preview}}" ng-if="$index == skin.index" style="height: 250px;" alt="player skin">
+                        <img ng-src="{{k.preview}}" ng-if="$index == skin.index" alt="player skin" class="animate__animated animate__flipInY">
                     </div>
                 </div>
-                <button ng-click="skin.next()"><span><!-- {{Lang.short_next}}  -->➡️</span></button>
+                <button ng-click="skin.next()"><span><!-- {{Lang.short_next}}  -->🡆</span></button>
             </div>
             <div style="padding-bottom: 1em;">
                 {{skin.index + 1}} / {{skin.list.length}}
             </div>
-            <!-- <div class="btn-bar">
-                <button ng-click="skin.prev()"><span>⬅️ {{Lang.short_prev}}</span></button>
-                <button ng-click="skin.next()"><span>{{Lang.short_next}} ➡️</span></button>
-            </div> -->
             <div class="btn-bar">
                 <button class="btn btn-main" ng-click="skin.save()">
                     <span>✅ {{Lang.save}}</span>
@@ -284,7 +262,8 @@
 
         <!-- New game -->
         <form class="nice-form animate__animated animate__fadeIn" ng-show="current_window.id == 'newgame'">
-            <h4>{{Lang.new_world}}:</h4>
+            <h4>{{Lang.new_world}}</h4>
+            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
             <div>
                 {{Lang.world_name}}:
                 <br><input type="text" ng-model="newgame.form.title" autofocus>

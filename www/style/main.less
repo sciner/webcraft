@@ -1,129 +1,11 @@
-@font-face {
-	font-family: Ubuntu;
-	src: url('/style/Ubuntu-Regular.ttf');
-}
-@font-face {
-	font-family: UbuntuMono-Regular;
-	src: url('/style/UbuntuMono-Regular.ttf');
-}
-@font-face {
-	font-family: Ubuntu-Bold;
-	src: url('/style/Ubuntu-Bold.ttf');
-}
-/* Minecraft-like pixely font */
-@font-face {
-	font-family: minecraftia;
-	src:
-        /* url('mcfont.woff') format('woff'), */
-        url('/style/minecraftia.ttf');
-}
+@border-radius: 5px;
 
-/* General page style */
-
-kbd, .font-mono {
-    font-family: UbuntuMono-Regular;
-}
-
-@-webkit-keyframes scrollBg {
-    0% {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 0 100vh;
-    }
-}
-
-@keyframes scrollBg {
-    0% {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 0 100vh;
-    }
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    color: white;
-	font-size: 16px;
-	// text-shadow: #3f3f3f 2px 2px 0px;
-    font-family: Ubuntu;
-	height: 100%;
-    min-height: 100vh;
-    padding: 0;
-    margin: 0;
-    line-height: normal;
-    text-shadow: none;
-    background: url(/media/design/stars.webp), url(/media/design/clouds.webp),
-            linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
-    background-repeat: repeat-x;
-    background-size: contain;
-    background-position: center;
-    /* animation: scrollBg 90s linear infinite; */
-
-    &.started {
-        padding: 0px;
-        #main-menu {
-            display: none;
-        }
-    }
-    
-    &:not(.started) #renderSurface {
-        display: none;
-    }
-
-}
-
-:root {
-    --animate-duration: .3s;
-    --animate-delay: .3s;
-    --animate-repeat: .3;
-}
-
-.form-doubles {
-    display: grid;
-    grid-gap: 1em;
-    grid-template-columns: 1fr 1fr;
-}
-
-h4 {
-    margin-top: 0;
-}
-
-form, .form-styled {
-    border-radius: 3px;
-    width: 100%;
-    max-width: 340px;
-}
-
-.text-center {
-    text-align: center;
-}
-
-input[type="text"], input[type="password"] {
-    border: 2px solid white;
-    font-family: 'Ubuntu';
-    background: #000;
-    font-size: 16px;
-    line-height: 40px;
-    padding: 0 1em;
-    margin-bottom: 1em;
-    color: white;
-    text-shadow: 2px 2px 1px #555;
-    width: 100%;
-}
-
-.disabled {
-    pointer-events: none;
-    opacity: .5;
-}
+@import "./ui.less";
 
 .visible_in_game_menu {
     z-index: 2;
 }
+
 body.started.controls_enabled .visible_in_game_menu {
     display: none;
 }
@@ -147,172 +29,6 @@ button.loading {
 }
 button:not(.loading) .fa-spin {
     opacity: 0;
-}
-
-#loading {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 2;
-    background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
-}
-
-button {
-    z-index: 2;
-    cursor: pointer;
-    padding: 1em 2em;
-    border-radius: 0;
-    border: none;
-    /* font-family: Ubuntu; */
-    font-size: 25px;
-}
-
-/* Render surface */
-
-#renderSurface {
-	position: fixed;
-	left: 0;
-	top: 0;
-	width: 100vw;
-	height: 100vh;
-}
-
-/* Material selector */
-
-#materialSelector {
-	position: fixed;
-	margin: auto;
-    left: 50%;
-    bottom: 20px;
-	transform: translateX(-50%) scale(0.7);
-	background: rgba( 0, 0, 0, 0.6 );
-}
-
-canvas {
-    background: #000;
-    font-family: UbuntuMono-Regular;
-    &#cnvHUD {
-        position: fixed;
-        background: transparent;
-        z-index: 0;
-        pointer-events: none;
-        width: 100vw;
-        height: 100vh;
-    }
-}
-
-/* Username input */
-#username {
-	position: absolute;
-	top: 40%;
-	left: 42%;
-	
-	width: 300px;
-	
-	cursor: default;
-	
-	color: #fff;
-}
-
-#username input {
-	width: 100%;
-	
-	background: none;
-	border: none;
-	border-bottom: 1px solid #888;
-	outline: none;
-	
-	color: white;
-	
-	font-family: Ubuntu;
-	font-size: 24px;
-}
-
-/* Join information */
-
-#joininfo {
-	position: absolute;
-	top: 42%;
-	
-	width: 99%;
-	
-	cursor: default;
-	
-	text-align: center;
-	color: #fff;
-	font-size: 24px;
-}
-
-/* Chatbox */
-
-#chatbox {
-	position: absolute;
-	left: 20px;
-	bottom: 55px;
-	
-	width: 600px;
-	height: 195px;
-	overflow: hidden;
-	
-	padding-left: 10px;
-	padding-right: 10px;
-	
-	cursor: default;
-	
-	background: rgba( 0, 0, 0, 0.6 );
-	color: white;
-}
-
-#chatbox_text {
-	position: absolute;
-	bottom: 8px;
-	
-	text-shadow: none;
-}
-
-#chatbox_entry {
-	position: absolute;
-	left: 20px;
-	bottom: 18px;
-	
-	width: 610px;
-	height: 30px;
-	
-	padding-left: 10px;
-	padding-bottom: 2px;
-	
-	background: rgba( 0, 0, 0, 0.6 );
-	border: none;
-	outline: none;
-	
-	color: white;
-	font-family: Ubuntu;
-	font-size: 16px;
-}
-
-#bg-canvas {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    opacity: .1;
-}
-
-#topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 2em 1em;
-    flex-wrap: wrap;
-    & > img {
-        height: 80px;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-    }
 }
 
 .nice-form {
@@ -342,13 +58,93 @@ canvas {
     }
 }
 
+.btn-form-close {
+    position: absolute;
+    right: 1.6em;
+    top: 1.7em;
+    border: 1px solid #ffffff88;
+    z-index: 3;
+}
+
+#loading {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2;
+    background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
+}
+
+// Render surface
+#renderSurface {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+}
+
+#cnvHUD {
+    position: fixed;
+    background: transparent;
+    z-index: 0;
+    pointer-events: none;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Username input */
+#username {
+	position: absolute;
+	top: 40%;
+	left: 42%;
+	width: 300px;
+	cursor: default;
+	color: #fff;
+}
+
+#username input {
+	width: 100%;
+	background: none;
+	border: none;
+	border-bottom: 1px solid #888;
+	outline: none;
+	color: white;
+	font-family: Ubuntu;
+	font-size: 24px;
+}
+
+#bg-canvas {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: .1;
+}
+
+#topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 3em 2em 2em 2em;
+    flex-wrap: wrap;
+    & > img {
+        height: 80px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
 #lang-pad {
     display: flex;
     button {
         clip-path: none;
         font-size: 1rem;
         margin-right: .5em;
-        border-radius: 50%;
+        border-radius: @border-radius;
         height: 32px;
         padding: 0 0.5em;
         &:not(.active) {
@@ -401,8 +197,54 @@ canvas {
     text-shadow: none;
 }
 
+#main-pictures {
+    pointer-events: none;
+    zoom: 0.9;
+    .pic-art {
+        position: fixed;
+        bottom: -5%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .logo-others {
+        width: 50%;
+        margin: auto;
+    }
+    .logo-main {
+        position: fixed;
+        width: 560px;
+        max-width: 100%;
+        bottom: 450px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+#form-hello {
+    position: fixed;
+    bottom: 220px;
+}
+
+#form-not-supported {
+    position: fixed;
+    bottom: 300px;
+    left: 0;
+    .flex0;
+    .flex-column;
+    & > div {
+        background: rgb(254, 84, 115);
+        padding: 1em;
+        height: 130px;
+        max-width: 80%;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 1.1em;
+        justify-content: center;
+    }
+}
+
 .my-worlds {
-    padding: 1em;
+    padding: 2em;
     #button-new-game {
         cursor: pointer;
         background: #49e04f;
@@ -494,6 +336,20 @@ canvas {
     top: 116%;
     border-radius: 3px;
     outline: 2px solid #ffffff22;
+}
+
+#form-skin {
+    .nice-form;
+    text-align: center;
+    #skin-selector {
+        .flex0;
+        justify-content: space-between;
+        align-items: center;
+        img {
+            width: 188px;
+            height: 250px;
+        }
+    }
 }
 
 /* On screens that are 600px or less, set the background color to olive */

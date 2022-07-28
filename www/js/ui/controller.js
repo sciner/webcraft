@@ -310,6 +310,7 @@ let gameCtrl = async function($scope, $timeout) {
         document.getElementById('main-pictures')?.remove();
         document.getElementById('topbar')?.remove();
         document.getElementById('bg-canvas')?.remove();
+        document.getElementById('bg-circles_area')?.remove();
         document.getElementById('main-menu')?.remove();
         // stop background animation effect
         $scope.bg?.stop();

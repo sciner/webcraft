@@ -76,6 +76,8 @@
         "kb_help_ctrlw_key": {"en": "Ctrl, Double W", "ru": "Ctrl или Двойной W", "fr": "Ctrl, Double W", "es": "Ctrl, doble W","man":"Ctrl，双 W"},
         "days": {"en": "days", "ru": "дней", "fr": "journées", "es": "días","man":"天"},
         "hours": {"en": "hours", "ru": "часов", "fr": "heures", "es": "horas","man":"小时"},
-        "minutes": {"en": "minutes", "ru": "минут", "fr": "minutes", "es": "minutos","man":"分钟"}
+        "minutes": {"en": "minutes", "ru": "минут", "fr": "minutes", "es": "minutos","man":"分钟"},
+        "start_game": {"en": "Start Game", "ru": "Начать игру", "fr": "", "es": "","man":""},
+        "settings": {"en": "Settings", "ru": "Настройки", "fr": "", "es": "","man":""}
     }
 }

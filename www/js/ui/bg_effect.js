@@ -9,7 +9,7 @@ var onTouchMove;
 
 const ease = 0.3;
 const friction = 0.2;
-var lineWidth = 5;
+var lineWidth = 1;
 
 var dist = 80;
 var lessThan;
@@ -126,7 +126,7 @@ export class BgEffect {
         this.X > this.Y ? shapeNum = this.X / dist : shapeNum = this.Y / dist;
 
         if (this.X < 768) {
-            lineWidth = 2;
+            lineWidth = 1;
             dist = 40;
             lessThan = Math.sqrt(dist * dist + dist * dist);
             mouseDist = 50;
@@ -154,9 +154,9 @@ export class BgEffect {
         this.render();
 
         //
-        onResize = this.onResize;
-        onMouseMove = this.onMouseMove;
-        onTouchMove = this.onResize;
+        onResize = this.onResize.bind(this);
+        onMouseMove = this.onMouseMove.bind(this);
+        onTouchMove = this.onResize.bind(this);
 
         window.addEventListener('resize', onResize);
         window.addEventListener('mousemove', onMouseMove, false);
@@ -184,13 +184,13 @@ export class BgEffect {
         this.Y = this.canvas.height = window.innerHeight;
         shapes = [];
         if (this.X < 768) {
-            lineWidth = 2;
+            lineWidth = 1;
             dist = 40;
             lessThan = Math.sqrt(dist * dist + dist * dist);
             mouseDist = 50;
             this.X > this.Y ? shapeNum = this.X / dist : shapeNum = this.Y / dist;
         } else {
-            lineWidth = 5;
+            lineWidth = 1;
             dist = 80;
             lessThan = Math.sqrt(dist * dist + dist * dist);
             mouseDist = 150;

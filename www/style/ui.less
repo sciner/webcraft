@@ -28,6 +28,7 @@ h4 {
     font-size: 28px;
     font-weight: normal;
     margin: 0.5em 0;
+    text-align: center;
 }
 
 .cpointer {
@@ -38,6 +39,7 @@ form {
     .flex0;
     max-width: none;
     justify-content: center;
+    border-radius: @border-radius;
 }
 
 .form-content, .form-title {
@@ -76,52 +78,6 @@ form {
 input[type="text"], input[type="password"] {
     text-shadow: none;
     font-family: Ubuntu;
-}
-
-#main-pictures {
-    pointer-events: none;
-    zoom: 0.9;
-    .pic-art {
-        position: fixed;
-        bottom: -5%;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    .logo-others {
-        width: 50%;
-        margin: auto;
-    }
-    .logo-main {
-        position: fixed;
-        width: 560px;
-        max-width: 100%;
-        bottom: 450px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-}
-
-#form-hello {
-    position: fixed;
-    bottom: 220px;
-}
-
-#form-not-supported {
-    position: fixed;
-    bottom: 300px;
-    left: 0;
-    .flex0;
-    .flex-column;
-    & > div {
-        background: rgb(254, 84, 115);
-        padding: 1em;
-        height: 130px;
-        max-width: 80%;
-        border-radius: 5px;
-        text-align: center;
-        font-size: 1.1em;
-        justify-content: center;
-    }
 }
 
 .btn2 {
@@ -167,7 +123,14 @@ input[type="text"], input[type="password"] {
     }
 }
 
+canvas {
+    background: #000;
+    font-family: UbuntuMono-Regular;
+}
+
 button {
+    cursor: pointer;
+    z-index: 2;
     transition: background-color .3s;
     width: 100%;
     position: relative;
@@ -187,19 +150,20 @@ button {
     line-height: 1em;
     white-space: nowrap;
     border-width: 2px;
-    border-radius: 3px;
     border: 2px solid transparent;
     width: auto;
     background-color: #543cba;
+    border-radius: @border-radius;
     position: relative;
     &:not(.btn-round) {
         // clip-path: polygon(0 0, 100% 0, 100% 100%, 85% 100%, 20px 100%, 0 calc(100% - 20px));
         &::before {
+            content: '';
             .transittion_all;
             // clip-path: polygon(0 0, 100% 0, 100% 100%, 85% 100%, 20px 100%, 0 calc(100% - 20px));
             background-color: #ffffff22;
             border-color: transparent;
-            content: '';
+            border-radius: @border-radius;
             position: absolute;
             left: 0;
             top: 0;
@@ -207,35 +171,32 @@ button {
             height: 100%;
         }
     }
-    &:hover {
+    &:hover:not(:active) {
         transition: background-color .3s;
         background-image: none;
-        background: #6f4eff; // #317195;
         color: white;
     }
+    &:hover:not(:active) {background: #6f4eff;}
+    &:active {background: darken(#6f4eff, 20%); transition: background-color .3s;}
     &.btn-danger {
         background: #B7173D;
-        &:hover {
-            background: #d81845;
-        }
+        &:hover:not(:active) {background: #d81845;}
+        &:active {background: darken(#d81845, 20%);}
     }
     &.btn-main {
         background: #049650;
-        &:hover {
-            background: #09dc77;
-        }
+        &:hover:not(:active) {background: #09dc77;}
+        &:active {background: darken(#09dc77, 20%);}
     }
     &.btn-secondary {
         background: #972e7f;
-        &:hover {
-            background: #c34fa9;
-        }
+        &:hover:not(:active) {background: #c34fa9;}
+        &:active {background: darken(#c34fa9, 20%);}
     }
     &.btn-warning {
         background: #fcaa6d;
-        &:hover {
-            background: #e09679;
-        }
+        &:hover:not(:active) {background: #e09679;}
+        &:active {background: darken(#e09679, 20%);}
     }
 }
 
@@ -269,6 +230,125 @@ button {
     grid-template-columns: 1fr 1fr;
 }
 
+.transittion_all {
+    transition: all .3s;
+}
+
+.loading-complete {
+    .transittion_all;
+    pointer-events: none;
+    opacity: 0;
+}
+
+
+@font-face {
+	font-family: Ubuntu;
+	src: url('/style/Ubuntu-Regular.ttf');
+}
+@font-face {
+	font-family: UbuntuMono-Regular;
+	src: url('/style/UbuntuMono-Regular.ttf');
+}
+@font-face {
+	font-family: Ubuntu-Bold;
+	src: url('/style/Ubuntu-Bold.ttf');
+}
+/* Minecraft-like pixely font */
+@font-face {
+	font-family: minecraftia;
+	src:
+        /* url('mcfont.woff') format('woff'), */
+        url('/style/minecraftia.ttf');
+}
+
+@-webkit-keyframes scrollBg {
+    0% {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 0 100vh;
+    }
+}
+
+@keyframes scrollBg {
+    0% {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 0 100vh;
+    }
+}
+
+// General page style
+
+kbd, .font-mono {
+    font-family: UbuntuMono-Regular;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    color: white;
+	font-size: 16px;
+	// text-shadow: #3f3f3f 2px 2px 0px;
+    font-family: Ubuntu;
+	height: 100%;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+    line-height: normal;
+    text-shadow: none;
+    background: url(/media/design/stars.webp), url(/media/design/clouds.webp),
+            linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
+    background-repeat: repeat-x;
+    background-size: contain;
+    background-position: center;
+    /* animation: scrollBg 90s linear infinite; */
+    &.started {
+        padding: 0px;
+        #main-menu {
+            display: none;
+        }
+    }
+    &:not(.started) #renderSurface {
+        display: none;
+    }
+}
+
+:root {
+    --animate-duration: .4s;
+    --animate-delay: .4s;
+    --animate-repeat: .4s;
+}
+
+h4 {
+    margin-top: 0;
+}
+
+.text-center {
+    text-align: center;
+}
+
+input[type="text"], input[type="password"] {
+    border: 2px solid white;
+    font-family: 'Ubuntu';
+    background: #000;
+    font-size: 16px;
+    line-height: 40px;
+    padding: 0 1em;
+    margin-bottom: 1em;
+    color: white;
+    text-shadow: 2px 2px 1px #555;
+    width: 100%;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: .5;
+}
+
 @media only screen and (max-width: 600px) {
     #main-pictures {
         zoom: 1;
@@ -285,8 +365,6 @@ button {
         top: 440px;
     }
     #btns-pad {
-        // top: 0px;
-        // bottom: initial;
         opacity: .8;
     }
     button {
@@ -297,10 +375,6 @@ button {
         font-size: 14px;
         text-shadow: none;
     }
-    .form-doubles {
-        grid-template-rows: 1fr;
-        grid-template-columns: auto;
-    }
     .form-profile {
         font-size: 20px;
         text-align: center;
@@ -308,14 +382,4 @@ button {
     h4 {
         font-size: 24px;
     }
-}
-
-.transittion_all {
-    transition: all .3s;
-}
-
-.loading-complete {
-    .transittion_all;
-    pointer-events: none;
-    opacity: 0;
 }

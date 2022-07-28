@@ -1,7 +1,7 @@
 /**
 * CIRCLES
 **/
-.area{
+#bg-circles_area {
     background: -webkit-linear-gradient(to left, #8f94fb, #4e54c8);  
     width: 100vw;
     height: 100vh;
@@ -11,7 +11,7 @@
     top: 0;
 }
 
-.circles{
+.circles {
     position: absolute;
     top: 0;
     left: 0;
@@ -22,7 +22,7 @@
     padding: 0;
 }
 
-.circles li{
+.circles li {
     position: absolute;
     display: block;
     list-style: none;
@@ -34,7 +34,7 @@
     
 }
 
-.circles li:nth-child(1){
+.circles li:nth-child(1) {
     left: 25%;
     width: 80px;
     height: 80px;
@@ -42,7 +42,7 @@
 }
 
 
-.circles li:nth-child(2){
+.circles li:nth-child(2) {
     left: 10%;
     width: 20px;
     height: 20px;
@@ -50,14 +50,14 @@
     animation-duration: 12s;
 }
 
-.circles li:nth-child(3){
+.circles li:nth-child(3) {
     left: 70%;
     width: 20px;
     height: 20px;
     animation-delay: 4s;
 }
 
-.circles li:nth-child(4){
+.circles li:nth-child(4) {
     left: 40%;
     width: 60px;
     height: 60px;
