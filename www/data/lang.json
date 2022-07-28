@@ -78,6 +78,11 @@
         "hours": {"en": "hours", "ru": "часов", "fr": "heures", "es": "horas","man":"小时"},
         "minutes": {"en": "minutes", "ru": "минут", "fr": "minutes", "es": "minutos","man":"分钟"},
         "start_game": {"en": "Start Game", "ru": "Начать игру", "fr": "", "es": "","man":""},
-        "settings": {"en": "Settings", "ru": "Настройки", "fr": "", "es": "","man":""}
+        "settings": {"en": "Settings", "ru": "Настройки", "fr": "", "es": "","man":""},
+        "error_world_not_found": {"en": "World not found", "ru": "Мир не найден", "fr": "", "es": "","man":""},
+        "success_world_deleted": {"en": "World deleted", "ru": "Мир удалён", "fr": "", "es": "","man":""},
+        "delete": {"en": "Delete", "ru": "Удалить", "fr": "", "es": "","man":""},
+        "confirm_delete_world": {"en": "Want to delete?", "ru": "Вы действительно хотите удалить мир?", "fr": "", "es": "","man":""},
+        "play": {"en": "Play", "ru": "Играть", "fr": "", "es": "","man":""}
     }
 }

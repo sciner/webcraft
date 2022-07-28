@@ -295,9 +295,30 @@ let gameCtrl = async function($scope, $timeout) {
 
     // Delete world
     $scope.DeleteWorld = function(world_guid) {
-        Game.App.showError('Запрещено удалять мир', 4000);
         window.event.preventDefault();
         window.event.stopPropagation();
+        if(!confirm(Lang.confirm_delete_world)) {
+            return false;
+        }
+        let world = null;
+        for(let w of $scope.mygames.list) {
+            if(w.guid == world_guid) {
+                world = w;
+                break;
+            }
+        }
+        if(!world) {
+            return Game.App.showError('error_world_not_found', 4000);
+        }
+        world.hidden = true;
+        $scope.App.DeleteWorld({world_guid}, () => {
+            vt.success(Lang.success_world_deleted);
+        }, (e) => {
+            $timeout(() => {
+                world.hidden = false;
+            });
+            vt.error(e.message);
+        });
     };
 
     // Start world
@@ -346,22 +367,23 @@ let gameCtrl = async function($scope, $timeout) {
         shared_worlds: [],
         loading: false,
         load: function() {
-            let session = $scope.App.getSession();
+            const session = $scope.App.getSession();
             if(!session) {
                 return that.loadingComplete();
             }
-            var that = this;
+            const that = this;
             that.loading = true;
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
-                    that.shared_worlds = [];
                     that.list = worlds;
+                    /*
+                    that.shared_worlds = [];
                     for(let w of worlds) {
                         w.my = w.user_id == session.user_id;
                         if(!w.my) {
                             that.shared_worlds.push(w);
                         }
-                    }
+                    }*/
                     that.loading = false;
                     $scope.loadingComplete();
                 });

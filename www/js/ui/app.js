@@ -110,6 +110,18 @@ export class UIApp {
         return result;
     }
 
+    // DeleteWorld...
+    async DeleteWorld(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/Game/DeleteWorld', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     // GameOnline...
     async GameOnline(form, callback, callback_error, callback_progress, callback_final) {
         let result = [];

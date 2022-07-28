@@ -186,14 +186,14 @@ export class BgEffect {
         if (this.X < 768) {
             lineWidth = 1;
             dist = 40;
-            lessThan = Math.sqrt(dist * dist + dist * dist);
             mouseDist = 50;
+            lessThan = Math.sqrt(dist * dist + dist * dist);
             this.X > this.Y ? shapeNum = this.X / dist : shapeNum = this.Y / dist;
         } else {
             lineWidth = 1;
-            dist = 80;
+            dist = Math.max(Math.floor(this.X) / 16, 80);
+            mouseDist = dist * 1.875; // 150;
             lessThan = Math.sqrt(dist * dist + dist * dist);
-            mouseDist = 150;
             this.X > this.Y ? shapeNum = this.X / dist : shapeNum = this.Y / dist;
         }
         for (var i = 0; i < shapeNum + 1; i++) {
