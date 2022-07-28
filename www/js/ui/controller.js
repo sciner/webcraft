@@ -312,7 +312,7 @@ let gameCtrl = async function($scope, $timeout) {
         document.getElementById('bg-canvas')?.remove();
         document.getElementById('main-menu')?.remove();
         // stop background animation effect
-        this.bg.stop();
+        $scope.bg?.stop();
         // Show Loading...
         Game.hud.draw();
         $timeout(async function() {
