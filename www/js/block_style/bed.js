@@ -122,8 +122,8 @@ export default class style {
         const c_north = [
             c_head[0] + 60/sz,
             c_head[1] + 50/sz,
-            32/sz,
-            12/sz,
+            -32/sz,
+            -12/sz,
         ];
 
         // west
@@ -131,8 +131,8 @@ export default class style {
         const c_west = [
             c_head[0] + 50/sz,
             c_head[1] + (is_head ? 28/sz : 72/sz),
-            -12/sz,
-            -32/sz,
+            12/sz,
+            32/sz,
         ];
 
         // east

@@ -204,8 +204,8 @@ export class DirNibbleQueue {
                 const nibColumn = column - (lim - y1);
                 const newLight = (nibColumn >= 0 && val > nibColumn) ? defLight : 0;
                 if ((newLight !== defLight) ^ (curLight !== defLight)) {
-                    //TODO: maybe set 0 or defLight here and FORCE
-                    world.dayLight.add(chunk, coord, Math.max(newLight, curLight) + world.getPotential(x, y, z));
+                    // world.dayLight.add(chunk, coord, Math.max(newLight, curLight), world.getPotential(x, y, z));
+                    world.dayLight.addNow(chunk, coord, x, y1, z, newLight);
                 }
                 coord += cy;
             }
@@ -434,7 +434,8 @@ export class DirNibbleQueue {
                                         if (srcBlock) {
                                             invalidateOther = true;
                                         } else {
-                                            this.world.dayLight.add(other.rev, coord2 / strideBytes, defDayLight + this.world.getPotential(x, y, z));
+                                            this.world.dayLight.add(other.rev, coord2 / strideBytes,
+                                                defDayLight, this.world.getPotential(x, y, z));
                                         }
                                         break;
                                     }
@@ -476,17 +477,7 @@ export class DirNibbleQueue {
                             nibbles[coord1 + OFFSET_COLUMN_BOTTOM] = nibbles2[coord2 + OFFSET_COLUMN_BOTTOM];
 
                             let foundImprovement = false;
-                            if (disperse > 0 && day < column) {
-                                // check neibs, add this point to QUEUE or invalidate chunk if corresponding point in chunk is lighted
-                                for (let dir = 0; dir < 4; dir++) {
-                                    let x2 = x + dx[dir], z2 = z + dz[dir];
-                                    if (aabb.contains(x2, y, z2)
-                                        && nibbles[coord1 + dif26[dir] * nibbleStrideBytes + OFFSET_COLUMN_DAY] > disperse) {
-                                        foundImprovement = true;
-                                        break;
-                                    }
-                                }
-                            }
+
                             if (aabb.contains(x, y + nibDim, z)) {
                                 const upDay = nibbles[coord1 + cy * nibbleStrideBytes + OFFSET_COLUMN_BOTTOM] >= nibDim
                                     ? nibbles[coord1 + cy * nibbleStrideBytes + OFFSET_COLUMN_DAY] : 0;
@@ -496,7 +487,32 @@ export class DirNibbleQueue {
                                 if (day >= nibDim && upDay < nibDim) {
                                     foundImprovement = true;
                                 }
+                            } else if (disperse > 0) {
+                                //TODO: something fishy here
+                                if (day < nibDim) {
+                                    // check neibs, add this point to QUEUE or invalidate chunk if corresponding point in chunk is lighted
+                                    for (let dir = 0; dir < 4; dir++) {
+                                        let x2 = x + dx[dir], z2 = z + dz[dir];
+                                        if (aabb.contains(x2, y, z2)
+                                            && nibbles[coord1 + dif26[dir] * nibbleStrideBytes + OFFSET_COLUMN_DAY] > disperse) {
+                                            foundImprovement = true;
+                                            break;
+                                        }
+                                    }
+                                } else if (day > disperse) {
+                                    for (let dir = 0; dir < 4; dir++) {
+                                        let x2 = x + dx[dir], z2 = z + dz[dir];
+                                        const coord2 = coord1 + dif26[dir] * nibbleStrideBytes;
+                                        if (aabb.contains(x2, y, z2)
+                                            && nibbles[coord2 + OFFSET_COLUMN_DAY] === 0
+                                            && nibbles[coord2 + OFFSET_COLUMN_TOP] >= nibDim) {
+                                            foundImprovement = true;
+                                            break;
+                                        }
+                                    }
+                                }
                             }
+
                             if (foundImprovement) {
                                 this.addDirect(other.rev, coord2 / nibbleStrideBytes);
                             }
@@ -528,7 +544,7 @@ export class DirNibbleQueue {
                         }
                     }
                     if (neibLight > light) {
-                        this.world.dayLight.add(chunk, coord, neibLight + this.world.getPotential(x, y, z));
+                        this.world.dayLight.add(chunk, coord, neibLight, this.world.getPotential(x, y, z));
                     }
                 }
         // add to queue NIBBLE neibs that have lighted neighbours

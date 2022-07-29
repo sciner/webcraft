@@ -1,5 +1,6 @@
 import config from "./config.js";
 
+import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
@@ -16,32 +17,46 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { BLOCK } from "../www/js/blocks.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { Weather } from "../www/js/type.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
-    constructor() {
+    constructor(block_manager) {
         this.temp_vec = new Vector();
-        this.block_manager = BLOCK;
+        this.block_manager = block_manager;
     }
 
     async initServer(world_guid, db_world) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
+        // Tickers
+        this.tickers = new Map();
+        for(let fn of config.tickers) {
+            await import(`./ticker/${fn}.js`).then((module) => {
+                this.tickers.set(module.default.type, module.default.func);
+            });
+        }
+        // Brains
+        this.brains = new Brains();
+        for(let fn of config.brains) {
+            await import(`./fsm/brain/${fn}.js`).then((module) => {
+                this.brains.add(fn, module.Brain);
+            });
+        }
+        //
         this.db             = db_world;
         this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.ticks_stat     = new WorldTickStat();
         this.chunks         = new ServerChunkManager(this);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
@@ -49,6 +64,10 @@ export class ServerWorld {
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
+        // statistics
+        this.ticks_stat     = new WorldTickStat();
+        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
+        this.start_time     = performance.now();
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
@@ -77,7 +96,7 @@ export class ServerWorld {
         return this.info;
     }
 
-    // updateWorldCalendar
+    // Update world calendar
     updateWorldCalendar() {
         if(!this.info.calendar) {
             this.info.calendar = {
@@ -108,47 +127,49 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         this.updateWorldCalendar();
-        //
-        this.ticks_stat.number++;
-        this.ticks_stat.start();
-        // 1.
-        await this.chunks.tick(delta);
-        this.ticks_stat.add('chunks');
-        // 2.
-        await this.mobs.tick(delta);
-        this.ticks_stat.add('mobs');
-        // 3.
-        for (let player of this.players.values()) {
-            player.tick(delta);
+        if(!this.pause_ticks) {
+            //
+            this.ticks_stat.number++;
+            this.ticks_stat.start();
+            // 1.
+            await this.chunks.tick(delta);
+            this.ticks_stat.add('chunks');
+            // 2.
+            await this.mobs.tick(delta);
+            this.ticks_stat.add('mobs');
+            // 3.
+            for (let player of this.players.values()) {
+                player.tick(delta);
+            }
+            this.ticks_stat.add('players');
+            // 4.
+            for (let [_, drop_item] of this.all_drop_items) {
+                drop_item.tick(delta);
+            }
+            this.ticks_stat.add('drop_items');
+            // 6.
+            await this.packet_reader.queue.process();
+            this.ticks_stat.add('packet_reader_queue');
+            //
+            this.packets_queue.send();
+            this.ticks_stat.add('packets_queue_send');
+            //
+            await this.actions_queue.run();
+            this.ticks_stat.add('actions_queue');
+            //
+            if(this.ticks_stat.number % 100 != 0) {
+                this.chunks.checkDestroyMap();
+                this.ticks_stat.add('maps_clear');
+            }
+            //
+            this.ticks_stat.end();
         }
-        this.ticks_stat.add('players');
-        // 4.
-        for (let [_, drop_item] of this.all_drop_items) {
-            drop_item.tick(delta);
-        }
-        this.ticks_stat.add('drop_items');
-        // 6.
-        await this.packet_reader.queue.process();
-        this.ticks_stat.add('packet_reader_queue');
-        //
-        this.packets_queue.send();
-        this.ticks_stat.add('packets_queue_send');
-        //
-        await this.actions_queue.run();
-        this.ticks_stat.add('actions_queue');
-        //
-        if(this.ticks_stat.number % 100 != 0) {
-            this.chunks.checkDestroyMap();
-            this.ticks_stat.add('maps_clear');
-        }
-        //
-        this.ticks_stat.end();
         //
         const elapsed = performance.now() - started;
         setTimeout(async () => {
             await this.tick();
         },
-            elapsed < 50 ? (50 - elapsed) : 0
+            elapsed < 50 ? (50 - elapsed) : 1
         );
     }
 
@@ -430,7 +451,7 @@ export class ServerWorld {
                 let all = [];
                 const create_block_list = [];
                 for (let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToDBItem(params.item);
+                    params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
                         modified_chunks.set(chunk_addr.clone(), true);
@@ -575,7 +596,7 @@ export class ServerWorld {
         if(actions.put_in_backet) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
-            if(currentInventoryItem && currentInventoryItem.id == BLOCK.BUCKET_EMPTY.id) {
+            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET_EMPTY.id) {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_backet;
                 // send new inventory state to player
@@ -758,6 +779,19 @@ export class ServerWorld {
         this.sendUpdatedInfo();
         this.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, this.players.keys());
         return true;
+    }
+
+    /**
+     * Set world global weather
+     * @param {Weather} weather 
+     */
+    setWeather(weather) {
+        this.weather = weather;
+        //
+        this.sendAll([{
+            name: ServerClient.CMD_SET_WEATHER,
+            data: weather
+        }], []);
     }
 
 }

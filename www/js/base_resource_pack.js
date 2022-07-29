@@ -21,7 +21,7 @@ export class BaseResourcePack {
     async init(manager) {
         this.manager = manager;
 
-        let dir = this.dir;
+        const dir = (manager.settings?.resource_packs_basedir || '') + this.dir;
 
         return Promise.all([
             Helpers.fetchJSON(dir + '/conf.json', true, 'rp'),

@@ -1,12 +1,11 @@
-import { v4 as uuid } from 'uuid';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
 import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
 
 export class DBWorldMob {
 
-    constructor(db, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
-        this.db = db;
+    constructor(conn, world, getDefaultPlayerStats, getDefaultPlayerIndicators) {
+        this.conn = conn;
         this.world = world;
         this.getDefaultPlayerStats = getDefaultPlayerStats;
         this.getDefaultPlayerIndicators = getDefaultPlayerIndicators;
@@ -59,7 +58,7 @@ export class DBWorldMob {
     async initChunksWithMobs() {
         this.chunks_with_mobs = new VectorCollector();
         this._mobs = new Map();
-        let rows = await this.db.all(`SELECT entity_id, x, y, z, is_active, is_dead /* DISTINCT
+        let rows = await this.conn.all(`SELECT entity_id, x, y, z, is_active, is_dead /* DISTINCT
             cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
             cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
             cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
@@ -79,7 +78,7 @@ export class DBWorldMob {
         }
         // if(!globalThis.sdfgdhj) globalThis.sdfgdhj = 0;
         // console.log(++globalThis.sdfgdhj);
-        const rows = await this.db.all('SELECT * FROM entity WHERE is_active = 1 AND is_dead = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.conn.all('SELECT * FROM entity WHERE is_active = 1 AND is_dead = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -96,7 +95,7 @@ export class DBWorldMob {
 
     // Load mob
     async load(entity_id) {
-        const rows = await this.db.all('SELECT * FROM entity WHERE entity_id = :entity_id', {
+        const rows = await this.conn.all('SELECT * FROM entity WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
         for(let row of rows) {
@@ -107,7 +106,7 @@ export class DBWorldMob {
 
     // Activate mob
     async activateMob(entity_id, pos, rotate) {
-        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = :is_active, pos_spawn = :pos_spawn, rotate = :rotate WHERE entity_id = :entity_id AND is_dead = 0', {
+        const result = await this.conn.run('UPDATE entity SET x = :x, y = :y, z = :z, is_active = :is_active, pos_spawn = :pos_spawn, rotate = :rotate WHERE entity_id = :entity_id AND is_dead = 0', {
             ':x': pos.x,
             ':y': pos.y,
             ':z': pos.z,
@@ -121,11 +120,11 @@ export class DBWorldMob {
 
     // Create mob
     async create(params) {
-        const entity_id = uuid();
+        const entity_id = randomUUID();
         if(!('pos' in params)) {
             throw 'error_no_mob_pos';
         }
-        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
+        const result = await this.conn.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
             ':type':            params.type,
@@ -138,8 +137,18 @@ export class DBWorldMob {
             ':y':               params.pos.y,
             ':z':               params.pos.z
         });
+        // lastID
+        let lastID = result.lastID;
+        if(!lastID) {
+            const row = await this.conn.get('SELECT id AS lastID FROM entity WHERE entity_id = :entity_id', {
+                ':entity_id': entity_id
+            });
+            lastID = row.lastID;
+        }
+        lastID = parseInt(lastID);
+        //
         const resp = {
-            id:         result.lastID,
+            id:         lastID,
             entity_id:  entity_id,
             pos_spawn:  params.pos.clone(),
             is_active:  true
@@ -152,7 +161,7 @@ export class DBWorldMob {
     async save(mob) {
         const is_dead = mob.indicators.live.value > 0 ? 0 : 1;
         const is_active = mob.is_active ? 1 : 0;
-        await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, is_dead = :is_dead, extra_data = :extra_data WHERE entity_id = :entity_id', {
+        await this.conn.run('UPDATE entity SET x = :x, y = :y, z = :z, indicators = :indicators, is_active = :is_active, is_dead = :is_dead, extra_data = :extra_data WHERE entity_id = :entity_id', {
             ':x': mob.pos.x,
             ':y': mob.pos.y,
             ':z': mob.pos.z,
@@ -167,7 +176,7 @@ export class DBWorldMob {
 
     // chunkMobsIsGenerated...
     async chunkMobsIsGenerated(chunk_addr_hash) {
-        let row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+        let row = await this.conn.get("SELECT * FROM chunk WHERE addr = :addr", {
             ':addr': chunk_addr_hash
         });
         if(!row) {
@@ -178,16 +187,16 @@ export class DBWorldMob {
 
     // chunkMobsSetGenerated...
     async chunkMobsSetGenerated(chunk_addr_hash, mobs_is_generated) {
-        let exist_row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+        let exist_row = await this.conn.get("SELECT * FROM chunk WHERE addr = :addr", {
             ':addr': chunk_addr_hash
         });
         if(exist_row) {
-            await this.db.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
+            await this.conn.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
                 ':addr':                chunk_addr_hash,
                 ':mobs_is_generated':   mobs_is_generated
             });
         } else {
-            await this.db.run('INSERT INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
+            await this.conn.run('INSERT INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
                 ':dt':                  ~~(Date.now() / 1000),
                 ':addr':                chunk_addr_hash,
                 ':mobs_is_generated':   mobs_is_generated

@@ -419,7 +419,6 @@ export class BLOCK {
                             throw 'error_generator_min_max_not_set';
                         }
                         extra_data[g.name] = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
-                        console.log(g.name, extra_data[g.name], g);
                         break;
                     }
                     case 'random_item': {

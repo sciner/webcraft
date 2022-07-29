@@ -1,4 +1,4 @@
-import { QUAD_FLAGS, Vector } from '../helpers.js';
+import { Color, QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
@@ -9,9 +9,13 @@ const axisx_offset      = 3;
 const axisy_offset      = 6;
 const uv_size_offset    = 11;
 const lm_offset         = 13;
+const params_offset     = 4;
+const scale_offset      = 15;
 const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
 const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 const MIN_PERCENT       = .25;
+
+const DEFAULT_LM        = new Color(0, 0, 0, 0);
 
 export class Particles_Effects extends Particles_Base {
 
@@ -45,29 +49,33 @@ export class Particles_Effects extends Particles_Base {
     // Add particle
     add(pos, params) {
 
-        const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA;
+        const flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
         const {x, y, z} = pos;
 
+        const lm = params.lm || DEFAULT_LM;
+
         const c = [
-            (params.texture[0] + 0.5) / this.tx_cnt,
-            (params.texture[1] + 0.5) / this.tx_cnt,
-            1 / this.tx_cnt,
-            1 / this.tx_cnt
+            params.texture[0] / this.tx_cnt,
+            params.texture[1] / this.tx_cnt,
+            (params.texture[2] || 1) / this.tx_cnt,
+            (params.texture[3] || 1) / this.tx_cnt
         ];
+
+        const size_x = params.texture[2] || 1;
+        const size_z = params.texture[3] || 1;
+
         const vertices = [
             x+.5 - this.chunk_coord.x, z+.5 - this.chunk_coord.z, y+.5 - this.chunk_coord.y,
-            -1, 0, 0,
-            0, 0, -1,
+            -size_x, 0, 0,
+            0, 0, -size_z,
             ...c,
-            0,
-            0,
-            0,
+            lm.r, lm.g, lm.b,
             flags
         ];
 
         //
         const vindex = this.add_index * STRIDE_FLOATS;
-        if(this.vertices[vindex + lm_offset]) {
+        if(this.vertices[vindex + params_offset]) {
             Particles_Effects.current_count--;
             this.p_count--;
         }
@@ -76,12 +84,11 @@ export class Particles_Effects extends Particles_Base {
             this.buffer.data[vindex + i] = vertices[i];
             this.vertices[vindex + i] = vertices[i];
         }
-        // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
         //
         params.min_percent = ('min_percent' in params) ? params.min_percent : MIN_PERCENT;
         params.started = performance.now();
         params.pend = params.started + 1000 * params.life;
-        this.vertices[vindex + lm_offset] = params;
+        this.vertices[vindex + params_offset] = params;
         Particles_Effects.current_count++;
         this.p_count++;
 
@@ -110,7 +117,7 @@ export class Particles_Effects extends Particles_Base {
         // Reset inactive particles
         if(!this.last_reset || (performance.now() - this.last_reset > 1000)) {
             for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
-                const params = vertices[i + lm_offset];
+                const params = vertices[i + params_offset];
                 if(!params) {
                     continue;
                 }
@@ -130,7 +137,7 @@ export class Particles_Effects extends Particles_Base {
         //
         for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
 
-            const params = vertices[i + lm_offset];
+            const params = vertices[i + params_offset];
             if(!params) {
                 continue;
             }
@@ -159,8 +166,8 @@ export class Particles_Effects extends Particles_Base {
                 addZ = (pn - params.started) * params.speed.z / 1000 * params.gravity;
             }
 
-            // Change vertices data
-            data[i + lm_offset] = scale; // remove params object from data and store scale in R argument
+            data[i + 3] = this.vertices[i + 3] * scale;
+            data[i + 8] = this.vertices[i + 8] * scale;
 
             if(addX != 0) {
                 data[ap + 0] = vertices[ap + 0] + addX;

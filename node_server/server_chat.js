@@ -36,16 +36,32 @@ export class ServerChat {
     }
 
     // sendSystemChatMessageToSelectedPlayers...
-    sendSystemChatMessageToSelectedPlayers(text, selected_players) {
+    sendSystemChatMessageToSelectedPlayers(text, selected_players, as_table = false) {
+        // send as table
+        if(as_table) {
+            let max_length = 0;
+            for(let [k, v] of Object.entries(text)) {
+                if(k.length > max_length) {
+                    max_length = k.length;
+                }
+            }
+            for(let [k, v] of Object.entries(text)) {
+                k = k.padEnd(max_length + 5, '.');
+                this.sendSystemChatMessageToSelectedPlayers(k + ': ' + v, selected_players);
+            }
+            return;
+        }
+        //
         if(typeof text == 'object' && 'message' in text) {
             text = text.message;
         }
-        let packets = [
+        const packets = [
             {
                 name: ServerClient.CMD_CHAT_SEND_MESSAGE,
                 data: {
                     username: '<MadCraft>',
-                    text: text
+                    text: text,
+                    is_system: true
                 }
             }
         ];
@@ -153,7 +169,24 @@ export class ServerChat {
                     player.teleport({place_id: null, pos: pos});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
-                    player.teleport({place_id: args[1], pos: null});
+                    if(args[1].startsWith('@')) {
+                        // teleport to another player
+                        player.teleport({p2p: {from: player.session.username, to: args[1].substring(1)}, pos: null});
+                    } else {
+                        // teleport by place id or to another player
+                        player.teleport({place_id: args[1], pos: null});
+                    }
+                } else if (args.length == 3) {
+                    // teleport to another player
+                    if(!this.world.admins.checkIsAdmin(player)) {
+                        throw 'error_not_permitted';
+                    }
+                    args = this.parseCMD(args, ['string', 'string', 'string']);
+                    if(args[1].startsWith('@') && args[2].startsWith('@')) {
+                        player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null});
+                    } else {
+                        throw 'error_invalid_arguments';
+                    }
                 } else {
                     throw 'error_invalid_arguments_count';
                 }
@@ -170,13 +203,15 @@ export class ServerChat {
             }
             case '/tps2': {
                 console.log(this.world.ticks_stat);
+                const table = {};
                 for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
                     let temp = [];
                     for(let [vk, vv] of Object.entries(v)) {
                         temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
                     }
-                    this.sendSystemChatMessageToSelectedPlayers(k + ': ' + temp.join('; '), [player.session.user_id]);
+                    table[k] = temp.join('; ');
                 }
+                this.sendSystemChatMessageToSelectedPlayers(table, [player.session.user_id], true);
                 break;
             }
             case '/sysstat': {
@@ -184,12 +219,12 @@ export class ServerChat {
                     mobs_count: this.world.mobs.count(),
                     drop_items: this.world.all_drop_items.size,
                     players: this.world.players.size,
+                    chunks: this.world.chunkManager.all.size,
+                    net_in: this.world.network_stat.in + ` (cnt: ${this.world.network_stat.in_count})`,
+                    net_out: this.world.network_stat.out + ` (cnt: ${this.world.network_stat.out_count})`,
+                    working_time: Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
                 };
-                let temp = [];
-                for(let [k, v] of Object.entries(stat)) {
-                    temp.push(k + ': ' + v);
-                }
-                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers(stat, [player.session.user_id], true);
                 break;
             }
             case '/spawnpoint': {
@@ -223,10 +258,6 @@ export class ServerChat {
                break;
             }
             case '/clear':
-            case '/obj':
-            case '/weather': {
-                break;
-            }
             default: {
                 let ok = false;
                 for(let plugin_callback of this.onCmdCallbacks) {

@@ -178,10 +178,107 @@ export function getChunkAddr(x, y, z, v = null) {
     return v;
 }
 
+// VectorCollectorFlat...
+export class VectorCollectorFlat {
+
+    constructor(list) {
+        this.clear(list);
+        this.flat = [];//new Array(32768);
+        this.free_indexes = [];
+    }
+
+    *[Symbol.iterator]() {
+        for(let i = 0; i < this.flat.length; i++) {
+            const chunk = this.flat[i];
+            if(chunk) yield chunk;
+        }
+    }
+
+    entries(aabb) {
+        const that = this;
+        return (function* () {
+            if(that.size == 0) {
+                return;
+            }
+            const vec = new Vector(0, 0, 0);
+            for (let [xk, x] of that.list) {
+                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
+                for (let [yk, y] of x) {
+                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
+                    for (let [zk, value] of y) {
+                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
+                        vec.set(xk|0, yk|0, zk|0);
+                        yield [vec, value];
+                    }
+                }
+            }
+        })()
+    }
+
+    clear(list) {
+        this.list = list ? list : new Map();
+        this.size = 0;
+        this.free_indexes = [];
+        this.flat = [];
+    }
+
+    set(vec, chunk) {
+        return this.add(vec, chunk);
+    }
+
+    add(vec, chunk) {
+
+        this.delete(vec);
+
+        // work with flat
+        const index = (this.free_indexes.length > 0) ? this.free_indexes.pop() : this.flat.length;
+        this.flat[index] = chunk;
+        if(index == undefined) debugger;
+        chunk._flat_index = index;
+
+        //
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            if (typeof chunk === 'function') {
+                chunk = chunk(vec);
+            }
+            this.list.get(vec.x).get(vec.y).set(vec.z, chunk);
+            this.size++;
+        }
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    delete(vec) {
+        const chunk_map = this.list?.get(vec.x)?.get(vec.y);
+        const chunk = chunk_map?.get(vec.z);
+        if(chunk) {
+            // work with flat
+            this.flat[chunk._flat_index] = null;
+            if(chunk._flat_index === undefined) {
+                debugger
+            }
+            this.free_indexes.push(chunk._flat_index);
+            //
+            chunk_map.delete(vec.z)
+            this.size--;
+            return true;
+        }
+        return false;
+    }
+
+    has(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
+    }
+
+    get(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
+    }
+
+}
+
 // VectorCollector...
 export class VectorCollector {
-
-    static sets = 0;
 
     constructor(list) {
         this.clear(list);
@@ -216,10 +313,6 @@ export class VectorCollector {
                 }
             }
         })()
-    }
-
-    kvpIterator(aabb) {
-        return this.entries(aabb);
     }
 
     clear(list) {
@@ -264,17 +357,10 @@ export class VectorCollector {
 
     has(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
-        //if(!this.list.has(vec.x)) return false;
-        //if(!this.list.get(vec.x).has(vec.y)) return false;
-        //if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
-        //return true;
     }
 
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
-        // if(!this.list.has(vec.x)) return null;
-        // if(!this.list.get(vec.x).has(vec.y)) return null;
-        // if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
     }
 
     keys() {
@@ -301,19 +387,6 @@ export class VectorCollector {
         if(this.size < max_size) {
             return false;
         }
-        /*
-        let keys = Object.keys(this.maps_cache);
-        if(keys.length > MAX_ENTR) {
-            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
-            console.info('Clear maps_cache, del_count: ' + del_count);
-            for(let key of keys) {
-                if(--del_count == 0) {
-                    break;
-                }
-                delete(this.maps_cache[key]);
-            }
-        }
-        */
     }
 
 }
@@ -987,7 +1060,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.NO_FOG = 1 << 3;
     QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
     QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
-    QUAD_FLAGS.TEXTURE_SCROLL = 1 << 6;
+    QUAD_FLAGS.FLAG_TEXTURE_SCROLL = 1 << 6;
     QUAD_FLAGS.NO_CAN_TAKE_AO = 1 << 7;
     QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
     QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
@@ -1256,12 +1329,16 @@ export class Helpers {
 
 // Make fetch functions
 if(typeof fetch === 'undefined') {
-    eval(`Helpers.fetch = async (url) => import(url);
+    // Hello eval ;)
+    const code = `Helpers.fetch = async (url) => import(url);
     Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
         let binary = fs.readFileSync(url);
         return binary.buffer;
-    };`);
+    };`;
+    var obj = Helpers;
+    var func = new Function("Helpers", "window", "'use strict';" + code);
+    func.call(obj, obj, obj);
 } else {
     Helpers.fetch = async (url) => fetch(url);
     Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {

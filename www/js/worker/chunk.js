@@ -11,7 +11,6 @@ import GeometryTerrain from "../geometry_terrain.js";
 import {pushTransformed} from '../block_style/extruder.js';
 
 // Constants
-const DIRTY_REBUILD_RAD = 1;
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
 
 // ChunkManager

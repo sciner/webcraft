@@ -1,22 +1,22 @@
 import { Helpers } from "./helpers.js";
 
 export const COLOR_PALETTE = {
-    white: [0, 0],      // Белая керамика - white_terracotta
-    orange: [2, 1],     // Оранжевая керамика - orange_terracotta
-    magenta: [2, 3],    // Сиреневая керамика - magenta_terracotta
-    light_blue: [3, 2], // Светло-синяя керамика - light_blue_terracotta
-    yellow: [3, 1],     // Жёлтая керамика - yellow_terracotta
-    lime: [0, 2],       // Лаймовая керамика - lime_terracotta
-    pink: [3, 3],       // Розовая керамика - pink_terracotta
-    gray: [2, 0],       // Серая керамика - gray_terracotta
-    light_gray: [1, 0], // Светло-серая керамика - light_gray_terracotta
-    cyan: [2, 2],       // Бирюзовая керамика - cyan_terracotta
-    purple: [1, 3],     // Фиолетовая керамика - purple_terracotta
-    blue: [0, 3],       // Синяя керамика - blue_terracotta
-    brown: [0, 1],      // Коричневая керамика - brown_terracotta
-    green: [1, 2],      // Зелёная керамика - green_terracotta
-    red: [1, 1],        // Красная керамика - red_terracotta
-    black: [3, 0],      // Чёрная керамика - black_terracotta
+    white: [0, 0],      // Белая - white_terracotta
+    orange: [2, 1],     // Оранжевая - orange_terracotta
+    magenta: [2, 3],    // Сиреневая - magenta_terracotta
+    light_blue: [3, 2], // Светло-синяя - light_blue_terracotta
+    yellow: [3, 1],     // Жёлтая - yellow_terracotta
+    lime: [0, 2],       // Лаймовая - lime_terracotta
+    pink: [3, 3],       // Розовая - pink_terracotta
+    gray: [2, 0],       // Серая - gray_terracotta
+    light_gray: [1, 0], // Светло-серая - light_gray_terracotta
+    cyan: [2, 2],       // Бирюзовая - cyan_terracotta
+    purple: [1, 3],     // Фиолетовая - purple_terracotta
+    blue: [0, 3],       // Синяя - blue_terracotta
+    brown: [0, 1],      // Коричневая - brown_terracotta
+    green: [1, 2],      // Зелёная - green_terracotta
+    red: [1, 1],        // Красная - red_terracotta
+    black: [3, 0],      // Чёрная - black_terracotta
 };
 
 export class Resources {
@@ -64,14 +64,16 @@ export class Resources {
         this.sounds             = {};
         this.sound_sprite_main  = {};
         this.weather            = {};
+        this.blockDayLight      = null;
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
-        
+
         let all = [];
 
         // Others
+        all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
         all.push(loadImage('media/rain.png').then((img) => { this.weather.rain = img}));
         all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
@@ -102,7 +104,7 @@ export class Resources {
         // Shader blocks
 
         if (settings.wgsl) {
-            // not supported 
+            // not supported
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
@@ -146,7 +148,7 @@ export class Resources {
             percent:    0
         };
         for (const p of all) {
-            p.then(()=> {    
+            p.then(()=> {
                 d ++;
                 this.progress.loaded = d;
                 this.progress.percent = (d * 100) / all.length;
@@ -161,7 +163,7 @@ export class Resources {
 
     /**
      * Parse shader.blocks file defenition
-     * @param {string} text 
+     * @param {string} text
      * @param {{[key: string]: string}} blocks
      */
     static async parseShaderBlocks(text, blocks = {}) {
@@ -184,7 +186,7 @@ export class Resources {
 
             const source = lines.map((e) => {
                 return e.startsWith('    ') // remove first tab (4 space)
-                    ? e.substring(4).trimEnd() 
+                    ? e.substring(4).trimEnd()
                     : e.trimEnd();
             }).join('\n');
 
@@ -228,7 +230,7 @@ export class Resources {
     static loadTextFile(url, json = false) {
         return fetch(url).then(response => json ? response.json() : response.text());
     }
-    
+
     static loadImage(url,  imageBitmap) {
         if (imageBitmap) {
             return fetch(url)
@@ -284,7 +286,7 @@ export class Resources {
 
     static async loadJsonModel(dataModel, key, baseUrl) {
         const asset = await Resources.loadTextFile(baseUrl + dataModel.geom, true);
-    
+
         asset.type = dataModel.type;
         asset.source = dataModel;
         asset.key = key;
@@ -304,7 +306,7 @@ export class Resources {
 
             return asset.skins[id] = image;
         }
-    
+
         return asset;
     }
 
@@ -326,143 +328,22 @@ export class Resources {
 
     // Load supported block styles
     static async loadBlockStyles(settings) {
-        let resp = new Set();
-        let all = [];
-        let json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
-        
+        const resp = new Set();
+        const all = [];
+        const json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
         await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module
-                /*
-                all.push(import('./block_style/' + code + '.js').then(module => {
+                all.push(import(`./block_style/${code}.js`).then(module => {
                     resp.add(module.default);
-                }));*/
-               
-                switch (code) {
-                    case 'azalea':
-                        all.push( import('./block_style/azalea.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;   
-                    case 'bamboo':
-                        all.push( import('./block_style/bamboo.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;  
-                    case 'bed':
-                        all.push(import('./block_style/bed.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;   
-                    case 'cake':
-                        all.push(import('./block_style/cake.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;
-                    case 'campfire':
-                        all.push(import('./block_style/campfire.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;   
-                    case 'cocoa':
-                        all.push(import('./block_style/cocoa.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'cube':
-                        all.push(import('./block_style/cube.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'door':
-                        all.push(import('./block_style/door.js').then(module => {resp.add(module.default);}));
-                        break; 
-                    case 'extruder':
-                        all.push(import('./block_style/extruder.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'fence':
-                        all.push(import('./block_style/fence.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'ladder':
-                        all.push(import('./block_style/ladder.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'lantern':
-                        all.push(import('./block_style/lantern.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'painting':
-                        all.push(import('./block_style/painting.js').then(module => {resp.add(module.default);}));
-                        break;  
-                    case 'pane':
-                        all.push(import('./block_style/pane.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'plane':
-                        all.push(import('./block_style/plane.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'planting':
-                        all.push(import('./block_style/planting.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'pot':
-                        all.push(import('./block_style/pot.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'redstone':
-                        all.push( import('./block_style/redstone.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'sign':
-                        all.push(import('./block_style/sign.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'stairs':
-                        all.push(import('./block_style/stairs.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'text':
-                        all.push(import('./block_style/text.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'thin':
-                        all.push(import('./block_style/thin.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'torch':
-                        all.push(import('./block_style/torch.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'trapdoor':
-                        all.push(import('./block_style/trapdoor.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'triangle':
-                        all.push(import('./block_style/triangle.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'wall':
-                        all.push(import('./block_style/wall.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'item_frame':
-                        all.push(import('./block_style/item_frame.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'candle':
-                        all.push(import('./block_style/candle.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'end_rod':
-                        all.push(import('./block_style/end_rod.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'banner':
-                        all.push(import('./block_style/banner.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'fence_gate':
-                        all.push(import('./block_style/fence_gate.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'rails':
-                        all.push(import('./block_style/rails.js').then(module => {resp.add(module.default);}));
-                        break;
-                    case 'default':
-                        all.push(import('./block_style/default.js').then(module => {resp.add(module.default);}));
-                        break;
-                        /*
-                    default:
-                        all.push(import('./block_style/' + code + '.js').then(module => {
-                            resp.add(module.default);
-                        }));
-                        break;*/
-                
+                }));
             }
-        }
         });
         await Promise.all(all).then(() => { return this; });
         return resp;
     }
 
-  
+
     // Load skins
     static async loadSkins() {
         const resp = [];

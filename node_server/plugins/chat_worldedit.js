@@ -81,6 +81,10 @@ export default class WorldEdit {
             msg += `. Selected ${volume} blocks`;
         }
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        //
+        let actions = new PickatActions(null, null, true, false/*, false*/);
+        actions.addBlocks([{pos: player.pos1, item: {id: BLOCK.NUM1.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        chat.world.actions_queue.add(null, actions);
     }
 
     /**
@@ -98,6 +102,10 @@ export default class WorldEdit {
             msg += `. Selected ${volume} blocks`;
         }
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        //
+        let actions = new PickatActions(null, null, true, false/*, false*/);
+        actions.addBlocks([{pos: player.pos2, item: {id: BLOCK.NUM2.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        chat.world.actions_queue.add(null, actions);
     }
 
     /**

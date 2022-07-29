@@ -97,7 +97,7 @@ export class  BIOMES {
             plants: {
                 frequency: .005,
                 list: [
-                    {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
+                    {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
         };
@@ -120,7 +120,7 @@ export class  BIOMES {
             plants: {
                 frequency: TREE_FREQUENCY / 1,
                 list: [
-                    {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
+                    {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
         };
@@ -148,11 +148,12 @@ export class  BIOMES {
             plants: {
                 frequency: .8,
                 list: [
-                    {percent: .6, block: {id: BLOCK.OAK_LEAVES.id}},
-                    {percent: .37, block: {id: BLOCK.GRASS.id}},
-                    {percent: .01, block: {id: BLOCK.RED_TULIP.id}},
-                    {percent: .005, block: {id: BLOCK.MELON.id}},
-                    {percent: .005, block: {id: BLOCK.DANDELION.id}}
+                    {percent: .600, blocks: [{id: BLOCK.OAK_LEAVES.id}]},
+                    {percent: .327, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .053, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .010, blocks: [{id: BLOCK.RED_TULIP.id}]},
+                    {percent: .005, blocks: [{id: BLOCK.MELON.id}]},
+                    {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
         };
@@ -176,9 +177,10 @@ export class  BIOMES {
             plants: {
                 frequency: .5,
                 list: [
-                    {percent: .98, block: {id: BLOCK.GRASS.id}},
-                    {percent: .01, block: {id: BLOCK.RED_TULIP.id}},
-                    {percent: .01, block: {id: BLOCK.DANDELION.id}}
+                    {percent: .84, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .14, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .01, blocks: [{id: BLOCK.RED_TULIP.id}]},
+                    {percent: .01, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
         };
@@ -201,7 +203,7 @@ export class  BIOMES {
             plants: {
                 frequency: TREE_FREQUENCY / 1,
                 list: [
-                    {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
+                    {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
         };
@@ -240,12 +242,13 @@ export class  BIOMES {
             plants: {
                 frequency: .65,
                 list: [
-                    {percent: .62, block: {id: BLOCK.GRASS.id}},
-                    {percent: .3, block: {id: BLOCK.FERN.id}},
-                    {percent: .001, block: {id: BLOCK.BROWN_MUSHROOM.id}},
-                    {percent: .008, block: {id: BLOCK.SWEET_BERRY.id, extra_data: {'stage': 3, 'complete': true}}},
-                    {percent: .007, block: {id: BLOCK.DEAD_BUSH.id}},
-                    {percent: .011, block: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
+                    {percent: .578, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .095, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .300, blocks: [{id: BLOCK.FERN.id}]},
+                    {percent: .001, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
+                    {percent: .008, blocks: [{id: BLOCK.SWEET_BERRY.id, extra_data: {'stage': 3, 'complete': true}}]},
+                    {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
+                    {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
                 ]
             }
         };
@@ -307,7 +310,8 @@ export class  BIOMES {
             plants: {
                 frequency: .3,
                 list: [
-                    {percent: 1, block: {id: BLOCK.GRASS.id}}
+                    {percent: .858, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .142, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
         };
@@ -324,17 +328,18 @@ export class  BIOMES {
             plants: {
                 frequency: .5,
                 list: [
-                    {percent: .800, block: {id: BLOCK.GRASS.id}},
-                    {percent: .025, block: {id: BLOCK.RED_TULIP.id}},
-                    {percent: .025, block: {id: BLOCK.ALLIUM.id}},
-                    {percent: .025, block: {id: BLOCK.BLUE_ORCHID.id}},
-                    {percent: .025, block: {id: BLOCK.OXEYE_DAISY.id}},
-                    {percent: .025, block: {id: BLOCK.LILY_OF_THE_VALLEY.id}},
-                    {percent: .025, block: {id: BLOCK.CORNFLOWER.id}},
-                    {percent: .025, block: {id: BLOCK.DANDELION.id}},
-                    {percent: .015, block: {id: BLOCK.PUMPKIN.id}},
-                    {percent: .011, block: [{id: BLOCK.PEONY.id}, {id: BLOCK.PEONY.id, extra_data: {is_head: true}}]},
-                    {percent: .014, block: [{id: BLOCK.LILAC.id}, {id: BLOCK.LILAC.id, extra_data: {is_head: true}}]}
+                    {percent: .670, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .115, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .025, blocks: [{id: BLOCK.RED_TULIP.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.ALLIUM.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.BLUE_ORCHID.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.OXEYE_DAISY.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.LILY_OF_THE_VALLEY.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.CORNFLOWER.id}]},
+                    {percent: .025, blocks: [{id: BLOCK.DANDELION.id}]},
+                    {percent: .015, blocks: [{id: BLOCK.PUMPKIN.id}]},
+                    {percent: .011, blocks: [{id: BLOCK.PEONY.id}, {id: BLOCK.PEONY.id, extra_data: {is_head: true}}]},
+                    {percent: .014, blocks: [{id: BLOCK.LILAC.id}, {id: BLOCK.LILAC.id, extra_data: {is_head: true}}]}
                 ]
             },
             trees:      {
@@ -364,8 +369,9 @@ export class  BIOMES {
             plants: {
                 frequency: .3,
                 list: [
-                    {percent: .975, block: {id: BLOCK.GRASS.id}},
-                    {percent: .025, block: {id: BLOCK.RED_MUSHROOM.id}}
+                    {percent: .835, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .140, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .025, blocks: [{id: BLOCK.RED_MUSHROOM.id}]}
                 ]
             }
         };
@@ -412,7 +418,8 @@ export class  BIOMES {
             plants: {
                 frequency: .35,
                 list: [
-                    {percent: 1, block: {id: BLOCK.GRASS.id}}
+                    {percent: .855, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .145, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
         };
@@ -437,9 +444,10 @@ export class  BIOMES {
             plants: {
                 frequency: .75,
                 list: [
-                    {percent: .1, block: {id: BLOCK.RED_MUSHROOM.id}},
-                    {percent: .1, block: {id: BLOCK.BROWN_MUSHROOM.id}},
-                    {percent: .7, block: {id: BLOCK.GRASS.id}}
+                    {percent: .1, blocks: [{id: BLOCK.RED_MUSHROOM.id}]},
+                    {percent: .1, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
+                    {percent: .685, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .115, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
         };

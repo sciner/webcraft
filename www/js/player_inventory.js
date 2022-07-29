@@ -9,8 +9,7 @@ import { INVENTORY_ICON_COUNT_PER_TEX } from "./chunk_const.js";
 export class PlayerInventory extends Inventory {
 
     constructor(player, state, hud) {
-        super(null, {current: {index: 0, index2: -1}, items: []});
-        this.player         = player;
+        super(player, {current: {index: 0, index2: -1}, items: []});
         this.hud            = hud;
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);

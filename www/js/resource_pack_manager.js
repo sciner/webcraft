@@ -11,6 +11,9 @@ export class ResourcePackManager {
 
     // init
     async init(settings) {
+
+        this.settings = settings;
+
         const json              = await Resources.loadResourcePacks(settings);
         const def_resource_pack = json.base;
         const resource_packs    = new Set();

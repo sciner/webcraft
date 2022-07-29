@@ -411,20 +411,12 @@ export default class style {
             const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
-            if(!force_tex) {
-                t[2] *= -1;
-                t[3] *= -1;
-            }
             sides.north = _sides.north.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
             const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
-            if(!force_tex) {
-                t[2] *= -1;
-                t[3] *= -1;
-            }
             sides.west = _sides.west.set(t,  flags | sideFlags | animFlag, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {

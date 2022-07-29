@@ -52,25 +52,28 @@ export default class style {
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
+        const pos = new Vector(x, y, z);
+        const active = block?.extra_data?.active;
+
         const textures = {
             fire:  BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // пламя
             stone:  BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN), // камень
             planks: BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN) // доски, угли
         };
 
-        worker.postMessage(['add_torch', {
-            block_pos: block.posworld,
-            pos: block.posworld,
-            type: 'campfire'
-        }]);
+        // Add animations
+        if(active && typeof worker != 'undefined') {
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: [block.posworld],
+                type: 'campfire_flame'
+            }]);
+        }
 
         matrix = mat4.create();
         if(block.rotate) {
             mat4.rotateY(matrix, matrix, ((block.rotate.x - 1) / 4) * -(2 * Math.PI));
         }
-
-        const pos = new Vector(x, y, z);
-        const active = block?.extra_data?.active;
 
         const aabb_stone = new AABB();
         aabb_stone.set(
@@ -105,6 +108,7 @@ export default class style {
         if(active) {
             const chains = [];
             const flame_animations = BLOCK.getAnimations(block.material, 'up');
+            const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO;
             chains.push({
                 pos: pos,
                 width: 1,
@@ -112,7 +116,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: Math.PI / 4,
                 translate: [.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, flame_animations, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, flame_flags, flame_animations, null, null, true)},
                 anim: 8
             });
             chains.push({
@@ -122,7 +126,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: -Math.PI / 4,
                 translate: [-.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, QUAD_FLAGS.FLAG_ANIMATED, flame_animations, null, null, true)},
+                sides: {north: new AABBSideParams(textures.fire, flame_flags, flame_animations, null, null, true)},
                 anim: 8
             });
             style.pushChains(vertices, chains);
@@ -172,12 +176,12 @@ export default class style {
                 pivot,
                 item.matrix,
                 {
-                    up:     new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    down:   new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    south:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    north:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
-                    west:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
-                    east:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
+                    up:     new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    down:   new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    south:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    north:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    west:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    east:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
                 },
                 pos
             );

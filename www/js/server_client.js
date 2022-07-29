@@ -25,6 +25,10 @@ export class ServerClient {
     // Chat
     static CMD_CHAT_SEND_MESSAGE        = 40;
 
+    // World
+    static CMD_MODIFY_INDICATOR_REQUEST = 33;
+    static CMD_SET_WEATHER              = 38;
+
     // Players
     static CMD_PLAYER_JOIN              = 41;
     static CMD_PLAYER_LEAVE             = 42;
@@ -258,7 +262,7 @@ export class ServerClient {
                     extra_data: extra_data
                 });
                 //
-                chunkManager.torches.delete(pos);
+                chunkManager.animated_blocks.delete(pos);
                 //
                 if (chunkManager.use_light) {
                     const light         = material.light_power_number;
@@ -384,11 +388,7 @@ export class ServerClient {
 
     // Modify indicator request
     ModifyIndicator(indicator, value, comment) {
-        let data = {
-            indicator: indicator,
-            value: value,
-            comment: comment
-        }
+        const data = {indicator, value, comment}
         this.Send({name: ServerClient.CMD_MODIFY_INDICATOR_REQUEST, data: data});
     }
 

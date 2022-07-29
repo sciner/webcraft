@@ -130,12 +130,12 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c, 0, 1, null, null, true), // flag: 0, anim: 1 implicit 
-                down:   new AABBSideParams(c, 0, 1, null, null, true),
-                south:  new AABBSideParams(c, 0, 1, null, null, true),
-                north:  new AABBSideParams(c, 0, 1, null, null, true),
-                west:   new AABBSideParams(c, 0, 1, null, null, true),
-                east:   new AABBSideParams(c, 0, 1, null, null, true),
+                up:     new AABBSideParams(c, 0, 0, null, null, true), // flag: 0, anim: 1 implicit 
+                down:   new AABBSideParams(c, 0, 0, null, null, true),
+                south:  new AABBSideParams(c, 0, 0, null, null, true),
+                north:  new AABBSideParams(c, 0, 0, null, null, true),
+                west:   new AABBSideParams(c, 0, 0, null, null, true),
+                east:   new AABBSideParams(c, 0, 0, null, null, true),
             },
             new Vector(x, y, z)
         );

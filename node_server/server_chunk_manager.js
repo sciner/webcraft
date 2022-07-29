@@ -1,12 +1,10 @@
 import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
-import {BLOCK} from "../www/js/blocks.js";
-import {ALLOW_NEGATIVE_Y} from "../www/js/chunk_const.js";
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
-
-export const MAX_Y_MARGIN = 3;
+import { compressNearby } from "../www/js/packet_compressor.js";
 
 export class ServerChunkManager {
 
@@ -19,11 +17,11 @@ export class ServerChunkManager {
         this.invalid_chunks_queue   = [];
         //
         this.DUMMY = {
-            id:         BLOCK.DUMMY.id,
-            name:       BLOCK.DUMMY.name,
+            id:         world.block_manager.DUMMY.id,
+            name:       world.block_manager.DUMMY.name,
             shapes:     [],
-            properties: BLOCK.DUMMY,
-            material:   BLOCK.DUMMY,
+            properties: world.block_manager.DUMMY,
+            material:   world.block_manager.DUMMY,
             getProperties: function() {
                 return this.material;
             }
@@ -34,11 +32,13 @@ export class ServerChunkManager {
     // Init worker
     async initWorker() {
         this.worker_inited = false;
-        this.worker = new Worker('../www/js/chunk_worker.js');
-        this.worker.on('message', (data) => {
-            let cmd = data[0];
-            let args = data[1];
-            // console.log(`worker: ${cmd}`);
+        this.worker = new Worker(globalThis.__dirname + '/../www/js/chunk_worker.js');
+        const onmessage = (data) => {
+            if(data instanceof MessageEvent) {
+                data = data.data;
+            }
+            const cmd = data[0];
+            const args = data[1];
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
@@ -56,12 +56,17 @@ export class ServerChunkManager {
                     console.log(`Ignore worker command: ${cmd}`);
                 }
             }
-        });
-        let promise = new Promise((resolve, reject) => {
+        };
+        if('onmessage' in this.worker) {
+            this.worker.onmessage = onmessage;
+        } else {
+            this.worker.on('message', onmessage);
+        }
+        const promise = new Promise((resolve, reject) => {
             this.resolve_worker = resolve;
         });
         // Init webworkers
-        let world_info = this.world.info;
+        const world_info = this.world.info;
         const generator = world_info.generator;
         const world_seed = world_info.seed;
         const world_guid = world_info.guid;
@@ -170,7 +175,7 @@ export class ServerChunkManager {
             const added_vecs        = new VectorCollector();
             const chunk_render_dist = player.state.chunk_render_dist;
             const margin            = Math.max(chunk_render_dist + 1, 1);
-            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
 
             //
             const nearby = {
@@ -214,10 +219,11 @@ export class ServerChunkManager {
 
             // Send new chunks
             if(nearby.added.length + nearby.deleted.length > 0) {
-                // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
+                const nearby_compressed = compressNearby(nearby);
                 const packets = [{
+                    // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
                     name: ServerClient.CMD_NEARBY_CHUNKS,
-                    data: nearby
+                    data: nearby_compressed
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
