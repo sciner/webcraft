@@ -6430,6 +6430,27 @@
                 "up": "block/basalt_top.png",
                 "down": "block/basalt_top.png"
             }
+        },
+        {
+            "id": 26,
+            "name": "RAIL",
+            "style": "rails",
+            "transparent": true,
+            "passable": 1,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "up": "block/rail.png",
+                "down": "block/rail_corner.png"
+            },
+            "extra_data": {
+                "shape": 0
+            },
+            "tags": [
+                "no_drop_ao"
+            ]
         }
     ]
 }

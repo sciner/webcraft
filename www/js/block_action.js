@@ -5,6 +5,7 @@ import { BLOCK, FakeTBlock } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
+import { RailShape } from "./block_type/rail_shape.js";
 
 const _createBlockAABB = new AABB();
 
@@ -591,7 +592,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     let world_material      = world_block && world_block.id > 0 ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
-
+    
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
         console.log('error_empty_world_material', world_block.id, pos);
@@ -658,8 +659,11 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 4. Create
     if(e.createBlock) {
     
+       
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
+        
+        
         if(mat_block && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
@@ -780,6 +784,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                         id: 'frmEditSign',
                         args: {pos: new Vector(pos)}
                     };
+                }
+            }
+            // Pre place
+            for(let func of [prePlaceRail]) {
+                if(func(world, pos, new_item, actions)) {
+                    return actions;
                 }
             }
             //
@@ -1574,4 +1584,9 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
         actions.decrement = true;
     }
     return true;
+}
+
+// Place rail
+function prePlaceRail(world, pos, new_item, actions) {
+    return RailShape.place(world, pos, new_item, actions);
 }

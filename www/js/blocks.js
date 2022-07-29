@@ -168,26 +168,16 @@ class Block_Material {
 }
 
 // getBlockNeighbours
-function getBlockNeighbours(world, pos) {
-    const neighbours = {
-        UP: null,
-        DOWN: null,
-        SOUTH: null,
-        NORTH: null,
-        WEST: null,
-        EAST: null
-    };
+export function getBlockNeighbours(world, pos) {
     let v = new Vector(0, 0, 0);
-    // обходим соседние блоки
-    for(let i = 0; i < 6; i ++) {
-        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
-        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
-        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
-        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
-        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
-        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
-    }
-    return neighbours;
+    return neighbours = {
+        UP:     world.getBlock(v.set(pos.x, pos.y + 1, pos.z)),
+        DOWN:   world.getBlock(v.set(pos.x, pos.y - 1, pos.z)),
+        SOUTH:  world.getBlock(v.set(pos.x, pos.y, pos.z - 1)),
+        NORTH:  world.getBlock(v.set(pos.x, pos.y, pos.z + 1)),
+        WEST:   world.getBlock(v.set(pos.x - 1, pos.y, pos.z)),
+        EAST:   world.getBlock(v.set(pos.x + 1, pos.y, pos.z))
+    };
 }
 
 export class BLOCK {
@@ -542,7 +532,7 @@ export class BLOCK {
             block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';
