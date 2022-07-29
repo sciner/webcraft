@@ -222,6 +222,21 @@ export class DBGame {
         return result;
     }
 
+    // Delete world from my list
+    async DeleteWorld(user_id, guid) {
+        const row = await this.conn.get('SELECT id FROM world WHERE guid = :guid', {
+            ':guid': guid
+        });
+        if(!row) {
+            throw 'error_world_not_found';
+        }
+        const world_id = row.id;
+        await this.conn.run('DELETE FROM world_player WHERE user_id = :user_id AND world_id = :world_id', {
+            ':user_id': user_id,
+            ':world_id': world_id
+        });
+    }
+
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
         const guid = randomUUID();

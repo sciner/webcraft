@@ -11,12 +11,12 @@ export class SkinManager {
         this.loading    = true;
     }
 
-    open() {
-        this.$scope.current_window.show('skin');
+    toggle() {
+        this.$scope.current_window.toggle('skin');
     }
-    
+
     close() {
-        this.$scope.current_window.show('main');
+        this.toggle();
     }
 
     next() {

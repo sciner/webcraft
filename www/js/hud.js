@@ -29,12 +29,6 @@ export class HUD {
         canvas.id                       = 'cnvHUD';
         canvas.width                    = width;
         canvas.height                   = height;
-        canvas.style.position           = 'fixed';
-        // canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
-        canvas.style.zIndex             = 0;
-        canvas.style.pointerEvents      = 'none';
-        canvas.style.width              = '100vw';
-        canvas.style.height             = '100vh';
         this.ctx                        = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
         document.body.appendChild(this.canvas);

@@ -38,6 +38,12 @@ export class ServerAPI {
                 const resp = await Game.db.MyWorlds(session.user_id);
                 return resp;
             }
+            case '/api/Game/DeleteWorld': {
+                const world_guid = params.world_guid;
+                const session = await Game.db.GetPlayerSession(session_id);
+                const resp = await Game.db.DeleteWorld(session.user_id, world_guid);
+                return resp;
+            }
             case '/api/Game/Online': {
                 const session = await Game.db.GetPlayerSession(session_id);
                 ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);

@@ -6,6 +6,7 @@ import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
+import { BgEffect } from './bg_effect.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -131,6 +132,13 @@ let gameCtrl = async function($scope, $timeout) {
             }
             this.id = id;
         },
+        toggle(id) {
+            if(this.id != id) {
+                this.show(id);
+            } else {
+                this.show('main');
+            }
+        },
         getTitle: function() {
             switch(this.id) {
                 case 'hello': {
@@ -249,8 +257,11 @@ let gameCtrl = async function($scope, $timeout) {
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));
         },
+        toggle: function() {
+            $scope.current_window.toggle('settings');
+        },
         load: function() {
-            let form = localStorage.getItem('settings');
+            const form = localStorage.getItem('settings');
             if(form) {
                 this.form = Object.assign(this.form, JSON.parse(form));
                 // fix texture_pack id
@@ -282,30 +293,63 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
+    // Delete world
+    $scope.DeleteWorld = function(world_guid) {
+        window.event.preventDefault();
+        window.event.stopPropagation();
+        if(!confirm(Lang.confirm_delete_world)) {
+            return false;
+        }
+        let world = null;
+        for(let w of $scope.mygames.list) {
+            if(w.guid == world_guid) {
+                world = w;
+                break;
+            }
+        }
+        if(!world) {
+            return Game.App.showError('error_world_not_found', 4000);
+        }
+        world.hidden = true;
+        $scope.App.DeleteWorld({world_guid}, () => {
+            vt.success(Lang.success_world_deleted);
+        }, (e) => {
+            $timeout(() => {
+                world.hidden = false;
+            });
+            vt.error(e.message);
+        });
+    };
+
     // Start world
     $scope.StartWorld = function(world_guid) {
         // Check session
-        let session = $scope.App.getSession();
+        const session = $scope.App.getSession();
         if(!session) {
             return;
         }
-        document.getElementById('main-pictures').remove();
-        document.getElementById('main-menu').remove();
+        document.getElementById('main-pictures')?.remove();
+        document.getElementById('topbar')?.remove();
+        document.getElementById('bg-canvas')?.remove();
+        document.getElementById('bg-circles_area')?.remove();
+        document.getElementById('main-menu')?.remove();
+        // stop background animation effect
+        $scope.bg?.stop();
         // Show Loading...
         Game.hud.draw();
-        $timeout(async function(){
+        $timeout(async function() {
             $scope.settings.save();
-            let server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
+            const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            let world = await $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
+            const world = await $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
             });
             if(!world.info) {
                 debugger;
             }
-            let player = new Player();
+            const player = new Player();
             player.JoinToWorld(world, () => {
                 Game.Started(player);
             });
@@ -323,22 +367,23 @@ let gameCtrl = async function($scope, $timeout) {
         shared_worlds: [],
         loading: false,
         load: function() {
-            let session = $scope.App.getSession();
+            const session = $scope.App.getSession();
             if(!session) {
                 return that.loadingComplete();
             }
-            var that = this;
+            const that = this;
             that.loading = true;
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
-                    that.shared_worlds = [];
                     that.list = worlds;
+                    /*
+                    that.shared_worlds = [];
                     for(let w of worlds) {
                         w.my = w.user_id == session.user_id;
                         if(!w.my) {
                             that.shared_worlds.push(w);
                         }
-                    }
+                    }*/
                     that.loading = false;
                     $scope.loadingComplete();
                 });
@@ -413,7 +458,7 @@ let gameCtrl = async function($scope, $timeout) {
                 {id: 'city', title: 'Город'},
                 {id: 'city2', title: 'Город 2'},
                 {id: 'flat', title: 'Плоский мир'},
-                {id: 'test_trees', title: 'Тестовые деревья'},
+                // {id: 'test_trees', title: 'Тестовые деревья'},
                 // {id: 'mine', title: 'Заброшенная шахта'}
             ],
             getCurrent: function() {
@@ -514,6 +559,9 @@ let gameCtrl = async function($scope, $timeout) {
             $scope.mygames.checkInvite();
         });
     });
+
+    //
+    $scope.bg = new BgEffect();
 
 }
 
