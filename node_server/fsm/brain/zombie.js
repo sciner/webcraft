@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 const FOLLOW_DISTANCE = 20;
@@ -76,7 +76,7 @@ export class Brain extends FSMBrain {
             if (this.timer_attack >= this.interval_attack) {
                 this.timer_attack = 0;
                 player.changeLive(-2);
-                const actions = new PickatActions();
+                const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
                 world.actions_queue.add(player, actions);
             }
@@ -122,7 +122,7 @@ export class Brain extends FSMBrain {
         if (actor != null) {
             const rnd_count_flesh = (Math.random() * 2) | 0;
             if (rnd_count_flesh > 0) {
-                const actions = new PickatActions();
+                const actions = new WorldAction();
 
                 actions.addDropItem({ pos: mob.pos, items: [{ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh }] });
 

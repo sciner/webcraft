@@ -1,4 +1,4 @@
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 import { PlayerEvent } from "../../player_event.js";
 
@@ -77,7 +77,7 @@ export default class packet_reader {
 
                 // Create new drop item
                 if(restored_items.length > 0) {
-                    const actions = new PickatActions();
+                    const actions = new WorldAction();
                     actions.addDropItem({pos: drop_item.pos, items: restored_items, force: true});
                     world.actions_queue.add(null, actions); 
                 }

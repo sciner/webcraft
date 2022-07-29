@@ -6,7 +6,7 @@ export default class Ticker {
     static type = 'charging_station'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
         if(v.ticks % 40 != 0) {
             return;
         }

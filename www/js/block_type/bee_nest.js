@@ -1,4 +1,4 @@
-import { PickatActions } from "../block_action.js";
+import { WorldAction } from "../world_action.js";
 import { ServerClient } from "../server_client.js";
 
 export class BeeNest {
@@ -19,7 +19,7 @@ export class BeeNest {
         tblock.extra_data.pollen += mob.extra_data.pollen;
         mob.extra_data.pollen = 0;
         // 3. Modify block
-        const actions = new PickatActions(null, world, false, false);
+        const actions = new WorldAction(null, world, false, false);
         const updated_blocks = {pos: tblock.posworld, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY};
         actions.addBlocks([updated_blocks]);
         world.actions_queue.add(null, actions);

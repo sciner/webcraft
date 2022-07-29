@@ -9,7 +9,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction} from "./block_action.js";
+import {doBlockAction} from "./world_action.js";
 import { MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;

@@ -391,8 +391,8 @@ class DestroyBlocks {
 
 }
 
-// PickatActions
-export class PickatActions {
+// WorldAction
+export class WorldAction {
 
     #world;
 
@@ -422,10 +422,12 @@ export class PickatActions {
                     on_block_set: on_block_set
                 }
             },
-            play_sound:             [],
-            stop_disc:              [],
-            drop_items:             [],
-            explosion_particles:    []
+            play_sound:                 [],
+            stop_disc:                  [],
+            drop_items:                 [],
+            explosion_particles:        [],
+            mobs:                       {spawn: [], activate: []},
+            generate_tree:              [],
         });
     }
 
@@ -575,12 +577,26 @@ export class PickatActions {
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
     }
 
+    // Spawn mob (первая генерация моба, если его ещё не было в БД)
+    spawnMob(params) {
+        this.mobs.spawn.push(params);
+    }
+
+    // Activate mob (активация ранее созданного моба)
+    activateMob(params) {
+        this.mobs.activate.push(params);
+    }
+
+    generateTree(params) {
+        this.generate_tree.push(params);
+    }
+
 }
 
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
-    const actions = new PickatActions(e.id);
+    const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions);
 
     if(e.pos == false) {

@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 
 export class Brain extends FSMBrain {
 
@@ -86,7 +86,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
 
-        const actions = new PickatActions();
+        const actions = new WorldAction();
         actions.addDropItem({ pos: mob.pos, items: [{ id: BLOCK.EGG.id, count: 1 }] , force: true});
         world.actions_queue.add(null, actions);
 
@@ -98,7 +98,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {
-            const actions = new PickatActions();
+            const actions = new WorldAction();
 
             let drop_item = { pos: mob.pos, items: [] };
             drop_item.items.push({ id: BLOCK.CHICKEN.id, count: 1 });

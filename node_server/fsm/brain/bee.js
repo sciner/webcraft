@@ -1,6 +1,6 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 import { BeeNest } from "../../../www/js/block_type/bee_nest.js";
 
 const MAX_POLLEN = 4;
@@ -206,7 +206,7 @@ export class Brain extends FSMBrain {
                 this.ticks_attack = 0;
                 player.changeLive(-this.damage);
                 const world = mob.getWorld();
-                const actions = new PickatActions();
+                const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
                 world.actions_queue.add(player, actions);
                 

@@ -801,6 +801,10 @@ export class BLOCK {
                 texture = material.texture.down;
             }
         }
+        // @todo (BEE NEST) убрать отсюда куда нибудь
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
+            texture = material.texture.north_honey;
+        }
         let c = this.calcTexture(texture, dir, tx_cnt);
         if(width && width < 1) {
             c[2] *= width;
@@ -808,18 +812,6 @@ export class BLOCK {
         if(height && height < 1) {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;
-        }
-        /*if(dir == DIRECTION.UP) {
-            c[2] *= -1;
-            c[3] *= -1;
-        }*/
-        //if(dir == DIRECTION.NORTH || dir == DIRECTION.WEST) {
-            //c[2] *= -1;
-            //c[3] *= -1;
-        //}
-        // @todo (BEE NEST) убрать отсюда куда нибудь
-        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
-            c[0] += 1/32;
         }
         return c;
     }

@@ -1,5 +1,5 @@
 import { ServerClient } from "../../../www/js/server_client.js";
-import { doBlockAction } from "../../../www/js/block_action.js";
+import { doBlockAction } from "../../../www/js/world_action.js";
 import { Vector } from "../../../www/js/helpers.js";
 
 export default class packet_reader {
