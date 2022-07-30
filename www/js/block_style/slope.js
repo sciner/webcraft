@@ -8,7 +8,7 @@ const _center = new Vector(0, 0, 0);
 
 // Рельсы
 export default class style {
-    
+
     static getRegInfo() {
         return {
             styles: ['slope'],
@@ -20,7 +20,7 @@ export default class style {
     static computeAABB(block, for_physic) {
         return [new AABB().set(0, 0, 0, 1, 1, 1)];
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         if(typeof block == 'undefined') {
@@ -64,9 +64,11 @@ export default class style {
         const draw_sides = [];
         draw_sides.push(bcd);
 
+        let outerCorner = -1;
+
         if(neighbours && neighbours.UP instanceof TBlock) {
             const dirs_name = ['NORTH', 'WEST', 'SOUTH', 'EAST'];
-            const n = neighbours[dirs_name[bcd]];
+            let n = neighbours[dirs_name[bcd]];
             if(n.material.tags.indexOf('stairs') >= 0) {
                 let index = (bcd - 1 + 4) % 4;
                 const n_on_ceil = style.isOnCeil(n);
@@ -74,6 +76,49 @@ export default class style {
                 index = (bcd + 1) % 4;
                 if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) draw_sides.push(index);
             }
+
+            n = neighbours[dirs_name[(bcd + 2) % 4]];
+            if(n.material.tags.indexOf('stairs') >= 0) {
+                let index = (bcd - 1 + 4) % 4;
+                const n_on_ceil = style.isOnCeil(n);
+                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                    outerCorner = index;
+                }
+                index = (bcd + 1) % 4;
+                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                    outerCorner = bcd;
+                }
+            }
+        }
+
+        if (outerCorner >= 0) {
+            const c_up2 = [c_up[0], c_up[1], -c_up[2], -c_up[3]];
+
+            const _sides = {
+                // up: new AABBSideParams(c_up, flags, anim_frames, lm, slope_axe, false, null, [0.5, 0.5, 0.5]),
+                down: new AABBSideParams(c_down, flags, anim_frames, lm, on_ceil ? PLANES.up.axes : null, true, null, [0.5, 0.5, 0 + (on_ceil ? 1 : 0)]),
+                south: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false),
+                north: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false),
+                west: new AABBSideParams(c_up2,  flags, anim_frames, lm, null, false),
+                east: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false)
+            }
+
+            if (outerCorner === DIRECTION.NORTH) {
+                _sides.north.axes = [[0, 1, -1], [-1, 0, 0]];
+                _sides.north.flag |= QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.north.offset = [0.5, 0.5, 0.5];
+
+                _sides.west.axes = [[-1, 0, -1], [0, 1, 0]];
+                _sides.west.flag |= QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.west.offset = [0.5, 0.5, 0.5];
+
+                delete _sides.east;
+                delete _sides.south;
+            }
+
+            pushAABB(vertices, _aabb, pivot, matrix, _sides, _center.set(x, y, z));
+
+            return;
         }
 
         for(let cd of draw_sides) {
