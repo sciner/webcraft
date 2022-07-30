@@ -532,7 +532,7 @@ export class BLOCK {
             block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';
@@ -1127,6 +1127,7 @@ export class BLOCK {
                     }
                     break;
                 }
+                case 'slope':
                 case 'stairs': {
                     shapes.push(...StyleStairs.calculate(b, pos, neighbours, world.chunkManager).getShapes(new Vector(pos).multiplyScalar(-1), f));
                     break;

@@ -1065,13 +1065,14 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.QUAD_FLAG_OPACITY = 1 << 8;
     QUAD_FLAGS.QUAD_FLAG_SDF = 1 << 9;
     QUAD_FLAGS.NO_CAN_TAKE_LIGHT = 1 << 10;
+    QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
+    QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
     ROTATE.W = CubeSym.ROT_Y; // left
     ROTATE.N = CubeSym.ID; // back
     ROTATE.E = CubeSym.ROT_Y3; // right
-
 
 export let NORMALS = {};
     NORMALS.FORWARD          = new Vector(0, 0, 1);

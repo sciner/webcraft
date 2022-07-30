@@ -27,6 +27,8 @@
     #define QUAD_FLAG_OPACITY 8
     #define QUAD_FLAG_SDF 9
     #define NO_CAN_TAKE_LIGHT 10
+    #define FLAG_TRIANGLE 11
+    #define FLAG_MIR2_TEX 12
 #endif
 
 #ifdef global_uniforms
@@ -110,6 +112,8 @@
     out float v_flagFlagOpacity;
     out float v_flagQuadSDF;
     out float v_noCanTakeLight;
+    out float v_Triangle;
+    out float v_Mir2_Tex;
 
     //--
 #endif
@@ -134,6 +138,7 @@
     in float v_flagFlagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
+    in float v_Triangle;
 
     out vec4 outColor;
 #endif
@@ -259,6 +264,8 @@
     int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
     int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
     int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
+    int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
+    int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -266,6 +273,8 @@
     v_flagFlagOpacity = float(flagFlagOpacity);
     v_flagQuadSDF = float(flagQuadSDF);
     v_noCanTakeLight = float(flagNoCanTakeLight);
+    v_Triangle = float(flagTriangle);
+    v_Mir2_Tex = float(flagMir2_Tex);
     //--
 #endif
 
@@ -317,6 +326,11 @@
         v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
         v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
         gl_Position = uProjMatrix * vec4(v_position, 1.0);
+
+        if(v_Triangle >= .5 && gl_VertexID > 2) {
+            gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+        }
+
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;

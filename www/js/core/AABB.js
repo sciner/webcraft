@@ -10,12 +10,12 @@ const tempMatrix        = mat3.create();
 const _size             = [0, 0, 0];
 const _dist             = [0, 0, 0];
 
-const PLANES = {
+export const PLANES = {
     up: {
         // axisX , axisY. axisY is flips sign!
         axes  : [[1, 0, 0], /**/ [0, 1, 0]],
         flip  : [1, 1],
-        // origin offset realtive center
+        // origin offset relative center
         offset : [0.5, 0.5, 1.0],
     },
     down: {
@@ -295,11 +295,11 @@ export class AABBPool {
 
 export class AABBSideParams {
 
-    constructor(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null) {
-        this.set(uv, flag, anim, lm, axes, autoUV, rawColor)
+    constructor(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null, offset = null) {
+        this.set(uv, flag, anim, lm, axes, autoUV, rawColor, offset)
     }
 
-    set(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null) {
+    set(uv, flag, anim, lm = null, axes = null, autoUV = false, rawColor = null, offset = null) {
         this.uv       = uv;
         this.flag     = flag;
         this.anim     = anim;
@@ -307,6 +307,7 @@ export class AABBSideParams {
         this.axes     = axes;
         this.autoUV   = autoUV;
         this.rawColor = rawColor;
+        this.offset   = offset;
         return this;
     }
 
@@ -407,7 +408,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
         }
 
         const {
-            /*axes,*/ offset, flip
+            /*axes,*/ /*offset*/ flip
         } = PLANES[key];
 
         const {
@@ -416,6 +417,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
 
         const lm = sides[key].lm || lm_default;
         const axes = sides[key].axes || PLANES[key].axes;
+        const offset = sides[key].offset || PLANES[key].offset;
 
         let uvSize0;
         let uvSize1;
@@ -439,7 +441,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
         }
 
         pushTransformed(
-            vertices, matrix, pivot,
+            vertices, sides[key].matrix || matrix, pivot,
             // center
             x, z, y,
             // offset
