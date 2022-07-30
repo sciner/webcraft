@@ -131,7 +131,7 @@ export default class style {
     }
 
     // Return TRUE if block sames
-    static checkIfSame = (checked_block, on_ceil) => {
+    static checkIfSame(checked_block, on_ceil) {
         const checked_block_on_ceil = BLOCK.isOnCeil(checked_block);
         if(checked_block_on_ceil != on_ceil) {
             return false;

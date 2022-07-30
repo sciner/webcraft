@@ -2,13 +2,23 @@ import { MULTIPLY, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks.js';
+import { default as stairs_style } from './stairs.js';
 
 const _aabb = new AABB();
 const _center = new Vector(0, 0, 0);
+const dirs_name = ['NORTH', 'WEST', 'SOUTH', 'EAST'];
+const dirs_name_lower = ['north', 'west', 'south', 'east'];
+
+const slope_axes = [
+    [[1, 0, 0], [0, 1, -1]],
+    [[0, 1, 0], [-1, 0, -1]],
+    [[-1, 0, 0], [0, -1, -1]],
+    [[0, -1, 0], [1, 0, -1]],
+];
 
 // Рельсы
 export default class style {
-
+    
     static getRegInfo() {
         return {
             styles: ['slope'],
@@ -20,25 +30,26 @@ export default class style {
     static computeAABB(block, for_physic) {
         return [new AABB().set(0, 0, 0, 1, 1, 1)];
     }
-
+    
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         if(typeof block == 'undefined') {
             return;
         }
 
-        const pos = new Vector(x, y, z);
-        // const info = stairs_calculate(block, pos, neighbours);
+        const pos               = new Vector(x, y, z);
 
         const texture           = block.material.texture;
         const c                 = BLOCK.calcTexture(texture, DIRECTION.NORTH);
         const c_up              = BLOCK.calcTexture(texture, DIRECTION.UP);
         const c_down            = BLOCK.calcTexture(texture, DIRECTION.DOWN);
         const lm                = MULTIPLY.COLOR.WHITE;
-        const bcd               = block.getCardinalDirection();
-        const anim_frames       = 0;
-        const flags             = 0;
+        const cd                = block.getCardinalDirection();
         const on_ceil           = style.isOnCeil(block);
+        const anim_frames       = 0;
+        const flag              = 0; // QUAD_FLAGS.NO_CAN_TAKE_AO;
+
+        _center.set(x, y, z)
 
         const width             = 1;
         const depth             = 1;
@@ -54,149 +65,217 @@ export default class style {
             z + .5 + depth/2
         );
 
-        const slope_axes = [
-            [[1, 0, 0], [0, 1, -1]],
-            [[0, 1, 0], [-1, 0, -1]],
-            [[-1, 0, 0], [0, -1, -1]],
-            [[0, -1, 0], [1, 0, -1]],
-        ];
+        const item = {
+            cd: cd,
+            mods: {
+                // modify main slope
+                up: {
+                    axes: slope_axes[(cd + (on_ceil ? 2 : 0)) % 4],
+                    offset: [0.5, 0.5, 0.5],
+                    autoUV: false
+                }
+            },
+            deleted: [dirs_name_lower[cd]]
+        };
 
-        const draw_sides = [];
-        draw_sides.push(bcd);
-
-        let outerCorner = -1;
+        //
+        const cancelDelete = (side) => {
+            const index = item.deleted.indexOf(side);
+            if(index >= 0) {
+                delete(item.deleted[index]);
+                item.deleted.splice(index, 1);
+                item.deleted = Array.from(item.deleted);
+            }
+        }
 
         if(neighbours && neighbours.UP instanceof TBlock) {
-            const dirs_name = ['NORTH', 'WEST', 'SOUTH', 'EAST'];
-            let n = neighbours[dirs_name[bcd]];
-            if(n.material.tags.indexOf('stairs') >= 0) {
-                let index = (bcd - 1 + 4) % 4;
-                const n_on_ceil = style.isOnCeil(n);
-                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) draw_sides.push(index);
-                index = (bcd + 1) % 4;
-                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) draw_sides.push(index);
-            }
-
-            n = neighbours[dirs_name[(bcd + 2) % 4]];
-            if(n.material.tags.indexOf('stairs') >= 0) {
-                let index = (bcd - 1 + 4) % 4;
-                const n_on_ceil = style.isOnCeil(n);
-                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                    outerCorner = index;
+            const info = stairs_style.calculate(block, pos, neighbours);
+            const ne = info.sides[0];
+            const wn = info.sides[1];
+            const sw = info.sides[2];
+            const es = info.sides[3];
+            const top_parts_count = (ne?1:0) + (wn?1:0) + (sw?1:0) + (es?1:0);
+            if(top_parts_count == 3) {
+                // inner corner
+                const n = neighbours[dirs_name[cd]];
+                if(n.material.tags.indexOf('stairs') >= 0) {
+                    const n_on_ceil = style.isOnCeil(n);
+                    let index = (cd - 1 + 4) % 4;
+                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                        item.mods[dirs_name_lower[(index + 2) % 4]] = {
+                            axes:   PLANES[dirs_name_lower[(index + 2) % 4]].axes,
+                            flag:   flag
+                        };
+                        //
+                        item.deleted = [];
+                        item.mods[dirs_name_lower[cd]] = {
+                            axes:   slope_axes[(index + (on_ceil ? 2 : 0)) % 4],
+                            autoUV: false,
+                            offset: [0.5, 0.5, 0.5],
+                            uv:     [c[0], c[1], -c[2], c[3] * ((cd == 3 || cd == 2) ? -1 : 1)]
+                        }
+                    }
+                    index = (cd + 1) % 4;
+                    if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
+                        item.mods[dirs_name_lower[(index + 2) % 4]] = {
+                            axes:   PLANES[dirs_name_lower[(index + 2) % 4]].axes,
+                            flag:   flag,
+                            uv:     [c[0], c[1], c[2], c[3]]
+                        };
+                        //
+                        item.deleted = [];
+                        item.mods[dirs_name_lower[cd]] = {
+                            autoUV: false,
+                            axes:   slope_axes[(index + (on_ceil ? 2 : 0)) % 4],
+                            offset: [0.5, 0.5, 0.5],
+                            uv:     [c[0], c[1], c[2], c[3] * (((cd == 3 || cd == 2) || (cd == 2 && on_ceil)) ? -1 : 1)]
+                        }
+                    }
                 }
-                index = (bcd + 1) % 4;
-                if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {
-                    outerCorner = bcd;
+            } else if(top_parts_count == 1) {
+                // outer corner
+                if(ne) {
+                    item.mods.up = {
+                        autoUV: false,
+                        axes:   [[0, 1, 0], [1, 0, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        uv:     [c[0], c[1], c[2], -c[3]]
+                    };
+                    item.mods.south = {
+                        autoUV: false,
+                        axes:   [[1, 0, 0], [0, 1, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        offset: [0.5, 0.5, 0.5]
+                    };
+                    cancelDelete('south');
+                    item.deleted.push(...['west', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                if(sw) {
+                    item.mods.up = {
+                        autoUV: false,
+                        axes:   [[-1, 0, 0], [0, -1, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        offset: [0.5, 0.5, 0.5],
+                        uv:     [c[0], c[1], c[2], -c[3]]
+                    };
+                    item.mods.east = {
+                        autoUV: false,
+                        axes:   [[0, -1, 0], [-1, 0, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        offset: [0.5, 0.5, 0.5]
+                    };
+                    cancelDelete('east');
+                    item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                if(wn) {
+                    item.mods.up = {
+                        autoUV: false,
+                        axes:   [[-1, 0, 0], [0, 1, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        uv:     [c[0], c[1], c[2], -c[3]]
+                    };
+                    item.mods.east = {
+                        autoUV: false,
+                        axes:   [[0, 1, 0], [-1, 0, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        offset: [0.5, 0.5, 0.5]
+                    };
+                    cancelDelete('east');
+                    item.deleted.push(...['south', dirs_name_lower[(cd + 2) % 4]]);
+                }
+                if(es) {
+                    item.mods.west = {
+                        autoUV: false,
+                        axes:   [[-1, 0, -1], [0, 1, 0]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
+                        offset: [0.5, 0.5, 0.5],
+                        uv:     [c[0], c[1], c[2], -c[3]]
+                    };
+                    item.mods.up = {
+                        autoUV: false,
+                        axes:   [[0, 1, -1], [-1, 0, 0]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
+                        uv:     [c[0], c[1], c[2], -c[3]]
+                    };
+                    cancelDelete('west');
+                    item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
                 }
             }
         }
 
-        if (outerCorner >= 0) {
-            const c_up2 = [c_up[0], c_up[1], -c_up[2], -c_up[3]];
-
-            const _sides = {
-                // up: new AABBSideParams(c_up, flags, anim_frames, lm, slope_axe, false, null, [0.5, 0.5, 0.5]),
-                down: new AABBSideParams(c_down, flags, anim_frames, lm, on_ceil ? PLANES.up.axes : null, true, null, [0.5, 0.5, 0 + (on_ceil ? 1 : 0)]),
-                south: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false),
-                north: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false),
-                west: new AABBSideParams(c_up2,  flags, anim_frames, lm, null, false),
-                east: new AABBSideParams(c_up2, flags, anim_frames, lm, null, false)
-            }
-
-            if (outerCorner === DIRECTION.NORTH) {
-                _sides.north.axes = [[0, 1, -1], [-1, 0, 0]];
-                _sides.north.flag |= QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX;
-                _sides.north.offset = [0.5, 0.5, 0.5];
-
-                _sides.west.axes = [[-1, 0, -1], [0, 1, 0]];
-                _sides.west.flag |= QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX;
-                _sides.west.offset = [0.5, 0.5, 0.5];
-
-                delete _sides.east;
-                delete _sides.south;
-            }
-
-            pushAABB(vertices, _aabb, pivot, matrix, _sides, _center.set(x, y, z));
-
-            return;
+        const _sides = {
+            up: new AABBSideParams(c_up, flag, anim_frames, lm, null, false, null, [0.5, 0.5, 0.5]),
+            down: new AABBSideParams(c_down, flag, anim_frames, lm, on_ceil ? PLANES.up.axes : null, true, null, [0.5, 0.5, 0 + (on_ceil ? 1 : 0)]),
+            south: new AABBSideParams(c, flag, anim_frames, lm, null, true),
+            north: new AABBSideParams(c, flag, anim_frames, lm, null, true),
+            west: new AABBSideParams(c,  flag, anim_frames, lm, null, true),
+            east: new AABBSideParams(c, flag, anim_frames, lm, null, true)
         }
 
-        for(let cd of draw_sides) {
-
-            let slope_axe = slope_axes[(cd + (on_ceil ? 2 : 0)) % 4];
-
-            const _sides = {
-                up: new AABBSideParams(c_up, flags, anim_frames, lm, slope_axe, false, null, [0.5, 0.5, 0.5]),
-                down: new AABBSideParams(c_down, flags, anim_frames, lm, on_ceil ? PLANES.up.axes : null, true, null, [0.5, 0.5, 0 + (on_ceil ? 1 : 0)]),
-                south: new AABBSideParams(c, flags, anim_frames, lm, null, true),
-                north: new AABBSideParams(c, flags, anim_frames, lm, null, true),
-                west: new AABBSideParams(c,  flags, anim_frames, lm, null, true),
-                east: new AABBSideParams(c, flags, anim_frames, lm, null, true)
+        if(cd == DIRECTION.NORTH) {
+            _sides.east.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            _sides.west.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            if(on_ceil) {
+                _sides.west.axes = [[0, 0, 1], [0, 1, 0]];
+                _sides.east.axes = [[0, -1, 0], [0, 0, -1]];
+                _sides.west.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.west.uv = [c[0], c[1], c[2], -c[3]];
+            } else {
+                _sides.east.axes = [[0, 0, -1], [0, 1, 0]];
+                _sides.east.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.west.axes = [[0, -1, 0], [0, 0, 1]];
             }
-
-            if(cd == DIRECTION.NORTH) {
-                delete(_sides.north);
-                _sides.east.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                _sides.west.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                if(on_ceil) {
-                    _sides.west.axes = [[0, 0, 1], [0, 1, 0]];
-                    _sides.east.axes = [[0, -1, 0], [0, 0, -1]];
-                    _sides.west.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.west.uv = [c[0], c[1], c[2], -c[3]];
-                } else {
-                    _sides.east.axes = [[0, 0, -1], [0, 1, 0]];
-                    _sides.east.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.west.axes = [[0, -1, 0], [0, 0, 1]];
-                }
+        } else if(cd == DIRECTION.WEST) {
+            _sides.south.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            _sides.north.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            if(on_ceil) {
+                _sides.north.axes =  [[1, 0, 0], [0, 0, -1]];
+                _sides.north.uv = [c[0], c[1], -c[2], c[3]];
+                _sides.south.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.south.axes = [[0, 0, 1], [-1, 0, 0]];
+            } else {
+                _sides.north.axes = [[0, 0, -1], [-1, 0, 0]];
+                _sides.north.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.north.uv = [c[0], c[1], c[2], -c[3]];
             }
-            if(cd == DIRECTION.WEST) {
-                delete(_sides.west);
-                _sides.south.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                _sides.north.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                if(on_ceil) {
-                    _sides.north.axes =  [[1, 0, 0], [0, 0, -1]];
-                    _sides.north.uv = [c[0], c[1], -c[2], c[3]];
-                    _sides.south.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.south.axes = [[0, 0, 1], [-1, 0, 0]];
-                } else {
-                    _sides.north.axes = [[0, 0, -1], [-1, 0, 0]];
-                    _sides.north.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.north.uv = [c[0], c[1], c[2], -c[3]];
-                }
+        } else if(cd == DIRECTION.SOUTH) {
+            _sides.east.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            _sides.west.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            if(on_ceil) {
+                _sides.west.uv = [c[0], c[1], -c[2], c[3]];
+                _sides.east.axes = [[0, 0, 1], [0, -1, 0]];
+                _sides.east.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+            } else {
+                _sides.west.axes = [[0, 0, -1], [0, -1, 0]];
+                _sides.west.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.west.uv = [c[0], c[1], c[2], -c[3]];
             }
-            if(cd == DIRECTION.SOUTH) {
-                delete(_sides.south);
-                _sides.east.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                _sides.west.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                if(on_ceil) {
-                    _sides.west.uv = [c[0], c[1], -c[2], c[3]];
-                    _sides.east.axes = [[0, 0, 1], [0, -1, 0]];
-                    _sides.east.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                } else {
-                    _sides.west.axes = [[0, 0, -1], [0, -1, 0]];
-                    _sides.west.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.west.uv = [c[0], c[1], c[2], -c[3]];
-                }
+        } else if(cd == DIRECTION.EAST) {
+            _sides.south.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            _sides.north.flag = QUAD_FLAGS.FLAG_TRIANGLE;
+            if(on_ceil) {
+                _sides.north.axes = [[0, 0, 1], [1, 0, 0]];
+                _sides.north.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
+                _sides.north.uv = [c[0], c[1], c[2], -c[3]];
+                _sides.south.axes = [[-1, 0, 0], [0, 0, -1]];
+            } else {
+                _sides.north.axes = [[-1, 0, 0], [0, 0, 1]];
+                _sides.south.axes = [[0, 0, -1], [1, 0, 0]];
+                _sides.south.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
             }
-            if(cd == DIRECTION.EAST) {
-                delete(_sides.east);
-                _sides.south.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                _sides.north.flag = QUAD_FLAGS.FLAG_TRIANGLE;
-                if(on_ceil) {
-                    _sides.north.axes = [[0, 0, 1], [1, 0, 0]];
-                    _sides.north.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                    _sides.north.uv = [c[0], c[1], c[2], -c[3]];
-                    _sides.south.axes = [[-1, 0, 0], [0, 0, -1]];
-                } else {
-                    _sides.north.axes = [[-1, 0, 0], [0, 0, 1]];
-                    _sides.south.axes = [[0, 0, -1], [1, 0, 0]];
-                    _sides.south.flag |= QUAD_FLAGS.FLAG_MIR2_TEX;
-                }
-            }
-
-            pushAABB(vertices, _aabb, pivot, matrix, _sides, _center.set(x, y, z));
-
         }
+
+        // apply modifications
+        for(let k in item.mods) {
+            _sides[k] = {..._sides[k], ...item.mods[k]};
+        }
+
+        // delete unused
+        for(let k of item.deleted) {
+            delete(_sides[k]);
+        }
+
+        pushAABB(vertices, _aabb, pivot, matrix, _sides, _center);
 
     }
 
