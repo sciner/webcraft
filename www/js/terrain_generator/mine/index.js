@@ -22,7 +22,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     for(let y = 0; y <= 100; y++) {
-                        this.setBlock(chunk, x, y, z, aleaRandom.double() > 0.1 ? BLOCK.DIRT : BLOCK.AIR);
+                        this.setBlock(chunk, x, y, z, aleaRandom.double() > 0.8 ? BLOCK.DIRT : BLOCK.AIR);
                     }
                 }
             }
