@@ -1,7 +1,7 @@
 import { MULTIPLY, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
-import { TBlock } from '../typed_blocks.js';
+import { TBlock } from '../typed_blocks3.js';
 import { default as stairs_style } from './stairs.js';
 
 const _aabb = new AABB();

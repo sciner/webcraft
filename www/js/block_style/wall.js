@@ -1,6 +1,6 @@
 import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import { TBlock } from '../typed_blocks.js';
+import { TBlock } from '../typed_blocks3.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;

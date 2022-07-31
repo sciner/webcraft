@@ -1,7 +1,7 @@
 import { Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
 import { ServerClient } from "../server_client.js";
-import { TBlock } from '../typed_blocks.js';
+import { TBlock } from '../typed_blocks3.js';
 
 export class RailShape {
 

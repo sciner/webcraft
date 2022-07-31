@@ -1,14 +1,13 @@
-import {BLOCK, POWER_NO, DropItemVertices} from "../blocks.js";
-import {getChunkAddr, Vector, VectorCollector} from "../helpers.js";
-import {BlockNeighbours, TBlock} from "../typed_blocks.js";
-import {newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK} from "../typed_blocks3.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import { BLOCK, POWER_NO, DropItemVertices } from "../blocks.js";
+import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
+import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
-import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
-import {WorkerInstanceBuffer} from "./WorkerInstanceBuffer.js";
+import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
+import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
-import {pushTransformed} from '../block_style/extruder.js';
+import { pushTransformed } from '../block_style/extruder.js';
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -135,14 +134,14 @@ export class Chunk {
             return;
         }
         const pos = new Vector(0, 0, 0);
-        const block_index = new Vector(0, 0, 0);
+        const block_vec_index = new Vector(0, 0, 0);
         for(let index in this.modify_list) {
             const m = this.modify_list[index];
             if(!m) continue;
             pos.fromFlatChunkIndex(index);
             if(m.id < 1) {
-                BLOCK.getBlockIndex(pos, null, null, block_index);
-                this.tblocks.delete(block_index);
+                BLOCK.getBlockIndex(pos, null, null, block_vec_index);
+                this.tblocks.delete(block_vec_index);
                 continue;
             }
             let type        = BLOCK.fromId(m.id);

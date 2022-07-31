@@ -565,7 +565,7 @@ export class GameClass {
         }
 
         const pointerlockerror = function(event) {
-            console.error('Error setting pointer lock!', event);
+            console.warn('Error setting pointer lock!', event);
         }
 
         // Hook pointer lock state change events

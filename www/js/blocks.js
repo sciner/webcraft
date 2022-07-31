@@ -802,7 +802,7 @@ export class BLOCK {
             }
         }
         // @todo (BEE NEST) убрать отсюда куда нибудь
-        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data && 'pollen' in block.extra_data && block.extra_data.pollen >= 4) {
             texture = material.texture.north_honey;
         }
         let c = this.calcTexture(texture, dir, tx_cnt);

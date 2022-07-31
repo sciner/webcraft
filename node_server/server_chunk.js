@@ -2,8 +2,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {TBlock} from "../www/js/typed_blocks.js";
-import { newTypedBlocks } from "../www/js/typed_blocks3.js";
+import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {WorldAction} from "../www/js/world_action.js";
 

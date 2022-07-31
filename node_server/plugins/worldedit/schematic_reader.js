@@ -2,6 +2,7 @@ import { BLOCK } from "../../../www/js/blocks.js";
 import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { RailShape } from "../../../www/js/block_type/rail_shape.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -48,6 +49,9 @@ export class SchematicReader {
             }
             let b = BLOCK[name];
             let new_block = null;
+            if(name == 'RAIL') {
+                console.log(block._properties);
+            }
             if(b) {
                 new_block = this.createBlockFromSchematic(block, b, extra_data);
             } else {
@@ -194,6 +198,13 @@ export class SchematicReader {
             // петли
             if('hinge' in props) {
                 setExtraData('left', props.hinge == 'left');
+            }
+            // рельсы
+            if('shape' in props) {
+                const shape_id = RailShape[props.shape.toUpperCase()];
+                if(shape_id !== undefined) {
+                    setExtraData('shape', shape_id);
+                }
             }
             // rotate
             if(new_block.rotate) {
