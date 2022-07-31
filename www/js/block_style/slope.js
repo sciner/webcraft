@@ -18,7 +18,7 @@ const slope_axes = [
 
 // Рельсы
 export default class style {
-    
+
     static getRegInfo() {
         return {
             styles: ['slope'],
@@ -30,7 +30,7 @@ export default class style {
     static computeAABB(block, for_physic) {
         return [new AABB().set(0, 0, 0, 1, 1, 1)];
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         if(typeof block == 'undefined') {
@@ -137,8 +137,8 @@ export default class style {
                 if(ne) {
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[0, 1, 0], [1, 0, 1]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        axes:   [[-1, 0, -1], [0, -1, 0]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
                         uv:     [c[0], c[1], c[2], -c[3]]
                     };
                     item.mods.south = {
@@ -160,8 +160,8 @@ export default class style {
                     };
                     item.mods.east = {
                         autoUV: false,
-                        axes:   [[0, -1, 0], [-1, 0, 1]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        axes:   [[1, 0, -1], [0, 1, 0]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
                         offset: [0.5, 0.5, 0.5]
                     };
                     cancelDelete('east');
@@ -170,8 +170,8 @@ export default class style {
                 if(wn) {
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[-1, 0, 0], [0, 1, 1]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
+                        axes:   [[0, -1, -1], [1, 0, 0]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
                         uv:     [c[0], c[1], c[2], -c[3]]
                     };
                     item.mods.east = {
@@ -186,8 +186,8 @@ export default class style {
                 if(es) {
                     item.mods.west = {
                         autoUV: false,
-                        axes:   [[-1, 0, -1], [0, 1, 0]],
-                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
+                        axes:   [[0, -1, 0], [1, 0, 1]],
+                        flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
                         offset: [0.5, 0.5, 0.5],
                         uv:     [c[0], c[1], c[2], -c[3]]
                     };
