@@ -205,7 +205,7 @@ export class World {
         });
     }
 
-    // Apply pickat actions
+    // Apply world actions
     async applyActions(actions, player) {
         // console.log(actions.id);
         if(actions.open_window) {

@@ -4,7 +4,7 @@
     "install-local": "(cd ../local_server && npm install)",
     "install-all": "npm run install-ff && npm run install-local && npm install",
     "start": "node --experimental-json-modules --no-warnings ./index.js",
-    "inspect": "node --experimental-json-modules --no-warnings --inspect ./index.js",
+    "inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
     "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",

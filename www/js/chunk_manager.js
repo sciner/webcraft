@@ -674,7 +674,6 @@ export class ChunkManager {
                     extra_data: head_extra_data
                 });
             }
-            // this.setBlock(pos.x, pos.y, pos.z, mat, true, null, item.rotate, null, item.extra_data, ServerClient.BLOCK_ACTION_CREATE);
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);

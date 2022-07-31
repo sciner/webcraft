@@ -107,11 +107,13 @@ export class VectorCollector1D {
     }
 }
 
+//
 export class TypedBlocks3 {
+
     constructor(coord, chunkSize) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
-        this.chunkSize = chunkSize;
+        this.chunkSize  = chunkSize;
         this.power      = new VectorCollector1D(chunkSize);
         this.rotate     = new VectorCollector1D(chunkSize);
         this.entity_id  = new VectorCollector1D(chunkSize);
@@ -306,7 +308,7 @@ export class TypedBlocks3 {
     }
 
     delete(vec) {
-        let block           = this.get(vec);
+        const block         = this.get(vec);
         block.id            = 0;
         block.power         = 0;
         block.rotate        = null;

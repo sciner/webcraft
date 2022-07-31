@@ -104,7 +104,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(chunk.addr.y == 0) {
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
-                        // this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                         setBlock(x, 0, z, BLOCK.BEDROCK.id);
                     }
                 }
@@ -124,7 +123,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             xyz.z = xyz.z % 126;
                             let block   = vb.getBlock(xyz);
                             if(block) {
-                                // this.setBlock(chunk, x, y, z, block, false);
                                 setBlock(x, y, z, block.id);
                             }
                         }
