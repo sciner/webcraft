@@ -70,7 +70,27 @@ export class ServerGame {
         });
 
         // Create websocket server
-        this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
+        this.wsServer = new WebSocketServer({noServer: true,
+            perMessageDeflate: {
+                zlibDeflateOptions: {
+                    // See zlib defaults.
+                    chunkSize: 1024,
+                    memLevel: 7,
+                    level: 3
+                },
+                zlibInflateOptions: {
+                    chunkSize: 10 * 1024
+                },
+                // Other options settable:
+                clientNoContextTakeover: true, // Defaults to negotiated value.
+                serverNoContextTakeover: true, // Defaults to negotiated value.
+                serverMaxWindowBits: 10, // Defaults to negotiated value.
+                // Below options specified as default values.
+                concurrencyLimit: 10, // Limits zlib concurrency for perf.
+                threshold: 1024 // Size (in bytes) below which messages
+                // should not be compressed if context takeover is disabled.
+            }
+        }); // {port: 5701}
         // New player connection
         this.wsServer.on('connection', (conn, req) => {
             console.log('New player connection');
