@@ -83,6 +83,9 @@
         "success_world_deleted": {"en": "World deleted", "ru": "Мир удалён", "fr": "", "es": "","man":""},
         "delete": {"en": "Delete", "ru": "Удалить", "fr": "", "es": "","man":""},
         "confirm_delete_world": {"en": "Want to delete?", "ru": "Вы действительно хотите удалить мир?", "fr": "", "es": "","man":""},
-        "play": {"en": "Play", "ru": "Играть", "fr": "", "es": "","man":""}
+        "play": {"en": "Play", "ru": "Играть", "fr": "", "es": "","man":""},
+        "generator_city1": {"en": "City #1", "ru": "Город 1", "fr": "", "es": "","man":""},
+        "generator_city2": {"en": "City #2", "ru": "Город 2", "fr": "", "es": "","man":""},
+        "generator_flat_world": {"en": "Flat world", "ru": "Плоский мир", "fr": "", "es": "","man":""}
     }
 }

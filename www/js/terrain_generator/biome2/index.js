@@ -4,6 +4,7 @@ import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {noise, alea} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
+import {DungeonGenerator} from "../dungeon.js";
 
 import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
@@ -26,6 +27,8 @@ export default class Terrain_Generator extends Demo_Map {
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.generateBottomCaves = generateBottomCaves.bind(this);
+        
+        this.dungeon = new DungeonGenerator(seed);
     }
 
     async init() {
@@ -212,6 +215,9 @@ export default class Terrain_Generator extends Demo_Map {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
         }
+        
+        // Dungeon
+        this.dungeon.add(chunk);
 
         return map;
 
