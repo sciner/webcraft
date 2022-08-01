@@ -613,7 +613,7 @@ export class ServerWorld {
         if(actions.put_in_backet) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
-            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET_EMPTY.id) {
+            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET.id) {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_backet;
                 // send new inventory state to player

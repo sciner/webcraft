@@ -80,7 +80,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
 
-        if (id == BLOCK.BUCKET_EMPTY.id) {
+        if (id == BLOCK.BUCKET.id) {
             const actions = new WorldAction();
             actions.putInBucket(BLOCK.BUCKET_MILK);
             world.actions_queue.add(actor, actions);

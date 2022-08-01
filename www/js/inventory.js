@@ -185,7 +185,7 @@ export class Inventory {
                 let matBlock = this.block_manager.fromId(this.current_item.id);
                 if(matBlock.item && matBlock.item?.name == 'bucket') {
                     if(matBlock.item.emit_on_set) {
-                        const emptyBucket = this.block_manager.BUCKET_EMPTY;
+                        const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
                 } else {
@@ -213,7 +213,7 @@ export class Inventory {
             if(this.current_item.count < 1) {
                 if(!count_mode && current_item_material.item && current_item_material.item?.name == 'bucket') {
                     if(current_item_material.item.emit_on_set) {
-                        const emptyBucket = this.block_manager.BUCKET_EMPTY;
+                        const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
                 } else {

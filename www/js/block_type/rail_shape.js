@@ -6,6 +6,7 @@ import { TBlock } from '../typed_blocks3.js';
 export class RailShape {
 
     static RAIL_ID          = 26;
+    static POWERED_RAIL_ID  = 34;
 
     static NORTH_SOUTH      = 0;
     static EAST_WEST        = 1;
@@ -28,6 +29,14 @@ export class RailShape {
 
     // Place rail
     static place(world, pos, new_item, actions, rail_id) {
+
+        // POWERED_RAIL
+        if(new_item && new_item.id == RailShape.POWERED_RAIL_ID) {
+            const cd = BLOCK.getCardinalDirection(new_item.rotate);
+            const side1 = RailShape.SIDES[cd];
+            new_item.extra_data.shape = RailShape.calcShape(side1, RailShape.OPPOSITES[side1]);
+            return false;
+        }
 
         if (!new_item || new_item.id != (rail_id || RailShape.RAIL_ID)) {
             return false;

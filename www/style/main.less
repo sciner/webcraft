@@ -228,21 +228,22 @@ button:not(.loading) .fa-spin {
 }
 
 #form-not-supported {
-    position: fixed;
-    bottom: 300px;
-    left: 0;
     .flex0;
     .flex-column;
-    & > div {
-        background: rgb(254, 84, 115);
-        padding: 1em;
-        height: 130px;
-        max-width: 80%;
-        border-radius: 5px;
-        text-align: center;
-        font-size: 1.1em;
-        justify-content: center;
-    }
+    position: fixed;
+    bottom: 300px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background: #fe5473;
+    padding: 1em;
+    height: fit-content;
+    max-width: 80%;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 1.1em;
+    justify-content: center;
+    top: 50%;
+    z-index: 2;
 }
 
 .my-worlds {

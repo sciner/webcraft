@@ -1051,7 +1051,7 @@ async function dropEgg(e, world, pos, player, world_block, world_material, mat_b
 
 // Put in bucket
 async function putInBucket(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!mat_block || mat_block.id != BLOCK.BUCKET_EMPTY.id) {
+    if(!mat_block || mat_block.id != BLOCK.BUCKET.id) {
         return false;
     }
     let added_to_bucket = false;

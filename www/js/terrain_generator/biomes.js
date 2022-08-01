@@ -246,7 +246,7 @@ export class  BIOMES {
                     {percent: .095, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                     {percent: .300, blocks: [{id: BLOCK.FERN.id}]},
                     {percent: .001, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
-                    {percent: .008, blocks: [{id: BLOCK.SWEET_BERRY.id, extra_data: {'stage': 3, 'complete': true}}]},
+                    {percent: .008, blocks: [{id: BLOCK.SWEET_BERRIES.id, extra_data: {'stage': 3, 'complete': true}}]},
                     {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
                     {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
                 ]

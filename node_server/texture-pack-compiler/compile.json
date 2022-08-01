@@ -457,7 +457,7 @@
         },
         {
             "id": 569,
-            "name": "GOLD_HOE",
+            "name": "GOLDEN_HOE",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -666,7 +666,7 @@
         },
         {
             "id": 554,
-            "name": "GOLD_PICKAXE",
+            "name": "GOLDEN_PICKAXE",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
@@ -2469,7 +2469,7 @@
         },
         {
             "id": 142,
-            "name": "POTATOS",
+            "name": "POTATO",
             "spawnable": false,
             "passable": 1,
             "transparent": true,
@@ -3150,7 +3150,7 @@
         },
         {
             "id": 541,
-            "name": "BUCKET_EMPTY",
+            "name": "BUCKET",
             "style": "extruder",
             "max_in_stack": 1,
             "item": {"name": "bucket"},
@@ -3164,7 +3164,7 @@
         },
         {
             "id": 542,
-            "name": "BUCKET_LAVA",
+            "name": "LAVA_BUCKET",
             "style": "extruder",
             "max_in_stack": 1,
             "item": {"name": "bucket", "emit_on_set": "FLOWING_LAVA"},
@@ -3178,7 +3178,7 @@
         },
         {
             "id": 543,
-            "name": "BUCKET_WATER",
+            "name": "WATER_BUCKET",
             "style": "extruder",
             "max_in_stack": 1,
             "item": {"name": "bucket", "emit_on_set": "FLOWING_WATER"},
@@ -3830,7 +3830,7 @@
         },
         {
             "id": 609,
-            "name": "GOLD_SWORD",
+            "name": "GOLDEN_SWORD",
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
@@ -4267,7 +4267,7 @@
             "id": 73,
             "name": "REDSTONE_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "REDSTONE_DUST", "count": 2, "chance": 1},
+            "drop_item": {"name": "REDSTONE", "count": 2, "chance": 1},
             "texture": "block/redstone_ore.png",
             "material": {
                 "id": "stone"
@@ -4278,7 +4278,7 @@
         },
         {
             "id": 636,
-            "name": "REDSTONE_DUST",
+            "name": "REDSTONE",
             "sound": "madcraft:block.stone",
             "style": "redstone",
             "inventory_style": "extruder",
@@ -4879,7 +4879,7 @@
         },
         {
             "id": 1004,
-            "name": "SWEET_BERRY",
+            "name": "SWEET_BERRIES",
             "passable": 1,
             "style": "planting",
             "inventory_style": "extruder",
@@ -4887,10 +4887,10 @@
             "seeds": {
                 "result": {
                     "incomplete": [
-                        {"name": "SWEET_BERRY", "count": {"min": 1, "max": 2}}
+                        {"name": "SWEET_BERRIES", "count": {"min": 1, "max": 2}}
                     ],
                     "complete": [
-                        {"name": "SWEET_BERRY", "count": {"min": 2, "max": 3}}
+                        {"name": "SWEET_BERRIES", "count": {"min": 2, "max": 3}}
                     ]
                 }
             },
@@ -6451,6 +6451,84 @@
             "tags": [
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 34,
+            "name": "POWERED_RAIL",
+            "style": "rails",
+            "transparent": true,
+            "can_rotate": true,
+            "passable": 1,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/powered_rail.png"
+            },
+            "extra_data": {
+                "shape": 0
+            },
+            "tags": [
+                "no_drop_ao"
+            ]
+        },
+        {
+            "id": 27,
+            "name": "GRANITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/granite.png",
+            "can_rotate": true
+        },
+        {
+            "id": 28,
+            "name": "POLISHED_GRANITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_granite.png",
+            "can_rotate": true
+        },
+        {
+            "id": 41,
+            "name": "DIORITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/diorite.png",
+            "can_rotate": true
+        },
+        {
+            "id": 193,
+            "name": "CRIMSON_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.wood",
+            "tags": [
+                "stairs"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/crimson_planks.png",
+            "can_rotate": true
         }
+        
     ]
 }

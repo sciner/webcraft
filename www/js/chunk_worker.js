@@ -172,12 +172,11 @@ async function onMessageFunc(e) {
             break;
         }
         case 'buildVertices': {
-            let results = [];
-            for (let ind = 0; ind < args.addrs.length; ind++) {
-                let addr = args.addrs[ind];
-                let dataOffset = args.offsets[ind];
-
-                let chunk = world.chunks.get(addr);
+            const results = [];
+            for(let ind = 0; ind < args.addrs.length; ind++) {
+                const addr = args.addrs[ind];
+                const dataOffset = args.offsets[ind];
+                const chunk = world.chunks.get(addr);
                 if(chunk) {
                     chunk.dataOffset = dataOffset;
                     // 4. Rebuild vertices list
@@ -243,9 +242,9 @@ async function onMessageFunc(e) {
                 }
             }
             // 4. Rebuild vertices list
-            let result = [];
+            const result = [];
             for(let chunk of chunks) {
-                let item = buildVertices(chunk, false);
+                const item = buildVertices(chunk, false);
                 if(item) {
                     result.push(item);
                     chunk.vertices = null;

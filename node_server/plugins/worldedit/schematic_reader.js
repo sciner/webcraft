@@ -32,14 +32,46 @@ export class SchematicReader {
     }
 
     // Read schematic file
-    async read(file_name) {
-        file_name = `./plugins/worldedit/schematics/${file_name}`;
-        const schematic = await Schematic.read(await fs.readFile(file_name))
+    async read(orig_file_name) {
+
+        let file_name = `./plugins/worldedit/schematics/${orig_file_name}`;
+
+        // Check schem file exists and try extension append
+        const fileExists = path => fs.stat(path).then(() => true, () => false);
+        if(!await fileExists(file_name)) {
+            if(orig_file_name.indexOf('.') < 0) {
+                let found = false;
+                for(let ext of ['schem', 'schematic', 'schema']) {
+                    let next_file_name = `${file_name}.${ext}`;
+                    if(await fileExists(next_file_name)) {
+                        found = true;
+                        file_name = next_file_name;
+                        break;
+                    }
+                }
+                if(!found) {
+                    throw 'error_schem_file_not_found';
+                }
+            }
+        }
+
+        // read schematic
+        const schematic = await Schematic.read(await fs.readFile(file_name));
+
+        // Prepare BlockEntities for fast search
+        const BlockEntities = new VectorCollector();
+        const bePos = new Vector(0, 0, 0);
+        for(let i = 0; i < schematic.blockEntities.length; i++) {
+            const item = schematic.blockEntities[i];
+            BlockEntities.set(bePos.set(item.Pos[0], item.Pos[1], item.Pos[2]), item);
+        }
+
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         // each all blocks
+        const ep = new Vector(0, 0, 0);
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
             bpos.z *= -1;
@@ -49,10 +81,11 @@ export class SchematicReader {
             }
             let b = BLOCK[name];
             let new_block = null;
-            if(name == 'RAIL') {
-                console.log(block._properties);
-            }
             if(b) {
+                if(b.is_chest) {
+                    ep.copyFrom(pos).subSelf(schematic.offset);
+                    block.entities = BlockEntities.get(ep);
+                }
                 new_block = this.createBlockFromSchematic(block, b, extra_data);
             } else {
                 if(name.indexOf('POTTED_') === 0) {
@@ -155,6 +188,13 @@ export class SchematicReader {
         if(extra_data) {
             for(let k in extra_data) {
                 setExtraData(k, extra_data[k]);
+            }
+        }
+        // block entities
+        if(b.is_chest && block.entities) {
+            const chest_extra_data = this.parseChestExtraData(block.entities);
+            if(chest_extra_data) {
+                new_block.extra_data = chest_extra_data;
             }
         }
         //
@@ -365,6 +405,43 @@ export class SchematicReader {
             }
         }
         return new_block;
+    }
+
+    parseChestExtraData(entities) {
+        if(!entities || !entities.Items) {
+            return null;
+        }
+        const chest_extra_data = {
+            can_destroy: true,
+            slots: {}
+        };
+        for(let i = 0; i < entities.Items.length; i++)  {
+            const item = entities.Items[i];
+            let chest_item_name = item.id.split(':').pop();
+            if(chest_item_name) {
+                const slot_index = item.Slot;
+                chest_item_name = chest_item_name.toUpperCase();
+                const chest_item_block = BLOCK.fromName(chest_item_name);
+                if(chest_item_block && chest_item_block.id > 0) {
+                    const count = item.Count;
+                    if(count > 0) {
+                        const tag = item.tag ?? null;
+                        const chest_slot = BLOCK.convertItemToDBItem(chest_item_block);
+                        chest_slot.count = count;
+                        if(tag) {
+                            chest_slot.tag = tag;
+                        }
+                        chest_extra_data.slots[slot_index] = chest_slot;
+                    }
+                } else {
+                    const chest_slot = BLOCK.convertItemToDBItem(BLOCK.fromName('TEST'));
+                    chest_slot.count = 1;
+                    chest_slot.extra_data = {chest_slot: item};
+                    chest_extra_data.slots[slot_index] = chest_slot;
+                }
+            }
+        }
+        return chest_extra_data;
     }
 
 }
