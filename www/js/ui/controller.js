@@ -457,6 +457,7 @@ let gameCtrl = async function($scope, $timeout) {
                 }},
                 {id: 'city', title: Lang.generator_city1},
                 {id: 'city2', title: Lang.generator_city2},
+                {id: 'bottom_caves', title: Lang.bottom_caves},
                 {id: 'flat', title: Lang.generator_flat_world},
                 // {id: 'test_trees', title: 'Тестовые деревья'},
                 // {id: 'mine', title: 'Заброшенная шахта'}

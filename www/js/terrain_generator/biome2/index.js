@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
@@ -8,7 +8,7 @@ import {DungeonGenerator} from "../dungeon.js";
 
 import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
-import { generateBottomCaves } from "./bottom_caves.js";
+import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -26,8 +26,7 @@ export default class Terrain_Generator extends Demo_Map {
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
-        this.generateBottomCaves = generateBottomCaves.bind(this);
-        
+        this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
     }
 
@@ -51,7 +50,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
-            this.generateBottomCaves(chunk, aleaRandom);
+            this.bottomCavesGenerator.generate(chunk, aleaRandom, false);
             return map;
         }
 
@@ -181,7 +180,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Cluster
         chunk.cluster.fillBlocks(this.maps, chunk, map);
-        
+
         // if(!globalThis.ggg) globalThis.ggg = 0;
 
         // Plant trees
@@ -207,8 +206,6 @@ export default class Terrain_Generator extends Demo_Map {
                 );
             }
         }
-
-        // console.log(globalThis.ggg)
 
         // Mines
         if(chunk.addr.y == 0) {

@@ -1,12 +1,32 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
-import { AABB } from "../core/AABB.js";
 
 export {alea, noise};
 
+// Map cell
+export class Default_Terrain_Map_Cell {
+
+    constructor(biome) {
+        this.biome = biome;
+    }
+
+}
+
+//
+export class Default_Terrain_Map {
+
+    constructor(addr, size, coord, options, cells) {
+        this.chunk = {addr, size, coord};
+        this.options = options;
+        this.cells = cells;
+    }
+
+}
+
+//
 export class Default_Terrain_Generator {
 
     constructor(seed, world_id, options) {
