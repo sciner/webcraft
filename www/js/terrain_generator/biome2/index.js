@@ -222,7 +222,7 @@ export default class Terrain_Generator extends Demo_Map {
             mine.fillBlocks(chunk);
         }
         
-        //Dungeon
+        // Dungeon
         this.dungeon.add(chunk);
 
         return map;
