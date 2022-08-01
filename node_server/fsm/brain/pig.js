@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 
 export class Brain extends FSMBrain {
 
@@ -77,7 +77,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {
-            const actions = new PickatActions();
+            const actions = new WorldAction();
             const rnd_count_porkchop = ((Math.random() * 2) | 0) + 1;
 
             let drop_item = { pos: mob.pos, items: [] };

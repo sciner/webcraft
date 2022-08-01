@@ -1,11 +1,10 @@
-import {Vector, VectorCollector} from "./helpers.js";
-import GeometryTerrain from "./geometry_terrain.js";
+import {getChunkAddr, Vector, VectorCollector} from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 
 // Creates a new chunk
 export class Chunk {

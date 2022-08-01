@@ -1,18 +1,21 @@
 {
   "scripts": {
     "install-ff": "(cd ../ff-worker && npm install)",
-    "install-all": "npm run install-ff && npm install",
+    "install-local": "(cd ../local_server && npm install)",
+    "install-all": "npm run install-ff && npm run install-local && npm install",
     "start": "node --experimental-json-modules --no-warnings ./index.js",
-    "inspect": "node --experimental-json-modules --no-warnings --inspect ./index.js",
+    "inspect": "node --experimental-json-modules --no-warnings --inspect --max-old-space-size=8192 ./index.js",
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
     "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",
     "start-rebuild": "npm run rollup && npm run start"
   },
   "dependencies": {
-    "prismarine-schematic": "^1.2.3",
     "compression": "^1.7.4",
     "express": "^4.17.1",
+    "express-less": "^0.1.0",
+    "prismarine-schematic": "github:sciner/prismarine-schematic#master",
+    "semver": "^7.3.7",
     "simplex-noise": "^3.0.1",
     "skia-canvas": "^0.9.30",
     "sqlite": "^4.0.23",

@@ -1,6 +1,6 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 import { BeeNest } from "../../../www/js/block_type/bee_nest.js";
 
 const MAX_POLLEN = 4;
@@ -100,7 +100,7 @@ export class Brain extends FSMBrain {
             const world = mob.getWorld();
             const tblock = world.getBlock(mob.pos_spawn.floored());
             if(tblock && tblock.hasTag('bee_nest')) {
-                console.log('found BeeNest');
+                // console.log('found BeeNest');
                 const nest = new BeeNest(tblock);
                 await nest.appendMob(mob);
             }
@@ -120,7 +120,7 @@ export class Brain extends FSMBrain {
         this.sendState();
         if (mob.extra_data.pollen >= MAX_POLLEN) {
             mob.extra_data.pollen = MAX_POLLEN;
-            console.log("[AI] doReturnToHome");
+            // console.log("[AI] doReturnToHome");
             this.ticks_pollination = 0;
             this.stack.replaceState(this.doReturnToHome);
         } else {
@@ -155,7 +155,7 @@ export class Brain extends FSMBrain {
         // если на уровне ног есть цветок
         if (block.legs && block.legs.hasTag && block.legs.hasTag('flower')) {
             if(mob.extra_data.pollen < MAX_POLLEN && this.ticks_pollination > 300) {
-                console.log("[AI] doPollen");
+                // console.log("[AI] doPollen");
                 this.stack.replaceState(this.doPollen);
             }
         }
@@ -164,7 +164,7 @@ export class Brain extends FSMBrain {
         const world = mob.getWorld();
         const time = world.info.calendar.day_time;
         if (time < 6000 || time > 18000 || mob.extra_data.pollen >= MAX_POLLEN) {
-            console.log("[AI] doReturnToHome");
+            // console.log("[AI] doReturnToHome");
             this.stack.replaceState(this.doReturnToHome);
         }
         
@@ -206,7 +206,7 @@ export class Brain extends FSMBrain {
                 this.ticks_attack = 0;
                 player.changeLive(-this.damage);
                 const world = mob.getWorld();
-                const actions = new PickatActions();
+                const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
                 world.actions_queue.add(player, actions);
                 

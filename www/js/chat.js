@@ -17,6 +17,9 @@ export class Chat extends TextBox {
             list: [],
             send: function(text) {
                 this.add('YOU', text);
+                if(text.trim().toLowerCase() == '/ping') {
+                    that.send_ping = performance.now();
+                }
                 that.player.world.server.SendMessage(text);
                 Game.setupMousePointer(true);
             },
@@ -96,6 +99,12 @@ export class Chat extends TextBox {
         Game.hud.add(this, 1);
         // Add listeners for server commands
         this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
+            if(cmd.data.is_system) {
+                if(cmd.data.text == 'pong') {
+                    const elpapsed = Math.round((performance.now() - that.send_ping) * 1000) / 1000;
+                    cmd.data.text += ` ${elpapsed} ms`;
+                }
+            }
             this.messages.add(cmd.data.username, cmd.data.text);
         });
         // Restore sent history
@@ -131,7 +140,8 @@ export class Chat extends TextBox {
         this.active = true;
         this.open_time = performance.now();
         Game.hud.refresh();
-        document.exitPointerLock();
+        // no need
+        // document.exitPointerLock();
     }
     
     close() {
@@ -151,50 +161,19 @@ export class Chat extends TextBox {
         if(!this.active) {
             return;
         }
-        let world   = Game.world;
-        let player  = Game.player;
-        let chat    = Game.player.chat;
-        let text    = this.buffer.join('');
+        const text = this.buffer.join('');
         if(text != '' && text != '/') {
             this.messages.send(text);
+            //
+            const render    = Game.render;
+            const player    = this.player;
+            const chat      = player.chat;
             // Parse commands
-            let temp = text.replace(/  +/g, ' ').split(' ');
-            let cmd = temp.shift();
+            const temp      = text.replace(/  +/g, ' ').split(' ');
+            const cmd       = temp.shift();
             switch(cmd.trim().toLowerCase()) {
                 case '/clear': {
                     this.history.clear();
-                    break;
-                }
-                case '/weather': {
-                    if(temp.length == 1) {
-                        let name = temp[0].trim().toLowerCase();
-                        switch(name) {
-                            case 'rain': {
-                                Game.render.setRain(true);
-                                chat.messages.addSystem('Установлена дождливая погода');
-                                break;
-                            }
-                            case 'clear': {
-                                Game.render.setRain(false);
-                                chat.messages.addSystem('Установлена ясная погода');
-                                break;
-                            }
-                            default: {
-                                chat.messages.addError(`Incorrect argument for command`);
-                            }
-                        }
-                    }
-                    break;
-                }
-                case '/obj': {
-                    new Mesh_Default(
-                        Game.render.gl,
-                        player.pos,
-                        '/vendors/Mickey Mouse.obj',
-                        function(m) {
-                            world.meshes.add(m)
-                        }
-                    )
                     break;
                 }
             }

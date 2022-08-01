@@ -1,11 +1,11 @@
-import { Color, QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
+import { Color, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import { BLEND_MODES } from '../renders/BaseRenderer.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { Resources } from '../resources.js';
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr } from '../chunk_const.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../chunk_const.js';
 
 const {mat4} = glMatrix;
 
@@ -56,9 +56,10 @@ export default class Particles_Rain {
     #_version           = 0;
     #_blocks_sets       = 0;
 
-    constructor(render, pos) {
+    constructor(render, type) {
 
         this.life = 1;
+        this.type = type;
         this.chunkManager = Game.world.chunkManager;
 
         // Material (rain)
@@ -66,7 +67,7 @@ export default class Particles_Rain {
 
         // Material
         this.material = mat.getSubMat(render.renderBackend.createTexture({
-            source: Resources.weather.rain,
+            source: Resources.weather[type],
             blendMode: BLEND_MODES.MULTIPLY,
             minFilter: 'nearest',
             magFilter: 'nearest'
@@ -206,9 +207,11 @@ export default class Particles_Rain {
     // createBuffer...
     createBuffer(aabb, c) {
 
+        const snow = this.type == 'snow';
+
         const vertices  = [];
-        const lm        = new Color(RAIN_SPEED / 5, -RAIN_SPEED, 0);
-        const sideFlags = QUAD_FLAGS.TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
+        const lm        = new Color((snow ? RAIN_SPEED / 16 : 0), -RAIN_SPEED / (snow ? 24 : 1), 0);
+        const sideFlags = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
         const pivot     = null;
         const matrix    = null;
 

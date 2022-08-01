@@ -9,6 +9,7 @@ import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -55,7 +56,9 @@ export class GameClass {
         // Create world
         await this.render.init(this.world, settings);
 
-        let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        // Connect to server
+        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;
+        const ws = this.local_server ? this.local_server.connect(connection_string) : new WebSocket(connection_string);
 
         await this.world.connectToServer(ws);
 
@@ -254,6 +257,7 @@ export class GameClass {
                         if(!e.down) {
                             if(e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
+                                Game.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
                             } else {
                                 player.changeSpawnpoint();
                             }
@@ -500,7 +504,7 @@ export class GameClass {
             }
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: this.current_player_state
+                data: compressPlayerStateC(this.current_player_state)
             });
         }
     }
@@ -561,7 +565,7 @@ export class GameClass {
         }
 
         const pointerlockerror = function(event) {
-            console.error('Error setting pointer lock!', event);
+            console.warn('Error setting pointer lock!', event);
         }
 
         // Hook pointer lock state change events
@@ -630,7 +634,7 @@ export class GameClass {
             {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
         ];
         var cnt = 0;
-        for(let chunk of this.world.chunkManager.chunks.values()) {
+        for(let chunk of this.world.chunkManager.chunks) {
             if(chunk.timers) {
                 cnt++;
                 for(var tim of timers) {

@@ -21,6 +21,8 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
+import { DEFAULT_CLOUD_HEIGHT, PLAYER_MAX_DRAW_DISTANCE } from "./constant.js";
+import { Weather } from "./type.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -142,13 +144,9 @@ export class Renderer {
         return this.renderBackend.gl;
     }
 
-    async init(world, settings) {
-        return this._init(world, settings);
-    }
-
     // todo
     // GO TO PROMISE
-    async _init(world, settings) {
+    async init(world, settings) {
         this.setWorld(world);
 
         const {renderBackend} = this;
@@ -166,7 +164,7 @@ export class Renderer {
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
-        this.setBrightness(1); // this.brightness = 1;
+        this.env.setBrightness(1);
         renderBackend.resize(this.canvas.width, this.canvas.height);
 
         // Init shaders for all resource packs
@@ -187,7 +185,7 @@ export class Renderer {
         }
 
         // Prepare base resource pack shader
-        let rp                  = BLOCK.resource_pack_manager.get('base');
+        const rp                = BLOCK.resource_pack_manager.get('base');
         this.defaultShader      = rp.shader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
@@ -204,20 +202,23 @@ export class Renderer {
         this.updateViewport();
 
         // HUD
-        // Build main HUD
-        this.HUD = {
-            tick: 0,
-            bufRect: null,
-            draw: function() {
-                Game.hud.draw();
-            }
-        }
+        this.HUD = Game.hud;
 
         this.generatePrev();
         this.generateDropItemVertices();
 
+        // Clouds
+        // @todo Переделать в связи с появлением TBlock
+        this.clouds = this.meshes.add(new Particles_Clouds(this, DEFAULT_CLOUD_HEIGHT));
+
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
-        
+
+        this.blockDayLightTex = renderBackend.createTexture({
+            source: Resources.blockDayLight,
+            minFilter: 'linear',
+            magFilter: 'linear'
+        });
+        this.blockDayLightTex.bind(2);
     }
 
     // Generate drop item vertices
@@ -317,7 +318,7 @@ export class Renderer {
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.55 * 1.3;
+        gu.brightness = 0.55 * 1.0; // 1.3
         gu.sunDir = [-1, -1, 1];
         gu.useSunDir = true;
 
@@ -370,9 +371,9 @@ export class Renderer {
                     mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
                 }
 
-        //if(this.block_material?.inventory?.move) {
-        //    mat4.translate(this.modelMatrix, this.modelMatrix, new Vector(this.block_material?.inventory?.move).toArray());
-        //}
+                //if(this.block_material?.inventory?.move) {
+                //    mat4.translate(this.modelMatrix, this.modelMatrix, new Vector(this.block_material?.inventory?.move).toArray());
+                //}
 
                 this.renderBackend.drawMesh(
                     mesh.buffer,
@@ -528,14 +529,6 @@ export class Renderer {
         this.player = player;
     }
 
-    /**
-     * @deprecated use a this.env.setBrightness
-     * @param {number} value
-     */
-    setBrightness(value) {
-        this.env.setBrightness(value);
-    }
-
     update(delta, args) {
 
         this.frame++;
@@ -566,8 +559,8 @@ export class Renderer {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
-        if(player.eyes_in_water) {
-            if(player.eyes_in_water.is_water) {
+        if(player.eyes_in_block) {
+            if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
                 blockDist = 8; //
             } else {
@@ -583,13 +576,6 @@ export class Renderer {
         });
 
         this.env.update(delta, args);
-
-        // Clouds
-        if(!this.clouds) {
-            const pos = new Vector(player.pos);
-            pos.y = 128.1;
-            this.clouds = this.createClouds(pos);
-        }
 
         const cm = this.world.chunkManager;
 
@@ -623,7 +609,7 @@ export class Renderer {
     }
 
     // Render one frame of the world to the canvas.
-    draw (delta, args) {
+    draw(delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
 
@@ -659,7 +645,7 @@ export class Renderer {
             }
             renderBackend.batch.flush();
             if(!transparent) {
-                let shader = this.defaultShader;
+                const shader = this.defaultShader;
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
@@ -685,9 +671,7 @@ export class Renderer {
         }
 
         // 4. Draw HUD
-        if(this.HUD) {
-            this.HUD.draw();
-        }
+        this.HUD.draw();
 
         // 5. Screenshot
         if(this.make_screenshot) {
@@ -715,6 +699,8 @@ export class Renderer {
 
     // destroyBlock
     destroyBlock(block, pos, small) {
+        const block_manager = this.world.block_manager;
+        // Game.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
         this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
     }
 
@@ -726,30 +712,25 @@ export class Renderer {
         }
     }
 
-    // rainDrop
-    //rainDrop(pos) {
-    //    this.meshes.add(new Particles_Raindrop(this, pos));
-    //}
-
     // addAsteroid
     addAsteroid(pos, rad) {
         this.meshes.add(new Particles_Asteroid(this, pos, rad));
     }
 
-    // createClouds
-    createClouds(pos) {
-        // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this, pos));
-    }
-
-    // setRain
-    setRain(value) {
-        let rain = this.meshes.get('rain');
-        if(!rain) {
-            rain = new Particles_Rain(this);
-            this.meshes.add(rain, 'rain');
+    /**
+     * Set weather
+     * @param {Weather} weather
+     */
+    setWeather(weather) {
+        let rain = this.meshes.get('weather');
+        if(!rain || rain.type != weather.name) {
+            if(rain) {
+                rain.destroy();
+            }
+            rain = new Particles_Rain(this, weather.name);
+            this.meshes.add(rain, 'weather');
         }
-        rain.enabled = value;
+        rain.enabled = weather.name != 'clear';
     }
 
     // drawPlayers
@@ -763,7 +744,9 @@ export class Renderer {
             if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
                 continue;
             }
-            player.draw(this, this.camPos, delta);
+            if(this.camPos.distance(player.pos) < PLAYER_MAX_DRAW_DISTANCE) {
+                player.draw(this, this.camPos, delta);
+            }
         }
     }
 
@@ -902,7 +885,6 @@ export class Renderer {
         const modelMatrix = mat4.create();
         this.renderBackend.drawMesh(buf, this.material_shadow, a_pos, modelMatrix);
         buf.destroy();
-
     }
 
     // createShadowBuffer...
@@ -985,7 +967,7 @@ export class Renderer {
 
         // Shake camera on damage
         if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
-            let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
+            const percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);

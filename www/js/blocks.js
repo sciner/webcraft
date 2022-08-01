@@ -168,26 +168,16 @@ class Block_Material {
 }
 
 // getBlockNeighbours
-function getBlockNeighbours(world, pos) {
-    const neighbours = {
-        UP: null,
-        DOWN: null,
-        SOUTH: null,
-        NORTH: null,
-        WEST: null,
-        EAST: null
-    };
+export function getBlockNeighbours(world, pos) {
     let v = new Vector(0, 0, 0);
-    // обходим соседние блоки
-    for(let i = 0; i < 6; i ++) {
-        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
-        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
-        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
-        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
-        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
-        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
-    }
-    return neighbours;
+    return neighbours = {
+        UP:     world.getBlock(v.set(pos.x, pos.y + 1, pos.z)),
+        DOWN:   world.getBlock(v.set(pos.x, pos.y - 1, pos.z)),
+        SOUTH:  world.getBlock(v.set(pos.x, pos.y, pos.z - 1)),
+        NORTH:  world.getBlock(v.set(pos.x, pos.y, pos.z + 1)),
+        WEST:   world.getBlock(v.set(pos.x - 1, pos.y, pos.z)),
+        EAST:   world.getBlock(v.set(pos.x + 1, pos.y, pos.z))
+    };
 }
 
 export class BLOCK {
@@ -380,6 +370,10 @@ export class BLOCK {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
             extra_data = BLOCK.calculateExtraData(extra_data, pos);
         }
+        // facing
+        if(extra_data && 'facing' in extra_data) {
+            extra_data.facing = BLOCK.getFacing(orientation.x);
+        }
         // is_chest
         if(block.is_chest) {
             setExtra('can_destroy', true);
@@ -425,7 +419,6 @@ export class BLOCK {
                             throw 'error_generator_min_max_not_set';
                         }
                         extra_data[g.name] = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
-                        console.log(g.name, extra_data[g.name], g);
                         break;
                     }
                     case 'random_item': {
@@ -456,6 +449,15 @@ export class BLOCK {
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
+    }
+
+    //
+    static getFacing(orientation_x) {
+        const facings4 = ['north', 'west', 'south', 'east'];
+        if(orientation_x in facings4) {
+            return facings4[orientation_x];
+        }
+        return facings4[0];
     }
 
     // Returns a block structure for the given id.
@@ -530,7 +532,7 @@ export class BLOCK {
             block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';
@@ -799,6 +801,10 @@ export class BLOCK {
                 texture = material.texture.down;
             }
         }
+        // @todo (BEE NEST) убрать отсюда куда нибудь
+        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data && 'pollen' in block.extra_data && block.extra_data.pollen >= 4) {
+            texture = material.texture.north_honey;
+        }
         let c = this.calcTexture(texture, dir, tx_cnt);
         if(width && width < 1) {
             c[2] *= width;
@@ -806,18 +812,6 @@ export class BLOCK {
         if(height && height < 1) {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;
-        }
-        /*if(dir == DIRECTION.UP) {
-            c[2] *= -1;
-            c[3] *= -1;
-        }*/
-        //if(dir == DIRECTION.NORTH || dir == DIRECTION.WEST) {
-            //c[2] *= -1;
-            //c[3] *= -1;
-        //}
-        // @todo (BEE NEST) убрать отсюда куда нибудь
-        if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data.pollen >= 4) {
-            c[0] += 1/32;
         }
         return c;
     }
@@ -946,7 +940,7 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'wall' || block.material.style == 'pane');
+        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'fence_gate' || block.material.style == 'wall' || block.material.style == 'pane');
     }
 
     static canWallConnect(block) {
@@ -1133,6 +1127,7 @@ export class BLOCK {
                     }
                     break;
                 }
+                case 'slope':
                 case 'stairs': {
                     shapes.push(...StyleStairs.calculate(b, pos, neighbours, world.chunkManager).getShapes(new Vector(pos).multiplyScalar(-1), f));
                     break;

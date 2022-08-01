@@ -2,17 +2,9 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {TBlock} from "../www/js/typed_blocks.js";
-import { newTypedBlocks } from "../www/js/typed_blocks3.js";
+import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
-import {PickatActions} from "../www/js/block_action.js";
-
-const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace', 'bee_nest']) {
-    await import(`./ticker/${fn}.js`).then((module) => {
-        Tickers.set(module.default.type, module.default.func);
-    });
-}
+import {WorldAction} from "../www/js/world_action.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -96,9 +88,9 @@ class TickingBlockManager {
             }
             //
             v.ticks++;
-            const ticker = Tickers.get(ticking.type);
+            const ticker = world.tickers.get(ticking.type);
             if(ticker) {
-                const upd_blocks = await ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
+                const upd_blocks = ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
                 if(Array.isArray(upd_blocks)) {
                     updated_blocks.push(...upd_blocks);
                 }
@@ -108,7 +100,7 @@ class TickingBlockManager {
         }
         //
         if(updated_blocks.length > 0) {
-            const actions = new PickatActions(null, this.#chunk.world, false, false);
+            const actions = new WorldAction(null, this.#chunk.world, false, false);
             actions.addBlocks(updated_blocks);
             world.actions_queue.add(null, actions);
         }
@@ -524,7 +516,7 @@ export class ServerChunk {
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
                     await this.world.mobs.create(params);
-                    const actions = new PickatActions(null, this.world, false, false);
+                    const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
                         {pos: item_pos, item: BLOCK.AIR},
                         {pos: under1.posworld, item: BLOCK.AIR},
@@ -539,7 +531,7 @@ export class ServerChunk {
                 // @todo Отключил, потому что данный код может создавать двойные дропы
                 let changes = false;
                 const air = { id: 0 };
-                const actions = new PickatActions(null, this.world, false, false);
+                const actions = new WorldAction(null, this.world, false, false);
                 //
                 const createAutoDrop = (mat, pos) => {
                     if(!mat.can_auto_drop) {

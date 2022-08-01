@@ -130,10 +130,10 @@ export class DirLightQueue {
             if (maxVal < val) {
                 // mxdl-13 not obvious, good for big amount of lights
                 maxVal = uint8View[coordBytes + OFFSET_LIGHT] = val;
-                world.dayLight.add(chunk, coord, maxVal + world.getPotential(x, y, z), true);
+                world.dayLight.add(chunk, coord, maxVal, world.getPotential(x, y, z), true);
                 chunk.lastID++;
             } else {
-                world.dayLight.add(chunk, coord, maxVal + world.getPotential(x, y, z));
+                world.dayLight.add(chunk, coord, maxVal, world.getPotential(x, y, z));
             }
             //TODO: copy to neib chunks
             if (safeAABB.contains(x, y, z)) {
@@ -306,7 +306,7 @@ export class DirLightQueue {
                             m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_LIGHT]);
                         }
                         if (m > 0) {
-                            world.dayLight.add(chunk, coord, m + world.getPotential(x, y, z));
+                            world.dayLight.add(chunk, coord, m, world.getPotential(x, y, z));
                         }
                     }
         } else {

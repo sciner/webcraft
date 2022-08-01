@@ -72,10 +72,10 @@ export default class style {
         } = block;
 
         if ((!rotate || rotate.y) && (typeof worker != 'undefined')) {
-            worker.postMessage(['add_torch', {
-                block_pos: chunk.coord.add(new Vector(x, y, z)),
-                pos: chunk.coord.add(new Vector(x, y, z)),
-                type: 'torch'
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: [block.posworld],
+                type: 'torch_flame'
             }]);
             return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, false, null, null);
         }
@@ -91,10 +91,10 @@ export default class style {
         ));
 
         if(typeof worker != 'undefined' && block.id == 50) {
-            worker.postMessage(['add_torch', {
-                block_pos: chunk.coord.add(new Vector(x, y, z)),
-                pos: torch_pos,
-                type: 'torch'
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: [torch_pos],
+                type: 'torch_flame'
             }]);
         }
 

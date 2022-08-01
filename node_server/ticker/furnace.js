@@ -6,7 +6,7 @@ export default class Ticker {
     static type = 'furnace'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
         const max_ticks = 50;
         const tblock = v.tblock;
         // const ticking = v.ticking;

@@ -813,7 +813,7 @@
             }
         },
         "result": {
-            "item": "madcraft:gold_pickaxe",
+            "item": "madcraft:golden_pickaxe",
             "count": 1
         }
     },
@@ -855,7 +855,7 @@
             }
         },
         "result": {
-            "item": "madcraft:gold_sword",
+            "item": "madcraft:golden_sword",
             "count": 1
         }
     },
@@ -876,7 +876,7 @@
             }
         },
         "result": {
-            "item": "madcraft:gold_hoe",
+            "item": "madcraft:golden_hoe",
             "count": 1
         }
     },
@@ -1352,7 +1352,7 @@
             }
         },
         "result": {
-            "item": "madcraft:bucket_empty",
+            "item": "madcraft:bucket",
             "count": 1
         }
     },

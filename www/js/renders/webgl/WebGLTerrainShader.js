@@ -1,6 +1,6 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
-import {Helpers} from "../../helpers.js";
 import WebGLRenderer from "./index.js";
+import { MIN_BRIGHTNESS } from "../../constant.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
     /**
@@ -60,6 +60,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
         this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
+        this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
         // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
 
         this.hasModelMatrix = false;
@@ -102,6 +103,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             gl.uniform1i(this.u_texture, 4);
             gl.uniform1i(this.u_chunkDataSampler, 3);
             gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+            gl.uniform1i(this.u_blockDayLightSampler, 2);
         }
         if (this.globalID === gu.updateID) {
             return;
@@ -115,7 +117,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // gl.uniform1f(this.u_fogDensity, this.fogDensity);
         gl.uniform4fv(this.u_fogColor, gu.fogColor);
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
-        gl.uniform1f(this.u_brightness, gu.brightness);
+        gl.uniform1f(this.u_brightness, Math.max(gu.brightness, MIN_BRIGHTNESS));
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
 
         const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;

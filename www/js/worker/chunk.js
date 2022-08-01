@@ -1,17 +1,15 @@
-import {BLOCK, POWER_NO, DropItemVertices} from "../blocks.js";
-import {Vector, VectorCollector} from "../helpers.js";
-import {BlockNeighbours, TBlock} from "../typed_blocks.js";
-import {newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK} from "../typed_blocks3.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
+import { BLOCK, POWER_NO, DropItemVertices } from "../blocks.js";
+import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
+import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import { ClusterManager } from '../terrain_generator/cluster/manager.js';
-import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
-import {WorkerInstanceBuffer} from "./WorkerInstanceBuffer.js";
+import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
+import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
-import {pushTransformed} from '../block_style/extruder.js';
+import { pushTransformed } from '../block_style/extruder.js';
 
 // Constants
-const DIRTY_REBUILD_RAD = 1;
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
 
 // ChunkManager
@@ -68,7 +66,7 @@ export class Chunk {
         this.id             = this.addr.toHash();
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
-        this.temp_vec2      = new Vector(0, 0, 0);
+        this.temp_vec       = new Vector(0, 0, 0);
         this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
         this.aabb           = new AABB();
         this.aabb.set(
@@ -136,21 +134,20 @@ export class Chunk {
             return;
         }
         const pos = new Vector(0, 0, 0);
-        const block_index = new Vector(0, 0, 0);
+        const block_vec_index = new Vector(0, 0, 0);
         for(let index in this.modify_list) {
             const m = this.modify_list[index];
             if(!m) continue;
             pos.fromFlatChunkIndex(index);
             if(m.id < 1) {
-                BLOCK.getBlockIndex(pos, null, null, block_index);
-                this.tblocks.delete(block_index);
+                BLOCK.getBlockIndex(pos, null, null, block_vec_index);
+                this.tblocks.delete(block_vec_index);
                 continue;
             }
-            let type        = BLOCK.fromId(m.id);
-            let rotate      = m.rotate ? m.rotate : null;
-            let entity_id   = m.entity_id ? m.entity_id : null;
-            let extra_data  = m.extra_data ? m.extra_data : null;
-            this.setBlock(pos.x | 0, pos.y | 0, pos.z | 0, type, false, m.power, rotate, entity_id, extra_data);
+            // setBlock
+            this.setBlockIndirect(pos.x, pos.y, pos.z, m.id, m.rotate, m.extra_data);
+            this.emitted_blocks.delete(index);
+
         }
         this.modify_list = [];
     }
@@ -195,36 +192,27 @@ export class Chunk {
         if(typeof power === 'undefined' || power === null) {
             power = POWER_NO;
         }
-        //
-        if(orig_type.id < 3) {
-            power       = null;
-            rotate      = null;
-            extra_data  = null;
-        }
         if(power === 0) {
             power = null;
         }
-        const pos = new Vector(x, y, z);
+        this.temp_vec.set(x, y, z);
         //
         if(is_modify) {
-            let modify_item = {
-                id: orig_type.id,
-                power: power,
+            const modify_item = {
+                id:     orig_type.id,
+                power:  power,
                 rotate: rotate
             };
-            this.modify_list[pos.getFlatIndexInChunk()] = modify_item;
+            this.modify_list[this.temp_vec.getFlatIndexInChunk()] = modify_item;
         }
-        BLOCK.getBlockIndex(pos, null, null, pos);
-        x = pos.x;
-        y = pos.y;
-        z = pos.z;
+        BLOCK.getBlockIndex(this.temp_vec, null, null, this.temp_vec);
+        x = this.temp_vec.x;
+        y = this.temp_vec.y;
+        z = this.temp_vec.z;
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
         }
-        if(is_modify) {
-            console.table(orig_type);
-        }
-        let block        = this.tblocks.get(pos);
+        const block        = this.tblocks.get(this.temp_vec);
         block.id         = orig_type.id;
         block.power      = power;
         block.rotate     = rotate;

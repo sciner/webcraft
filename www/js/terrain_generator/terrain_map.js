@@ -1,7 +1,7 @@
-import {impl as alea} from '../../vendors/alea.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk_const.js";
-import {Color, Vector, Helpers, VectorCollector} from '../helpers.js';
-import {BIOMES} from "./biomes.js";
+import { impl as alea } from '../../vendors/alea.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { Color, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
+import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
 import { OreGenerator } from './ore_generator.js';
 
@@ -429,17 +429,11 @@ export class TerrainMap {
             plant_pos.x = x;
             plant_pos.y = y;
             plant_pos.z = z;
-            for (let i = 0; i < biome.plants.list.length; i++) {
+            for(let i = 0; i < biome.plants.list.length; i++) {
                 const p = biome.plants.list[i];
                 s += p.percent;
                 if(r < s) {
-                    if(p.block) {
-                        this.plants.set(plant_pos, p.block);
-                    } else if(p.trunk) {
-                        this.plants.set(plant_pos, p.trunk);
-                        plant_pos.y++;
-                        this.plants.set(plant_pos, p.leaves);
-                    }
+                    this.plants.set(plant_pos, p.blocks);
                     break;
                 }
             }

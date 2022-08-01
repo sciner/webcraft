@@ -5,7 +5,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
-import { DRAW_HUD_INFO_DEFAULT } from "./constant.js";
+import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -25,16 +25,10 @@ export class HUD {
     constructor(width, height) {
 
         // Create canvas used to draw HUD
-        let canvas                      = this.canvas = document.createElement('canvas');
+        const canvas                    = this.canvas = document.createElement('canvas');
         canvas.id                       = 'cnvHUD';
         canvas.width                    = width;
         canvas.height                   = height;
-        canvas.style.position           = 'fixed';
-        // canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
-        canvas.style.zIndex             = 0;
-        canvas.style.pointerEvents      = 'none';
-        canvas.style.width              = '100vw';
-        canvas.style.height             = '100vh';
         this.ctx                        = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
         document.body.appendChild(this.canvas);
@@ -49,6 +43,7 @@ export class HUD {
         this.items                      = [];
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
+        this.strMeasures                = new Map();
 
         this.FPS                        = new FPSCounter();
 
@@ -103,14 +98,15 @@ export class HUD {
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                let txt = '';
+                const texts = [];
                 if(Resources.progress && Resources.progress.percent < 100) {
-                    txt = 'LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%';
+                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%');
                 } else if(cl == 0) {
-                    txt = 'CONNECTING TO SERVER...';
+                    texts.push('CONNECTING TO SERVER...');
                 } else {
-                    txt = 'GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%';
+                    texts.push('GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
                 }
+                texts.push('Press F11 to full screen');
                 //
                 let x = w / 2;
                 let y = h / 2;
@@ -118,29 +114,34 @@ export class HUD {
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
                 ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
-                // Measure text
-                if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
-                    this.prevSplashTextMeasure = {
-                        text: txt,
-                        measure: ctx.measureText(txt)
-                    };
+                //
+                for(let i = 0; i < texts.length; i++) {
+                    const txt = texts[i];
+                    // Measure text
+                    if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
+                        this.prevSplashTextMeasure = {
+                            text: txt,
+                            measure: ctx.measureText(txt)
+                        };
+                    }
+                    // get width of text
+                    let mt = this.prevSplashTextMeasure.measure;
+                    let width = mt.width;
+                    let height = mt.actualBoundingBoxDescent;
+                    // color for background
+                    ctx.fillStyle = 'rgba(255, 255, 255, .25)';
+                    // draw background rect assuming height of font
+                    ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
+                    // text color
+                    ctx.fillStyle = '#333';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
+                    // text color
+                    ctx.fillStyle = '#fff';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2, y - height / 2);
+                    y += height * 3;
                 }
-                // get width of text
-                let mt = this.prevSplashTextMeasure.measure;
-                let width = mt.width;
-                let height = mt.actualBoundingBoxDescent;
-                // color for background
-                ctx.fillStyle = 'rgba(255, 255, 255, .25)';
-                // draw background rect assuming height of font
-                ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
-                // text color
-                ctx.fillStyle = '#333';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
-                // text color
-                ctx.fillStyle = '#fff';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2, y - height / 2);
                 // restore original state
                 ctx.restore();
                 return true;
@@ -200,21 +201,58 @@ export class HUD {
         return this.active;
     }
 
-    /*makeVignette(width, height) {
-        this.vignette = this.ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
-        this.vignette.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        this.vignette.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
-    }*/
-
-    drawVignette() {
-        // this.ctx.fillStyle = this.vignette;
-        // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-
     draw(force) {
 
         this.frmMainMenu.parent.center(this.frmMainMenu);
 
+        this.checkSize();
+
+        // Check if need redraw
+        const hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
+            return false;
+        }
+        this.need_refresh = false;
+        this.prevDrawTime = performance.now();
+
+        this.clear();
+
+        // Draw splash screen...
+        if(this.splash.draw()) {
+            return;
+        }
+
+        // Set style
+        this.ctx.fillStyle      = '#ff0000';
+        this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
+        this.ctx.textAlign      = 'left';
+        this.ctx.textBaseline   = 'top';
+
+        if(this.isActive()) {
+            // Draw game technical info
+            this.drawInfo();
+            // Draw HUD components
+            for(let t of this.items) {
+                for(let e of t) {
+                    e.item.drawHUD(this);
+                }
+            }
+        }
+
+        // Draw windows
+        this.ctx.restore();
+        if(this.wm.hasVisibleWindow()) {
+            this.wm.style.background.color = Game.player.isAlive ? '#00000077' : '#ff330027';
+            this.wm.draw(true);
+        } else {
+            this.wm.style.background.color = '#00000000';
+            this.wm.draw(false);
+        }
+
+    }
+
+    //
+    checkSize() {
         let new_width = null;
         let new_height = null;
 
@@ -235,58 +273,7 @@ export class HUD {
             this.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
             Game.hud.wm.resize(this.width, this.height);
             this.refresh();
-            // Vignette
-            // this.makeVignette(this.width, this.height);
         }
-
-        // Make info for draw
-        let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
-            return false;
-        }
-        this.need_refresh = false;
-        this.prevDrawTime = performance.now();
-
-        this.clear();
-
-        // Draw vignette
-        // this.drawVignette();
-
-        // Draw splash screen...
-        if(this.splash.draw()) {
-            return;
-        }
-
-        // Set style
-        this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
-        this.ctx.textAlign      = 'left';
-        this.ctx.textBaseline   = 'top';
-
-        // this.ctx.save();
-
-        if(this.isActive()) {
-            // Draw game technical info
-            this.drawInfo();
-            // Draw HUD components
-            for(let t of this.items) {
-                for(let e of t) {
-                    // this.ctx.restore();
-                    e.item.drawHUD(this);
-                }
-            }
-        }
-
-        // Draw windows
-        this.ctx.restore();
-        if(this.wm.hasVisibleWindow()) {
-            this.wm.style.background.color = Game.player.isAlive ? '#00000077' : '#ff330027';
-            this.wm.draw(true);
-        } else {
-            this.wm.style.background.color = '#00000000';
-            this.wm.draw(false);
-        }
-
     }
 
     toggleInfo() {
@@ -301,10 +288,10 @@ export class HUD {
         if(!Game.render || !Game.world || !Game.player) {
             return;
         }
-        let world = Game.world;
-        let player = Game.player;
+        const world = Game.world;
+        const player = Game.player;
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
-        let vci = Game.render.getVideoCardInfo();
+        const vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += 'Renderer: ' + vci.renderer + '\n';
         }
@@ -318,7 +305,7 @@ export class HUD {
             }
             this.text += ` ${mat.id} / ${this.mat_name}`;
             if(mat.is_fluid) {
-                this.text += ' ' + '(FLUID!!!)';
+                this.text += ' ' + '(FLUID!)';
             }
         } else {
             this.text += 'NULL';
@@ -330,7 +317,7 @@ export class HUD {
 
         this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
 
-        let time = world.getTime();
+        const time = world.getTime();
         if(time) {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
         }
@@ -362,8 +349,8 @@ export class HUD {
         }
 
         // Console =)
-        let playerBlockPos = player.getBlockPos();
-        let chunk = player.overChunk;
+        const playerBlockPos = player.getBlockPos();
+        const chunk = player.overChunk;
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
         if(chunk) {
             /*let biome = null;
@@ -378,6 +365,7 @@ export class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
+        let pcnt = 0;
         for(let [id, p] of world.players.list) {
             this.text += '🙎‍♂️' + p.username;
             if(p.itsMe()) {
@@ -386,6 +374,12 @@ export class HUD {
                 this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
             }
             this.text += '\n';
+            if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {
+                break;
+            }
+        }
+        if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
+            this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
         }
         if(this.prevInfo == this.text) {
             return false;
@@ -400,7 +394,7 @@ export class HUD {
             return;
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
-        this.drawText(this.text, 10 * this.zoom, 10 * this.zoom);
+        this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
         //
         this.drawActiveQuest();
         //
@@ -429,7 +423,7 @@ export class HUD {
         const active_quest = Game.hud.wm.getWindow('frmQuests').active;
         if(active_quest) {
             if(!active_quest.mt) {
-                let quest_text = [active_quest.title];
+                const quest_text = [active_quest.title];
                 for(let action of active_quest.actions) {
                     let status = `🔲`; 
                     if(action.ok) {
@@ -471,25 +465,29 @@ export class HUD {
             this.ctx.fillRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
             // this.ctx.strokeStyle = '#ffffff88';
             this.ctx.strokeRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
-            this.drawText(active_quest.mt.quest_text, this.width - active_quest.mt.width - 30 * this.zoom, 20 * this.zoom, '#ffffff00');
+            this.drawText('quests', active_quest.mt.quest_text, this.width - active_quest.mt.width - 30 * this.zoom, 20 * this.zoom, '#ffffff00');
         }
     }
 
     // Просто функция печати текста
-    drawText(str, x, y, fillStyle) {
+    drawText(id, str, x, y, fillStyle) {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
-        if(!this.strMeasures || this.strMeasures.length != str.length) {
-            this.strMeasures = new Array(str.length);
+        //
+        let measures = this.strMeasures.get(id);
+        if(!measures) measures = [];
+        if(measures.length != str.length) {
+            measures = new Array(str.length);
+            this.strMeasures.set(id, measures);
         }
         for(let i = 0; i < str.length; i++) {
-            if(!this.strMeasures[i] || this.strMeasures[i].text != str[i]) {
-                this.strMeasures[i] = {
+            if(!measures[i] || measures[i].text != str[i]) {
+                measures[i] = {
                     text: str[i],
                     measure: this.ctx.measureText(str[i] + '|')
                 };
             }
-            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, this.strMeasures[i].measure, fillStyle);
+            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, measures[i].measure, fillStyle);
         }
     }
 
@@ -500,8 +498,8 @@ export class HUD {
         // draw text from top - makes life easier at the moment
         this.ctx.textBaseline = 'top';
         // get width of text
-        let width = mt.width;
-        let height = mt.actualBoundingBoxDescent;
+        const width = mt.width;
+        const height = mt.actualBoundingBoxDescent;
         // color for background
         this.ctx.fillStyle = fillStyle || 'rgba(0, 0, 0, .35)';
         if(txt) {

@@ -1,71 +1,39 @@
-import { v4 as uuid } from 'uuid';
-import path from 'path'
-import sqlite3 from 'sqlite3'
-import {open} from 'sqlite'
-import { copyFile } from 'fs/promises';
-
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../../www/js/chunk_const.js";
-import {Vector} from "../../www/js/helpers.js";
-import {ServerClient} from "../../www/js/server_client.js";
-import {BLOCK} from "../../www/js/blocks.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
+import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { ServerClient } from "../../www/js/server_client.js";
+import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
 import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
-import fs from 'fs';
 
-//
+// Database packages
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
 
+// World database provider
 export class DBWorld {
 
-    static TEMPLATE_DB = './db/world.sqlite3.template';
-
-    constructor(db, world) {
-        this.db = db;
+    constructor(conn, world) {
+        this.conn = conn;
         this.world = world;
     }
 
     async init() {
-        this.migrations = new DBWorldMigration(this.db, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
-        this.mobs = new DBWorldMob(this.db, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
-        this.quests = new DBWorldQuest(this.db, this.world);
+        this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
+        this.quests = new DBWorldQuest(this.conn, this.world);
+        return this;
     }
 
     // Open database and return provider
-    static async openDB(dir, world) {
-        let filename = dir + '/world.sqlite';
-        filename = path.resolve(filename);
-        // Check directory exists
-        if (!fs.existsSync(dir)) {
-            await fs.mkdirSync(dir, {recursive: true});
-        }
-        // Recheck directory exists
-        if (!fs.existsSync(dir)) {
-            throw 'World directory not found: ' + dir;
-        }
-        // If DB file not exists, then create it from template
-        if (!fs.existsSync(filename)) {
-            // create db from template
-            let template_db_filename = path.resolve(DBWorld.TEMPLATE_DB);
-            await copyFile(template_db_filename, filename);
-        }
-        // Open SQLIte3 fdatabase file
-        const dbc = await open({
-            filename: filename,
-            driver: sqlite3.Database
-        }).then(async (conn) => {
-            return new DBWorld(conn, world);
-        });
-        // Init DB
-        await dbc.init();
-        return dbc;
+    static async openDB(conn, world) {
+        return await new DBWorld(conn, world).init();
     }
 
     // Возвращает мир по его GUID либо создает и возвращает его
     async getWorld(world_guid) {
-        let row = await this.db.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        let row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
             return {
                 id:         row.id,
@@ -83,8 +51,8 @@ export class DBWorld {
             }
         }
         // Insert new world to Db
-        let world = await Game.db.getWorld(world_guid);
-        await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+        const world = await Game.db.getWorld(world_guid);
+        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
@@ -93,27 +61,26 @@ export class DBWorld {
             ':generator':   JSON.stringify(world.generator),
             ':pos_spawn':   JSON.stringify(world.pos_spawn)
         });
-        // let world_id = result.lastID;
         return this.getWorld(world_guid);
     }
 
     async updateAddTime(world_guid, add_time) {
-        await this.db.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
+        await this.conn.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':add_time':    add_time
         });
     }
 
     async TransactionBegin() {
-        await this.db.get('begin transaction');
+        await this.conn.get('begin transaction');
     }
 
     async TransactionCommit() {
-        await this.db.get('commit');
+        await this.conn.get('commit');
     }
 
     async TransactionRollback() {
-        await this.db.get('rollback');
+        await this.conn.get('rollback');
     }
 
     // getDefaultPlayerIndicators...
@@ -155,7 +122,7 @@ export class DBWorld {
     // Register new player or return existed
     async registerPlayer(world, player) {
         // Find existing user record
-        const row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
+        const row = await this.conn.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             const inventory = JSON.parse(row.inventory);
             if(inventory.items.length < INVENTORY_SLOT_COUNT) {
@@ -180,7 +147,7 @@ export class DBWorld {
         }
         const default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
-        await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
+        await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
@@ -198,20 +165,18 @@ export class DBWorld {
 
     // Добавление сообщения в чат
     async insertChatMessage(player, params) {
-        const result = await this.db.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
+        await this.conn.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
             ':user_id':         player.session.user_id,
             ':dt':              ~~(Date.now() / 1000),
             ':text':            params.text,
             ':world_id':        this.world.info.id,
             ':user_session_id': 0
         });
-        let chat_message_id = result.lastID;
-        return chat_message_id;
     }
 
     // savePlayerInventory...
     async savePlayerInventory(player, params) {
-        await this.db.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
+        await this.conn.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
             ':id':              player.session.user_id,
             ':inventory':       JSON.stringify(params)
         });
@@ -220,7 +185,7 @@ export class DBWorld {
     // savePlayerState...
     async savePlayerState(player) {
         player.position_changed = false;
-        await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
+        await this.conn.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators, stats = :stats WHERE id = :id', {
             ':id':              player.session.user_id,
             ':pos':             JSON.stringify(player.state.pos),
             ':rotate':          JSON.stringify(player.state.rotate),
@@ -232,7 +197,7 @@ export class DBWorld {
 
     // changePosSpawn...
     async changePosSpawn(player, params) {
-        await this.db.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
+        await this.conn.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
             ':id':             player.session.user_id,
             ':pos_spawn':      JSON.stringify(params.pos)
         });
@@ -240,7 +205,7 @@ export class DBWorld {
 
     // changeRenderDist...
     async changeRenderDist(player, value) {
-        await this.db.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
+        await this.conn.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
             ':id':                  player.session.user_id,
             ':chunk_render_dist':   value
         });
@@ -249,7 +214,7 @@ export class DBWorld {
     // Return admin list
     async loadAdminList(world_id)  {
         const resp = [];
-        const rows = await this.db.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+        const rows = await this.conn.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
         for(let row of rows) {
             resp.push(row.username);
         }
@@ -258,7 +223,7 @@ export class DBWorld {
 
     // findPlayer...
     async findPlayer(world_id, username) {
-        const row = await this.db.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        const row = await this.conn.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
         if(!row) {
             return null;
         }
@@ -267,12 +232,12 @@ export class DBWorld {
 
     // setAdmin...
     async setAdmin(world_id, user_id, is_admin) {
-        await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
+        await this.conn.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
     // saveChestSlots...
     async saveChestSlots(chest) {
-        const rows = await this.db.all('SELECT _rowid_ AS rowid, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+        const rows = await this.conn.all('SELECT _rowid_ AS rowid, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
             ':x': chest.pos.x,
             ':y': chest.pos.y,
             ':z': chest.pos.z
@@ -282,7 +247,7 @@ export class DBWorld {
             extra_data.slots = chest.slots;
             extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
             // save slots
-            await this.db.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
+            await this.conn.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
                 ':extra_data':  JSON.stringify(extra_data),
                 ':id':          row.rowid
             });
@@ -296,7 +261,7 @@ export class DBWorld {
     // Chunk became modified
     async chunkBecameModified() {
         let resp = new Set();
-        let rows = await this.db.all(`SELECT DISTINCT chunk_x, chunk_y, chunk_z
+        let rows = await this.conn.all(`SELECT DISTINCT chunk_x, chunk_y, chunk_z
         FROM world_modify`);
         for(let row of rows) {
             let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
@@ -307,8 +272,8 @@ export class DBWorld {
 
     // Create drop item
     async createDropItem(params) {
-        const entity_id = uuid();
-        await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
+        const entity_id = randomUUID();
+        await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
             ':items':           JSON.stringify(params.items),
@@ -323,7 +288,7 @@ export class DBWorld {
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        await this.db.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
+        await this.conn.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
             ':is_deleted': 1,
             ':entity_id': entity_id
         });
@@ -331,7 +296,7 @@ export class DBWorld {
 
     // Load drop items
     async loadDropItems(addr, size) {
-        const rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.conn.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -355,7 +320,7 @@ export class DBWorld {
     // Load chunk modify list
     async loadChunkModifiers(addr) {
         let resp = {};
-        await this.db.each(`
+        await this.conn.each(`
                 SELECT data
                 FROM world_modify_chunks
                 WHERE x = :x AND y = :y AND z = :z`, {
@@ -398,14 +363,14 @@ export class DBWorld {
         }
         let need_insert = true;
         if(is_modify) {
-            let rows = await this.db.all('SELECT _rowid_ AS rowid FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            let rows = await this.conn.all('SELECT _rowid_ AS rowid FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
                 ':x': params.pos.x,
                 ':y': params.pos.y,
                 ':z': params.pos.z
             });
             for(let row of rows) {
                 need_insert = false;
-                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE _rowid_ = :_rowid_', {
+                await this.conn.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE _rowid_ = :_rowid_', {
                     ':_rowid_':     row.rowid,
                     ':params':      item ? JSON.stringify(item) : null,
                     ':entity_id':   item?.entity_id ? item.entity_id : null,
@@ -416,7 +381,7 @@ export class DBWorld {
             }
         }
         if(need_insert) {
-            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z, "index") VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z, :index)', {
+            const run_data = {
                 ':user_id':     player?.session.user_id || null,
                 ':dt':          ~~(Date.now() / 1000),
                 ':world_id':    world.info.id,
@@ -429,10 +394,11 @@ export class DBWorld {
                 ':params':      item ? JSON.stringify(item) : null,
                 ':entity_id':   item?.entity_id ? item.entity_id : null,
                 ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
-                ':block_id':    item?.id,
+                ':block_id':    item?.id || null,
                 ':index':       params.pos.getFlatIndexInChunk()
                 //':rotate':      item?.rotate ? JSON.stringify(item.rotate) : null
-            });
+            };
+            await this.conn.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id, chunk_x, chunk_y, chunk_z, "index") VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id, :chunk_x, :chunk_y, :chunk_z, :index)', run_data);
         }
         if (item && 'extra_data' in item) {
             // @todo Update extra data
@@ -468,11 +434,19 @@ export class DBWorld {
                 params.pos.getFlatIndexInChunk()
             ];
         }
-        const resp = await this.db.run('INSERT INTO world_modify_import_bulk(data) VALUES(:data)', {
+        this.conn.run(`CREATE TEMPORARY TABLE IF NOT EXISTS world_modify_import_bulk(data TEXT);`);
+        const result = await this.conn.run('INSERT INTO world_modify_import_bulk(data) VALUES(:data)', {
             ':data': JSON.stringify(data)
         });
-        const lastID = parseInt(resp.lastID);
-        await this.db.run(`INSERT INTO world_modify(
+        // lastID
+        let lastID = result.lastID;
+        if(!lastID) {
+            const row = await this.conn.get('SELECT MAX(_rowid_) AS lastID FROM world_modify_import_bulk', {});
+            lastID = row.lastID;
+        }
+        lastID = parseInt(lastID);
+        //
+        await this.conn.run(`INSERT INTO world_modify(
                 user_id, dt, world_id, params, x, y, z, chunk_x, chunk_y, chunk_z,
                 entity_id, extra_data, block_id, "index"
             )
@@ -496,7 +470,7 @@ export class DBWorld {
 
     // Change player game mode
     async changeGameMode(player, game_mode) {
-        const result = await this.db.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
+        const result = await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
             ':id':              player.session.user_id,
             ':game_mode':       game_mode
         });
@@ -508,7 +482,7 @@ export class DBWorld {
      * @return {Object} список доступных точек для телепортации
      */
     async getListTeleportPoints(id) {
-        const rows = await this.db.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
+        const rows = await this.conn.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
             ":id" : parseInt(id)
         });
         if(!rows) {
@@ -524,7 +498,7 @@ export class DBWorld {
      */
     async getTeleportPoint(id, title) {
         const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
-        const row = await this.db.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
+        const row = await this.conn.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
             ":id" : parseInt(id),
             ":title": clear_title
         });
@@ -544,7 +518,7 @@ export class DBWorld {
      */
     async addTeleportPoint(user_id, title, x, y, z) {
         const clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
-        await this.db.run("INSERT INTO teleport_points(user_id, title, x, y, z) VALUES (:user_id, :title, :x, :y, :z)", {
+        await this.conn.run("INSERT INTO teleport_points(user_id, title, x, y, z) VALUES (:user_id, :title, :x, :y, :z)", {
             ":user_id": parseInt(user_id),
             ":title":   clear_title,
             ":x":       x,
@@ -555,7 +529,7 @@ export class DBWorld {
 
     //
     async updateChunks(address_list) {
-        await this.db.run(`INSERT INTO world_modify_chunks(x, y, z, data)
+        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data)
         SELECT json_extract(value, '$.x') x, json_extract(value, '$.y') y, json_extract(value, '$.z') z, (SELECT
             json_group_object(cast(m."index" as TEXT),
             json_patch(
@@ -580,7 +554,7 @@ export class DBWorld {
 
     //
     async saveGameRules(world_guid, rules) {
-        await this.db.run('UPDATE world SET rules = :rules WHERE guid = :world_guid', {
+        await this.conn.run('UPDATE world SET rules = :rules WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':rules':    JSON.stringify(rules)
         });

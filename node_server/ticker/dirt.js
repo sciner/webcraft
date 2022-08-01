@@ -7,7 +7,7 @@ export default class Ticker {
     static type = 'dirt'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         if(!extra_data || isNaN(extra_data.max_ticks)) {

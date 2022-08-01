@@ -2,7 +2,7 @@ import {QUAD_FLAGS, Vector} from '../helpers.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
-import {BLOCK} from "../blocks.js";
+import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 const {mat4} = glMatrix;
@@ -12,25 +12,6 @@ const push_cube = push_cube_style.getRegInfo().func;
 const CLOUDS_TEX_SIZE = 64;
 const CLOUDS_TEX_SCALE = new Vector(16, 4, 16);
 const WIND_SPEED_MUL = 1;
-
-class TBlock {
-
-    constructor(id) {this.id = id;}
-
-    get material() {
-        return BLOCK.BLOCK_BY_ID[this.id];
-    }
-
-    hasTag(tag) {
-        let mat = this.material;
-        return mat.tags && mat.tags.indexOf(tag) >= 0;
-    }
-
-    getCardinalDirection() {
-        return 0;
-    }
-
-}
 
 // World
 const FakeCloudWorld = {
@@ -45,7 +26,7 @@ const FakeCloudWorld = {
                     const index = (z * this.imgData.width + x);
                     const is_cloud = this.imgData.data[index * 4 + 3] > 10;
                     if(is_cloud) {
-                        this.blocks[index] = new TBlock(BLOCK.CLOUD.id);
+                        this.blocks[index] = new FakeTBlock(BLOCK.CLOUD.id);
                     }
                 }
             }
@@ -63,7 +44,7 @@ const FakeCloudWorld = {
 export default class Particles_Clouds {
 
     // Constructor
-    constructor(gl, pos) {
+    constructor(gl, height) {
         //
         const aabb = new AABB();
         aabb.set(0, 0, 0, CLOUDS_TEX_SIZE, 0, CLOUDS_TEX_SIZE);
@@ -72,7 +53,7 @@ export default class Particles_Clouds {
         this.yaw        = -Math.PI;
         this.life       = 0.5;
         this.loading    = false;
-        this.pos        = new Vector(pos.x, pos.y, pos.z);
+        this.pos        = new Vector(0, height, 0);
         this.vertices   = [];
         //
         FakeCloudWorld.clouds.imgData = Resources.clouds.texture;

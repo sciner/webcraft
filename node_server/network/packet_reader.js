@@ -1,6 +1,4 @@
 import { ServerClient } from "../../www/js/server_client.js";
-import fs from 'fs';
-import path from "path";
 
 class PacketRequerQueue {
 
@@ -31,8 +29,6 @@ class PacketRequerQueue {
 
 }
 
-let fsfdg = 0;
-
 //
 export class PacketReader {
 
@@ -43,16 +39,13 @@ export class PacketReader {
 
         // Load all packet readers from directory
         this.registered_readers = new Map();
-        const packets_dir = path.join(__dirname, '/network/clientpackets');
-        fs.readdir(packets_dir, (err, files) => {
-            files.forEach(file => {
-                const file_path = path.join(packets_dir, file).replace(path.join(__dirname, '/network'), '.').replace('\\', '/');
-                import(file_path).then(module => {
-                    this.registered_readers.set(module.default.command, module.default);
-                    console.info(`Registered client packet reader: ${module.default.command}`)
-                });
+
+        for(let filename of config.clientpackets) {
+            import(`./clientpackets/${filename}.js`).then(module => {
+                this.registered_readers.set(module.default.command, module.default);
+                console.debug(`Registered client packet reader: ${module.default.command}`)
             });
-        });
+        }
 
     }
 

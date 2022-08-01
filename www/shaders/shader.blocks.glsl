@@ -22,11 +22,13 @@
     #define NO_FOG_FLAG 3
     #define LOOK_AT_CAMERA 4
     #define FLAG_ANIMATED 5
-    #define TEXTURE_SCROLL 6
+    #define FLAG_TEXTURE_SCROLL 6
     #define NO_CAN_TAKE_AO 7
     #define QUAD_FLAG_OPACITY 8
     #define QUAD_FLAG_SDF 9
     #define NO_CAN_TAKE_LIGHT 10
+    #define FLAG_TRIANGLE 11
+    #define FLAG_MIR2_TEX 12
 #endif
 
 #ifdef global_uniforms
@@ -62,6 +64,7 @@
     uniform float u_mipmap;
     uniform float u_blockSize;
     uniform float u_opaqueThreshold;
+    uniform sampler2D u_blockDayLightSampler;
     //--
 
 #endif
@@ -109,6 +112,8 @@
     out float v_flagFlagOpacity;
     out float v_flagQuadSDF;
     out float v_noCanTakeLight;
+    out float v_Triangle;
+    out float v_Mir2_Tex;
 
     //--
 #endif
@@ -133,6 +138,7 @@
     in float v_flagFlagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
+    in float v_Triangle;
 
     out vec4 outColor;
 #endif
@@ -235,7 +241,7 @@
     fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
 
     // Apply fog
-    outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
+    outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
     outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
 
     // special effect for sunrise
@@ -253,11 +259,13 @@
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
-    int flagScroll = (flags >> TEXTURE_SCROLL) & 1;
+    int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
     int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
     int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
     int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
+    int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
+    int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -265,20 +273,22 @@
     v_flagFlagOpacity = float(flagFlagOpacity);
     v_flagQuadSDF = float(flagQuadSDF);
     v_noCanTakeLight = float(flagNoCanTakeLight);
+    v_Triangle = float(flagTriangle);
+    v_Mir2_Tex = float(flagMir2_Tex);
     //--
 #endif
 
 #ifdef sun_light_pass
     // sun light pass
     if (u_SunDir.w < 0.5) {
-        if(v_normal.x != 0.) {
-            light = light * .95;
-        } else if(v_normal.y != 0.) {
-            light = light * .6;
-        }
+        float lighter = (1. - v_lightMode);
+        vec3 minecraftSun = vec3(0.8 + lighter * .1, 0.6 + lighter * .2, 1.0);
+        if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;
+        sunNormalLight = dot(minecraftSun, abs(v_normal));
     } else {
         // limit brightness to 0.2
-        light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        sunNormalLight = 1.0;
+        combinedLight = vec3(playerLight + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness);
     }
     //--
 #endif
@@ -294,7 +304,7 @@
     if(lightDistance < rad) {
         float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
 
-        light = clamp(percent + light, 0., 1.);
+        playerLight = clamp(percent + playerLight, 0., 1.);
     }
     //--
 #endif
@@ -316,6 +326,11 @@
         v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
         v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
         gl_Position = uProjMatrix * vec4(v_position, 1.0);
+
+        if(v_Triangle >= .5 && gl_VertexID > 2) {
+            gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+        }
+
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
@@ -424,17 +439,16 @@
         aoSample *= aoFactor;
     }
 
-    float gamma = 0.5;
+    /*float gamma = 0.5;
     caveSample = pow(caveSample, 1.0 / gamma);
-
     caveSample = caveSample * (1.0 - aoSample);
-    daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
+    daySample = daySample * (1.0 - aoSample);*/
 
-    float totalAO = caveSample + daySample * u_brightness;
-    totalAO = max(light, totalAO);
-    totalAO = min(totalAO, 1.0 - aoSample);
-    totalAO = max(totalAO, 0.075 * (1.0 - aoSample));
-
-    light = mix(totalAO, light, u_aoDisaturateFactor);
+    vec2 lutCoord = vec2(max(caveSample, playerLight), daySample * u_brightness);
+    lutCoord = (clamp(lutCoord, 0.0, 1.0) * 15.0 + 0.5) / 32.0;
+    combinedLight = texture(u_blockDayLightSampler, lutCoord).rgb;
+    // combinedLight = vec3(clamp((lutCoord.x + lutCoord.y) * 2.0, 0., 1.));
+    combinedLight *= (1.0 - aoSample);
+    playerLight = 1.0;
     //--
 #endif

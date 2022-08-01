@@ -1,10 +1,11 @@
+import { decompressPlayerStateC } from "../../../www/js/packet_compressor.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {
 
     // must be put to queue
     static get queue() {
-        return false;
+        return true;
     }
 
     // which command can be parsed with this class
@@ -14,7 +15,7 @@ export default class packet_reader {
 
     // 
     static async read(player, packet) {
-        const data = packet.data;
+        const data = decompressPlayerStateC(packet.data);
         if(player.state.sitting || player.state.lies) {
             data.pos = player.state.pos.clone();
             // data.rotate = player.state.rotate.clone();

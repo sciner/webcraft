@@ -1,5 +1,4 @@
-import { getChunkAddr } from "../../../www/js/chunk_const.js";
-import { Vector } from "../../../www/js/helpers.js";
+import { getChunkAddr, Vector } from "../../../www/js/helpers.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 export default class packet_reader {

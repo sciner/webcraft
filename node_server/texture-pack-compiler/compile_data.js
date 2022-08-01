@@ -13,8 +13,11 @@ const START_CONCRETE            = 1500; // ... 1515
 const START_CONCRETE_POWDER     = 1516; // ... 1531
 const START_CANDLE              = 1532; // ... 1547
 const START_WOOD_ID             = 221;
-const START_PETRIFIED_SLAB_ID   = 203; // 
+const START_PETRIFIED_SLAB_ID   = 203; //
 const START_BANNER_ID           = 778;
+const START_FENCE_GATE_ID       = 911;
+const START_NUMBER_ID           = 209;
+const START_SLOPE_ID            = 919;
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -53,6 +56,9 @@ export class CompileData {
         this.initPetrifiedSlab();
         this.initPressurePlate();
         this.initBanner();
+        this.initFenceGate();
+        this.initNumber();
+        this.initSlope();
     }
 
     async initDiscs() {
@@ -78,7 +84,7 @@ export class CompileData {
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 0);
             const TX_CNT = 32;
             mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
@@ -226,10 +232,10 @@ export class CompileData {
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
             const b = {
                 "id": START_CARPET_ID + i,
+                "name": color.toUpperCase() + '_CARPET',
                 "transparent": true,
                 "height": 1/16,
                 "can_rotate": true,
-                "name": color.toUpperCase() + '_CARPET',
                 "material": {"id": "wool"},
                 "sound": "madcraft:block.cloth",
                 "texture": {"side": "block/white_wool.png"},
@@ -261,7 +267,7 @@ export class CompileData {
                 "uvlock": false,
                 "texture": {
                     "side":     `block/${name_lower}.png`,
-                    "up":       `block/${name_lower}.png;rc1`,
+                    "up":       `block/${name_lower}.png`,
                     "north":    `block/${name_lower}.png;rc1`,
                     "south":    `block/${name_lower}.png;rc1`,
                     "west":     `block/${name_lower}.png`,
@@ -659,6 +665,119 @@ export class CompileData {
             };
             this.blocks.push(b);
             i++;
+        }
+    }
+
+    // Fence gates
+    initFenceGate() {
+        let id = START_FENCE_GATE_ID;
+        const FENCE_GATE_PALETTE = [
+            {name: 'BIRCH', 'texture': `block/birch_planks.png`},
+            {name: 'OAK', 'texture': `block/oak_planks.png`},
+            {name: 'ACACIA', 'texture': `block/acacia_planks.png`},
+            {name: 'SPRUCE', 'texture': `block/spruce_planks.png`},
+            {name: 'DARK_OAK', 'texture': `block/dark_oak_planks.png`},
+            {name: 'JUNGLE', 'texture': `block/jungle_planks.png`},
+            {name: 'CRIMSON', 'texture': `block/crimson_planks.png`},
+            {name: 'WARPED', 'texture': `block/warped_planks.png`},
+        ];
+        for(let p of FENCE_GATE_PALETTE) {
+            const b = {
+                "id":           id++,
+                "name":         `${p.name}_FENCE_GATE`,
+                "transparent":  true,
+                "can_rotate":   true,
+                "style":        "fence_gate",
+                "sound":        "madcraft:block.wooden_trapdoor",
+                "material":     {
+                    "id": "wood"
+                },
+                "texture":      p.texture,
+                "extra_data": {
+                    "opened": false,
+                    "facing": "north"
+                },
+                "tags": [
+                    "no_drop_ao"
+                ]
+            };
+            this.blocks.push(b);
+        }
+    }
+
+    initNumber() {
+        let id = START_NUMBER_ID;
+        for(let i = 0; i < 2; i++) {
+            const b = {
+                "id":           id + i,
+                "name":         `NUM${i + 1}`,
+                "transparent":  true,
+                "sound":        "madcraft:block.wood",
+                "mining_time":  0,
+                "material": {
+                    "id": "wood"
+                },
+                "texture": {
+                    "side": `./textures/${i + 1}.png`
+                },
+                "tags": [
+                    "no_drop_ao"
+                ]
+            };
+            this.blocks.push(b);
+        }
+    }
+
+    initSlope() {
+        let id = START_SLOPE_ID;
+        const PALETTE = [
+            {name: 'BIRCH', 'texture': `block/birch_planks.png`},
+            {name: 'OAK', 'texture': `block/oak_planks.png`},
+            {name: 'ACACIA', 'texture': `block/acacia_planks.png`},
+            {name: 'SPRUCE', 'texture': `block/spruce_planks.png`},
+            {name: 'DARK_OAK', 'texture': `block/dark_oak_planks.png`},
+            {name: 'JUNGLE', 'texture': `block/jungle_planks.png`},
+            {name: 'CRIMSON', 'texture': `block/crimson_planks.png`},
+            {name: 'WARPED', 'texture': `block/warped_planks.png`},
+            {name: 'STRIPPED_OAK_WOOD', 'texture': `block/stripped_oak_log.png`},
+            {name: 'STRIPPED_BIRCH_WOOD', 'texture': `block/stripped_birch_log.png`},
+            {name: 'STRIPPED_ACACIA_WOOD', 'texture': `block/stripped_acacia_log.png`},
+            {name: 'STRIPPED_SPRUCE_WOOD', 'texture': `block/stripped_spruce_log.png`},
+            {name: 'STRIPPED_DARK_OAK_WOOD', 'texture': `block/stripped_dark_oak_log.png`},
+            {name: 'STRIPPED_JUNGLE_WOOD', 'texture': `block/stripped_jungle_log.png`},
+            {name: 'STRIPPED_WARPED_WOOD', 'texture': `block/stripped_warped_stem.png`},
+            {name: 'HAY', 'texture': {
+                "side": "block/hay_block_side.png",
+                "down": "block/hay_block_top.png"
+            }, "sound": "madcraft:block.grass"},
+            {name: 'BASALT', 'texture': {
+                "side": "block/basalt_side.png",
+                "down": "block/basalt_top.png"
+            }, "sound": "madcraft:block.stone", "material": {"id": "stone"}},
+            {name: 'MOSS_STONE', 'texture': "block/mossy_cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
+            {name: 'MOSS_BLOCK', 'texture': "./textures/moss_block.png", "sound": "madcraft:block.grass", "material": {"id": "cobblestone"}},
+            {name: 'COBBLESTONE', 'texture': "block/cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
+        ];
+        for(let p of PALETTE) {
+            let b = {
+                "id":           id++,
+                "name":         `${p.name}_SLOPE`,
+                "transparent":  true,
+                "can_rotate":   true,
+                "style":        "slope",
+                "sound":        "madcraft:block.wood",
+                "material":     {"id": "wood"},
+                "extra_data": {
+                    "shape": 0
+                },
+                "tags": [
+                    "stairs",
+                    "no_drop_ao"
+                ]
+            };
+            delete(p.name);
+            b = {...b, ...p};
+            this.blocks.push(b);
         }
     }
 

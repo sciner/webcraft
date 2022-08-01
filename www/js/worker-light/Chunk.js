@@ -35,7 +35,7 @@ export class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 3,
+            strideBytes: 5,
             nibble: this.disperse > 0 ? {
                 dims: new Vector(1, this.disperse, 1),
                 strideBytes: 3,
@@ -145,7 +145,7 @@ export class Chunk {
                         m = Math.max(m, uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT);
                     }
                     if (m > 0 || past > 0) {
-                        world.light.add(this, coord, m + world.getPotential(x, y, z));
+                        world.light.add(this, coord, m, world.getPotential(x, y, z));
                     }
                     found = found || (uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AO) > 0;
                 }

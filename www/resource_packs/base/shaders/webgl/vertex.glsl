@@ -19,8 +19,8 @@ void main() {
 
     if (flagLookAtCamera > 0) {
         mat3 lookAtMat = inverse(mat3(u_worldView));
-        axisX = lookAtMat * axisX.xzy * a_color.r;
-        axisY = lookAtMat * axisY.xzy * a_color.r;
+        axisX = lookAtMat * axisX.xzy;
+        axisY = lookAtMat * axisY.xzy;
     }
 
     // Animated textures
@@ -44,11 +44,16 @@ void main() {
 
     v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
 
-    vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
+    vec3 pos;
+    if(v_Mir2_Tex < .5) {
+        pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
+    } else {
+        pos = a_position + (axisX * -a_quad.y) + (axisY * -a_quad.x);
+    }
 
     // Scrolled textures
-    // uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
-    // uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
+    uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
+    uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
     uvCenter0.y += float(flagScroll) * (u_time * v_color.g);
     uvCenter1.y += float(flagScroll) * (u_time * v_color.g);
 
@@ -67,6 +72,9 @@ void main() {
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
+    if(v_Triangle >= .5 && gl_VertexID > 2) {
+        gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+    }
 
     #include<ao_light_pass_vertex>
 

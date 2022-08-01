@@ -2,7 +2,7 @@ import {FSMBrain} from "../brain.js";
 import {BLOCK} from "../../../www/js/blocks.js";
 import {Vector} from "../../../www/js/helpers.js";
 import {ServerClient} from "../../../www/js/server_client.js";
-import {PickatActions} from "../../../www/js/block_action.js";
+import {WorldAction} from "../../../www/js/world_action.js";
 
 export class Brain extends FSMBrain {
 
@@ -74,7 +74,7 @@ export class Brain extends FSMBrain {
         if (this.is_shaered) {
             const block = this.getBeforeBlocks();
             if (block.body.id == BLOCK.TALL_GRASS.id) {
-                const actions = new PickatActions();
+                const actions = new WorldAction();
                 actions.addBlocks([
                     {
                         pos: block.body.posworld, 
@@ -86,7 +86,7 @@ export class Brain extends FSMBrain {
                 this.count_grass++;
             } else {
                 if (block.legs.id == BLOCK.GRASS_BLOCK.id) {
-                    const actions = new PickatActions();
+                    const actions = new WorldAction();
                     actions.addBlocks([
                         {
                             pos: block.legs.posworld, 
@@ -137,7 +137,7 @@ export class Brain extends FSMBrain {
         
         if (id == BLOCK.SHEARS.id && !this.is_shaered) {
             this.is_shaered = true;
-            const actions = new PickatActions();
+            const actions = new WorldAction();
 
             const rnd_count = ((Math.random() * 2) | 0) + 1;
             const drop_block = world.block_manager.fromName('WHITE_WOOL');
@@ -151,7 +151,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {
-            const actions = new PickatActions();
+            const actions = new WorldAction();
             const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
 
             let drop_item = { pos: mob.pos, items: [] };

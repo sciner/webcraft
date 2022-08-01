@@ -1,4 +1,3 @@
-import {BLOCK} from "./blocks.js";
 import {Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
 
@@ -9,6 +8,7 @@ export class Inventory {
     constructor(player, state) {
         this.count              = state.items.length;
         this.player             = player;
+        this.block_manager      = player.world.block_manager;
         this.current            = state.current;
         this.items              = new Array(this.count); // state.items;
         this.max_count          = INVENTORY_SLOT_COUNT;
@@ -37,9 +37,9 @@ export class Inventory {
         for(let i in items) {
             let b = null;
             if(items[i]) {
-                b = BLOCK.fromId(items[i].id)
+                b = this.block_manager.fromId(items[i].id)
             }
-            new_items[i] = BLOCK.convertItemToInventoryItem(items[i], b);
+            new_items[i] = this.block_manager.convertItemToInventoryItem(items[i], b);
         }
         this.items = new_items;
         if(refresh) {
@@ -75,12 +75,12 @@ export class Inventory {
         if(mat.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        const block = BLOCK.BLOCK_BY_ID[mat.id];
+        const block = this.block_manager.fromId(mat.id);
         if(!block) {
             throw 'error_invalid_block_id';
         }
         no_update_if_remains = !!no_update_if_remains;
-        mat = BLOCK.convertItemToInventoryItem(mat);
+        mat = this.block_manager.convertItemToInventoryItem(mat);
         //
         const updated = new Map();
         const added = new Map();
@@ -158,7 +158,7 @@ export class Inventory {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
         }
-        const current_item_material = BLOCK.fromId(this.current_item.id);
+        const current_item_material = this.block_manager.fromId(this.current_item.id);
         if(current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - 1, 0);
             if(this.current_item.power <= 0) {
@@ -176,16 +176,16 @@ export class Inventory {
         if(!ignore_creative_game_mode && this.player.game_mode.isCreative()) {
             return;
         }
-        const current_item_material = BLOCK.fromId(this.current_item.id);
+        const current_item_material = this.block_manager.fromId(this.current_item.id);
         if(current_item_material.item?.instrument_id) {
             this.decrement_instrument();
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {
-                let matBlock = BLOCK.fromId(this.current_item.id);
+                let matBlock = this.block_manager.fromId(this.current_item.id);
                 if(matBlock.item && matBlock.item?.name == 'bucket') {
                     if(matBlock.item.emit_on_set) {
-                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
                 } else {
@@ -204,7 +204,7 @@ export class Inventory {
         if(!params.ignore_creative_game_mode && this.player.game_mode.isCreative()) {
             return;
         }
-        const current_item_material = BLOCK.fromId(this.current_item.id);
+        const current_item_material = this.block_manager.fromId(this.current_item.id);
         const count_mode = params.mode == 'count';
         if(!count_mode && current_item_material.item?.instrument_id) {
             this.decrement_instrument();
@@ -213,7 +213,7 @@ export class Inventory {
             if(this.current_item.count < 1) {
                 if(!count_mode && current_item_material.item && current_item_material.item?.name == 'bucket') {
                     if(current_item_material.item.emit_on_set) {
-                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        const emptyBucket = this.block_manager.BUCKET;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
                 } else {

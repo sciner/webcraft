@@ -1,10 +1,9 @@
-import {Color, Vector} from "./helpers.js";
+import {Color, getChunkAddr, Vector} from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
-import {getChunkAddr} from "./chunk_const.js";
 
 const {mat4} = glMatrix;
 

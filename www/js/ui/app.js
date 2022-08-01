@@ -5,7 +5,7 @@ import {Helpers} from '../helpers.js';
 export class UIApp {
 
     constructor() {
-        this.api = new API_Client();
+        this.api = Game.local_server?.getAPIClient() || new API_Client();
         // Session
         this._loadSession();
         // Hooks
@@ -102,6 +102,18 @@ export class UIApp {
     async MyWorlds(form, callback, callback_error, callback_progress, callback_final) {
         let result = [];
         await this.api.call(this, '/api/Game/MyWorlds', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
+    // DeleteWorld...
+    async DeleteWorld(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/Game/DeleteWorld', form, (resp) => {
             result = resp;
             if(callback) {
                 callback(result);
