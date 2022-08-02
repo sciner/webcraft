@@ -94,7 +94,8 @@ export default class Particles_Clouds {
     // Draw
     draw(render, delta) {
         const cam_pos = Game.render.camPos.clone();
-        cam_pos.y = 128.1;
+
+        cam_pos.y = cam_pos.y > 512 ? 1024.1 : 128.1; // this.pos.y
 
         const size = CLOUDS_TEX_SIZE * CLOUDS_TEX_SCALE.x;
 
@@ -107,7 +108,7 @@ export default class Particles_Clouds {
 
         for(let mx = -2; mx <= 2; mx++) {
             for(let mz = -2; mz <= 2; mz++) {
-                this.pos.set(x + mx * size, this.pos.y, z + mz * size);
+                this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
                 render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);        
             }
         }

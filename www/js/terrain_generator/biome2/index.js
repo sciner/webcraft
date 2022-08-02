@@ -5,6 +5,7 @@ import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {noise, alea} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 import {DungeonGenerator} from "../dungeon.js";
+import FlyIslands from "../flying_islands/index.js";
 
 import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
@@ -28,6 +29,7 @@ export default class Terrain_Generator extends Demo_Map {
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
+        this.flying_islands = new FlyIslands(seed, world_id, {});
     }
 
     async init() {
@@ -39,8 +41,52 @@ export default class Terrain_Generator extends Demo_Map {
         this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
     }
 
+    // Draw fly islands in the sky
+    drawFlyIslands(chunk) {
+        if(!this.flying_islands) {
+            return null;
+        }
+        const xyz = new Vector(0, 0, 0);
+        const CHUNK_START_Y = 25;
+        const CHUNK_HEIGHT = 2;
+        if(chunk.addr.y >= CHUNK_START_Y && chunk.addr.y < CHUNK_START_Y + CHUNK_HEIGHT) {
+            //
+            const has_spiral_stairs = this.intersectSpiralStairs(chunk);
+            if(has_spiral_stairs) {
+                this.drawSpiralStaircases(chunk);
+            }
+            //
+            const has_islands = this.intersectChunkWithIslands(chunk.aabb);
+            if(has_islands) {
+                for(let x = 0; x < chunk.size.x; x++) {
+                    for(let z = 0; z < chunk.size.z; z++) {
+                        for(let y = 0; y < chunk.size.y; y++) {
+                            xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+                            this.drawIsland(xyz, x, y, z, chunk);
+                        }
+                    }
+                }
+            }
+            //
+            const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
+            const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
+            coord.y -= chunk.size.y * CHUNK_START_Y;
+            addr.y -= CHUNK_START_Y;
+            const fake_chunk = {...chunk, coord, addr};
+            fake_chunk.setBlockIndirect = chunk.setBlockIndirect;
+            return this.flying_islands.generate(fake_chunk);
+        };
+        return null;
+    }
+
     // Generate
     generate(chunk) {
+
+        // Draw fly islands in the sky
+        const resp = this.drawFlyIslands(chunk);
+        if(resp) {
+            return resp;
+        }
 
         const seed                      = chunk.id;
         const aleaRandom                = new alea(seed);
@@ -65,9 +111,9 @@ export default class Terrain_Generator extends Demo_Map {
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
         const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);
-        const has_spiral_staircaes      = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
+        const has_spiral_stairs         = this.intersectSpiralStairs(chunk);
 
-        if(has_spiral_staircaes) {
+        if(has_spiral_stairs) {
             this.drawSpiralStaircases(chunk);
         }
 

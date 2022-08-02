@@ -1,15 +1,12 @@
-import { Color, Vector } from '../../helpers.js';
+import { Color } from '../../helpers.js';
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
-
-// import City2 from "../city2/index.js";
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(0);
-        // this.city2 = new City2(seed, world_id, {});
     }
 
     async init() {
@@ -19,20 +16,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     generate(chunk) {
-
-        // Draw City2 in the sky
-        if(this.city2) {
-            const CITY2_CHUNK_START_Y = 16;
-            const CITY2_CHUNK_HEIGHT = 5;
-            if(chunk.addr.y == CITY2_CHUNK_START_Y && chunk.addr.y <= CITY2_CHUNK_START_Y + CITY2_CHUNK_HEIGHT) {
-                const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
-                const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
-                coord.y -= chunk.size.y * CITY2_CHUNK_START_Y;
-                addr.y -= CITY2_CHUNK_START_Y;
-                chunk = {...chunk, coord, addr};
-                return this.city2.generate(chunk);
-            }
-        }
 
         const block_id = BLOCK.GRASS_BLOCK.id;
 
