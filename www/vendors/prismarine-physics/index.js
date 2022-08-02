@@ -38,7 +38,10 @@ export function Physics(mcData, fake_world, options) {
     // Block ids
     const soulsandId    = blocksByName.soul_sand.id
     const honeyblockId  = blocksByName.honey_block ? blocksByName.honey_block.id : BLOCK_NOT_EXISTS // 1.15+
-    const webId         = blocksByName.cobweb ? blocksByName.cobweb.id : blocksByName.web.id
+    const cobwebLike    = new Map();
+    for(let block of blocksByName.cobweb) {
+        cobwebLike.set(block.id, block.passable);
+    }
     // const waterId       = blocksByName.water.id
     const lavaId        = blocksByName.lava
     const ladderId      = blocksByName.ladder.id
@@ -153,9 +156,9 @@ export function Physics(mcData, fake_world, options) {
         const pos = entity.pos
 
         if (entity.isInWeb) {
-            dx *= 0.25
-            dy *= 0.05
-            dz *= 0.25
+            dx *= entity.passable; // 0.25
+            dy *= entity.passable / 5; // 0.05
+            dz *= entity.passable; // 0.25
             vel.x = 0
             vel.y = 0
             vel.z = 0
@@ -323,8 +326,9 @@ export function Physics(mcData, fake_world, options) {
                                 vel.z *= physics.honeyblockSpeed
                             }
                         }*/
-                        if (block.type === webId) {
+                        if (cobwebLike.has(block.type)) {
                             entity.isInWeb = true
+                            entity.passable = cobwebLike.get(block.type)
                         } else if (block.type === bubblecolumnId) {
                             const down = !block.metadata
                             const aboveBlock = world.getBlock(cursor.offset(0, 1, 0))

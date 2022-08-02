@@ -1297,7 +1297,7 @@
         {
             "id": 30,
             "name": "COBWEB",
-            "passable": 0.1,
+            "passable": 0.25,
             "transparent": true,
             "style": "planting",
             "inventory_style": "extruder",
@@ -4880,7 +4880,7 @@
         {
             "id": 1004,
             "name": "SWEET_BERRIES",
-            "passable": 1,
+            "passable": 0.5,
             "style": "planting",
             "inventory_style": "extruder",
             "transparent": true,
