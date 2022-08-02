@@ -1,7 +1,6 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
-import {Color, Vector} from '../../helpers.js';
-import { Default_Terrain_Generator } from '../default.js';
-import {BLOCK} from '../../blocks.js';
+import { Color } from '../../helpers.js';
+import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
+import { BLOCK } from '../../blocks.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -10,12 +9,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(0);
     }
 
-    async init() {}
+    async init() {
+        if(this.city2) {
+            await this.city2.init();
+        }
+    }
 
     generate(chunk) {
 
-        // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANKS.id : BLOCK.BIRCH_PLANKS.id;
-        let block_id = BLOCK.GRASS_BLOCK.id;
+        const block_id = BLOCK.GRASS_BLOCK.id;
 
         const { cx, cy, cz, cw } = chunk.dataChunk;
 
@@ -35,25 +37,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: new Default_Terrain_Map_Cell({
             code: 'Flat'
-        }};
+        })};
 
-        const addr = chunk.addr;
-        const size = chunk.size;
-
-        return {
-            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-            blocks: {},
-            seed:   chunk.seed,
-            addr:   addr,
-            size:   size,
-            coord:  addr.mul(size),
-            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
-            options: {
-                WATER_LINE: 63, // Ватер-линия
-            }
-        };
+        return new Default_Terrain_Map(
+            chunk.addr,
+            chunk.size,
+            chunk.addr.mul(chunk.size),
+            {WATER_LINE: 63},
+            Array(chunk.size.x * chunk.size.z).fill(cell)
+        );
 
     }
 

@@ -20,6 +20,8 @@ import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { Weather } from "../www/js/type.js";
+import { TreeGenerator } from "./world/tree_generator.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -56,7 +58,6 @@ export class ServerWorld {
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.ticks_stat     = new WorldTickStat();
         this.chunks         = new ServerChunkManager(this);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
@@ -64,6 +65,10 @@ export class ServerWorld {
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
+        // statistics
+        this.ticks_stat     = new WorldTickStat();
+        this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
+        this.start_time     = performance.now();
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
@@ -92,7 +97,7 @@ export class ServerWorld {
         return this.info;
     }
 
-    // updateWorldCalendar
+    // Update world calendar
     updateWorldCalendar() {
         if(!this.info.calendar) {
             this.info.calendar = {
@@ -123,47 +128,49 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         this.updateWorldCalendar();
-        //
-        this.ticks_stat.number++;
-        this.ticks_stat.start();
-        // 1.
-        await this.chunks.tick(delta);
-        this.ticks_stat.add('chunks');
-        // 2.
-        await this.mobs.tick(delta);
-        this.ticks_stat.add('mobs');
-        // 3.
-        for (let player of this.players.values()) {
-            player.tick(delta);
+        if(!this.pause_ticks) {
+            //
+            this.ticks_stat.number++;
+            this.ticks_stat.start();
+            // 1.
+            await this.chunks.tick(delta);
+            this.ticks_stat.add('chunks');
+            // 2.
+            await this.mobs.tick(delta);
+            this.ticks_stat.add('mobs');
+            // 3.
+            for (let player of this.players.values()) {
+                player.tick(delta);
+            }
+            this.ticks_stat.add('players');
+            // 4.
+            for (let [_, drop_item] of this.all_drop_items) {
+                drop_item.tick(delta);
+            }
+            this.ticks_stat.add('drop_items');
+            // 6.
+            await this.packet_reader.queue.process();
+            this.ticks_stat.add('packet_reader_queue');
+            //
+            this.packets_queue.send();
+            this.ticks_stat.add('packets_queue_send');
+            //
+            await this.actions_queue.run();
+            this.ticks_stat.add('actions_queue');
+            //
+            if(this.ticks_stat.number % 100 != 0) {
+                this.chunks.checkDestroyMap();
+                this.ticks_stat.add('maps_clear');
+            }
+            //
+            this.ticks_stat.end();
         }
-        this.ticks_stat.add('players');
-        // 4.
-        for (let [_, drop_item] of this.all_drop_items) {
-            drop_item.tick(delta);
-        }
-        this.ticks_stat.add('drop_items');
-        // 6.
-        await this.packet_reader.queue.process();
-        this.ticks_stat.add('packet_reader_queue');
-        //
-        this.packets_queue.send();
-        this.ticks_stat.add('packets_queue_send');
-        //
-        await this.actions_queue.run();
-        this.ticks_stat.add('actions_queue');
-        //
-        if(this.ticks_stat.number % 100 != 0) {
-            this.chunks.checkDestroyMap();
-            this.ticks_stat.add('maps_clear');
-        }
-        //
-        this.ticks_stat.end();
         //
         const elapsed = performance.now() - started;
         setTimeout(async () => {
             await this.tick();
         },
-            elapsed < 50 ? (50 - elapsed) : 0
+            elapsed < 50 ? (50 - elapsed) : 1
         );
     }
 
@@ -427,6 +434,22 @@ export class ServerWorld {
                 }
             }
         }
+        // @Warning Must be check before actions.blocks
+        if(actions.generate_tree.length > 0) {
+            for(let i = 0; i < actions.generate_tree.length; i++) {
+                const params = actions.generate_tree[i];
+                const treeGenerator = await TreeGenerator.getInstance();
+                const chunk = this.chunks.get(getChunkAddr(params.pos.x, params.pos.y, params.pos.z));
+                if(chunk) {
+                    const new_tree_blocks = await treeGenerator.generateTree(this, chunk, params.pos, params.block);
+                    if(new_tree_blocks) {
+                        actions.addBlocks(new_tree_blocks);
+                        // Delete completed block from tickings
+                        chunk.ticking_blocks.delete(params.pos);
+                    }
+                }
+            }
+        }
         // Modify blocks
         if (actions.blocks && actions.blocks.list) {
             let chunk_addr = new Vector(0, 0, 0);
@@ -590,7 +613,7 @@ export class ServerWorld {
         if(actions.put_in_backet) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
-            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET_EMPTY.id) {
+            if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET.id) {
                 // replace item in inventory
                 inventory.items[inventory.current.index] = actions.put_in_backet;
                 // send new inventory state to player
@@ -620,6 +643,22 @@ export class ServerWorld {
             server_player.state.rotate = actions.sitting.rotate;
             server_player.state.pos = actions.sitting.pos;
             server_player.sendState();
+        }
+        // Spawn mobs
+        if(actions.mobs.spawn.length > 0) {
+            for(let i = 0; i < actions.mobs.spawn.length; i++) {
+                const params = actions.mobs.spawn[i];
+                await this.mobs.create(params);
+            }
+        }
+        // Activate mobs
+        // мало кода, но работает медленнее ;)
+        // actions.mobs.activate.map((_, v) => await this.mobs.activate(v.entity_id, v.spawn_pos, v.rotate));
+        if(actions.mobs.activate.length > 0) {
+            for(let i = 0; i < actions.mobs.activate.length; i++) {
+                const params = actions.mobs.activate[i];
+                await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
+            }
         }
     }
 
@@ -773,6 +812,19 @@ export class ServerWorld {
         this.sendUpdatedInfo();
         this.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, this.players.keys());
         return true;
+    }
+
+    /**
+     * Set world global weather
+     * @param {Weather} weather 
+     */
+    setWeather(weather) {
+        this.weather = weather;
+        //
+        this.sendAll([{
+            name: ServerClient.CMD_SET_WEATHER,
+            data: weather
+        }], []);
     }
 
 }

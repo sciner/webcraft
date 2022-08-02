@@ -41,7 +41,9 @@
         "chat_time",
         "chat_worldedit",
         "gamerule",
-        "view_distance"
+        "view_distance",
+        "chat_ping",
+        "chat_weather"
     ],
     "clientpackets": [
         "cmd_block_clone",
@@ -66,6 +68,7 @@
         "cmd_standup_straight",
         "cmd_stats",
         "cmd_sync_time",
-        "cmd_teleport_request"
+        "cmd_teleport_request",
+        "cmd_modify_indicator_request"
     ]
 }

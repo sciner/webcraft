@@ -131,7 +131,7 @@ export default class style {
     }
 
     // Return TRUE if block sames
-    static checkIfSame = (checked_block, on_ceil) => {
+    static checkIfSame(checked_block, on_ceil) {
         const checked_block_on_ceil = BLOCK.isOnCeil(checked_block);
         if(checked_block_on_ceil != on_ceil) {
             return false;
@@ -157,18 +157,17 @@ export default class style {
         if(info.on_ceil) {
             c_south[1] -= c_south[3];
             c_north[1] -= c_north[3];
+            c_up[3] *= -1;
         }
-        c_north[2] *= -1;
-        c_north[3] *= -1;
 
         pushAABB(vertices, info.sides.BASE, pivot, matrix,
             {
-                up:     new AABBSideParams(c_up, 0, 1, null, null, false),
-                down:   new AABBSideParams(c_up, 0, 1, null, null, false),
-                south:  new AABBSideParams(c_south, 0, 1, null, null, false),
-                north:  new AABBSideParams(c_north, 0, 1, null, null, false),
-                west:   new AABBSideParams(c_north, 0, 1, null, null, false),
-                east:   new AABBSideParams(c_south, 0, 1, null, null, false),
+                up:     new AABBSideParams(c_up, 0, 0, null, null, false),
+                down:   new AABBSideParams(c_up, 0, 0, null, null, false),
+                south:  new AABBSideParams(c_south, 0, 0, null, null, false),
+                north:  new AABBSideParams(c_north, 0, 0, null, null, false),
+                west:   new AABBSideParams(c_north, 0, 0, null, null, false),
+                east:   new AABBSideParams(c_south, 0, 0, null, null, false),
             },
             pos
         );

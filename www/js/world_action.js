@@ -5,6 +5,7 @@ import { BLOCK, FakeTBlock } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
+import { RailShape } from "./block_type/rail_shape.js";
 
 const _createBlockAABB = new AABB();
 
@@ -311,40 +312,40 @@ class DestroyBlocks {
     }
 
     //
-    add(block, pos, no_drop = false) {
+    add(tblock, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
         const actions   = this.actions;
-        if(cv.has(block.posworld)) {
+        if(cv.has(tblock.posworld)) {
             return false;
         }
-        cv.add(block.posworld, true);
-        actions.addBlocks([{pos: block.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: block.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+        cv.add(tblock.posworld, true);
+        actions.addBlocks([{pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
         //
-        if(block.material.sound) {
-            actions.addPlaySound({tag: block.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
+        if(tblock.material.sound) {
+            actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         //
-        if(block.material.is_jukebox) {
+        if(tblock.material.is_jukebox) {
             // If disc exists inside jukebox
-            if(block.extra_data && block.extra_data.disc) {
-                const disc_id = block.extra_data.disc.id;
+            if(tblock.extra_data && tblock.extra_data.disc) {
+                const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                dropBlock(player, new FakeTBlock(disc_id, null, block.posworld.clone(), null, null, null, null, null, null), actions, false);
+                dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false);
                 // Stop play disc
-                actions.stop_disc.push({pos: block.posworld.clone()});
+                actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            dropBlock(player, block, actions, false);
+            dropBlock(player, tblock, actions, false);
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
-            let part = block.material[cn];
+            let part = tblock.material[cn];
             if(part) {
-                const connected_pos = block.posworld.add(part.offset_pos);
+                const connected_pos = tblock.posworld.add(part.offset_pos);
                 if(!cv.has(connected_pos)) {
                     let block_connected = world.getBlock(connected_pos);
                     if(block_connected.id == part.id) {
@@ -354,40 +355,44 @@ class DestroyBlocks {
             }
         }
         // Удаляем второй блок (кровати, двери, высокая трава и высокие цветы)
-        if(block.material.has_head) {
-            const head_pos = new Vector(block.material.has_head.pos);
+        if(tblock.material.has_head) {
+            const head_pos = new Vector(tblock.material.has_head.pos);
             const connected_pos = new Vector(pos);
-            if(block.rotate && head_pos.z) {
-                let rot = block.rotate.x;
-                if(!block.extra_data.is_head) {
+            if(tblock.rotate && head_pos.z) {
+                let rot = tblock.rotate.x;
+                if(!tblock.extra_data.is_head) {
                     rot += 2;
                 }
                 connected_pos.addByCardinalDirectionSelf(head_pos, rot);
             } else {
-                if(block.extra_data?.is_head) {
+                if(tblock.extra_data?.is_head) {
                     head_pos.multiplyScalar(-1);
                 }
                 connected_pos.addSelf(head_pos);
             }
             const block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == block.id) {
+            if(block_connected.id == tblock.id) {
                 this.add(block_connected, connected_pos, true);
             }
         }
         // Destroy chain blocks to down
-        if(block.material.destroy_to_down) {
-            let npos = block.posworld.add(Vector.YN);
+        if(tblock.material.destroy_to_down) {
+            let npos = tblock.posworld.add(Vector.YN);
             let nblock = world.getBlock(npos);
-            if(nblock && block.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
+            if(nblock && tblock.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
                 this.add(nblock, pos);
             }
+        }
+        //
+        if(tblock.material.is_chest) {
+            actions.dropChest(tblock)
         }
     }
 
 }
 
-// PickatActions
-export class PickatActions {
+// WorldAction
+export class WorldAction {
 
     #world;
 
@@ -417,10 +422,12 @@ export class PickatActions {
                     on_block_set: on_block_set
                 }
             },
-            play_sound:             [],
-            stop_disc:              [],
-            drop_items:             [],
-            explosion_particles:    []
+            play_sound:                 [],
+            stop_disc:                  [],
+            drop_items:                 [],
+            explosion_particles:        [],
+            mobs:                       {spawn: [], activate: []},
+            generate_tree:              [],
         });
     }
 
@@ -465,6 +472,26 @@ export class PickatActions {
         this.put_in_backet = item;
     }
 
+    //
+    dropChest(tblock) {
+        if(!tblock.extra_data?.slots) {
+            return false;
+        }
+        for(let i in tblock.extra_data.slots) {
+            const slot_item = tblock.extra_data.slots[i];
+            if(slot_item) {
+                this.addDropItem({
+                    force: true,
+                    pos: tblock.posworld,
+                    items: [
+                        // @todo need to calculate drop item ID and count
+                        slot_item
+                    ]
+                });
+            }
+        }
+    }
+
     makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
         const world = this.#world;
         const air = { id: 0 };
@@ -492,20 +519,8 @@ export class PickatActions {
                     { id: mat.id, count: 1 }
                 ]
             });
-            if(mat.is_chest && tblock.extra_data?.slots) {
-                for(let i in tblock.extra_data.slots) {
-                    const slot_item = tblock.extra_data.slots[i];
-                    if(slot_item) {
-                        this.addDropItem({
-                            force: true,
-                            pos: pos,
-                            items: [
-                                // @todo need to calculate drop item ID and count
-                                slot_item
-                            ]
-                        });
-                    }
-                }
+            if(mat.is_chest) {
+                this.dropChest(tblock)
             }
             return true;
         };
@@ -562,12 +577,26 @@ export class PickatActions {
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
     }
 
+    // Spawn mob (первая генерация моба, если его ещё не было в БД)
+    spawnMob(params) {
+        this.mobs.spawn.push(params);
+    }
+
+    // Activate mob (активация ранее созданного моба)
+    activateMob(params) {
+        this.mobs.activate.push(params);
+    }
+
+    generateTree(params) {
+        this.generate_tree.push(params);
+    }
+
 }
 
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
-    const actions = new PickatActions(e.id);
+    const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions);
 
     if(e.pos == false) {
@@ -579,7 +608,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     let world_material      = world_block && world_block.id > 0 ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
-
+    
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
         console.log('error_empty_world_material', world_block.id, pos);
@@ -599,9 +628,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     if(e.destroyBlock) {
         const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
         let can_destroy = true;
-        if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
+        /*if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
             can_destroy = world_block.extra_data.can_destroy;
-        }
+        }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
             for(let func of [removeFromPot]) {
@@ -611,12 +640,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
             // 2.
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
-                const block = world.getBlock(pos);
-                if(block.id >= 0) {
-                    destroyBlocks.add(block, pos);
+                const tblock = world.getBlock(pos);
+                if(tblock.id >= 0) {
+                    destroyBlocks.add(tblock, pos);
                     //
-                    actions.decrement_instrument = {id: block.id};
-                    if(!block.material.destroy_to_down) {
+                    actions.decrement_instrument = {id: tblock.id};
+                    if(!tblock.material.destroy_to_down) {
                         // Destroyed block
                         pos = new Vector(pos);
                         // destroy plants over this block
@@ -646,8 +675,11 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 4. Create
     if(e.createBlock) {
     
+       
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
+        
+        
         if(mat_block && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
@@ -657,7 +689,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -713,7 +745,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
     
             // Запрет установки блока на блоки, которые занимает игрок
-            if(!mat_block.passable > 0) {
+            if(mat_block.passable == 0) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     x_min: player.pos.x - player.radius / 2,
@@ -768,6 +800,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                         id: 'frmEditSign',
                         args: {pos: new Vector(pos)}
                     };
+                }
+            }
+            // Pre place
+            for(let func of [prePlaceRail]) {
+                if(func(world, pos, new_item, actions)) {
+                    return actions;
                 }
             }
             //
@@ -1013,7 +1051,7 @@ async function dropEgg(e, world, pos, player, world_block, world_material, mat_b
 
 // Put in bucket
 async function putInBucket(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!mat_block || mat_block.id != BLOCK.BUCKET_EMPTY.id) {
+    if(!mat_block || mat_block.id != BLOCK.BUCKET.id) {
         return false;
     }
     let added_to_bucket = false;
@@ -1351,6 +1389,20 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
 }
 
 //
+async function useTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!mat_block || mat_block.style != 'torch') {
+        return false;
+    }
+    if(world_material.name == 'CAMPFIRE' || world_material.style == 'candle') {
+        extra_data = extra_data || {};
+        extra_data.active = true;
+        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        return true;
+    }
+    return false;
+}
+
+//
 async function useShovel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'shovel') {
         return false;
@@ -1491,18 +1543,20 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     if(new_extra_data.height == 1) {
         return false;
     }
-    //
-    if(pos_n.y == -1) {
-        if(new_extra_data.point.y < .5) {
-            return false;
-        } else {
-            new_extra_data.point.y = 0;
+    // For slabs
+    if(new_extra_data.point) {
+        if(pos_n.y == -1) {
+            if(new_extra_data.point.y < .5) {
+                return false;
+            } else {
+                new_extra_data.point.y = 0;
+            }
         }
-    }
-    //
-    if(pos_n.y == 1) {
-        if(new_extra_data.point.y >= .5) {
-            return false;
+        //
+        if(pos_n.y == 1) {
+            if(new_extra_data.point.y >= .5) {
+                return false;
+            }
         }
     }
     //
@@ -1546,4 +1600,9 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
         actions.decrement = true;
     }
     return true;
+}
+
+// Place rail
+function prePlaceRail(world, pos, new_item, actions) {
+    return RailShape.place(world, pos, new_item, actions);
 }

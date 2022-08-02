@@ -98,6 +98,10 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
+            this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
+                Game.render.setWeather(cmd.data);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
                     TrackerPlayer.stop(params.pos);
@@ -201,7 +205,7 @@ export class World {
         });
     }
 
-    // Apply pickat actions
+    // Apply world actions
     async applyActions(actions, player) {
         // console.log(actions.id);
         if(actions.open_window) {
@@ -258,7 +262,7 @@ export class World {
                     case ServerClient.BLOCK_ACTION_REPLACE:
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.chunkManager.torches.delete(mod.pos);
+                        this.chunkManager.animated_blocks.delete(mod.pos);
                         this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }

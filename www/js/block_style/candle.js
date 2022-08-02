@@ -51,6 +51,7 @@ export default class style {
             return;
         }
 
+        const active            = block?.extra_data?.active;
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const count             = Math.min(block.extra_data?.candles || 1, 4);
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
@@ -60,17 +61,20 @@ export default class style {
             [{mx: 0, mz: -1.5, height: 5}, {mx: 0, mz: 1.5, height: 3}],
             [{mx: -1.5, mz: -1.5, height: 5}, {mx: -1.5, mz: 1.5, height: 3},{mx: 1.5, mz: 0, height: 2}],
             [{mx: -1.5, mz: -1.5, height: 5}, {mx: -1.5, mz: 1.5, height: 3}, {mx: 1.5, mz: -1.5, height: 2}, {mx: 1.5, mz: 1.5, height: 4}]
-        ][count - 1];
+        ];
 
         // Geometries
         const parts = [];
         const planes = [];
 
-        for(let candle of candles) {
+        const wick_positions = [];
+
+        for(let candle of candles[count - 1]) {
 
             const {height, mx, mz} = candle;
             const pos = new Vector(x, y - (1 - height / TX_SIZE) / 2, z);
 
+            // candlewicks
             planes.push(...[
                 {
                     pos: pos.add(new Vector(mx / TX_SIZE, (height / 2 + .5) / TX_SIZE, mz / TX_SIZE)),
@@ -85,6 +89,10 @@ export default class style {
                     rot: [0, Math.PI / 4 + Math.PI / 2, 0]
                 }
             ]);
+
+            if(active && typeof worker != 'undefined') {
+                wick_positions.push(block.posworld.add(new Vector(-x, -y, -z)).addSelf(planes[planes.length - 1].pos));
+            }
 
             // part
             parts.push({
@@ -121,6 +129,15 @@ export default class style {
                 pos:        part.pos,
                 matrix:     matrix
             });
+        }
+
+        // Animated block effects
+        if(typeof worker != 'undefined') {
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: wick_positions,
+                type: 'torch_flame'
+            }]);
         }
 
         return null;

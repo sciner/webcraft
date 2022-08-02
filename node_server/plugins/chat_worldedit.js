@@ -1,6 +1,6 @@
 import {BLOCK} from "../../www/js/blocks.js";
 import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
-import {PickatActions} from "../../www/js/block_action.js";
+import {WorldAction} from "../../www/js/world_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 
@@ -81,6 +81,10 @@ export default class WorldEdit {
             msg += `. Selected ${volume} blocks`;
         }
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        //
+        let actions = new WorldAction(null, null, true, false/*, false*/);
+        actions.addBlocks([{pos: player.pos1, item: {id: BLOCK.NUM1.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        chat.world.actions_queue.add(null, actions);
     }
 
     /**
@@ -98,6 +102,10 @@ export default class WorldEdit {
             msg += `. Selected ${volume} blocks`;
         }
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        //
+        let actions = new WorldAction(null, null, true, false/*, false*/);
+        actions.addBlocks([{pos: player.pos2, item: {id: BLOCK.NUM2.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        chat.world.actions_queue.add(null, actions);
     }
 
     /**
@@ -240,7 +248,7 @@ export default class WorldEdit {
         }
         const pn_set = performance.now();
         const actions_list = [];
-        let actions = new PickatActions(null, null, true, false/*, false*/);
+        let actions = new WorldAction(null, null, true, false/*, false*/);
         //
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
@@ -254,7 +262,7 @@ export default class WorldEdit {
             affected_count++;
             if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
                 actions_list.push(actions);
-                actions = new PickatActions(null, null, true, false/*, false*/);
+                actions = new WorldAction(null, null, true, false/*, false*/);
             }
         }
         if(actions.blocks.list.length > 0) {
@@ -286,7 +294,7 @@ export default class WorldEdit {
         let chunk           = null;
         let affected_count  = 0;
         const pn_set        = performance.now();
-        const actions = new PickatActions(null, null, true, false);
+        const actions = new WorldAction(null, null, true, false);
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -367,7 +375,7 @@ export default class WorldEdit {
     //
     async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
         const pn_set = performance.now();
-        let actions = new PickatActions(null, null, true, false);
+        let actions = new WorldAction(null, null, true, false);
         let affected_count = 0;
         this.checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id);
         //
@@ -402,7 +410,7 @@ export default class WorldEdit {
                     bpos.z += z * qi.signz;
                     if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
                         chat.world.actions_queue.add(null, actions);
-                        actions = new PickatActions(null, null, true, false);
+                        actions = new WorldAction(null, null, true, false);
                     }
                     actions.addBlocks([{pos: bpos, item: palette.nextAsItem(), action_id: ServerClient.BLOCK_ACTION_CREATE}]);
                 }

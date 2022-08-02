@@ -1,7 +1,7 @@
 import {Color, Vector} from '../../helpers.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
-import { Default_Terrain_Generator } from '../default.js';
+import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import {BLOCK} from '../../blocks.js';
 
 //
@@ -55,7 +55,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             30: BLOCK.RED_TERRACOTTA, // BRICK
             246: BLOCK.IRON_BLOCK,
             254: BLOCK.BLACK_WOOL,
-            103: BLOCK.GOLD_BLOCK,
+            103: BLOCK.GLOWSTONE,
             253: BLOCK.GRAY_WOOL,
             143: BLOCK.GRASS_BLOCK,
             139: BLOCK.GREEN_WOOL,
@@ -104,55 +104,52 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(chunk.addr.y == 0) {
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
-                        // this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                         setBlock(x, 0, z, BLOCK.BEDROCK.id);
                     }
                 }
             }
 
-            if(chunk.addr.x < 0 || chunk.addr.z < 0 || chunk.coord.y > 100) {
+            if(chunk.coord.y > 100) {
                 // do nothing
             } else {
+
+                const SZ = 126;
+                const xyz = new Vector(0, 0, 0);
 
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
                         for (let y = 0; y < chunk.size.y; y++) {
-                            let xyz     = new Vector(x, y, z).add(chunk.coord);
-                            let index   = (xyz.x / 126 | 0 + xyz.z / 126 | 0) % 2;
-                            let vb      = this.voxel_buildings[index];
-                            xyz.x = xyz.x % 126;
-                            xyz.z = xyz.z % 126;
-                            let block   = vb.getBlock(xyz);
+                            xyz.set(x, y, z).addSelf(chunk.coord);
+                            const model_x = Math.floor(xyz.x / SZ);
+                            const model_z = Math.floor(xyz.z / SZ);
+                            const index = (Math.abs(model_x) + Math.abs(model_z)) % 2;
+                            const vb = this.voxel_buildings[index];
+                            //
+                            xyz.x = (xyz.x - (model_x * SZ)) % SZ;
+                            xyz.z = (xyz.z - (model_z * SZ)) % SZ;
+                            const block = vb.getBlock(xyz);
                             if(block) {
-                                // this.setBlock(chunk, x, y, z, block, false);
                                 setBlock(x, y, z, block.id);
                             }
                         }
                     }
                 }
+
             }
 
         }
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: new Default_Terrain_Map_Cell({
             code: 'City2'
-        }};
+        })};
 
-        const addr = chunk.addr;
-        const size = chunk.size;
-
-        return {
-            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-            blocks: {},
-            seed:   chunk.seed,
-            addr:   addr,
-            size:   size,
-            coord:  addr.mul(size),
-            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
-            options: {
-                WATER_LINE: 63, // Ватер-линия
-            }
-        };
+        return new Default_Terrain_Map(
+            chunk.addr,
+            chunk.size,
+            chunk.addr.mul(chunk.size),
+            {WATER_LINE: 63},
+            Array(chunk.size.x * chunk.size.z).fill(cell)
+        );
 
     }
 

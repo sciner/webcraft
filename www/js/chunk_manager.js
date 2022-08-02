@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray} from "./helpers.js";
+import {Helpers, getChunkAddr, SpiralGenerator, Vector, VectorCollector, IvanArray, VectorCollectorFlat} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -6,11 +6,11 @@ import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
 import {TrivialGeometryPool} from "./light/GeometryPool.js";
 import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
-import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
+import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
+import { decompressNearby } from "./packet_compressor.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
-export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -36,19 +36,42 @@ export class ChunkManager {
         ChunkManager.instance = this;
 
         this.world                  = world;
-        this.chunks                 = new VectorCollector();
+        this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
 
-        this.lightPool = null;
+        this.lightPool              = null;
         this.lightTexFormat         = 'rgba8unorm';
 
-        this.bufferPool = null;
-        this.chunkDataTexture = new ChunkDataTexture();
+        this.bufferPool             = null;
+        this.chunkDataTexture       = new ChunkDataTexture();
 
-        // Torches
-        this.torches = {
-            list: new VectorCollector(),
+        // rendering
+        this.poses                  = [];
+        this.poses_need_update      = false;
+        this.poses_chunkPos         = new Vector();
+        this.rendered_chunks        = {fact: 0, total: 0};
+        this.renderList             = new Map();
+
+        this.update_chunks          = true;
+        this.vertices_length_total  = 0;
+        this.worker_inited          = false;
+        this.timer60fps             = 0;
+        this.dataWorld              = new DataWorld();
+
+        if (navigator.userAgent.indexOf('Firefox') > -1) {
+            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
+            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
+        } else {
+            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+        }
+
+        const that = this;
+
+        // Animated blocks
+        this.animated_blocks = {
+            list: new VectorCollectorFlat(),
             add: function(args) {
                 this.list.set(args.block_pos, args);
             },
@@ -63,28 +86,15 @@ export class ChunkManager {
             update(player_pos) {
                 const meshes = Game.render.meshes;
                 const type_distance = {
-                    torch: 12,
-                    campfire: 96
+                    torch_flame: 12,
+                    campfire_flame: 96
                 };
-                // Add torches animations if need
-                for(let [_, item] of this.list.entries()) {
+                // Play animations if need
+                for(let item of this.list) {
                     if(Math.random() < .23) {
-                        if(player_pos.distance(item.pos) < type_distance[item.type]) {
-                            switch(item.type) {
-                                case 'torch': {
-                                    meshes.addEffectParticle('torch_flame', item.pos);
-                                    break;
-                                }
-                                case 'campfire': {
-                                    if(!item.tblock) {
-                                        item.tblock = world.getBlock(item.pos);
-                                    }
-                                    const extra_data = item.tblock.extra_data;
-                                    if(extra_data && extra_data.active) {
-                                        meshes.addEffectParticle('campfire_flame', item.pos);
-                                    }
-                                    break;
-                                }
+                        if(player_pos.distance(item.block_pos) < type_distance[item.type]) {
+                            for(let pos_index = 0; pos_index < item.pos.length; pos_index++) {
+                                meshes.addEffectParticle(item.type, item.pos[pos_index]);
                             }
                         }
                     }
@@ -92,31 +102,8 @@ export class ChunkManager {
             }
         };
 
-        // rendering
-        this.poses                  = [];
-        this.poses_need_update      = false;
-        this.poses_chunkPos         = new Vector();
-        this.rendered_chunks        = {fact: 0, total: 0};
-        this.renderList             = new Map();
-
-        this.update_chunks          = true;
-        this.vertices_length_total  = 0;
-        // this.dirty_chunks           = [];
-        this.worker_inited          = false;
-        if (navigator.userAgent.indexOf('Firefox') > -1) {
-            this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
-            this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
-        } else {
-            this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
-            this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
-        }
-        this.sort_chunk_by_frustum  = false;
-        this.timer60fps             = 0;
-
-        const that = this;
-
-        // this.destruct_chunks_queue
-        this.destruct_chunks_queue  = {
+        // Destruct chunks queue
+        this.destruct_chunks_queue = {
             list: [],
             add(addr) {
                 this.list.push(addr.clone());
@@ -140,8 +127,8 @@ export class ChunkManager {
                     this.clear();
                 }
             }
-        }
-        this.dataWorld = new DataWorld();
+        };
+
     }
 
     get lightmap_count() {
@@ -158,7 +145,7 @@ export class ChunkManager {
         const that                    = this;
 
         // Add listeners for server commands
-        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
             this.setChunkState(cmd.data);
         });
@@ -190,8 +177,7 @@ export class ChunkManager {
             switch(cmd) {
                 case 'world_inited':
                 case 'worker_inited': {
-                    that.worker_counter--;
-                    that.worker_inited = that.worker_counter === 0;
+                    that.worker_inited = --that.worker_counter === 0;
                     break;
                 }
                 case 'blocks_generated': {
@@ -215,8 +201,8 @@ export class ChunkManager {
                     TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
                     break;
                 }
-                case 'add_torch': {
-                    that.torches.add(args);
+                case 'add_animated_block': {
+                    that.animated_blocks.add(args);
                     break;
                 }
                 case 'maps_created': {
@@ -233,8 +219,7 @@ export class ChunkManager {
             let args = e.data[1];
             switch(cmd) {
                 case 'worker_inited': {
-                    that.worker_counter--;
-                    that.worker_inited = that.worker_counter === 0;
+                    that.worker_inited = --that.worker_counter === 0;
                     break;
                 }
                 case 'light_generated': {
@@ -307,7 +292,7 @@ export class ChunkManager {
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
-            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
             this.poses.length = 0;
             for (let i = 0; i < spiral_moves_3d.length; i++) {
                 const item = spiral_moves_3d[i];
@@ -467,7 +452,7 @@ export class ChunkManager {
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
             // 1. Delete torch emmiters
-            this.torches.destroyAllInAABB(chunk.aabb);
+            this.animated_blocks.destroyAllInAABB(chunk.aabb);
             // 2. Destroy playing discs
             TrackerPlayer.destroyAllInAABB(chunk.aabb);
             // 3. Call chunk destructor
@@ -525,13 +510,13 @@ export class ChunkManager {
         this.prepareRenderList(Game.render);
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
-        // Update torches
+        // Update animated blocks
         this.timer60fps += delta;
         if(this.timer60fps >= 16.666) {
             this.timer60fps = 0;
-            this.torches.update(player_pos);
+            this.animated_blocks.update(player_pos);
         }
-        // stat['Update torches'] = (performance.now() - p); p = performance.now();
+        // stat['Update animated blocks'] = (performance.now() - p); p = performance.now();
 
         // Result
         //p2 = performance.now() - p2;
@@ -689,7 +674,6 @@ export class ChunkManager {
                     extra_data: head_extra_data
                 });
             }
-            // this.setBlock(pos.x, pos.y, pos.z, mat, true, null, item.rotate, null, item.extra_data, ServerClient.BLOCK_ACTION_CREATE);
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);

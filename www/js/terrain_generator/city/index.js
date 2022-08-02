@@ -1,6 +1,6 @@
 import {Color, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
-import {alea, Default_Terrain_Generator} from "../default.js";
+import {alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -263,25 +263,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: new Default_Terrain_Map_Cell({
             code: 'City'
-        }};
+        })};
 
-        const addr = chunk.addr;
-        const size = chunk.size;
-
-        return {
-            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-            blocks: {},
-            seed:   chunk.seed,
-            addr:   addr,
-            size:   size,
-            coord:  addr.mul(size),
-            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
-            options: {
-                WATER_LINE: 63, // Ватер-линия
-            }
-        };
+        return new Default_Terrain_Map(
+            chunk.addr,
+            chunk.size,
+            chunk.addr.mul(chunk.size),
+            {WATER_LINE: 63},
+            Array(chunk.size.x * chunk.size.z).fill(cell)
+        );
 
     }
 

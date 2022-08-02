@@ -1,11 +1,10 @@
 import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
-import {ALLOW_NEGATIVE_Y} from "../www/js/chunk_const.js";
+import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
-
-export const MAX_Y_MARGIN = 3;
+import { compressNearby } from "../www/js/packet_compressor.js";
 
 export class ServerChunkManager {
 
@@ -176,7 +175,7 @@ export class ServerChunkManager {
             const added_vecs        = new VectorCollector();
             const chunk_render_dist = player.state.chunk_render_dist;
             const margin            = Math.max(chunk_render_dist + 1, 1);
-            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
 
             //
             const nearby = {
@@ -220,10 +219,11 @@ export class ServerChunkManager {
 
             // Send new chunks
             if(nearby.added.length + nearby.deleted.length > 0) {
-                // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
+                const nearby_compressed = compressNearby(nearby);
                 const packets = [{
+                    // c: Math.round((nearby_compressed.length / JSON.stringify(nearby).length * 100) * 100) / 100,
                     name: ServerClient.CMD_NEARBY_CHUNKS,
-                    data: nearby
+                    data: nearby_compressed
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }

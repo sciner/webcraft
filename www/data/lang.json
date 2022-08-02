@@ -76,6 +76,16 @@
         "kb_help_ctrlw_key": {"en": "Ctrl, Double W", "ru": "Ctrl или Двойной W", "fr": "Ctrl, Double W", "es": "Ctrl, doble W","man":"Ctrl，双 W"},
         "days": {"en": "days", "ru": "дней", "fr": "journées", "es": "días","man":"天"},
         "hours": {"en": "hours", "ru": "часов", "fr": "heures", "es": "horas","man":"小时"},
-        "minutes": {"en": "minutes", "ru": "минут", "fr": "minutes", "es": "minutos","man":"分钟"}
+        "minutes": {"en": "minutes", "ru": "минут", "fr": "minutes", "es": "minutos","man":"分钟"},
+        "start_game": {"en": "Start Game", "ru": "Начать игру", "fr": "", "es": "","man":""},
+        "settings": {"en": "Settings", "ru": "Настройки", "fr": "", "es": "","man":""},
+        "error_world_not_found": {"en": "World not found", "ru": "Мир не найден", "fr": "", "es": "","man":""},
+        "success_world_deleted": {"en": "World deleted", "ru": "Мир удалён", "fr": "", "es": "","man":""},
+        "delete": {"en": "Delete", "ru": "Удалить", "fr": "", "es": "","man":""},
+        "confirm_delete_world": {"en": "Want to delete?", "ru": "Вы действительно хотите удалить мир?", "fr": "", "es": "","man":""},
+        "play": {"en": "Play", "ru": "Играть", "fr": "", "es": "","man":""},
+        "generator_city1": {"en": "City #1", "ru": "Город 1", "fr": "", "es": "","man":""},
+        "generator_city2": {"en": "City #2", "ru": "Город 2", "fr": "", "es": "","man":""},
+        "generator_flat_world": {"en": "Flat world", "ru": "Плоский мир", "fr": "", "es": "","man":""}
     }
 }

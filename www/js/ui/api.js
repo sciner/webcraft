@@ -1,11 +1,14 @@
 export class API_Client {
 
+    constructor(api_url) {
+        this.api_url = api_url || '';
+    }
+
     // Организует вызов API, обработку ответа и вызов callback-функции
     async call(App, url, data, callback, callback_error, callback_progress, callback_final) {
-        let session         = App.getSession()
-        let domains_api     = '';
+        let session         = App.getSession();
         let sessionID       = session ? session.session_id : null;
-        url                 = domains_api + url;
+        url                 = this.api_url + url;
         callback_error      = callback_error || null;
         callback_progress   = callback_progress || null;
         callback_final      = callback_final || null;

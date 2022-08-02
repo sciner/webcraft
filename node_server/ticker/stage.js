@@ -6,7 +6,7 @@ export default class Ticker {
     static type = 'stage'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
         const tblock = v.tblock;
         const ticking = v.ticking;
         if(v.ticks % 40 != 0) {

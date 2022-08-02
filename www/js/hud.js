@@ -5,7 +5,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
-import { DRAW_HUD_INFO_DEFAULT } from "./constant.js";
+import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -29,12 +29,6 @@ export class HUD {
         canvas.id                       = 'cnvHUD';
         canvas.width                    = width;
         canvas.height                   = height;
-        canvas.style.position           = 'fixed';
-        // canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
-        canvas.style.zIndex             = 0;
-        canvas.style.pointerEvents      = 'none';
-        canvas.style.width              = '100vw';
-        canvas.style.height             = '100vh';
         this.ctx                        = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
         document.body.appendChild(this.canvas);
@@ -104,14 +98,15 @@ export class HUD {
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                let txt = '';
+                const texts = [];
                 if(Resources.progress && Resources.progress.percent < 100) {
-                    txt = 'LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%';
+                    texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%');
                 } else if(cl == 0) {
-                    txt = 'CONNECTING TO SERVER...';
+                    texts.push('CONNECTING TO SERVER...');
                 } else {
-                    txt = 'GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%';
+                    texts.push('GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
                 }
+                texts.push('Press F11 to full screen');
                 //
                 let x = w / 2;
                 let y = h / 2;
@@ -119,29 +114,34 @@ export class HUD {
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
                 ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
-                // Measure text
-                if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
-                    this.prevSplashTextMeasure = {
-                        text: txt,
-                        measure: ctx.measureText(txt)
-                    };
+                //
+                for(let i = 0; i < texts.length; i++) {
+                    const txt = texts[i];
+                    // Measure text
+                    if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
+                        this.prevSplashTextMeasure = {
+                            text: txt,
+                            measure: ctx.measureText(txt)
+                        };
+                    }
+                    // get width of text
+                    let mt = this.prevSplashTextMeasure.measure;
+                    let width = mt.width;
+                    let height = mt.actualBoundingBoxDescent;
+                    // color for background
+                    ctx.fillStyle = 'rgba(255, 255, 255, .25)';
+                    // draw background rect assuming height of font
+                    ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
+                    // text color
+                    ctx.fillStyle = '#333';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
+                    // text color
+                    ctx.fillStyle = '#fff';
+                    // draw text on top
+                    ctx.fillText(txt, x - width / 2, y - height / 2);
+                    y += height * 3;
                 }
-                // get width of text
-                let mt = this.prevSplashTextMeasure.measure;
-                let width = mt.width;
-                let height = mt.actualBoundingBoxDescent;
-                // color for background
-                ctx.fillStyle = 'rgba(255, 255, 255, .25)';
-                // draw background rect assuming height of font
-                ctx.fillRect(x - width / 2 - padding, y - height / 2 - padding, width + padding * 2, height + padding * 2);
-                // text color
-                ctx.fillStyle = '#333';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2 + 2, y - height / 2 + 2);
-                // text color
-                ctx.fillStyle = '#fff';
-                // draw text on top
-                ctx.fillText(txt, x - width / 2, y - height / 2);
                 // restore original state
                 ctx.restore();
                 return true;
@@ -365,6 +365,7 @@ export class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
+        let pcnt = 0;
         for(let [id, p] of world.players.list) {
             this.text += '🙎‍♂️' + p.username;
             if(p.itsMe()) {
@@ -373,6 +374,12 @@ export class HUD {
                 this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
             }
             this.text += '\n';
+            if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {
+                break;
+            }
+        }
+        if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
+            this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
         }
         if(this.prevInfo == this.text) {
             return false;

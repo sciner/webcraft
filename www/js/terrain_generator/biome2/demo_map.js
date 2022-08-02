@@ -50,6 +50,10 @@ export default class Demo_Map extends Default_Terrain_Generator {
         return false;
     }
 
+    intersectSpiralStairs(chunk) {
+        return this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
+    }
+
     //
     intersectChunkWithIslands(chunkAABB) {
         const _createBlockAABB_second = this._createBlockAABB_second;

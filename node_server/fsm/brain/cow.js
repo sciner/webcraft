@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
+import { WorldAction } from "../../../www/js/world_action.js";
 
 export class Brain extends FSMBrain {
 
@@ -80,8 +80,8 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
 
-        if (id == BLOCK.BUCKET_EMPTY.id) {
-            const actions = new PickatActions();
+        if (id == BLOCK.BUCKET.id) {
+            const actions = new WorldAction();
             actions.putInBucket(BLOCK.BUCKET_MILK);
             world.actions_queue.add(actor, actions);
         }
@@ -91,7 +91,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {
-            const actions = new PickatActions();
+            const actions = new WorldAction();
             let drop_item = { pos: mob.pos, items: [] };
 
             const rnd_count_beef = ((Math.random() * 2) | 0) + 1;

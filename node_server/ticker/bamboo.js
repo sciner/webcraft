@@ -6,7 +6,7 @@ export default class Ticker {
     static type = 'bamboo'
 
     //
-    static async func(world, chunk, v, check_pos, ignore_coords) {
+    static func(world, chunk, v, check_pos, ignore_coords) {
         if(v.ticks % 40 != 0) {
             return;
         }

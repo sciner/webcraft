@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
@@ -6,6 +6,27 @@ import {impl as alea} from '../../vendors/alea.js';
 
 export {alea, noise};
 
+// Map cell
+export class Default_Terrain_Map_Cell {
+
+    constructor(biome) {
+        this.biome = biome;
+    }
+
+}
+
+//
+export class Default_Terrain_Map {
+
+    constructor(addr, size, coord, options, cells) {
+        this.chunk = {addr, size, coord};
+        this.options = options;
+        this.cells = cells;
+    }
+
+}
+
+//
 export class Default_Terrain_Generator {
 
     constructor(seed, world_id, options) {
@@ -75,6 +96,13 @@ export class Default_Terrain_Generator {
                 }
         }
         return null;
+    }
+
+    //
+    setTreeBlock(tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+        // if(!tree.aabb) tree.aabb = new AABB().reset();
+        // tree.aabb.addPoint(chunk.coord.x + x, chunk.coord.y + y, chunk.coord.z + z);
+        this.setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data);
     }
 
     // setBlock
@@ -162,7 +190,7 @@ export class Default_Terrain_Generator {
         // ствол
         this.temp_block.id = options.type.trunk;
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
         }
     }
 
@@ -176,7 +204,7 @@ export class Default_Terrain_Generator {
             if(p == ystart - 1) extra_data.stage = 2;
             if(p == ystart - 2) extra_data.stage = 1;
             if(p == ystart - 3) extra_data.stage = 1;
-            this.setBlock(chunk, x, p, z, this.temp_block, true, null, extra_data);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true, null, extra_data);
         }
     }
 
@@ -186,11 +214,11 @@ export class Default_Terrain_Generator {
         // ствол
         this.temp_block.id = options.type.trunk;
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
         }
         if(options.type.leaves) {
             this.temp_block.id = options.type.leaves;
-            this.setBlock(chunk, x, ystart, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, ystart, z, this.temp_block, true);
         }
     }
 
@@ -206,7 +234,7 @@ export class Default_Terrain_Generator {
                     if(p != y && dx != 0 && dz != 0) {
                         continue;
                     }
-                    this.setBlock(chunk, x + dx, p, z + dz, this.temp_block, true);
+                    this.setTreeBlock(options, chunk, x + dx, p, z + dz, this.temp_block, true);
                 }
             }
         }
@@ -278,17 +306,17 @@ export class Default_Terrain_Generator {
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
         }
         // листва
         let r = 1;
         let rad = Math.round(r);
         if(!check_chunk_size || (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z)) {
             this.temp_block.id = options.type.leaves;
-            this.setBlock(chunk, x, ystart, z, this.temp_block, false);
+            this.setTreeBlock(options, chunk, x, ystart, z, this.temp_block, false);
             if(options.biome_code == 'SNOW') {
                 this.temp_block.id = BLOCK.SNOW.id;
-                this.setBlock(chunk, x, ystart + 1, z, this.temp_block, false);
+                this.setTreeBlock(options, chunk, x, ystart + 1, z, this.temp_block, false);
             }
         }
         let step = 0;
@@ -311,12 +339,13 @@ export class Default_Terrain_Generator {
                             this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                             b = chunk.tblocks.get(this.xyz_temp_find, b);
                             let b_id = b.id;
+                            // options.aabb.addPoint(chunk.coord.x + i, chunk.coord.y + y, chunk.coord.z + j);
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                                 this.temp_block.id = options.type.leaves;
-                                this.setBlock(chunk, i, y, j, this.temp_block, false);
+                                this.setTreeBlock(options, chunk, i, y, j, this.temp_block, false);
                                 if(options.biome_code == 'SNOW') {
                                     this.temp_block.id = BLOCK.SNOW.id;
-                                    this.setBlock(chunk, i, y + 1, j, this.temp_block, false);
+                                    this.setTreeBlock(options, chunk, i, y + 1, j, this.temp_block, false);
                                 }
                             }
                         }
@@ -326,7 +355,7 @@ export class Default_Terrain_Generator {
             r = Math.sqrt(step);
             if(r < 1.5) {
                 this.temp_block.id = options.type.leaves;
-                this.setBlock(chunk, x, y, z, this.temp_block, true);
+                this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
             }
         }
     }
@@ -337,7 +366,7 @@ export class Default_Terrain_Generator {
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
         }
         // листва
         let py = y + options.height;
@@ -360,7 +389,7 @@ export class Default_Terrain_Generator {
                         let b_id = b.id;
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                             this.temp_block.id = options.type.leaves;
-                            this.setBlock(chunk, i, py, j, this.temp_block, false);
+                            this.setTreeBlock(options, chunk, i, py, j, this.temp_block, false);
                         }
                     }
                 }
@@ -375,7 +404,7 @@ export class Default_Terrain_Generator {
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
         }
         // листва
         let py = y + options.height;
@@ -416,7 +445,7 @@ export class Default_Terrain_Generator {
                                 if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                             }
                             let extra_data = t ? {t: t} : null;
-                            this.setBlock(chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
+                            this.setTreeBlock(options, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                         }
                     }
                 }
@@ -452,8 +481,8 @@ export class Default_Terrain_Generator {
         // ствол + лианы вокруг
         let xyz = chunk.coord.add(new Vector(x, y, z));
         let random = new alea('tree' + xyz.toHash());
-        for (let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, this.temp_block, true)
+        for(let p = y; p < ystart; p++) {
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true)
             let block_id = BLOCK.VINE.id;
             let extra_data = null;
             const makeCocoa = () => {
@@ -464,7 +493,7 @@ export class Default_Terrain_Generator {
             }
             if ((p + arr[p % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setBlock(chunk, x + 1, p, z, { id: block_id }, false, {
+                this.setTreeBlock(options, chunk, x + 1, p, z, { id: block_id }, false, {
                     x: 3,
                     y: 0,
                     z: 0,
@@ -472,7 +501,7 @@ export class Default_Terrain_Generator {
             }
             if ((p + arr[(p + 1) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setBlock(chunk, x - 1, p, z, { id: block_id }, false, {
+                this.setTreeBlock(options, chunk, x - 1, p, z, { id: block_id }, false, {
                     x: 1,
                     y: 0,
                     z: 0,
@@ -480,7 +509,7 @@ export class Default_Terrain_Generator {
             }
             if ((p + arr[(p + 2) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setBlock(chunk, x, p, z + 1, { id: block_id }, false, {
+                this.setTreeBlock(options, chunk, x, p, z + 1, { id: block_id }, false, {
                     x: 0,
                     y: 0,
                     z: 3,
@@ -488,7 +517,7 @@ export class Default_Terrain_Generator {
             }
             if ((p + arr[(p + 3) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setBlock(chunk, x, p, z - 1, { id: block_id }, false, {
+                this.setTreeBlock(options, chunk, x, p, z - 1, { id: block_id }, false, {
                     x: 2,
                     y: 0,
                     z: 0,
@@ -514,7 +543,7 @@ export class Default_Terrain_Generator {
                             let d_id = d.id
                             if (!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
                                 this.temp_block.id = options.type.leaves
-                                this.setBlock(chunk, a, y + h, b, this.temp_block, false)
+                                this.setTreeBlock(options, chunk, a, y + h, b, this.temp_block, false)
                                 if (
                                     rad % 2 == 0 &&
                                     h == 0 &&
@@ -526,6 +555,7 @@ export class Default_Terrain_Generator {
                                         t++
                                     ) {
                                         this.setBlock(
+                                            options,
                                             chunk,
                                             a,
                                             y + h - t,
@@ -563,7 +593,7 @@ export class Default_Terrain_Generator {
                 if (arr[k % 7] % 2 == 0) {
                     dy++
                 }
-                this.setBlock(chunk, x1, y + pos + dy, z1, this.temp_block, true)
+                this.setTreeBlock(options, chunk, x1, y + pos + dy, z1, this.temp_block, true)
             }
             this.temp_block.id = options.type.leaves
             generateLeaves(x1, y + pos + dy + 1, z1, rad, arr)

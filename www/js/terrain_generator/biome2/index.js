@@ -1,13 +1,15 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {noise, alea} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
+import {DungeonGenerator} from "../dungeon.js";
+import FlyIslands from "../flying_islands/index.js";
 
 import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
-import { generateBottomCaves } from "./bottom_caves.js";
+import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -25,7 +27,9 @@ export default class Terrain_Generator extends Demo_Map {
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
-        this.generateBottomCaves = generateBottomCaves.bind(this);
+        this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
+        this.dungeon = new DungeonGenerator(seed);
+        this.flying_islands = new FlyIslands(seed, world_id, {});
     }
 
     async init() {
@@ -37,8 +41,52 @@ export default class Terrain_Generator extends Demo_Map {
         this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noisefn, this.noisefn3d);
     }
 
+    // Draw fly islands in the sky
+    drawFlyIslands(chunk) {
+        if(!this.flying_islands) {
+            return null;
+        }
+        const xyz = new Vector(0, 0, 0);
+        const CHUNK_START_Y = 25;
+        const CHUNK_HEIGHT = 2;
+        if(chunk.addr.y >= CHUNK_START_Y && chunk.addr.y < CHUNK_START_Y + CHUNK_HEIGHT) {
+            //
+            const has_spiral_stairs = this.intersectSpiralStairs(chunk);
+            if(has_spiral_stairs) {
+                this.drawSpiralStaircases(chunk);
+            }
+            //
+            const has_islands = this.intersectChunkWithIslands(chunk.aabb);
+            if(has_islands) {
+                for(let x = 0; x < chunk.size.x; x++) {
+                    for(let z = 0; z < chunk.size.z; z++) {
+                        for(let y = 0; y < chunk.size.y; y++) {
+                            xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+                            this.drawIsland(xyz, x, y, z, chunk);
+                        }
+                    }
+                }
+            }
+            //
+            const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
+            const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
+            coord.y -= chunk.size.y * CHUNK_START_Y;
+            addr.y -= CHUNK_START_Y;
+            const fake_chunk = {...chunk, coord, addr};
+            fake_chunk.setBlockIndirect = chunk.setBlockIndirect;
+            return this.flying_islands.generate(fake_chunk);
+        };
+        return null;
+    }
+
     // Generate
     generate(chunk) {
+
+        // Draw fly islands in the sky
+        const resp = this.drawFlyIslands(chunk);
+        if(resp) {
+            return resp;
+        }
 
         const seed                      = chunk.id;
         const aleaRandom                = new alea(seed);
@@ -48,7 +96,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
-            this.generateBottomCaves(chunk, aleaRandom);
+            this.bottomCavesGenerator.generate(chunk, aleaRandom, false);
             return map;
         }
 
@@ -59,16 +107,13 @@ export default class Terrain_Generator extends Demo_Map {
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
-        const plant_pos                 = new Vector(0, 0, 0);
-        
-        let plant_index = 0;
 
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
         const has_extruders             = this.intersectChunkWithExtruders(chunk.aabb);
-        const has_spiral_staircaes      = this.world_id == 'demo' && chunk.addr.x == 180 && chunk.addr.z == 174;
+        const has_spiral_stairs         = this.intersectSpiralStairs(chunk);
 
-        if(has_spiral_staircaes) {
+        if(has_spiral_stairs) {
             this.drawSpiralStaircases(chunk);
         }
 
@@ -89,7 +134,7 @@ export default class Terrain_Generator extends Demo_Map {
                 const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const has_modificator   = true; // has_voxel_buildings || has_islands || has_extruders;
 
-                let can_plant = false;
+                cell.can_plant = false;
 
                 if(!has_ocean_blocks && chunk.coord.y > value && !has_modificator) {
                     continue;
@@ -140,47 +185,22 @@ export default class Terrain_Generator extends Demo_Map {
 
                     // check if herbs planted
                     if(block_id == dirt_block && xyz.y == value - 1) {
-                        can_plant = true;
+                        cell.can_plant = true;
                     }
 
-                }
-
-                // Hebrs and grass
-                if(can_plant) {
-                    plant_pos.x = x;
-                    plant_pos.z = z;
-                    plant_pos.y = value;
-                    const plants = map.plants.get(plant_pos);
-                    if(plants) {
-                        if(Array.isArray(plants)) {
-                            for(let i = 0; i < plants.length; i++) {
-                                const plant = plants[i];
-                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y - chunk.coord.y + i, plant_pos.z, plant.id, null, plant.extra_data || null);
-                            }
-                        } else {
-                            const plant = plants;
-                            const block_id = plant.id;
-                            plant_pos.y -= chunk.coord.y;
-                            if(plant_index++ % 7 == 0 && plant_pos.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, BLOCK.TALL_GRASS.id);
-                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y + 1, plant_pos.z, BLOCK.TALL_GRASS.id, null, {is_head: true});
-                            } else {
-                                const extra_data = plant.extra_data || null;
-                                chunk.setBlockIndirect(plant_pos.x, plant_pos.y, plant_pos.z, block_id, null, extra_data);
-                            }
-                        }
-                    }
                 }
 
                 // Water and ice
                 if(has_ocean_blocks) {
                     temp_vec.set(x, 0, z);
+                    // water
                     for(let y = value; y <= map.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             temp_vec.y = y - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK_WATER_ID);
                         }
                     }
+                    // ice
                     if(cell.equator < .6 && cell.humidity > .4) {
                         const vl = map.options.WATER_LINE;
                         if(vl >= chunk.coord.y && vl < chunk.coord.y + chunk.size.y) {
@@ -193,22 +213,42 @@ export default class Terrain_Generator extends Demo_Map {
             }
         }
 
-        // Cluster
-        if(!chunk.cluster.is_empty) {
-            chunk.cluster.fillBlocks(this.maps, chunk, map);
+        // Hebrs and grass
+        for(const [pos, blocks] of map.plants.entries()) {
+            const cell = map.cells[pos.z * CHUNK_SIZE_X + pos.x];
+            if(cell.can_plant) {
+                for(let i = 0; i < blocks.length; i++) {
+                    const block = blocks[i];
+                    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i, pos.z, block.id, null, block.extra_data || null);
+                }
+            }
         }
+
+        // Cluster
+        chunk.cluster.fillBlocks(this.maps, chunk, map);
+
+        // if(!globalThis.ggg) globalThis.ggg = 0;
 
         // Plant trees
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];
             for(let j = 0; j < m.trees.length; j++) {
                 const tree = m.trees[j];
+                //if(!('c' in tree)) {
+                //    tree.c = true;
+                //    // globalThis.ggg++;
+                //}
+                //if(tree.aabb && !chunk.aabb.intersect(tree.aabb)) {
+                //    continue;
+                //}
+                // globalThis.ggg++;
                 this.plantTree(
                     tree,
                     chunk,
                     m.chunk.coord.x + tree.pos.x - chunk.coord.x,
                     m.chunk.coord.y + tree.pos.y - chunk.coord.y,
-                    m.chunk.coord.z + tree.pos.z - chunk.coord.z
+                    m.chunk.coord.z + tree.pos.z - chunk.coord.z,
+                    true
                 );
             }
         }
@@ -218,6 +258,9 @@ export default class Terrain_Generator extends Demo_Map {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
         }
+        
+        // Dungeon
+        this.dungeon.add(chunk);
 
         return map;
 

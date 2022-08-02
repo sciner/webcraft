@@ -1,3 +1,4 @@
+import { WorldAction } from "../../www/js/world_action.js";
 import { Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 
@@ -6,7 +7,7 @@ export default class Ticker {
     static type = 'bee_nest'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
@@ -24,7 +25,12 @@ export default class Ticker {
                     // const spawn_tblock = world.getBlock(spawn_pos.floored());
                     if(item.entity_id) {
                         // активация ранее созданного моба
-                        await world.mobs.activate(item.entity_id, spawn_pos, new Vector(0, 0, (tblock.rotate.x / 4) * -(2 * Math.PI)));
+                        const params = {
+                            entity_id:  item.entity_id,
+                            spawn_pos:  spawn_pos,
+                            rotate:     new Vector(0, 0, (tblock.rotate.x / 4) * -(2 * Math.PI))
+                        }
+                        Ticker.activateMob(world, params);
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
@@ -33,7 +39,7 @@ export default class Ticker {
                             pos: spawn_pos
                         };
                         // create new mob in world
-                        await world.mobs.create(params);
+                        Ticker.spawnMob(world, params);
                     }
                     // update this ticking block state
                     updated_blocks.push({
@@ -45,6 +51,22 @@ export default class Ticker {
             }
         }
         return updated_blocks;
+    }
+
+    // Activate mob (активация ранее созданного моба)
+    static activateMob(world, params) {
+        console.log('Activate mob', params.spawn_pos.toHash());
+        const actions = new WorldAction(null, world, false, false);
+        actions.activateMob(params);
+        world.actions_queue.add(null, actions);
+    }
+
+    // Spawn mob (первая генерация моба, если его ещё не было в БД)
+    static spawnMob(world, params) {
+        console.log('Spawn mob', params.pos.toHash());
+        const actions = new WorldAction(null, world, false, false);
+        actions.spawnMob(params);
+        world.actions_queue.add(null, actions);
     }
 
 }

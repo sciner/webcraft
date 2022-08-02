@@ -2,7 +2,7 @@ import {QUAD_FLAGS, Vector} from '../helpers.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
-import {BLOCK} from "../blocks.js";
+import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 const {mat4} = glMatrix;
@@ -12,25 +12,6 @@ const push_cube = push_cube_style.getRegInfo().func;
 const CLOUDS_TEX_SIZE = 64;
 const CLOUDS_TEX_SCALE = new Vector(16, 4, 16);
 const WIND_SPEED_MUL = 1;
-
-class TBlock {
-
-    constructor(id) {this.id = id;}
-
-    get material() {
-        return BLOCK.BLOCK_BY_ID[this.id];
-    }
-
-    hasTag(tag) {
-        let mat = this.material;
-        return mat.tags && mat.tags.indexOf(tag) >= 0;
-    }
-
-    getCardinalDirection() {
-        return 0;
-    }
-
-}
 
 // World
 const FakeCloudWorld = {
@@ -45,7 +26,7 @@ const FakeCloudWorld = {
                     const index = (z * this.imgData.width + x);
                     const is_cloud = this.imgData.data[index * 4 + 3] > 10;
                     if(is_cloud) {
-                        this.blocks[index] = new TBlock(BLOCK.CLOUD.id);
+                        this.blocks[index] = new FakeTBlock(BLOCK.CLOUD.id);
                     }
                 }
             }
@@ -113,7 +94,8 @@ export default class Particles_Clouds {
     // Draw
     draw(render, delta) {
         const cam_pos = Game.render.camPos.clone();
-        cam_pos.y = 128.1;
+
+        cam_pos.y = cam_pos.y > 512 ? 1024.1 : 128.1; // this.pos.y
 
         const size = CLOUDS_TEX_SIZE * CLOUDS_TEX_SCALE.x;
 
@@ -126,7 +108,7 @@ export default class Particles_Clouds {
 
         for(let mx = -2; mx <= 2; mx++) {
             for(let mz = -2; mz <= 2; mz++) {
-                this.pos.set(x + mx * size, this.pos.y, z + mz * size);
+                this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
                 render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);        
             }
         }

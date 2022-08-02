@@ -1,8 +1,9 @@
 import { getChunkAddr, Vector } from "./helpers.js";
-import {TBlock, BlockNeighbours, CC, TypedBlocks as TB} from "./typed_blocks.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
+import {BLOCK, POWER_NO} from "./blocks.js";
 
 export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);
@@ -10,6 +11,31 @@ export function newTypedBlocks(x, y, z) {
 
 export const MASK_VERTEX_MOD = 128;
 export const MASK_VERTEX_PACK = 127;
+
+export const CC = [
+    {x:  0, y:  1, z:  0, name: 'UP'},
+    {x:  0, y: -1, z:  0, name: 'DOWN'},
+    {x:  0, y:  0, z: -1, name: 'SOUTH'},
+    {x:  0, y:  0, z:  1, name: 'NORTH'},
+    {x: -1, y:  0, z:  0, name: 'WEST'},
+    {x:  1, y:  0, z:  0, name: 'EAST'}
+];
+
+// BlockNeighbours
+export class BlockNeighbours {
+
+    constructor() {
+        this.pcnt   = 6;
+        this.water_in_water = false;
+        this.UP     = null;
+        this.DOWN   = null;
+        this.SOUTH  = null;
+        this.NORTH  = null;
+        this.WEST   = null;
+        this.EAST   = null;
+    }
+
+}
 
 // VectorCollector...
 export class VectorCollector1D {
@@ -81,11 +107,13 @@ export class VectorCollector1D {
     }
 }
 
+//
 export class TypedBlocks3 {
+
     constructor(coord, chunkSize) {
         this.addr       = getChunkAddr(coord);
         this.coord      = coord;
-        this.chunkSize = chunkSize;
+        this.chunkSize  = chunkSize;
         this.power      = new VectorCollector1D(chunkSize);
         this.rotate     = new VectorCollector1D(chunkSize);
         this.entity_id  = new VectorCollector1D(chunkSize);
@@ -280,7 +308,7 @@ export class TypedBlocks3 {
     }
 
     delete(vec) {
-        let block           = this.get(vec);
+        const block         = this.get(vec);
         block.id            = 0;
         block.power         = 0;
         block.rotate        = null;
@@ -576,4 +604,242 @@ export class DataWorld {
     setChunkBlock(chunk, x, y, z, id) {
         return chunk.dataChunk.setBlockId(x, y, z, id);
     }
+}
+
+export class TBlock {
+
+    constructor(tb, vec, index) {
+        this.init(tb, vec, index);
+    }
+
+    init(tb = this.tb, vec = this.vec, index = undefined) {
+        //TODO try remove third param
+        this.tb = tb;
+        this.vec = vec;
+        this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
+        return this;
+    }
+
+    get posworld() {
+        return this.vec.add(this.tb.coord);
+    }
+
+    //
+    get pos() {
+        return this.vec;
+    }
+
+    //
+    get id() {
+        return this.tb.id[this.index];
+    }
+    set id(value) {
+        // let cu = this.tb.id[this.index];
+        // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
+        if (this.tb.dataChunk.portals) {
+            this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
+        } else {
+            this.tb.id[this.index] = value;
+        }
+    }
+
+    //
+    get power() {
+        let resp = this.tb.power.get(this.vec);
+        if(resp === null) resp = POWER_NO;
+        return resp;
+    }
+    set power(value) {
+        if(value) return this.tb.power.set(this.vec, value);
+        this.tb.power.delete(this.vec);
+    }
+
+    //
+    get rotate() {
+        return this.tb.rotate.get(this.vec);
+    }
+    set rotate(value) {
+        if(value) return this.tb.rotate.set(this.vec, value);
+        this.tb.rotate.delete(this.vec);
+    }
+
+    // entity_id
+    get entity_id() {
+        return this.tb.entity_id.get(this.vec);
+    }
+    set entity_id(value) {
+        if(value) return this.tb.entity_id.set(this.vec, value);
+        this.tb.entity_id.delete(this.vec);
+    }
+
+    // texture
+    get texture() {
+        return this.tb.texture.get(this.vec);
+    }
+    set texture(value) {
+        if(value) return this.tb.texture.set(this.vec, value);
+        this.tb.texture.delete(this.vec);
+    }
+
+    // extra_data
+    get extra_data() {
+        return this.tb.extra_data.get(this.vec);
+    }
+    set extra_data(value) {
+        if(value) return this.tb.extra_data.set(this.vec, value);
+        this.tb.extra_data.delete(this.vec);
+    }
+
+    // falling
+    get falling() {
+        return this.tb.falling.get(this.vec);
+    }
+    set falling(value) {
+        if(value) return this.tb.falling.set(this.vec, value);
+        this.tb.falling.delete(this.vec);
+    }
+
+    // vertices
+    get vertices() {
+        return this.tb.vertices.get(this.vec);
+    }
+    set vertices(value) {
+        if(value !== null) return this.tb.vertices.set(this.vec, value);
+        this.tb.vertices.delete(this.vec);
+    }
+
+    // shapes
+    get shapes() {
+        return this.tb.shapes.get(this.vec);
+    }
+    set shapes(value) {
+        if(value) return this.tb.shapes.set(this.vec, value);
+        this.tb.shapes.delete(this.vec);
+    }
+
+    // properties
+    get properties() {
+        return BLOCK.BLOCK_BY_ID[this.id] || null;
+    }
+
+    // material
+    get material() {
+        return BLOCK.BLOCK_BY_ID[this.id] || null;
+    }
+
+    //
+    getCardinalDirection() {
+        return BLOCK.getCardinalDirection(this.rotate);
+    }
+
+    // Дальнейшие свойства нужны только для prismarine-physics (физика перса)
+    //
+    get type() {
+        return this.id;
+    }
+    getProperties() {
+        return this.material;
+    }
+    // position
+    get position() {
+        // return new Vector(this.vec.x + this.tb.coord.x, this.vec.y + this.tb.coord.y, this.vec.z + this.tb.coord.z);
+        return this.tb.position.get(this.vec);
+    }
+    set position(value) {
+        if(value) return this.tb.position.set(this.vec, value);
+        this.tb.position.delete(this.vec);
+    }
+    get metadata() {
+        return this.tb.metadata.get(this.vec);
+    }
+
+    getSound() {
+        let sound = null;
+        if(this.id) {
+            let mat = this.material;
+            sound = mat.hasOwnProperty('sound') ? mat.sound : null;
+        }
+        return sound;
+    }
+
+    isPlant() {
+        return this.material.planting;
+    }
+
+    canReplace() {
+        return BLOCK.canReplace(this.id, this.extra_data);
+    }
+
+    hasTag(tag) {
+        let mat = this.material;
+        return mat.tags && mat.tags.indexOf(tag) >= 0;
+    }
+
+    convertToDBItem() {
+        return BLOCK.convertItemToDBItem(this);
+    }
+
+    /**
+     * Возвращает всех 6-х соседей блока
+     * @param {Vector} pos
+     * @param {Array} cache
+     * @returns
+     */
+    getNeighbours(world, cache) {
+        if (this.tb.getNeighbours) {
+            return this.tb.getNeighbours(this, world, cache);
+        }
+
+        const neighbours = new BlockNeighbours();
+        const nc = this.tb.getNeightboursChunks(world);
+        const pos = this.vec;
+        let chunk;
+        let is_water_count = 0;
+        // обходим соседние блоки
+        for (let i = 0; i < CC.length; i++) {
+            const p = CC[i];
+            const cb = cache[i]; // (cache && cache[i]) || new TBlock(null, new Vector());
+            const v = cb.vec;
+            const ax = pos.x + p.x;
+            const ay = pos.y + p.y;
+            const az = pos.z + p.z;
+            if(ax >= 0 && ay >= 0 && az >= 0 && ax < CHUNK_SIZE_X && ay < CHUNK_SIZE_Y && az < CHUNK_SIZE_Z) {
+                v.x = ax;
+                v.y = ay;
+                v.z = az;
+                chunk = nc.that.chunk;
+            } else {
+                v.x = (pos.x + p.x + CHUNK_SIZE_X) % CHUNK_SIZE_X;
+                v.y = (pos.y + p.y + CHUNK_SIZE_Y) % CHUNK_SIZE_Y;
+                v.z = (pos.z + p.z + CHUNK_SIZE_Z) % CHUNK_SIZE_Z;
+                if(ax < 0) {
+                    chunk = nc.nx.chunk;
+                } else if(ay < 0) {
+                    chunk = nc.ny.chunk;
+                } else if(az < 0) {
+                    chunk = nc.nz.chunk;
+                } else if(ax >= CHUNK_SIZE_X) {
+                    chunk = nc.px.chunk;
+                } else if(ay >= CHUNK_SIZE_Y) {
+                    chunk = nc.py.chunk;
+                } else if(az >= CHUNK_SIZE_Z) {
+                    chunk = nc.pz.chunk;
+                }
+            }
+            const b = neighbours[p.name] = chunk.tblocks.get(v, cb);
+            const properties = b?.properties;
+            if(!properties || properties.transparent || properties.fluid) {
+                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
+                neighbours.pcnt--;
+            }
+            if(properties.is_water) {
+                is_water_count++;
+            }
+        }
+        if(is_water_count == 6) {
+            neighbours.water_in_water = this.material.is_water;
+        }
+        return neighbours;
+    }
+
 }

@@ -3,6 +3,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Color, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
 import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
+import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
 import { OreGenerator } from './ore_generator.js';
 
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -78,7 +79,7 @@ export class TerrainMapManager {
     generateAround(chunk, chunk_addr, smooth, vegetation) {
         const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noisefn;
-        let maps                    = [];
+        const maps                  = [];
         let center_map              = null;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
@@ -242,7 +243,7 @@ export class TerrainMapManager {
         this.maps_cache.set(chunk.addr, map);
         map.caves = new CaveGenerator(chunk.coord, noisefn);
         map.ores = new OreGenerator(this.seed, chunk.addr, noisefn, this.noisefn3d, map);
-        
+
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
     }
@@ -268,23 +269,17 @@ export class TerrainMapManager {
 }
 
 // Map
-export class TerrainMap {
+export class TerrainMap extends Default_Terrain_Map {
 
     static _cells;
 
     // Constructor
     constructor(chunk, options) {
-        this.options        = options;
-        this.trees          = [];
-        this.plants         = new VectorCollector();
-        this.smoothed       = false;
-        this.vegetable_generated = false;
-        this.cells          = Array(chunk.size.x * chunk.size.z); // .fill(null);
-        this.chunk          = {
-            size: chunk.size,
-            addr: chunk.addr.clone(),
-            coord: chunk.coord.clone()
-        };
+        super(chunk.addr.clone(), chunk.size, chunk.coord.clone(), options, Array(chunk.size.x * chunk.size.z))
+        this.trees                  = [];
+        this.plants                 = new VectorCollector();
+        this.smoothed               = false;
+        this.vegetable_generated    = false;
         // TerrainMapManager.maps_in_memory++;
         // TerrainMapManager.registry.register(this, chunk.addr.toHash());
     }
@@ -429,17 +424,11 @@ export class TerrainMap {
             plant_pos.x = x;
             plant_pos.y = y;
             plant_pos.z = z;
-            for (let i = 0; i < biome.plants.list.length; i++) {
+            for(let i = 0; i < biome.plants.list.length; i++) {
                 const p = biome.plants.list[i];
                 s += p.percent;
                 if(r < s) {
-                    if(p.block) {
-                        this.plants.set(plant_pos, p.block);
-                    } else if(p.trunk) {
-                        this.plants.set(plant_pos, p.trunk);
-                        plant_pos.y++;
-                        this.plants.set(plant_pos, p.leaves);
-                    }
+                    this.plants.set(plant_pos, p.blocks);
                     break;
                 }
             }
@@ -530,14 +519,14 @@ export class TerrainMap {
 }
 
 // Map cell
-export class TerrainMapCell {
+export class TerrainMapCell extends Default_Terrain_Map_Cell {
 
     constructor(value, humidity, equator, biome, dirt_block_id) {
+        super(biome);
         this.value          = value;
         this.value2         = value;
         this.humidity       = Math.round(humidity * 100000) / 100000;
         this.equator        = Math.round(equator * 100000) / 100000;
-        this.biome          = biome;
         this.dirt_block_id  = dirt_block_id;
     }
 

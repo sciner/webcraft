@@ -108,13 +108,13 @@ export default class style {
         } else if(params.pos_n.x < 0) {
             sides.west.uv[0] = texture_c.x + texture_c.w / 2;
             sides.west.uv[1] = texture_c.y + texture_c.h / 2;
-            sides.west.uv[2] = -texture_c.w;
-            sides.west.uv[3] = -texture_c.h;
+            sides.west.uv[2] = texture_c.w;
+            sides.west.uv[3] = texture_c.h;
         } else if(params.pos_n.z > 0) {
             sides.north.uv[0] = texture_c.x + texture_c.w / 2;
             sides.north.uv[1] = texture_c.y + texture_c.h / 2;
-            sides.north.uv[2] = -texture_c.w;
-            sides.north.uv[3] = -texture_c.h;
+            sides.north.uv[2] = texture_c.w;
+            sides.north.uv[3] = texture_c.h;
         } else if(params.pos_n.z < 0) {
             sides.south.uv[0] = texture_c.x + texture_c.w / 2;
             sides.south.uv[1] = texture_c.y + texture_c.h / 2;

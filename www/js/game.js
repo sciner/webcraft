@@ -10,6 +10,7 @@ import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
 import { LocalServerClient } from "./local/client.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -177,7 +178,7 @@ export class GameClass {
             // Hook for keyboard input
             onKeyEvent: (e) => {
                 // Chat
-                if(player.chat.active) {
+                if(player.chat.active && (e.keyCode < 112 || e.keyCode > 123)) {
                     player.chat.onKeyEvent(e);
                     return false;
                 }
@@ -506,7 +507,7 @@ export class GameClass {
             }
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: this.current_player_state
+                data: compressPlayerStateC(this.current_player_state)
             });
         }
     }
@@ -567,7 +568,7 @@ export class GameClass {
         }
 
         const pointerlockerror = function(event) {
-            console.error('Error setting pointer lock!', event);
+            console.warn('Error setting pointer lock!', event);
         }
 
         // Hook pointer lock state change events
@@ -636,7 +637,7 @@ export class GameClass {
             {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
         ];
         var cnt = 0;
-        for(let chunk of this.world.chunkManager.chunks.values()) {
+        for(let chunk of this.world.chunkManager.chunks) {
             if(chunk.timers) {
                 cnt++;
                 for(var tim of timers) {

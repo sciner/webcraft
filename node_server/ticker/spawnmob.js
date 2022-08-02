@@ -1,6 +1,7 @@
 import {Vector} from "../../www/js/helpers.js";
 import {BLOCK} from "../../www/js/blocks.js";
 import {ServerClient} from "../../www/js/server_client.js";
+import { WorldAction } from "../../www/js/world_action.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;
 const SPAWN_RAD_HOR             = 4;
@@ -12,7 +13,7 @@ export default class Ticker {
     static type = 'spawnmob'
 
     //
-    static async func(world, chunk, v) {
+    static func(world, chunk, v) {
 
         const tblock = v.tblock;
         const ticking = v.ticking;
@@ -34,10 +35,9 @@ export default class Ticker {
                     rotate         : new Vector(0, 0, 0).toAngles()
                 };
                 // Spawn mob
-                await world.mobs.create(params); 
+                Ticker.spawnMob(world, params);
                 const updated_blocks = [];
                 updated_blocks.push({pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                console.log('One spawn mob', pos.toHash());
                 // Delete completed block from tickings
                 this.delete(v.pos);
                 return updated_blocks;
@@ -84,7 +84,7 @@ export default class Ticker {
                     }
                     // Проверяем есть ли блок на пути и что под ногами для нейтральных мобов
                     const body = world.getBlock(spawn_pos);
-                    const legs = world.getBlock(spawn_pos.sub(Vector.YP));
+                    // const legs = world.getBlock(spawn_pos.sub(Vector.YP));
                     if (body.id != 0) {
                         spawn_disabled = true;
                     }
@@ -96,8 +96,7 @@ export default class Ticker {
                             pos_spawn:  spawn_pos.clone(),
                             rotate:     new Vector(0, 0, 0).toAngles()
                         };
-                        console.log('Spawn mob', pos.toHash());
-                        await world.mobs.create(params);
+                        Ticker.spawnMob(world, params);
                         spawned_count++;
                     }
                 }
@@ -110,6 +109,14 @@ export default class Ticker {
                 return updated_blocks;
             }
         }
+    }
+
+    //
+    static spawnMob(world, params) {
+        console.log('Spawn mob', params.pos.toHash());
+        const actions = new WorldAction(null, world, false, false);
+        actions.spawnMob(params);
+        world.actions_queue.add(null, actions);
     }
 
 }

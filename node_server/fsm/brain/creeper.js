@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
-import { PickatActions } from "../../../www/js/block_action.js";
-import {ServerClient} from "../../../www/js/server_client.js";
+import { WorldAction } from "../../../www/js/world_action.js";
+import { ServerClient } from "../../../www/js/server_client.js";
 
 const FOLLOW_DISTANCE       = 10;
 const DISTANCE_LOST_TRAGET  = 16;
@@ -128,7 +128,7 @@ export class Brain extends FSMBrain {
         const mobPos = mob.pos.clone();
         const mobPosCenter = mobPos.addScalarSelf(mob.width / 2, mob.height / 2, mob.width / 2);
         // Actions
-        const actions = new PickatActions(null, world, true, false);
+        const actions = new WorldAction(null, world, true, false);
         // Extrude blocks
         actions.makeExplosion(mobPosCenter, rad, true, 1/3, 6);
         // Kill mob
@@ -164,7 +164,7 @@ export class Brain extends FSMBrain {
         if (actor != null) {
             const rnd_count_flesh = (Math.random() * 2) | 0;
             if (rnd_count_flesh > 0) {
-                const actions = new PickatActions();
+                const actions = new WorldAction();
 
                 const drop_block = world.block_manager.fromName('GUNPOWDER');
                 actions.addDropItem({ pos: mob.pos, items: [{ id: drop_block.id, count: rnd_count_flesh }] });
