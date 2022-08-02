@@ -187,6 +187,24 @@ export class Compiler {
                             spritesheet.drawImage(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'source-over');
                             spritesheet.drawImage(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'difference');
                             spritesheet.drawImage(tex.img, tex.pos.x + 1, tex.pos.y, false, 'source-over');
+                            // grass head shadow
+                            const canvas = new skiaCanvas.Canvas(tex.img.width, tex.img.height);
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(tex.img, 0, 0, tex.img.width, tex.img.height);
+                            spritesheet.ctx.globalCompositeOperation = 'source-over';
+                            spritesheet.ctx.fillStyle = '#00000065';
+                            for(let i = 0; i < tex.img.width; i++) {
+                                for(let j = 0; j < tex.img.height; j++) {
+                                    const pix = ctx.getImageData(i, j, 1, 1).data;
+                                    if(pix[3] == 0) {
+                                        const x = tex.pos.x * spritesheet.tx_sz + i;
+                                        const y = tex.pos.y * spritesheet.tx_sz + j;
+                                        spritesheet.ctx.fillRect(x, y, 1, 1);
+                                        spritesheet.ctx.fillRect(x, y + 1, 1, 1);
+                                        break;
+                                    }
+                                }
+                            }
                         } else if(block.name == BLOCK_NAMES.MOB_SPAWN) {
                             const img_glow = await spritesheet.loadTextureImage('block/spawner_glow.png');
                             spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y, has_mask);
