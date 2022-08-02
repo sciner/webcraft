@@ -175,7 +175,7 @@ export class GameClass {
             // Hook for keyboard input
             onKeyEvent: (e) => {
                 // Chat
-                if(player.chat.active && (e.keyCode < 112 && e.keyCode > 123)) {
+                if(player.chat.active && (e.keyCode < 112 || e.keyCode > 123)) {
                     player.chat.onKeyEvent(e);
                     return false;
                 }
