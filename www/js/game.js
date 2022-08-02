@@ -32,6 +32,8 @@ export class GameClass {
             sneak:              false,
             ping:               0
         };
+        // Local server client
+        this.local_server = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
     }
 
     // Start

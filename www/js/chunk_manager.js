@@ -59,7 +59,7 @@ export class ChunkManager {
         this.timer60fps             = 0;
         this.dataWorld              = new DataWorld();
 
-        if (navigator.userAgent.indexOf('Firefox') > -1) {
+        if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
             this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
         } else {
