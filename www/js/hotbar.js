@@ -109,7 +109,7 @@ export class Hotbar {
 
     //
     damage(damage_value, reason_text) {
-        Game.sounds.play('madcraft:block.player', 'hit');
+        Qubatch.sounds.play('madcraft:block.player', 'hit');
         this.last_damage_time = performance.now();
         console.error('error_not_implemented', damage_value, reason_text);
         this.inventory.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
@@ -208,8 +208,8 @@ export class Hotbar {
             // live
             // backgrounds
             const damage_time = 1000;
-            if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < damage_time) {
-                let diff = performance.now() - Game.hotbar.last_damage_time;
+            if(Qubatch.hotbar.last_damage_time && performance.now() - Qubatch.hotbar.last_damage_time < damage_time) {
+                let diff = performance.now() - Qubatch.hotbar.last_damage_time;
                 if(diff % 200 < 100) {
                     hud.ctx.filter = 'opacity(.5)';
                 }

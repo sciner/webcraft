@@ -30,7 +30,7 @@ export class Particles_Effects extends Particles_Base {
         this.life           = 1;
 
         const m             = material_key.split('/');
-        this.resource_pack  = Game.world.block_manager.resource_pack_manager.get(m[0]);
+        this.resource_pack  = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material       = this.resource_pack.getMaterial(material_key);
         this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
 

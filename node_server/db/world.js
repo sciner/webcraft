@@ -51,7 +51,7 @@ export class DBWorld {
             }
         }
         // Insert new world to Db
-        const world = await Game.db.getWorld(world_guid);
+        const world = await Qubatch.db.getWorld(world_guid);
         await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,

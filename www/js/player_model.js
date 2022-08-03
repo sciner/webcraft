@@ -186,7 +186,7 @@ export class PlayerModel extends MobModel {
     }
 
     itsMe() {
-        return this.id == Game.App.session.user_id;
+        return this.id == Qubatch.App.session.user_id;
     }
 
     postLoad(render, tree) {

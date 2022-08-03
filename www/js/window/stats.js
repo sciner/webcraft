@@ -47,7 +47,7 @@ export class StatsWindow extends Window {
         // Обработчик открытия формы
         this.onShow = function() {
             this.getRoot().center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
             player.world.server.Send({name: ServerClient.CMD_STATS});
         }
 
@@ -79,7 +79,7 @@ export class StatsWindow extends Window {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }

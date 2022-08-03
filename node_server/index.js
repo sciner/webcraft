@@ -52,7 +52,7 @@ global.Worker           = Worker;
 global.fs               = fs;
 global.config           = config;
 global.plugins          = new PluginManager();
-global.Game             = new ServerGame();
+global.Qubatch          = new ServerGame();
 global.randomUUID       = () => {
     return uuid();
 };
@@ -77,7 +77,7 @@ app.use(async function(req, _res, next) {
     // Log referrer
     const ref = req.get('Referrer');
     if(ref && ref.indexOf(`//${req.get('host')}`) < 0) {
-        await Game.db.ReferrerAppend(ref, req.headers);
+        await Qubatch.db.ReferrerAppend(ref, req.headers);
     }
     // Rewrite
     if(req.url.indexOf('/www') === 0) req.url = req.url.substring(4);
@@ -128,15 +128,15 @@ app.use('/api', async(req, res) => {
     }
 });
 
-Game.start();
+Qubatch.start();
 
 // Start express
 const server = app.listen(config.Port);
 
 // Pair with websocket server
 server.on('upgrade', (request, socket, head) => {
-    Game.wsServer.handleUpgrade(request, socket, head, socket => {
-        Game.wsServer.emit('connection', socket, request);
+    Qubatch.wsServer.handleUpgrade(request, socket, head, socket => {
+        Qubatch.wsServer.emit('connection', socket, request);
     });
 });
 

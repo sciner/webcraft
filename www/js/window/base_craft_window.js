@@ -31,7 +31,7 @@ export class CraftTableSlot extends Label {
 
     setItem(item) {
         if(this.slot_index !== null) {
-            Game.player.inventory.setItem(this.slot_index, item);
+            Qubatch.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
         }
@@ -39,7 +39,7 @@ export class CraftTableSlot extends Label {
 
     getItem() {
         if(this.slot_index !== null) {
-            return Game.player.inventory.items[this.slot_index];
+            return Qubatch.player.inventory.items[this.slot_index];
         } else {
             return this.item;
         }
@@ -253,7 +253,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         // Drag
         this.onMouseDown = function(e) {
             let that        = this;
-            let player      = Game.player;
+            let player      = Qubatch.player;
             //
             let targetItem  = this.getInventoryItem();
             // Set new drag
@@ -324,7 +324,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if(!readonly) {
             // Drop
             this.onDrop = function(e) {
-                let player      = Game.player;
+                let player      = Qubatch.player;
                 let that        = this;
                 let drag        = e.drag;
                 // @todo check instanceof!
@@ -644,7 +644,7 @@ export class BaseCraftWindow extends Window {
                 }
                 let count = 1;
                 item.count += count;
-                Game.player.inventory.decrementByItemID(item_id, count, true);
+                Qubatch.player.inventory.decrementByItemID(item_id, count, true);
             } else {
                 item = null;
             }

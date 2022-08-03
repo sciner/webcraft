@@ -202,7 +202,7 @@ export class Renderer {
         this.updateViewport();
 
         // HUD
-        this.HUD = Game.hud;
+        this.HUD = Qubatch.hud;
 
         this.generatePrev();
         this.generateDropItemVertices();
@@ -536,7 +536,7 @@ export class Renderer {
         // Add jukebox animations
         for(let [pos, disc] of TrackerPlayer.vc.entries()) {
             if(Math.random() < .1) {
-                Game.render.meshes.addEffectParticle('music_note', pos);
+                Qubatch.render.meshes.addEffectParticle('music_note', pos);
             }
         }
 
@@ -666,7 +666,7 @@ export class Renderer {
             }
         }
 
-        if(!player.game_mode.isSpectator() && Game.hud.active) {
+        if(!player.game_mode.isSpectator() && Qubatch.hud.active) {
             this.drawInhandItem(delta);
         }
 
@@ -700,7 +700,7 @@ export class Renderer {
     // destroyBlock
     destroyBlock(block, pos, small) {
         const block_manager = this.world.block_manager;
-        // Game.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
+        // Qubatch.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
         this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
     }
 
@@ -708,7 +708,7 @@ export class Renderer {
     addExplosionParticles(data) {
         let pos = data.pos;
         for(let i = 0; i < 100; i++) {
-            Game.render.meshes.addEffectParticle('explosion',  pos);
+            Qubatch.render.meshes.addEffectParticle('explosion',  pos);
         }
     }
 
@@ -792,7 +792,7 @@ export class Renderer {
         if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera_mode) < 0) {
             return false;
         }
-        const world = Game.world;
+        const world = Qubatch.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
         // Material (shadow)
         if(!this.material_shadow) {
@@ -812,10 +812,10 @@ export class Renderer {
             }));
         }
         //
-        const a_pos = new Vector(0.5, 0.5, 0.5).addSelf(Game.player.blockPos);
+        const a_pos = new Vector(0.5, 0.5, 0.5).addSelf(Qubatch.player.blockPos);
         // Build vertices for each player
-        const player_pos = Game.player.lerpPos;
-        const blockPosDiff = player_pos.sub(Game.player.blockPos);
+        const player_pos = Qubatch.player.lerpPos;
+        const blockPosDiff = player_pos.sub(Qubatch.player.blockPos);
         const vertices = [];
         const vec = new Vector();
         const appendPos = (pos) => {
@@ -858,7 +858,7 @@ export class Renderer {
             }
             const player_vertices = [];
             this.createShadowVertices(player_vertices, shapes, pos, TARGET_TEXTURES);
-            //if(player.username != Game.player.session.username) {
+            //if(player.username != Qubatch.player.session.username) {
                 const dist = player_pos.sub(pos.flooredSelf()).subSelf(blockPosDiff)
                 for(let i = 0; i < player_vertices.length; i += GeometryTerrain.strideFloats) {
                     player_vertices[i + 0] -= dist.x;
@@ -869,13 +869,13 @@ export class Renderer {
             vertices.push(...player_vertices);
         };
         // draw players shadow
-        for(let player of Game.world.players.list.values()) {
+        for(let player of Qubatch.world.players.list.values()) {
             const pos = player.pos.clone();
             appendPos(pos);
         }
         /*
         // draw drop items shadow
-        for(let drop_item of Game.world.drop_items.list.values()) {
+        for(let drop_item of Qubatch.world.drop_items.list.values()) {
             const pos = drop_item.pos.clone();
             appendPos(pos);
         }
@@ -967,8 +967,8 @@ export class Renderer {
         const tmp = mat4.create();
 
         // Shake camera on damage
-        if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
-            const percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
+        if(Qubatch.hotbar.last_damage_time && performance.now() - Qubatch.hotbar.last_damage_time < DAMAGE_TIME) {
+            const percent = (performance.now() - Qubatch.hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
@@ -1117,7 +1117,7 @@ export class Renderer {
     }
 
     downloadTextImage() {
-        Helpers.downloadImage(Game.world.block_manager.resource_pack_manager.list.get('base').materials.get('base/regular/alphabet').texture.source, 'alphabet.png');
+        Helpers.downloadImage(Qubatch.world.block_manager.resource_pack_manager.list.get('base').materials.get('base/regular/alphabet').texture.source, 'alphabet.png');
     }
 
     downloadInventoryImage() {

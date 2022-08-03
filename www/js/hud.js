@@ -51,10 +51,10 @@ export class HUD {
                 let cl = 0;
                 let nc = 45;
                 let player_chunk_loaded = false;
-                const player_chunk_addr = Game.player?.chunkAddr;
-                // const chunk_render_dist = Game.player?.player?.state?.chunk_render_dist || 0;
-                if(Game.world && Game.world.chunkManager) {
-                    for(let chunk of Game.world.chunkManager.chunks) {
+                const player_chunk_addr = Qubatch.player?.chunkAddr;
+                // const chunk_render_dist = Qubatch.player?.player?.state?.chunk_render_dist || 0;
+                if(Qubatch.world && Qubatch.world.chunkManager) {
+                    for(let chunk of Qubatch.world.chunkManager.chunks) {
                         if(chunk.inited) {
                             cl++;
                             if(player_chunk_addr) {
@@ -204,8 +204,8 @@ export class HUD {
         this.checkSize();
 
         // Check if need redraw
-        const hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
+        const hasDrawContent = Qubatch.world && Qubatch.player && Qubatch.player.chat.hasDrawContent();
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Qubatch.hud.wm.hasVisibleWindow() && !hasDrawContent) {
             return false;
         }
         this.need_refresh = false;
@@ -238,7 +238,7 @@ export class HUD {
         // Draw windows
         this.ctx.restore();
         if(this.wm.hasVisibleWindow()) {
-            this.wm.style.background.color = Game.player.isAlive ? '#00000077' : '#ff330027';
+            this.wm.style.background.color = Qubatch.player.isAlive ? '#00000077' : '#ff330027';
             this.wm.draw(true);
         } else {
             this.wm.style.background.color = '#00000000';
@@ -253,11 +253,11 @@ export class HUD {
         const actual_width = this.ctx.canvas.width;
         const actual_height = this.ctx.canvas.height;
 
-        if(Game.hud.width != actual_width || Game.hud.height != actual_height) {
+        if(Qubatch.hud.width != actual_width || Qubatch.hud.height != actual_height) {
             this.width  = actual_width;
             this.height = actual_height;
             this.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
-            Game.hud.wm.resize(this.width, this.height);
+            Qubatch.hud.wm.resize(this.width, this.height);
             this.refresh();
         }
     }
@@ -271,13 +271,13 @@ export class HUD {
     prepareText() {
         this.text = '';
         // If render inited
-        if(!Game.render || !Game.world || !Game.player) {
+        if(!Qubatch.render || !Qubatch.world || !Qubatch.player) {
             return;
         }
-        const world = Game.world;
-        const player = Game.player;
-        this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
-        const vci = Game.render.getVideoCardInfo();
+        const world = Qubatch.world;
+        const player = Qubatch.player;
+        this.text = 'Render: ' + Qubatch.render.renderBackend.kind + '\n';
+        const vci = Qubatch.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += 'Renderer: ' + vci.renderer + '\n';
         }
@@ -308,12 +308,12 @@ export class HUD {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
         }
         // If render inited
-        if(Game.render) {
+        if(Qubatch.render) {
             // Chunks inited
             this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
-            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+            this.text += '\nQuads: ' + Math.round(Qubatch.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 + ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
                 + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
@@ -323,13 +323,13 @@ export class HUD {
         // Draw tech info
         const drawTechInfo = true;
         if(drawTechInfo) {
-            this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total; // + '(' + Game.world.server.stat.in_packets.physical + ')';
-            if(Game.render) {
+            this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
+            if(Qubatch.render) {
                 this.text += '\nParticles: ' + Particles_Effects.current_count;
-                this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
+                this.text += '\nDrawcalls: ' + Qubatch.render.renderBackend.stat.drawcalls;
 
-                if (Game.render.renderBackend.stat.multidrawcalls) {
-                    this.text += ' + ' + Game.render.renderBackend.stat.multidrawcalls + '(multi)';
+                if (Qubatch.render.renderBackend.stat.multidrawcalls) {
+                    this.text += ' + ' + Qubatch.render.renderBackend.stat.multidrawcalls + '(multi)';
                 }
             }
         }
@@ -379,7 +379,7 @@ export class HUD {
         if(!this.draw_info || !this.text) {
             return;
         }
-        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
+        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Qubatch.averageClockTimer.avg);
         this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
         //
         this.drawActiveQuest();
@@ -389,7 +389,7 @@ export class HUD {
 
     // Draw average FPS bar
     drawAverageFPS() {
-        const hist = Game.averageClockTimer.history;
+        const hist = Qubatch.averageClockTimer.history;
         const x = 20;
         const y = this.height - 20;
         const ctx = this.ctx;
@@ -406,7 +406,7 @@ export class HUD {
 
     // Draw active quest
     drawActiveQuest() {
-        const active_quest = Game.hud.wm.getWindow('frmQuests').active;
+        const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
         if(active_quest) {
             if(!active_quest.mt) {
                 const quest_text = [active_quest.title];

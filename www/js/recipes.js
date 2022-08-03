@@ -25,10 +25,10 @@ export class RecipeManager {
         };
         if(force_load) {
             this.load(() => {
-                if(!Game.is_server) {
+                if(!Qubatch.is_server) {
                     // Recipe window
                     this.frmRecipe = new RecipeWindow(this);
-                    Game.hud.wm.add(this.frmRecipe);
+                    Qubatch.hud.wm.add(this.frmRecipe);
                 }
             });
         }

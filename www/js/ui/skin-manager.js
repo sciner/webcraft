@@ -37,7 +37,7 @@ export class SkinManager {
 
     save() {
         localStorage.setItem('skin', this.list[this.index].id);
-        this.#controller.Game.skin = this.list[this.index];
+        this.#controller.Qubatch.skin = this.list[this.index];
         this.close();
     }
 
@@ -63,8 +63,8 @@ export class SkinManager {
                 }
             }
         }
-        this.#controller.Game.skins = this;
-        this.#controller.Game.skin = list[this.index];
+        this.#controller.Qubatch.skins = this;
+        this.#controller.Qubatch.skin = list[this.index];
     }
 
 }

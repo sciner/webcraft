@@ -93,7 +93,7 @@ export default class Particles_Clouds {
 
     // Draw
     draw(render, delta) {
-        const cam_pos = Game.render.camPos.clone();
+        const cam_pos = Qubatch.render.camPos.clone();
 
         cam_pos.y = cam_pos.y > 512 ? 1024.1 : 128.1; // this.pos.y
 

@@ -21,7 +21,7 @@ export class Chat extends TextBox {
                     that.send_ping = performance.now();
                 }
                 that.player.world.server.SendMessage(text);
-                Game.setupMousePointer(true);
+                Qubatch.setupMousePointer(true);
             },
             addSystem: function(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
@@ -96,7 +96,7 @@ export class Chat extends TextBox {
             }
         };
         //
-        Game.hud.add(this, 1);
+        Qubatch.hud.add(this, 1);
         // Add listeners for server commands
         this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
             if(cmd.data.is_system) {
@@ -139,14 +139,14 @@ export class Chat extends TextBox {
         this.resetCarriage();
         this.active = true;
         this.open_time = performance.now();
-        Game.hud.refresh();
+        Qubatch.hud.refresh();
         // no need
         // document.exitPointerLock();
     }
     
     close() {
         this.active = false;
-        Game.hud.refresh();
+        Qubatch.hud.refresh();
     }
 
     sendMessage(text) {
@@ -165,7 +165,7 @@ export class Chat extends TextBox {
         if(text != '' && text != '/') {
             this.messages.send(text);
             //
-            const render    = Game.render;
+            const render    = Qubatch.render;
             const player    = this.player;
             const chat      = player.chat;
             // Parse commands
@@ -285,7 +285,7 @@ export class Chat extends TextBox {
             case KEY.ESC: {
                 if(down) {
                     this.close();
-                    // Game.setupMousePointer(true);
+                    // Qubatch.setupMousePointer(true);
                     return true;
                 }
                 break;

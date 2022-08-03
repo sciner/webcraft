@@ -90,7 +90,7 @@ export class ChunkManager {
                 }
             },
             update(player_pos) {
-                const meshes = Game.render.meshes;
+                const meshes = Qubatch.render.meshes;
                 const type_distance = {
                     torch_flame: 12,
                     campfire_flame: 96
@@ -124,8 +124,8 @@ export class ChunkManager {
                     //
                     that.postWorkerMessage(['destroyMap', {
                         players: [{
-                            chunk_render_dist: Game.player.state.chunk_render_dist,
-                            chunk_addr: getChunkAddr(Game.player.state.pos)
+                            chunk_render_dist: Qubatch.player.state.chunk_render_dist,
+                            chunk_addr: getChunkAddr(Qubatch.player.state.pos)
                         }]
                     }]);
                     //
@@ -287,13 +287,13 @@ export class ChunkManager {
             }
         }
 
-        const chunk_render_dist = Game.player.state.chunk_render_dist;
-        const player_chunk_addr = Game.player.chunkAddr;
+        const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
+        const player_chunk_addr = Qubatch.player.chunkAddr;
 
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            this.postLightWorkerMessage(['setPotentialCenter', { pos: Game.player.pos }]);
+            this.postLightWorkerMessage(['setPotentialCenter', { pos: Qubatch.player.pos }]);
 
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
@@ -513,7 +513,7 @@ export class ChunkManager {
 
         // Prepare render list
         this.rendered_chunks.fact = 0;
-        this.prepareRenderList(Game.render);
+        this.prepareRenderList(Qubatch.render);
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
         // Update animated blocks
@@ -620,7 +620,7 @@ export class ChunkManager {
         for(let addr of data.deleted) {
             this.nearby.deleted.add(addr, new Vector(addr));
         }
-        Game.player.state.chunk_render_dist = data.chunk_render_dist;
+        Qubatch.player.state.chunk_render_dist = data.chunk_render_dist;
     }
 
     //

@@ -30,7 +30,7 @@ export class DieWindow extends Window {
         // onShow
         this.onShow = function() {
             this.parent.center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
     }
 
@@ -78,8 +78,8 @@ export class DieWindow extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         btnReturn.onMouseDown = function (e) {
-            Game.hud.wm.closeAll();
-            Game.player.world.server.Send({ name: ServerClient.CMD_RESURRECTION });
+            Qubatch.hud.wm.closeAll();
+            Qubatch.player.world.server.Send({ name: ServerClient.CMD_RESURRECTION });
         }
         btnReturn.onMouseEnter = function () {
             this.style.background.color = '#8892c9';

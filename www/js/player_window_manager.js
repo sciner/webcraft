@@ -22,7 +22,7 @@ export class PlayerWindowManager {
     addWindow(w) {
         w.visible = false;
         this[w.id] = w;
-        Game.hud.wm.add(w);
+        Qubatch.hud.wm.add(w);
     }
 
 }

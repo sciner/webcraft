@@ -89,17 +89,17 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
-                Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
+                Qubatch.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
-                Game.render.addExplosionParticles(cmd.data);
+                Qubatch.render.addExplosionParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
             this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
-                Game.render.setWeather(cmd.data);
+                Qubatch.render.setWeather(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
@@ -216,7 +216,7 @@ export class World {
                 window_id = actions.open_window.id;
                 args = actions.open_window.args;
             }
-            const w = Game.hud.wm.getWindow(window_id);
+            const w = Qubatch.hud.wm.getWindow(window_id);
             if(w) {
                 w.show(args);
             } else {
@@ -228,11 +228,11 @@ export class World {
         }
         if(actions.load_chest) {
             player.clearEvents();
-            Game.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
+            Qubatch.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
         }
         if(actions.play_sound) {
             for(let item of actions.play_sound) {
-                Game.sounds.play(item.tag, item.action);
+                Qubatch.sounds.play(item.tag, item.action);
             }
         }
         if(actions.reset_target_pos) {
@@ -248,13 +248,13 @@ export class World {
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 //
-                const tblock = Game.world.getBlock(mod.pos);
+                const tblock = Qubatch.world.getBlock(mod.pos);
                 if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
                     const destroy_data = {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                    Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
                 }
                 //
                 switch(mod.action_id) {
@@ -274,7 +274,7 @@ export class World {
             player.state.sitting = actions.sitting;
             player.setPosition(actions.sitting.pos);
             player.setRotate(actions.sitting.rotate);
-            Game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
     }
 

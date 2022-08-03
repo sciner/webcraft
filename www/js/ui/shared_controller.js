@@ -102,10 +102,10 @@ export class Shared_Controller {
         ];
 
         // Game
-        this.Game = globalThis.Game = new GameClass();
+        this.Qubatch = globalThis.Qubatch = new GameClass();
 
         // App
-        this.App = Game.App = new UIApp();
+        this.App = Qubatch.App = new UIApp();
         this.App.onLogin = (e) => {};
         this.App.onLogout = (result) => {
             location.reload();
@@ -197,17 +197,17 @@ export class Shared_Controller {
             return;
         }
         // Show Loading...
-        Game.hud.draw();
+        Qubatch.hud.draw();
         const server_url = this.getServerURL();
-        const world = await this.Game.Start(server_url, world_guid, this.settings.form, (resource_loading_state) => {
-            Game.hud.draw(true);
+        const world = await this.Qubatch.Start(server_url, world_guid, this.settings.form, (resource_loading_state) => {
+            Qubatch.hud.draw(true);
         });
         if(!world.info) {
             debugger;
         }
         const player = new Player();
         player.JoinToWorld(world, () => {
-            Game.Started(player);
+            Qubatch.Started(player);
         });
     }
 

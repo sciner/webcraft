@@ -31,40 +31,40 @@ npm run start-rebuild
 ## Commands
 ```JS
 // Teleport current user to random location 
-Game.player.teleport('random', null);
+Qubatch.player.teleport('random', null);
 
 // Toggle rain
-Game.render.setWeather('rain'); // rain|snow|clear
+Qubatch.render.setWeather('rain'); // rain|snow|clear
 
 // Set block at current player coordinates
-let pp = Game.player.getBlockPos();
-Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10}, true);
+let pp = Qubatch.player.getBlockPos();
+Qubatch.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10}, true);
 
 // Emulate user keyboard control
 // .walk(direction, duration_milliseconds)
-Game.player.walk('forward', 2000); // forward|back|left|right
+Qubatch.player.walk('forward', 2000); // forward|back|left|right
 
 // Get player rotate
-let rotate = Game.player.rotate;
+let rotate = Qubatch.player.rotate;
 
 // Set player rotate
-Game.player.setRotate({x: 0, y: 0, z: 0});
+Qubatch.player.setRotate({x: 0, y: 0, z: 0});
 
 // Send message to chat
-Game.player.chat.sendMessage('Hello, World!');
+Qubatch.player.chat.sendMessage('Hello, World!');
 
 // Get all supported blocks
-let blocks = Game.world.block_manager.getAll();
+let blocks = Qubatch.world.block_manager.getAll();
 
 // Change game mode
-Game.world.server.GameModeSet('creative'); // survival|creative|adventure|spectator
+Qubatch.world.server.GameModeSet('creative'); // survival|creative|adventure|spectator
 
 // Open inventory window
-Game.player.inventory.open();
+Qubatch.player.inventory.open();
 
 // Spawn mob
-Game.player.chat.sendMessage('/spawnmob 3880 71 2527 horse creamy');
-Game.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
+Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 horse creamy');
+Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
 
 // Admins
 // 1. admin list managed only by chat commands

@@ -116,8 +116,8 @@ export class Raycaster {
             mob_distance: null,
             mob: null
         };
-        if(Game?.world?.mobs) {
-            for(let [_, mob] of Game.world.mobs.list) {
+        if(Qubatch?.world?.mobs) {
+            for(let [_, mob] of Qubatch.world.mobs.list) {
                 mob.raycasted = false;
                 if(!mob.aabb || !mob.isAlive()) {
                     continue;

@@ -112,7 +112,7 @@ export class InHandOverlay {
         this.camera.width = camera.width;
         this.camera.height = camera.height;
 
-        // const itsme = Game.player.getModel()
+        // const itsme = Qubatch.player.getModel()
         // this.mineTime = itsme.swingProgress;
 
         if (player.inMiningProcess || this.mineTime > dt * 2 / RENDER_DEFAULT_ARM_HIT_PERIOD) {

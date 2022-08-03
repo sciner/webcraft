@@ -42,13 +42,12 @@ function isSupported() {
     // safari 15 is ok
     const isSafari = navigator.userAgent.indexOf('Safari') > -1;
     const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
-/*
-    if (isFF) {
-        console.error('Browser not supported:', 'Firefox not support modules for workers');
-
-        return false;
-    }
-*/
+    /*
+        if (isFF) {
+            console.error('Browser not supported:', 'Firefox not support modules for workers');
+            return false;
+        }
+    */
     // chrome + safari
     return isSafari || isChrome || isFF;
 }
@@ -61,15 +60,15 @@ globalThis.randomUUID = () => {
     return crypto.randomUUID();
 };
 
-let app = angular.module('gameApp', []);
+const app = angular.module('gameApp', []);
 
 let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
 
     await Lang.init();
 
-    globalThis.Game                 = new GameClass();
-    $scope.App                      = Game.App = new UIApp();
+    globalThis.Qubatch              = new GameClass();
+    $scope.App                      = Qubatch.App = new UIApp();
     $scope.Lang                     = Lang;
 
     $scope.changeLang = (item) => {
@@ -97,7 +96,7 @@ let gameCtrl = async function($scope, $timeout) {
         visible: false,
         url: '',
         toggle: function() {
-            this.url = location.protocol + '//' + location.host + '#world_' + Game.world.info.guid;
+            this.url = location.protocol + '//' + location.host + '#world_' + Qubatch.world.info.guid;
             this.visible = !this.visible;
         },
         copy: function() {
@@ -111,8 +110,8 @@ let gameCtrl = async function($scope, $timeout) {
         value: new Vector(1.1493, 1.0293, 0.6293),
         apply: function() {
             // 0.84 1 -1
-            if(typeof Game != 'undefined') {
-                Game.render.sunDir = [this.value.x, this.value.y, this.value.z];
+            if(typeof Qubatch != 'undefined') {
+                Qubatch.render.sunDir = [this.value.x, this.value.y, this.value.z];
             }
         },
         getValue: function() {
@@ -308,7 +307,7 @@ let gameCtrl = async function($scope, $timeout) {
             }
         }
         if(!world) {
-            return Game.App.showError('error_world_not_found', 4000);
+            return Qubatch.App.showError('error_world_not_found', 4000);
         }
         world.hidden = true;
         $scope.App.DeleteWorld({world_guid}, () => {
@@ -336,22 +335,22 @@ let gameCtrl = async function($scope, $timeout) {
         // stop background animation effect
         $scope.bg?.stop();
         // Show Loading...
-        Game.hud.draw();
+        Qubatch.hud.draw();
         $timeout(async function() {
             $scope.settings.save();
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            const world = await $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
-                Game.hud.draw(true);
+            const world = await $scope.Qubatch.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
+                Qubatch.hud.draw(true);
             });
             if(!world.info) {
                 debugger;
             }
             const player = new Player();
             player.JoinToWorld(world, () => {
-                Game.Started(player);
+                Qubatch.Started(player);
             });
         });
     };
@@ -547,7 +546,7 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    $scope.Game         = window.Game;
+    $scope.Qubatch      = globalThis.Qubatch;
     $scope.skin         = new SkinManager($scope);
     $scope.texture_pack = new TexturePackManager($scope);
     

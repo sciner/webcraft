@@ -25,7 +25,7 @@ export class NotImplementedWindow extends Window {
         // Обработчик открытия формы
         this.onShow = (args) => {
             this.args = args;
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
 
         // Ширина / высота слота

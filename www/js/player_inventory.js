@@ -27,10 +27,10 @@ export class PlayerInventory extends Inventory {
                 player.pickAt.resetProgress();
             }
             player.world.server.InventorySelect(this.current);
-            Game.hud.refresh();
+            Qubatch.hud.refresh();
         };
         // Add this for draw on screen
-        Game.hotbar.setInventory(this);
+        Qubatch.hotbar.setInventory(this);
         //
         this.hud.add(this, 0);
     }
@@ -42,15 +42,15 @@ export class PlayerInventory extends Inventory {
     }
 
     get inventory_window() {
-        return Game.hud.wm.getWindow('frmInventory');
+        return Qubatch.hud.wm.getWindow('frmInventory');
     }
 
     // Open window
     open() {
         if(this.player.game_mode.isCreative()) {
-            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+            Qubatch.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
         } else {
-            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
+            Qubatch.hud.wm.getWindow('frmInventory').toggleVisibility();
         }
     }
 
@@ -60,7 +60,7 @@ export class PlayerInventory extends Inventory {
         if(this.hud) {
             this.hud.refresh();
             try {
-                let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+                let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
                 frmRecipe.paginator.update();
             } catch(e) {
                 // do nothing
@@ -172,7 +172,7 @@ export class PlayerInventory extends Inventory {
     setDragItem(slot, item, drag, width, height) {
         this.items[INVENTORY_DRAG_SLOT_INDEX] = item;
         if(!drag) {
-            drag = Game.hud.wm.drag;
+            drag = Qubatch.hud.wm.drag;
         }
         if(item) {
             drag.setItem({
@@ -187,7 +187,7 @@ export class PlayerInventory extends Inventory {
     }
 
     clearDragItem(move_to_inventory) {
-        const drag = Game.hud.wm.drag;
+        const drag = Qubatch.hud.wm.drag;
         if(move_to_inventory) {
             let dragItem = drag.getItem();
             if(dragItem) {

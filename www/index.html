@@ -45,7 +45,7 @@
 
     </script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Game && login.logged}" onload="windowResized()">
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Qubatch && login.logged}" onload="windowResized()">
 
     <div id="bg-circles_area">
         <ul class="circles">
@@ -54,7 +54,7 @@
     </div>
 
     <div id="qubatch-canvas-container">
-        <canvas id="qubatchRenderSurface" ng-click="Game.setupMousePointer(true)" width="800" height="600"></canvas>
+        <canvas id="qubatchRenderSurface" ng-click="Qubatch.setupMousePointer(true)" width="800" height="600"></canvas>
         <canvas id="qubatchHUD" width="800" height="600"></canvas>
     </div>
 
@@ -85,7 +85,7 @@
             <button class="btn2 btn-success visible_in_game_menu" ng-click="skin.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Change skin...</span>
                 <img src="/media/icon-head.png" style="height: 2em;" alt="Change skin...">
-                <div class="user-login">@{{Game.App.session.username}}</div>
+                <div class="user-login">@{{Qubatch.App.session.username}}</div>
             </button>
             <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Settings</span>
@@ -103,14 +103,14 @@
 
     </div>
 
-    <div id="main-pictures" class="flex0" ng-if="Game && current_window.id == 'hello' && !login.logged">
+    <div id="main-pictures" class="flex0" ng-if="Qubatch && current_window.id == 'hello' && !login.logged">
         <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'" alt="MadCraft">
         <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'" alt="Art">
         <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'"  alt="MadCraft">
     </div>
 
     <!-- Hello -->
-    <form id="form-hello" ng-if="Game && current_window.id == 'hello'">
+    <form id="form-hello" ng-if="Qubatch && current_window.id == 'hello'">
         <div class="flex0 flex-column">
             <button class="btn btn-main" ng-click="current_window.show('login')" style="font-size: 200%; border-radius: 50px;">
                 <span>{{Lang.start_game}}</span>
@@ -122,13 +122,13 @@
     </form>
 
     <!-- Not supported browser -->
-    <form id="form-not-supported" ng-if="Game && current_window.id == 'not_supported_browser'">
+    <form id="form-not-supported" ng-if="Qubatch && current_window.id == 'not_supported_browser'">
         {{Lang.browser_not_supported_1}}
         <br/>{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
     </form>
 
     <!-- Login -->
-    <form id="form-login" class="animate__animated animate__fadeIn nice-form" ng-if="Game && current_window.id == 'login'">
+    <form id="form-login" class="animate__animated animate__fadeIn nice-form" ng-if="Qubatch && current_window.id == 'login'">
 
         <div class="flex0 flex-column">
 
@@ -154,7 +154,7 @@
     </form>
 
     <!-- Registration -->
-    <form id="form-registration" class="animate__animated animate__fadeIn nice-form" ng-if="Game && current_window.id == 'registration'">
+    <form id="form-registration" class="animate__animated animate__fadeIn nice-form" ng-if="Qubatch && current_window.id == 'registration'">
         <div class="flex0 flex-column">
 
             <ul class="tabs">
@@ -179,7 +179,7 @@
     </form>
 
     <!-- Main menu -->
-    <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Game && login.logged">
+    <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
 
         <!-- Main menu -->
         <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length > 0">
@@ -223,7 +223,7 @@
             </div>
 
             <div class="form-title" style="margin-top: 2em;">
-                <!-- <span>@{{Game.App.session.username}}</span> -->
+                <!-- <span>@{{Qubatch.App.session.username}}</span> -->
                 <button class="btn btn-danger btn-small" ng-click="App.logout()">&times; logout</button>
             </div>
 

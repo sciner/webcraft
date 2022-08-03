@@ -24,20 +24,20 @@ export class MainMenu extends Window {
         // onShow
         this.onShow = function() {
             this.parent.center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
 
         // Add buttons
-        this.addButton(Lang.btn_return, 80, () => {Game.hud.wm.closeAll()});
+        this.addButton(Lang.btn_return, 80, () => {Qubatch.hud.wm.closeAll()});
 
         this.addButton(Lang.quests, 130, () => {
-            Game.hud.wm.closeAll();
-            Game.hud.wm.getWindow('frmQuests').toggleVisibility();
+            Qubatch.hud.wm.closeAll();
+            Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
         });
         
         this.addButton(Lang.btn_statistics, 180, () => {
-            Game.hud.wm.closeAll();
-            Game.hud.wm.getWindow('frmStats').show();
+            Qubatch.hud.wm.closeAll();
+            Qubatch.hud.wm.getWindow('frmStats').show();
         });
         
         this.addButton(Lang.btn_exit, 230, () => {location.reload()});

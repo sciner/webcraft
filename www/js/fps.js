@@ -18,11 +18,11 @@ export class FPSCounter {
     incr() {
         this.frames++;
         this.cnt++;
-        let player = Game.player;
+        let player = Qubatch.player;
 
         // Speed
         if(!this.player_pos) {
-            this.player_pos = JSON.parse(JSON.stringify(Game.player.lerpPos));
+            this.player_pos = JSON.parse(JSON.stringify(Qubatch.player.lerpPos));
             this.speed_time = performance.now();
         }
 
@@ -33,14 +33,14 @@ export class FPSCounter {
         if(diff >= PERIOD) {
             this.fps    = Math.round(this.cnt / ((now - this.t) / PERIOD));
             this.cnt    = 0;
-            this.avg    = PERIOD / Game.averageClockTimer.avg;
+            this.avg    = PERIOD / Qubatch.averageClockTimer.avg;
             this.t      = now;
             this.speed = Helpers.calcSpeed(player.lerpPos, this.player_pos, diff / PERIOD);
-            this.player_pos = JSON.parse(JSON.stringify(Game.player.lerpPos));
+            this.player_pos = JSON.parse(JSON.stringify(Qubatch.player.lerpPos));
             this.speed_time = performance.now();
             //
             this.walkDistO = player.walkDist;
-            // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.averageClockTimer.avg * 1000) / 1000);
+            // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Qubatch.averageClockTimer.avg * 1000) / 1000);
         };
         this.delta = this.prev_now ? (now - this.prev_now) : 0;
         this.prev_now = now;

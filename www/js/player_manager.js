@@ -90,7 +90,7 @@ export class PlayerManager {
     createMyModel(player) {
         /*
         const id = 'itsme';
-        this.list.set(id, this.list.get(Game.player.session.user_id));
+        this.list.set(id, this.list.get(Qubatch.player.session.user_id));
         this.list.set(id, new PlayerModel({
             id:             id,
             username:       id,
@@ -98,7 +98,7 @@ export class PlayerManager {
             pos:            player.pos.clone(),
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
-            skin:           Game.skin.id,
+            skin:           Qubatch.skin.id,
             sneak:          player.isSneak,
             hands:          {left: {id: null}, right: {id: player.currentInventoryItem?.id}}
         }));*/

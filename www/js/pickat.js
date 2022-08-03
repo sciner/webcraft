@@ -68,7 +68,7 @@ export class PickAt {
         damage_block.start  = performance.now();
         this.updateDamageBlock();
         // Picking target
-        /*if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
+        /*if (player.pickAt && Qubatch.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
         }*/
     }

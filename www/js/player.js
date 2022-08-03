@@ -91,7 +91,7 @@ export class Player {
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
         //
-        this.inventory              = new PlayerInventory(this, data.inventory, Game.hud);
+        this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         this.chat                   = new Chat(this);
@@ -100,10 +100,10 @@ export class Player {
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
-        this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
+        this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
             this.state.sitting = false;
@@ -126,14 +126,14 @@ export class Player {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
             this.indicators = cmd.data.indicators;
-            Game.hud.refresh();
+            Qubatch.hud.refresh();
         });
         // pickAt
-        this.pickAt = new PickAt(this.world, Game.render, async (...args) => {
+        this.pickAt = new PickAt(this.world, Qubatch.render, async (...args) => {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
             // onInterractMob
-            const mob = Game.world.mobs.get(e.interractMobID);
+            const mob = Qubatch.world.mobs.get(e.interractMobID);
             if(mob) {
                 mob.punch(e);
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
@@ -236,13 +236,13 @@ export class Player {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
                 let sound           = world_block.getSound();
-                let sound_list      = Game.sounds.getList(sound, action);
+                let sound_list      = Qubatch.sounds.getList(sound, action);
                 if(!sound_list) {
                     sound = default_sound;
                 }
-                Game.sounds.play(sound, action);
+                Qubatch.sounds.play(sound, action);
                 if(player.running) {
-                    Game.render.destroyBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+                    Qubatch.render.destroyBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
                 }
             }
         }
@@ -318,8 +318,8 @@ export class Player {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Game.render.destroyBlock(block, new Vector(bPos), true);
-                    Game.sounds.play(block.sound, 'hit');
+                    Qubatch.render.destroyBlock(block, new Vector(bPos), true);
+                    Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
                 this.hitIndexO = hitIndex;
@@ -378,7 +378,7 @@ export class Player {
     }
 
     clearEvents() {
-        Game.kb.clearStates()
+        Qubatch.kb.clearStates()
         this.pickAt.clearEvent();
         this.inMiningProcess = false;
         this.controls.reset();
@@ -575,13 +575,13 @@ export class Player {
                 }
             }
             // Update FOV
-            Game.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            Qubatch.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
         }
         this.lastUpdate = performance.now();
     }
 
     getModel() {
-        return Game.world.players.get(this.session.user_id);
+        return Qubatch.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
@@ -621,7 +621,7 @@ export class Player {
             if(height < 0) {
                 let damage = -height - MAX_UNDAMAGED_HEIGHT;
                 if(damage > 0) {
-                    Game.hotbar.damage(damage, 'falling');
+                    Qubatch.hotbar.damage(damage, 'falling');
                 }
             }
             this.lastOnGroundTime = null;
@@ -636,8 +636,8 @@ export class Player {
         this.running = false;
         this.controls.reset();
         this.updateModelProps();
-        Game.hud.wm.closeAll();
-        Game.hud.wm.getWindow('frmDie').show();
+        Qubatch.hud.wm.closeAll();
+        Qubatch.hud.wm.getWindow('frmDie').show();
     }
 
     // Start arm swing progress

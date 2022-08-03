@@ -412,8 +412,8 @@ export class Window {
         this.visible = false;
         this.resetHover();
         this.onHide();
-        if(typeof Game !== 'undefined' && Game.hud) {
-            Game.hud.prevDrawTime = 0;
+        if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
+            Qubatch.hud.prevDrawTime = 0;
         }
     }
     resetHover() {

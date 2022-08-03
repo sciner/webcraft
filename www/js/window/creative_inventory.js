@@ -167,14 +167,14 @@ export class CreativeInventoryWindow extends Window {
         // Обработчик открытия формы
         this.onShow = function() {
             this.getRoot().center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
         
         // Обработчик закрытия формы
         this.onHide = function() {
             this.inventory.clearDragItem();
             // Save inventory
-            Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
         // Add close button
@@ -201,7 +201,7 @@ export class CreativeInventoryWindow extends Window {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }

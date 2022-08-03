@@ -51,7 +51,7 @@ export class CraftTable extends BaseCraftWindow {
 
         // onShow
         this.onShow = function() {
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
 
         // Ширина / высота слота
@@ -69,10 +69,10 @@ export class CraftTable extends BaseCraftWindow {
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
-            Game.hud.wm.getWindow('frmRecipe').hide();
+            Qubatch.hud.wm.getWindow('frmRecipe').hide();
             this.clearCraft();
             // Save inventory
-            Game.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
         }
 
         // Add labels to window
@@ -105,7 +105,7 @@ export class CraftTable extends BaseCraftWindow {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }
@@ -125,7 +125,7 @@ export class CraftTable extends BaseCraftWindow {
         btnRecipes.tooltip = 'Toggle recipes';
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
-            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+            let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
         }

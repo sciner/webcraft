@@ -38,7 +38,7 @@ export default class Particles_Raindrop {
             map[i] = [];
             for (let j = 0; j <= RAIN_Z; ++j) {
                 for (let p = RAIN_Y; p > 0; --p) {
-                    let block = Game.world.getBlock(
+                    let block = Qubatch.world.getBlock(
                         Math.floor(this.pos.x + i - RAIN_X / 2.0),
                         p + Math.floor(this.pos.y),
                         Math.floor(this.pos.z + j - RAIN_Z / 2.0)
@@ -74,7 +74,7 @@ export default class Particles_Raindrop {
                 // drops particles on planes
                 //if(Math.random() < .1) {
                 //    const drop_pos = this.pos.add(new Vector(x - RAIN_X / 2.0, y - 1, z - RAIN_Z / 2.0)).flooredSelf();
-                //    Game.render.destroyBlock(BLOCK.STILL_WATER, drop_pos, true);
+                //    Qubatch.render.destroyBlock(BLOCK.STILL_WATER, drop_pos, true);
                 //}
             }
             if (Math.random() < 0.5) {

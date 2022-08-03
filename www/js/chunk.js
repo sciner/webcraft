@@ -205,7 +205,7 @@ export class Chunk {
             resource_pack.materials.set(key, texMat);
         }
         mat = texMat;
-        let dist = Game.player.lerpPos.distance(this.coord);
+        let dist = Qubatch.player.lerpPos.distance(this.coord);
         render.batch.setObjectDrawer(render.chunk);
         if(this.lightData && dist < 108) {
             // in case light of chunk is SPECIAL
@@ -313,7 +313,7 @@ export class Chunk {
         // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
         const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
-        Game.render.meshes.remove(PARTICLE_EFFECTS_ID, Game.render);
+        Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
     }
 
     // Build vertices

@@ -60,7 +60,7 @@ export default class Particles_Rain {
 
         this.life = 1;
         this.type = type;
-        this.chunkManager = Game.world.chunkManager;
+        this.chunkManager = Qubatch.world.chunkManager;
 
         // Material (rain)
         const mat = render.defaultShader.materials.doubleface_transparent;
@@ -114,7 +114,7 @@ export default class Particles_Rain {
 
     prepare() {
         
-        const player = Game.player;
+        const player = Qubatch.player;
         
         if(!this.#_player_block_pos.equal(player.blockPos)) {
             this.#_player_block_pos.copyFrom(player.blockPos);
@@ -152,7 +152,7 @@ export default class Particles_Rain {
     // updateHeightMap...
     updateHeightMap() {
         // let p = performance.now();
-        const world         = Game.world;
+        const world         = Qubatch.world;
         const pos           = this.#_player_block_pos;
         const vec           = new Vector();
         const block_pos     = new Vector();

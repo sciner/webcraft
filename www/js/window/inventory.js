@@ -68,13 +68,13 @@ export class InventoryWindow extends BaseCraftWindow {
         
         // Обработчик открытия формы
         this.onShow = function() {
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
 
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
-            Game.hud.wm.getWindow('frmRecipe').hide();
+            Qubatch.hud.wm.getWindow('frmRecipe').hide();
             // Drag
             this.inventory.clearDragItem(true);
             // Clear result
@@ -87,7 +87,7 @@ export class InventoryWindow extends BaseCraftWindow {
                 }
             }
             // Save inventory
-            Game.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
+            Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
         }
 
         // Add labels to window
@@ -118,7 +118,7 @@ export class InventoryWindow extends BaseCraftWindow {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }
@@ -134,7 +134,7 @@ export class InventoryWindow extends BaseCraftWindow {
     addPlayerBox() {
         const ct = this;
         let lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom, 98 * this.zoom, 140 * this.zoom, 'lblPlayerBox', null, null);
-        lblPlayerBox.setBackground(Game.skin.preview, 'stretch');
+        lblPlayerBox.setBackground(Qubatch.skin.preview, 'stretch');
         ct.add(lblPlayerBox);
     }
 
@@ -145,7 +145,7 @@ export class InventoryWindow extends BaseCraftWindow {
         btnRecipes.tooltip = Lang.toggle_recipes;
         btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
-            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+            let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
         }

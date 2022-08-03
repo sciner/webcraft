@@ -102,42 +102,6 @@
     {"id": 85, "name": "OAK_FENCE", "texture": [21, 19]},
     {"id": 188, "name": "ACACIA_FENCE", "texture": [22, 19]},
     {"id": 191, "name": "SPRUCE_FENCE", "texture": [23, 19]},
-    {"id": 462, "name": "BIRCH_TRAPDOOR",
-        "texture": {
-            "up": [20, 20],
-            "down": [20, 20],
-            "west": [20, 21],
-            "east": [20, 21],
-            "side": [20, 22]
-        }
-    },
-    {"id": 463, "name": "OAK_TRAPDOOR",
-        "texture": {
-            "up": [21, 20],
-            "down": [21, 20],
-            "west": [21, 21],
-            "east": [21, 21],
-            "side": [21, 22]
-        }
-    },
-    {"id": 464, "name": "ACACIA_TRAPDOOR",
-        "texture": {
-            "up": [22, 20],
-            "down": [22, 20],
-            "west": [22, 21],
-            "east": [22, 21],
-            "side": [22, 22]
-        }
-    },
-    {"id": 465, "name": "SPRUCE_TRAPDOOR",
-        "texture": {
-            "up": [23, 20],
-            "down": [23, 20],
-            "west": [23, 21],
-            "east": [23, 21],
-            "side": [23, 22]
-        }
-    },
     {"id": 108, "name": "BRICK_STAIRS", "texture": [7, 0]},
     {"id": 135, "name": "BIRCH_STAIRS", "texture": [20, 19]},
     {"id": 53, "name": "OAK_STAIRS", "texture": [21, 19]},
@@ -185,7 +149,7 @@
         "texture": {
             "up": [14, 3],
             "down": [14, 3],
-            "north": [13, 3],
+            "north": [14, 2],
             "side": [13, 2]
         }
     },

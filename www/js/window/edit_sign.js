@@ -28,7 +28,7 @@ export class EditSignWindow extends Window {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }
@@ -63,18 +63,18 @@ export class EditSignWindow extends Window {
         this.onShow = (args) => {
             this.args = args;
             txtEdit1.buffer = [];
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
 
         // Обработчик открытия формы
         this.onHide = () => {
             const pos = this.args.pos;
-            const block = Game.world.getBlock(pos);
+            const block = Qubatch.world.getBlock(pos);
             if(block.material.tags.indexOf('sign') >= 0) {
                 let extra_data = block.extra_data || {};
                 const lines = txtEdit1.calcPrintLines(txtEdit1.buffer.join(''));
                 extra_data.text = lines.join("\r");
-                Game.world.changeBlockExtraData(pos, extra_data);
+                Qubatch.world.changeBlockExtraData(pos, extra_data);
             }
         }
 

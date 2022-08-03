@@ -34,7 +34,7 @@ export class QuestWindow extends Window {
         // Обработчик открытия формы
         this.onShow = function() {
             this.getRoot().center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
         }
         
         // Обработчик закрытия формы
@@ -64,7 +64,7 @@ export class QuestWindow extends Window {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }
@@ -133,7 +133,7 @@ export class QuestWindow extends Window {
     updateActive() {
         let quest_in_progress = null;
         let quest_new = null;
-        for(let g of Game.hud.wm.getWindow('frmQuests').data) {
+        for(let g of Qubatch.hud.wm.getWindow('frmQuests').data) {
             for(let q of g.quests) {
                 // console.log(q.title, q.is_completed, q.in_progress);
                 if(q.in_progress && !quest_in_progress) {

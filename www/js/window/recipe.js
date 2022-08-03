@@ -35,7 +35,7 @@ export class RecipeSlot extends Window {
     }
 
     canMake(recipe) {
-        return Game.player.inventory.hasResources(recipe.need_resources).length == 0;
+        return Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0;
     }
 
     update() {

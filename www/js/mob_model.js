@@ -554,11 +554,11 @@ export class MobModel extends NetworkPhysicObject {
         }
         if(e.button_id == 1) {
             // play punch
-            Game.sounds.play('madcraft:block.player', 'strong_atack');
+            Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
             // play mob cry
             let tag = `madcraft:block.${this.type}`;
-            if(Game.sounds.tags.hasOwnProperty(tag)) {
-                Game.sounds.play(tag, 'hurt');
+            if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
+                Qubatch.sounds.play(tag, 'hurt');
             }
             // make red
             this.tintColor.set(1, 0, 0, .3);

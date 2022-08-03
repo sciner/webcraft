@@ -119,7 +119,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     pickup() {
         this.now_draw = true;
-        // Game.sounds.play('madcraft:entity.item.pickup', 'hit');
+        // Qubatch.sounds.play('madcraft:entity.item.pickup', 'hit');
     }
 
     // Update player

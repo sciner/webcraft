@@ -38,9 +38,9 @@ export class BaseChestWindow extends Window {
         // Обработчик открытия формы
         this.onShow = function() {
             this.getRoot().center(this);
-            Game.releaseMousePointer();
+            Qubatch.releaseMousePointer();
             if(options.sound.open) {
-                Game.sounds.play(options.sound.open.tag, options.sound.open.action);
+                Qubatch.sounds.play(options.sound.open.tag, options.sound.open.action);
             }
         }
 
@@ -51,7 +51,7 @@ export class BaseChestWindow extends Window {
             this.inventory.clearDragItem(true);
             this.confirmAction();
             if(options.sound.close) {
-                Game.sounds.play(options.sound.close.tag, options.sound.close.action);
+                Qubatch.sounds.play(options.sound.close.tag, options.sound.close.action);
             }
         }
 
@@ -91,7 +91,7 @@ export class BaseChestWindow extends Window {
                     if(!down) {
                         ct.hide();
                         try {
-                            Game.setupMousePointer(true);
+                            Qubatch.setupMousePointer(true);
                         } catch(e) {
                             console.error(e);
                         }

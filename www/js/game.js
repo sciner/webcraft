@@ -213,16 +213,16 @@ export class GameClass {
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
-                        if(Game.hud.wm.getWindow('frmQuests').visible) {
-                            Game.hud.wm.getWindow('frmQuests').hide();
+                        if(Qubatch.hud.wm.getWindow('frmQuests').visible) {
+                            Qubatch.hud.wm.getWindow('frmQuests').hide();
                             return true;
                         }
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(Game.hud.frmMainMenu.visible) {
-                                Game.hud.wm.closeAll();
-                                Game.setupMousePointer(false);
+                            if(Qubatch.hud.frmMainMenu.visible) {
+                                Qubatch.hud.wm.closeAll();
+                                Qubatch.setupMousePointer(false);
                                 return true;
                             }
                         }
@@ -261,7 +261,7 @@ export class GameClass {
                         if(!e.down) {
                             if(e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
-                                Game.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
+                                Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
                             } else {
                                 player.changeSpawnpoint();
                             }
@@ -272,7 +272,7 @@ export class GameClass {
                     // [F6] (Camera mode)
                     case KEY.F6: {
                         if(!e.down) {
-                            Game.render.nextCameraMode();
+                            Qubatch.render.nextCameraMode();
                         }
                         return true;
                         break;
@@ -345,7 +345,7 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!this.hud.wm.hasVisibleWindow()) {
-                                Game.hud.wm.getWindow('frmQuests').toggleVisibility();
+                                Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
                                 return true;
                             }
                         }
@@ -422,7 +422,7 @@ export class GameClass {
         let bodyClassList = document.querySelector('body').classList;
         if(value) {
             bodyClassList.add('controls_enabled');
-            delete(Game.kb.keys[KEY.WIN]);
+            delete(Qubatch.kb.keys[KEY.WIN]);
         } else {
             bodyClassList.remove('controls_enabled');
         }
@@ -448,7 +448,7 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
-        if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
+        if (player.pickAt && Qubatch.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
         }
 
