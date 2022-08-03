@@ -3,16 +3,18 @@ import {Resources} from '../resources.js';
 
 export class SkinManager {
 
-    constructor($scope) {   
+    #controller;
+
+    constructor(controller) {   
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
-        this.$scope     = $scope;
-        this.list       = [];
-        this.index      = 0;
-        this.loading    = true;
+        this.#controller    = controller;
+        this.list           = [];
+        this.index          = 0;
+        this.loading        = true;
     }
 
     toggle() {
-        this.$scope.current_window.toggle('skin');
+        this.#controller.current_window.toggle('skin');
     }
 
     close() {
@@ -35,7 +37,7 @@ export class SkinManager {
 
     save() {
         localStorage.setItem('skin', this.list[this.index].id);
-        this.$scope.Game.skin = this.list[this.index];
+        this.#controller.Game.skin = this.list[this.index];
         this.close();
     }
 
@@ -61,8 +63,8 @@ export class SkinManager {
                 }
             }
         }
-        this.$scope.Game.skins = this;
-        this.$scope.Game.skin = list[this.index];
+        this.#controller.Game.skins = this;
+        this.#controller.Game.skin = list[this.index];
     }
 
 }
