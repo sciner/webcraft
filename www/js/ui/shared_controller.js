@@ -68,13 +68,6 @@ export class Shared_Controller {
         // safari 15 is ok
         const isSafari = navigator.userAgent.indexOf('Safari') > -1;
         const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
-    /*
-        if (isFF) {
-            console.error('Browser not supported:', 'Firefox not support modules for workers');
-    
-            return false;
-        }
-    */
         // chrome + safari
         return isSafari || isChrome || isFF;
     }
