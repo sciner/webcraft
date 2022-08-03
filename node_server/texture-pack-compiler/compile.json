@@ -5246,8 +5246,23 @@
             "style": "planting",
             "inventory_style": "extruder",
             "transparent": true,
-            "texture": "item/melon_seeds.png",
-            "item": {"name": "seeds"},
+            "can_rotate": true,
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": {
+                "side": "item/melon_seeds.png",
+                "up": "block/melon_stem.png",
+                "down": "block/attached_melon_stem.png"
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 5,
+                "times_per_stage": 8
+            },
             "material": {
                 "id": "plant"
             }

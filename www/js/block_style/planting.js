@@ -9,6 +9,10 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
+const MELON_ATTACHED_PLANES = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}},
+];
+
 const DEFAULT_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
@@ -157,6 +161,32 @@ export default class style {
                 planes = SUNFLOWER_PLANES;
             } else {
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+            }
+        }
+        
+        // Melon seeds
+        if (material.name == "MELON_SEEDS") {
+            if (block.extra_data.complete) {
+                dy = -0.2;
+                texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+                planes = MELON_ATTACHED_PLANES;
+                switch (block.rotate.y) {
+                    case DIRECTION.NORTH: 
+                        planes[0].rot[1] = Math.PI;
+                    break;
+                    case DIRECTION.WEST: 
+                        planes[0].rot[1] = Math.PI * 3 / 2;
+                    break;
+                    case DIRECTION.EAST: 
+                        planes[0].rot[1] = Math.PI / 2;
+                    break;
+                    default: 
+                        planes[0].rot[1] = 0;
+                    break;
+                }
+            } else {
+                dy = 0.2 * block.extra_data.stage - 0.9;
+                texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
             }
         }
         
