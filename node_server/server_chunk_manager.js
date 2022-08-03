@@ -64,6 +64,7 @@ export class ServerChunkManager {
             this.worker.onmessage = onmessage;
             this.worker.onerror = onerror;
         } else {
+            this.worker.on('message', onmessage);
             this.worker.on('error', onerror);
         }
         const promise = new Promise((resolve, reject) => {
@@ -143,7 +144,7 @@ export class ServerChunkManager {
 
     unloadInvalidChunks() {
         if(this.invalid_chunks_queue.length > 0) {
-            console.log('Unload invalid chunks: ' + this.invalid_chunks_queue.length);
+            console.debug('Unload invalid chunks: ' + this.invalid_chunks_queue.length);
         }
         while(this.invalid_chunks_queue.length > 0) {
             let chunk = this.invalid_chunks_queue.pop();

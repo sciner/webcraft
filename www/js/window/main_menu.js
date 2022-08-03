@@ -3,8 +3,6 @@ import { Lang } from "../lang.js";
 
 export class MainMenu extends Window {
 
-    zoom = UI_ZOOM;
-
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
@@ -44,6 +42,10 @@ export class MainMenu extends Window {
         
         this.addButton(Lang.btn_exit, 230, () => {location.reload()});
 
+    }
+
+    get zoom() {
+        return UI_ZOOM;
     }
 
     //

@@ -4,8 +4,6 @@ import { Lang } from "../lang.js";
 
 export class DieWindow extends Window {
 
-    zoom = UI_ZOOM;
-
     constructor() {
 
         super(10, 10, 352, 332, 'frmDie', null, null);
@@ -34,6 +32,10 @@ export class DieWindow extends Window {
             this.parent.center(this);
             Game.releaseMousePointer();
         }
+    }
+
+    get zoom() {
+        return UI_ZOOM;
     }
 
     addCloseButton() {

@@ -14,17 +14,13 @@ import { compressPlayerStateC } from "./packet_compressor.js";
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
 
-const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
-globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
-globalThis.UI_FONT = 'Ubuntu';
-
 export class GameClass {
 
     constructor() {
         this.is_server  = false;
         this.hud        = new HUD(0, 0);
         this.hotbar     = new Hotbar(this.hud);
-        this.render     = new Renderer('renderSurface');
+        this.render     = new Renderer('qubatchRenderSurface');
         this.world      = new World();
         this.current_player_state = {
             rotate:             new Vector(),
@@ -34,6 +30,12 @@ export class GameClass {
         };
         // Local server client
         this.local_server = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
+    }
+
+    static resetZoom() {
+        const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
+        globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
+        globalThis.UI_FONT = 'Ubuntu';
     }
 
     // Start
@@ -75,7 +77,7 @@ export class GameClass {
         this.prev_player_state  = null;
         //
         this.render.setPlayer(player);
-        this.setInputCanvas('renderSurface');
+        this.setInputCanvas(this.render.canvas);
         this.setupMousePointer(false);
         this.setupMouseListeners();
         //
@@ -95,13 +97,12 @@ export class GameClass {
     }
 
     // Set the canvas the renderer uses for some input operations.
-    setInputCanvas(element_id) {
-        let player = this.player;
-        let canvas = document.getElementById(element_id);
+    setInputCanvas(canvas) {
+        const player = this.player;
         const add_mouse_rotate = new Vector();
         const that = this;
         const controls = that.player.controls;
-        let kb = this.kb = new Kb(canvas, {
+        const kb = this.kb = new Kb(canvas, {
             onPaste: (e) => {
                 let clipboardData = e.clipboardData || window.clipboardData;
                 if(clipboardData) {
@@ -114,13 +115,14 @@ export class GameClass {
             },
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 const hasVisibleWindow = this.hud.wm.hasVisibleWindow();
+                const DPR = window.devicePixelRatio;
                 if(type == MOUSE.DOWN && hasVisibleWindow) {
                     this.hud.wm.mouseEventDispatcher({
                         type:       e.type,
                         shiftKey:   e.shiftKey,
                         button:     e.button,
-                        offsetX:    this.player.controls.mouseX * (this.hud.width / this.render.canvas.width),
-                        offsetY:    this.player.controls.mouseY * (this.hud.height / this.render.canvas.height)
+                        offsetX:    e.offsetX * DPR,
+                        offsetY:    e.offsetY * DPR,
                     });
                     return false;
                 } else if(type == MOUSE.MOVE) {
@@ -135,21 +137,21 @@ export class GameClass {
                             controls.mouseX = Math.min(controls.mouseX, that.hud.width);
                             controls.mouseY = Math.min(controls.mouseY, that.hud.height);
                         } else {
-                            controls.mouseY = e.offsetY * window.devicePixelRatio;
-                            controls.mouseX = e.offsetX * window.devicePixelRatio;
+                            controls.mouseY = e.offsetY * DPR;
+                            controls.mouseX = e.offsetX * DPR;
                         }
                         //
                         that.hud.wm.mouseEventDispatcher({
                             type:       e.type,
                             shiftKey:   e.shiftKey,
                             button:     e.button,
-                            offsetX:    controls.mouseX * (that.hud.width / that.render.canvas.width),
-                            offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
+                            offsetX:    e.offsetX * DPR,
+                            offsetY:    e.offsetY * DPR
                         });
                     } else {
                         x *= -1;
-                        add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
-                        add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
+                        add_mouse_rotate.x = (x / DPR) * controls.mouse_sensitivity;
+                        add_mouse_rotate.z = (z / DPR) * controls.mouse_sensitivity;
                         if(that.player.zoom) {
                             add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
                             add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
@@ -659,3 +661,5 @@ export class GameClass {
     }
 
 }
+
+GameClass.resetZoom();

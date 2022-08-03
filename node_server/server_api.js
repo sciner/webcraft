@@ -4,7 +4,7 @@ const FLAG_SYSTEM_ADMIN = 256;
 export class ServerAPI {
 
     static async call(method, params, session_id) {
-        console.log('> API:' + method);
+        console.debug('> API:' + method);
         switch(method) {
             case '/api/User/Registration': {
                 const session = await Game.db.Registration(params.username, params.password);

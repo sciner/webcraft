@@ -84,8 +84,6 @@ class Strings {
 
 export class Hotbar {
 
-    zoom = UI_ZOOM;
-
     constructor(hud) {
         let that                = this;
         this.hud                = hud;
@@ -98,6 +96,10 @@ export class Hotbar {
         this.last_damage_time = null;
         //
         this.strings = new Strings();
+    }
+
+    get zoom() {
+        return UI_ZOOM;
     }
 
     //

@@ -18,23 +18,16 @@ export class QuestActionType {
 
 }
 
+// Canvas used to draw HUD
 export class HUD {
-
-    zoom = UI_ZOOM;
 
     constructor(width, height) {
 
-        // Create canvas used to draw HUD
-        const canvas                    = this.canvas = document.createElement('canvas');
-        canvas.id                       = 'cnvHUD';
-        canvas.width                    = width;
-        canvas.height                   = height;
+        this.canvas                     = document.getElementById('qubatchHUD');
         this.ctx                        = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled  = false;
-        document.body.appendChild(this.canvas);
         this.active                     = true;
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
-
         this.texture                    = null;
         this.buffer                     = null;
         this.width                      = width;
@@ -44,7 +37,6 @@ export class HUD {
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
         this.strMeasures                = new Map();
-
         this.FPS                        = new FPSCounter();
 
         // Splash screen (Loading...)
@@ -160,7 +152,7 @@ export class HUD {
         });
 
         // Init Window Manager
-        let wm = this.wm = new WindowManager(this.canvas, this.ctx, 0, 0, this.canvas.width, this.canvas.height);
+        const wm = this.wm = new WindowManager(this.canvas, this.ctx, 0, 0, this.canvas.width, this.canvas.height);
         wm.style.background.color       = '#00000000';
         wm.style.border.hidden          = true;
         wm.pointer.visible              = false;
@@ -168,6 +160,10 @@ export class HUD {
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu);
+    }
+
+    get zoom() {
+        return UI_ZOOM;
     }
 
     add(item, zIndex) {
@@ -253,23 +249,13 @@ export class HUD {
 
     //
     checkSize() {
-        let new_width = null;
-        let new_height = null;
 
-        if(Game.render.canvas.width > Game.render.canvas.height) {
-            new_width = document.body.clientWidth;
-            new_height = document.body.clientHeight;
-        } else {
-            new_height =  (332 * 3.5);
-            new_width = (new_height * (Game.render.canvas.width / Game.render.canvas.height));
-        }
+        const actual_width = this.ctx.canvas.width;
+        const actual_height = this.ctx.canvas.height;
 
-        new_width = Math.round(new_width * window.devicePixelRatio);
-        new_height = Math.round(new_height * window.devicePixelRatio);
-
-        if(Game.hud.width != new_width || Game.hud.height != new_height) {
-            this.width  = this.ctx.canvas.width   = new_width;
-            this.height = this.ctx.canvas.height  = new_height;
+        if(Game.hud.width != actual_width || Game.hud.height != actual_height) {
+            this.width  = actual_width;
+            this.height = actual_height;
             this.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
             Game.hud.wm.resize(this.width, this.height);
             this.refresh();

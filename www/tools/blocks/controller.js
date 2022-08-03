@@ -124,9 +124,9 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.initRender = async () => {
         /*
         var canvas = document.createElement('canvas');
-        canvas.id = 'renderSurface';
+        canvas.id = 'qubatchRenderSurface';
         document.getElementsByTagName('body')[0].appendChild(canvas);
-        this.render = new Renderer('renderSurface');
+        this.render = new Renderer('qubatchRenderSurface');
         await Resources.load({
             imageBitmap:    true,
             glsl:           this.render.renderBackend.kind === 'webgl',

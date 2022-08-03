@@ -113,7 +113,7 @@ export class Mob {
 
     //
     async onUnload() {
-        console.log(`Mob unloaded ${this.entity_id}, ${this.id}`);
+        console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
         const world = this.#world;
         await this.save();
         world.mobs.delete(this.id);

@@ -76,22 +76,34 @@ button:not(.loading) .fa-spin {
     background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
 }
 
-// Render surface
-#renderSurface {
-	position: fixed;
-	left: 0;
-	top: 0;
-	width: 100vw;
-	height: 100vh;
-}
+#qubatch-canvas-container {
 
-#cnvHUD {
     position: fixed;
-    background: transparent;
-    z-index: 0;
-    pointer-events: none;
+    left: 0;
+    top: 0;
     width: 100vw;
     height: 100vh;
+
+    canvas {
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    // Render surface
+    #qubatchRenderSurface {
+        position: absolute;
+    }
+
+    // HUD surface
+    #qubatchHUD {
+        pointer-events: none;
+        background: transparent;
+        z-index: 0;
+        position: absolute;
+    }
+
 }
 
 /* Username input */
@@ -344,6 +356,18 @@ button:not(.loading) .fa-spin {
 #form-skin {
     .nice-form;
     text-align: center;
+    #skin-preview {
+        position: fixed !important;
+        top: -1000%;
+        width: 0px;
+        height: 0px;
+        position: relative;
+        img {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
     #skin-selector {
         .flex0;
         justify-content: space-between;

@@ -64,7 +64,13 @@ export class ChunkManager {
             this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
         } else {
             this.worker = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+            this.worker.onerror = (e) => {
+                debugger;
+            };
             this.lightWorker = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
+            this.lightWorker.onerror = (e) => {
+                debugger;
+            };
         }
 
         const that = this;

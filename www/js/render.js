@@ -50,9 +50,9 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
 
-    constructor(renderSurfaceId) {
+    constructor(qubatchRenderSurfaceId) {
         this.xrMode             = false;
-        this.canvas             = document.getElementById(renderSurfaceId);
+        this.canvas             = document.getElementById(qubatchRenderSurfaceId);
         this.canvas.renderer    = this;
         this.testLightOn        = false;
         this.crosshairOn        = true;
@@ -932,17 +932,18 @@ export class Renderer {
     * the render configuration if required.
     */
     updateViewport() {
-        let canvas = this.canvas;
-        if (canvas.clientWidth !== this.viewportWidth ||
-            canvas.clientHeight !== this.viewportHeight
+        const actual_width = this.canvas.width;
+        const actual_height = this.canvas.height;
+        if (actual_width !== this.viewportWidth ||
+            actual_height !== this.viewportHeight
         ) {
             // resize call _configure automatically but ONLY if dimension changed
             // _configure very slow!
             this.renderBackend.resize(
-                window.innerWidth * self.devicePixelRatio | 0,
-                window.innerHeight * self.devicePixelRatio | 0);
-            this.viewportWidth = window.innerWidth | 0;
-            this.viewportHeight = window.innerHeight | 0;
+                actual_width | 0,
+                actual_height | 0);
+            this.viewportWidth = actual_width | 0;
+            this.viewportHeight = actual_height | 0;
 
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.fov, this.min, this.max);

@@ -116,7 +116,7 @@ app.use('/api', async(req, res) => {
         const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'));
         res.status(200).json(resp);
     } catch(e) {
-        console.log('> API: ' + e);
+        console.debug('> API: ' + e);
         let message = e.code || e;
         let code = 950;
         if(message == 'error_invalid_session') {

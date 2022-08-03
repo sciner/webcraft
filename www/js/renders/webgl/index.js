@@ -342,8 +342,6 @@ export default class WebGLRenderer extends BaseRenderer {
             return;
         }
         super.resize(w, h);
-        this.view.width = w;
-        this.view.height = h;
         this.resolution = [w, h];
     }
 
@@ -554,8 +552,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     async screenshot() {
         const buffer = this.toRawPixels();
-        let width = this.view.width;
-        let height = this.view.height;
+        const width = this.view.width;
+        const height = this.view.height;
         for (let i = 0; i < buffer.length; i += 4) {
             const a = buffer[i + 3] / 0xff;
             if (!a) {

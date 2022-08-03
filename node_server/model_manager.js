@@ -5,7 +5,7 @@ export class ModelManager {
     constructor() {}
     
     async init() {
-        console.log('ModelManager.Init()');
+        console.debug('ModelManager.Init()');
         this.list = new Map();
         //
         let data = await Resources.loadModels()
