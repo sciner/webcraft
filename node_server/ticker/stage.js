@@ -36,6 +36,7 @@ export default class Ticker {
                         const neighbours  = tblock.tb.getNeighbours(tblock, null, BLOCK_CACHE);
                         for (let side of Ticker.SIDES) {
                             if (neighbours[side].id == BLOCK.AIR.id) {
+                                extra_data.ripened = true;
                                 tblock.rotate = new Vector(0, DIRECTION[side], 0); //Повоорт хвостика
                                 updated_blocks.push({pos: neighbours[side].posworld, item: {id: BLOCK.MELON.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                                 break;
