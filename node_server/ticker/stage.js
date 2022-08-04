@@ -1,5 +1,7 @@
-import {BLOCK} from "../../www/js/blocks.js";
-import {ServerClient} from "../../www/js/server_client.js";
+import {BLOCK} from '../../www/js/blocks.js';
+import {ServerClient} from '../../www/js/server_client.js';
+import { Vector } from '../../www/js/helpers.js';
+import { TBlock } from '../../www/js/typed_blocks3.js';
 
 export default class Ticker {
 
@@ -23,7 +25,21 @@ export default class Ticker {
                 if(extra_data.stage == ticking.max_stage) {
                     extra_data.complete = true;
                 }
-                updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                //Если блок это сахарный тросник
+                if (tblock.id == BLOCK.SUGAR_CANES.id) {
+                    // to do Может проще можно Поверка соседей 
+                    const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
+                    const neighbours  = tblock.tb.getNeighbours(tblock, null, BLOCK_CACHE);
+                    //Если наверху преграда
+                    if (neighbours.UP.id != BLOCK.AIR.id) {
+                        extra_data.stage = ticking.max_stage;
+                        extra_data.complete = true;
+                    } else {
+                        updated_blocks.push({pos: v.pos.clone().add(Vector.YP), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    }
+                } else {
+                    updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
             }
         } else {
             // Delete completed block from tickings
