@@ -15,7 +15,8 @@ import { Resources } from "./resources.js";
 export const PRESET_NAMES = {
     NORMAL: 'normal',
     WATER: 'water',
-    LAVA: 'lava'
+    LAVA: 'lava',
+    NETHER_PORTAL: 'nether_portal'
 }
 
 
@@ -524,7 +525,15 @@ export const FOG_PRESETS = {
         addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
         density: 0.5,
         illuminate: 0.5,
+    },
+
+    [PRESET_NAMES.NETHER_PORTAL]: {
+        color: [70 / 255, 30 / 255, 150 / 255, 0.4],
+        addColor: [70 / 255, 30 / 255, 150 / 255, 0.45],
+        density: 0.5,
+        illuminate: 0.5,
     }
+
 };
 
 export const SETTINGS = {

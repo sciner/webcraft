@@ -565,7 +565,7 @@ export class Player {
             const eye_y             = this.getEyePos().y;
             this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, eye_y | 0, this.blockPos.z);
             this.eyes_in_block_o    = this.eyes_in_block;
-            this.eyes_in_block      = this.headBlock.material.is_fluid ? this.headBlock.material : null;
+            this.eyes_in_block      = (this.headBlock.material.is_fluid || this.headBlock.material.is_portal) ? this.headBlock.material : null;
             if(this.eyes_in_block) {
                 // если в воде, то проверим еще высоту воды
                 const headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (eye_y + 1) | 0, this.blockPos.z);

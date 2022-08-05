@@ -109,7 +109,7 @@ export default class Terrain_Generator extends Demo_Map {
             let type = { "percent": 0.99, "trunk": 3, "leaves": 233, "style": "wood", "height": { "min": 4, "max": 8 } };
             let tree_height = rnd.double();
             if(tree_height < .05) {
-                type = {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
+                type = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
             } else if(tree_height < .5) {
                 type = {trunk: BLOCK.BIRCH_LOG.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
             }

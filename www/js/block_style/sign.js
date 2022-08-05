@@ -164,16 +164,16 @@ export default class style {
         if(block.extra_data) {
             let text = block.extra_data?.text;
             if(text) {
+                const sign = [];
+                if(block.extra_data.username) sign.push(block.extra_data.username);
+                if(block.extra_data.dt) sign.push(new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10));
                 return [new FakeTBlock(
                     BLOCK.TEXT.id,
                     {
                         ...block.extra_data,
                         aabb: aabb,
                         chars: AlphabetTexture.getStringUVs(text),
-                        sign: AlphabetTexture.getStringUVs(
-                            block.extra_data.username + ' | ' +
-                            new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10)
-                        )
+                        sign: sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
                     block.rotate,

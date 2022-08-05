@@ -138,6 +138,36 @@
             "spawnable": false
         },
         {
+            "id": 94,
+            "name": "NETHER_PORTAL",
+            "sound": "madcraft:block.glass",
+            "transparent": true,
+            "style": "thin",
+            "inventory_style": "extruder",
+            "can_rotate": true,
+            "spawnable": false,
+            "is_portal": true,
+            "_spawnable": false,
+            "material": {
+                "id": "glass"
+            },
+            "texture_animations": {
+                "side": null
+            },
+            "tags": [
+                "rotate_by_pos_n"
+            ],
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture": {
+                "side": "block/nether_portal.png"
+            }
+        },
+        {
             "id": 540,
             "name": "SEAGRASS",
             "passable": 1,
@@ -2093,7 +2123,7 @@
         },
         {
             "id": 995,
-            "name": "MUSHROOM_STRIPE",
+            "name": "MUSHROOM_STEM",
             "material": {
                 "id": "dirt"
             },
@@ -6528,7 +6558,89 @@
             },
             "texture": "block/crimson_planks.png",
             "can_rotate": true
+        },
+        {
+            "id": 29,
+            "name": "QUARTZ_PILLAR",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
+            "texture": {
+                "side": "block/quartz_pillar.png",
+                "up": "block/quartz_pillar_top.png",
+                "down": "block/quartz_pillar_top.png"
+            }
+        },
+        {
+            "id": 35,
+            "name": "PURPUR_BLOCK",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/purpur_block.png"
+        },
+        {
+            "id": 42,
+            "name": "PURPUR_PILLAR",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
+            "texture": {
+                "side": "block/purpur_pillar.png",
+                "up": "block/purpur_pillar_top.png",
+                "down": "block/purpur_pillar_top.png"
+            }
+        },
+        {
+            "id": 43,
+            "name": "WARPED_WART_BLOCK",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/warped_wart_block.png"
+        },
+        {
+            "id": 92,
+            "name": "SMOOTH_QUARTZ_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "SMOOTH_QUARTZ"
+            },
+            "texture": "block/quartz_block_top.png"
+        },
+        {
+            "id": 93,
+            "name": "SHROOMLIGHT",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture": "block/shroomlight.png"
         }
-        
     ]
 }

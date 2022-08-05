@@ -26,12 +26,11 @@ void main() {
     // Animated textures
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
-        float disc = v_color.b - 1.;
+        float frames = v_color.b;
         float t = ((u_time * v_color.b / 3.) / 1000.);
         float i = floor(t);
-
-        uvCenter0.y += (abs(mod(i, disc * 2.) - disc)) / 32.;
-        uvCenter1.y += (abs(mod(i + 1.0, disc * 2.) - disc)) / 32.;
+        uvCenter0.y += mod(i, frames) / 32.;
+        uvCenter1.y += mod(i + 1., frames) / 32.;
         v_animInterp = fract(t);
     }
 

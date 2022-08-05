@@ -658,7 +658,6 @@ export class CompileData {
                     "move": {"x": 0, "y": 0, "z": 0.5}
                 },
                 "tags": [
-                    "sign",
                     "no_drop_ao",
                     "mask_color"
                 ]

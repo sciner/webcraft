@@ -523,7 +523,7 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags && (block.tags.indexOf('alpha') >= 0))) {
+        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags.indexOf('alpha') >= 0) || ['thin'].indexOf(block.style) >= 0) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {
@@ -617,9 +617,14 @@ export class BLOCK {
             }
         }
         //
-        block.has_window        = !!block.window;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
+        // rotate_by_pos_n_xyz
+        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0 || block.tags.indexOf('rotate_by_pos_n_6') >= 0 || block.tags.indexOf('rotate_by_pos_n_12') >= 0) {
+            block.tags.push('rotate_by_pos_n');
+        }
+        //
+        block.has_window        = !!block.window;
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
@@ -637,19 +642,17 @@ export class BLOCK {
         block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].indexOf(block.name) >= 0;
         block.is_leaves         = block.tags.indexOf('leaves') >= 0;
         block.is_glass          = block.tags.indexOf('glass') >= 0 || (block.material.id == 'glass');
+        block.is_sign           = block.tags.indexOf('sign') >= 0;
+        block.is_banner         = block.style == 'banner';
         block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
-        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
+        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
-        // rotate_by_pos_n_xyz
-        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0 || block.tags.indexOf('rotate_by_pos_n_6') >= 0 || block.tags.indexOf('rotate_by_pos_n_12') >= 0) {
-            block.tags.push('rotate_by_pos_n');
-        }
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
@@ -1023,7 +1026,6 @@ export class BLOCK {
                 }
                 case 'wall': {
                     const CENTER_WIDTH      = 8 / 16;
-                    const CONNECT_WIDTH     = 6 / 16;
                     const CONNECT_HEIGHT    = 14 / 16;
                     const CONNECT_BOTTOM    = 0 / 16;
                     const CONNECT_X         = 6 / 16;
@@ -1078,8 +1080,15 @@ export class BLOCK {
                 }
                 case 'thin': {
                     // F R B L
-                    let cardinal_direction = b.getCardinalDirection();
-                    shapes.push(aabb.set(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot).toArray());
+                    if(!for_physic) {
+                        let cardinal_direction = b.getCardinalDirection();
+                        if(cardinal_direction == CubeSym.ROT_X) {
+                            cardinal_direction = ROTATE.E;
+                        } if(cardinal_direction == CubeSym.ROT_Z) {
+                            cardinal_direction = ROTATE.N;
+                        }
+                        shapes.push(aabb.set(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot).toArray());
+                    }
                     break;
                 }
                 case 'pane': {

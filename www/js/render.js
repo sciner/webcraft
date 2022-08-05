@@ -563,6 +563,9 @@ export class Renderer {
             if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
                 blockDist = 8; //
+            } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
+                preset = PRESET_NAMES.NETHER_PORTAL;
+                blockDist = 6; //
             } else {
                 preset = PRESET_NAMES.LAVA;
                 blockDist = 4; //
