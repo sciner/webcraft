@@ -6,6 +6,10 @@ import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
 
+async function waitABit() {
+    return true;
+}
+
 export class ServerChunkManager {
 
     constructor(world) {
@@ -96,6 +100,9 @@ export class ServerChunkManager {
 
     async tick(delta) {
         this.unloadInvalidChunks();
+
+        let pn = performance.now();
+
         // 1. queue chunks for load
         if(this.chunk_queue_load.size > 0) {
             for(const [addr, chunk] of this.chunk_queue_load.entries()) {
@@ -117,12 +124,17 @@ export class ServerChunkManager {
         // 3. tick for chunks
         if(this.ticking_chunks.size > 0) {
             for(let addr of this.ticking_chunks) {
+                if (performance.now() - pn >= 20) {
+                    await waitABit();
+                    pn = performance.now();
+                }
+
                 let chunk = this.get(addr);
                 if(!chunk) {
                     this.ticking_chunks.delete(addr);
                     continue;
                 }
-                await chunk.tick(delta);
+                chunk.tick(delta);
             }
         }
     }

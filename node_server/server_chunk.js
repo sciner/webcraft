@@ -68,7 +68,7 @@ class TickingBlockManager {
     }
 
     // tick
-    async tick() {
+    tick() {
         const world             = this.#chunk.world;
         const updated_blocks    = [];
         const ignore_coords     = new VectorCollector();
@@ -596,8 +596,8 @@ export class ServerChunk {
     }
 
     // On world tick
-    async tick() {
-        await this.ticking_blocks.tick();
+    tick() {
+        this.ticking_blocks.tick();
     }
 
     // Before unload chunk
