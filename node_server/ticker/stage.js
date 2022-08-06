@@ -1,7 +1,6 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { Vector, DIRECTION } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
-import { TBlock } from '../../www/js/typed_blocks.js';
 
 export default class Ticker {
 
@@ -22,40 +21,36 @@ export default class Ticker {
         const updated_blocks = [];
         if(extra_data && extra_data.stage < ticking.max_stage) {
             if(v.ticks % (ticking.times_per_stage * this.chunk.options.STAGE_TIME_MUL) == 0) {
-                //Если семена арбуза
+                // Если семена арбуза
                 if (tblock.id == BLOCK.MELON_SEEDS.id) {
-                    //Проверка позиции для установки арбуза
+                    // Проверка позиции для установки арбуза
                     const getFreePosition = () => {
                         const sides = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP];
-                        for (let side of sides) {
-                            let position = pos.add(side);
-                            let body = world.getBlock(position);
+                        for(let side of sides) {
+                            const position = pos.add(side);
+                            const body = world.getBlock(position);
                             if (body.id != BLOCK.AIR.id) {
                                 continue;
                             }
-                            let under = world.getBlock(position.add(new Vector(0, -1, 0)));
+                            const under = world.getBlock(position.add(new Vector(0, -1, 0)));
                             if (under.id != BLOCK.AIR.id) {
                                 return side;
                             }
                         }
                         return false;
                     };
-                    
+                    // Если семена готовы дать плод
                     if (extra_data.stage == ticking.max_stage - 1) {
                         const side = getFreePosition();
                         if (side) {
-                            //Повоорт хвостика
+                            // Повоорт хвостика
                             let direction = DIRECTION.NORTH;
-                            switch(side) {
-                                case Vector.XN: 
-                                    direction = DIRECTION.WEST;
-                                    break;
-                                case Vector.XP: 
-                                    direction = DIRECTION.EAST;
-                                    break;
-                                case Vector.ZN: 
-                                    direction = DIRECTION.SOUTH;
-                                    break;
+                            if(side.equal(Vector.XN)) {
+                                direction = DIRECTION.WEST;
+                            } else if(side.equal(Vector.XP)) {
+                                direction = DIRECTION.EAST;
+                            } else if(side.equal(Vector.ZN)) {
+                                direction = DIRECTION.SOUTH;
                             }
                             tblock.rotate = new Vector(0, direction, 0);
                             extra_data.stage = ticking.max_stage;

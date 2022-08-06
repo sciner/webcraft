@@ -4282,7 +4282,11 @@
                 "max_stage": 3,
                 "times_per_stage": 4
             },
-            "texture": "item/melon_seeds.png",
+            "texture": "./textures/carrot_seeds.png",
+            "inventory": {
+                "style": "extruder",
+                "texture": "./textures/carrot_seeds.png"
+            },
             "stage_textures": [
                 "block/carrots_stage0.png",
                 "block/carrots_stage1.png",
@@ -5274,7 +5278,10 @@
             "name": "MELON_SEEDS",
             "passable": 1,
             "style": "planting",
-            "inventory_style": "extruder",
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/melon_seeds.png"
+            },
             "transparent": true,
             "can_rotate": true,
             "tags": [
