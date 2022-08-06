@@ -166,7 +166,7 @@ export default class style {
         
         // Melon seeds
         if (material.name == "MELON_SEEDS") {
-            if (block.extra_data.ripened) {
+            if (block.extra_data.complete) {
                 dy = -0.2;
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
                 planes = MELON_ATTACHED_PLANES;
