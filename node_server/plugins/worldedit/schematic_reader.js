@@ -130,8 +130,14 @@ export class SchematicReader {
                 // replace with TEST block and store original to his extra_data
                 new_block = {...TEST_BLOCK};
                 new_block.extra_data = {
-                    name: name,
-                    props: block._properties
+                    n: name
+                }
+                if(block._properties) {
+                    // fast check if object not empty
+                    for(let _ in block._properties) {
+                        new_block.extra_data.p = block._properties;
+                        break;
+                    }
                 }
             }
             this.blocks.set(bpos, new_block);
