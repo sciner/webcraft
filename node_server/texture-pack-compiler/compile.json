@@ -4410,6 +4410,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {
@@ -4433,6 +4434,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {
@@ -4456,6 +4458,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {
@@ -4479,6 +4482,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {
@@ -4502,6 +4506,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {
@@ -4525,6 +4530,7 @@
             },
             "tags": [
                 "sign",
+                "rotate_x16",
                 "no_drop_ao"
             ],
             "material": {

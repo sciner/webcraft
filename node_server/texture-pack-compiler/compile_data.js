@@ -659,6 +659,7 @@ export class CompileData {
                 },
                 "tags": [
                     "no_drop_ao",
+                    "rotate_x16",
                     "mask_color"
                 ]
             };

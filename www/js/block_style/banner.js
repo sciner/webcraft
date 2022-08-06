@@ -110,6 +110,8 @@ export default class style {
             y -= 1;
         }
 
+        const shift_clotch = (1/20) * (y%2);
+
         const parts = {
             stem: {
                 origin: {x: 0, y: 0, z: 0},
@@ -136,7 +138,7 @@ export default class style {
                 }
             },
             cloth: {
-                origin: {x: 0, y: 4, z: -2.25},
+                origin: {x: shift_clotch, y: 4, z: -2.25 + shift_clotch},
                 size: {x: 28, y: 56, z: 1.5},
                 lm: material.mask_color,
                 flag: QUAD_FLAGS.MASK_BIOME,
