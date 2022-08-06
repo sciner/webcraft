@@ -27,15 +27,23 @@ export default class Ticker {
                 }
                 //Если блок это сахарный тросник
                 if (tblock.id == BLOCK.SUGAR_CANES.id) {
-                    // to do Может проще можно Поверка соседей 
-                    const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
-                    const neighbours  = tblock.tb.getNeighbours(tblock, null, BLOCK_CACHE);
+                    const pos = v.pos.clone().add(new Vector(0, extra_data.stage, 0));
+                    const block = world.getBlock(pos);
                     //Если наверху преграда
-                    if (neighbours.UP.id != BLOCK.AIR.id) {
+                    if (block.id != BLOCK.AIR.id) {
                         extra_data.stage = ticking.max_stage;
                         extra_data.complete = true;
                     } else {
-                        updated_blocks.push({pos: v.pos.clone().add(Vector.YP), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        updated_blocks.push({
+                            pos: pos, 
+                            item: {
+                                id: BLOCK.SUGAR_CANES.id,
+                                extra_data: {
+                                    stage: ticking.max_stage
+                                }
+                            }, 
+                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                        });
                     }
                 } else {
                     updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
