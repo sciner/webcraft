@@ -11,3 +11,4 @@ export { NotImplementedWindow } from "./not_implemented.js";
 export { QuestWindow } from "./quest.js";
 export { RecipeWindow } from "./recipe.js";
 export { StatsWindow } from "./stats.js";
+export { AnvilWindow } from "./anvil.js";

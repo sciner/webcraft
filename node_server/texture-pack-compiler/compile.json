@@ -6641,6 +6641,23 @@
                 "a": 255
             },
             "texture": "block/shroomlight.png"
+        },
+        {
+            "id": 5888,
+            "name": "ANVIL_TABLE",
+            "sound": "madcraft:block.wood",
+            "window": "frmAnvil",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "up": "block/anvil_top.png",
+                "side": "block/anvil.png",
+                "north": "block/chipped_anvil_top.png",
+                "south": "block/damaged_anvil_top.png"
+            },
+            "can_rotate": true,
+            "is_entity": true
         }
     ]
 }
