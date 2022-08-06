@@ -122,8 +122,8 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 16 * 4);
+        gl.vertexAttribPointer(attribs.a_color, 4, gl.UNSIGNED_BYTE, true, stride, 13 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -309,6 +309,7 @@ export default class GeometryTerrain {
         const oldStride = 12;
         const len = vertices.length / oldStride / 6;
         const newArr = new Float32Array(len * GeometryTerrain.strideFloats);
+        const uintArr = new Uint8Array(newArr.buffer);
         let k = 0;
         for (let j = 0; j < vertices.length; j += oldStride * 6) {
             let du = 0, dv = 0, dd = 0, d0 = 0;
@@ -365,14 +366,13 @@ export default class GeometryTerrain {
             newArr[k++] = (vertices[j + dd + 3] - vertices[j + d0 + 3]);
             newArr[k++] = (vertices[j + dd + 4] - vertices[j + d0 + 4]);
             // color
-            newArr[k++] = vertices[j + 5];
-            newArr[k++] = vertices[j + 6];
-            newArr[k++] = vertices[j + 7];
+            uintArr[k * 4] = (0 << 24) + (vertices[j + 7] << 16) + (vertices[j + 6] << 8) + (vertices[j + 5] << 0);
+            k++;
             // flags
             newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
         return newArr;
     }
 
-    static strideFloats = 17;
+    static strideFloats = 15;
 }
