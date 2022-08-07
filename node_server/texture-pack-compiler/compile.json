@@ -6670,6 +6670,25 @@
                 "a": 255
             },
             "texture": "block/shroomlight.png"
+        },{
+            "id": 14377,
+            "name": "POTATO",
+            "style": "extruder",
+            "texture": "item/potato.png",
+            "item": {"name": "food"},
+            "coocked_item": {"name": "BAKED_POTATO", "count": 1},
+            "material": {
+                "id": "food"
+            }
+        },{
+            "id": 14378,
+            "name": "BAKED_POTATO",
+            "style": "extruder",
+            "texture": "item/baked_potato.png",
+            "item": {"name": "food"},
+            "material": {
+                "id": "food"
+            }
         }
     ]
 }
