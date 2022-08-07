@@ -241,7 +241,7 @@ export class PickAt {
     // createTargetBuffer...
     createTargetBuffer(pos, c) {
         let vertices    = [];
-        let lm          = new Color(0, 0, 0);
+        let pp = 0;
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
@@ -265,37 +265,37 @@ export class PickAt {
                 xw, 0, 0,
                 0, zw, 0,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags | upFlags);
+                pp, flags | upFlags);
             // Bottom
             vertices.push(x, z, y_bottom,
                 xw, 0, 0,
                 0, -zw, 0,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
             // South | Forward | z++ (XZY)
             vertices.push(x, z - zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, yw,
                 c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                pp, flags | sideFlags);
             // North | Back | z--
             vertices.push(x, z + zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, -yw,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                pp, flags | sideFlags);
             // West | Left | x--
             vertices.push(x - xw/2, z, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, -yw,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                pp, flags | sideFlags);
             // East | Right | x++
             vertices.push(x + xw/2, z, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, yw,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                pp, flags | sideFlags);
         }
         return new GeometryTerrain(vertices);
     }

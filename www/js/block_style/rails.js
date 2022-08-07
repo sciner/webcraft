@@ -1,11 +1,11 @@
-import { MULTIPLY, DIRECTION } from '../helpers.js';
+import { IndexedColor, DIRECTION } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { RailShape } from '../block_type/rail_shape.js';
 
 // Рельсы
 export default class style {
-    
+
     static getRegInfo() {
         return {
             styles: ['rails'],
@@ -27,15 +27,15 @@ export default class style {
             return [aabb];
         }
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         if(typeof block == 'undefined') {
             return;
         }
-        
+
         const texture = block.material.texture;
-        
+
         //Рисуем блок
         switch(block.extra_data.shape) {
             case RailShape.NORTH_SOUTH: {
@@ -87,12 +87,12 @@ export default class style {
 }
 
 function plate(vertices, c, x, y, z, rot = 0, dir = 0, back = false) {
-    
-    const lm = MULTIPLY.COLOR.WHITE;
+
+    const pp = IndexedColor.WHITE.packed;
     const flags = 0;
-    
+
     const h = (dir == DIRECTION.UP || dir == DIRECTION.DOWN) ? 0.5 : 0.02;
-    
+
     let d = 0;
     if (dir == DIRECTION.UP) {
         d = -1;
@@ -102,20 +102,20 @@ function plate(vertices, c, x, y, z, rot = 0, dir = 0, back = false) {
 
     switch(rot) {
         case DIRECTION.SOUTH: {
-            vertices.push( x + 0.5, z + 0.5, y + h, 1, 0, 0, 0, 1, d, c[0], c[1], c[2], c[3], lm.r, lm.g, lm.b, flags);
+            vertices.push( x + 0.5, z + 0.5, y + h, 1, 0, 0, 0, 1, d, c[0], c[1], c[2], c[3], pp, flags);
             break;
         }
         case DIRECTION.EAST: {
-            vertices.push( x + 0.5, z + 0.5, y + h, 0, 1, 0, -1, 0, d, c[0], c[1], c[2], c[3], lm.r, lm.g, lm.b, flags);
+            vertices.push( x + 0.5, z + 0.5, y + h, 0, 1, 0, -1, 0, d, c[0], c[1], c[2], c[3], pp, flags);
             break;
         }
         case DIRECTION.WEST: {
-            vertices.push( x + 0.5, z + 0.5, y + h, 0, -1, 0, 1, 0, d, c[0], c[1], c[2], c[3], lm.r, lm.g, lm.b, flags);
+            vertices.push( x + 0.5, z + 0.5, y + h, 0, -1, 0, 1, 0, d, c[0], c[1], c[2], c[3], pp, flags);
             break;
         }
         default: {
-            vertices.push( x + 0.5, z + 0.5, y + h, -1, 0, 0, 0, -1, d, c[0], c[1], c[2], c[3], lm.r, lm.g, lm.b, flags);
+            vertices.push( x + 0.5, z + 0.5, y + h, -1, 0, 0, 0, -1, d, c[0], c[1], c[2], c[3], pp, flags);
         }
     }
-  
+
 }

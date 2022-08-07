@@ -46,7 +46,7 @@
             "compile": {
                 "overlay_mask": "./textures/water_overlay.png"
             },
-            "mask_color": {"r": 0.8105, "g": 0.615, "b": 0},
+            "mask_color": {"r": 830, "g": 630, "b": 0},
             "spawnable": false
         },
         {
@@ -71,7 +71,7 @@
             "tags": [
                 "mask_color"
             ],
-            "mask_color": {"r": 0.8105, "g": 0.615, "b": 0},
+            "mask_color": {"r": 830, "g": 630, "b": 0},
             "fluid": {
                 "max_power": 1,
                 "still_block_id": 202
@@ -2633,7 +2633,7 @@
             "material": {
                 "id": "stone"
             },
-            "redstone": {}, 
+            "redstone": {},
             "texture": {
                 "up": "block/tnt_top.png",
                 "down": "block/tnt_bottom.png",

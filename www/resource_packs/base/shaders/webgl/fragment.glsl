@@ -26,7 +26,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
 
     if (v_color.a > 0.0) {
-        float mask_shift = v_color.b * 32.;
+        float mask_shift = v_color.b;
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texture(u_texture, biomPos);
         color.rgb += color_mask.rgb * color_mult.rgb;
@@ -63,8 +63,8 @@ void main() {
 
             float msdfSize = 100.0;
 
-            vec4 msdfColor = vec4(v_color.rgb, 1.0);
-            vec4 outlineColor = vec4(1.0 - v_color.rgb, 0.8);
+            vec4 msdfColor = vec4(v_color.rgb / 255.0, 1.0);
+            vec4 outlineColor = vec4(1.0 - v_color.rgb / 255.0, 0.8);
 
             float msdfFactor =  0.5 * length(fwidth(v_texcoord0) * msdfSize);
             float totalThreshold = threshold - outline;
@@ -89,7 +89,7 @@ void main() {
             // default texture fetch pipeline
 
             mipData = manual_mip(v_texcoord0, size);
-            biome = v_color.rg * (1. - 0.5 * step(0.5, u_mipmap));
+            biome = (v_color.rg / 1024.0) * (1. - 0.5 * step(0.5, u_mipmap));
             color = sampleAtlassTexture (mipData, texClamped, biome);
 
             if (v_animInterp > 0.0) {

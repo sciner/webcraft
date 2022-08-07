@@ -1,4 +1,4 @@
-import {DIRECTION, QUAD_FLAGS, MULTIPLY, Vector} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
@@ -11,7 +11,7 @@ const HEIGHT_INNER = 4/32;
 
 const CONNECT_HEIGHT_ON_CEIL = 6 / 16;
 
-const lm = MULTIPLY.COLOR.WHITE.clone();
+const lm = IndexedColor.WHITE.clone();
 
 // Фонарь
 export default class style {

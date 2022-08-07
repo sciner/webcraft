@@ -69,7 +69,7 @@ export class Default_Terrain_Generator {
             }
         }
 
-        let cell = {biome: {dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0), code: 'Flat'}};
+        let cell = {biome: {dirt_color: new Indexedcolor(980, 980, 0), code: 'Flat'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
         return {

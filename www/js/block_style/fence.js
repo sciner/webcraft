@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, ROTATE} from '../helpers.js';
+import {DIRECTION, IndexedColor, ROTATE} from '../helpers.js';
 import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
 
 // Забор
@@ -18,12 +18,6 @@ export default class style {
         }
 
         const cardinal_direction = block.getCardinalDirection();
-
-        // Texture color multiplier
-        let lm = MULTIPLY.COLOR.WHITE;
-        if(block.id == BLOCK.GRASS_BLOCK.id) {
-            lm = dirt_color; // MULTIPLY.COLOR.GRASS;
-        }
 
         let DIRECTION_BACK          = DIRECTION.BACK;
         let DIRECTION_RIGHT         = DIRECTION.RIGHT;
@@ -108,7 +102,7 @@ export default class style {
 }
 
 function push_part(vertices, c, x, y, z, xs, zs, h) {
-    let lm          = MULTIPLY.COLOR.WHITE;
+    let pp          = IndexedColor.WHITE.packed;
     let flags       = 0;
     let sideFlags   = 0;
     let upFlags     = 0;
@@ -117,35 +111,35 @@ function push_part(vertices, c, x, y, z, xs, zs, h) {
         xs, 0, 0,
         0, zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags | upFlags);
+        pp, flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y,
         xs, 0, 0,
         0, -zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags);
+        pp, flags);
     // SOUTH
     vertices.push(x, z - zs/2, y + h/2,
         xs, 0, 0,
         0, 0, h,
         c[0], c[1], c[2]*xs, -c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // NORTH
     vertices.push(x, z + zs/2, y + h/2,
         xs, 0, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*xs, c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // WEST
     vertices.push(x - xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*zs, c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // EAST
     vertices.push(x + xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, h,
         c[0], c[1], c[2]*zs, -c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
 }
