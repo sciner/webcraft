@@ -4832,6 +4832,7 @@
                 "block/cocoa_stage2.png"
             ],
             "tags": [
+                "no_drop_ao",
                 "no_set_on_top"
             ],
             "can_rotate": true,
