@@ -70,7 +70,7 @@ export default class style {
                 pos:        pos,
                 matrix:     plane_matrix,
                 flag:       flag,
-                texture:    [...c_up_top]
+                texture:    [c_up_top[0], c_up_top[1], c_up_top[2] * -1, c_up_top[3]]
             });
         }
 
