@@ -238,6 +238,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
 export class CraftTableInventorySlot extends CraftTableSlot {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
+        
         super(x, y, w, h, id, title, text, ct, slot_index);
 
         // Custom drawing

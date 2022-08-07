@@ -6644,11 +6644,13 @@
         },
         {
             "id": 5888,
+            "transparent": true,
             "name": "ANVIL_TABLE",
-            "sound": "madcraft:block.wood",
+            "sound": "madcraft:block.stone",
             "window": "frmAnvil",
+            "style": "anvil",
             "material": {
-                "id": "wood"
+                "id": "iron"
             },
             "texture": {
                 "up": "block/anvil_top.png",
@@ -6656,8 +6658,12 @@
                 "north": "block/chipped_anvil_top.png",
                 "south": "block/damaged_anvil_top.png"
             },
+            "extra_data": {
+                "damage": 0
+            },
             "can_rotate": true,
-            "is_entity": true
+            "is_entity": true,
+            "is_chest": true
         }
     ]
 }

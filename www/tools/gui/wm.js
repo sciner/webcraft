@@ -787,6 +787,10 @@ export class TextEdit extends Window {
         }
 
     }
+    
+    Text(text) {
+        this.buffer = text.split('');
+    }
 
     // Draw
     draw(ctx, ax, ay) {
