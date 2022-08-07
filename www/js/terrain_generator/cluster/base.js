@@ -47,18 +47,7 @@ export class ClusterBase {
         } else {
             return false;
         }
-        const { cx, cy, cz, cw } = chunk.dataChunk;
-        const index = cx * x + cy * y + cz * z + cw;
-        temp_vec2.x = x;
-        temp_vec2.y = y;
-        temp_vec2.z = z;
-        if(rotate) {
-            chunk.tblocks.rotate.set(temp_vec2, rotate);
-        }
-        if(extra_data) {
-            chunk.tblocks.extra_data.set(temp_vec2, extra_data);
-        }
-        chunk.tblocks.id[index] = block_id;
+        chunk.tblocks.setBlockIndirect(x, y, z, block_id, rotate, extra_data);
         return true;
     }
 

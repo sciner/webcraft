@@ -26,7 +26,6 @@ export class BlockNeighbours {
 
     constructor() {
         this.pcnt   = 6;
-        this.water_in_water = false;
         this.UP     = null;
         this.DOWN   = null;
         this.SOUTH  = null;
@@ -133,6 +132,7 @@ export class TypedBlocks3 {
          */
         this.vertices  = null;
         this.id = this.dataChunk.uint16View;
+        this.liquid = new Uint8Array(this.dataChunk.outerLen);
     }
 
     ensureVertices() {
@@ -257,11 +257,7 @@ export class TypedBlocks3 {
                 if(this.isFilled(id_up) && this.isFilled(id_down) && this.isFilled(id_south) && this.isFilled(id_north) && this.isFilled(id_west) && this.isFilled(id_east)) {
                     return true;
                 }
-            } /*else if(is_water) {
-                if(this.isWater(id_up) && this.isWater(id_down) && this.isWater(id_south) && this.isWater(id_north) && this.isWater(id_west) && this.isWater(id_east)) {
-                    return true;
-                }
-            }*/
+            }
         }
         return false;
     }
@@ -407,7 +403,6 @@ export class TypedBlocks3 {
         }
 
         const neighbours = new BlockNeighbours();
-        let is_water_count = 0;
         for (let dir = 0; dir < CC.length; dir++) {
             const cb = cache[dir];
             neighbours[CC[dir].name] = cb;
@@ -416,12 +411,6 @@ export class TypedBlocks3 {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties && properties.is_water) {
-                is_water_count++;
-            }
-        }
-        if(is_water_count == 6) {
-            neighbours.water_in_water = tblock.material.is_water;
         }
 
         return neighbours;
@@ -462,6 +451,30 @@ export class TypedBlocks3 {
             if (portals[i].aabb.contains(wx, wy, wz)) {
                 const other = portals[i].toRegion;
                 other.uint16View[other.indexByWorld(wx, wy, wz)] = id;
+                pcnt++;
+            }
+        }
+
+        return pcnt;
+    }
+
+    setLiquid(x, y, z, value) {
+        const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        this.liquid[index] = value;
+        //TODO: check in liquid queue here
+        const wx = x + pos.x;
+        const wy = y + pos.y;
+        const wz = z + pos.z;
+        if (safeAABB.contains(wx, wy, wz)) {
+            return 0;
+        }
+        let pcnt = 0;
+        //TODO: use only face-portals
+        for (let i = 0; i < portals.length; i++) {
+            if (portals[i].aabb.contains(wx, wy, wz)) {
+                const other = portals[i].toRegion;
+                other.rev.tblocks.water[other.indexByWorld(wx, wy, wz)] = value;
                 pcnt++;
             }
         }
@@ -832,12 +845,6 @@ export class TBlock {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties.is_water) {
-                is_water_count++;
-            }
-        }
-        if(is_water_count == 6) {
-            neighbours.water_in_water = this.material.is_water;
         }
         return neighbours;
     }

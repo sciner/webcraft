@@ -182,6 +182,7 @@ export class Chunk {
 
     // setBlock
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+        //TODO: take liquid into account
         // fix rotate
         if(rotate && typeof rotate === 'object') {
             rotate = new Vector(rotate).roundSelf(1);
@@ -232,8 +233,15 @@ export class Chunk {
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
+        const { liquid } = this.tblocks;
         const index = cx * x + cy * y + cz * z + cw;
-        uint16View[index] = block_id;
+        if (this.isLiquid(block_id)) {
+            uint16View[index] = block_id;
+            liquid[index] = 0;
+        } else {
+            uint16View[index] = 0;
+            liquid[index] = block_id;
+        }
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
         }
@@ -248,6 +256,10 @@ export class Chunk {
 
     isWater(id) {
         return id == 200 || id == 202;
+    }
+
+    isLiquid(id) {
+        return id == 200 || id == 202 || id == 170 || id == 171;
     }
 
     static neibMat = [null, null, null, null, null, null];
