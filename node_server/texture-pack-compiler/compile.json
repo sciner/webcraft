@@ -6643,9 +6643,9 @@
             "texture": "block/shroomlight.png"
         },
         {
-            "id": 5888,
+            "id": 195,
             "transparent": true,
-            "name": "ANVIL_TABLE",
+            "name": "ANVIL",
             "sound": "madcraft:block.stone",
             "window": "frmAnvil",
             "style": "anvil",
@@ -6661,9 +6661,7 @@
             "extra_data": {
                 "damage": 0
             },
-            "can_rotate": true,
-            "is_entity": true,
-            "is_chest": true
+            "can_rotate": true
         }
     ]
 }

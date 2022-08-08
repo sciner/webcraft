@@ -1,10 +1,10 @@
 import { MULTIPLY, DIRECTION } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
-import { RailShape } from '../block_type/rail_shape.js';
 
 // Накавальня
 export default class style {
+    
     static getRegInfo() {
         return {
             styles: ['anvil'],
@@ -39,8 +39,6 @@ export default class style {
         box(12, 12, 4, 0, vertices, side, side, x, y, z);
     }
     
-    
-
 }
 
 function box(width, length, height, shift, vertices, texture, texture_up, x, y, z) {
