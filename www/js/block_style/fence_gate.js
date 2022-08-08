@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
+import {DIRECTION, IndexedColor} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 
@@ -14,7 +14,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     // computeAABB
     static computeAABB(block, for_physic) {
         let aabb = new AABB();
@@ -43,11 +43,11 @@ export default class style {
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
-        
+
         const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.FORWARD);
 
         const cardinal_direction = block.getCardinalDirection();
-        
+
         if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {
             // Столбы
             push_part(vertices, texture, x + 8 * SIZE, y + 4 * SIZE, z + SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
@@ -118,7 +118,7 @@ function push_half_gate(orientation, x, y, z, vertices, tex) {
 }
 
 function push_part(vertices, c, x, y, z, xs, zs, h) {
-    let lm          = MULTIPLY.COLOR.WHITE;
+    let pp          = IndexedColor.WHITE.packed;
     let flags       = 0;
     let sideFlags   = 0;
     let upFlags     = 0;
@@ -127,35 +127,35 @@ function push_part(vertices, c, x, y, z, xs, zs, h) {
         xs, 0, 0,
         0, zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags | upFlags);
+        pp, flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y,
         xs, 0, 0,
         0, -zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags);
+        pp, flags);
     // SOUTH
     vertices.push(x, z - zs/2, y + h/2,
         xs, 0, 0,
         0, 0, h,
         c[0], c[1], c[2]*xs, -c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // NORTH
     vertices.push(x, z + zs/2, y + h/2,
         xs, 0, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*xs, c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // WEST
     vertices.push(x - xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*zs, c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // EAST
     vertices.push(x + xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, h,
         c[0], c[1], c[2]*zs, -c[3]*h,
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
 }

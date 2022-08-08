@@ -3,19 +3,19 @@ import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 /**
  * @typedef {object} CharUV
  * @property {number} width - width
- * @property {number} height - height 
+ * @property {number} height - height
  * @property {number} xadvance
  * @property {number} yoffset
  * @property {number} x - x
  * @property {number} y - y
  * @property {string} char - char
- * 
+ *
  */
 
 /**
  * @typedef {object} Char
  * @property {number} width - normalised width
- * @property {number} height - normalised height 
+ * @property {number} height - normalised height
  * @property {number} xn - normalised x
  * @property {number} yn - normalised y
  * @property {number} shift_x - normalised shift x
@@ -50,7 +50,7 @@ export default class style {
         matrix,
         center,
         alignCenter = false,
-        color = [1, 1, 1]
+        color = [255, 255, 255]
     }) {
         const aabbc = style._aabbc;
         const totalHeight = baseHeight * lines;
@@ -108,14 +108,14 @@ export default class style {
             cursorX++;
 
             aabbc.translate(
-                0, 
+                0,
                 - aabbc.height + aabb.height,
                 0
             );
 
             if (alignCenter) {
                 aabbc.translate(
-                    -(maxX * refScale - aabb.width) * 0.5, 
+                    -(maxX * refScale - aabb.width) * 0.5,
                     (maxY * refScale - aabb.height) * 0.5,
                     0
                 );
@@ -163,10 +163,10 @@ export default class style {
         const chars = block.extra_data.chars;
 
         const args = {
-            aabb, 
-            chars, 
-            vertices, 
-            lines: LINES + 1, 
+            aabb,
+            chars,
+            vertices,
+            lines: LINES + 1,
             baseHeight: BASE_HEIGHT,
             center,
             matrix,

@@ -1,4 +1,4 @@
-import {DIRECTION, QUAD_FLAGS, MULTIPLY, Vector} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_SIZE } from './default.js';
@@ -9,7 +9,7 @@ const HEIGHT = 6 / TX_SIZE;
 
 const {mat4} = glMatrix;
 
-const lm = MULTIPLY.COLOR.WHITE.clone();
+const lm = IndexedColor.WHITE.clone();
 
 // Свечи
 export default class style {

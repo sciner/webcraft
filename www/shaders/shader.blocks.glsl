@@ -89,7 +89,7 @@
     in vec3 a_axisY;
     in vec2 a_uvCenter;
     in vec2 a_uvSize;
-    in vec3 a_color;
+    in uint a_color;
     in float a_flags;
     in vec2 a_quad;
 

@@ -1,5 +1,5 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
-import {Color, Vector} from '../../helpers.js';
+import {IndexedColor, Vector} from '../../helpers.js';
 import { Default_Terrain_Generator, alea } from '../default.js';
 import {BLOCK} from '../../blocks.js';
 import {TREES} from '../../terrain_generator/biomes.js';
@@ -55,7 +55,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             );
         }
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+        const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: {
             code: 'Flat'
         }};
 

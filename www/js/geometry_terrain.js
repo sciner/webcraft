@@ -1,3 +1,5 @@
+import {IndexedColor} from './helpers.js';
+
 class QuadAttr {
     /**
      *
@@ -21,8 +23,8 @@ class QuadAttr {
         this.axisY = buffer.subarray(offset + 6, offset + 9);
         this.uvCenter = buffer.subarray(offset + 9, offset + 11);
         this.uvSize = buffer.subarray(offset + 11, offset + 13);
-        this.color = buffer.subarray(offset + 13, offset + 16);
-        this.flags = buffer.subarray(offset + 16, offset + 17);
+        this.color = buffer.subarray(offset + 13, offset + 14);
+        this.flags = buffer.subarray(offset + 14, offset + 15);
 
         return this;
     }
@@ -42,10 +44,16 @@ export default class GeometryTerrain {
          */
         this.data;
 
-        if (vertices instanceof Array) {
+        if (vertices instanceof ArrayBuffer) {
             this.data = new Float32Array(vertices);
-        } else {
+        } else if (vertices instanceof Float32Array) {
             this.data = vertices;
+        } else {
+            this.data = new Float32Array(vertices);
+            const uint32Data = new Uint32Array(this.data.buffer);
+            for (let i = 0; i < vertices.length; i += this.strideFloats) {
+                uint32Data[i + 13] = vertices[i + 13];
+            }
         }
 
         this.size = this.data.length / this.strideFloats;
@@ -88,9 +96,9 @@ export default class GeometryTerrain {
         else if (mode === 'replace')
             operation = (bufferFlag) => flag;
 
-        // flag located by 16 offset
+        // flag located by 14 offset
         for (let i = 0; i < this.data.length; i += this.strideFloats) {
-            this.data[i + 16] = operation(this.data[i + 16]);
+            this.data[i + 14] = operation(this.data[i + 14]);
         }
 
         this.updateID++;
@@ -122,8 +130,8 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 16 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -309,6 +317,7 @@ export default class GeometryTerrain {
         const oldStride = 12;
         const len = vertices.length / oldStride / 6;
         const newArr = new Float32Array(len * GeometryTerrain.strideFloats);
+        const uint32Data = new Float32Array(newArr.buffer);
         let k = 0;
         for (let j = 0; j < vertices.length; j += oldStride * 6) {
             let du = 0, dv = 0, dd = 0, d0 = 0;
@@ -365,14 +374,12 @@ export default class GeometryTerrain {
             newArr[k++] = (vertices[j + dd + 3] - vertices[j + d0 + 3]);
             newArr[k++] = (vertices[j + dd + 4] - vertices[j + d0 + 4]);
             // color
-            newArr[k++] = vertices[j + 5];
-            newArr[k++] = vertices[j + 6];
-            newArr[k++] = vertices[j + 7];
+            uint32Data[k++] = IndexedColor.packArg(vertices[j + 5], vertices[j + 6] , vertices[j + 7]);
             // flags
             newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
         return newArr;
     }
 
-    static strideFloats = 17;
+    static strideFloats = 15;
 }

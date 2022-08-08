@@ -4,7 +4,7 @@ import {GeometryPool} from "./GeometryPool.js";
 
 export class Basic05GeometryPool extends GeometryPool {
     constructor(context, {
-        pageSize = 227,
+        pageSize = 256,
         pageCount = 1000,
         growCoeff = 1.5
     }) {

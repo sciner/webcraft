@@ -9,7 +9,9 @@
 void main() {
     #include<terrain_read_flags_vert>
 
-    v_color = vec4(a_color, 1.0);
+    v_color = vec4(float(a_color & uint(0x3ff)),
+        float((a_color >> 10) & uint(0x3ff)),
+        a_color >> 20, 1.0);
     vec2 uvCenter0 = a_uvCenter;
     vec2 uvCenter1 = a_uvCenter;
     v_animInterp = 0.0;
@@ -27,7 +29,8 @@ void main() {
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
         float frames = v_color.b;
-        float t = ((u_time * v_color.b / 3.) / 1000.);
+        v_color.b = 1024.0; // no mask_shift for you, sorry
+        float t = ((u_time * frames / 3.) / 1000.);
         float i = floor(t);
         uvCenter0.y += mod(i, frames) / 32.;
         uvCenter1.y += mod(i + 1., frames) / 32.;
@@ -51,10 +54,13 @@ void main() {
     }
 
     // Scrolled textures
-    uvCenter0.x += float(flagScroll) * (u_time * v_color.r);
-    uvCenter1.x += float(flagScroll) * (u_time * v_color.r);
-    uvCenter0.y += float(flagScroll) * (u_time * v_color.g);
-    uvCenter1.y += float(flagScroll) * (u_time * v_color.g);
+    if (flagScroll > 0) {
+        vec2 sz = vec2(128.0, 512.0);
+        uvCenter0.x += u_time / 1000.0 * v_color.r / sz.x;
+        uvCenter1.x += u_time / 1000.0 * v_color.r / sz.x;
+        uvCenter0.y -= u_time / 1000.0 * v_color.g / sz.y;
+        uvCenter1.y -= u_time / 1000.0 * v_color.g / sz.y;
+    }
 
     //
     v_texcoord0 = uvCenter0 + a_uvSize * a_quad;

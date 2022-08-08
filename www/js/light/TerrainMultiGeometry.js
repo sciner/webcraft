@@ -1,7 +1,7 @@
 import GeometryTerrain from "../geometry_terrain.js";
 
 export class TerrainMultiGeometry {
-    static strideFloats = 18;
+    static strideFloats = 16;
     static sortAss = (a, b) => {
         return a - b;
     };
@@ -58,9 +58,9 @@ export class TerrainMultiGeometry {
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 16 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 17 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
+        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -158,50 +158,6 @@ export class TerrainMultiGeometry {
             }
         }
         updates.length = j;
-    }
-
-    /**
-     * both offsets are in quads
-     * @param dstOffset
-     * @param list
-     * @param srcOffset
-     * @param chunkId
-     */
-    update17(dstOffset, list, srcOffset, srcQuads, chunkId) {
-        if (srcQuads === 0) {
-            return;
-        }
-        dstOffset *= this.strideFloats;
-        srcOffset *= 17;
-        let j = dstOffset, k = srcOffset;
-        const {data} = this;
-        for (let i = 0; i < srcQuads; i++) {
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = list[k++];
-            data[j++] = list[k++];
-
-            data[j++] = chunkId;
-        }
-
-        this.updates.push(dstOffset, j);
-        this.updateID++;
     }
 
     updatePage(dstOffset, floatBuffer) {

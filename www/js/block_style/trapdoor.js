@@ -1,5 +1,5 @@
-import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
-import {CubeSym, pushSym} from '../core/CubeSym.js';
+import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
+import {pushSym} from '../core/CubeSym.js';
 import {BLOCK} from "../blocks.js";
 
 // Люк
@@ -16,12 +16,6 @@ export default class style {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
-        }
-
-        // Texture color multiplier
-        let lm = MULTIPLY.COLOR.WHITE;
-        if(block.id == BLOCK.GRASS_BLOCK.id) {
-            lm = dirt_color; // MULTIPLY.COLOR.GRASS;
         }
 
         let DIRECTION_UP            = DIRECTION.UP;
@@ -122,7 +116,7 @@ export default class style {
 //
 function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, opened, on_ceil) {
 
-    let lm              = MULTIPLY.COLOR.WHITE;
+    let pp              = IndexedColor.WHITE.packed;
     let flags           = 0;
     let sideFlags       = 0;
     let upFlags         = 0;
@@ -155,40 +149,40 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
         x, z, y + ys,
         ...top_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
-        lm.r, lm.g, lm.b, flags | upFlags);
+        pp, flags | upFlags);
     // BOTTOM
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z, y,
         ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
-        lm.r, lm.g, lm.b, flags);
+        pp, flags);
     // SOUTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z - zs/2, y + ys/2,
         ...south_rotate,
         tex_front[0], tex_front[1], tex_front[2], -tex_front[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // NORTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z + zs/2, y + ys/2,
         ...north_rotate,
         tex_front[0], tex_front[1], -tex_front[2], tex_front[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // WEST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x - xs/2, z, y + ys/2,
         ...west_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // EAST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x + xs/2, z, y + ys/2,
         ...east_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
 }

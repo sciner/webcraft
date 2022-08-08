@@ -1,7 +1,7 @@
 import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
-import GeometryTerrain from "./geometry_terrain.js";
+import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
@@ -314,7 +314,7 @@ export class HUD {
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(Qubatch.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-                + ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+                + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
                 + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
             //

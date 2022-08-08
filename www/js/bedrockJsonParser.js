@@ -40,7 +40,7 @@ const computePivot = vec3.create();
 const computeScale = vec3.create();
 const computeRot = quat.create();
 
-const lm = {r : -1, g : -1, b : -1};
+const lm = 0;
 
 /**
  * Fill cube from bedrock cube notation.
@@ -138,7 +138,7 @@ export function fillCube({
             xX, xZ, xY,
             zX, zZ, zY,
             c[0], c[1], c[2] * flip, -c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
 
         //down
         c = uv.down;
@@ -146,7 +146,7 @@ export function fillCube({
             xX, xZ, xY,
             -zX, -zZ, -zY,
             c[0], c[1], c[2] * flip, -c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
 
     }
 
@@ -157,7 +157,7 @@ export function fillCube({
             xX, xZ, xY,
             yX, yZ, yY,
             c[0], c[1], c[2] * flip, -c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
 
         //south
         c = uv.south;
@@ -165,7 +165,7 @@ export function fillCube({
             xX, xZ, xY,
             -yX, -yZ, -yY,
             c[0], c[1], -c[2] * flip, c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
     }
 
     if (dy * dz > 0) {
@@ -175,7 +175,7 @@ export function fillCube({
             zX, zZ, zY,
             -yX, -yZ, -yY,
             c[0], c[1], -c[2] * flip, c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
 
         //east
         c = mirror ? uv.west : uv.east;
@@ -183,7 +183,7 @@ export function fillCube({
             zX, zZ, zY,
             yX, yZ, yY,
             c[0], c[1], c[2] * flip, -c[3],
-            lm.r, lm.g, lm.b, flags);
+            lm, flags);
     }
 
     return target;
