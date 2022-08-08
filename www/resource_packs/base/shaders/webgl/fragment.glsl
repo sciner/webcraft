@@ -102,7 +102,7 @@ void main() {
 
             // text not allow to discard in this place
             if(v_flagFlagOpacity != 0.) {
-                color.a *= v_color.b;
+                color.a *= v_color.b / 255.0;
             } else {
                 if(color.a < 0.1) discard;
                 if (u_opaqueThreshold > 0.1) {

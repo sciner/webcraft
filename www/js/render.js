@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, IndexedColor, Helpers, Vector, Color, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -892,8 +892,8 @@ export class Renderer {
 
     // createShadowBuffer...
     createShadowVertices(vertices, shapes, pos, c) {
-        let lm          = new Color(0, 0, (performance.now() / 1000) % 1);
-        let pp          = IndexedColor.WHITE;
+        let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
+        let pp          = lm.pack();
         let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = 0;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
