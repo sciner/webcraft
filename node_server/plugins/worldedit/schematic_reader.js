@@ -120,16 +120,18 @@ export class SchematicReader {
                             extra_data: {infested: true}
                         };
                     }
-                } else if(name.endsWith('_ANVIL')) {
-                    const b2 = BLOCK.fromName('ANVIL');
-                    if(b2 && b2.id > 0) {
-                        new_block = {
-                            id: b2.id,
-                            extra_data: {damage: 0}
-                        };
-                        if(name.startsWith('CHIPPED_')) new_block.extra_data.damage = 1;
-                        if(name.startsWith('DAMAGED_')) new_block.extra_data.damage = 2;
-                    }
+                }
+            }
+            // ANVIL
+            if(name.endsWith('ANVIL')) {
+                const b2 = BLOCK.fromName('ANVIL');
+                if(b2 && b2.id > 0) {
+                    new_block = {
+                        id: b2.id,
+                        extra_data: {damage: 0}
+                    };
+                    if(name.startsWith('CHIPPED_')) new_block.extra_data.damage = 1;
+                    if(name.startsWith('DAMAGED_')) new_block.extra_data.damage = 2;
                 }
             }
             // If not implemented block 
