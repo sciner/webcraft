@@ -598,11 +598,13 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.BLOCK_BY_ID[this.player.currentInventoryItem.id];
-            const power = block.light_power_number;
-            // and skip all block that have power greater that 0x0f
-            // it not a light source, it store other light data
-            globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            const block = BLOCK.fromId[this.player.currentInventoryItem.id];
+            if(block) {
+                const power = block.light_power_number;
+                // and skip all block that have power greater that 0x0f
+                // it not a light source, it store other light data
+                globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            }
         }
 
         // Base texture

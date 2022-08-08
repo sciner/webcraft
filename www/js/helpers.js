@@ -1077,7 +1077,7 @@ export class IndexedColor {
 }
 
 IndexedColor.WHITE = new IndexedColor(816, 1008, 0);
-IndexedColor.GRASS = new IndexedColor(900, 965, 0, 0);
+IndexedColor.GRASS = new IndexedColor(900, 965, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;
