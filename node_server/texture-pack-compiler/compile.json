@@ -6681,7 +6681,7 @@
                 "id": "food"
             }
         },{
-            "id": 167,
+            "id": 197,
             "name": "BAKED_POTATO",
             "style": "extruder",
             "texture": "item/baked_potato.png",
