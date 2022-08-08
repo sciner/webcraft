@@ -893,7 +893,6 @@ export class Renderer {
     // createShadowBuffer...
     createShadowVertices(vertices, shapes, pos, c) {
         let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
-        let pp          = lm.pack();
         let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = 0;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
@@ -907,7 +906,7 @@ export class Renderer {
             let zw = z2 - z1; // ширина по оси Z
             let x = -.5 + x1 + xw/2;
             let y_top = -.5 + y2;
-            lm.b = y1;
+            lm.b = Mth.clamp(Math.round(y1 * 255), 0, 255);
             let z = -.5 + z1 + zw/2;
             //
             let c0 = Math.floor(x1 + pos.x) + c[0];
@@ -926,7 +925,7 @@ export class Renderer {
                     xw, 0, 0,
                     0, zw, 0,
                     -c0, -c1, c[2], c[3],
-                    pp, flags | upFlags);
+                    lm.pack(), flags | upFlags);
             }
         }
     }
