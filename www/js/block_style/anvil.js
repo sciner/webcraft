@@ -27,9 +27,11 @@ export default class style {
         const texture = block.material.texture;
         const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
         let up = side;
-        if (block.extra_data.damage == 1) {
+        const damage = block.extra_data?.damage;
+
+        if (damage == 1) {
             up = BLOCK.calcTexture(texture, DIRECTION.NORTH);
-        } else if (block.extra_data.damage == 2) {
+        } else if (damage == 2) {
             up = BLOCK.calcTexture(texture, DIRECTION.SOUTH);
         }
         
