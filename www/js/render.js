@@ -598,7 +598,7 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.fromId[this.player.currentInventoryItem.id];
+            const block = BLOCK.fromId(this.player.currentInventoryItem.id);
             if(block) {
                 const power = block.light_power_number;
                 // and skip all block that have power greater that 0x0f
