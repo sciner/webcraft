@@ -1,9 +1,9 @@
 import { BLOCK } from "../blocks.js";
-import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
+import { Button, Label, TextEdit } from "../../tools/gui/wm.js";
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 
-
+//
 class AnvilSlot extends CraftTableSlot {
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null);
@@ -99,7 +99,7 @@ class AnvilSlot extends CraftTableSlot {
     
 }
 
-
+//
 export class AnvilWindow extends BaseCraftWindow {
 
     constructor(inventory) {
@@ -121,8 +121,8 @@ export class AnvilWindow extends BaseCraftWindow {
                     mode: 'stretch',
                     x: 0,
                     y: 0,
-                    width: 350,
-                    height: 330
+                    width: 350 * 2,
+                    height: 330 * 2
                 }
             }
         };
@@ -147,7 +147,7 @@ export class AnvilWindow extends BaseCraftWindow {
         // Создание слотов для крафта
         this.createCraft(this.cell_size);
         
-        //Редактор названия предмета
+        // Редактор названия предмета
         this.createEdit();
         
         // Обработчик закрытия формы
@@ -205,9 +205,9 @@ export class AnvilWindow extends BaseCraftWindow {
                 sprite: {
                     mode: 'stretch',
                     x: 0,
-                    y: 333,
-                    width: 220,
-                    height: 31
+                    y: 333 * 2,
+                    width: 220 * 2,
+                    height: 31 * 2
                 }
             }
         };
@@ -242,7 +242,7 @@ export class AnvilWindow extends BaseCraftWindow {
             if(typeof this.style.background.image == 'object') {
                 const x = ax + this.x;
                 const y = ay + this.y;
-                const arrow = {x: 353, y: 0, width: 96, height: 41, tox: 200 * this.zoom, toy: 89 * this.zoom};
+                const arrow = {x: 704, y: 0, width: 112, height: 84, tox: 198 * this.zoom, toy: 88 * this.zoom};
                 ctx.drawImage(
                     this.style.background.image,
                     arrow.x,
@@ -251,8 +251,8 @@ export class AnvilWindow extends BaseCraftWindow {
                     arrow.height,
                     x + arrow.tox,
                     y + arrow.toy,
-                    arrow.width * this.zoom,
-                    arrow.height * this.zoom
+                    arrow.width,
+                    arrow.height
                 );
             }
         }
