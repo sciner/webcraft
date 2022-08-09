@@ -31,7 +31,7 @@ export default class Particles_Block_Destroy extends Particles_Base {
             return;
         }
 
-        let flags       = QUAD_FLAGS.NO_AO;
+        let flags       = 0; // QUAD_FLAGS.NO_AO;
         let lm          = IndexedColor.WHITE;
 
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {

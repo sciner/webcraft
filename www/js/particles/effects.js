@@ -49,7 +49,7 @@ export class Particles_Effects extends Particles_Base {
     // Add particle
     add(pos, params) {
 
-        const flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
+        const flags = /*QUAD_FLAGS.NO_AO |*/ QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
         const {x, y, z} = pos;
 
         const lm = params.lm || DEFAULT_LM;
