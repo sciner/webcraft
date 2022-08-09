@@ -1,4 +1,3 @@
-import {Mesh_Default} from "./mesh/default.js";
 import {ServerClient} from "./server_client.js";
 import {TextBox} from "./ui/textbox.js";
 

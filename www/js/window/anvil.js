@@ -46,11 +46,11 @@ class AnvilSlot extends CraftTableSlot {
             this.setItem(dropItem, e);
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             
-            //Если это первый слот
+            // Если это первый слот
             if (this == ct.first_slot) {
                 const block = BLOCK.fromId(dropItem.id);
                 const label = (dropItem?.extra_data?.label) ? dropItem.extra_data.label : block.name;
-                ct.name.Text(label);
+                ct.lbl_edit.setEditText(label);
             }
         };
     }
@@ -62,7 +62,7 @@ class AnvilSlot extends CraftTableSlot {
     getResult(create) {
         const first_item = this.ct.first_slot.getItem();
         const second_item = this.ct.second_slot.getItem();
-        const label = this.ct.name.buffer.join('');
+        const label = this.ct.lbl_edit.buffer.join('');
         if (!first_item) {
             this.ct.state = false;
             this.ct.result_slot.setItem(null);
@@ -78,7 +78,7 @@ class AnvilSlot extends CraftTableSlot {
                         }
                         item.extra_data.label = label;
                         item.entity_id = randomUUID();
-                        this.ct.name.buffer = [];
+                        this.ct.lbl_edit.buffer = [];
                     }
                 } else {
                     this.ct.state = false;
@@ -211,16 +211,17 @@ export class AnvilWindow extends BaseCraftWindow {
                 }
             }
         };
-        this.name = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'tilte_edit', null, 'Hello, World!');
-        this.name.word_wrap          = false;
-        this.name.style.color        = '#ffffff';
-        this.name.focused            = true;
-        this.name.max_length         = 19;
-        this.name.max_lines          = 1;
-        this.name.style.font.size    *= this.zoom * 1.1;
-        this.name.style.background = options.background;
-        this.name.setBackground(options.background.image);
-        this.add(this.name);
+        this.lbl_edit = new TextEdit(118 * this.zoom, 40 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!');
+        // this.lbl_edit = new TextBox(this.zoom);
+        this.lbl_edit.word_wrap         = false;
+        this.lbl_edit.focused           = true;
+        this.lbl_edit.max_length        = 19;
+        this.lbl_edit.max_lines         = 1;
+        this.lbl_edit.style.color       = '#ffffff';
+        this.lbl_edit.style.font.size   *= this.zoom * 1.1;
+        this.lbl_edit.style.background  = options.background;
+        this.lbl_edit.setBackground(options.background.image);
+        this.add(this.lbl_edit);
         
     }
     
