@@ -11,37 +11,30 @@ class AnvilSlot extends CraftTableSlot {
         this.ct = ct;
 
         this.onMouseEnter = function() {
-            console.log("onMouseEnter");
             this.style.background.color = '#ffffff55';
-            //Если это третий слот
-            //if (this == ct.result_slot) {
-                this.getResult();
-            //}
+            this.getResult();
         };
 
         this.onMouseLeave = function() {
-            console.log("onMouseLeave");
             this.style.background.color = '#00000000';
             this.getResult();
         };
         
         this.onMouseDown = function(e) { 
-            console.log("onMouseDown");
-            this.getResult();
+            this.getResult(this == ct.result_slot);
             const dragItem = this.getItem();
             if (!dragItem) {
                 return;
             }
-            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
-            this.setItem(null);
             if (this == ct.result_slot) {
                 ct.first_slot.setItem(null);
                 ct.second_slot.setItem(null);
             }
+            this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
+            this.setItem(null);
         };
         
         this.onDrop = function(e) {
-            console.log("onDrop");
             if (this == ct.result_slot) {
                 return;
             }
@@ -55,14 +48,10 @@ class AnvilSlot extends CraftTableSlot {
             
             //Если это первый слот
             if (this == ct.first_slot) {
-                /*
-                * to do Изменение логики переименования предмета
-                */
                 const block = BLOCK.fromId(dropItem.id);
-                const name = (block?.extra_data?.title) ? block.extra_data.title : block.name;
-                ct.name.Text(name);
+                const label = (dropItem?.extra_data?.label) ? dropItem.extra_data.label : block.name;
+                ct.name.Text(label);
             }
-            
         };
     }
     
@@ -70,26 +59,40 @@ class AnvilSlot extends CraftTableSlot {
         return this.ct.inventory;
     }
     
-    getResult() {
+    getResult(create) {
         const first_item = this.ct.first_slot.getItem();
         const second_item = this.ct.second_slot.getItem();
+        const label = this.ct.name.buffer.join('');
         if (!first_item) {
             this.ct.state = false;
             this.ct.result_slot.setItem(null);
-        }
-        if (!second_item) {
-            const name = this.ct.name.buffer.join('');
-            //to do сделать переименование
-            this.ct.state = true;
-            this.ct.result_slot.setItem(first_item);
         } else {
-            if (second_item.id == first_item.id) {
-                //to do починка
-                this.ct.state = true;
-                this.ct.result_slot.setItem(first_item);
+            if (!second_item) {
+                if (!first_item?.extra_data?.label || first_item.extra_data.label != label) {
+                    this.ct.state = true;
+                    this.ct.result_slot.setItem(first_item);
+                    if (create) {
+                        const item = this.ct.result_slot.getItem();
+                        if (!item?.extra_data) {
+                            item.extra_data = {label: ""};
+                        }
+                        item.extra_data.label = label;
+                        item.entity_id = randomUUID();
+                        this.ct.name.buffer = [];
+                    }
+                } else {
+                    this.ct.state = false;
+                    this.ct.result_slot.setItem(null);
+                }
             } else {
-                this.ct.state = false;
-                this.ct.result_slot.setItem(null);
+                if (second_item.id == first_item.id) {
+                    //to do починка
+                    this.ct.state = true;
+                    this.ct.result_slot.setItem(first_item);
+                } else {
+                    this.ct.state = false;
+                    this.ct.result_slot.setItem(null);
+                }
             }
         }
     }

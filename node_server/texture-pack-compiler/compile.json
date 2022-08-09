@@ -6661,7 +6661,10 @@
             "extra_data": {
                 "damage": 0
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "tags": [
+                "no_drop_ao"
+            ]
         }
     ]
 }
