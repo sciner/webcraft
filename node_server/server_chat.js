@@ -125,11 +125,11 @@ export class ServerChat {
                     cnt = args[2];
                 }
                 cnt = Math.max(cnt | 0, 1);
-                let b = BLOCK[name.toUpperCase()];
+                let b = BLOCK.fromName(name.toUpperCase());
                 if(b) {
-                    const block = BLOCK.convertItemToInventoryItem(b, null, true);
+                    const block = BLOCK.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
-                    let ok = player.inventory.increment(block, true);
+                    const ok = player.inventory.increment(block, true);
                     if(ok) {
                         this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
                     } else {
