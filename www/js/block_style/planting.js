@@ -1,4 +1,4 @@
-import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector, calcRotateMatrix} from '../helpers.js';
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Color, Vector, calcRotateMatrix} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
@@ -8,6 +8,10 @@ import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
+
+const MELON_ATTACHED_PLANES = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}},
+];
 
 const DEFAULT_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
@@ -99,7 +103,7 @@ export default class style {
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
-        style.lm.set(MULTIPLY.COLOR.WHITE);
+        style.lm.set(IndexedColor.WHITE);
         style.lm.b = BLOCK.getAnimations(material, 'up');
         if(style.lm.b > 1) {
             flag |= QUAD_FLAGS.FLAG_ANIMATED;
@@ -159,7 +163,33 @@ export default class style {
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
             }
         }
-        
+
+        // Melon seeds
+        if (material.name == "MELON_SEEDS") {
+            if (block.extra_data.complete) {
+                dy = -0.2;
+                texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
+                planes = MELON_ATTACHED_PLANES;
+                switch (block.rotate.y) {
+                    case DIRECTION.NORTH:
+                        planes[0].rot[1] = Math.PI;
+                    break;
+                    case DIRECTION.WEST:
+                        planes[0].rot[1] = Math.PI * 3 / 2;
+                    break;
+                    case DIRECTION.EAST:
+                        planes[0].rot[1] = Math.PI / 2;
+                    break;
+                    default:
+                        planes[0].rot[1] = 0;
+                    break;
+                }
+            } else {
+                dy = 0.2 * block.extra_data.stage - 0.9;
+                texture = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+            }
+        }
+
         for(let i = 0; i < planes.length; i++) {
             const plane = planes[i];
             // fill object

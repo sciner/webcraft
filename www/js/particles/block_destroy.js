@@ -1,4 +1,4 @@
-import { Color, DIRECTION, getChunkAddr, MULTIPLY, QUAD_FLAGS, Vector } from '../helpers.js';
+import { Color, DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
@@ -31,8 +31,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
             return;
         }
 
-        let flags       = QUAD_FLAGS.NO_AO;
-        let lm          = MULTIPLY.COLOR.WHITE;
+        let flags       = 0; // QUAD_FLAGS.NO_AO;
+        let lm          = IndexedColor.WHITE;
 
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
             this.life = 0;
@@ -118,10 +118,10 @@ export default class Particles_Block_Destroy extends Particles_Base {
             p.dz = p.z / d * p.speed;
         }
 
-        this.vertices = new Float32Array(this.vertices);
-
         // we should save start values
-        this.buffer = new GeometryTerrain(this.vertices.slice());
+        this.buffer = new GeometryTerrain(this.vertices);
+        // geom terrain converts vertices array to float32/uint32data combo, now we can take it
+        this.vertices = this.buffer.data.slice();
 
     }
 

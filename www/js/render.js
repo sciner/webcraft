@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, Color, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -318,7 +318,7 @@ export class Renderer {
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.55 * 1.0; // 1.3
+        gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
         gu.sunDir = [-1, -1, 1];
         gu.useSunDir = true;
 
@@ -598,11 +598,13 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.BLOCK_BY_ID[this.player.currentInventoryItem.id];
-            const power = block.light_power_number;
-            // and skip all block that have power greater that 0x0f
-            // it not a light source, it store other light data
-            globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            const block = BLOCK.fromId(this.player.currentInventoryItem.id);
+            if(block) {
+                const power = block.light_power_number;
+                // and skip all block that have power greater that 0x0f
+                // it not a light source, it store other light data
+                globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            }
         }
 
         // Base texture
@@ -892,7 +894,7 @@ export class Renderer {
 
     // createShadowBuffer...
     createShadowVertices(vertices, shapes, pos, c) {
-        let lm          = new Color(0, 0, (performance.now() / 1000) % 1);
+        let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
         let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = 0;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
@@ -906,7 +908,7 @@ export class Renderer {
             let zw = z2 - z1; // ширина по оси Z
             let x = -.5 + x1 + xw/2;
             let y_top = -.5 + y2;
-            lm.b = y1;
+            lm.b = Mth.clamp(Math.round(y1 * 255), 0, 255);
             let z = -.5 + z1 + zw/2;
             //
             let c0 = Math.floor(x1 + pos.x) + c[0];
@@ -925,7 +927,7 @@ export class Renderer {
                     xw, 0, 0,
                     0, zw, 0,
                     -c0, -c1, c[2], c[3],
-                    lm.r, lm.g, lm.b, flags | upFlags);
+                    lm.pack(), flags | upFlags);
             }
         }
     }

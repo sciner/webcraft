@@ -192,8 +192,7 @@ export function pushSym(
         x0, z0, y0,
         ux, uz, uy, vx, vz, vy,
         c0, c1, c2, c3,
-        r, g, b,
-        flags
+        pp, flags
     ) {
     const mat = CubeSym.matrices[sym];
     vertices.push(
@@ -209,6 +208,6 @@ export function pushSym(
         vx * mat[6] + vy * mat[7] + vz * mat[8],
         vx * mat[3] + vy * mat[4] + vz * mat[5],
 
-        c0, c1, c2, c3, r, g, b, flags
+        c0, c1, c2, c3, pp, flags
     );
 }

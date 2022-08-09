@@ -206,6 +206,9 @@ export class BLOCK {
             resp += ` (${mat.title})`;
         }
         resp = resp.replaceAll('_', ' ');
+        if(block.extra_data?.label) {
+            resp = block.extra_data?.label;
+        }
         return resp;
     }
 

@@ -1,4 +1,4 @@
-import {Color, QUAD_FLAGS, Vector, VectorCollector} from '../helpers.js';
+import {IndexedColor, QUAD_FLAGS, Vector, VectorCollector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
@@ -122,7 +122,7 @@ export class MeshGroup {
      * @param {bool} force_inventory_style
      */
     buildVertices(tx, ty, tz, force_inventory_style, matrix, pivot) {
-        const dirt_color = new Color(850 / 1024, 930 / 1024, 0, 0);
+        const dirt_color = new IndexedColor(850, 930, 0, 0);
         const biome = {
             code:       'GRASSLAND',
             color:      '#98a136'
@@ -179,8 +179,8 @@ export class MeshGroup {
 
         // Create draw buffers
         this.meshes.forEach((mesh, _, map) => {
-            mesh.buffer = new GeometryTerrain(new Float32Array(mesh.vertices));
-            mesh.buffer.changeFlags(QUAD_FLAGS.NO_AO, 'or');
+            mesh.buffer = new GeometryTerrain(mesh.vertices);
+            // mesh.buffer.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_AO, 'or');
         });
 
     }

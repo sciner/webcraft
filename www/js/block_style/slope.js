@@ -1,4 +1,4 @@
-import { MULTIPLY, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
+import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -43,7 +43,7 @@ export default class style {
         const c                 = BLOCK.calcTexture(texture, DIRECTION.NORTH);
         const c_up              = BLOCK.calcTexture(texture, DIRECTION.UP);
         const c_down            = BLOCK.calcTexture(texture, DIRECTION.DOWN);
-        const lm                = MULTIPLY.COLOR.WHITE;
+        const lm                = IndexedColor.WHITE;
         const cd                = block.getCardinalDirection();
         const on_ceil           = style.isOnCeil(block);
         const anim_frames       = 0;

@@ -1,4 +1,4 @@
-import { MULTIPLY, DIRECTION } from '../helpers.js';
+import { DIRECTION, IndexedColor } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
@@ -52,21 +52,21 @@ function box(width, length, height, shift, dir, vertices, texture, texture_up, x
     shift /= 16;
     height /= 16;
     length /= 16;
-    const lm = MULTIPLY.COLOR.WHITE;
+    const lm = IndexedColor.WHITE;
     const flags = 0;
     if (dir == DIRECTION.WEST || dir == DIRECTION.EAST) {
-        vertices.push( x + 0.5, z + 0.5 - width / 2, y + shift + height / 2, length, 0, 0, 0, 0, height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5 + width / 2, y + shift + height / 2, length, 0, 0, 0, 0, -height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5 - length / 2, z + 0.5, y + shift + height / 2, 0, width, 0, 0, 0, -height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5 + length / 2, z + 0.5, y + shift + height / 2, 0, width, 0, 0, 0, height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5, y + shift, length, 0, 0, 0, -width, 0, texture[0], texture[1], texture[2] * length, texture[3] * width, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5, y + shift + height, length, 0, 0, 0, width, 0, texture_up[0], texture_up[1], texture_up[2] * length, texture_up[3] * width, lm.r, lm.g, lm.b, flags);
+        vertices.push( x + 0.5, z + 0.5 - width / 2, y + shift + height / 2, length, 0, 0, 0, 0, height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5 + width / 2, y + shift + height / 2, length, 0, 0, 0, 0, -height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5 - length / 2, z + 0.5, y + shift + height / 2, 0, width, 0, 0, 0, -height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5 + length / 2, z + 0.5, y + shift + height / 2, 0, width, 0, 0, 0, height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5, y + shift, length, 0, 0, 0, -width, 0, texture[0], texture[1], texture[2] * length, texture[3] * width, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5, y + shift + height, length, 0, 0, 0, width, 0, texture_up[0], texture_up[1], texture_up[2] * length, texture_up[3] * width, lm.pack(), flags);
     } else {
-        vertices.push( x + 0.5, z + 0.5 - length / 2, y + shift + height / 2, width, 0, 0, 0, 0, height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5 + length / 2, y + shift + height / 2, width, 0, 0, 0, 0, -height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5 - width / 2, z + 0.5, y + shift + height / 2, 0, length, 0, 0, 0, -height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5 + width / 2, z + 0.5, y + shift + height / 2, 0, length, 0, 0, 0, height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5, y + shift, width, 0, 0, 0, -length, 0, texture[0], texture[1], texture[2] * length, texture[3] * length, lm.r, lm.g, lm.b, flags);
-        vertices.push( x + 0.5, z + 0.5, y + shift + height, 0, length, 0, -width, 0, 0, texture_up[0], texture_up[1], texture_up[2] * length, texture_up[3] * width, lm.r, lm.g, lm.b, flags);
+        vertices.push( x + 0.5, z + 0.5 - length / 2, y + shift + height / 2, width, 0, 0, 0, 0, height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5 + length / 2, y + shift + height / 2, width, 0, 0, 0, 0, -height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5 - width / 2, z + 0.5, y + shift + height / 2, 0, length, 0, 0, 0, -height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5 + width / 2, z + 0.5, y + shift + height / 2, 0, length, 0, 0, 0, height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5, y + shift, width, 0, 0, 0, -length, 0, texture[0], texture[1], texture[2] * length, texture[3] * length, lm.pack(), flags);
+        vertices.push( x + 0.5, z + 0.5, y + shift + height, 0, length, 0, -width, 0, 0, texture_up[0], texture_up[1], texture_up[2] * length, texture_up[3] * width, lm.pack(), flags);
     }
 }

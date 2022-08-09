@@ -1,4 +1,4 @@
-import { GeometryTerrain18 } from "../geom/TerrainGeometry18.js";
+import { GeometryTerrain16 } from "../geom/TerrainGeometry16.js";
 
 export class GeometryPool {
     constructor(context) {
@@ -28,7 +28,7 @@ export class TrivialGeometryPool extends GeometryPool {
             lastBuffer.destroy();
         }
 
-        const vert = new Float32Array(vertices[0] * GeometryTerrain18.strideFloats);
+        const vert = new Float32Array(vertices[0] * GeometryTerrain16.strideFloats);
         let pos = 0;
         for (let i=1; i < vertices.length; i++) {
             const floatBuffer = new Float32Array(vertices[i]);
@@ -36,6 +36,6 @@ export class TrivialGeometryPool extends GeometryPool {
             pos += floatBuffer.length;
         }
 
-        return new GeometryTerrain18(vert);
+        return new GeometryTerrain16(vert);
     }
 }
