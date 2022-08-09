@@ -405,7 +405,7 @@ export class MobAnimation {
            if (humanoidarm == HumanoidArm.LEFT) {
               this.body.yRot *= -1.0F;
            }
-  
+
            this.rightArm.z = Mth.sin(this.body.yRot) * 5.0F;
            this.rightArm.x = -Mth.cos(this.body.yRot) * 5.0F;
            this.leftArm.z = -Mth.sin(this.body.yRot) * 5.0F;
@@ -519,7 +519,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.targetLook = 0;
 
-        this.drawPos = {x: 0, y: 0, y: 0};
+        this.drawPos = {x: 0, y: 0, z: 0};
 
         this.lightTex = null;
         this.tintColor = new Color(0, 0, 0, 0);
@@ -600,6 +600,12 @@ export class MobModel extends NetworkPhysicObject {
         if (this.material) {
             this.material.lightTex = this.lightTex;
             this.material.tintColor = this.tintColor;
+
+            //TODO: refactor this!
+            if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
+                && this.slots.RightArm.holder.material) {
+                this.slots.RightArm.holder.material.lightTex = this.lightTex;
+            }
         }
 
         // invalid state, chunk always should be presented
