@@ -223,9 +223,9 @@ export class AnvilWindow extends BaseCraftWindow {
     
     createCraft(cell_size) {
         
-        this.first_slot = new AnvilSlot(102, 182, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
-        this.second_slot = new AnvilSlot(300, 182, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
-        this.result_slot = new AnvilSlot(530, 182, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
+        this.first_slot = new AnvilSlot(52 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
+        this.second_slot = new AnvilSlot(150 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
+        this.result_slot = new AnvilSlot(266 * this.zoom, 91 * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
         this.add(this.first_slot);
         this.add(this.second_slot);
         this.add(this.result_slot);
