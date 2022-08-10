@@ -67,6 +67,7 @@ class AnvilSlot extends CraftTableSlot {
         const second_item = this.ct.second_slot.getItem();
         const label = this.ct.lbl_edit.buffer.join('');
         if (!first_item) {
+            this.ct.lbl_edit.buffer = [];
             this.ct.state = false;
             this.ct.result_slot.setItem(null);
         } else {
