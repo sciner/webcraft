@@ -8,7 +8,7 @@ const options = {
     compile_json: "./compile.json",
     copy_files: [
         'textures/painting.png',
-        'textures/alphabet_msdf.png'
+        'textures/alphabet_msdf.png',
     ]
 };
 

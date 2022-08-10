@@ -89,8 +89,8 @@ export default class style {
 
         // Texture color multiplier
         // @todo from extra_data.signal
-        const lm                = new Color(25.5 / tx_cnt * 1024, (31.5 + 1 / 16) / tx_cnt * 1024, 0, 0);
-        const pp                = IndexedColor.packLm(lm);
+        const lm                = new IndexedColor(1.5 / tx_cnt * 1024, (16.5 + 1 / 16) / tx_cnt * 1024, 0, 0);
+        const pp                = lm.pack();
         const posworld          = block.posworld;
 
         const upper_neighbours_connect = {

@@ -104,7 +104,7 @@ class FakeCloudWorld {
 // Экструдированные блоки
 export default class style {
 
-    static lm = new Color();
+    static lm = new IndexedColor();
 
     static getRegInfo() {
         return {

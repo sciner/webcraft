@@ -80,7 +80,7 @@ export class CompileData {
 
     // Wools
     initWool() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -145,7 +145,7 @@ export class CompileData {
 
     // Beds
     initBed() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -185,7 +185,7 @@ export class CompileData {
 
     // Терракота (terracotta)
     initTerracotta() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let id = START_TERRACOTTA;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -222,7 +222,7 @@ export class CompileData {
 
     // Carpets
     initCarpets() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -427,7 +427,7 @@ export class CompileData {
 
     //
     initStainedGlass() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -450,7 +450,7 @@ export class CompileData {
 
     //
     initStainedGlassPane() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -496,7 +496,7 @@ export class CompileData {
     }
 
     initConcretePowder() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -518,7 +518,7 @@ export class CompileData {
 
     //
     initCandle() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
@@ -631,7 +631,7 @@ export class CompileData {
     }
 
     initBanner() {
-        const palette_pos = {x: 24, y: 31};
+        const palette_pos = {x: 0, y: 16};
         let i = 0;
         const TX_CNT = 32 / 1024.0;
         for(let color in COLOR_PALETTE) {

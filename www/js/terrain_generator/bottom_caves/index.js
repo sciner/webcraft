@@ -252,7 +252,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         if(generate_map) {
 
-            const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: new Default_Terrain_Map_Cell({
+            const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
                 code: 'Flat'
             })};
 

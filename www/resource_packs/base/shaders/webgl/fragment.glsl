@@ -20,7 +20,7 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
+vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
     vec2 texc = texClamped;
 
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
@@ -28,7 +28,7 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, vec2 biomPos) {
     if (v_color.a > 0.0) {
         float mask_shift = v_color.b;
         vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(mask_shift, 1.), texc.y) * mipData.zw + mipData.xy);
-        vec4 color_mult = texture(u_texture, biomPos);
+        vec4 color_mult = texelFetch(u_maskColorSampler, biomPos, 0);
         color.rgb += color_mask.rgb * color_mult.rgb;
     }
 
@@ -44,7 +44,7 @@ void main() {
     vec2 size = vec2(textureSize(u_texture, 0));
     vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
-    vec2 biome = vec2(0.0);
+    ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
@@ -89,7 +89,7 @@ void main() {
             // default texture fetch pipeline
 
             mipData = manual_mip(v_texcoord0, size);
-            biome = (v_color.rg / 1024.0) * (1. - 0.5 * step(0.5, u_mipmap));
+            biome = ivec2(round(v_color.rg));
             color = sampleAtlassTexture (mipData, texClamped, biome);
 
             if (v_animInterp > 0.0) {

@@ -219,6 +219,13 @@ export class Renderer {
             magFilter: 'linear'
         });
         this.blockDayLightTex.bind(2);
+
+        this.maskColorTex = renderBackend.createTexture({
+            source: Resources.maskColor,
+            minFilter: 'linear',
+            magFilter: 'linear'
+        });
+        this.maskColorTex.bind(1);
     }
 
     // Generate drop item vertices

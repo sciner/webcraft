@@ -1067,6 +1067,28 @@ export class IndexedColor {
         this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
 
+    set(r, g, b) {
+        if(r instanceof IndexedColor) {
+            g = r.g;
+            b = r.b;
+            r = r.r;
+        }
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        return this;
+    }
+
+    /**
+     * only for terrain_map divide
+     * @param color
+     */
+    divide(color) {
+        this.r /= color.r;
+        this.g /= color.g;
+        return this;
+    }
+
     clone() {
         return new IndexedColor(this.r, this.g, this.b);
     }
@@ -1076,8 +1098,8 @@ export class IndexedColor {
     }
 }
 
-IndexedColor.WHITE = new IndexedColor(816, 1008, 0);
-IndexedColor.GRASS = new IndexedColor(900, 965, 0);
+IndexedColor.WHITE = new IndexedColor(48, 528, 0);
+IndexedColor.GRASS = new IndexedColor(132, 485, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;

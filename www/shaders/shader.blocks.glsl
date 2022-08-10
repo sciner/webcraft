@@ -65,6 +65,7 @@
     uniform float u_blockSize;
     uniform float u_opaqueThreshold;
     uniform sampler2D u_blockDayLightSampler;
+    uniform sampler2D u_maskColorSampler;
     //--
 
 #endif
