@@ -42,7 +42,7 @@
             "compile": {
                 "overlay_mask": "./textures/water_overlay.png"
             },
-            "mask_color": {"r": 830, "g": 630, "b": 0},
+            "mask_color": {"r": 62, "g": 150, "b": 0},
             "spawnable": false
         },
         {

@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -204,6 +204,31 @@ export class Renderer {
         // HUD
         this.HUD = Qubatch.hud;
 
+        //
+        const mci = Resources.maskColor;
+        this.maskColorTex = renderBackend.createTexture({
+            source:         mci,
+            minFilter:      'linear',
+            magFilter:      'linear'
+        });
+        this.maskColorTex.bind(1);
+
+        // Add getColorAt() for maskColorTex
+        const canvas        = document.createElement('canvas');
+        const ctx           = canvas.getContext('2d');
+        canvas.width        = mci.width;
+        canvas.height       = mci.height;
+        ctx.drawImage(mci, 0, 0, mci.width, mci.height, 0, 0, mci.width, mci.height);
+        this.maskColorTex.imageData = ctx.getImageData(0, 0, mci.width, mci.height);
+        this.maskColorTex.getColorAt = function(x, y) {
+            const imd = this.imageData.data;
+            const ax = x | 0;
+            const ay = y | 0;
+            const index = ((ay * this.width) + ax) * 4;
+            return new Color(imd[index + 0], imd[index + 1], imd[index + 2], imd[index + 3]);
+        };
+
+        // generatePrev
         this.generatePrev();
         this.generateDropItemVertices();
 
@@ -220,12 +245,9 @@ export class Renderer {
         });
         this.blockDayLightTex.bind(2);
 
-        this.maskColorTex = renderBackend.createTexture({
-            source: Resources.maskColor,
-            minFilter: 'linear',
-            magFilter: 'linear'
-        });
+        // Restore binding
         this.maskColorTex.bind(1);
+
     }
 
     // Generate drop item vertices
@@ -252,6 +274,7 @@ export class Renderer {
         });
     }
 
+    //
     generatePrev(callback) {
 
         const target = this.renderBackend.createRenderTarget({
@@ -335,6 +358,8 @@ export class Renderer {
         this.renderBackend.beginPass({
             target
         });
+
+        this.maskColorTex.bind(1);
 
         regular.forEach((drop, i) => {
             const pos = drop.block_material.inventory_icon_id;
@@ -461,7 +486,7 @@ export class Renderer {
                 if (tint) {
                     tmpContext.globalCompositeOperation = 'source-over';
                     if(mask_color) {
-                        tmpContext.fillStyle = tex.getColorAt(mask_color.r, mask_color.g).toHex();
+                        tmpContext.fillStyle = this.maskColorTex.getColorAt(mask_color.r, mask_color.g).toHex();
                     } else {
                         // default grass color
                         tmpContext.fillStyle = "#7ba83d";
