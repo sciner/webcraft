@@ -22,27 +22,27 @@ export default class Ticker {
         if(extra_data && extra_data.stage < ticking.max_stage) {
             if(v.ticks % (ticking.times_per_stage * this.chunk.options.STAGE_TIME_MUL) == 0) {
                 // Если семена арбуза
-                if (tblock.id == BLOCK.MELON_SEEDS.id) {
+                if(tblock.id == BLOCK.MELON_SEEDS.id) {
                     // Проверка позиции для установки арбуза
                     const getFreePosition = () => {
                         const sides = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP];
                         for(let side of sides) {
                             const position = pos.add(side);
                             const body = world.getBlock(position);
-                            if (body.id != BLOCK.AIR.id) {
+                            if(body.id != BLOCK.AIR.id) {
                                 continue;
                             }
                             const under = world.getBlock(position.add(new Vector(0, -1, 0)));
-                            if (under.id != BLOCK.AIR.id) {
+                            if(under.id != BLOCK.AIR.id) {
                                 return side;
                             }
                         }
                         return false;
                     };
                     // Если семена готовы дать плод
-                    if (extra_data.stage == ticking.max_stage - 1) {
+                    if(extra_data.stage == ticking.max_stage - 1) {
                         const side = getFreePosition();
-                        if (side) {
+                        if(side) {
                             // Повоорт хвостика
                             let direction = DIRECTION.NORTH;
                             if(side.equal(Vector.XN)) {
@@ -61,6 +61,30 @@ export default class Ticker {
                         extra_data.stage++;
                     }
                     updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                } else if (tblock.id == BLOCK.SUGAR_CANES.id) {
+                    // Если блок это сахарный тростник
+                    const over_pos = v.pos.clone().addScalarSelf(0, 1, 0);
+                    if(over_pos.y < extra_data.pos.y + extra_data.max_height) {
+                        const over_block = world.getBlock(over_pos);
+                        // Если наверху нет преграды
+                        if(over_block.id == BLOCK.AIR.id) {
+                            updated_blocks.push({
+                                pos: over_pos, 
+                                item: {
+                                    id: BLOCK.SUGAR_CANES.id,
+                                    extra_data: {
+                                        stage:      over_pos.y - extra_data.pos.y,
+                                        pos:        new Vector(extra_data.pos),
+                                        max_height: extra_data.max_height
+                                    }
+                                }, 
+                                action_id: ServerClient.BLOCK_ACTION_CREATE
+                            });
+                        }
+                    }
+                    // this.delete(v.pos);
+                    extra_data.notick = true;
+                    updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 } else {
                     extra_data.stage++;
                     if(extra_data.stage == ticking.max_stage) {
@@ -68,6 +92,7 @@ export default class Ticker {
                     }
                     updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 }
+
             }
         } else {
             // Delete completed block from tickings

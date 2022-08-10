@@ -6679,6 +6679,25 @@
             "material": {
                 "id": "food"
             }
+        },
+        {
+            "id": 486,
+            "name": "SUGAR_CANES",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "material": {"id": "plant"},
+            "extra_data": {"stage": 0, "calculated": [
+                {"type": "pos", "name": "pos"},
+                {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
+            ]},
+            "ticking": {
+                "type": "stage",
+                "max_stage": 7,
+                "times_per_stage": 8
+            },
+            "texture": "block/sugar_cane.png"
         }
     ]
 }
