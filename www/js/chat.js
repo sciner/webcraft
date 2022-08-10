@@ -1,5 +1,5 @@
-import {Mesh_Default} from "./mesh/default.js";
 import {ServerClient} from "./server_client.js";
+import { Lang } from "./lang.js";
 import {TextBox} from "./ui/textbox.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
@@ -105,7 +105,7 @@ export class Chat extends TextBox {
                     cmd.data.text += ` ${elpapsed} ms`;
                 }
             }
-            this.messages.add(cmd.data.username, cmd.data.text);
+            this.messages.add(cmd.data.username, Lang[cmd.data.text]);
         });
         // Restore sent history
         let hist = localStorage.getItem('chat_history');

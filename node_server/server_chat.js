@@ -125,13 +125,13 @@ export class ServerChat {
                     cnt = args[2];
                 }
                 cnt = Math.max(cnt | 0, 1);
-                let b = BLOCK[name.toUpperCase()];
-                if(b) {
-                    const block = BLOCK.convertItemToInventoryItem(b, null, true);
+                const b = BLOCK.fromName(name.toUpperCase());
+                if(b && b.id > 0) {
+                    const block = BLOCK.convertItemToInventoryItem(b, b, true);
                     block.count = cnt;
-                    let ok = player.inventory.increment(block, true);
+                    const ok = player.inventory.increment(block, true);
                     if(ok) {
-                        this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers(`given|${b.name}`, [player.session.user_id]);
                     } else {
                         this.sendSystemChatMessageToSelectedPlayers(`error_no_place_in_inventory`, [player.session.user_id]);
                     }

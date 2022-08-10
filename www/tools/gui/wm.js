@@ -259,7 +259,7 @@ export class Window {
         }
         //if(this.title || this.text) {
         this.applyStyle(ctx, ax, ay);
-        this.updateMeasure(ctx);
+        this.updateMeasure(ctx, ax, ay);
         //}
         // Draw title
         if(this.title) {
@@ -302,7 +302,7 @@ export class Window {
             }
         }
     }
-    updateMeasure(ctx) {
+    updateMeasure(ctx, ax, ay) {
         if(!this.__measure) {
             this.__measure = {
                 title: {
@@ -328,13 +328,13 @@ export class Window {
         // text
         const mtxt = this.__measure.text;
         if(mtxt.value != this.text) {
-            this.applyStyle(ctx, 0, 0);
+            this.applyStyle(ctx, ax, ay);
             let mt = ctx.measureText(this.text);
             mtxt.value = this.text;
             //
             if(this.word_wrap) {
                 const lineHeight = this.style.font.size * 1.05;
-                const lines = this.calcPrintLines(this.text || '');
+                const lines = this.calcPrintLines(this.text || '', ax, ay);
                 mtxt.height = lines.length * lineHeight;
             } else {
                 mtxt.width = mt.width;
@@ -386,8 +386,8 @@ export class Window {
     }
     applyStyle(ctx, ax, ay) {
         this.ctx            = ctx;
-        this.ax             = ax;
-        this.ay             = ay;
+        this.ax             = ax|0;
+        this.ay             = ay|0;
         ctx.font            = this.style.font.size + 'px ' + this.style.font.family;
         ctx.fillStyle       = this.style.color;
         ctx.textAlign       = this.style.textAlign.horizontal || 'left';
@@ -530,14 +530,14 @@ export class Window {
         }
         this.onWheel(e);
     }
-    calcPrintLines(original_text) {
+    calcPrintLines(original_text, ax, ay) {
         if(!this.word_wrap || !this.ctx) {
             return [original_text];
         }
         let currentLine = 0;
         const lines = [''];
         //
-        this.applyStyle(this.ctx, 0, 0);
+        this.applyStyle(this.ctx, ax, ay);
         if(this.max_chars_per_line > 0) {
             original_text = RuneStrings.splitLongWords(original_text, this.max_chars_per_line);
         }
@@ -787,10 +787,14 @@ export class TextEdit extends Window {
         }
 
     }
+    
+    setEditText(text) {
+        this.buffer = text.split('');
+    }
 
     // Draw
     draw(ctx, ax, ay) {
-        this.text = this.buffer.join('');
+        this.setText(this.buffer.join(''));
         //
         this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
         super.draw(ctx, ax, ay);

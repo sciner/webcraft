@@ -79,6 +79,9 @@ export class SchematicReader {
             if(name == 'AIR') {
                 return;
             }
+            if(name.endsWith('ANVIL')) {
+                name = 'ANVIL';
+            }
             let b = BLOCK[name];
             let new_block = null;
             if(b) {
@@ -244,6 +247,12 @@ export class SchematicReader {
             }
             // console.log(b.name, block.entities);
         }
+        // ANVIL
+        if(block.name.endsWith('anvil')) {
+            setExtraData('damage', 0);
+            if(block.name.startsWith('chipped_')) setExtraData('damage', 1);
+            if(block.name.startsWith('damaged_')) setExtraData('damage', 2);
+        }
         //
         if(props) {
             // button
@@ -321,7 +330,7 @@ export class SchematicReader {
                         new_block.rotate = SIX_VECS[props.facing].clone();
                     } else {
                         new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
-                        if(['stairs', 'door', 'cocoa'].indexOf(b.style) >= 0) {
+                        if(['stairs', 'door', 'cocoa', 'anvil'].indexOf(b.style) >= 0) {
                             new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                         }
                         new_block.rotate.y = 0;

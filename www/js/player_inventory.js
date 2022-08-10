@@ -60,7 +60,7 @@ export class PlayerInventory extends Inventory {
         if(this.hud) {
             this.hud.refresh();
             try {
-                let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
+                const frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
                 frmRecipe.paginator.update();
             } catch(e) {
                 // do nothing

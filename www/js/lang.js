@@ -67,14 +67,24 @@ export const Lang = new Proxy(
             if(prop in target) {
                 return target[prop];
             }
-            let resp = target.strings[prop];
+            const args = prop.split('|');
+            const key = args.shift();
+            const resp = target.strings[key];
             if(!resp) {
                 return `[${prop}]`;
             }
+            //
+            const fill = function(str, args) {
+                for(let i = 0; i < args.length; i++) {
+                    str = str.replace(`%${i}`, args[i]);
+                }
+                return str;
+            };
+            //
             if(resp[target.code]) {
-                return resp[target.code];
+                return fill(resp[target.code], args);
             }
-            return resp[target.default_code] || `[${prop}]`;
+            return fill(resp[target.default_code], args) || `[${prop}]`;
         }
     }
 );

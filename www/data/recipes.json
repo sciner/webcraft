@@ -1448,5 +1448,26 @@
             "item": "madcraft:cake",
             "count": 1
         }
+    },
+    {
+        "id": "47a66b32-a912-43ec-af00-9977394f78a1",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "BBB",
+            " S ",
+            "SSS"
+        ],
+        "key": {
+            "B": {
+                "item": "madcraft:iron_block"
+            },
+            "S": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:anvil",
+            "count": 1
+        }
     }
 ]

@@ -6660,6 +6660,30 @@
             "texture": "block/shroomlight.png"
         },
         {
+            "id": 195,
+            "transparent": true,
+            "name": "ANVIL",
+            "sound": "madcraft:block.stone",
+            "window": "frmAnvil",
+            "style": "anvil",
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "up": "block/anvil_top.png",
+                "side": "block/anvil.png",
+                "north": "block/chipped_anvil_top.png",
+                "south": "block/damaged_anvil_top.png"
+            },
+            "extra_data": {
+                "damage": 0
+            },
+            "can_rotate": true,
+            "tags": [
+                "no_drop_ao"
+            ]
+        },
+        {
             "id": 196,
             "name": "POTATO",
             "style": "extruder",

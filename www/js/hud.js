@@ -285,9 +285,13 @@ export class HUD {
         this.text += '\nMAT: ';
         const mat = player.currentInventoryItem;
         if(mat) {
-            if(this.prev_mat_id != mat.id) {
-                this.prev_mat_id = mat.id;
+            const current_mat_key =  mat.entity_id ?? mat.id;
+            if(this.prev_mat_key != current_mat_key) {
+                this.prev_mat_key = current_mat_key;
                 this.mat_name = player.world.block_manager.fromId(mat.id).name;
+                if(mat.extra_data?.label) {
+                    this.mat_name = mat.extra_data?.label;
+                }
             }
             this.text += ` ${mat.id} / ${this.mat_name}`;
             if(mat.is_fluid) {
