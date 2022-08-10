@@ -82,6 +82,7 @@ export default class Ticker {
                             });
                         }
                     }
+                    // @todo need refactor this method for delete ticking blocks
                     // this.delete(v.pos);
                     extra_data.notick = true;
                     updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
