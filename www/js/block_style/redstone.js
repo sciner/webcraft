@@ -1,6 +1,6 @@
 "use strict";
 
-import {Color, DIRECTION, QUAD_FLAGS, TX_CNT} from '../helpers.js';
+import {Color, DIRECTION, IndexedColor, QUAD_FLAGS, TX_CNT} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
@@ -26,8 +26,7 @@ export function pushTransformed(
     ux, uz, uy,
     vx, vz, vy,
     c0, c1, c2, c3,
-    r, g, b,
-    flags
+    pp, flags
 ) {
     pivot = pivot || defaultPivot;
     cx += pivot[0];
@@ -51,7 +50,7 @@ export function pushTransformed(
         vx * mat[6] + vy * mat[7] + vz * mat[8],
         vx * mat[3] + vy * mat[4] + vz * mat[5],
 
-        c0, c1, c2, c3, r, g, b, flags
+        c0, c1, c2, c3, pp, flags
     );
 }
 
@@ -90,7 +89,8 @@ export default class style {
 
         // Texture color multiplier
         // @todo from extra_data.signal
-        const lm                = new Color(25.5 / tx_cnt, (31.5 + 1 / 16) / tx_cnt, 0, 0);
+        const lm                = new Color(25.5 / tx_cnt * 1024, (31.5 + 1 / 16) / tx_cnt * 1024, 0, 0);
+        const pp                = IndexedColor.packLm(lm);
         const posworld          = block.posworld;
 
         const upper_neighbours_connect = {
@@ -140,7 +140,7 @@ export default class style {
                 1, 0, 0,
                 0, 1, 0,
                 ...c_line,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         function drawSouth(x, y, z) {
@@ -152,7 +152,7 @@ export default class style {
                 1, 0, 0,
                 0, .5, 0,
                 c_line[0] - .25/16/32, c_line[1], c_line[2], c_line[3]/2,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         function drawNorth(x, y, z) {
@@ -164,7 +164,7 @@ export default class style {
                 1, 0, 0,
                 0, .5, 0,
                 c_line[0] + .25/16/32, c_line[1], c_line[2], c_line[3]/2,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         function drawX(x, y, z) {
@@ -176,7 +176,7 @@ export default class style {
                 .5, .5, 0,
                 ...top_vectors,
                 ...c_line,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         function drawWest(x, y, z) {
@@ -188,7 +188,7 @@ export default class style {
                 .5, .5, 0,
                 ...top_vectors,
                 c_line[0] - .25/16/32, c_line[1], c_line[2], c_line[3]/2,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         function drawEast(x, y, z) {
@@ -200,7 +200,7 @@ export default class style {
                 0.5, 0.5, 0,
                 ...top_vectors,
                 c_line[0] + .25/16/32, c_line[1], c_line[2], c_line[3]/2,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         // 1.1
@@ -241,7 +241,7 @@ export default class style {
                 1, 0, 0,
                 0, 1, 0,
                 ...c_center,
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
 
         // 2. Draw connects in upper neighbours
@@ -263,6 +263,7 @@ export default class style {
         // South
         if(upper_neighbours_connect.south) {
             let animations_south = 1;
+            let pp2 = IndexedColor.packArg(lm.r, lm.g, animations_south);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z + 1/500, y,
@@ -270,12 +271,13 @@ export default class style {
                 1, 0, 0,
                 0, 0, H,
                 c_line[0], c_line[1], c_line[2], -c_line[3],
-                lm.r, lm.g, animations_south, flags);
+                pp2, flags);
         }
 
         // North
         if(upper_neighbours_connect.north) {
             let animations_north = 1;
+            let pp2 = IndexedColor.packArg(lm.r, lm.g, animations_north);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z - 1/500, y,
@@ -283,12 +285,13 @@ export default class style {
                 1, 0, 0,
                 0, 0, -H,
                 c_line[0], c_line[1], -c_line[2], c_line[3],
-                lm.r, lm.g, animations_north, flags);
+                pp2, flags);
         }
 
         // West
         if(upper_neighbours_connect.west) {
             let animations_west = 1;
+            let pp2 = IndexedColor.packArg(lm.r, lm.g, animations_west);
             pushTransformed(
                 vertices, matrix, pivot,
                 x + 1/500, z, y,
@@ -296,12 +299,13 @@ export default class style {
                 0, 1, 0,
                 0, 0, -H,
                 c_line[0], c_line[1], -c_line[2], c_line[3],
-                lm.r, lm.g, animations_west, flags);
+                pp2, flags);
         }
 
         // East
         if(upper_neighbours_connect.east) {
             let animations_east = 1;
+            let pp2 = IndexedColor.packArg(lm.r, lm.g, animations_east);
             pushTransformed(
                 vertices, matrix, pivot,
                 x - 1/500, z, y,
@@ -309,7 +313,7 @@ export default class style {
                 0, 1, 0,
                 0, 0, H,
                 c_line[0], c_line[1], c_line[2], -c_line[3],
-                lm.r, lm.g, animations_east, flags);
+                pp2, flags);
         }
 
     }

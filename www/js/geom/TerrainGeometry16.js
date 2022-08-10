@@ -23,20 +23,20 @@ class QuadAttr {
         this.axisY = buffer.subarray(offset + 6, offset + 9);
         this.uvCenter = buffer.subarray(offset + 9, offset + 11);
         this.uvSize = buffer.subarray(offset + 11, offset + 13);
-        this.color = buffer.subarray(offset + 13, offset + 16);
-        this.flags = buffer.subarray(offset + 16, offset + 17);
+        this.color = buffer.subarray(offset + 13, offset + 14);
+        this.flags = buffer.subarray(offset + 14, offset + 15);
 
         return this;
     }
 }
 
-export class GeometryTerrain18 {
+export class GeometryTerrain16 {
     constructor(vertices) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
         this.uploadID = -1;
-        this.strideFloats = GeometryTerrain18.strideFloats;
+        this.strideFloats = GeometryTerrain16.strideFloats;
         this.stride = this.strideFloats * 4;
 
         /**
@@ -95,9 +95,9 @@ export class GeometryTerrain18 {
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 16 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 17 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
+        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -177,11 +177,11 @@ export class GeometryTerrain18 {
      * @returns
      */
     rawQuad(index = 0, target = new QuadAttr()) {
-        return target.set(this.buffer, index * GeometryTerrain18.strideFloats);
+        return target.set(this.buffer, index * GeometryTerrain16.strideFloats);
     }
 
     * rawQuads(start = 0, count = this.size) {
-        return GeometryTerrain18.iterateBuffer(this.buffer, start, count);
+        return GeometryTerrain16.iterateBuffer(this.buffer, start, count);
     }
 
     destroy() {
@@ -228,5 +228,5 @@ export class GeometryTerrain18 {
         return out.set(buffer, offset)
     }
 
-    static strideFloats = 18;
+    static strideFloats = 16;
 }

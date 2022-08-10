@@ -1,4 +1,4 @@
-import { Color, Vector } from '../../helpers.js';
+import { IndexedColor, Vector } from '../../helpers.js';
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { CHUNK_SIZE } from "../../chunk_const.js";
@@ -52,38 +52,38 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let xyz_stone_density       = new Vector(0, 0, 0);
         let DENSITY_COEFF           = 1;
         let fill_count              = 0;
-    
+
         const { cx, cy, cz, cw, tblocks } = chunk;
         //
         const getBlock = (x, y, z) => {
             const index = cx * x + cy * y + cz * z + cw;
             return tblocks.id[index];
         };
-    
+
         //
         for(let x = 0; x < chunk.size.x; x++) {
-    
+
             for(let z = 0; z < chunk.size.z; z++) {
-    
+
                 let y_start                 = Infinity;
                 let stalactite_height       = 0;
                 let stalactite_can_start    = false;
                 let dripstone_allow         = true;
-    
+
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
-    
+
                     xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-    
+
                     let density = (
                         noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
                         noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
                     ) / 2;
-    
+
                     if(xyz.y > -ABS_STONE) {
                         const dist = xyz.y / -ABS_STONE + .2;
                         density += dist;
                     }
-    
+
                     // air
                     if(density < 0.5) {
                         if(stalactite_can_start) {
@@ -136,11 +136,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                         continue;
                     }
-    
+
                     let stone_block_id = BLOCK.STONE.id;
                     xyz_stone_density.set(xyz.x + 100000, xyz.y + 100000, xyz.z + 100000);
                     let stone_density = noise3d(xyz_stone_density.x / 20, xyz_stone_density.z / 20, xyz_stone_density.y / 20) / 2 + .5;
-    
+
                     if(stone_density < .025) {
                         stone_block_id = BLOCK.GLOWSTONE.id;
                     } else {
@@ -169,20 +169,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
                         }
                     }
-    
+
                     chunk.setBlockIndirect(x, y, z, stone_block_id);
-    
+
                     // reset stalactite
                     stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;
                     y_start                 = Infinity;
                     stalactite_height       = 0;
-    
+
                     fill_count++;
-    
+
                 }
             }
         }
-    
+
         // Amethyst room
         if(fill_count > CHUNK_SIZE * .7) {
             let chance = aleaRandom.double();
@@ -249,10 +249,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
         }
-    
+
         if(generate_map) {
 
-            const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: new Default_Terrain_Map_Cell({
+            const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: new Default_Terrain_Map_Cell({
                 code: 'Flat'
             })};
 

@@ -1,5 +1,5 @@
 import {CubeSym} from "./CubeSym.js";
-import {MULTIPLY, Vector} from '../helpers.js';
+import {IndexedColor, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4, vec3}      = glMatrix;
@@ -320,8 +320,7 @@ export function pushTransformed(
     ux, uz, uy,
     vx, vz, vy,
     c0, c1, c2, c3,
-    r, g, b,
-    flags
+    pp, flags
 ) {
     pivot = pivot || defaultPivot;
     cx += pivot[0];
@@ -361,7 +360,7 @@ export function pushTransformed(
         vx * mat[6] + vy * mat[7] + vz * mat[8],
         vx * mat[3] + vy * mat[4] + vz * mat[5],
 
-        c0, c1, c2, c3, r, g, b, flags
+        c0, c1, c2, c3, pp, flags
     );
 }
 
@@ -386,7 +385,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
     center = center || defalutCenter;
     pivot  = pivot  || defaultPivot;
 
-    const lm_default      = MULTIPLY.COLOR.WHITE;
+    const lm_default      = IndexedColor.WHITE;
     const globalFlags     = 0;
     const x               = center.x;
     const y               = center.y;
@@ -460,10 +459,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
             uv[0], uv[1],
             // UV size
             uvSize0, uvSize1,
-            // tint location or RG
-            r, g,
-            // animation or b color
-            b,
+            IndexedColor.packArg(r, g, b),
             // flags
             globalFlags | flag
         );

@@ -74,11 +74,9 @@ export class Brain extends FSMBrain {
         if (dist < DISTANCE_DETONATION) {
             this.detonationTime = performance.now();
             mob.extra_data.detonation_started = true;
-            mob.getWorld().actions_queue.add(null, {
-                play_sound: [
-                    { tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(mob.pos) }
-                ]
-            });
+            const actions = new WorldAction();
+            actions.addPlaySound({ tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(mob.pos) });
+            mob.getWorld().actions_queue.add(null, actions);
             this.stack.replaceState(this.doTimerDetonation);
         }
     }

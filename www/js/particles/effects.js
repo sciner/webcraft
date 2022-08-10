@@ -1,4 +1,4 @@
-import { Color, QUAD_FLAGS, Vector } from '../helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
@@ -15,7 +15,7 @@ const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
 const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 const MIN_PERCENT       = .25;
 
-const DEFAULT_LM        = new Color(0, 0, 0, 0);
+const DEFAULT_LM        = new IndexedColor(0, 0, 0);
 
 export class Particles_Effects extends Particles_Base {
 
@@ -49,7 +49,7 @@ export class Particles_Effects extends Particles_Base {
     // Add particle
     add(pos, params) {
 
-        const flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
+        const flags = /*QUAD_FLAGS.NO_AO |*/ QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
         const {x, y, z} = pos;
 
         const lm = params.lm || DEFAULT_LM;
@@ -69,7 +69,7 @@ export class Particles_Effects extends Particles_Base {
             -size_x, 0, 0,
             0, 0, -size_z,
             ...c,
-            lm.r, lm.g, lm.b,
+            lm.pack(),
             flags
         ];
 

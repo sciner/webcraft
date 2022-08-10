@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, NORMALS, QUAD_FLAGS, ROTATE} from '../helpers.js';
+import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import { CubeSym } from '../core/CubeSym.js';
 
@@ -23,7 +23,7 @@ export default class style {
         const material  = block.material;
         let texture     = material.texture;
         let bH          = 1.0;
-        let lm          = MULTIPLY.COLOR.WHITE;
+        let lm          = IndexedColor.WHITE;
         let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
         let flags       = 0;
 
@@ -33,6 +33,7 @@ export default class style {
             lm.b = anim_frames;
             flags |= QUAD_FLAGS.FLAG_ANIMATED;
         }
+        let pp = IndexedColor.packLm(lm);
 
         switch(cardinal_direction) {
             case CubeSym.ROT_Z:
@@ -43,7 +44,7 @@ export default class style {
                     1, 0, 0,
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
                 break;
             }
             case CubeSym.ROT_X:
@@ -55,7 +56,7 @@ export default class style {
                     0, 1, 0,
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
                 break;
             }
         }

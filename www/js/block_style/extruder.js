@@ -1,4 +1,4 @@
-import {MULTIPLY, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
+import {IndexedColor, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 
 const {mat3, mat4} = glMatrix;
@@ -14,8 +14,7 @@ export function pushTransformed(
     ux, uz, uy,
     vx, vz, vy,
     c0, c1, c2, c3,
-    r, g, b,
-    flags
+    pp, flags
 ) {
     pivot = pivot || defaultPivot;
     cx += pivot[0];
@@ -55,7 +54,7 @@ export function pushTransformed(
         vx * mat[6] + vy * mat[7] + vz * mat[8],
         vx * mat[3] + vy * mat[4] + vz * mat[5],
 
-        c0, c1, c2, c3, r, g, b, flags
+        c0, c1, c2, c3, pp, flags
     );
 }
 
@@ -174,7 +173,7 @@ export default class style {
             0,
         ];
 
-        let lm = MULTIPLY.COLOR.WHITE;
+        let lm = IndexedColor.WHITE;
         let z = -0.5 - 0.5 / SCALE_FACTOR;
         let flags = QUAD_FLAGS.NO_AO;
 
@@ -185,6 +184,7 @@ export default class style {
             lm = material.mask_color;
             flags = QUAD_FLAGS.MASK_BIOME;
         }
+        let pp = IndexedColor.packLm(lm);
 
         let height = 1.0;
         let width = 1.0;
@@ -194,14 +194,14 @@ export default class style {
             MUL, 0, 0,
             0, 0, MUL * height,
             c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b, flags);
+            pp, flags);
 
         vertices.push(
             _x, scale.z * (MUL*0.75) + _z, _y,
             MUL, 0, 0,
             0, 0, -MUL * height,
             c[0], c[1], c[2], c[3],
-            lm.r, lm.g, lm.b, flags);
+            pp, flags);
 
         let uc = 1 / tex.width;
         let vc = 1 / tex.height;
@@ -233,7 +233,7 @@ export default class style {
                         1, 0, 0,
                         0, MUL, 0,
                         u, v, uc, vc,
-                        lm.r, lm.g, lm.b, flags
+                        pp, flags
                     );
                 }
 
@@ -246,7 +246,7 @@ export default class style {
                         1, 0, 0,
                         0, -1 * MUL, 0,
                         u, v, uc, vc,
-                        lm.r, lm.g, lm.b, flags);
+                        pp, flags);
                 }
 
                 // West
@@ -258,7 +258,7 @@ export default class style {
                         0, 1 * MUL, 0,
                         0, 0, -height,
                         u, v, uc, vc,
-                        lm.r, lm.g, lm.b, flags);
+                        pp, flags);
                 }
 
                 // East
@@ -270,7 +270,7 @@ export default class style {
                         0, 1 * MUL, 0,
                         0, 0, height,
                         u, v, uc, vc,
-                        lm.r, lm.g, lm.b, flags);
+                        pp, flags);
                 }
             }
         }

@@ -1,6 +1,6 @@
 "use strict";
 
-import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
@@ -132,9 +132,9 @@ export default class style {
         let flags = 0;
 
         // Texture color multiplier
-        let lm = MULTIPLY.COLOR.WHITE;
+        let lm = IndexedColor.WHITE;
         if(material.tags.indexOf('mask_biome') >= 0) {
-            lm = dirt_color || MULTIPLY.COLOR.GRASS;
+            lm = dirt_color || IndexedColor.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else if(material.tags.indexOf('mask_color') >= 0) {
             flags = QUAD_FLAGS.MASK_BIOME;
@@ -233,7 +233,7 @@ export default class style {
         let depth                   = 1;
         let autoUV                  = true;
         let axes_up                 = null;
-        let lm                      = MULTIPLY.COLOR.WHITE;
+        let lm                      = IndexedColor.WHITE;
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
@@ -308,7 +308,7 @@ export default class style {
 
             // Texture color multiplier
             if(block.hasTag('mask_biome')) {
-                lm = dirt_color; // MULTIPLY.COLOR.GRASS;
+                lm = dirt_color; // IndexedColor.GRASS;
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
             }

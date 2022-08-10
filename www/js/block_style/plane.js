@@ -1,29 +1,30 @@
 import { pushSym } from "../core/CubeSym.js";
+import {IndexedColor} from "../helpers.js";
 
 /**
- * 
- * @param {*} vertices 
+ *
+ * @param {*} vertices
  * @param {*} x Start position X
  * @param {*} y Start position Y
  * @param {*} z Start position Z
- * @param {*} c 
- * @param {*} lm 
- * @param {*} x_dir 
- * @param {*} rot 
- * @param {*} xp 
- * @param {*} yp 
- * @param {*} zp 
- * @param {*} flags 
- * @param {*} sym 
+ * @param {*} c
+ * @param {*} lm
+ * @param {*} x_dir
+ * @param {*} rot
+ * @param {*} xp
+ * @param {*} yp
+ * @param {*} zp
+ * @param {*} flags
+ * @param {*} sym
  * @param {*} dx
  * @param {*} dy
  * @param {*} dz
  */
  export function pushPlanedGeom (
     vertices,
-    x, y, z, 
-    c, 
-    lm,
+    x, y, z,
+    c,
+    pp,
     x_dir, rot,
     xp, yp, zp,
     flags,
@@ -34,7 +35,7 @@ import { pushSym } from "../core/CubeSym.js";
     [z, y]   = [y, z];
     [zp, yp] = [yp, zp];
     [dz, dy] = [dy, dz];
-    
+
     xp          = xp ? xp : 1;
     yp          = yp ? yp : 1;
     zp          = zp ? zp : 1;
@@ -59,7 +60,7 @@ import { pushSym } from "../core/CubeSym.js";
                     xp, yp, 0,
                     0, 0, -zp,
                     c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
             }
             pushSym(vertices, sym,
                 x, y, z,
@@ -67,7 +68,7 @@ import { pushSym } from "../core/CubeSym.js";
                 -xp, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         } else {
             if(!ignore_back_side) {
                 pushSym(vertices, sym,
@@ -76,7 +77,7 @@ import { pushSym } from "../core/CubeSym.js";
                     xp, 0, 0,
                     0, 0, -zp,
                     c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
             }
             pushSym(vertices, sym,
                 x, y, z,
@@ -84,7 +85,7 @@ import { pushSym } from "../core/CubeSym.js";
                 -xp, 0, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
     } else {
         if(rot) {
@@ -95,7 +96,7 @@ import { pushSym } from "../core/CubeSym.js";
                     -xp, -yp, 0,
                     0, 0, -zp,
                     c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
             }
             pushSym(vertices, sym,
                 x, y, z,
@@ -103,7 +104,7 @@ import { pushSym } from "../core/CubeSym.js";
                 xp, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         } else {
             if(!ignore_back_side) {
                 pushSym(vertices, sym,
@@ -112,7 +113,7 @@ import { pushSym } from "../core/CubeSym.js";
                     0, yp, 0,
                     0, 0, -zp,
                     c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b, flags);
+                    pp, flags);
             }
             pushSym(vertices, sym,
                 x, y, z,
@@ -120,7 +121,7 @@ import { pushSym } from "../core/CubeSym.js";
                 0, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
     }
 
@@ -128,9 +129,9 @@ import { pushSym } from "../core/CubeSym.js";
 
 export function pushPlanedGeomCorrect (
     vertices,
-    x, y, z, 
-    c, 
-    lm,
+    x, y, z,
+    c,
+    pp,
     x_dir, rot,
     xp, yp, zp,
     flags,
@@ -140,7 +141,7 @@ export function pushPlanedGeomCorrect (
     [z, y]   = [y, z];
     [zp, yp] = [yp, zp];
     [dz, dy] = [dy, dz];
-    
+
     xp          = xp ? xp : 1;
     yp          = yp ? yp : 1;
     zp          = zp ? zp : 1;
@@ -164,14 +165,14 @@ export function pushPlanedGeomCorrect (
                 xp, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
                 -xp, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         } else {
             pushSym(vertices, sym,
                 x, y, z,
@@ -179,14 +180,14 @@ export function pushPlanedGeomCorrect (
                 xp, 0, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
                 -xp, 0, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
     } else {
         if(rot) {
@@ -196,14 +197,14 @@ export function pushPlanedGeomCorrect (
                 -xp, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
                 xp, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         } else {
             pushSym(vertices, sym,
                 x, y, z,
@@ -211,14 +212,14 @@ export function pushPlanedGeomCorrect (
                 0, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
                 0, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                pp, flags);
         }
     }
 
@@ -238,7 +239,7 @@ export default class style {
         return pushPlanedGeom(
             vertices,
             x, y, z,
-            c, lm,
+            c, IndexedColor.packLm(lm),
             x_dir, rot,
             xp, yp, zp,
             flags, 0, 0, 0, 0,

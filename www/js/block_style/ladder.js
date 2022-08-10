@@ -1,6 +1,6 @@
-import {MULTIPLY, ROTATE, DIRECTION, QUAD_FLAGS} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
-import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
+import {BLOCK} from "../blocks.js";
 
 // Лестница
 export default class style {
@@ -23,7 +23,7 @@ export default class style {
         let texture     = block.material.texture;
         let bH          = 1.0;
         let width       = block.material.width ? block.material.width : 1;
-        let lm          = MULTIPLY.COLOR.WHITE;
+        let lm          = IndexedColor.WHITE;
         let c           = null;
         let flags       = 0;
 
@@ -35,6 +35,7 @@ export default class style {
         } else {
             c = BLOCK.calcTexture(texture, DIRECTION.BACK);
         }
+        let pp = IndexedColor.packLm(lm);
 
         pushSym(vertices, cardinal_direction,
             x + .5, z + .5, y + .5,
@@ -42,8 +43,7 @@ export default class style {
             1, 0, 0,
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
-            lm.r, lm.g, lm.b,
-            flags);
+            pp, flags);
     }
 
 }

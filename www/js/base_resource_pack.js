@@ -172,8 +172,8 @@ export class BaseResourcePack {
 
         textureInfo.imageData = ctx.getImageData(0, 0, image.width, image.height);
         textureInfo.getColorAt = function(x, y) {
-            const ax = (x * this.width) | 0;
-            const ay = (y * this.height) | 0;
+            const ax = (x * this.width / 1024.0) | 0;
+            const ay = (y * this.height / 1024.0) | 0;
             const index = ((ay * this.width) + ax) * 4;
             return new Color(
                 this.imageData.data[index + 0],
@@ -302,7 +302,9 @@ export class BaseResourcePack {
         const resp = module.func(block, vertices, world, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, true, _matrix, _pivot, force_tex);
         // stat.count++;
         // stat.time += (performance.now() - p);
-
+        if (vertices.length % 15 > 0) {
+            console.log("oops mesh");
+        }
         return resp;
     }
 

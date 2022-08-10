@@ -2,9 +2,9 @@ import {GeometryPool} from "./GeometryPool.js";
 
 export class Worker05GeometryPool extends GeometryPool {
     constructor(context, {
-        pageSize = 227,
+        pageSize = 256,
         pageCount = 100,
-        instanceSize = 18,
+        instanceSize = 16,
     }) {
         super(context)
 
@@ -40,10 +40,11 @@ export class Worker05GeometryPool extends GeometryPool {
 }
 
 export class Worker05GeometryPage {
-    constructor({sizeQuads = 227, instanceSize = 18}) {
+    constructor({sizeQuads = 256, instanceSize = 16}) {
         this.sizeQuads = sizeQuads;
         this.instanceSize = instanceSize;
         this.data = new Float32Array(sizeQuads * instanceSize);
+        this.uint32Data = new Uint32Array(this.data.buffer);
         this.clear();
     }
 
@@ -73,13 +74,13 @@ export class Worker05SubGeometry {
     }
 
     push(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9,
-         arg10, arg11, arg12, arg13, arg14, arg15, arg16) {
+         arg10, arg11, arg12, arg13, arg14/*, arg15*/) {
         if (!this.lastPage || this.lastPage.filled === this.lastPage.sizeQuads) {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }
 
-        const data = this.lastPage.data;
-        const ind = (this.lastPage.filled++) * 18;
+        const data = this.lastPage.data, uint32Data = this.lastPage.uint32Data;
+        const ind = (this.lastPage.filled++) * 16;
         this.filled++;
 
         data[ind] = arg0;
@@ -95,11 +96,12 @@ export class Worker05SubGeometry {
         data[ind + 10] = arg10;
         data[ind + 11] = arg11;
         data[ind + 12] = arg12;
-        data[ind + 13] = arg13;
+        uint32Data[ind + 13] = arg13;
         data[ind + 14] = arg14;
-        data[ind + 15] = arg15;
-        data[ind + 16] = arg16;
-        data[ind + 17] = this.chunkDataId;
+        data[ind + 15] = this.chunkDataId;
+        // if (arg15) {
+        //     console.log('old build logic');
+        // }
     }
 
     // offsets are in instances

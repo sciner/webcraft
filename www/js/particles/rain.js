@@ -1,4 +1,4 @@
-import { Color, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
+import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import { BLEND_MODES } from '../renders/BaseRenderer.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
@@ -10,7 +10,9 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../chunk_const.js';
 const {mat4} = glMatrix;
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
-const RAIN_SPEED        = 2 / 1000;
+const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
+const SNOW_SPEED        = 42;
+const SNOW_SPEED_X      = 16;
 const RAIN_RAD          = 8;
 const RAIN_HEIGHT       = 14;
 
@@ -113,9 +115,9 @@ export default class Particles_Rain {
     }
 
     prepare() {
-        
+
         const player = Qubatch.player;
-        
+
         if(!this.#_player_block_pos.equal(player.blockPos)) {
             this.#_player_block_pos.copyFrom(player.blockPos);
             this.#_version++;
@@ -210,7 +212,7 @@ export default class Particles_Rain {
         const snow = this.type == 'snow';
 
         const vertices  = [];
-        const lm        = new Color((snow ? RAIN_SPEED / 16 : 0), -RAIN_SPEED / (snow ? 24 : 1), 0);
+        const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
         const sideFlags = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
         const pivot     = null;
         const matrix    = null;
