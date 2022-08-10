@@ -51,7 +51,7 @@ const _vec = new Vector(0, 0, 0);
 // Растения/Цепи
 export default class style {
 
-    static lm = new Color();
+    static lm = new IndexedColor();
 
     static getRegInfo() {
         return {

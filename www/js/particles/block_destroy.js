@@ -50,7 +50,7 @@ export default class Particles_Block_Destroy extends Particles_Base {
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             const pos_floored = pos.clone().flooredSelf();
             const index = ((pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (pos_floored.x - chunk.coord.x)) * 2;
-            lm          = new Color(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0, 0);
+            lm          = new IndexedColor(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
         } else if(BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) >= 0) {
             lm          = block.mask_color;

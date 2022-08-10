@@ -1,6 +1,6 @@
 import { impl as alea } from '../../vendors/alea.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
-import { Color, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
+import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
 import { BIOMES } from "./biomes.js";
 import { CaveGenerator } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
@@ -361,7 +361,7 @@ export class TerrainMap extends Default_Terrain_Map {
             }
         }
         // 2. Smoothing | Сглаживание
-        let colorComputer = new Color(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
+        let colorComputer = new IndexedColor(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
 
         TerrainMap.calcSum();
         const sums = TerrainMap._sums, cells = TerrainMap._cells;
@@ -375,10 +375,10 @@ export class TerrainMap extends Default_Terrain_Map {
                 const ind3 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT - SMOOTH_RAD;
                 const ind4 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
                 let height_sum  = sums[ind1 * 3] + sums[ind4 * 3] - sums[ind2 * 3] - sums[ind3 * 3];
-                let dirt_color  = new Color(
+                let dirt_color  = new IndexedColor(
                     sums[ind1 * 3 + 1] + sums[ind4 * 3 + 1] - sums[ind2 * 3 + 1] - sums[ind3 * 3 + 1],
                 sums[ind1 * 3 + 2] + sums[ind4 * 3 + 2] - sums[ind2 * 3 + 2] - sums[ind3 * 3 + 2],
-                    0, 0);
+                    0);
                 // Не сглаживаем блоки пляжа и океана
                 let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {

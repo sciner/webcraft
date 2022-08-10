@@ -55,7 +55,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             );
         }
 
-        const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: {
+        const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: {
             code: 'Flat'
         }};
 
