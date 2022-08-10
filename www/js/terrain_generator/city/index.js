@@ -1,4 +1,4 @@
-import {Color, Vector} from '../../helpers.js';
+import {IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
 
@@ -263,7 +263,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: new Default_Terrain_Map_Cell({
+        const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: new Default_Terrain_Map_Cell({
             code: 'City'
         })};
 

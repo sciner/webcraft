@@ -60,7 +60,6 @@ class TickingBlockManager {
     // deleteTickingBlock
     delete(pos) {
         const k = pos.toHash();
-        let c = this.blocks.size;
         this.blocks.delete(k);
         if(this.blocks.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
@@ -68,7 +67,7 @@ class TickingBlockManager {
     }
 
     // tick
-    async tick() {
+    tick() {
         const world             = this.#chunk.world;
         const updated_blocks    = [];
         const ignore_coords     = new VectorCollector();
@@ -82,7 +81,7 @@ class TickingBlockManager {
             const ticking = v.ticking;
             const extra_data = tblock.extra_data;
             const current_block = this.chunk.getBlock(v.pos);
-            if(!extra_data || !current_block || current_block.id != tblock.id) {
+            if(!extra_data || !current_block || current_block.id != tblock.id || ('notick' in extra_data)) {
                 this.delete(v.pos);
                 continue;
             }
@@ -596,8 +595,8 @@ export class ServerChunk {
     }
 
     // On world tick
-    async tick() {
-        await this.ticking_blocks.tick();
+    tick() {
+        this.ticking_blocks.tick();
     }
 
     // Before unload chunk

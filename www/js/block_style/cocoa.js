@@ -1,4 +1,4 @@
-import {DIRECTION, QUAD_FLAGS, MULTIPLY, Vector} from '../helpers.js';
+import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
 import { default as default_style } from './default.js';
@@ -10,7 +10,7 @@ const HEIGHT = 20 / 32;
 
 const {mat4} = glMatrix;
 
-const lm = MULTIPLY.COLOR.WHITE.clone();
+const lm = IndexedColor.WHITE.clone();
 
 // Фонарь
 export default class style {
@@ -70,7 +70,7 @@ export default class style {
                 pos:        pos,
                 matrix:     plane_matrix,
                 flag:       flag,
-                texture:    [...c_up_top]
+                texture:    [c_up_top[0], c_up_top[1], c_up_top[2] * -1, c_up_top[3]]
             });
         }
 

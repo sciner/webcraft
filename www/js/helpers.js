@@ -1046,12 +1046,38 @@ export class Vector {
 
 export class Vec3 extends Vector {}
 
-export let MULTIPLY = {
-    COLOR: {
-        WHITE: new Color(816 / 1024, 1008 / 1024, 0, 0),
-        GRASS: new Color(900 / 1024, 965 / 1024, 0, 0)
+export class IndexedColor {
+    static packLm(lm) {
+        return IndexedColor.packArg(lm.r, lm.g, lm.b);
     }
-};
+
+    static WHITE = null;
+    static GRASS = null;
+
+    static packArg(palU, palV, palMode) {
+        palU = Math.round(palU);
+        palV = Math.round(palV);
+        return (palMode << 20) | (palV << 10) | (palU << 0);
+    }
+
+    constructor(r, g, b) {
+        this.r = r | 0;
+        this.g = g | 0;
+        this.b = b | 0;
+        this.packed = IndexedColor.packArg(this.r, this.g, this.b);
+    }
+
+    clone() {
+        return new IndexedColor(this.r, this.g, this.b);
+    }
+
+    pack() {
+        return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
+    }
+}
+
+IndexedColor.WHITE = new IndexedColor(816, 1008, 0);
+IndexedColor.GRASS = new IndexedColor(900, 965, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;
@@ -1127,7 +1153,7 @@ export class Helpers {
         return Helpers.cache;
     }
 
-    // 
+    //
     angleTo(pos, target) {
         let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle + 2 * Math.PI;

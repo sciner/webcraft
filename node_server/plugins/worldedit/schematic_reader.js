@@ -82,7 +82,18 @@ export class SchematicReader {
             let b = BLOCK[name];
             let new_block = null;
             if(b) {
+                // read entity props
+                let readEntityProps = false;
                 if(b.is_chest) {
+                    readEntityProps = true;
+                } else if(b.is_sign) {
+                    readEntityProps = true;
+                } else if(b.name == 'ITEM_FRAME') {
+                    readEntityProps = true;
+                } else if(b.is_banner) {
+                    readEntityProps = true;
+                }
+                if(readEntityProps) {
                     ep.copyFrom(pos).subSelf(schematic.offset);
                     block.entities = BlockEntities.get(ep);
                 }
@@ -119,8 +130,14 @@ export class SchematicReader {
                 // replace with TEST block and store original to his extra_data
                 new_block = {...TEST_BLOCK};
                 new_block.extra_data = {
-                    name: name,
-                    props: block._properties
+                    n: name
+                }
+                if(block._properties) {
+                    // fast check if object not empty
+                    for(let _ in block._properties) {
+                        new_block.extra_data.p = block._properties;
+                        break;
+                    }
                 }
             }
             this.blocks.set(bpos, new_block);
@@ -191,11 +208,41 @@ export class SchematicReader {
             }
         }
         // block entities
-        if(b.is_chest && block.entities) {
-            const chest_extra_data = this.parseChestExtraData(block.entities);
-            if(chest_extra_data) {
-                new_block.extra_data = chest_extra_data;
+        if(block.entities) {
+            if(b.is_chest) {
+                const chest_extra_data = this.parseChestExtraData(block.entities);
+                if(chest_extra_data) {
+                    new_block.extra_data = chest_extra_data;
+                }
+            } else if(b.is_sign) {
+                // text
+                let texts = Array(4);
+                let formatted_text = [];
+                let text_names = ['Text1', 'Text2', 'Text3', 'Text4'];
+                for(let i in text_names) {
+                    const t = text_names[i];
+                    if(t in block.entities) {
+                        const temp = JSON.parse(block.entities[t]);
+                        texts[i] = temp?.text || '';
+                        formatted_text[i] = temp;
+                    }
+                }
+                setExtraData('text', texts.join('\r'));
+                setExtraData('formatted_text', formatted_text);
+                // color
+                if('Color' in block.entities) {
+                    setExtraData('color', block.entities.Color);
+                }
+                // glowing
+                if('GlowingText' in block.entities && block.entities.GlowingText) {
+                    setExtraData('glowing_text', block.entities.GlowingText);
+                }
+            } else if(b.is_banner) {
+                if('Patterns' in block.entities) {
+                    setExtraData('patterns', block.entities.Color);
+                }
             }
+            // console.log(b.name, block.entities);
         }
         //
         if(props) {

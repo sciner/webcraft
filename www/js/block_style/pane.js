@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, NORMALS, ROTATE} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 
 // Панель
@@ -17,12 +17,10 @@ export default class style {
             return;
         }
 
+        const material = block.material;
+        let flags = 0;
+        let lm = IndexedColor.WHITE;
         const cardinal_direction = block.getCardinalDirection();
-
-        // Texture color multiplier
-        if(block.id == BLOCK.GRASS_BLOCK.id) {
-            lm = dirt_color; // MULTIPLY.COLOR.GRASS;
-        }
 
         let DIRECTION_BACK          = DIRECTION.BACK;
         let DIRECTION_RIGHT         = DIRECTION.RIGHT;
@@ -33,6 +31,15 @@ export default class style {
             console.error('block', JSON.stringify(block), block.id);
             debugger;
         }
+
+        // Animations
+        const anim_frames = BLOCK.getAnimations(material, 'up');
+        if(anim_frames > 0) {
+            lm.b = anim_frames;
+            flags |= QUAD_FLAGS.FLAG_ANIMATED;
+        }
+
+        let pp = IndexedColor.packLm(lm);
 
         // F R B L
         switch(cardinal_direction) {
@@ -81,65 +88,65 @@ export default class style {
         if(con_w) no_draw_center_sides.push(ROTATE.W);
         if(con_e) no_draw_center_sides.push(ROTATE.E);
 
-        push_part(vertices, tex, x + .5, bottom, z + .5, w, w, 1, no_draw_center_sides);
+        push_part(vertices, tex, x + .5, bottom, z + .5, w, w, 1, no_draw_center_sides, pp, flags);
 
         // South
         if(con_s) {
             let ndcs = [];
             if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
             if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
-            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, ndcs);
+            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, ndcs, pp, flags);
         }
         // North
         if(con_n) {
             let ndcs = [];
             if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
             if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
-            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, ndcs);
+            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, ndcs, pp, flags);
         }
         // West
         if(con_w) {
             let ndcs = [];
             if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
             if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
-            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
+            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs, pp, flags);
         }
         // East
         if(con_e) {
             let ndcs = [];
             if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
             if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
-            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
+            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs, pp, flags);
         }
 
     }
 
 }
 
-function push_part(vertices, c, x, y, z, xs, zs, h, no_draw_center_sides) {
-    let lm          = MULTIPLY.COLOR.WHITE;
-    let flags       = 0;
+function push_part(vertices, c, x, y, z, xs, zs, h, no_draw_center_sides, pp, flags) {
+
     let sideFlags   = 0;
     let upFlags     = 0;
+
     // TOP
     vertices.push(x, z, y + h,
         xs, 0, 0,
         0, zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags | upFlags);
+        pp, flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y,
         xs, 0, 0,
         0, -zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b, flags);
+        pp, flags);
     // SOUTH
     if(!no_draw_center_sides || no_draw_center_sides.indexOf(ROTATE.S) < 0) {
         vertices.push(x, z - zs/2, y + h/2,
             xs, 0, 0,
             0, 0, h,
             c[0], c[1], c[2]*xs, -c[3]*h,
-            lm.r, lm.g, lm.b, flags | sideFlags);
+            pp, flags | sideFlags);
     }
     // NORTH
     if(!no_draw_center_sides || no_draw_center_sides.indexOf(ROTATE.N) < 0) {
@@ -147,7 +154,7 @@ function push_part(vertices, c, x, y, z, xs, zs, h, no_draw_center_sides) {
             xs, 0, 0,
             0, 0, -h,
             c[0], c[1], -c[2]*xs, c[3]*h,
-            lm.r, lm.g, lm.b, flags | sideFlags);
+            pp, flags | sideFlags);
     }
     // WEST
     if(!no_draw_center_sides || no_draw_center_sides.indexOf(ROTATE.W) < 0) {
@@ -155,7 +162,7 @@ function push_part(vertices, c, x, y, z, xs, zs, h, no_draw_center_sides) {
             0, zs, 0,
             0, 0, -h,
             c[0], c[1], -c[2]*zs, c[3]*h,
-            lm.r, lm.g, lm.b, flags | sideFlags);
+            pp, flags | sideFlags);
     }
     // EAST
     if(!no_draw_center_sides || no_draw_center_sides.indexOf(ROTATE.E) < 0) {
@@ -163,6 +170,6 @@ function push_part(vertices, c, x, y, z, xs, zs, h, no_draw_center_sides) {
             0, zs, 0,
             0, 0, h,
             c[0], c[1], c[2]*zs, -c[3]*h,
-            lm.r, lm.g, lm.b, flags | sideFlags);
+            pp, flags | sideFlags);
     }
 }

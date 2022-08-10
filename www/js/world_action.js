@@ -790,17 +790,18 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     return actions;
                 }
             }
-            // Auto open edit window if sign
-            if(mat_block.tags.indexOf('sign') >= 0) {
+            // Rotate block one of 16 poses
+            if(mat_block.tags.indexOf('rotate_x16') >= 0) {
                 if(new_item.rotate.y != 0) {
                     new_item.rotate.x = player.rotate.z / 90;
                 }
-                if(mat_block.style == 'sign') {
-                    actions.open_window = {
-                        id: 'frmEditSign',
-                        args: {pos: new Vector(pos)}
-                    };
-                }
+            }
+            // Auto open edit window if sign
+            if(mat_block.style == 'sign') {
+                actions.open_window = {
+                    id: 'frmEditSign',
+                    args: {pos: new Vector(pos)}
+                };
             }
             // Pre place
             for(let func of [prePlaceRail]) {

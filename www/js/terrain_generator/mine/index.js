@@ -1,4 +1,4 @@
-import {Color, Vector, DIRECTION_BIT} from '../../helpers.js';
+import {IndexedColor, Vector, DIRECTION_BIT} from '../../helpers.js';
 import {DungeonGenerator} from '../dungeon.js';
 import { Default_Terrain_Generator } from '../default.js';
 import {BLOCK} from '../../blocks.js';
@@ -15,7 +15,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
     }
 
     async init() {}
-    
+
     generate(chunk) {
         const aleaRandom = new alea(this.s + chunk.addr.toString());
         if(chunk.addr.y == 0) {
@@ -27,10 +27,10 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
                 }
             }
         }
-        
+
         this.dungeon.add(chunk);
 
-        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+        const cell = {dirt_color: new IndexedColor(850, 930, 0), biome: {
             code: 'Flat'
         }};
 

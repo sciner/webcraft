@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
+import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
 import {BLOCK} from "../blocks.js";
 
@@ -111,7 +111,7 @@ export default class style {
 //
 function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, opened, left) {
 
-    let lm              = MULTIPLY.COLOR.WHITE; // Texture color multiplier
+    let pp              = IndexedColor.WHITE.packed; // Texture color multiplier
     let flags           = 0;
     let sideFlags       = 0;
     let upFlags         = 0;
@@ -133,41 +133,41 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
         x, z, y + ys,
         ...top_rotate,
         tex_up_down[0], tex_up_down[1], orient * tex_up_down[2], tex_up_down[3],
-        lm.r, lm.g, lm.b, flags | upFlags);
+        pp, flags | upFlags);
     // BOTTOM
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z, y + Z_FIGHT_ERROR,
         ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], orient * tex_up_down[2], tex_up_down[3],
-        lm.r, lm.g, lm.b, flags);
+        pp, flags);
     // SOUTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z - zs/2, y + ys/2,
         ...south_rotate,
         tex_front[0], tex_front[1], orient * tex_front[2], -tex_front[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // NORTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z + zs/2, y + ys/2,
         ...north_rotate,
         tex_front[0], tex_front[1], orient * tex_front[2], tex_front[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // WEST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x - xs/2 * (1 - Z_FIGHT_ERROR), z, y + ys/2,
         ...west_rotate,
         tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
     // EAST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x + xs/2 * (1 - Z_FIGHT_ERROR), z, y + ys/2,
         ...east_rotate,
         tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
-        lm.r, lm.g, lm.b, flags | sideFlags);
+        pp, flags | sideFlags);
 
 }
