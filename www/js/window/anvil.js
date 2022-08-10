@@ -44,7 +44,6 @@ class AnvilSlot extends CraftTableSlot {
             if(!dropItem) {
                 return;
             }
-            
             this.setItem(dropItem, e);
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             
@@ -66,7 +65,7 @@ class AnvilSlot extends CraftTableSlot {
         const first_item = this.ct.first_slot.getItem();
         const second_item = this.ct.second_slot.getItem();
         const label = this.ct.lbl_edit.buffer.join('');
-        if (!first_item) {
+        if (!first_item || first_item.count != 1) {
             this.ct.lbl_edit.buffer = [];
             this.ct.state = false;
             this.ct.result_slot.setItem(null);
