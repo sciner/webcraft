@@ -26,12 +26,13 @@ class AnvilSlot extends CraftTableSlot {
                 return;
             }
             if (this == ct.result_slot) {
+                this.getResult(true);
                 ct.first_slot.setItem(null);
                 ct.second_slot.setItem(null);
             }
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             this.setItem(null);
-            this.getResult(this == ct.result_slot);
+            this.getResult();
         };
         
         this.onDrop = function(e) {
