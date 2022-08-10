@@ -216,14 +216,33 @@ export class ServerChat {
             }
             case '/sysstat': {
                 const stat = {
-                    mobs_count: this.world.mobs.count(),
-                    drop_items: this.world.all_drop_items.size,
-                    players: this.world.players.size,
-                    chunks: this.world.chunkManager.all.size,
-                    net_in: this.world.network_stat.in + ` (cnt: ${this.world.network_stat.in_count})`,
-                    net_out: this.world.network_stat.out + ` (cnt: ${this.world.network_stat.out_count})`,
-                    working_time: Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
+                    mobs_count:     this.world.mobs.count(),
+                    drop_items:     this.world.all_drop_items.size,
+                    players:        this.world.players.size,
+                    chunks:         this.world.chunkManager.all.size,
+                    net_in:         this.world.network_stat.in + ` (cnt: ${this.world.network_stat.in_count})`,
+                    net_out:        this.world.network_stat.out + ` (cnt: ${this.world.network_stat.out_count})`,
+                    working_time:   Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
+                    ticking_blocks: {total:0}
                 };
+                // ticking_blocks
+                for(let addr of this.world.chunks.ticking_chunks) {
+                    const chunk = this.world.chunks.get(addr);
+                    for(let ticking_block of chunk.ticking_blocks.blocks.values()) {
+                        const ttype = ticking_block.ticking.type;
+                        if(!(ttype in stat.ticking_blocks)) {
+                            stat.ticking_blocks[ttype] = 0;
+                        }
+                        stat.ticking_blocks[ttype]++;
+                        stat.ticking_blocks.total++;
+                    }
+                }
+                stat.ticking_blocks = JSON.stringify(stat.ticking_blocks);
+                stat.ticking_blocks = stat.ticking_blocks.replaceAll('"', '');
+                stat.ticking_blocks = stat.ticking_blocks.replaceAll(',', ', ');
+                stat.ticking_blocks = stat.ticking_blocks.replaceAll('{', '');
+                stat.ticking_blocks = stat.ticking_blocks.replaceAll('}', '');
+                //
                 this.sendSystemChatMessageToSelectedPlayers(stat, [player.session.user_id], true);
                 break;
             }

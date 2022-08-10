@@ -282,9 +282,9 @@
     // sun light pass
     if (u_SunDir.w < 0.5) {
         float lighter = (1. - v_lightMode);
-        vec3 minecraftSun = vec3(0.8 + lighter * .1, 0.6 + lighter * .2, 1.0);
+        vec3 minecraftSun = vec3(0.9 + lighter * .1, 0.6 + lighter * .2, 1.0);
         if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;
-        sunNormalLight = dot(minecraftSun, abs(v_normal));
+        sunNormalLight = dot(minecraftSun, v_normal * v_normal);
     } else {
         // limit brightness to 0.2
         sunNormalLight = 1.0;
