@@ -21,7 +21,6 @@ class AnvilSlot extends CraftTableSlot {
         };
         
         this.onMouseDown = function(e) { 
-            this.getResult(this == ct.result_slot);
             const dragItem = this.getItem();
             if (!dragItem) {
                 return;
@@ -32,6 +31,7 @@ class AnvilSlot extends CraftTableSlot {
             }
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             this.setItem(null);
+            this.getResult(this == ct.result_slot);
         };
         
         this.onDrop = function(e) {
@@ -43,6 +43,7 @@ class AnvilSlot extends CraftTableSlot {
             if(!dropItem) {
                 return;
             }
+            
             this.setItem(dropItem, e);
             this.getInventory().setDragItem(this, dragItem, e.drag, this.width, this.height);
             
@@ -52,6 +53,7 @@ class AnvilSlot extends CraftTableSlot {
                 const label = (dropItem?.extra_data?.label) ? dropItem.extra_data.label : block.name;
                 ct.lbl_edit.setEditText(label);
             }
+            this.getResult();
         };
     }
     
@@ -237,13 +239,12 @@ export class AnvilWindow extends BaseCraftWindow {
     }
     
     draw(ctx, ax, ay) {
-        
         super.draw(ctx, ax, ay);
         if(!this.state) {
             if(typeof this.style.background.image == 'object') {
                 const x = ax + this.x;
                 const y = ay + this.y;
-                const arrow = {x: 704, y: 0, width: 112, height: 84, tox: 198 * this.zoom, toy: 88 * this.zoom};
+                const arrow = {x: 704, y: 0, width: 112, height: 80, tox: 198 * this.zoom, toy: 88 * this.zoom};
                 ctx.drawImage(
                     this.style.background.image,
                     arrow.x,
@@ -252,8 +253,8 @@ export class AnvilWindow extends BaseCraftWindow {
                     arrow.height,
                     x + arrow.tox,
                     y + arrow.toy,
-                    arrow.width,
-                    arrow.height
+                    arrow.width * this.zoom / 2,
+                    arrow.height * this.zoom / 2
                 );
             }
         }
