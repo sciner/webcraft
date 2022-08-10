@@ -691,6 +691,12 @@ export class DBWorldMigration {
             update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 73, queries: [
+            `DELETE FROM world_modify WHERE block_id = 142`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":142,', '"id":196,');`,
+            update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

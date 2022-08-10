@@ -2498,18 +2498,6 @@
             "can_rotate": true
         },
         {
-            "id": 142,
-            "name": "POTATO",
-            "spawnable": false,
-            "passable": 1,
-            "transparent": true,
-            "style": "planting",
-            "material": {
-                "id": "plant"
-            },
-            "texture": "item/potato.png"
-        },
-        {
             "id": 155,
             "name": "QUARTZ",
             "sound": "madcraft:block.stone",
@@ -6670,7 +6658,8 @@
                 "a": 255
             },
             "texture": "block/shroomlight.png"
-        },{
+        },
+        {
             "id": 196,
             "name": "POTATO",
             "style": "extruder",
@@ -6680,7 +6669,8 @@
             "material": {
                 "id": "food"
             }
-        },{
+        },
+        {
             "id": 197,
             "name": "BAKED_POTATO",
             "style": "extruder",
