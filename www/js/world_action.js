@@ -47,24 +47,24 @@ function calcRotateByPosN(rot, pos_n) {
 }
 
 // Calc rotate
-function calcRotate(rot, pos_n) {
-    rot = new Vector(rot);
-    rot.x = 0;
-    rot.y = 0;
+function calcRotate(rotate, n) {
+    rotate = new Vector(rotate);
+    rotate.x = 0;
+    rotate.y = 0;
     // top normal
-    if (Math.abs(pos_n.y) === 1) {
-        rot.x = BLOCK.getCardinalDirection(rot);
-        rot.z = 0;
-        rot.y = pos_n.y; // mark that is up
-    } else {
-        rot.z = 0;
-        if (pos_n.x !== 0) {
-            rot.x = pos_n.x > 0 ? ROTATE.E : ROTATE.W;
-        } else {
-            rot.x = pos_n.z > 0 ? ROTATE.N : ROTATE.S;
-        }
-    }
-    return rot;
+    //if (Math.abs(n.y) === 1) {
+        rotate.x = BLOCK.getCardinalDirection(rotate);
+        rotate.z = 0;
+        rotate.y = n.y; // mark that is up
+    //} else {
+    //    rotate.z = 0;
+    //    if (n.x !== 0) {
+    //        rotate.x = n.x > 0 ? ROTATE.E : ROTATE.W;
+    //    } else {
+    //        rotate.x = n.z > 0 ? ROTATE.N : ROTATE.S;
+    //    }
+    //}
+    return rotate;
 }
 
 // createPainting...

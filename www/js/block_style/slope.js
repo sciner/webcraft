@@ -135,67 +135,75 @@ export default class style {
             } else if(top_parts_count == 1) {
                 // outer corner
                 if(ne) {
+                    const mir_y =  on_ceil ? 1 : -1;
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[-1, 0, -1], [0, -1, 0]],
+                        axes:   [[-1, 0, 1 * mir_y], [0, -1, 0]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], -c[3]]
+                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
                     };
                     item.mods.south = {
                         autoUV: false,
-                        axes:   [[1, 0, 0], [0, 1, 1]],
+                        axes:   [[1, 0, 0], [0, 1, 1 * -mir_y]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5]
+                        offset: [0.5, 0.5, 0.5],
+                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
                     };
                     cancelDelete('south');
                     item.deleted.push(...['west', dirs_name_lower[(cd + 2) % 4]]);
                 }
                 if(sw) {
+                    const mir_y =  on_ceil ? 1 : -1;
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[-1, 0, 0], [0, -1, 1]],
+                        axes:   [[-1, 0, 0], [0, -1, 1 * -mir_y]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
                         offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], -c[3]]
+                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
                     };
                     item.mods.east = {
                         autoUV: false,
-                        axes:   [[1, 0, -1], [0, 1, 0]],
+                        axes:   [[1, 0, 1 * mir_y], [0, 1, 0]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        offset: [0.5, 0.5, 0.5]
+                        offset: [0.5, 0.5, 0.5],
+                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
                     };
                     cancelDelete('east');
                     item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
                 }
                 if(wn) {
+                    const mir_y =  on_ceil ? 1 : -1;
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[0, -1, -1], [1, 0, 0]],
+                        axes:   [[0, -1, 1 * mir_y], [1, 0, 0]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], -c[3]]
+                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
                     };
                     item.mods.east = {
                         autoUV: false,
-                        axes:   [[0, 1, 0], [-1, 0, 1]],
+                        axes:   [[0, 1, 0], [-1, 0, 1 * -mir_y]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
-                        offset: [0.5, 0.5, 0.5]
+                        offset: [0.5, 0.5, 0.5],
+                        uv:     [c[0], c[1], c[2], c[3] * -mir_y]
                     };
                     cancelDelete('east');
                     item.deleted.push(...['south', dirs_name_lower[(cd + 2) % 4]]);
                 }
+                //
                 if(es) {
+                    const mir_y =  on_ceil ? 1 : -1;
                     item.mods.west = {
                         autoUV: false,
-                        axes:   [[0, -1, 0], [1, 0, 1]],
+                        axes:   [[0, -1, 0], [1, 0, 1 * -mir_y]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE,
                         offset: [0.5, 0.5, 0.5],
-                        uv:     [c[0], c[1], c[2], -c[3]]
+                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
                     };
                     item.mods.up = {
                         autoUV: false,
-                        axes:   [[0, 1, -1], [-1, 0, 0]],
+                        axes:   [[0, 1, 1 * mir_y], [-1, 0, 0]],
                         flag:   flag | QUAD_FLAGS.FLAG_TRIANGLE | QUAD_FLAGS.FLAG_MIR2_TEX,
-                        uv:     [c[0], c[1], c[2], -c[3]]
+                        uv:     [c[0], c[1], c[2], c[3] * mir_y]
                     };
                     cancelDelete('west');
                     item.deleted.push(...['north', dirs_name_lower[(cd + 2) % 4]]);
