@@ -91,7 +91,7 @@ export class Inventory {
             for(let i in this.items) {
                 const item = this.items[i];
                 if(item) {
-                    if(item.id == mat.id && item?.entity_id === null && item?.extra_data === null) {
+                    if(item.id == mat.id && item?.entity_id == null && item?.extra_data == null) {
                         if(item.count < item_max_count) {
                             if(item.count + mat.count <= item_max_count) {
                                 updated.set(i, Math.min(item.count + mat.count, item_max_count));

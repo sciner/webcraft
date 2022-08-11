@@ -1469,5 +1469,21 @@
             "item": "madcraft:anvil",
             "count": 1
         }
+    },
+    {
+        "id": "577bda97-d21d-4d19-8554-ba3746b85017",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "C"
+        ],
+        "key": {
+            "C": {
+                "item": "madcraft:sugar_canes"
+            }
+        },
+        "result": {
+            "item": "madcraft:sugar",
+            "count": 1
+        }
     }
 ]

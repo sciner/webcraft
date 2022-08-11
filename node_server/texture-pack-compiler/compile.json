@@ -6708,6 +6708,10 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "material": {"id": "plant"},
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/sugar_cane.png"
+            },
             "extra_data": {"stage": 0, "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
