@@ -964,6 +964,10 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
                 actions.open_window = world_material.window;
                 break;
             }
+            case BLOCK.BEACON.id: {
+                actions.open_window = world_material.window;
+                break;
+            }
         }
     }
     actions.reset_target_event = true;

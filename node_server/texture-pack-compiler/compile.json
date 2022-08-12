@@ -6718,6 +6718,21 @@
                 "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
+        },
+        {
+            "id": 142,
+            "name": "BEACON",
+            "window": "frmBeacon",
+            "transparent": true,
+            "style": "beacon",
+            "sound": "madcraft:block.grass",
+            "material": {"id": "iron"},
+            "texture": {
+                "up": "block/beacon.png",
+                "side": "block/glass.png",
+                "down": "block/obsidian.png",
+                "north": "entity/beacon_beam.png"
+            }
         }
     ]
 }
