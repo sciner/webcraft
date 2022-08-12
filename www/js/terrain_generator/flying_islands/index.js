@@ -10,7 +10,7 @@ export default class Terrain_Generator extends Demo_Map {
 
     constructor(seed, world_id, options) {
         super(seed, world_id, options);
-        this.setSeed(0);
+        this.setSeed(seed);
         this.dungeon = new DungeonGenerator(seed);
     }
 

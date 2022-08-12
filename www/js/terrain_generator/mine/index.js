@@ -1,8 +1,8 @@
-import {IndexedColor, Vector, DIRECTION_BIT} from '../../helpers.js';
-import {DungeonGenerator} from '../dungeon.js';
+import { IndexedColor } from '../../helpers.js';
+import { DungeonGenerator } from '../dungeon.js';
 import { Default_Terrain_Generator } from '../default.js';
-import {BLOCK} from '../../blocks.js';
-import {noise, alea} from "../default.js";
+import { BLOCK } from '../../blocks.js';
+import { alea } from "../default.js";
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
 
@@ -10,7 +10,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         super(seed, world_id, options);
         this.s = seed;
         this.aleaRandom = new alea(seed);
-        this.setSeed(0);
+        this.setSeed(seed);
         this.dungeon = new DungeonGenerator(seed);
     }
 
