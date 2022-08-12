@@ -19,10 +19,10 @@ export function getEuler(out, quat) {
         y2 = y * y,
         z2 = z * z,
         w2 = w * w;
- 
+
     let unit = x2 + y2 + z2 + w2;
     let test = x * w - y * z;
- 
+
     if (test > (0.5 - glmatrix.EPSILON) * unit) {
         // singularity at the north pole
         out[0] = Math.PI / 2;
@@ -60,6 +60,7 @@ export class Transform extends Component {
     static key = 'transform';
 
     constructor() {
+        super();
         /**
          * @type {Float32Array}
          */
@@ -73,7 +74,7 @@ export class Transform extends Component {
         /**
          * @deprecated
          * I don't know how right use it, please  not use manually
-         * Because we can't decomposite pivot onto matrix 
+         * Because we can't decomposite pivot onto matrix
          */
         this._pivot = new Vector();
 
@@ -178,7 +179,7 @@ export class Transform extends Component {
         }
 
         this._quat.set([x, y, z, w]);
-        
+
         getEuler(this._rotation, this._quat);
 
         this.updateMatrix();
@@ -235,7 +236,7 @@ export class Transform extends Component {
         this._oldMatrixId = this.matrixId;
     }
 
-    _compositeWorld() {        
+    _compositeWorld() {
         this._compositeLocal();
 
         if (!this.parent) {
@@ -267,7 +268,7 @@ export class Transform extends Component {
             this._compositeWorld();
         }
     }
-    
+
     /**
      * Local matrix for this node
      * @type {Float32Array}

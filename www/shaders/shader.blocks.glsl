@@ -91,7 +91,7 @@
     in vec2 a_uvCenter;
     in vec2 a_uvSize;
     in uint a_color;
-    in float a_flags;
+    in uint a_flags;
     in vec2 a_quad;
 
     // please, replace all out with v_
@@ -253,7 +253,7 @@
 
 #ifdef terrain_read_flags_vert
     // read flags
-    int flags = int(a_flags);
+    int flags = int(a_flags) & 0xffff;
     int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
     int flagBiome = (flags >> MASK_BIOME_FLAG) & 1;
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
