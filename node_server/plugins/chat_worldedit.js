@@ -18,25 +18,29 @@ export default class WorldEdit {
     onChat(chat) {
 
         this.commands = new Map();
-        this.commands.set('//desel', this.cmd_desel);
-        this.commands.set('//pos1', this.cmd_pos1);
-        this.commands.set('//pos2', this.cmd_pos2);
-        this.commands.set('//copy', this.cmd_copy);
-        this.commands.set('//paste', this.cmd_paste);
-        this.commands.set('//set', this.cmd_set);
-        this.commands.set('//walls', this.cmd_set);
-        this.commands.set('//faces', this.cmd_set);
-        this.commands.set('//replace', this.cmd_replace);
-        this.commands.set('//xyz1', this.cmd_xyz1);
-        this.commands.set('//xyz2', this.cmd_xyz2);
-        this.commands.set('/schem', this.schematic);
+        this.commands.set('/desel', this.cmd_desel);
+        this.commands.set('/pos1', this.cmd_pos1);
+        this.commands.set('/pos2', this.cmd_pos2);
+        this.commands.set('/xyz1', this.cmd_xyz1);
+        this.commands.set('/xyz2', this.cmd_xyz2);
+        this.commands.set('/copy', this.cmd_copy);
+        this.commands.set('/paste', this.cmd_paste);
+        this.commands.set('/set', this.cmd_set);
+        this.commands.set('/walls', this.cmd_set);
+        this.commands.set('/faces', this.cmd_set);
+        this.commands.set('/replace', this.cmd_replace);
+        this.commands.set('/schem', this.cmd_schematic);
+        this.commands.set('/schematic', this.cmd_schematic);
+        this.commands.set('/clearclipboard', this.cmd_clearclipboard);
         // this.commands.set('//line', this.);
         // this.commands.set('//flora', this.);
-        // this.commands.set('//schematic', this.);
-        // this.commands.set('//clearclipboard', this.);
+        // this.commands.set('//undo', this.);
 
         // On chat command
         chat.onCmd(async (player, cmd, args) => {
+            while(cmd.indexOf('//') === 0) {
+                cmd = cmd.substring(1)
+            }
             const f = this.commands.get(cmd);
             if(f) {
                 if(!chat.world.admins.checkIsAdmin(player)) {
@@ -52,6 +56,12 @@ export default class WorldEdit {
             }
         });
 
+    }
+
+    // Clear clipboard
+    async cmd_clearclipboard(chat, player, cmd, args) {
+        delete(player._world_edit_copy);
+        chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [player.session.user_id]);
     }
 
     /**
@@ -162,7 +172,7 @@ export default class WorldEdit {
      * @param {*} args
      */
     async cmd_set(chat, player, cmd, args) {
-        const types = ['//set', '//walls', '//faces'];
+        const types = ['/set', '/walls', '/faces'];
         const quboid_fill_type_id = types.indexOf(cmd) + 1;
         const qi = this.getCuboidInfo(player);
         args = chat.parseCMD(args, ['string', 'string']);
@@ -532,7 +542,7 @@ export default class WorldEdit {
     }
 
     // schematic commands
-    async schematic(chat, player, cmd, args) {
+    async cmd_schematic(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'string', 'string']);
         const action = args[1];
         let msg = null;
