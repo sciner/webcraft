@@ -4,7 +4,7 @@ import {WorldAction} from "../../www/js/world_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 
-const MAX_SET_BLOCK         = 100000;
+const MAX_SET_BLOCK         = 250000;
 const MAX_BLOCKS_PER_PASTE  = 10000;
 
 export default class WorldEdit {

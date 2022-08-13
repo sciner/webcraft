@@ -2576,7 +2576,8 @@
             },
             "texture": {
                 "up":  "block/podzol_top.png",
-                "side":  "block/podzol_side.png"
+                "side":  "block/podzol_side.png",
+                "down":  "block/dirt.png"
             }
         },
         {

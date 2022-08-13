@@ -107,6 +107,7 @@ export default class Terrain_Generator extends Demo_Map {
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
+        const stone_block               = BLOCK.STONE.id;
 
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
@@ -180,7 +181,7 @@ export default class Terrain_Generator extends Demo_Map {
                     // this.drawTreasureRoom(chunk, line, xyz, x, y, z);
 
                     // Ores (if this is not water, fill by ores)
-                    const block_id = xyz.y < local_dirt_level ? map.ores.get(xyz, value) : dirt_block;
+                    const block_id = xyz.y < local_dirt_level ? stone_block : dirt_block;
                     chunk.setBlockIndirect(x, y, z, block_id);
 
                     // check if herbs planted
@@ -261,6 +262,8 @@ export default class Terrain_Generator extends Demo_Map {
         
         // Dungeon
         this.dungeon.add(chunk);
+
+        map.ores.draw(chunk);
 
         return map;
 

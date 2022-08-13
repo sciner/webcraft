@@ -222,6 +222,13 @@ export class Chunk {
         this.emitted_blocks.delete(block.index);
     }
 
+    // Return block ID
+    getBlockID(x, y, z) {
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        return uint16View[index];
+    }
+
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
