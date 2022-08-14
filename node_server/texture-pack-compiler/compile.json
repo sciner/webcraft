@@ -1761,6 +1761,9 @@
                 "down": "block/oak_planks.png",
                 "side": "block/redstone_torch.png"
             },
+            "tags": [
+                "can_set_on_wall"
+            ],
             "texture_off": {
                 "down": "block/oak_planks.png",
                 "side": "block/redstone_torch.png"
@@ -2860,7 +2863,8 @@
             },
             "texture": "block/torch.png",
             "tags": [
-                "no_set_on_top"
+                "no_set_on_top",
+                "can_set_on_wall"
             ],
             "can_rotate": true
         },
