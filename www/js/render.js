@@ -156,7 +156,10 @@ export class Renderer {
         });
 
         if (renderBackend.gl) {
-            // world.chunkManager.setLightTexFormat('rgba4unorm');
+            // world.chunkManager.setLightTexFormat('rgba4unorm', false);
+            world.chunkManager.setLightTexFormat('rgba8unorm', true);
+        } else {
+            world.chunkManager.setLightTexFormat('rgba8unorm', false);
         }
 
         this.env.init(this);

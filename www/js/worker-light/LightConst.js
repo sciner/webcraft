@@ -63,6 +63,8 @@ export function calcNormalDx() {
     }
 }
 
+calcNormalDx();
+
 export function initMasks() {
     for (let i = 0; i < DIR_COUNT; i++) {
         let mask = 1 << i;

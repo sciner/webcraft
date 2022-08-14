@@ -64,6 +64,7 @@
     uniform float u_mipmap;
     uniform float u_blockSize;
     uniform float u_opaqueThreshold;
+    uniform float u_useNormalMap;
     uniform sampler2D u_blockDayLightSampler;
     uniform sampler2D u_maskColorSampler;
     //--
@@ -345,6 +346,7 @@
     vec3 absNormal = abs(v_normal);
     vec3 signNormal = sign(v_normal);
     vec3 lightCoord = v_chunk_pos + 1.0 + v_lightOffset.xyz + v_normal * 0.5;
+    vec3 normalCoord = lightCoord + vec3(0.0, 0.0, v_lightOffset.w * 0.5);
 
     vec3 aoCoord0 = lightCoord;
     vec3 aoCoord1 = lightCoord;
@@ -370,6 +372,7 @@
 
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     vec4 centerSample;
+    vec4 normalSample;
     vec4 aoVector;
 
     if (v_lightId < 0.5) {
@@ -379,12 +382,18 @@
             aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
                 texture(u_lightTex[0], aoCoord2 * texSize).w, texture(u_lightTex[0], aoCoord3 * texSize).w);
         }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[0], normalCoord * texSize);
+        }
     } else if (v_lightId < 1.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
         centerSample = texture(u_lightTex[1], lightCoord * texSize);
         if (v_lightMode > 0.5) {
             aoVector = vec4(texture(u_lightTex[1], aoCoord0 * texSize).w, texture(u_lightTex[1], aoCoord1 * texSize).w,
                 texture(u_lightTex[1], aoCoord2 * texSize).w, texture(u_lightTex[1], aoCoord3 * texSize).w);
+        }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[1], normalCoord * texSize);
         }
     } else if (v_lightId < 2.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
@@ -393,12 +402,18 @@
             aoVector = vec4(texture(u_lightTex[2], aoCoord0 * texSize).w, texture(u_lightTex[2], aoCoord1 * texSize).w,
                 texture(u_lightTex[2], aoCoord2 * texSize).w, texture(u_lightTex[2], aoCoord3 * texSize).w);
         }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[2], normalCoord * texSize);
+        }
     } else if (v_lightId < 3.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
         centerSample = texture(u_lightTex[3], lightCoord * texSize);
         if (v_lightMode > 0.5) {
             aoVector = vec4(texture(u_lightTex[3], aoCoord0 * texSize).w, texture(u_lightTex[3], aoCoord1 * texSize).w,
                 texture(u_lightTex[3], aoCoord2 * texSize).w, texture(u_lightTex[3], aoCoord3 * texSize).w);
+        }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[3], normalCoord * texSize);
         }
     } else if (v_lightId < 4.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
@@ -407,12 +422,18 @@
             aoVector = vec4(texture(u_lightTex[4], aoCoord0 * texSize).w, texture(u_lightTex[4], aoCoord1 * texSize).w,
                 texture(u_lightTex[4], aoCoord2 * texSize).w, texture(u_lightTex[4], aoCoord3 * texSize).w);
         }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[4], normalCoord * texSize);
+        }
     } else if (v_lightId < 5.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
         centerSample = texture(u_lightTex[5], lightCoord * texSize);
         if (v_lightMode > 0.5) {
             aoVector = vec4(texture(u_lightTex[5], aoCoord0 * texSize).w, texture(u_lightTex[5], aoCoord1 * texSize).w,
                 texture(u_lightTex[5], aoCoord2 * texSize).w, texture(u_lightTex[5], aoCoord3 * texSize).w);
+        }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[5], normalCoord * texSize);
         }
     } else if (v_lightId < 6.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
@@ -421,6 +442,9 @@
             aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
                 texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
         }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[6], normalCoord * texSize);
+        }
     } else if (v_lightId < 7.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[7], 0));
         centerSample = texture(u_lightTex[7], lightCoord * texSize);
@@ -428,9 +452,15 @@
             aoVector = vec4(texture(u_lightTex[7], aoCoord0 * texSize).w, texture(u_lightTex[7], aoCoord1 * texSize).w,
                 texture(u_lightTex[7], aoCoord2 * texSize).w, texture(u_lightTex[7], aoCoord3 * texSize).w);
         }
+        if (u_useNormalMap > 0.5) {
+            normalSample = texture(u_lightTex[7], normalCoord * texSize);
+        }
     }
+
     float caveSample = centerSample.x;
     float daySample = 1.0 - centerSample.y;
+    float cavePart = 0.0;
+
     float volumeSample = 1.0 - centerSample.z;
     if (volumeSample > 0.05) {
         caveSample /= volumeSample;
@@ -448,6 +478,19 @@
         aoSample *= aoFactor;
     }
 
+    vec3 caveNormal = vec3(0.0);
+    if (u_useNormalMap > 0.5) {
+        cavePart = caveSample / (caveSample + daySample * u_brightness + 0.05);
+        if (normalSample.w > 0.01) {
+            caveNormal = normalSample.xyz / normalSample.w;
+            caveNormal = caveNormal * 31.0 - 16.0;
+        }
+    }
+    caveNormal += v_normal;
+    if (length(caveNormal) < 0.1) {
+        caveNormal = v_normal;
+    }
+
     /*float gamma = 0.5;
     caveSample = pow(caveSample, 1.0 / gamma);
     caveSample = caveSample * (1.0 - aoSample);
@@ -458,6 +501,8 @@
     combinedLight = texture(u_blockDayLightSampler, lutCoord).rgb;
     // combinedLight = vec3(clamp((lutCoord.x + lutCoord.y) * 2.0, 0., 1.));
     combinedLight *= (1.0 - aoSample);
+
+    combinedLight *= (1.0 - cavePart + cavePart * abs(caveNormal) / length(caveNormal));
     playerLight = 1.0;
     //--
 #endif

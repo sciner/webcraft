@@ -331,6 +331,7 @@ export class GlobalUniformGroup {
 
         this.updateID = 0;
         this.camPos = new Vector();
+        this.useNormalMap = true;
 
         this.localLigthRadius = 0;
     }

@@ -50,7 +50,7 @@ function run() {
             return;
         chunk.sentID = chunk.lastID;
 
-        chunk.calcResult(renderFormat === 'rgba4unorm');
+        chunk.calcResult(renderFormat === 'rgba4unorm', hasNormals);
 
         // no need to send if no changes
         if (chunk.crc != chunk.crcO) {
@@ -78,6 +78,7 @@ function run() {
 }
 
 let renderFormat = 'rgba8';
+let hasNormals = false;
 
 const msgQueue = [];
 
@@ -135,6 +136,7 @@ async function initWorld() {
     }
 
     world = new LightWorld();
+    world.light.setNormals(hasNormals);
     for (let item of msgQueue) {
         await onmessage(item);
     }
@@ -164,6 +166,10 @@ async function onMessageFunc(e) {
     switch (cmd) {
         case 'initRender': {
             renderFormat = args.texFormat;
+            hasNormals = !!args.hasNormals;
+            if (world.light) {
+                world.light.setNormals(hasNormals);
+            }
             break;
         }
         case 'createChunk': {
