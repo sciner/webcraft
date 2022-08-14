@@ -6725,13 +6725,23 @@
             "texture": "block/sugar_cane.png"
         },
         {
-            "id": 55288,
+            "id": 228,
             "name": "FLINT",
+            "style": "extruder",
+            "texture": "item/flint.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 229,
+            "name": "FLINT_AND_STEEL",
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
             "diagonal": true,
-            "item": {"name": "instrument", "instrument_id": "flint"},
+            "item": {"name": "instrument", "instrument_id": "flint_and_steel"},
             "material": {
                 "id": "iron"
             },
