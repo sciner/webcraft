@@ -96,7 +96,8 @@ export class Chunk {
 
     onLightGenerated(args) {
         const cm = this.getChunkManager();
-        const arrClass = cm.lightTexFormat === 'rgb565unorm' ? Uint16Array: Uint8Array;
+        const arrClass = cm.lightTexFormat === 'rgb565unorm' || cm.lightTexFormat === 'rgba4unorm'
+            ? Uint16Array: Uint8Array;
         this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
