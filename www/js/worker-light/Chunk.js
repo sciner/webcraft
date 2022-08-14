@@ -182,10 +182,10 @@ export class Chunk {
         const addResult1 = (R, G, B, A) => {
             if (is4444) {
                 const prev_value = result[ind];
-                const new_value = (Math.round(R) << 0)
+                const new_value = (Math.round(R) << 12)
                     + (Math.round(15.0 - G) << 8)
-                    + (Math.round(B * 255.0) << 16)
-                    + (Math.round(A * 255.0) << 24);
+                    + (Math.round(B * 15.0) << 4)
+                    + (Math.round(A * 15.0) << 0);
                 result[ind++] = new_value;
                 if (prev_value != new_value) {
                     changed = true;
