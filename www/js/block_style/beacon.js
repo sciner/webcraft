@@ -2,7 +2,7 @@ import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
-// Наковальня
+// маяк
 export default class style {
     
     static getRegInfo() {
@@ -28,33 +28,20 @@ export default class style {
         const beacon = BLOCK.calcTexture(texture, DIRECTION.UP);
         const side = BLOCK.calcTexture(texture, DIRECTION.WEST);
         const obsidian = BLOCK.calcTexture(texture, DIRECTION.DOWN);
-        const beam = BLOCK.calcTexture(texture, DIRECTION.NORTH);
   
         box(16, 16, 16, 0, vertices, side, side, x, y, z);
         box(12, 12, 2, 0, vertices, obsidian, obsidian, x, y, z);
-        box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z);
-       // box(8, 3, 5, 5, cd, vertices, side, side, x, y, z);
-       // box(10, 8, 1, 4, cd, vertices, side, side, x, y, z);
-       // box(12, 12, 4, 0, cd, vertices, side, side, x, y, z);
-       
-       // const lm = new IndexedColor(255, 255, 0);
-        const lm        = new IndexedColor(0, 10, 0);
-        const flags = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_TEXTURE_SCROLL;
-
-        vertices.push( x, z, y + 1, 1, 0, 0, 0, 0, 1, 0, beam[1], beam[2], beam[3], lm.pack(), flags);
-    
+        box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z, QUAD_FLAGS.NO_CAN_TAKE_LIGHT);
     }
     
 }
 
-function box(width, length, height, shift, vertices, texture, texture_up, x, y, z) {
+function box(width, length, height, shift, vertices, texture, texture_up, x, y, z, flags) {
     width /= 16;
     shift /= 16;
     height /= 16;
     length /= 16;
     const lm = IndexedColor.WHITE;
-    const flags = 0;
-
     vertices.push( x + 0.5, z + 0.5 - width / 2, y + shift + height / 2, length, 0, 0, 0, 0, height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
     vertices.push( x + 0.5, z + 0.5 + width / 2, y + shift + height / 2, length, 0, 0, 0, 0, -height, texture[0], texture[1], texture[2] * length, texture[3] * height, lm.pack(), flags);
     vertices.push( x + 0.5 - length / 2, z + 0.5, y + shift + height / 2, 0, width, 0, 0, 0, -height, texture[0], texture[1], texture[2] * width, texture[3] * height, lm.pack(), flags);

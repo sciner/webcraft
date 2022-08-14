@@ -6720,18 +6720,40 @@
             "texture": "block/sugar_cane.png"
         },
         {
+            "id": 227,
+            "name": "NETHER_STAR",
+            "style": "extruder",
+            "item": {"name": "nether_star"},
+            "texture": {
+                "side": "item/nether_star.png"
+            },
+            "material": {
+                "id": "wood"
+            }
+        },
+        {
             "id": 142,
             "name": "BEACON",
             "window": "frmBeacon",
             "transparent": true,
             "style": "beacon",
+            "ticking": {
+                "type": "beacon"
+            },
             "sound": "madcraft:block.grass",
             "material": {"id": "iron"},
+            "extra_data": {
+                "power": false,
+                "color": {
+                    "r": 62, 
+                    "g": 150, 
+                    "b": 0
+                }
+            },
             "texture": {
                 "up": "block/beacon.png",
                 "side": "block/glass.png",
-                "down": "block/obsidian.png",
-                "north": "entity/beacon_beam.png"
+                "down": "block/obsidian.png"
             }
         }
     ]

@@ -18,7 +18,8 @@ export class PlayerWindowManager {
         this.addWindow(new StatsWindow(player));
         this.addWindow(new DieWindow(player));
         this.addWindow(new AnvilWindow(inventory));
-        this.addWindow(new BeaconWindow(inventory));
+        this.addWindow(new BeaconWindow(player));
+        
     }
 
     addWindow(w) {
