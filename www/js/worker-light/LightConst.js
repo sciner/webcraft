@@ -56,6 +56,7 @@ export function adjustLight(dstLight) {
 }
 
 export const NORMAL_DX = [];
+export const NORMAL_DEF = 16 * (1 + NORMAL_CX + NORMAL_CX * NORMAL_CX);
 
 export function calcNormalDx() {
     for (let i = 0; i < 26; i++) {

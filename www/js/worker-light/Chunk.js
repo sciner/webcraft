@@ -260,23 +260,13 @@ export class Chunk {
                     for (let x = 0; x < outerSize.x; x++) {
                         const coord0 = sx * x + sy * y + sz * z;
                         let normalPack = dataView.getUint16(coord0 + OFFSET_NORMAL);
-                        let dx = (0x10 + normalPack) & 0x1f;
+                        let dx = normalPack & 0x1f;
                         normalPack = normalPack >> 5;
-                        if (dx < 0x10) {
-                            normalPack ++;
-                        }
-                        let dz = (0x10 + normalPack) & 0x1f;
+                        let dz = normalPack & 0x1f;
                         normalPack = normalPack >> 5;
-                        if (dz < 0x10) {
-                            normalPack ++;
-                        }
-                        let dy = (0x10 + normalPack) & 0x1f;
+                        let dy = normalPack & 0x1f;
                         let light = uint8View[coord0 + OFFSET_LIGHT] > 0 ? 1 : 0;
                         addResult2(light * dx, light * dz, light * dy, light);
-
-                        if (light > 0) {
-                            console.log(`${x} ${z} ${y} light direction ${dx - 16} ${dz - 16} ${dy - 16}`)
-                        }
                     }
         }
 

@@ -22,7 +22,7 @@ import {
     OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL,
+    OFFSET_NORMAL, NORMAL_DEF,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -198,7 +198,7 @@ export class LightQueue {
 
             let blockMask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
-            let normalVal = 0;
+            let normalVal = NORMAL_DEF;
             if (nibbleSource) {
                 //TODO: maybe use extra memory here, with OFFSET_SOURCE?
                 const localY = y - aabb.y_min;
@@ -217,7 +217,7 @@ export class LightQueue {
             } else {
                 prevLight = old;
             }
-            let normalOld  = 0;
+            let normalOld  = NORMAL_DEF;
             let foundNormal = false;
             if (hasNormals) {
                 normalOld = dataView.getUint16(coordBytes + offsetNormal);
@@ -237,7 +237,7 @@ export class LightQueue {
                 }
                 let coord2 = coord + dif26[d];
                 let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
-                let normal = 0;
+                let normal = NORMAL_DEF;
                 if (hasNormals) {
                     normal = (dataView.getUint16(coord2 * strideBytes + offsetNormal)
                         + NORMAL_DX[d]) & NORMAL_MASK;
@@ -260,7 +260,7 @@ export class LightQueue {
                                 foundNormal = true;
                                 normalVal = normal;
                             } else if (normalVal !== normal) {
-                                normalVal = 0;
+                                normalVal = NORMAL_DEF;
                             }
                         }
                     }
@@ -280,7 +280,7 @@ export class LightQueue {
             // let modMask = (~blockMask & ((1 << dirCount) - 1));
             let modMask = incMask | decrMask;
             if (old === val && old === prevLight
-                && (!hasNormals || normalVal !== normalOld )
+                && (!hasNormals || val === 0 || normalVal === normalOld)
             ) {
                 modMask = incMask;
                 if (modMask === 0) {
@@ -293,7 +293,7 @@ export class LightQueue {
                 dataView.setUint16(coordBytes + offsetNormal, normalVal);
                 valAndNormal = dataView.getUint32(coordBytes + OFFSET_LIGHT);
             }
-            if (old !== val || normalVal !== normalOld) {
+            if (old !== val || val > 0 && normalVal !== normalOld) {
                 chunk.lastID++;
             }
             if (old > val) {
