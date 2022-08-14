@@ -215,7 +215,7 @@ export class ChunkManager {
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
-                    meshes.add(new Particles_BeaconRay(args), 'beacon/' + args.pos.toHash());
+                    meshes.addForChunk(getChunkAddr(args.pos), new Particles_BeaconRay(args), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'maps_created': {

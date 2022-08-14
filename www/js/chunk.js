@@ -314,6 +314,7 @@ export class Chunk {
         // remove particles mesh
         const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
         Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
+        Qubatch.render.meshes.removeForChunk(this.addr);
     }
 
     // Build vertices
