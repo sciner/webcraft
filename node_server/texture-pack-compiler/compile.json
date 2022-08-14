@@ -6717,6 +6717,10 @@
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
             ]},
+            "previous_part": {
+                "offset_pos": {"x": 0, "y": 1, "z": 0},
+                "id": 486
+            },
             "ticking": {
                 "type": "stage",
                 "max_stage": 7,
