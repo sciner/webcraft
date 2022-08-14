@@ -222,8 +222,8 @@ export class Chunk {
                     const coord0 = sx * x + sy * y + sz * z;
                     addResult1(adjustLight(uint8View[coord0 + OFFSET_LIGHT]),
                         adjustLight(uint8View[coord0 + OFFSET_DAY]),
-                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0,
-                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) > 0 ? 1 : 0);
+                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0,
+                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
                 }
 
         //
