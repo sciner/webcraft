@@ -8,6 +8,7 @@ import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
+import { Particles_BeaconRay } from "./particles/beacon_ray.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -209,6 +210,12 @@ export class ChunkManager {
                 }
                 case 'add_animated_block': {
                     that.animated_blocks.add(args);
+                    break;
+                }
+                case 'add_beacon_ray': {
+                    const meshes = Qubatch.render.meshes;
+                    args.pos = new Vector(args.pos);
+                    meshes.add(new Particles_BeaconRay(args), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'maps_created': {

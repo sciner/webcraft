@@ -6740,8 +6740,8 @@
             "ticking": {
                 "type": "beacon"
             },
-            "sound": "madcraft:block.grass",
-            "material": {"id": "iron"},
+            "sound": "madcraft:block.glass",
+            "material": {"id": "glass"},
             "extra_data": {
                 "power": false,
                 "color": {
@@ -6750,10 +6750,17 @@
                     "b": 0
                 }
             },
+            "light_power": {
+                "r": 80,
+                "g": 200,
+                "b": 253,
+                "a": 255
+            },
             "texture": {
                 "up": "block/beacon.png",
                 "side": "block/glass.png",
-                "down": "block/obsidian.png"
+                "down": "block/obsidian.png",
+                "east": "entity/beacon_beam.png"
             }
         }
     ]

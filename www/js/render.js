@@ -736,9 +736,11 @@ export class Renderer {
 
     // destroyBlock
     destroyBlock(block, pos, small) {
-        const block_manager = this.world.block_manager;
+        // const block_manager = this.world.block_manager;
         // Qubatch.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
         this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
+        // Destroy beacon ray
+        this.meshes.remove('beacon/' + pos.toHash(), this);
     }
 
     // addExplosionParticles
