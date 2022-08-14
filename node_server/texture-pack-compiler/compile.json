@@ -6723,6 +6723,22 @@
                 "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
+        },
+        {
+            "id": 55288,
+            "name": "FLINT",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "flint"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/flint_and_steel.png"
+            }
         }
     ]
 }
