@@ -48,20 +48,7 @@ export default class GeometryTerrain {
          */
         this.uint32Data;
 
-        if (vertices instanceof ArrayBuffer) {
-            this.data = new Float32Array(vertices);
-            this.uint32Data = new Uint32Array(this.data.buffer);
-        } else if (vertices instanceof Float32Array) {
-            this.data = vertices;
-            this.uint32Data = new Uint32Array(this.data.buffer);
-        } else {
-            this.data = new Float32Array(vertices);
-            this.uint32Data = new Uint32Array(this.data.buffer);
-            for (let i = 0; i < vertices.length; i += this.strideFloats) {
-                this.uint32Data[i + 13] = vertices[i + 13];
-                this.uint32Data[i + 14] = vertices[i + 14];
-            }
-        }
+        this.setVertices(vertices);
 
         this.size = this.data.length / this.strideFloats;
         this.chunkIds = null;
@@ -88,6 +75,38 @@ export default class GeometryTerrain {
         this.buffers = [];
 
         this.customFlag = false;
+    }
+
+    setVertices(vertices) {
+        if (vertices instanceof ArrayBuffer) {
+            this.data = new Float32Array(vertices);
+            this.uint32Data = new Uint32Array(this.data.buffer);
+        } else if (vertices instanceof Float32Array) {
+            this.data = vertices;
+            this.uint32Data = new Uint32Array(this.data.buffer);
+        } else {
+            this.data = new Float32Array(vertices);
+            this.uint32Data = new Uint32Array(this.data.buffer);
+            for (let i = 0; i < vertices.length; i += this.strideFloats) {
+                this.uint32Data[i + 13] = vertices[i + 13];
+                this.uint32Data[i + 14] = vertices[i + 14];
+            }
+        }
+    }
+
+    /**
+     * for particles, change particular quad by offset
+     * @param vertices Array
+     * @param offset offset in floats
+     */
+    changeQuad(offsetFloat, vertices) {
+        const {data, uint32Data, strideFloats} = this;
+
+        for (let i = 0; i < strideFloats; i++) {
+            data[offsetFloat + i] = vertices[i];
+        }
+        uint32Data[offsetFloat + 13] = vertices[13];
+        uint32Data[offsetFloat + 14] = vertices[14];
     }
 
     /**

@@ -80,8 +80,8 @@ export class Particles_Effects extends Particles_Base {
             this.p_count--;
         }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
-        for(let i = 0; i < STRIDE_FLOATS; i++) {
-            this.buffer.data[vindex + i] = vertices[i];
+        this.buffer.changeQuad(vindex, vertices);
+        for (let i = 0; i < STRIDE_FLOATS; i++) {
             this.vertices[vindex + i] = vertices[i];
         }
         //
@@ -97,7 +97,7 @@ export class Particles_Effects extends Particles_Base {
                 const added = new Array(this.max_count * STRIDE_FLOATS);
                 // Resize buffer
                 this.vertices = [...this.vertices, ...added];
-                this.buffer.data = new Float32Array(this.vertices);
+                this.buffer.setVertices(this.vertices);
                 this.max_count = this.vertices.length / STRIDE_FLOATS;
             }
         }
