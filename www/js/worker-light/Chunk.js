@@ -4,8 +4,8 @@ import {
     adjustSrc,
     BITS_QUEUE_BLOCK_INDEX,
     DIR_COUNT,
-    DISPERSE_MIN, dx, dy, dz, MASK_SRC_AMOUNT, MASK_SRC_AO,
-    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT,
+    DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, MASK_SRC_AMOUNT, MASK_SRC_AO,
+    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
     OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
@@ -35,7 +35,7 @@ export class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 5,
+            strideBytes: LIGHT_STRIDE_BYTES,
             nibble: this.disperse > 0 ? {
                 dims: new Vector(1, this.disperse, 1),
                 strideBytes: 3,
@@ -110,6 +110,8 @@ export class Chunk {
                         const light = bytes2[coord2 + OFFSET_LIGHT];
                         if (light > 0) {
                             uint8View[coord1 + OFFSET_LIGHT] = light;
+                            uint8View[coord1 + OFFSET_NORMAL] = light;
+                            uint8View[coord1 + OFFSET_NORMAL + 1] = light;
                         }
 
                         // copy AO through border

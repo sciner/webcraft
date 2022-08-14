@@ -12,7 +12,13 @@ export const MASK_SRC_REST = 224;
 export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
 export const OFFSET_WAVE = 2;
-export const OFFSET_DAY = 3;
+export const OFFSET_NORMAL = 3;
+export const OFFSET_DAY = 5;
+export const LIGHT_STRIDE_BYTES = 7;
+
+export const NORMAL_CX = 32;
+export const NORMAL_CV = 32 * 32 * 32;
+export const NORMAL_MASK = 0x7fff;
 
 export const OFFSET_COLUMN_TOP = 0;
 export const OFFSET_COLUMN_BOTTOM = 1;
@@ -47,6 +53,14 @@ export function adjustSrc(srcLight) {
 
 export function adjustLight(dstLight) {
     return Math.max((dstLight - 1) / 2, 0);
+}
+
+export const NORMAL_DX = [];
+
+export function calcNormalDx() {
+    for (let i = 0; i < 26; i++) {
+        NORMAL_DX.push((dx[i] + dz[i] * NORMAL_CX + dy[i] * NORMAL_CX * NORMAL_CX) & NORMAL_MASK);
+    }
 }
 
 export function initMasks() {

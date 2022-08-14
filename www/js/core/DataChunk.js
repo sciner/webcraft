@@ -19,6 +19,7 @@ export class DataChunk extends BaseChunk {
         if ((strideBytes & 3) === 0) {
             this.uint32View = new Uint32Array(this.dataBuf);
         }
+        this.dataView = new DataView(this.dataBuf);
 
         if (this.nibbleSize) {
             this.nibbleBuf = new ArrayBuffer(this.nibbleStrideBytes * this.nibbleOuterLen)
@@ -96,5 +97,9 @@ export class DataChunk extends BaseChunk {
 
     setUint8ByInd(ind, offset, value) {
         this.uint8View[ind * this.strideBytes + offset] = value;
+    }
+
+    setUint32ByInd(ind, offsetBytes, value) {
+        this.dataView.setUint32(ind * this.strideBytes + offsetBytes, value);
     }
 }
