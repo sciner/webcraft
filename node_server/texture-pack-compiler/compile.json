@@ -3614,53 +3614,21 @@
             ],
             "next_part": {
                 "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 594
+                "id": 593
             },
-            "texture": "./textures/dripstone1.png"
-        },
-        {
-            "id": 594,
-            "name": "DRIPSTONE2",
-            "passable": 0,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
-            },
-            "next_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 595
-            },
-            "tags": [
-                "no_set_on_top"
-            ],
             "previous_part": {
                 "offset_pos": {"x": 0, "y": 1, "z": 0},
                 "id": 593
             },
-            "texture": "./textures/dripstone2.png"
-        },
-        {
-            "id": 595,
-            "name": "DRIPSTONE3",
-            "passable": 0,
-            "transparent": true,
-            "style": "planting",
-            "spawnable": false,
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "stone"
+            "texture": "./textures/dripstone1.png",
+            "extra_data": {
+                "stage": 0
             },
-            "tags": [
-                "no_set_on_top"
-            ],
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 594
-            },
-            "texture": "./textures/dripstone3.png"
+            "stage_textures": [
+                "./textures/dripstone1.png",
+                "./textures/dripstone2.png",
+                "./textures/dripstone3.png"
+            ]
         },
         {
             "id": 596,

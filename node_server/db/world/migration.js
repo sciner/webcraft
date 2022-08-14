@@ -697,6 +697,12 @@ export class DBWorldMigration {
             update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 74, queries: [
+            `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 1}' WHERE block_id = 594;`,
+            `UPDATE world_modify SET block_id = 593, extra_data = '{"stage": 2}' WHERE block_id = 595;`,
+            update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
