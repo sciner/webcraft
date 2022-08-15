@@ -22,7 +22,7 @@ import {
     OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL, NORMAL_DEF,
+    OFFSET_NORMAL, NORMAL_DEF, NORMAL_CHECK_DIR,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -218,6 +218,7 @@ export class LightQueue {
                 prevLight = old;
             }
             let normalOld  = NORMAL_DEF;
+            let normalNeib = NORMAL_DEF;
             let foundNormal = false;
             if (hasNormals) {
                 normalOld = dataView.getUint16(coordBytes + offsetNormal);
@@ -259,6 +260,7 @@ export class LightQueue {
                             if (!foundNormal) {
                                 foundNormal = true;
                                 normalVal = normal;
+                                normalNeib = (NORMAL_DEF + NORMAL_DX[d]) & NORMAL_MASK;
                             } else if (normalVal !== normal) {
                                 normalVal = NORMAL_DEF;
                             }
@@ -268,6 +270,20 @@ export class LightQueue {
                 tmpLights[d] = light;
                 tmpLights[d + 26] = normal;
             }
+            if (normalVal !== NORMAL_DEF) {
+                let flag = true;
+                for (let d = 0; d < 6; d++) {
+                    if (NORMAL_CHECK_DIR[normalVal * 6 + d] > 0
+                        && tmpLights[d] === val + dlen[d]) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    normalVal = normalNeib;
+                }
+            }
+
             let incMask = 0;
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) === 0) {

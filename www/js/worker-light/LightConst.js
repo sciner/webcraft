@@ -57,10 +57,25 @@ export function adjustLight(dstLight) {
 
 export const NORMAL_DX = [];
 export const NORMAL_DEF = 16 * (1 + NORMAL_CX + NORMAL_CX * NORMAL_CX);
+export const NORMAL_CHECK_DIR = [];
 
 export function calcNormalDx() {
     for (let i = 0; i < 26; i++) {
         NORMAL_DX.push((dx[i] + dz[i] * NORMAL_CX + dy[i] * NORMAL_CX * NORMAL_CX) & NORMAL_MASK);
+    }
+    for (let y = 0; y < NORMAL_CX; y++) {
+        for (let z = 0; z < NORMAL_CX; z++) {
+            for (let x = 0; x < NORMAL_CX; x++) {
+                const x2 = x - NORMAL_CX/2;
+                const y2 = y - NORMAL_CX/2;
+                const z2 = z - NORMAL_CX/2;
+                const m = Math.max(Math.abs(x2), Math.abs(y2), Math.abs(z2));
+                for (let i = 0; i < 6; i++) {
+                    const d = dx[i] * x2 + dy[i] * y2 + dz[i] * z2;
+                    NORMAL_CHECK_DIR.push(d === m ? 1 : 0);
+                }
+            }
+        }
     }
 }
 

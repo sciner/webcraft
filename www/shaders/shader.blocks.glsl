@@ -444,12 +444,12 @@
     }
 
     float aoSample = 0.0;
-    if (v_lightMode > 0.5) {
+    /*if (v_lightMode > 0.5) {
         float d1 = aoVector.x + aoVector.w, d2 = aoVector.y + aoVector.z;
         aoSample = (d1 + d2 + max(abs(d2 - d1) - 1.0, 0.0)) / 4.0;
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
-    }
+    }*/
 
 
     /*float gamma = 0.5;
@@ -467,41 +467,84 @@
 #endif
 
 #ifdef normal_light_pass
+    const vec3 cubeArr[8] = vec3[8] (
+        vec3(0.0, 0.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(1.0, 1.0, 0.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(1.0, 0.0, 1.0),
+        vec3(0.0, 1.0, 1.0),
+        vec3(1.0, 1.0, 1.0)
+    );
+
     float cavePart = 0.0;
     vec3 caveNormal = vec3(0.0);
-    vec3 normalCoord = lightCoord + vec3(0.0, 0.0, v_lightOffset.w * 0.5);
-    vec4 normalSample;
+    vec3 normalCoord = lightCoord - 0.5 + vec3(0.0, 0.0, v_lightOffset.w * 0.5);
+    vec3 normalCenter = floor(normalCoord);
+    vec3 interp = normalCoord - normalCenter;
+    ivec3 iCoord[8];
+    for (int i = 0; i < 8; i++) {
+        iCoord[i] = ivec3(normalCenter + cubeArr[i]);
+    }
 
-    /*vec3 normalCenter = round(normalCoord - 0.5);
-    float normalDx = fetch();*/
+    vec4 normalSample[8];
 
     if (v_lightId < 0.5) {
-        normalSample = texture(u_lightTex[0], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[0], iCoord[i], 0);
+        }
     } else if (v_lightId < 1.5) {
-        normalSample = texture(u_lightTex[1], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[1], iCoord[i], 0);
+        }
     } else if (v_lightId < 2.5) {
-        normalSample = texture(u_lightTex[2], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[2], iCoord[i], 0);
+        }
     } else if (v_lightId < 3.5) {
-        normalSample = texture(u_lightTex[3], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[3], iCoord[i], 0);
+        }
     } else if (v_lightId < 4.5) {
-        normalSample = texture(u_lightTex[4], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[4], iCoord[i], 0);
+        }
     } else if (v_lightId < 5.5) {
-        normalSample = texture(u_lightTex[5], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[5], iCoord[i], 0);
+        }
     } else if (v_lightId < 6.5) {
-        normalSample = texture(u_lightTex[6], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[6], iCoord[i], 0);
+        }
     } else if (v_lightId < 7.5) {
-        normalSample = texture(u_lightTex[7], normalCoord * texSize);
+        for (int i = 0; i < 8; i++) {
+            normalSample[i] = texelFetch(u_lightTex[7], iCoord[i], 0);
+        }
+    }
+
+    float total = 0.0;
+    for (int i = 0; i < 8; i++) {
+        if (normalSample[i].w > 0.5) {
+            float weight = (cubeArr[7-i].x * (1.0 - interp.x) + cubeArr[i].x * interp.x)
+                * (cubeArr[7-i].y * (1.0 - interp.y) + cubeArr[i].y * interp.y)
+                * (cubeArr[7-i].z * (1.0 - interp.z) + cubeArr[i].z * interp.z);
+            vec3 norm = normalSample[i].xyz * 31.0 - 16.0;
+            norm += vec3(iCoord[i]) - normalCoord;
+            norm += max(0.0, -dot(norm, v_normal)) * v_normal;
+            caveNormal += norm * weight;
+            total += weight;
+        }
+    }
+    if (total >= 0.01) {
+        caveNormal /= total;
+    } else {
+        caveNormal = vec3(0.0);
     }
 
     cavePart = caveSample / (caveSample + daySample * u_brightness + 0.05);
-    if (normalSample.w > 0.01) {
-        caveNormal = normalSample.xyz / normalSample.w;
-        caveNormal = caveNormal * 31.0 - 16.0;
-    }
     caveNormal += v_normal;
-    if (length(caveNormal) < 0.1) {
-        caveNormal = v_normal;
-    }
-
-    combinedLight *= 1.0 - cavePart + cavePart * abs(caveNormal) / length(caveNormal);
+    //combinedLight *= 1.0 - cavePart + cavePart * abs(caveNormal) / length(caveNormal);
+    combinedLight *= 1.0 - cavePart + cavePart * max(0.5, dot(caveNormal, v_normal) / length(caveNormal));
 #endif
