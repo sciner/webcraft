@@ -1225,7 +1225,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
 }
 
 // 
-async function openPortal(e, world, position, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     
     if (!world_material || world_material.id != BLOCK.OBSIDIAN.id) {
         return;
@@ -1235,299 +1235,128 @@ async function openPortal(e, world, position, player, world_block, world_materia
         return;
     }
     
-    const pos = new Vector(position.x, position.y, position.z);
-    
-    const isPortal = (direction) => {
-        let blocks = [];
-        blocks[0] = world.getBlock(pos.add(new Vector(0, 1, 0)));
-        blocks[1] = world.getBlock(pos.add(new Vector(0, 2, 0)));
-        blocks[2] = world.getBlock(pos.add(new Vector(0, 3, 0)));
-        blocks[3] = world.getBlock(pos.add(new Vector(0, 4, 0)));
-        if (blocks[0].id != BLOCK.AIR.id || blocks[1].id != BLOCK.AIR.id || blocks[2].id != BLOCK.AIR.id || blocks[3].id != BLOCK.OBSIDIAN.id) {
-            return false;
-        }
-        let sx = 1;
-        let sy = 0;
-        switch(direction) {
-            case DIRECTION.SOUTH: {
-                sx = -1;
-                sy = 0;
-                break;
-            }
-            case DIRECTION.EAST: {
-                sx = 0;
-                sy = 1;
-                break;
-            }
-            case DIRECTION.WEST: {
-                sx = 0;
-                sy = -1;
-                break;
+    // находим растояние до стенки
+    const getPosWell = (rx, ry, rz, sx, sy, sz) => {
+        for (let i = 0; i < 16; i++) {
+            const block = world.getBlock(new Vector(pos.x + i * rx + sx, pos.y + i * ry + sy, pos.z  + i * rz + sz));
+            if (block.id == BLOCK.OBSIDIAN.id) {
+                if (rx != 0) {
+                    return block.posworld.x;
+                } else if (ry != 0) {
+                    return block.posworld.y;
+                } else if (rz != 0) {
+                    return block.posworld.z;
+                }
+            } else if(block.id != BLOCK.AIR.id) {
+                return null;
             }
         }
-        blocks[0] = world.getBlock(pos.add(new Vector(-1 * sx, 1, -1 * sy)));
-        blocks[1] = world.getBlock(pos.add(new Vector(-1 * sx, 2, -1 * sy)));
-        blocks[2] = world.getBlock(pos.add(new Vector(-1 * sx, 3, -1 * sy)));
-        if (blocks[0].id != BLOCK.OBSIDIAN.id || blocks[1].id != BLOCK.OBSIDIAN.id || blocks[2].id != BLOCK.OBSIDIAN.id) {
-            return false;
-        }
-        blocks[0] = world.getBlock(pos.add(new Vector(2 * sx, 1, 2 * sy)));
-        blocks[1] = world.getBlock(pos.add(new Vector(2 * sx, 2, 2 * sy)));
-        blocks[2] = world.getBlock(pos.add(new Vector(2 * sx, 3, 2 * sy)));
-        if (blocks[0].id != BLOCK.OBSIDIAN.id || blocks[1].id != BLOCK.OBSIDIAN.id || blocks[2].id != BLOCK.OBSIDIAN.id) {
-            return false;
-        }
-        blocks[0] = world.getBlock(pos.add(new Vector(1 * sx, 1, 1 * sy)));
-        blocks[1] = world.getBlock(pos.add(new Vector(1 * sx, 2, 1 * sy)));
-        blocks[2] = world.getBlock(pos.add(new Vector(1 * sx, 3, 1 * sy)));
-        blocks[3] = world.getBlock(pos.add(new Vector(1 * sx, 4, 1 * sy)));
-        if (blocks[0].id != BLOCK.AIR.id || blocks[1].id != BLOCK.AIR.id || blocks[2].id != BLOCK.AIR.id || blocks[3].id != BLOCK.OBSIDIAN.id) {
-            return false;
-        }
-        return true;
+        return null;
     }
     
-    if (isPortal(DIRECTION.NORTH)) {
-        actions.addBlocks([
-            {
-                pos: pos.add(new Vector(0, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(1, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(1, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(1, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            }
-        ]);
-    } else if (isPortal(DIRECTION.SOUTH)) {
-        actions.addBlocks([
-            {
-                pos: pos.add(new Vector(0, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(-1, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(-1, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(-1, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            }
-        ]);
-    } else if (isPortal(DIRECTION.WEST)) {
-        actions.addBlocks([
-            {
-                pos: pos.add(new Vector(0, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 1, -1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, -1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, -1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            }
-        ]);
-    } else if (isPortal(DIRECTION.EAST)) {
-        actions.addBlocks([
-            {
-                pos: pos.add(new Vector(0, 1, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, 0)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 1, 1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 2, 1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            },
-            {
-                pos: pos.add(new Vector(0, 3, 1)), 
-                item: {
-                        id: BLOCK.NETHER_PORTAL.id,
-                        rotate: {
-                            x: DIRECTION.WEST,
-                            y: 1,
-                            z: 0
-                        }
-                    }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            }
-        ]);
+    let min_x = null, max_x = null, min_y = null, max_y = null, min_z = null, max_z = null;
+    // Если коснулись боковой грани 
+    if (pos.n.y == 0) {
+        // Находим перпендикулярные пересечения
+        max_y = getPosWell(0, 1, 0, pos.n.x, pos.n.y, pos.n.z);
+        min_y = getPosWell(0, -1, 0, pos.n.x, pos.n.y, pos.n.z);
+        // находим противоположную сторону
+        if (pos.n.x == 1) {
+            min_x = pos.x;
+            max_x = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        } else if (pos.n.x == -1) {
+            max_x = pos.x;
+            min_x = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        } else if (pos.n.z == 1) {
+            min_z = pos.z;
+            max_z = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        } else if (pos.n.z == -1) {
+            max_z = pos.z;
+            min_z = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        }
+    } else {
+        // тут нужно проверить направления w-e и s-n
+        max_x = getPosWell(1, 0, 0, pos.n.x, pos.n.y, pos.n.z);
+        min_x = getPosWell(-1, 0, 0, pos.n.x, pos.n.y, pos.n.z);
+        max_z = getPosWell(0, 0, 1, pos.n.x, pos.n.y, pos.n.z);
+        min_z = getPosWell(0, 0, -1, pos.n.x, pos.n.y, pos.n.z);
+        // находим противоположную сторону
+        if (pos.n.y == 1) {
+            min_y = pos.y;
+            max_y = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        } else if (pos.n.y == -1) {
+            max_y = pos.y;
+            min_y = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
+        }
     }
+    
+    // Проверям на наличе внутри блоков
+    if (min_y != null && max_y != null && (max_y - min_y) > 3) {
+        if (min_x != null && max_x != null) {
+            let ok = true;
+            for (let i = min_x + 1; i < max_x; i++) {
+                for (let j = min_y + 1; j < max_y; j++) {
+                    const block = world.getBlock(i, j, pos.z);
+                    if (block && block.id != BLOCK.AIR.id) {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+            if (ok) {
+                // Заполняем окно
+                const arr = [];
+                for (let i = min_x + 1; i < max_x; i++) {
+                    for (let j = min_y + 1; j < max_y; j++) {
+                        arr.push(
+                        {
+                            pos: new Vector(i, j, pos.z), 
+                            item: {
+                                    id: BLOCK.NETHER_PORTAL.id
+                                }, 
+                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                        });
+                    }
+                }
+                actions.addBlocks(arr);
+            }
+        }
+        if (min_z != null && max_z != null) {
+            let ok = true;
+            for (let i = min_z + 1; i < max_z; i++) {
+                for (let j = min_y + 1; j < max_y; j++) {
+                    const block = world.getBlock(pos.x, j, i);
+                    if (block && block.id != BLOCK.AIR.id) {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+            if (ok) {
+                // Заполняем окно
+                const arr = [];
+                for (let i = min_z + 1; i < max_z; i++) {
+                    for (let j = min_y + 1; j < max_y; j++) {
+                        arr.push(
+                        {
+                            pos: new Vector(pos.x, j, i), 
+                            item: {
+                                    id: BLOCK.NETHER_PORTAL.id,
+                                    rotate: {
+                                        x: DIRECTION.WEST,
+                                        y: 1,
+                                        z: 0
+                                    }
+                                }, 
+                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                        });
+                    }
+                }
+                actions.addBlocks(arr);
+            }
+        }
+    }
+    
 }
 
 // Open fence gate
