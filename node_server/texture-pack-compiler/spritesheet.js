@@ -3,17 +3,15 @@ import skiaCanvas from 'skia-canvas';
 // Spritesheet
 export class Spritesheet {
 
-    constructor(id, tx_cnt, tx_sz, textures_dir) {
+    constructor(id, tx_cnt, tx_sz, options) {
         this.id                 = id;
         this.tx_cnt             = tx_cnt;
         this.tx_sz              = tx_sz;
-        this.textures_dir       = textures_dir;
+        this.options            = options;
         this.index              = 0;
         this.map                = new Array(this.tx_cnt * this.tx_cnt);
         this.textures           = new Map();
-        this.cnv                = new skiaCanvas.Canvas(this.tx_sz * this.tx_cnt, this.tx_sz * this.tx_cnt);
-        this.ctx                = this.cnv.getContext('2d');
-        this.ctx.imageSmoothingEnabled = false;
+        this.canvases           = new Map();
     }
 
     // Export to PNG
@@ -21,8 +19,35 @@ export class Spritesheet {
         if(this.index == 0) {
             return false;
         }
-        this.cnv.saveAsSync(`../../www/resource_packs/base/textures/${this.id}.png`);
+        for(const [subtexture_id, item] of this.canvases) {
+            item.cnv.saveAsSync(`../../www/resource_packs/base/textures/${this.id}${subtexture_id}.png`);
+        }
         return true;
+    }
+
+    get ctx() {
+        return this.getCtx('');
+    }
+
+    //
+    getCtx(id) {
+        id = id ? id : '';
+        let item = this.canvases.get(id);
+        if(!item) {
+            const sz = this.tx_sz * this.tx_cnt;
+            item = {
+                cnv: new skiaCanvas.Canvas(sz, sz)
+            };
+            item.ctx = item.cnv.getContext('2d');
+            item.ctx.imageSmoothingEnabled = false;
+            //
+            if(id == this.options.n_texture_id) {
+                item.ctx.fillStyle = this.options.n_color;
+                item.ctx.fillRect(0, 0, sz, sz);
+            }
+            this.canvases.set(id, item);
+        }
+        return item.ctx;
     }
 
     // indexToXY
@@ -39,17 +64,50 @@ export class Spritesheet {
     }
 
     // loadTextureImage
-    async loadTextureImage(value) {
-        let fn = (value.indexOf('.') == 0 ? '' : this.textures_dir + '/') + value;
-        let temp = fn.split(';');
-        fn = temp.shift();
-        let resp = await skiaCanvas.loadImage(fn);
+    async loadTex(value, load_n = true) {
+        const resp = {
+            texture: await this._loadImageCanvas(value),
+            n: null,
+        }
+        try {
+            if(load_n) {
+                resp.n = await this._loadImageCanvas(value.replace('.png', '_n.png'));
+            }
+        } catch(e) {
+            // do nothing
+        }
+        return resp;
+    }
+
+    //
+    async _loadImageCanvas(value) {
+        let temp = [];
+        let resp;
+        let err = null;
+        //
+        for(let i = 0; i < this.options.texture_pack_dir.length; i++) {
+            const dir = this.options.texture_pack_dir[i];
+            let fn = (value.indexOf('.') == 0 ? '' : dir + '/') + value;
+            temp = fn.split(';');
+            fn = temp.shift();
+            try {
+                resp = await skiaCanvas.loadImage(fn);
+                break;
+            } catch(e) {
+                err = e;
+            }
+        }
+        //
+        if(!resp) {
+            throw err || 'error_texture_not_found';
+        }
+        //
         for(let inst of temp) {
             switch(inst) {
                 case 'rc1': {
                     // turn counterclockwise 1 time
-                    let cnv = new skiaCanvas.Canvas(resp.width, resp.height);
-                    let ctx = cnv.getContext('2d');
+                    const cnv = new skiaCanvas.Canvas(resp.width, resp.height);
+                    const ctx = cnv.getContext('2d');
                     ctx.save();
                     ctx.translate(resp.width / 2, resp.height / 2); // change origin
                     ctx.rotate(-Math.PI / 2);
@@ -64,26 +122,27 @@ export class Spritesheet {
         return resp;
     }
 
-    // drawImage
-    async drawImage(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null) {
+    // drawTexture
+    async drawTexture(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null, subtexture_id) {
+        const ctx = this.getCtx(subtexture_id);
         if(globalCompositeOperation) {
-            this.ctx.globalCompositeOperation = globalCompositeOperation;
+            ctx.globalCompositeOperation = globalCompositeOperation;
         }
         const sw = Math.max(img.width, this.tx_sz);
         const sh = Math.max(img.height, this.tx_sz);
-        this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+        ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
         if(has_mask) {
             if(overlay_mask) {
-                this.ctx.globalCompositeOperation = 'difference';
-                this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
-                this.ctx.globalCompositeOperation = 'source-over';
-                overlay_mask = await this.loadTextureImage(overlay_mask);
-                this.ctx.drawImage(overlay_mask, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.globalCompositeOperation = 'difference';
+                ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.globalCompositeOperation = 'source-over';
+                overlay_mask = (await this.loadTex(overlay_mask, false)).texture;
+                ctx.drawImage(overlay_mask, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
             } else {
-                this.ctx.globalCompositeOperation = 'difference';
-                this.ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
-                this.ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
-                this.ctx.globalCompositeOperation = 'source-over';
+                ctx.globalCompositeOperation = 'difference';
+                ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.globalCompositeOperation = 'source-over';
             }
         }
         const sx = Math.ceil(img.width / this.tx_sz);
