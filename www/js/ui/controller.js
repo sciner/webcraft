@@ -322,8 +322,10 @@ let gameCtrl = async function($scope, $timeout) {
 
     // Start world
     $scope.StartWorld = function(world_guid) {
-        window.event.preventDefault();
-        window.event.stopPropagation();
+        if(window.event) {
+            window.event.preventDefault();
+            window.event.stopPropagation();
+        }
         console.log(`StartWorld: ${world_guid}`);
         // Check session
         const session = $scope.App.getSession();
