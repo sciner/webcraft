@@ -1236,114 +1236,101 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
     }
     
     // находим растояние до стенки
-    const getPosWell = (rx, ry, rz, sx, sy, sz) => {
-        for (let i = 0; i < 16; i++) {
-            const block = world.getBlock(new Vector(pos.x + i * rx + sx, pos.y + i * ry + sy, pos.z  + i * rz + sz));
-            if (block.id == BLOCK.OBSIDIAN.id) {
-                if (rx != 0) {
-                    return block.posworld.x;
-                } else if (ry != 0) {
-                    return block.posworld.y;
-                } else if (rz != 0) {
-                    return block.posworld.z;
-                }
-            } else if(block.id != BLOCK.AIR.id) {
-                return null;
+    const getDistanceEdge = (pos, dir) => {
+        for (let i = 0; i < 22; i++) {
+            let blockpos = new Vector(pos.x + i, pos.y, pos.z);
+            switch(dir) {
+                case DIRECTION.WEST:
+                    blockpos = new Vector(pos.x - i, pos.y, pos.z);
+                    break;
+                case DIRECTION.NORTH:
+                    blockpos = new Vector(pos.x, pos.y, pos.z + i);
+                    break;
+                case DIRECTION.SOUTH:
+                    blockpos = new Vector(pos.x, pos.y, pos.z - i);
+                    break;
+            }
+            if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != BLOCK.OBSIDIAN.id) {
+                return world.getBlock(blockpos).id == BLOCK.OBSIDIAN.id ? i : 0;
             }
         }
-        return null;
+        return 0;
     }
     
-    let min_x = null, max_x = null, min_y = null, max_y = null, min_z = null, max_z = null;
-    // Если коснулись боковой грани 
-    if (pos.n.y == 0) {
-        // Находим перпендикулярные пересечения
-        max_y = getPosWell(0, 1, 0, pos.n.x, pos.n.y, pos.n.z);
-        min_y = getPosWell(0, -1, 0, pos.n.x, pos.n.y, pos.n.z);
-        // находим противоположную сторону
-        if (pos.n.x == 1) {
-            min_x = pos.x;
-            max_x = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        } else if (pos.n.x == -1) {
-            max_x = pos.x;
-            min_x = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        } else if (pos.n.z == 1) {
-            min_z = pos.z;
-            max_z = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        } else if (pos.n.z == -1) {
-            max_z = pos.z;
-            min_z = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        }
-    } else {
-        // тут нужно проверить направления w-e и s-n
-        max_x = getPosWell(1, 0, 0, pos.n.x, pos.n.y, pos.n.z);
-        min_x = getPosWell(-1, 0, 0, pos.n.x, pos.n.y, pos.n.z);
-        max_z = getPosWell(0, 0, 1, pos.n.x, pos.n.y, pos.n.z);
-        min_z = getPosWell(0, 0, -1, pos.n.x, pos.n.y, pos.n.z);
-        // находим противоположную сторону
-        if (pos.n.y == 1) {
-            min_y = pos.y;
-            max_y = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        } else if (pos.n.y == -1) {
-            max_y = pos.y;
-            min_y = getPosWell(pos.n.x, pos.n.y, pos.n.z, pos.n.x, pos.n.y, pos.n.z);
-        }
+    // размер окна
+    let width = 0;
+    let height = 0;
+    let bottom_left;
+    let left_dir = DIRECTION.WEST;
+    let right_dir = DIRECTION.EAST;
+    let nullpos = new Vector(pos.x + pos.n.x, pos.y + pos.n.y, pos.z + pos.n.z);
+    
+    do {
+        nullpos.addSelf(Vector.YN);
+    } while(world.getBlock(nullpos).id == BLOCK.AIR.id);
+    nullpos.addSelf(Vector.YP);
+    
+    if (getDistanceEdge(nullpos, DIRECTION.EAST) == 0) {
+        left_dir = DIRECTION.SOUTH;
+        right_dir = DIRECTION.NORTH;
     }
     
-    // Проверям на наличе внутри блоков
-    if (min_y != null && max_y != null && (max_y - min_y) > 3) {
-        if (min_x != null && max_x != null) {
-            let ok = true;
-            for (let i = min_x + 1; i < max_x; i++) {
-                for (let j = min_y + 1; j < max_y; j++) {
-                    const block = world.getBlock(i, j, pos.z);
-                    if (block && block.id != BLOCK.AIR.id) {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-            if (ok) {
-                // Заполняем окно
-                const arr = [];
-                for (let i = min_x + 1; i < max_x; i++) {
-                    for (let j = min_y + 1; j < max_y; j++) {
-                        arr.push(
-                        {
-                            pos: new Vector(i, j, pos.z), 
-                            item: {
-                                    id: BLOCK.NETHER_PORTAL.id
-                                }, 
-                            action_id: ServerClient.BLOCK_ACTION_CREATE
-                        });
-                    }
-                }
-                actions.addBlocks(arr);
+    if (nullpos) {
+        // находим ширину
+        const dist = getDistanceEdge(nullpos, left_dir) - 1;
+        if (dist >= 0) {
+            bottom_left = (left_dir == DIRECTION.WEST) ? nullpos.offset(-dist, 0, 0) : nullpos.offset(0, 0, -dist);
+            width = getDistanceEdge(bottom_left, right_dir);
+            if (width < 2 || width > 21) {
+                width = 0;
             }
         }
-        if (min_z != null && max_z != null) {
-            let ok = true;
-            for (let i = min_z + 1; i < max_z; i++) {
-                for (let j = min_y + 1; j < max_y; j++) {
-                    const block = world.getBlock(pos.x, j, i);
-                    if (block && block.id != BLOCK.AIR.id) {
-                        ok = false;
-                        break;
+        
+        // находим высоту
+        if (width != 0) {
+            rep:
+            for (height = 0; height < 21; ++height) {
+                for (let i = -1; i <= width; ++i) {
+                    const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
+                    const block = world.getBlock(blockpos);
+                    if (i == -1) {
+                        if (block.id != BLOCK.OBSIDIAN.id) {
+                            break rep;
+                        }
+                    } else if (i == width) {
+                        if (block.id != BLOCK.OBSIDIAN.id) {
+                            break rep;
+                        }
+                    } else {
+                        if (block.id != BLOCK.AIR.id) {
+                            break rep;
+                        }
                     }
                 }
             }
-            if (ok) {
+            
+            // проверям перекладину
+            for (let j = 0; j < width; ++j) {
+                let blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, height, 0) : bottom_left.offset(0, height, j);
+                let block = world.getBlock(blockpos);
+                if (block.id != BLOCK.OBSIDIAN.id) {
+                    height = 0;
+                    break;
+                }
+            }
+            
+            if (height > 2) {
                 // Заполняем окно
                 const arr = [];
-                for (let i = min_z + 1; i < max_z; i++) {
-                    for (let j = min_y + 1; j < max_y; j++) {
+                for (let i = 0; i < height; i++) {
+                    for (let j = 0; j < width; j++) {
                         arr.push(
                         {
-                            pos: new Vector(pos.x, j, i), 
+                            pos: (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, i, 0) : bottom_left.offset(0, i, j), 
                             item: {
                                     id: BLOCK.NETHER_PORTAL.id,
                                     rotate: {
-                                        x: DIRECTION.WEST,
+                                        x: (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
                                         y: 1,
                                         z: 0
                                     }
@@ -1356,7 +1343,6 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
             }
         }
     }
-    
 }
 
 // Open fence gate
