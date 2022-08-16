@@ -8,8 +8,9 @@ export class SQLiteServerConnector {
     // Connect to database and return provider
     static async connect(filename) {
         const dir = path.dirname(filename);
+        console.log(dir);
         if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
+            fs.mkdirSync(dir, {recursive: true});
         }
         filename = path.resolve(filename);
         // Open SQLite3 database file
