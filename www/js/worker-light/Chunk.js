@@ -236,9 +236,9 @@ export class Chunk {
                 pv3 = result[ind + 2];
                 pv4 = result[ind + 3];
             }
-            result[ind++] = Math.round(R * 255.0 / 31.0);
-            result[ind++] = Math.round(G * 255.0 / 31.0);
-            result[ind++] = Math.round(B * 255.0 / 31.0);
+            result[ind++] = R;
+            result[ind++] = G;
+            result[ind++] = B;
             result[ind++] = Math.round(A * 255.0);
             if (!changed) {
                 if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
@@ -259,12 +259,9 @@ export class Chunk {
                 for (let z = 0; z < outerSize.z; z++)
                     for (let x = 0; x < outerSize.x; x++) {
                         const coord0 = sx * x + sy * y + sz * z;
-                        let normalPack = dataView.getUint16(coord0 + OFFSET_NORMAL);
-                        let dx = normalPack & 0x1f;
-                        normalPack = normalPack >> 5;
-                        let dz = normalPack & 0x1f;
-                        normalPack = normalPack >> 5;
-                        let dy = normalPack & 0x1f;
+                        let dx = uint8View[coord0 + OFFSET_NORMAL];
+                        let dz = uint8View[coord0 + OFFSET_NORMAL + 1];
+                        let dy = uint8View[coord0 + OFFSET_NORMAL + 2];
                         let light = uint8View[coord0 + OFFSET_LIGHT] > 0 ? 1 : 0;
                         addResult2(light * dx, light * dz, light * dy, light);
                     }

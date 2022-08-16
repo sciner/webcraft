@@ -535,7 +535,7 @@
             float weight = (cubeArr[7-i].x * (1.0 - interp.x) + cubeArr[i].x * interp.x)
                 * (cubeArr[7-i].y * (1.0 - interp.y) + cubeArr[i].y * interp.y)
                 * (cubeArr[7-i].z * (1.0 - interp.z) + cubeArr[i].z * interp.z);
-            vec3 norm = normalSample[i].xyz * 31.0 - 16.0;
+            vec3 norm = (normalSample[i].xyz * 255.0 - 128.0) / 8.0;
             norm += vec3(iCoord[i]) - normalCoord;
             norm += max(0.0, -dot(norm, v_normal)) * v_normal;
             caveNormal += norm * weight;

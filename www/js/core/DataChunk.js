@@ -100,6 +100,6 @@ export class DataChunk extends BaseChunk {
     }
 
     setUint32ByInd(ind, offsetBytes, value) {
-        this.dataView.setUint32(ind * this.strideBytes + offsetBytes, value);
+        this.dataView.setUint32(ind * this.strideBytes + offsetBytes, value, true);
     }
 }

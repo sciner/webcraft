@@ -22,7 +22,7 @@ import {
     OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL, NORMAL_DEF, NORMAL_CHECK_DIR,
+    OFFSET_NORMAL, NORMAL_DEF,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -218,10 +218,8 @@ export class LightQueue {
                 prevLight = old;
             }
             let normalOld  = NORMAL_DEF;
-            let normalNeib = NORMAL_DEF;
-            let foundNormal = false;
             if (hasNormals) {
-                normalOld = dataView.getUint16(coordBytes + offsetNormal);
+                normalOld = dataView.getUint32(coordBytes + offsetNormal, true);
             }
             let decrMask = 0;
             let block = false;
@@ -232,6 +230,9 @@ export class LightQueue {
             if (val === maxLight && val === old && val === prevLight) {
                 continue;
             }
+
+            let normalAccX = 0, normalAccY = 0, normalAccZ = 0;
+            let foundNormals = 0;
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) !== 0) {
                     continue;
@@ -240,7 +241,7 @@ export class LightQueue {
                 let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
                 let normal = NORMAL_DEF;
                 if (hasNormals) {
-                    normal = (dataView.getUint16(coord2 * strideBytes + offsetNormal)
+                    normal = (dataView.getUint32(coord2 * strideBytes + offsetNormal, true)
                         + NORMAL_DX[d]) & NORMAL_MASK;
                 }
 
@@ -254,34 +255,25 @@ export class LightQueue {
                     } else if (!block) {
                         if (val < light - dlen[d]) {
                             val = light - dlen[d];
-                            foundNormal = false;
+                            normalAccX = normalAccY = normalAccZ = 0;
+                            foundNormals = 0;
                         }
                         if (hasNormals && val === light - dlen[d]) {
-                            if (!foundNormal) {
-                                foundNormal = true;
-                                normalVal = normal;
-                                normalNeib = (NORMAL_DEF + NORMAL_DX[d]) & NORMAL_MASK;
-                            } else if (normalVal !== normal) {
-                                normalVal = NORMAL_DEF;
-                            }
+                            foundNormals++;
+                            normalAccX += (normal & 0xff) - 0x80;
+                            normalAccY += ((normal >> 8) & 0xff) - 0x80;
+                            normalAccZ += ((normal >> 16) & 0xff) - 0x80;
                         }
                     }
                 }
                 tmpLights[d] = light;
                 tmpLights[d + 26] = normal;
             }
-            if (normalVal !== NORMAL_DEF) {
-                let flag = true;
-                for (let d = 0; d < 6; d++) {
-                    if (NORMAL_CHECK_DIR[normalVal * 6 + d] > 0
-                        && tmpLights[d] === val + dlen[d]) {
-                        flag = false;
-                        break;
-                    }
-                }
-                if (flag) {
-                    normalVal = normalNeib;
-                }
+
+            if (foundNormals > 0) {
+                normalVal = Math.round(normalAccX / foundNormals + 0x80)
+                    | (Math.round(normalAccY / foundNormals + 0x80) << 8)
+                    | (Math.round(normalAccZ / foundNormals + 0x80) << 16);
             }
 
             let incMask = 0;
@@ -304,10 +296,8 @@ export class LightQueue {
                 }
             }
             uint8View[coordBytes + OFFSET_LIGHT] = val;
-            let valAndNormal = 0;
             if (hasNormals) {
-                dataView.setUint16(coordBytes + offsetNormal, normalVal);
-                valAndNormal = dataView.getUint32(coordBytes + OFFSET_LIGHT);
+                dataView.setUint32(coordBytes + offsetNormal, normalVal, true);
             }
             if (old !== val || val > 0 && normalVal !== normalOld) {
                 chunk.lastID++;
@@ -341,10 +331,9 @@ export class LightQueue {
                         continue;
                     }
                     mask2 |= 1 << p;
+                    chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
                     if (hasNormals) {
-                        chunk2.setUint32ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, valAndNormal);
-                    } else {
-                        chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
+                        chunk2.setUint32ByInd(chunk2.indexByWorld(x, y, z), offsetNormal, normalVal);
                     }
                     chunk2.rev.lastID++;
                     for (let d = 0; d < DIR_COUNT; d++) {
