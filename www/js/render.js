@@ -646,6 +646,9 @@ export class Renderer {
         if(!this._base_texture) {
             this._base_texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture
         }
+        if(!this._base_texture_n) {
+            this._base_texture_n = BLOCK.resource_pack_manager.get('base').textures.get('default').texture_n
+        }
     }
 
     // Render one frame of the world to the canvas.
@@ -657,6 +660,7 @@ export class Renderer {
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
         this.defaultShader.texture = this._base_texture;
+        this.defaultShader.texture_n = this._base_texture_n;
 
         // upload GU data from environment
         this.env.sync(renderBackend.globalUniforms);

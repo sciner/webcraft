@@ -10,6 +10,7 @@
     "textures": {
         "default": {
             "image": "/textures/default.png",
+            "image_n": "/textures/default_n.png",
             "tx_cnt": 32
         },
         "painting": {

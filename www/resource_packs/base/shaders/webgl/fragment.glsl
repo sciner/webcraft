@@ -46,6 +46,7 @@ void main() {
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);
+    vec3 uvNormal = vec3(0.0, 0.0, 1.0);
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
 
@@ -91,6 +92,7 @@ void main() {
             mipData = manual_mip(v_texcoord0, size);
             biome = ivec2(round(v_color.rg));
             color = sampleAtlassTexture (mipData, texClamped, biome);
+            uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
 
             if (v_animInterp > 0.0) {
                 color = mix(

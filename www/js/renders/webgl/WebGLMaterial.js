@@ -51,9 +51,13 @@ export class WebGLMaterial extends BaseMaterial {
         }
 
         const tex = this.texture || this.shader.texture;
+        const texN = this.texture_n || this.shader.texture_n;
         if (WebGLMaterial.texState !== this.texture) {
             tex.bind(4);
             WebGLMaterial.texState = this.texture;
+            if (texN) {
+                texN.bind(5);
+            }
         }
         if (!prevMat || prevMat.texture !== this.texture)
         {

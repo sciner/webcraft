@@ -49,8 +49,12 @@ void main() {
     vec3 pos;
     if(v_Mir2_Tex < .5) {
         pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
+        v_axisU = normalize(axisX);
+        v_axisV = normalize(axisY);
     } else {
         pos = a_position + (axisX * -a_quad.y) + (axisY * -a_quad.x);
+        v_axisU = normalize(-axisY);
+        v_axisV = normalize(-axisX);
     }
 
     // Scrolled textures
@@ -64,6 +68,9 @@ void main() {
 
     //
     v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
+    v_axisU *= sign(a_uvSize.x);
+    v_axisV *= sign(a_uvSize.y);
+
     v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 

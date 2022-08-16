@@ -54,6 +54,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
+        this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
         this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
@@ -103,6 +104,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const gu = this.globalUniforms;
         if (this.globalID === -1) {
             gl.uniform1i(this.u_texture, 4);
+            gl.uniform1i(this.u_texture_n, 5);
             gl.uniform1i(this.u_chunkDataSampler, 3);
             gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
             gl.uniform1i(this.u_maskColorSampler, 1);

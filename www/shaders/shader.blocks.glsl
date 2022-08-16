@@ -58,6 +58,7 @@
 #ifdef global_uniforms_frag
     // global uniforms fragment part
     uniform sampler2D u_texture;
+    uniform sampler2D u_texture_n;
     uniform lowp sampler3D[10] u_lightTex;
     uniform vec3 u_lightSize;
 
@@ -116,6 +117,8 @@
     out float v_noCanTakeLight;
     out float v_Triangle;
     out float v_Mir2_Tex;
+    out vec3 v_axisU;
+    out vec3 v_axisV;
 
     //--
 #endif
@@ -141,6 +144,8 @@
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
+    in vec3 v_axisU;
+    in vec3 v_axisV;
 
     out vec4 outColor;
 #endif
@@ -543,8 +548,10 @@
         caveNormal = vec3(0.0);
     }
 
+    uvNormal = normalize(uvNormal);
+    vec3 surfaceNormal = v_axisU * uvNormal.x + v_axisV * uvNormal.y + v_normal * uvNormal.z;
     cavePart = caveSample / (caveSample + daySample * u_brightness + 0.05);
     caveNormal += v_normal;
     //combinedLight *= 1.0 - cavePart + cavePart * abs(caveNormal) / length(caveNormal);
-    combinedLight *= 1.0 - cavePart + cavePart * max(0.5, dot(caveNormal, v_normal) / length(caveNormal));
+    combinedLight *= 1.0 - cavePart + cavePart * max(0.3, dot(caveNormal, surfaceNormal) / length(caveNormal));
 #endif

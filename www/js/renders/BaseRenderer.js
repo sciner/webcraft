@@ -266,6 +266,7 @@ export class BaseMaterial {
         this.options = options;
         this.shader = options.shader;
         this.texture = options.texture || null;
+        this.texture_n = options.texture_n || null;
         this.lightTex = options.lightTex || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
