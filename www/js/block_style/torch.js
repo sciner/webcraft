@@ -1,13 +1,12 @@
-import { default as cube_style } from './cube.js';
-
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
-import { Vector } from '../helpers.js';
+import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
+import { default as default_style } from './default.js';
+import { BLOCK } from '../blocks.js';
 
 const { mat3 } = glMatrix;
 
-const cube_func = cube_style.getRegInfo().func;
 const tmpMat = mat3.create();
 const cubeSymAxis = [
     [0, -1],
@@ -17,8 +16,8 @@ const cubeSymAxis = [
 ];
 
 const rotTorch = Math.PI / 5;
-const pivotArr = [0.5, 0, 0.5];
 const pivotObj = {x: 0.5, y: 0, z: 0.5};
+const lm = IndexedColor.WHITE.clone();
 
 const aabb = new AABB();
 
@@ -67,50 +66,64 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
-        const {
-            rotate
-        } = block;
-
-        if ((!rotate || rotate.y) && (typeof worker != 'undefined')) {
-            worker.postMessage(['add_animated_block', {
-                block_pos: block.posworld,
-                pos: [block.posworld],
-                type: 'torch_flame'
-            }]);
-            return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, false, null, null);
+        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+            return;
         }
 
-        const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
-        mat3.fromRotation(tmpMat, rotTorch);
-        mat3.multiply(tmpMat, tmpMat, symRot);
+        const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
+        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const pos               = new Vector(0, 0, 0);
+        const rotate            = block.rotate;
+        const rot               = [0, 0, 0];
+        const torch_pos         = block.posworld.clone();
 
-        const torch_pos = chunk.coord.add(new Vector(
-            x + cubeSymAxis[rotate.x][0] * 0.2,
-            y + .1,
-            z + cubeSymAxis[rotate.x][1] * 0.2,
-        ));
+        // Geometries
+        const parts = [{
+            "size": {"x": 2, "y": 10, "z": 2},
+            "translate": {"x": 0, "y": -3, "z": 0},
+            "faces": {
+                "down":  {"uv": [8, 15], "flag": flag, "texture": c_up_top},
+                "up":    {"uv": [8, 7], "flag": flag, "texture": c_up_top},
+                "north": {"uv": [8, 11], "flag": flag, "texture": c_up_top},
+                "south": {"uv": [8, 11], "flag": flag, "texture": c_up_top},
+                "west":  {"uv": [8, 11], "flag": flag, "texture": c_up_top},
+                "east":  {"uv": [8, 11], "flag": flag, "texture": c_up_top}
+            }
+        }];
 
+        // if torch on wall
+        if(rotate && !rotate.y) {
+            const a = Math.PI / 5;
+            const shift = 4.5 / 16;
+            switch(rotate.x) {
+                case 0: rot[0] = -a; pos.z -= shift; break;
+                case 1: rot[2] = -a; pos.x += shift; break;
+                case 2: rot[0] = a; pos.z += shift; break;
+                case 3: rot[2] = a; pos.x -= shift; break;
+            }
+            pos.y += 2/16;
+            torch_pos.addSelf(pos.div(new Vector(1.2, 1.2, 1.2)));
+        }
+
+        for(let part of parts) {
+            default_style.pushAABB(vertices, {
+                ...part,
+                lm:         lm,
+                pos:        pos.addScalarSelf(x, y, z),
+                rot:        rot,
+                matrix:     matrix
+            });
+        }
+
+        // flame animations
         if(typeof worker != 'undefined' && block.id == 50) {
             worker.postMessage(['add_animated_block', {
-                block_pos: block.posworld,
-                pos: [torch_pos],
-                type: 'torch_flame'
+                block_pos:  block.posworld,
+                pos:        [torch_pos],
+                type:       'torch_flame'
             }]);
         }
 
-        return cube_func(
-            block,
-            vertices,
-            chunk, 
-            x + cubeSymAxis[rotate.x][0] * 0.55,
-            y + 0.25,
-            z + cubeSymAxis[rotate.x][1] * 0.55,
-            neighbours,
-            biome,
-            dirt_color,
-            false,
-            tmpMat,
-            pivotArr
-        );
     }
+
 }
