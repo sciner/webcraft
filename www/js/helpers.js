@@ -157,6 +157,15 @@ export class IvanArray {
     }
 }
 
+//
+export function makeChunkEffectID(chunk_addr, material_key) {
+    let resp = `particles_effects/${chunk_addr.toHash()}/`;
+    if(material_key) {
+        resp += material_key;
+    }
+    return resp;
+}
+
 // Возвращает адрес чанка по глобальным абсолютным координатам
 export function getChunkAddr(x, y, z, v = null) {
     if(x instanceof Vector || typeof x == 'object') {

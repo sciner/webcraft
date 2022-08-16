@@ -67,6 +67,15 @@ export default class Particles_Clouds {
             WEST: null,
             EAST: null
         };
+        const neighbours2  = {
+            UP: null,
+            DOWN: null,
+            NORTH: null,
+            SOUTH: null,
+            WEST: null,
+            EAST: null
+        };
+        const clouds_3d = false;
         const y = 0;
         for(let x = 0; x < aabb.x_max; x++) {
             for(let z = 0; z < aabb.z_max; z++) {
@@ -76,7 +85,19 @@ export default class Particles_Clouds {
                     neighbours.SOUTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z - 1);
                     neighbours.WEST = FakeCloudWorld.chunkManager.getBlock(x - 1, 0, z);
                     neighbours.EAST = FakeCloudWorld.chunkManager.getBlock(x + 1, 0, z);
+                    const with_neightbours = neighbours.NORTH && neighbours.SOUTH && neighbours.WEST && neighbours.EAST;
+                    // if(clouds_3d && with_neightbours) {
+                    //     neighbours.UP = neighbours.DOWN = block;
+                    // }
                     push_cube(block, this.vertices, FakeCloudWorld, x, y, z, neighbours, null, false);
+                    if(clouds_3d && with_neightbours) {
+                        neighbours2.UP = null;
+                        neighbours2.DOWN = block;
+                        push_cube(block, this.vertices, FakeCloudWorld, x, y + 1, z, neighbours2, null, false);
+                        neighbours2.UP = neighbours2.DOWN;
+                        neighbours2.DOWN = null;
+                        push_cube(block, this.vertices, FakeCloudWorld, x, y - 1, z, neighbours2, null, false);
+                    }
                 }
             }
         }

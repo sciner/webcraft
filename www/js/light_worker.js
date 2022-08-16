@@ -50,7 +50,7 @@ function run() {
             return;
         chunk.sentID = chunk.lastID;
 
-        chunk.calcResult(renderFormat === 'rgb565unorm');
+        chunk.calcResult(renderFormat === 'rgba4unorm');
 
         // no need to send if no changes
         if (chunk.crc != chunk.crcO) {

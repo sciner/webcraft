@@ -47,23 +47,23 @@ function calcRotateByPosN(rot, pos_n) {
 }
 
 // Calc rotate
-function calcRotate(rotate, n) {
+function calcRotate(rotate, n, can_set_on_wall) {
     rotate = new Vector(rotate);
     rotate.x = 0;
     rotate.y = 0;
     // top normal
-    //if (Math.abs(n.y) === 1) {
+    if (!can_set_on_wall || (can_set_on_wall && Math.abs(n.y) === 1)) {
         rotate.x = BLOCK.getCardinalDirection(rotate);
         rotate.z = 0;
         rotate.y = n.y; // mark that is up
-    //} else {
-    //    rotate.z = 0;
-    //    if (n.x !== 0) {
-    //        rotate.x = n.x > 0 ? ROTATE.E : ROTATE.W;
-    //    } else {
-    //        rotate.x = n.z > 0 ? ROTATE.N : ROTATE.S;
-    //    }
-    //}
+    } else {
+        rotate.z = 0;
+        if (n.x !== 0) {
+            rotate.x = n.x > 0 ? ROTATE.E : ROTATE.W;
+        } else {
+            rotate.x = n.z > 0 ? ROTATE.N : ROTATE.S;
+        }
+    }
     return rotate;
 }
 
@@ -827,6 +827,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 //
 function calcBlockOrientation(mat_block, rotate, n) {
     let resp = null;
+    const can_set_on_wall = mat_block.tags.indexOf('can_set_on_wall') >= 0;
     if(mat_block.tags.indexOf('rotate_by_pos_n') >= 0) {
         resp = calcRotateByPosN(rotate, n);
         if(mat_block.tags.indexOf('rotate_by_pos_n_xyz') >= 0) {
@@ -835,7 +836,7 @@ function calcBlockOrientation(mat_block, rotate, n) {
             if(resp.x == 22) resp.set(13, 0, 0);
         }
     } else {
-        resp = calcRotate(rotate, n);
+        resp = calcRotate(rotate, n, can_set_on_wall);
     }
     return resp;
 };
