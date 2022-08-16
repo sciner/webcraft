@@ -58,11 +58,13 @@ export default class Terrain_Generator extends Demo_Map {
             //
             const has_islands = this.intersectChunkWithIslands(chunk.aabb);
             if(has_islands) {
+                const noise2d = noise.simplex2;
                 for(let x = 0; x < chunk.size.x; x++) {
                     for(let z = 0; z < chunk.size.z; z++) {
+                        const grass_level = Math.round(noise2d((x + chunk.coord.x) / 7, (z + chunk.coord.z) / 7) * 1.5);
                         for(let y = 0; y < chunk.size.y; y++) {
                             xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-                            this.drawIsland(xyz, x, y, z, chunk);
+                            this.drawIsland(xyz, x, y, z, chunk, grass_level);
                         }
                     }
                 }
