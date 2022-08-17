@@ -66,7 +66,7 @@
             <span>{{Lang.share_game_with_friends}}</span>
             <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
         </div>
-        <input type="text" ng-value="shareGame.url">
+        <input type="text" readonly ng-value="shareGame.url">
         <button class="btn2 btn-action" ng-click="shareGame.copy()">{{Lang.copy}}</button>
     </div>
 
@@ -90,10 +90,6 @@
             <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Settings</span>
                 <img src="/media/icon-settings.png" style="height: 2em;" alt="Settings">
-            </button>
-            <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
-                <span style="margin-right: 1em;">Invite</span>
-                <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
             <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
                 <span style="margin-right: 1em;">Discord</span>
@@ -315,6 +311,13 @@
     <script src="/vendors/vanilla-toast.min.js"></script>
 
     <div id="loading"></div>
+
+    <div id="share-button-container">
+        <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
+            <span style="margin-right: 1em;">Invite</span>
+            <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
+        </button>
+    </div>
 
 </body>
 </html>
