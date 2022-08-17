@@ -9,6 +9,8 @@ import { RailShape } from "./block_type/rail_shape.js";
 
 const _createBlockAABB = new AABB();
 
+const MAX_SIZE_PORTAL = 21;
+
 const sides = [
     new Vector(1, 0, 0),
     new Vector(-1, 0, 0),
@@ -1294,7 +1296,7 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
     
     // находим растояние до стенки
     const getDistanceEdge = (pos, dir) => {
-        for (let i = 0; i < 22; i++) {
+        for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
             let blockpos = new Vector(pos.x + i, pos.y, pos.z);
             switch(dir) {
                 case DIRECTION.WEST:
@@ -1338,7 +1340,7 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
         if (dist >= 0) {
             bottom_left = (left_dir == DIRECTION.WEST) ? nullpos.offset(-dist, 0, 0) : nullpos.offset(0, 0, -dist);
             width = getDistanceEdge(bottom_left, right_dir);
-            if (width < 2 || width > 21) {
+            if (width < 2 || width > MAX_SIZE_PORTAL) {
                 width = 0;
             }
         }
@@ -1346,7 +1348,7 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
         // находим высоту
         if (width != 0) {
             rep:
-            for (height = 0; height < 21; ++height) {
+            for (height = 0; height < MAX_SIZE_PORTAL; ++height) {
                 for (let i = -1; i <= width; ++i) {
                     const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
                     const block = world.getBlock(blockpos);
