@@ -401,6 +401,7 @@ let gameCtrl = async function($scope, $timeout) {
                             that.shared_worlds.push(w);
                         }
                     }*/
+                    that.joinToWorld();
                     that.loading = false;
                     $scope.loadingComplete();
                 });
@@ -411,35 +412,33 @@ let gameCtrl = async function($scope, $timeout) {
         add: function(form) {
             this.list.push(form);
         },
-        worldExists: function(guid) {
-            for(let world of this.list) {
-                if(world.guid == guid) {
-                    return true;
-                }
-            }
-            return false;
-        },
-        checkInvite: function() {
-            var that = this;
+        getWorldGuid: function() {
             let hash = window.location.hash;
-            if(hash && hash.startsWith('#world_')) {
-                if(!$scope.App.isLogged()) {
-                    vt.success(Lang.error_not_logged);
-                    return;
-                }
-                let world_guid = hash.substr(7);
-                if(that.worldExists(world_guid)) {
-                    return false;
-                }
-                $scope.App.JoinWorld({world_guid: world_guid}, (resp) => {
+            if (!hash && hash.startsWith('#world_')) {
+                return null;
+            }
+            return hash.substr(7);
+        },
+        joinToWorld: function() {
+            let world_guid = this.getWorldGuid();
+            if (world_guid) {
+                var that = this;
+                $scope.App.JoinWorld({ world_guid: world_guid }, (resp) => {
                     $timeout(() => {
                         that.list.push(resp);
-                        vt.success(Lang.you_invited_to_world + ' ' + hash);
-                        location.href = location.protocol + '//' + location.host;
+                        vt.success(Lang.you_invited_to_world + ' ' + world_guid);
+                        window.location.hash = "";
                         that.loading = false;
                     });
                 });
-                return true;
+            }
+        },
+        checkInvite: function (){
+            let world_guid = this.getWorldGuid();
+            if (world_guid) {
+                if (!$scope.App.isLogged()) {
+                    vt.success(Lang.error_not_logged);
+                }
             }
         }
     };
