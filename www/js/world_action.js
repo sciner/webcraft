@@ -657,6 +657,14 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
         }
+        
+        // Проверка выполняемых действий с блоками в мире
+        for(let func of [deletePortal]) {
+            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                return actions;
+            }
+        }
+        
         return actions;
     }
 
@@ -1224,7 +1232,55 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     return true;
 }
 
-// 
+// удаление портала
+async function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    
+    if (!world_material || (world_material.id != BLOCK.OBSIDIAN.id && world_material.id != BLOCK.NETHER_PORTAL.id)) {
+        return;
+    }
+    
+    const blocks = [];
+    
+    // проверка есть ли позиция в массиве
+    const isAdded = (pos) => {
+        for (let el of blocks) {
+            if (el.x == pos.x && el.y == pos.y && el.z == pos.z) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // рекурсивный поиск блоков NETHER_PORTAL
+    const getNeighbours = (pos) => {
+        const neighbours = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+        for (let el of neighbours) {
+            let position = pos.offset(el[0], el[1], el[2]);
+            if (world.getBlock(position).id == BLOCK.NETHER_PORTAL.id && !isAdded(position)) {
+                blocks.push(position);
+                getNeighbours(position);
+            }
+        }
+    }
+    
+    getNeighbours(new Vector(pos.x, pos.y, pos.z));
+    
+    if (blocks.length > 0) {
+        const arr = [];
+        for (let el of blocks) {
+            arr.push({
+                pos: el, 
+                item: {
+                    id: BLOCK.AIR.id
+                }, 
+                action_id: ServerClient.BLOCK_ACTION_MODIFY
+            });
+        }
+        actions.addBlocks(arr);
+    }
+}
+
+// создание портала
 async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     
     if (!world_material || world_material.id != BLOCK.OBSIDIAN.id) {
