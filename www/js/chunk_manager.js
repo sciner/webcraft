@@ -218,6 +218,12 @@ export class ChunkManager {
                     meshes.addForChunk(getChunkAddr(args.pos), new Particles_BeaconRay(args), 'beacon/' + args.pos.toHash());
                     break;
                 }
+                case 'del_beacon_ray': {
+                    const render = Qubatch.render;
+                    args.pos = new Vector(args.pos);
+                    render.meshes.remove('beacon/' + args.pos.toHash(), render);
+                    break;
+                }
                 case 'maps_created': {
                     // chunkManager.postWorkerMessage(['createMaps', {addr: {x: 1, y: 1, z: 1}}]);
                     // console.log('maps_created', args.length * 4);

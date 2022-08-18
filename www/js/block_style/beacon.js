@@ -33,10 +33,14 @@ export default class style {
         box(12, 12, 2, 0, vertices, obsidian, obsidian, x, y, z);
         box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z, QUAD_FLAGS.NO_CAN_TAKE_LIGHT);
 
-        if(typeof worker != 'undefined') {
-            worker.postMessage(['add_beacon_ray', {pos: block.posworld}]);
+        if (typeof worker != 'undefined') {
+            worker.postMessage([
+                (block.extra_data.level != 0) ? 'add_beacon_ray' : 'del_beacon_ray', 
+                {
+                    pos: block.posworld
+                }
+            ]);
         }
-
     }
     
 }

@@ -6743,12 +6743,7 @@
             "sound": "madcraft:block.glass",
             "material": {"id": "glass"},
             "extra_data": {
-                "power": false,
-                "color": {
-                    "r": 62, 
-                    "g": 150, 
-                    "b": 0
-                }
+                "level": 0
             },
             "light_power": {
                 "r": 80,

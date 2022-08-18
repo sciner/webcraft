@@ -15,7 +15,7 @@ export default class Ticker {
         if(v.ticks % 40 != 0) {
             return;
         }
-        const updated_blocks = [];
+        
         const isPrecious = (n) => {
             for (let i = -n; i <= n; i++) {
                 for (let j = -n; j <= n; j++) {
@@ -28,33 +28,39 @@ export default class Ticker {
             }
             return true;
         };
-        // Проверка основания для включения
-        extra_data.power = isPrecious(1);
-        // to do пока отключим Проверяем бонусы
-        if (extra_data.power && 1 == 2) {
-            console.log("on");
+        // старые данные
+        const level = extra_data.level;
+        // проверяем бонусы и включение
+        if (isPrecious(1)) {
+            extra_data.level = 1;
             if (isPrecious(2)) {
-                console.log("bonuse 2");
+                extra_data.level = 2;
                 if (isPrecious(3)) {
-                    console.log("bonuse 3");
+                    extra_data.level = 3;
                     if (isPrecious(4)) {
-                        console.log("bonuse 4");
+                        extra_data.level = 4;
                     }
                 }
             }
+        } else {
+            extra_data.level = 0;
         }
         
         // проверка преград на пути луча или стекла для раскраски
-        if (extra_data.power) {
-            for (let i = 0; i < 310; i++) {
-                const block = world.getBlock(pos.add(Vector.YP));
-                if (block.id != BLOCK.AIR.id) {
-                    extra_data.power = false;
+        if (extra_data.level > 0) {
+            for (let i = 1; i < 310; i++) {
+                const block = world.getBlock(pos.add(new Vector(0, i, 0)));
+                if (block && block.id != BLOCK.AIR.id) {
+                    extra_data.level = 0;
                     break;
                 }
             }
         }
         
+        const updated_blocks = [];
+        if (level != extra_data.level) {
+            updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        }
         return updated_blocks;
     }
     
