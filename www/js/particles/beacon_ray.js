@@ -49,7 +49,7 @@ export class Particles_BeaconRay {
             this.pos
         );
 
-        this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+        this.buffer = new GeometryTerrain(this.vertices);
 
     }
 

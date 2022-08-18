@@ -311,7 +311,7 @@ export class BeaconWindow extends BaseCraftWindow {
             // Add buttons
             const ct = this;
             // Close button
-            const btnClose = new Button(ct.width - 20 * this.zoom, 0 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            const btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.onDrop = btnClose.onMouseDown = function(e) {

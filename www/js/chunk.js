@@ -291,7 +291,7 @@ export class Chunk {
 
     // Destruct chunk
     destruct() {
-        let chunkManager = this.getChunkManager();
+        const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
         }
