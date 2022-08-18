@@ -965,7 +965,13 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
                 break;
             }
             case BLOCK.BEACON.id: {
-                actions.open_window = world_material.window;
+                actions.open_window = {
+                    id: 'frmBeacon',
+                    args: {
+                        pos: new Vector(pos),
+                        extra_data: extra_data
+                    }
+                };
                 break;
             }
         }

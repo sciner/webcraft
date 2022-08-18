@@ -115,12 +115,12 @@ class ActiveButton extends Window {
     setIcon(name) {
         switch(name) {
             case 'ok': {
-                this.style.icon.sprite.x = 176;
+                this.style.icon.sprite.x = 178;
                 this.style.icon.sprite.y = 438;
                 break;
             }
             case 'cancel': {
-                this.style.icon.sprite.x = 220;
+                this.style.icon.sprite.x = 222;
                 this.style.icon.sprite.y = 438;
                 break;
             }
@@ -302,7 +302,7 @@ export class BeaconWindow extends BaseCraftWindow {
         }
         
         // Обработчик открытия формы
-        this.onShow = function() {
+        this.onShow = function(args) {
             Qubatch.releaseMousePointer();
         }
         
