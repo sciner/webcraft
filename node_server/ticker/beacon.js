@@ -33,7 +33,7 @@ export default class Ticker {
         // проверяем бонусы и включение
         if (isPrecious(1)) {
             extra_data.level = 1;
-            if (isPrecious(2)) {
+            /*if (isPrecious(2)) {
                 extra_data.level = 2;
                 if (isPrecious(3)) {
                     extra_data.level = 3;
@@ -41,7 +41,7 @@ export default class Ticker {
                         extra_data.level = 4;
                     }
                 }
-            }
+            }*/
         } else {
             extra_data.level = 0;
         }
