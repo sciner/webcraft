@@ -131,17 +131,17 @@ export default class Demo_Map extends Default_Terrain_Generator {
     }
 
     // drawIsland
-    drawIsland(xyz, x, y, z, chunk) {
-        for (let i = 0; i < this.islands.length; i++) {
+    drawIsland(xyz, x, y, z, chunk, grass_level) {
+        for(let i = 0; i < this.islands.length; i++) {
             const island = this.islands[i];
             let dist = xyz.distance(island.pos);
             if(dist < island.rad) {
                 if(xyz.y < island.pos.y) {
-                    if(xyz.y < island.pos.y - 3) {
+                    if(xyz.y < island.pos.y - (3 + grass_level)) {
                         chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id);
                         return true;
                     } else {
-                        if(dist < island.rad * 0.9) {
+                        if(dist < island.rad * (0.8 + (grass_level / 12))) {
                             chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id);
                             return true;
                         } else {

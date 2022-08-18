@@ -24,7 +24,13 @@ Start server:
 ```
 // Run NodeJS v17.9.0 server!
 cd ./node_server
+npm run install
+npm run start
+
+# compile all include local server if need
 npm run install-all
+
+# compile ff-worker and auto start
 npm run start-rebuild
 ```
 

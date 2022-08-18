@@ -154,12 +154,12 @@ export class Chunk {
         }
     }
 
-    calcResult(is565) {
+    calcResult(is4444) {
         const {lightChunk} = this;
         const {outerSize, uint8View, strideBytes} = lightChunk;
-        const elemPerBlock = is565 ? 1 : 4;
+        const elemPerBlock = is4444 ? 1 : 4;
         if (!this.lightResult) {
-            if (is565) {
+            if (is4444) {
                 this.lightResult = new Uint16Array(this.resultLen * elemPerBlock);
             } else {
                 this.lightResult = new Uint8Array(this.resultLen * elemPerBlock);
@@ -179,12 +179,13 @@ export class Chunk {
         this.result_crc_sum = 0;
 
         //
-        const addResult1 = (A, A2, G) => {
-            if (is565) {
+        const addResult1 = (R, G, B, A) => {
+            if (is4444) {
                 const prev_value = result[ind];
-                const new_value = (Math.round(A * 31.0 / 15.0) << 11)
-                    + (Math.round(G * 63.0) << 5)
-                    + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
+                const new_value = (Math.round(R) << 12)
+                    + (Math.round(15.0 - G) << 8)
+                    + (Math.round(B * 15.0) << 4)
+                    + (Math.round(A * 15.0) << 0);
                 result[ind++] = new_value;
                 if (prev_value != new_value) {
                     changed = true;
@@ -197,10 +198,10 @@ export class Chunk {
                     pv3 = result[ind + 2];
                     pv4 = result[ind + 3];
                 }
-                result[ind++] = Math.round(A * 255.0 / 15.0);
-                result[ind++] = Math.round(G * 255.0);
-                result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
-                result[ind++] = 0;
+                result[ind++] = Math.round(R * 255.0 / 15.0);
+                result[ind++] = Math.round(255.0 - (G * 255.0 / 15.0));
+                result[ind++] = Math.round(B * 255.0);
+                result[ind++] = Math.round(A * 255.0);
                 if (!changed) {
                     if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
                         changed = true;
@@ -215,103 +216,14 @@ export class Chunk {
             }
         };
 
-        // const addResult2 = (A, A2, R, G, B) => {
-        //     if (is565) {
-        //         const prev_value = result[ind2];
-        //         const new_value = (Math.round(R * 31.0 / 4.0) << 11)
-        //             + (Math.round(G * 63.0 / 4.0) << 5)
-        //             + (Math.round(B * 31.0 / 4.0) << 0);
-        //         result[ind2++] = new_value
-        //         if(prev_value != new_value) {
-        //             changed = true;
-        //         }
-        //         this.result_crc_sum += new_value;
-        //     } else {
-        //         if(!changed) {
-        //             pv1 = result[ind2 + 0];
-        //             pv2 = result[ind2 + 1];
-        //             pv3 = result[ind2 + 2];
-        //             pv4 = result[ind2 + 3];
-        //             pv5 = result[ind2 + 4];
-        //             pv6 = result[ind2 + 5];
-        //             pv7 = result[ind2 + 6];
-        //             pv8 = result[ind2 + 7];
-        //         }
-        //         result[ind2++] = Math.round(R * 255.0 / 4.0);
-        //         result[ind2++] = Math.round(G * 255.0 / 4.0);
-        //         result[ind2++] = Math.round(B * 255.0 / 4.0);
-        //         result[ind2++] = 0;
-        //         result[ind2++] = Math.round(A * 255.0 / 15.0);
-        //         result[ind2++] = 0;
-        //         result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
-        //         result[ind2++] = 0;
-        //         if(!changed) {
-        //             if(
-        //                 pv1 != result[ind2 - 8] || pv2 != result[ind2 - 7] ||
-        //                 pv3 != result[ind2 - 6] || pv4 != result[ind2 - 5] ||
-        //                 pv5 != result[ind2 - 4] || pv6 != result[ind2 - 3] ||
-        //                 pv7 != result[ind2 - 2] || pv8 != result[ind2 - 1]
-        //             ) {
-        //                 changed = true;
-        //             }
-        //         }
-        //         this.result_crc_sum += (
-        //             result[ind2 - 8] +
-        //             result[ind2 - 7] +
-        //             result[ind2 - 6] +
-        //             result[ind2 - 5] +
-        //             result[ind2 - 4] +
-        //             result[ind2 - 3] +
-        //             result[ind2 - 2] +
-        //             result[ind2 - 1]
-        //         );
-        //     }
-        // };
-
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
                     const coord0 = sx * x + sy * y + sz * z;
-
-                    const boundX = (x === outerSize.x - 1) ? sx : 0;
-                    const boundY = (y === outerSize.y - 1) ? sy : 0;
-                    const boundZ = (z === outerSize.z - 1) ? sz : 0;
-
-                    let coord = coord0 - boundX - boundY - boundZ + OFFSET_LIGHT;
-                    let A = Math.max(uint8View[coord],              uint8View[coord + sx],
-                        uint8View[coord + sy],         uint8View[coord + sx + sy],
-                        uint8View[coord + sz],         uint8View[coord + sx + sz],
-                        uint8View[coord + sy + sz],    uint8View[coord + sx + sy + sz]);
-                    A = adjustLight(A);
-
-                    // add day light
-                    coord = coord0 - boundX - boundY - boundZ + OFFSET_DAY;
-                    let A2 = Math.max(uint8View[coord],             uint8View[coord + sx],
-                        uint8View[coord + sy],        uint8View[coord + sx + sy],
-                        uint8View[coord + sz],        uint8View[coord + sx + sz],
-                        uint8View[coord + sy + sz],   uint8View[coord + sx + sy + sz]);
-                    A2 = adjustLight(A2);
-                    // if (z >= outerSize.z - 3 || z <= 1) {
-                    //     A2 = 15;
-                    // }
-
-                    addResult1(A, A2, (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
-                    // coord = coord0 - boundY - boundZ + OFFSET_AO;
-                    // const R1 = uint8View[coord] + uint8View[coord + sy + sz];
-                    // const R2 = uint8View[coord + sy] + uint8View[coord + sz];
-                    // const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
-                    //
-                    // coord = coord0 - boundX - boundY + OFFSET_AO;
-                    // const G1 = uint8View[coord] + uint8View[coord + sy + sx];
-                    // const G2 = uint8View[coord + sy] + uint8View[coord + sx];
-                    // const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
-                    //
-                    // coord = coord0 - boundX - boundZ + OFFSET_AO;
-                    // const B1 = uint8View[coord] + uint8View[coord + sx + sz];
-                    // const B2 = uint8View[coord + sx] + uint8View[coord + sz];
-                    // const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
-
-                    // addResult2(A, A2, R, G, B);
+                    addResult1(adjustLight(uint8View[coord0 + OFFSET_LIGHT]),
+                        adjustLight(uint8View[coord0 + OFFSET_DAY]),
+                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0,
+                        (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
                 }
 
         //

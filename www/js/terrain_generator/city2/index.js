@@ -11,7 +11,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id, options) {
         super(seed, world_id, options);
-        this.setSeed(0);
+        this.setSeed(seed);
     }
 
     async init() {

@@ -13,6 +13,10 @@ const TEXTURE_TYPE_FORMAT = {
         format: 'RGB', internal: 'RGB565', type : 'UNSIGNED_SHORT_5_6_5',
         arrClass: Uint16Array, bytesPerElement: 2,
     },
+    'rgba4unorm': {
+        format: 'RGBA', internal: 'RGBA4', type : 'UNSIGNED_SHORT_4_4_4_4',
+        arrClass: Uint16Array, bytesPerElement: 2,
+    },
     'u8': {
         format: 'ALPHA', type: 'UNSIGNED_BYTE',
     },

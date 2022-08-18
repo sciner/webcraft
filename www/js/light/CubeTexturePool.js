@@ -74,7 +74,7 @@ export class CubeTexturePool {
         this.totalRegions = 0;
         this.maxBoundTextures = maxBoundTextures;
         this.boundTextures = [null];
-        this.bytePerElement = (type === 'rgb565unorm' ? 2 : 4 );
+        this.bytePerElement = (type === 'rgb565unorm' || type === 'rgba4unorm' ? 2 : 4 );
     }
 
     alloc({width, height, depth, type, filter, data}) {

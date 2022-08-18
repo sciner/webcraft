@@ -88,6 +88,8 @@
         "generator_city2": {"en": "City #2", "ru": "Город 2", "fr": "", "es": "","man":""},
         "generator_flat_world": {"en": "Flat world", "ru": "Плоский мир", "fr": "", "es": "","man":""},
         "given": {"en": "Given %0", "ru": "Выдан %0", "fr": "", "es": "","man":""},
-        "error_unknown_item": {"en": "Unknown item %0", "ru": "Неизвестный предмет %0", "fr": "", "es": "","man":""}
+        "error_unknown_item": {"en": "Unknown item %0", "ru": "Неизвестный предмет %0", "fr": "", "es": "","man":""},
+        "clipboard_cleared": {"en": "Clipboard cleared", "ru": "Буфер обмена очищен", "fr": "", "es": "","man":""},
+        "bottom_caves": {"en": "Bottom caves", "ru": "Пещеры нижнего мира", "fr": "", "es": "","man":""}
     }
 }

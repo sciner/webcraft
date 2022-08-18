@@ -362,7 +362,8 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             if(material.is_dirt) {
-                if(neighbours.UP?.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+                const up_mat = neighbours.UP?.material;
+                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == BLOCK.DIRT_PATH.id))) {
                     DIRECTION_UP        = DIRECTION.DOWN;
                     DIRECTION_BACK      = DIRECTION.DOWN;
                     DIRECTION_RIGHT     = DIRECTION.DOWN;

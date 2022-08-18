@@ -43,18 +43,12 @@ export default class GeometryTerrain {
          * @type {Float32Array}
          */
         this.data;
+        /**
+         * @type {Uint32Array}
+         */
+        this.uint32Data;
 
-        if (vertices instanceof ArrayBuffer) {
-            this.data = new Float32Array(vertices);
-        } else if (vertices instanceof Float32Array) {
-            this.data = vertices;
-        } else {
-            this.data = new Float32Array(vertices);
-            const uint32Data = new Uint32Array(this.data.buffer);
-            for (let i = 0; i < vertices.length; i += this.strideFloats) {
-                uint32Data[i + 13] = vertices[i + 13];
-            }
-        }
+        this.setVertices(vertices);
 
         this.size = this.data.length / this.strideFloats;
         this.chunkIds = null;
@@ -83,6 +77,38 @@ export default class GeometryTerrain {
         this.customFlag = false;
     }
 
+    setVertices(vertices) {
+        if (vertices instanceof ArrayBuffer) {
+            this.data = new Float32Array(vertices);
+            this.uint32Data = new Uint32Array(this.data.buffer);
+        } else if (vertices instanceof Float32Array) {
+            this.data = vertices;
+            this.uint32Data = new Uint32Array(this.data.buffer);
+        } else {
+            this.data = new Float32Array(vertices);
+            this.uint32Data = new Uint32Array(this.data.buffer);
+            for (let i = 0; i < vertices.length; i += this.strideFloats) {
+                this.uint32Data[i + 13] = vertices[i + 13];
+                this.uint32Data[i + 14] = vertices[i + 14];
+            }
+        }
+    }
+
+    /**
+     * for particles, change particular quad by offset
+     * @param vertices Array
+     * @param offset offset in floats
+     */
+    changeQuad(offsetFloat, vertices) {
+        const {data, uint32Data, strideFloats} = this;
+
+        for (let i = 0; i < strideFloats; i++) {
+            data[offsetFloat + i] = vertices[i];
+        }
+        uint32Data[offsetFloat + 13] = vertices[13];
+        uint32Data[offsetFloat + 14] = vertices[14];
+    }
+
     /**
      * Change flags attribute in buffer
      * @param {number} flag
@@ -98,7 +124,7 @@ export default class GeometryTerrain {
 
         // flag located by 14 offset
         for (let i = 0; i < this.data.length; i += this.strideFloats) {
-            this.data[i + 14] = operation(this.data[i + 14]);
+            this.uint32Data[i + 14] = operation(this.uint32Data[i + 14]);
         }
 
         this.updateID++;
@@ -131,7 +157,7 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
         gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
+        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 14 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);

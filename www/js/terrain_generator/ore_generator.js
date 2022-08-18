@@ -1,20 +1,13 @@
-import {impl as alea} from '../../vendors/alea.js';
+import { noise, alea } from "./default.js";
 import { BLOCK } from "../blocks.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 
 // Ores
-const ORE_RANDOMS = [];
+const ORE_RANDOMS           = [];
+const ORE_RANDOMS_SIMPLE    = [];
 
-const MAX_ORE_RAD = 2;
-const CHUNK_SIZE_VEC = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-
-const CHUNK_SIZE_X_SM = (CHUNK_SIZE_X - MAX_ORE_RAD * 2);
-const CHUNK_SIZE_Y_SM = (CHUNK_SIZE_Y - MAX_ORE_RAD * 2);
-const CHUNK_SIZE_Z_SM = (CHUNK_SIZE_Z - MAX_ORE_RAD * 2);
-
-const MAX_INDEX = CHUNK_SIZE_X_SM * CHUNK_SIZE_Y_SM * CHUNK_SIZE_Z_SM;
-
+// OreSource
 class OreSource {
 
     constructor(pos, rad, block_id, max_y) {
@@ -26,112 +19,126 @@ class OreSource {
 
 }
 
+// OreGenerator
 export class OreGenerator {
 
-    constructor(seed, chunk_addr, noisefn, noise3d, map) {
+    //
+    constructor(seed, noisefn, noise3d, map) {
+        this.seed     = seed;
+        this.map      = map;
+        this.noisefn  = noisefn;
+        this.noise3d  = noise3d; // noise.simplex3
+    }
 
+    // Generate
+    generate(chunk_addr, chunk_coord, layer) {
+
+        //
+        const seed              = this.seed;
+        const aleaRandom        = new alea(seed + '_' + chunk_addr.toHash() + '_' + layer.id);
+        const ores              = [];
+        const map               = this.map;
+        const CHUNK_SIZE_X_SM   = (CHUNK_SIZE_X - layer.max_ore_rad * 2);
+        const CHUNK_SIZE_Z_SM   = (CHUNK_SIZE_Z - layer.max_ore_rad * 2);
+
+        //
         if(ORE_RANDOMS.length == 0) {
+            //
+            ORE_RANDOMS_SIMPLE.push(...[
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.GRANITE.id, max_y: Infinity},
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.DIORITE.id, max_y: Infinity},
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.ANDESITE.id, max_y: Infinity}
+            ]);
+            //
             ORE_RANDOMS.push(...[
                 {max_rad: 1.5, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
                 {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: 48},
                 {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: 52},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: 52},
+                {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: 52},
+                null,
+                null,
+                null,
                 {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
                 {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
-                {max_rad: MAX_ORE_RAD, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+                {max_rad: layer.max_ore_rad, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
             ]);
         }
 
-        const aleaRandom = new alea(seed + '_' + chunk_addr.toHash());
-        const chunk_coord = chunk_addr.clone().multiplyVecSelf(CHUNK_SIZE_VEC);
-
-        // @todo для каждого блока в чанке считается расстояние до каждого источника руды
-        this.ores = [];
-        this.noisefn = noisefn;
-        this.noise3d = noise3d;
-
-        for(let y = 0; y < 4; y++) {
-            chunk_coord.y = y * CHUNK_SIZE_Y;
-            let count = Math.floor(aleaRandom.double() * 30);
-            for(let i = 0; i < count; i++) {
-                const index = Math.floor(aleaRandom.double() * MAX_INDEX);
-                let ore_x = index % CHUNK_SIZE_X_SM;
-                let ore_y = index / (CHUNK_SIZE_X_SM * CHUNK_SIZE_Z_SM) | 0;
-                let ore_z = (index % (CHUNK_SIZE_X_SM * CHUNK_SIZE_Z_SM) - ore_x) / CHUNK_SIZE_X_SM;
-                ore_x += MAX_ORE_RAD;
-                ore_y += MAX_ORE_RAD;
-                ore_z += MAX_ORE_RAD;
-                const cell = map.cells[ore_z * CHUNK_SIZE_X + ore_x];
-                if(ore_y + chunk_coord.y < cell.value2) {
-                    const ore_index_seed = aleaRandom.double() * ORE_RANDOMS.length;
-                    const r = Math.floor(ore_index_seed);
-                    const f = ORE_RANDOMS[r];
-                    if(ore_y + chunk_coord.y > f.max_y) {
-                        i--;
-                        continue;
-                    }
-                    const pos = new Vector(ore_x, ore_y, ore_z).addSelf(chunk_coord);
-                    const rad = Math.min(Math.round((ore_index_seed - r) * f.max_rad) + 1, f.max_rad) / 1.5;
-                    const ore = new OreSource(
-                        pos,
-                        rad,
-                        f.block_id,
-                        f.max_y
-                    );
-                    this.ores.push(ore);
+        //
+        for(let i = 0; i < layer.source_count; i++) {
+            const rnd    = aleaRandom.double();
+            const ore_x  = Math.floor(aleaRandom.double() * CHUNK_SIZE_X_SM) + layer.max_ore_rad;
+            const ore_y  = Math.floor(2.75 * i) + layer.max_ore_rad;
+            const ore_z  = Math.floor(aleaRandom.double() * CHUNK_SIZE_Z_SM) + layer.max_ore_rad;
+            const cell   = map.cells[ore_z * CHUNK_SIZE_X + ore_x];
+            if(ore_y + chunk_coord.y < cell.value2 - 6) {
+                const pos             = new Vector(ore_x, ore_y, ore_z).addSelf(chunk_coord);
+                const ore_index_seed  = rnd * layer.palette.length;
+                const rad             = layer.max_ore_rad + 1;
+                const palette_index   = Math.floor(ore_index_seed);
+                const ore             = layer.palette[palette_index];
+                if(!ore) continue;
+                if(pos.y > ore.max_y) {
+                    i--;
+                    continue;
                 }
+                const source = new OreSource(pos, rad, ore.block_id, ore.max_y);
+                ores.push(source);
             }
         }
 
-        this.ores.sort((a, b) => a.pos.y - b.pos.y);
+        return ores;
 
     }
 
-    // 
-    get(xyz, dirt_height) {
+    // Draw ores in chunk
+    draw(chunk) {
 
-        let stone_block_id;
-        const noise = this.noise3d(xyz.x / 10, xyz.z / 10, xyz.y / 10);
-        const density = noise / 2 + .5;
+        const xyz               = new Vector(0, 0, 0);
+        const max_noise_dist    = 0.15;
+        const stone_id          = BLOCK.STONE.id;
+
+        const layers = [
+            {id: 'main', palette: ORE_RANDOMS, max_ore_rad: 1, source_count: 12},
+            {id: 'simple', palette: ORE_RANDOMS_SIMPLE, max_ore_rad: 3, source_count: 6}
+        ];
 
         //
-        if(density > 0.65) {
-            let den = this.noisefn(xyz.x / 10, xyz.z / 10) / 2 + .5;
-            if(den < .4) {
-                stone_block_id = BLOCK.ANDESITE.id;
-            } else if(den < .6) {
-                stone_block_id = BLOCK.GRANITE.id;
-            } else {
-                stone_block_id = BLOCK.DIORITE.id;
-            }
-        } else if(density > .1 && xyz.y < dirt_height - 5) {
-            const noise_dist = noise * 2.3;
-            for(let i = 0; i < this.ores.length; i++) {
-                const ore = this.ores[i];
-                if(ore.pos.y < xyz.y - MAX_ORE_RAD) continue;
-                if(ore.pos.y > xyz.y + MAX_ORE_RAD) break;
-                if(ore.pos.distance(xyz) <= ore.rad + noise_dist) {
-                    stone_block_id = ore.block_id;
-                    break;
+        for(let layer of layers) {
+            const ores = this.generate(chunk.addr, chunk.coord, layer);
+            for(let i = 0; i < ores.length; i++) {
+                const ore           = ores[i];
+                const R             = ore.rad;
+                const source_noise  = this.noise3d(ore.pos.x / 10, ore.pos.y / 10, ore.pos.z / 10);
+                xyz.copyFrom(ore.pos);
+                for(xyz.x = ore.pos.x - R; xyz.x < ore.pos.x + R; xyz.x++) {
+                    for(xyz.z = ore.pos.z - R; xyz.z < ore.pos.z + R; xyz.z++) {
+                        for(xyz.y = ore.pos.y - R; xyz.y < ore.pos.y + R; xyz.y++) {
+                            const x               = xyz.x - chunk.coord.x;
+                            const y               = xyz.y - chunk.coord.y;
+                            const z               = xyz.z - chunk.coord.z;
+                            const exist_block_id  = chunk.getBlockID(x, y, z);
+                            if(exist_block_id == stone_id) {
+                                const dist = xyz.distance(ore.pos);
+                                if(dist < ore.rad) {
+                                    const xyz_noise = this.noise3d(xyz.x / 10, xyz.y / 10, xyz.z / 10);
+                                    const noise_dist = xyz_noise - source_noise;
+                                    if(Math.abs(noise_dist) < max_noise_dist) {
+                                        chunk.setBlockIndirect(x, y, z, ore.block_id);
+                                    }
+                                }
+                            }
+
+                        }
+                    }
                 }
             }
         }
-        return stone_block_id || BLOCK.STONE.id;
+
     }
 
 }

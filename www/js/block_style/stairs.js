@@ -174,7 +174,7 @@ export default class style {
 
         // Tops
         c_up[2]     /= 2;
-        c_up[3]     /= 2;
+        c_up[3]     /= -2;
         c_south[2]  /= 2;
         c_north[2]  /= 2;
         c_south[0]  -= .25 / TX_CNT;

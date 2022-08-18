@@ -1,4 +1,4 @@
-import {getChunkAddr, Vector, VectorCollector} from "./helpers.js";
+import {getChunkAddr, makeChunkEffectID, Vector, VectorCollector} from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
@@ -96,7 +96,8 @@ export class Chunk {
 
     onLightGenerated(args) {
         const cm = this.getChunkManager();
-        const arrClass = cm.lightTexFormat === 'rgb565unorm' ? Uint16Array: Uint8Array;
+        const arrClass = cm.lightTexFormat === 'rgb565unorm' || cm.lightTexFormat === 'rgba4unorm'
+            ? Uint16Array: Uint8Array;
         this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
@@ -312,7 +313,7 @@ export class Chunk {
         // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
         // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
-        const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
+        const PARTICLE_EFFECTS_ID = makeChunkEffectID(this.addr, null);
         Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
         Qubatch.render.meshes.removeForChunk(this.addr);
     }

@@ -13,18 +13,31 @@ const BLOCK_NAMES = {
 export class Compiler {
 
     constructor(options) {
+        options.n_color = '#808080';
+        options.n_texture_id = '_n';
         this.spritesheets = new Map();
-        options.textures_dir = options.texture_pack_dir + '/assets/minecraft/textures';
-        options.blockstates_dir = options.texture_pack_dir + '/assets/minecraft/blockstates';
+        // options.blockstates_dir = options.texture_pack_dir + '/assets/minecraft/blockstates';
+        if(!Array.isArray(options.texture_pack_dir)) {
+            options.texture_pack_dir = [options.texture_pack_dir];
+        }
+        for(let i = 0; i < options.texture_pack_dir.length; i++) {
+            options.texture_pack_dir[i] = options.texture_pack_dir[i] + '/assets/minecraft/textures';
+        }
         this.options = options;
+        // Make default n texture
+        this.default_n = new skiaCanvas.Canvas(options.resolution, options.resolution);
+        const ctx = this.default_n.getContext('2d');
+        ctx.fillStyle = options.n_color;
+        ctx.fillRect(0, 0, options.resolution, options.resolution);
     }
 
     // Return spritesheet file
     getSpritesheet(id) {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
+            console.log(this.base_conf);
             const tx_cnt = this.base_conf.textures[id].tx_cnt;
-            spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options.textures_dir);
+            spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options);
             this.spritesheets.set(id, spritesheet);
         }
         return spritesheet;
@@ -47,8 +60,9 @@ export class Compiler {
         // Predefined textures
         for(let texture of this.compile_data.predefined_textures) {
             const spritesheet = this.getSpritesheet(texture.spritesheet_id);
-            const img = await spritesheet.loadTextureImage(texture.image);
-            spritesheet.drawImage(img, texture.x, texture.y, texture.has_mask);
+            const tex = await spritesheet.loadTex(texture.image);
+            spritesheet.drawTexture(tex.texture, texture.x, texture.y, texture.has_mask);
+            spritesheet.drawTexture(tex.n || this.default_n, texture.x, texture.y, false, null, null, this.options.n_texture_id);
         }
         try {
             await this.compileBlocks(this.compile_data.blocks);
@@ -155,17 +169,17 @@ export class Compiler {
                     const has_mask = tags.indexOf('mask_biome') >= 0 || tags.indexOf('mask_color') >= 0;
                     const compile = block.compile;
                     if(!tex) {
-                        const img = await spritesheet.loadTextureImage(value);
+                        const img = await spritesheet.loadTex(value);
                         //
                         if(block.name == BLOCK_NAMES.DIRT) {
-                            dirt_image = img;
+                            dirt_image = img.texture;
                         }
                         //
                         if(has_mask) {
                             x_size = 2;
                         } else {
-                            x_size = Math.ceil(img.width / spritesheet.tx_sz);
-                            y_size = Math.min(img.height / spritesheet.tx_sz, spritesheet.tx_cnt);
+                            x_size = Math.ceil(img.texture.width / spritesheet.tx_sz);
+                            y_size = Math.min(img.texture.height / spritesheet.tx_sz, spritesheet.tx_cnt);
                         }
                         if(block.name == BLOCK_NAMES.MOB_SPAWN) {
                             y_size = 2;
@@ -173,7 +187,8 @@ export class Compiler {
                         //
                         const pos = spritesheet.findPlace(block, x_size, y_size);
                         tex = {
-                            img,
+                            img: img.texture,
+                            n: img.n || this.default_n,
                             pos,
                             has_mask,
                             x_size,
@@ -181,12 +196,12 @@ export class Compiler {
                         };
                         spritesheet.textures.set(value, tex);
                         if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
-                            spritesheet.drawImage(dirt_image, tex.pos.x, tex.pos.y);
-                            spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y);
-                            spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
-                            spritesheet.drawImage(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'source-over');
-                            spritesheet.drawImage(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'difference');
-                            spritesheet.drawImage(tex.img, tex.pos.x + 1, tex.pos.y, false, 'source-over');
+                            spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
+                            spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'source-over');
+                            spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'difference');
+                            spritesheet.drawTexture(tex.img, tex.pos.x + 1, tex.pos.y, false, 'source-over');
                             // grass head shadow
                             const canvas = new skiaCanvas.Canvas(tex.img.width, tex.img.height);
                             const ctx = canvas.getContext('2d');
@@ -206,12 +221,13 @@ export class Compiler {
                                 }
                             }
                         } else if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                            const img_glow = await spritesheet.loadTextureImage('block/spawner_glow.png');
-                            spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y, has_mask);
-                            spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
-                            spritesheet.drawImage(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
+                            const img_glow = (await spritesheet.loadTex('block/spawner_glow.png')).texture;
+                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
+                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
+                            spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
                         } else {
-                            await spritesheet.drawImage(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null);
+                            await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null);
+                            await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                         }
                     }
 
@@ -238,8 +254,8 @@ export class Compiler {
                         //
                         if(compile.layers) {
                             for(let layer of compile.layers) {
-                                const layer_img = await spritesheet.loadTextureImage(layer.image);
-                                ctx.drawImage(this.imageOverlay(layer_img, layer.overlay_color, w, h), x, y, w, h);
+                                const layer_img = await spritesheet.loadTex(layer.image);
+                                ctx.drawImage(this.imageOverlay(layer_img.texture, layer.overlay_color, w, h), x, y, w, h);
                             }
                         }
                     }
@@ -273,11 +289,12 @@ export class Compiler {
                         const pos_arr = value.split('|');
                         tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
                     } else {
-                        const img = await spritesheet.loadTextureImage(value);
+                        const img = await spritesheet.loadTex(value);
                         tex = spritesheet.textures.get(value);
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
-                            spritesheet.drawImage(img, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                         }
                     }
                     block.inventory.texture = {
@@ -292,11 +309,12 @@ export class Compiler {
                     const spritesheet = this.getSpritesheet('default');
                     for(let i in block.stage_textures) {
                         const value = block.stage_textures[i];
-                        const img = await spritesheet.loadTextureImage(value);
+                        const img = await spritesheet.loadTex(value);
                         let tex = spritesheet.textures.get(value);
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
-                            spritesheet.drawImage(img, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y);
+                            spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                             spritesheet.textures.set(value, tex);
                         }
                         block.stage_textures[i] = [tex.pos.x, tex.pos.y];
@@ -309,11 +327,12 @@ export class Compiler {
                     for(let k of ['dot', 'line']) {
                         for(let i in block.redstone.textures[k]) {
                             const value = block.redstone.textures[k][i];
-                            const img = await spritesheet.loadTextureImage(value);
+                            const img = await spritesheet.loadTex(value);
                             let tex = spritesheet.textures.get(value);
                             if(!tex) {
                                 tex = {pos: spritesheet.findPlace(block, 2, 1)};
-                                spritesheet.drawImage(img, tex.pos.x, tex.pos.y, true);
+                                spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y, true);
+                                spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                                 spritesheet.textures.set(value, tex);
                             }
                             block.redstone.textures[k][i] = [tex.pos.x, tex.pos.y];

@@ -654,7 +654,7 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         //
         if(block.planting && !('inventory_style' in block)) {

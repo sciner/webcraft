@@ -1,5 +1,5 @@
-import {Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, Color} from "./helpers.js";
-import {Particles_Effects} from "./particles/effects.js";
+import { Helpers, getChunkAddr, Vector, DIRECTION, QUAD_FLAGS, makeChunkEffectID } from "./helpers.js";
+import { Particles_Effects } from "./particles/effects.js";
 
 export class Particle {
 
@@ -68,8 +68,15 @@ export class MeshManager {
     }
 
     remove(key, render) {
-        this.list.get(key)?.destroy(render);
-        this.list.delete(key);
+        const keys = Array.from(this.list.keys());
+        for(let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            if(k.indexOf(key) == 0) {
+                const item = this.list.get(k);
+                item.destroy(render);
+                this.list.delete(k);
+            }
+        }
     }
 
     //
@@ -123,7 +130,7 @@ export class MeshManager {
         //
         const addParticle = (particle_pos, particle) => {
             this._chunk_addr = getChunkAddr(particle_pos.x, particle_pos.y, particle_pos.z, this._chunk_addr);
-            const PARTICLE_EFFECTS_ID = `particles_effects/${this._chunk_addr.toHash()}/${material_key}`;
+            const PARTICLE_EFFECTS_ID = makeChunkEffectID(this._chunk_addr, material_key);
             let effects = this.get(PARTICLE_EFFECTS_ID);
             if(!effects) {
                 effects = new Particles_Effects(this, this._chunk_addr, material_key);
@@ -140,6 +147,7 @@ export class MeshManager {
         const texture_index = Math.floor(textures.length * Math.random());
 
         const p = new Vector(pos.x, pos.y, pos.z);
+
         switch(name) {
             case 'music_note': {
                 p.z += (Math.random() - Math.random()) * .3;

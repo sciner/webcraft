@@ -58,11 +58,13 @@ export default class Terrain_Generator extends Demo_Map {
             //
             const has_islands = this.intersectChunkWithIslands(chunk.aabb);
             if(has_islands) {
+                const noise2d = noise.simplex2;
                 for(let x = 0; x < chunk.size.x; x++) {
                     for(let z = 0; z < chunk.size.z; z++) {
+                        const grass_level = Math.round(noise2d((x + chunk.coord.x) / 7, (z + chunk.coord.z) / 7) * 1.5);
                         for(let y = 0; y < chunk.size.y; y++) {
                             xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-                            this.drawIsland(xyz, x, y, z, chunk);
+                            this.drawIsland(xyz, x, y, z, chunk, grass_level);
                         }
                     }
                 }
@@ -107,6 +109,7 @@ export default class Terrain_Generator extends Demo_Map {
         const size_z                    = chunk.size.z;
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
+        const stone_block               = BLOCK.STONE.id;
 
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
@@ -180,7 +183,7 @@ export default class Terrain_Generator extends Demo_Map {
                     // this.drawTreasureRoom(chunk, line, xyz, x, y, z);
 
                     // Ores (if this is not water, fill by ores)
-                    const block_id = xyz.y < local_dirt_level ? map.ores.get(xyz, value) : dirt_block;
+                    const block_id = xyz.y < local_dirt_level ? stone_block : dirt_block;
                     chunk.setBlockIndirect(x, y, z, block_id);
 
                     // check if herbs planted
@@ -261,6 +264,8 @@ export default class Terrain_Generator extends Demo_Map {
         
         // Dungeon
         this.dungeon.add(chunk);
+
+        map.ores.draw(chunk);
 
         return map;
 

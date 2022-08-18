@@ -96,7 +96,7 @@ export class GeometryTerrain16 {
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
         gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 14 * 4);
+        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 14 * 4);
         gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);

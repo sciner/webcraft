@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 
@@ -49,7 +49,6 @@ export class Default_Terrain_Generator {
     async setSeed(seed) {
         this.seed = seed;
         noise.seed(this.seed);
-        //
         this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
     }
 
