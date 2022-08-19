@@ -559,10 +559,10 @@
     combinedLight = lutColor;
 
     dayPart /= sumCaveDay;
-    cavePart = sqrt(cavePart) / sumCaveDay;
+    cavePart = min(1.5 * cavePart, 1.0) / sumCaveDay;
 
     combinedLight *= dayPart * sunNormalLight * (1.0 - aoSample)
-        + cavePart * max(0.3, dot(caveNormal, surfaceNormal) / length(caveNormal))
+        + cavePart * max(0.5, dot(caveNormal, surfaceNormal) / length(caveNormal))
         * (1.0 - aoSample * 0.5);
     //  + cavePart * abs(caveNormal) / length(caveNormal);
     sunNormalLight = 1.0;
