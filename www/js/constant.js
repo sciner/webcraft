@@ -25,7 +25,8 @@ export const SNEAK_MINUS_Y_MUL              = 0.2; // decrease player height to 
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 
 export const SPECTATOR_SPEED_MUL            = 1;
-
+export const FLYING_ISLANDS_START_POS       = 1040;
+export const FLYING_ISLANDS_START_Y_ADDR    = 26;
 
 export const MOUSE = {
     DOWN: 1,

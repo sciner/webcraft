@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "./helpers.js";
+import { getChunkAddr, Vector, VectorCollector } from "./helpers.js";
 import { BLOCK, POWER_NO  } from "./blocks.js";
 
 export class ServerClient {
@@ -181,101 +181,46 @@ export class ServerClient {
 
     // New commands from server
     _onMessage(event) {
-        let cmds = JSON.parse(event.data);
-        // @hack optimizations
-        const only_set_blocks = [];
+
+        const cmds              = JSON.parse(event.data);
+        const chunkManager      = Qubatch.world.chunkManager;
+        const chunk_modifiers   = chunkManager.chunk_modifiers;
+        const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity);
+        const set_block_list    = [];
+        let arr                 = [];
+        let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
+        if(!chunkManager) debugger
         for(let i = cmds.length - 1; i >= 0; i--) {
-            const c = cmds[i];
-            if(c.name == ServerClient.CMD_BLOCK_SET) {
-                only_set_blocks.push(c);
+            const cmd = cmds[i];
+            // CMD_BLOCK_SET
+            if(cmd.name == ServerClient.CMD_BLOCK_SET) {
+                chunkManager.block_sets++;
+                const pos = cmd.data.pos;
+                chunk_addr = getChunkAddr(pos, chunk_addr);
+                if(!prev_chunk_addr.equal(chunk_addr)) {
+                    prev_chunk_addr.copyFrom(chunk_addr);
+                    arr = chunk_modifiers.get(chunk_addr);
+                    if(!arr) {
+                        arr = [];
+                        chunk_modifiers.set(chunk_addr, arr);
+                    }
+                }
+                arr.push(cmd.data);
                 delete(cmds[i]);
             }
         }
         // Only set blocks
-        if(only_set_blocks.length > 0) {
-            let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
-            let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
-            let chunk               = null;
-            let set_block_list      = [];
-            let tblock              = null;
-            let tblock_pos          = new Vector(Infinity, Infinity, Infinity);
-            let material            = null;
-            const chunkManager      = Qubatch.world.chunkManager;
-            chunkManager.block_sets += only_set_blocks.length;
-            for(let i = 0; i < only_set_blocks.length; i++) {
-                const cmd = only_set_blocks[i];
-                let pos = cmd.data.pos;
-                let item = cmd.data.item;
-                //
-                chunk_addr = getChunkAddr(pos, chunk_addr);
-                if(!prev_chunk_addr.equal(chunk_addr)) {
-                    console.log('5. receive modifiers', chunk_addr.toHash());
-                    prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
-                    chunk = chunkManager.getChunk(chunk_addr);
-                    if(!chunk) {
-                        continue;
-                    }
-                }
-                //
-                if(!chunk) {
-                    console.error('5. empty chunk', chunk_addr.toHash());
-                }
-                if(!chunk.tblocks) {
-                    console.error('5. empty chunk tblocks', chunk_addr.toHash());
-                }
-                //
-                if(!material || material.id != item.id) {
-                    material = BLOCK.fromId(item.id);
-                }
-                //
-                tblock_pos.set(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
-                let oldLight = 0;
-
-                const extra_data = ('extra_data' in item) ? item.extra_data : null;
-                const entity_id = ('entity_id' in item) ? item.entity_id : null;
-                const rotate = ('rotate' in item) ? item.rotate : null;
-                const power = ('power' in item) ? item.power : POWER_NO;
-                tblock = chunk.tblocks.get(tblock_pos, tblock);
-                if (chunkManager.use_light) {
-                    if(!tblock.material) {
-                        debugger
-                    }
-                    oldLight = tblock.material.light_power_number;
-                }
-                chunk.tblocks.delete(tblock_pos);
-                // fill properties
-                tblock.id = item.id;
-                if(extra_data) tblock.extra_data = extra_data;
-                if(entity_id) tblock.entity_id = entity_id;
-                if(rotate) tblock.rotate = rotate;
-                if(power) tblock.power = power;
-                //
-                set_block_list.push({
-                    pos,
-                    type:       item,
-                    is_modify:  false,
-                    power:      power,
-                    rotate:     rotate,
-                    extra_data: extra_data
-                });
-                //
-                chunkManager.animated_blocks.delete(pos);
-                //
-                if(chunkManager.use_light) {
-                    const light = material.light_power_number;
-                    if (oldLight !== light) {
-                        // updating light here
-                        chunkManager.postLightWorkerMessage(['setBlock', {
-                            addr:           chunk.addr,
-                            x:              pos.x,
-                            y:              pos.y,
-                            z:              pos.z,
-                            light_source:   light
-                        }]);
-                    }
+        if(chunk_modifiers.size > 0) {
+            for(const [chunk_addr, arr] of chunk_modifiers.entries()) {
+                const chunk = chunkManager.getChunk(chunk_addr);
+                if(chunk?.tblocks) {
+                    chunk_modifiers.delete(chunk_addr);
+                    chunk.newModifiers(arr, set_block_list);
                 }
             }
-            chunkManager.postWorkerMessage(['setBlock', set_block_list]);
+            if(set_block_list.length > 0) {
+                chunkManager.postWorkerMessage(['setBlock', set_block_list]);
+            }
         }
         //
         this.stat.in_packets.physical++;
@@ -285,12 +230,11 @@ export class ServerClient {
             if(!cmd) {
                 continue;
             }
-            // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
             if(!this.stat.in_packets[cmd.name]) {
                 this.stat.in_packets[cmd.name] = {count: 0, size: 0}
             }
-            let in_packets = this.stat.in_packets[cmd.name];
+            const in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
             this.stat.in_packets.total++;
             in_packets.size += JSON.stringify(cmd).length;

@@ -543,7 +543,9 @@ export class ServerChunk {
                 }
             }];
             this.world.packets_queue.add([player.session.user_id], packets);
+            return true;
         }
+        return false;
     }
 
     //

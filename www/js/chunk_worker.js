@@ -126,7 +126,7 @@ async function onMessageFunc(e) {
         case 'createChunk': {
             for(let i = 0; i < args.length; i++) {
                 const item = args[i];
-                console.log('3. createChunk: receive', new Vector(item.addr).toHash());
+                // console.log('3. createChunk: receive', new Vector(item.addr).toHash());
                 let from_cache = world.chunks.has(item.addr);
                 const update = ('update' in item) && item.update;
                 if(update) {

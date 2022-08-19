@@ -1,4 +1,4 @@
-import {getChunkAddr, Vector, VectorCollector} from "../www/js/helpers.js";
+import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {GameMode} from "../www/js/game_mode.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -8,7 +8,8 @@ import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
+import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "../www/js/chunk_const.js";
+import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, PLAYER_MAX_DRAW_DISTANCE } from "../www/js/constant.js";
 
 export class NetworkMessage {
     constructor({
@@ -305,19 +306,50 @@ export class ServerPlayer extends Player {
         }
     }
 
-    // Send current state to other players
+    // Send other players states for me
     sendState() {
         const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }
-        // Send new position to other players
-        let packets = [{
-            name: ServerClient.CMD_PLAYER_STATE,
-            data: this.exportState()
-        }];
-        // this.world.sendAll(packets, [this.session.user_id]);
-        this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.user_id]);
+        //
+        const world = this.world;
+        const packets = [];
+        for(let player of world.players.values()) {
+            if(this.session.user_id == player.session.user_id) {
+                continue;
+            }
+            /*
+            {
+                id: 1001,
+                username: 'Username',
+                pos: Vector { x: 2926.587, y: 1057, z: 2730.722 },
+                rotate: Vector { x: -0.5019, y: 0, z: 5.271 },
+                skin: '1',
+                hands: { left: { id: null }, right: { id: 65 } },
+                sneak: false,
+                sitting: false,
+                lies: false
+            }
+            */
+            const data = player.exportState();
+            const dist = Math.floor(player.state.pos.distance(this.state.pos));
+            data.dist = dist < PLAYER_MAX_DRAW_DISTANCE ? dist : null;
+            if(!data.dist) {
+                delete(data.pos);
+                delete(data.rotate);
+                delete(data.skin);
+                delete(data.hands);
+                delete(data.sneak);
+                delete(data.sitting);
+                delete(data.lies);
+            }
+            packets.push({
+                name: ServerClient.CMD_PLAYER_STATE,
+                data: data
+            })
+        }
+        this.world.sendSelected(packets, [this.session.user_id]);
     }
 
     //
@@ -361,7 +393,7 @@ export class ServerPlayer extends Player {
             console.log(`in_portal: ${in_portal}`);
             if(this.in_portal) {
                 if(!this.wait_portal) {
-                    if(pos_legs.y < 1040) {
+                    if(pos_legs.y < FLYING_ISLANDS_START_POS) {
                         this.teleport({place_id: 'flyislands', pos: null});
                     }
                 }
@@ -395,7 +427,7 @@ export class ServerPlayer extends Player {
      */
      teleport(params) {
         const world = this.world;
-        var new_pos = null;
+        let new_pos = null;
         let teleported_player = this;
         if (params.pos) {
             new_pos = params.pos;
@@ -435,7 +467,7 @@ export class ServerPlayer extends Player {
                 case 'flyislands': {
                     new_pos = new Vector(this.state.pos).flooredSelf();
                     // @todo flyislands hardcode Y start pos
-                    new_pos.y = 1040;
+                    new_pos.y = FLYING_ISLANDS_START_POS;
                     // @todo need to search portal near this coord
                     params.need_to_generate = true; // if portal not found around target coords
                     break;
@@ -447,16 +479,37 @@ export class ServerPlayer extends Player {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            // @todo не создавать ожидание телепорта, если чанк уже загружен
+            const chunk_addr = getChunkAddr(new_pos);
+            //
             teleported_player.wait_portal = {
-                attempt: 0,
                 params,
-                // prev_pos: teleported_player.state.pos.clone(),
-                pos: new_pos,
-                chunk_addr: getChunkAddr(new_pos)
+                chunk_addr,
+                attempt: 0,
+                pos: new_pos
             };
             teleported_player.state.pos = new_pos;
-            world.chunks.checkPlayerVisibleChunks(teleported_player, true);
+            // не создавать ожидание телепорта, если ближайший чанк уже загружен и в памяти
+            const chunk_render_dist = teleported_player.state.chunk_render_dist;
+            const margin            = Math.max(chunk_render_dist + 1, 1);
+            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+            let teleported          = false;
+            for(let i = 0; i < spiral_moves_3d.length; i++) {
+                const sm = spiral_moves_3d[i];
+                const addr = chunk_addr.add(sm.pos);
+                if(ALLOW_NEGATIVE_Y || addr.y >= 0 && addr.y == FLYING_ISLANDS_START_Y_ADDR) {
+                    const chunk = world.chunks.get(addr);
+                    if(chunk) {
+                        if(chunk.checkWaitPortal(teleported_player)) {
+                            teleported = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            //
+            if(!teleported) {
+                world.chunks.checkPlayerVisibleChunks(teleported_player, true);
+            }
         }
     }
 
