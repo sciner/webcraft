@@ -243,9 +243,10 @@ function dropBlock(player, block, actions, force) {
     if(!isSurvival) {
         return;
     }*/
-    if(block.material.tags.indexOf('no_drop') >= 0) {
-        return;
-    }
+   // if(block.material.tags.indexOf('no_drop') >= 0) {
+      //  return;
+   // }
+
     if(block.material.drop_item) {
         const drop_block = BLOCK.fromName(block.material.drop_item?.name);
         if(drop_block) {
@@ -689,7 +690,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, shearLichen]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1232,6 +1233,17 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
     }
+    return true;
+}
+
+// подстригаем светящийся лешаник
+async function shearLichen(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!world_material || world_material.id != BLOCK.GLOW_LICHEN.id) {
+        return false;
+    }
+    //if (current_inventory_item.id == BLOCK.SHEARS.id) {
+        //dropBlock(player, new FakeTBlock(BLOCK.GLOW_LICHEN.id, null, new Vector(pos), null, null, null, null, null, null), actions, false);
+   //}
     return true;
 }
 

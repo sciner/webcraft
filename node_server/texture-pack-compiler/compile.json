@@ -6745,16 +6745,23 @@
             "id": 231,
             "name": "GLOW_LICHEN",
             "transparent": true,
-            "height": 0.0625,
             "can_rotate": true,
+            "style": "lay",
             "material": {
                 "id": "wool"
             },
             "sound": "madcraft:block.cloth",
             "texture": "./textures/glow_lichen.png",
             "tags": [
-                "rotate_by_pos_n"
-            ]
+                "no_drop_ao",
+                "no_drop"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 140
+            }
         }
     ]
 }
