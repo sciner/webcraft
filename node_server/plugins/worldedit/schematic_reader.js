@@ -458,6 +458,16 @@ export class SchematicReader {
                         break;
                     }
                 }
+            } else if (b.name == 'POINTED_DRIPSTONE') {
+                if('vertical_direction' in props) {
+                    setExtraData('dir', props.vertical_direction == 'up' ? 1 : -1);
+                }
+                if('thickness' in props) {
+                    const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
+                    const index = dripstone_stages.indexOf(props.thickness);
+                    if(index < 0) index = 0;
+                    setExtraData('stage', index);
+                }
             }
         }
         return new_block;

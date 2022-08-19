@@ -525,61 +525,6 @@ export class ServerChunk {
                 }
                 break;
             }
-            case BLOCK.AIR.id: {
-                /*
-                // @todo Отключил, потому что данный код может создавать двойные дропы
-                let changes = false;
-                const air = { id: 0 };
-                const actions = new WorldAction(null, this.world, false, false);
-                //
-                const createAutoDrop = (mat, pos) => {
-                    if(!mat.can_auto_drop) {
-                        return false;
-                    }
-                    if('drop_blocks_chance' in item) {
-                        if(Math.random() > item.drop_blocks_chance) {
-                            return false;
-                        }
-                    }
-                    // drop
-                    actions.addDropItem({
-                        force: true,
-                        pos: pos.clone().addSelf(new Vector(.5, .5, .5)),
-                        items: [
-                            // @todo need to calculate drop item ID and count
-                            { id: mat.id, count: 1 }
-                        ]
-                    });
-                    return true;
-                };
-                // 1. check under
-                const check_under_poses = [
-                    item_pos.clone().addSelf(new Vector(0, 1, 0)),
-                    item_pos.clone().addSelf(new Vector(0, 2, 0))
-                ];
-                for(let i = 0; i < check_under_poses.length; i++) {
-                    const pos_under = check_under_poses[i];
-                    const tblock = this.world.getBlock(pos_under);
-                    if(!tblock) {
-                        continue;
-                    }
-                    const mat = tblock.material;
-                    if(mat.drop_if_unlinked || mat.planting || mat.is_sapling || mat.next_part || mat.previous_part) {
-                        // delete block
-                        actions.addBlocks([
-                            {pos: pos_under.clone(), item: air}
-                        ]);
-                        createAutoDrop(mat, pos_under);
-                        changes = true;
-                    }
-                }
-                //
-                if(changes) {
-                    this.world.actions_queue.add(null, actions);
-                }
-                */
-               break;
-            }
         }
     }
 
