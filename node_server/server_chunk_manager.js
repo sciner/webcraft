@@ -204,11 +204,11 @@ export class ServerChunkManager {
             // Find new chunks
             for(let i = 0; i < spiral_moves_3d.length; i++) {
                 const sm = spiral_moves_3d[i];
-                let addr = player.chunk_addr.add(sm.pos);
+                const addr = player.chunk_addr.add(sm.pos);
                 if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
-                        let item = {
+                        const item = {
                             addr: addr,
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };

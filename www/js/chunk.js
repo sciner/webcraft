@@ -57,6 +57,7 @@ export class Chunk {
         this._dataTexture = null;
         this._dataTextureDirty = false;
         // Run webworker method
+        console.log('2. createChunk: send', this.addr.toHash());
         chunkManager.postWorkerMessage(['createChunk', [
             {
                 addr:           this.addr,
@@ -351,7 +352,7 @@ export class Chunk {
         } else {
             v = new Vector(x, y, z);
         }
-        let block = this.tblocks.get(v);
+        const block = this.tblocks.get(v);
         return block;
     }
 

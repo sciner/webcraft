@@ -1,4 +1,4 @@
-import {Vector, VectorCollector} from "../www/js/helpers.js";
+import {getChunkAddr, Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {GameMode} from "../www/js/game_mode.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -62,6 +62,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
         this.is_dead                = false;
+        this.in_portal              = false;
+        this.wait_portal            = null;
     }
 
     init(init_info) {
@@ -293,11 +295,14 @@ export class ServerPlayer extends Player {
     tick(delta) {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
-        // 3.
+        // 2.
         this.sendState();
-        // 4.
+        // 3.
         this.checkIndicators();
-
+        // 4.
+        if(Math.random() < .5) {
+            this.checkInPortal();
+        }
     }
 
     // Send current state to other players
@@ -339,6 +344,29 @@ export class ServerPlayer extends Player {
         }
         this.world.sendSelected(packets, [this.session.user_id], []);
         // @todo notify all about change?
+    }
+
+    //
+    checkInPortal() {
+        if(this.wait_portal) {
+            return false;
+        }
+        const pos_legs = new Vector(this.state.pos).flooredSelf();
+        const pos_body = pos_legs.add(Vector.YP).flooredSelf();
+        const tblock_body = this.world.getBlock(pos_body);
+        const tblock_legs = this.world.getBlock(pos_legs);
+        const in_portal = tblock_body.material?.is_portal == true && tblock_legs.material?.is_portal == true;
+        if(in_portal != this.in_portal) {
+            this.in_portal = in_portal;
+            console.log(`in_portal: ${in_portal}`);
+            if(this.in_portal) {
+                if(!this.wait_portal) {
+                    if(pos_legs.y < 1040) {
+                        this.teleport({place_id: 'flyislands', pos: null});
+                    }
+                }
+            }
+        }
     }
 
     async initQuests() {
@@ -391,7 +419,7 @@ export class ServerPlayer extends Player {
                 throw 'error_invalid_usernames';
             }
         } else if (params.place_id) {
-            switch (params.place_id) {
+            switch(params.place_id) {
                 case 'spawn': {
                     new_pos = this.state.pos_spawn;
                     break;
@@ -404,22 +432,29 @@ export class ServerPlayer extends Player {
                     ).roundSelf();
                     break;
                 }
+                case 'flyislands': {
+                    new_pos = new Vector(this.state.pos).flooredSelf();
+                    // @todo flyislands hardcode Y start pos
+                    new_pos.y = 1040;
+                    // @todo need to search portal near this coord
+                    params.need_to_generate = true; // if portal not found around target coords
+                    break;
+                }
             }
         }
         if(new_pos) {
-            if (Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
+            if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            const packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos: new_pos,
-                    place_id: params.place_id
-                }
-            }];
-            //
-            world.sendSelected(packets, [teleported_player.session.user_id], []);
+            // @todo не создавать ожидание телепорта, если чанк уже загружен
+            teleported_player.wait_portal = {
+                attempt: 0,
+                params,
+                // prev_pos: teleported_player.state.pos.clone(),
+                pos: new_pos,
+                chunk_addr: getChunkAddr(new_pos)
+            };
             teleported_player.state.pos = new_pos;
             world.chunks.checkPlayerVisibleChunks(teleported_player, true);
         }

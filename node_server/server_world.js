@@ -152,11 +152,11 @@ export class ServerWorld {
             await this.packet_reader.queue.process();
             this.ticks_stat.add('packet_reader_queue');
             //
-            this.packets_queue.send();
-            this.ticks_stat.add('packets_queue_send');
-            //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
+            //
+            this.packets_queue.send();
+            this.ticks_stat.add('packets_queue_send');
             //
             if(this.ticks_stat.number % 100 != 0) {
                 this.chunks.checkDestroyMap();

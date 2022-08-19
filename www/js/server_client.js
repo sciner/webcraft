@@ -195,7 +195,6 @@ export class ServerClient {
         if(only_set_blocks.length > 0) {
             let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
             let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
-            let chunk_key           = null;
             let chunk               = null;
             let set_block_list      = [];
             let tblock              = null;
@@ -210,8 +209,8 @@ export class ServerClient {
                 //
                 chunk_addr = getChunkAddr(pos, chunk_addr);
                 if(!prev_chunk_addr.equal(chunk_addr)) {
+                    console.log('5. receive modifiers', chunk_addr.toHash());
                     prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
-                    chunk_key = chunk_addr.toChunkKey();
                     chunk = chunkManager.getChunk(chunk_addr);
                     if(!chunk) {
                         continue;
@@ -219,10 +218,10 @@ export class ServerClient {
                 }
                 //
                 if(!chunk) {
-                    console.error('empty chunk');
+                    console.error('5. empty chunk', chunk_addr.toHash());
                 }
                 if(!chunk.tblocks) {
-                    console.error('empty chunk tblocks');
+                    console.error('5. empty chunk tblocks', chunk_addr.toHash());
                 }
                 //
                 if(!material || material.id != item.id) {
@@ -230,8 +229,6 @@ export class ServerClient {
                 }
                 //
                 tblock_pos.set(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
-                // const ex_block = chunk.tblocks.get(tblock_pos).convertToDBItem();
-                // console.log(ex_block);
                 let oldLight = 0;
 
                 const extra_data = ('extra_data' in item) ? item.extra_data : null;
@@ -264,8 +261,8 @@ export class ServerClient {
                 //
                 chunkManager.animated_blocks.delete(pos);
                 //
-                if (chunkManager.use_light) {
-                    const light         = material.light_power_number;
+                if(chunkManager.use_light) {
+                    const light = material.light_power_number;
                     if (oldLight !== light) {
                         // updating light here
                         chunkManager.postLightWorkerMessage(['setBlock', {
