@@ -6732,6 +6732,29 @@
                 "down": "block/obsidian.png",
                 "east": "entity/beacon_beam.png"
             }
+        },
+        {
+            "id": 230,
+            "name": "TUFF",
+            "texture": "./textures/tuff.png",
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 231,
+            "name": "GLOW_LICHEN",
+            "transparent": true,
+            "height": 0.0625,
+            "can_rotate": true,
+            "material": {
+                "id": "wool"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": "./textures/glow_lichen.png",
+            "tags": [
+                "rotate_by_pos_n"
+            ]
         }
     ]
 }
