@@ -485,6 +485,7 @@ export class ServerPlayer extends Player {
                 params,
                 chunk_addr,
                 attempt: 0,
+                old_pos: teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
                 pos: new_pos
             };
             teleported_player.state.pos = new_pos;

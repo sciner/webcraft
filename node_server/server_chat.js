@@ -80,8 +80,8 @@ export class ServerChat {
                 }
                 switch (args[1]) {
                     case 'list': {
-                        let admin_list = this.world.admins.getList().join(', ');
-                        this.sendSystemChatMessageToSelectedPlayers(admin_list, [player.session.user_id]);
+                        const admin_list = this.world.admins.getList().join(', ');
+                        this.sendSystemChatMessageToSelectedPlayers(`admin_list|${admin_list}`, [player.session.user_id]);
                         break;
                     }
                     case 'add': {
@@ -89,7 +89,7 @@ export class ServerChat {
                             throw 'Invalid arguments count';
                         }
                         await this.world.admins.add(player, args[2]);
-                        this.sendSystemChatMessageToSelectedPlayers('Admin added', [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('admin_added', [player.session.user_id]);
                         break;
                     }
                     case 'remove': {
@@ -97,7 +97,7 @@ export class ServerChat {
                             throw 'Invalid arguments count';
                         }
                         await this.world.admins.remove(player, args[2]);
-                        this.sendSystemChatMessageToSelectedPlayers('Admin removed', [player.session.user_id]);
+                        this.sendSystemChatMessageToSelectedPlayers('admin_removed', [player.session.user_id]);
                         break;
                     }
                     default: {
@@ -107,7 +107,7 @@ export class ServerChat {
                 break;
             }
             case '/seed': {
-                this.sendSystemChatMessageToSelectedPlayers('Ключ генератора: ' + this.world.info.seed, [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${this.world.info.seed}`, [player.session.user_id]);
                 break;
             }
             case '/give':

@@ -543,6 +543,10 @@ export class ServerChunk {
                 }
             }];
             this.world.packets_queue.add([player.session.user_id], packets);
+            // add teleport particles
+            // const actions = new WorldAction(randomUUID());
+            // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
+            // this.world.actions_queue.add(null, actions);
             return true;
         }
         return false;

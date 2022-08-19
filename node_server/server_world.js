@@ -212,7 +212,7 @@ export class ServerWorld {
             data: player.exportState()
         }], []);
         // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' connected', this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
         const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
         if(drag_item) {
