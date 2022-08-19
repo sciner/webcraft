@@ -452,10 +452,15 @@
     float sumCaveDay = cavePart + dayPart;
     vec2 lutCoord = vec2(cavePart, dayPart);
     lutCoord = (clamp(lutCoord, 0.0, 1.0) * 15.0 + 0.5) / 32.0;
+    vec3 lutColor = texture(u_blockDayLightSampler, lutCoord).rgb;
+
     if (sumCaveDay < 0.01) {
         sumCaveDay = 0.01;
     }
-    vec3 lutColor = texture(u_blockDayLightSampler, lutCoord).rgb;
+    if (sumCaveDay > 1.0) {
+        sumCaveDay = 1.0;
+        cavePart = sumCaveDay - dayPart;
+    }
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
