@@ -123,7 +123,7 @@ export class Shared_Controller {
             form: {
                 texture_pack: 'base',
                 render_distance: 4,
-                use_light: true,
+                use_light: 1, // {id: 0, name: 'No'}, {id: 1, name: 'Normal'}, {id: 2, name: 'RTX'}
                 mipmap: false
             },
             save: function() {
@@ -148,6 +148,10 @@ export class Shared_Controller {
                     // add default render_distance
                     if(!('render_distance' in this.form)) {
                         this.form.render_distance = 4;
+                    }
+                    // use_light
+                    if('use_light' in this.form) {
+                        this.form.use_light = parseInt(this.form.use_light | 0);
                     }
                 }
             }

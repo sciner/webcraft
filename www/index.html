@@ -210,8 +210,7 @@
                 </div>
                 <!-- Use light -->
                 <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                    <input type="checkbox" id="input-use_light" ng-model="settings.form.use_light" style="width: 20px; height: 20px; margin-right: 10px;"></input>
-                    <label for="input-use_light">{{Lang.use_light}}</label>
+                    <button ng-click="settings.lightMode.next()">{{Lang.use_light}}:<strong style="margin-left: .25em;">{{settings.lightMode.getCurrent().name}}</strong></button>
                 </div>
                 <!-- Render distance -->
                 <!-- <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">

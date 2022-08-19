@@ -250,8 +250,17 @@ let gameCtrl = async function($scope, $timeout) {
         form: {
             texture_pack: 'base',
             render_distance: 4,
-            use_light: true,
+            use_light: 1,
             mipmap: false
+        },
+        lightMode: {
+            list: [{id: 0, name: 'No'}, {id: 1, name: 'Normal'}, {id: 2, name: 'RTX'}],
+            getCurrent: function() {
+                return this.list[$scope.settings.form.use_light];
+            },
+            next: function() {
+                $scope.settings.form.use_light = ($scope.settings.form.use_light + 1) % this.list.length;
+            }
         },
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));
@@ -278,6 +287,10 @@ let gameCtrl = async function($scope, $timeout) {
                 // add default render_distance
                 if(!('render_distance' in this.form)) {
                     this.form.render_distance = 4;
+                }
+                // use_light
+                if('use_light' in this.form) {
+                    this.form.use_light = parseInt(this.form.use_light | 0);
                 }
             }
         }
