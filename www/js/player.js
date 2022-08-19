@@ -242,7 +242,7 @@ export class Player {
                 }
                 Qubatch.sounds.play(sound, action);
                 if(player.running) {
-                    Qubatch.render.destroyBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+                    Qubatch.render.damageBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
                 }
             }
         }
@@ -318,7 +318,7 @@ export class Player {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Qubatch.render.destroyBlock(block, new Vector(bPos), true);
+                    Qubatch.render.damageBlock(block, new Vector(bPos), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }

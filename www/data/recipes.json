@@ -1471,6 +1471,30 @@
         }
     },
     {
+        "id": "16b7955e-3cb7-4996-b529-283704fa7de7",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "GGG",
+            "GSG",
+            "OOO"
+        ],
+        "key": {
+            "S": {
+                "item": "madcraft:nether_star"
+            },
+            "G": {
+                "item": "madcraft:glass"
+            },
+            "O": {
+                "item": "madcraft:obsidian"
+            }
+        },
+        "result": {
+            "item": "madcraft:beacon",
+            "count": 1
+        }
+    },
+    {
         "id": "577bda97-d21d-4d19-8554-ba3746b85017",
         "type": "madcraft:crafting_shaped",
         "pattern": [

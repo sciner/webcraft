@@ -3600,13 +3600,13 @@
         },
         {
             "id": 593,
-            "name": "DRIPSTONE",
+            "name": "POINTED_DRIPSTONE",
             "passable": 0,
             "transparent": true,
             "style": "planting",
             "inventory": {
                 "style": "extruder",
-                "texture": "./textures/dripstone.png"
+                "texture": "./textures/pointed_dripstone.png"
             },
             "sound": "madcraft:block.stone",
             "material": {
@@ -3616,22 +3616,16 @@
                 "place_only_to_ceil",
                 "no_set_on_top"
             ],
-            "next_part": {
-                "offset_pos": {"x": 0, "y": -1, "z": 0},
-                "id": 593
-            },
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 593
-            },
-            "texture": "./textures/dripstone1.png",
+            "texture": "./textures/pointed_dripstone.png",
             "extra_data": {
+                "dir": -1,
                 "stage": 0
             },
             "stage_textures": [
-                "./textures/dripstone1.png",
-                "./textures/dripstone2.png",
-                "./textures/dripstone3.png"
+                "./textures/pointed_dripstone_tip.png",
+                "./textures/pointed_dripstone_frustum.png",
+                "./textures/pointed_dripstone_middle.png",
+                "./textures/pointed_dripstone_base.png"
             ]
         },
         {
@@ -6699,6 +6693,45 @@
                 "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
+        },
+        {
+            "id": 227,
+            "name": "NETHER_STAR",
+            "style": "extruder",
+            "item": {"name": "nether_star"},
+            "texture": {
+                "side": "item/nether_star.png"
+            },
+            "material": {
+                "id": "wood"
+            }
+        },
+        {
+            "id": 142,
+            "name": "BEACON",
+            "window": "frmBeacon",
+            "transparent": true,
+            "style": "beacon",
+            "ticking": {
+                "type": "beacon"
+            },
+            "sound": "madcraft:block.glass",
+            "material": {"id": "glass"},
+            "extra_data": {
+                "level": 0
+            },
+            "light_power": {
+                "r": 80,
+                "g": 200,
+                "b": 253,
+                "a": 255
+            },
+            "texture": {
+                "up": "block/beacon.png",
+                "side": "block/glass.png",
+                "down": "block/obsidian.png",
+                "east": "entity/beacon_beam.png"
+            }
         },
         {
             "id": 228,

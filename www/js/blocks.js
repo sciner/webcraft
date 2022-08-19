@@ -819,6 +819,15 @@ export class BLOCK {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;
         }
+        // if pointed_dripstone
+        if(block && material?.name == 'POINTED_DRIPSTONE') {
+            let dir = block?.extra_data?.dir;
+            if(dir) {
+                if(dir != -1) {
+                    c[3] *= -1;
+                }
+            }
+        }
         return c;
     }
 

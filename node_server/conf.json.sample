@@ -34,7 +34,8 @@
         "spawnmob",
         "stage",
         "furnace",
-        "bee_nest"
+        "bee_nest",
+        "beacon"
     ],
     "chat_plugins": [
         "chat_teleport",

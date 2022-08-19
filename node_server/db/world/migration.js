@@ -709,6 +709,11 @@ export class DBWorldMigration {
             ...update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 76, queries: [
+            `DELETE FROM world_modify WHERE block_id = 593`,
+            ...update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

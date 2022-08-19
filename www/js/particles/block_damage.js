@@ -8,7 +8,7 @@ import { Particles_Base } from './particles_base.js';
 
 const push_plane = push_plane_style.getRegInfo().func;
 
-export default class Particles_Block_Destroy extends Particles_Base {
+export default class Particles_Block_Damage extends Particles_Base {
 
     // Constructor
     constructor(render, block, pos, small) {
