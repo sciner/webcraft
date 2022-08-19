@@ -120,14 +120,14 @@ void main() {
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
             #include<ao_light_pass>
-            if (u_useNormalMap > 0.5) {
-                #include<normal_light_pass>
-            }
             if(v_noCanTakeAO == .0) {
                 #include<sun_light_pass>
             }
+            if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
+                #include<normal_light_pass>
+            }
             // Apply light
-            color.rgb *= combinedLight * playerLight * sunNormalLight;
+            color.rgb *= combinedLight * sunNormalLight;
         }
 
         outColor = color;

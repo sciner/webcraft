@@ -289,14 +289,13 @@
     // sun light pass
     if (u_SunDir.w < 0.5) {
         float lighter = (1. - v_lightMode);
-        /*vec3 minecraftSun = vec3(0.9 + lighter * .1, 0.6 + lighter * .2, 1.0);
-        if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;*/
-        vec3 minecraftSun = vec3(1.0);
+        vec3 minecraftSun = vec3(0.9 + lighter * .1, 0.6 + lighter * .2, 1.0);
+        if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;
         sunNormalLight = dot(minecraftSun, v_normal * v_normal);
     } else {
         // limit brightness to 0.2
-        sunNormalLight = 1.0;
-        combinedLight = vec3(playerLight + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness);
+        sunNormalLight = 1.0 + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        combinedLight = vec3(1.0);
     }
     //--
 #endif
@@ -448,27 +447,28 @@
         daySample = 0.0;
     }
 
+    float cavePart = max(caveSample, playerLight);
+    float dayPart = daySample * u_brightness;
+    float sumCaveDay = cavePart + dayPart;
+    vec2 lutCoord = vec2(cavePart, dayPart);
+    lutCoord = (clamp(lutCoord, 0.0, 1.0) * 15.0 + 0.5) / 32.0;
+    if (sumCaveDay < 0.01) {
+        sumCaveDay = 0.01;
+    }
+    vec3 lutColor = texture(u_blockDayLightSampler, lutCoord).rgb;
+
     float aoSample = 0.0;
-    /*if (v_lightMode > 0.5) {
+    if (v_lightMode > 0.5) {
         float d1 = aoVector.x + aoVector.w, d2 = aoVector.y + aoVector.z;
         aoSample = (d1 + d2 + max(abs(d2 - d1) - 1.0, 0.0)) / 4.0;
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
-    }*/
-
+    }
 
     /*float gamma = 0.5;
-    caveSample = pow(caveSample, 1.0 / gamma);
-    caveSample = caveSample * (1.0 - aoSample);
-    daySample = daySample * (1.0 - aoSample);*/
+    caveSample = pow(caveSample, 1.0 / gamma);*/
 
-    vec2 lutCoord = vec2(max(caveSample, playerLight), daySample * u_brightness);
-    lutCoord = (clamp(lutCoord, 0.0, 1.0) * 15.0 + 0.5) / 32.0;
-    combinedLight = texture(u_blockDayLightSampler, lutCoord).rgb;
-    // combinedLight = vec3(clamp((lutCoord.x + lutCoord.y) * 2.0, 0., 1.));
-    combinedLight *= (1.0 - aoSample);
-    playerLight = 1.0;
-    //--
+    combinedLight = lutColor * (1.0 - aoSample);
 #endif
 
 #ifdef normal_light_pass
@@ -483,7 +483,6 @@
         vec3(1.0, 1.0, 1.0)
     );
 
-    float cavePart = 0.0;
     vec3 caveNormal = vec3(0.0);
     vec3 normalCoord = lightCoord - 0.5 + vec3(0.0, 0.0, v_lightOffset.w * 0.5);
     vec3 normalCenter = floor(normalCoord);
@@ -550,8 +549,16 @@
 
     uvNormal = normalize(uvNormal);
     vec3 surfaceNormal = v_axisU * uvNormal.x + v_axisV * uvNormal.y + v_normal * uvNormal.z;
-    cavePart = caveSample / (caveSample + daySample * u_brightness + 0.05);
     caveNormal += v_normal;
-    //combinedLight *= 1.0 - cavePart + cavePart * abs(caveNormal) / length(caveNormal);
-    combinedLight *= 1.0 - cavePart + cavePart * max(0.3, dot(caveNormal, surfaceNormal) / length(caveNormal));
+
+    combinedLight = lutColor;
+
+    dayPart /= sumCaveDay;
+    cavePart = sqrt(cavePart) / sumCaveDay;
+
+    combinedLight *= dayPart * sunNormalLight * (1.0 - aoSample)
+        + cavePart * max(0.3, dot(caveNormal, surfaceNormal) / length(caveNormal))
+        * (1.0 - aoSample * 0.5);
+    //  + cavePart * abs(caveNormal) / length(caveNormal);
+    sunNormalLight = 1.0;
 #endif

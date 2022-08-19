@@ -167,7 +167,7 @@ async function onMessageFunc(e) {
         case 'initRender': {
             renderFormat = args.texFormat;
             hasNormals = !!args.hasNormals;
-            if (world.light) {
+            if (world && world.light) {
                 world.light.setNormals(hasNormals);
             }
             break;
