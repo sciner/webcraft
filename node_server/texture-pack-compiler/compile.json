@@ -6693,6 +6693,45 @@
                 "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
+        },
+        {
+            "id": 227,
+            "name": "NETHER_STAR",
+            "style": "extruder",
+            "item": {"name": "nether_star"},
+            "texture": {
+                "side": "item/nether_star.png"
+            },
+            "material": {
+                "id": "wood"
+            }
+        },
+        {
+            "id": 142,
+            "name": "BEACON",
+            "window": "frmBeacon",
+            "transparent": true,
+            "style": "beacon",
+            "ticking": {
+                "type": "beacon"
+            },
+            "sound": "madcraft:block.glass",
+            "material": {"id": "glass"},
+            "extra_data": {
+                "level": 0
+            },
+            "light_power": {
+                "r": 80,
+                "g": 200,
+                "b": 253,
+                "a": 255
+            },
+            "texture": {
+                "up": "block/beacon.png",
+                "side": "block/glass.png",
+                "down": "block/obsidian.png",
+                "east": "entity/beacon_beam.png"
+            }
         }
     ]
 }

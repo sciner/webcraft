@@ -291,7 +291,7 @@ export class Chunk {
 
     // Destruct chunk
     destruct() {
-        let chunkManager = this.getChunkManager();
+        const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
         }
@@ -315,6 +315,7 @@ export class Chunk {
         // remove particles mesh
         const PARTICLE_EFFECTS_ID = makeChunkEffectID(this.addr, null);
         Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
+        Qubatch.render.meshes.removeForChunk(this.addr);
     }
 
     // Build vertices

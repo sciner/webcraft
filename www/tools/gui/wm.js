@@ -113,6 +113,11 @@ export class Window {
                 image_size_mode: 'none', // none | stretch | cover
                 image: null
             },
+            icon: {
+                color: '#c6c6c6',
+                image_size_mode: 'none', // none | stretch | cover
+                image: null
+            },
             border: {
                 color: '#3f3f3f',
                 width: 4,
@@ -232,31 +237,12 @@ export class Window {
         ctx.fillStyle = this.style.background.color;
         ctx.fillRect(x, y, w, h);
 
-        // draw image
-        if(this.style.background.image && (typeof this.style.background.image == 'object')) {
-            const iw = this.style.background.image.width;
-            const ih = this.style.background.image.height;
-            // image_size_mode
-            // img, sx, sy, swidth, sheight, x, y, width, height
-            switch(this.style.background.image_size_mode) {
-                case 'none': {
-                    ctx.drawImage(this.style.background.image, x + w / 2 - iw / 2, y + h / 2 - ih / 2, iw, ih);
-                    break;
-                }
-                case 'stretch': {
-                    ctx.drawImage(this.style.background.image, 0, 0, iw, ih, x, y, w, h);
-                    break;
-                }
-                case 'sprite': {
-                    const opts = this.style.background.sprite;
-                    if(opts.mode = 'stretch') {
-                        ctx.drawImage(this.style.background.image, opts.x, opts.y, opts.width, opts.height, x, y, w, h);
-                    }
-                    break;
-                }
-            }
-
-        }
+        // draw background
+        this.drawImage(this.style.background, x, y, w, h);
+        
+        // draw icon
+        this.drawImage(this.style.icon, x, y, w, h);
+        
         //if(this.title || this.text) {
         this.applyStyle(ctx, ax, ay);
         this.updateMeasure(ctx, ax, ay);
@@ -402,6 +388,16 @@ export class Window {
             that.redraw();
         }
         bg.src = url;
+    }
+    setIconImage(url, image_size_mode) {
+        const that = this;
+        const icon = new Image();
+        icon.onload = function(e) {
+            that.style.icon.image = icon;
+            that.style.icon.image_size_mode = image_size_mode ? image_size_mode : that.style.icon.image_size_mode;
+            that.redraw();
+        }
+        icon.src = url;
     }
     show(args) {
         this.visible = true;
@@ -668,6 +664,35 @@ export class Window {
                     control.refresh();
                 }
             }
+        }
+    }
+    
+    // Draw image
+    drawImage(val, x, y, w, h) {
+        // draw image
+        if(val.image && (typeof val.image == 'object')) {
+            const iw = val.image.width;
+            const ih = val.image.height;
+            // image_size_mode
+            // img, sx, sy, swidth, sheight, x, y, width, height
+            switch(val.image_size_mode) {
+                case 'none': {
+                    this.ctx.drawImage(val.image, x + w / 2 - iw / 2, y + h / 2 - ih / 2, iw, ih);
+                    break;
+                }
+                case 'stretch': {
+                    this.ctx.drawImage(val.image, 0, 0, iw, ih, x, y, w, h);
+                    break;
+                }
+                case 'sprite': {
+                    const opts = val.sprite;
+                    if(opts.mode == 'stretch') {
+                        this.ctx.drawImage(val.image, opts.x, opts.y, opts.width, opts.height, x, y, w, h);
+                    }
+                    break;
+                }
+            }
+
         }
     }
 }
