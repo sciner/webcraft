@@ -9,7 +9,7 @@ import config from "./config.js";
 import {QuestPlayer} from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "../www/js/chunk_const.js";
-import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, PLAYER_MAX_DRAW_DISTANCE } from "../www/js/constant.js";
+import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
 
 export class NetworkMessage {
     constructor({
@@ -65,6 +65,7 @@ export class ServerPlayer extends Player {
         this.is_dead                = false;
         this.in_portal              = false;
         this.wait_portal            = null;
+        this.prev_use_portal        = null; // время последнего использования портала
     }
 
     init(init_info) {
@@ -378,9 +379,9 @@ export class ServerPlayer extends Player {
         // @todo notify all about change?
     }
 
-    //
+    // Teleport player if in portal
     checkInPortal() {
-        if(this.wait_portal) {
+        if(this.wait_portal || (this.prev_use_portal && (performance.now() - this.prev_use_portal < PORTAL_USE_INTERVAL))) {
             return false;
         }
         const pos_legs = new Vector(this.state.pos).flooredSelf();
@@ -394,7 +395,8 @@ export class ServerPlayer extends Player {
             if(this.in_portal) {
                 if(!this.wait_portal) {
                     if(pos_legs.y < FLYING_ISLANDS_START_POS) {
-                        this.teleport({place_id: 'flyislands', pos: null});
+                        // @todo need to check portal type
+                        this.teleport({place_id: 'portal_flyislands', pos: null});
                     }
                 }
             }
@@ -464,13 +466,15 @@ export class ServerPlayer extends Player {
                     ).roundSelf();
                     break;
                 }
-                case 'flyislands': {
-                    new_pos = new Vector(this.state.pos).flooredSelf();
-                    // @todo flyislands hardcode Y start pos
-                    new_pos.y = FLYING_ISLANDS_START_POS;
-                    // @todo need to search portal near this coord
-                    params.need_to_generate = true; // if portal not found around target coords
-                    break;
+                default: {
+                    if(params.place_id.startsWith('portal_')) {
+                        new_pos = new Vector(this.state.pos).flooredSelf();
+                        // @todo hardcode Y start pos
+                        new_pos.y = FLYING_ISLANDS_START_POS;
+                        // @todo need to search portal near this coord
+                        params.need_to_generate = true; // if portal not found around target coords
+                        break;
+                    }
                 }
             }
         }

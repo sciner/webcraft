@@ -143,7 +143,6 @@
             "can_rotate": true,
             "spawnable": false,
             "is_portal": true,
-            "_spawnable": false,
             "material": {
                 "id": "glass"
             },
@@ -151,8 +150,13 @@
                 "side": null
             },
             "tags": [
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "mask_color"
             ],
+            "mask_color": {"r": 12, "g": 540, "b": 0},
+            "compile": {
+                "filter": "saturate(0%) brightness(200%)"
+            },
             "light_power": {
                 "r": 253,
                 "g": 200,
@@ -742,22 +746,6 @@
             }
         },
         {
-            "id": 552,
-            "name": "SHEARS",
-            "transparent": true,
-            "max_in_stack": 1,
-            "style": "extruder",
-            "diagonal": true,
-            "item": {"name": "instrument", "instrument_id": "shears"},
-            "material": {
-                "id": "iron"
-            },
-            "texture": {
-                "id": "default",
-                "side": "item/shears.png"
-            }
-        },
-        {
             "id": 467,
             "name": "COARSE_DIRT",
             "sound": "madcraft:block.gravel",
@@ -1228,6 +1216,22 @@
                 "glass",
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 552,
+            "name": "SHEARS",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "shears"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/shears.png"
+            }
         },
         {
             "id": 201,

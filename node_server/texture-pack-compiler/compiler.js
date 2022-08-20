@@ -226,7 +226,7 @@ export class Compiler {
                             spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
                             spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
                         } else {
-                            await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null);
+                            await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null, null, compile);
                             await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                         }
                     }
