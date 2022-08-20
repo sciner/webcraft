@@ -1239,7 +1239,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
 
 // 
 async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || mat_block.style != 'cover') {
+    if (!world_material || !mat_block || mat_block.style != 'cover') {
         return false;
     }
     let position = new Vector(pos.x, pos.y, pos.z)
