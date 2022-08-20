@@ -62,9 +62,9 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "mask_color"
+                "multiply_color"
             ],
-            "mask_color": {"r": 62, "g": 150, "b": 0},
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
             "fluid": {
                 "max_power": 1,
                 "still_block_id": 202
