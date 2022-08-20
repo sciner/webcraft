@@ -153,9 +153,9 @@
                 "rotate_by_pos_n",
                 "mask_color"
             ],
-            "mask_color": {"r": 12, "g": 540, "b": 0},
+            "mask_color": {"r": 20, "g": 540, "b": 0},
             "compile": {
-                "filter": "saturate(0%) brightness(200%)"
+                "filter": "contrast(200%) saturate(0%) brightness(200%)"
             },
             "light_power": {
                 "r": 253,
