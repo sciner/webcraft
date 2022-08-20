@@ -82,7 +82,8 @@ export class Chunk {
     fillOuter() {
         //checks neighbour chunks
         const {lightChunk, world} = this;
-        const {portals, aabb, uint8View, strideBytes, dif26} = lightChunk;
+        const {portals, aabb, uint8View, strideBytes, dif26, dataView} = lightChunk;
+        const {offsetNormal} = world.light;
         const {shiftCoord, cx, cy, cz} = lightChunk;
         let found = false;
 
@@ -96,6 +97,7 @@ export class Chunk {
             const p = portal.aabb;
             const inside2 = other.aabb;
             const bytes2 = other.uint8View;
+            const dataView2 = other.dataView;
             const cy2 = other.cy, cx2 = other.cx, cz2 = other.cz, shift2 = other.shiftCoord;
 
             for (let x = p.x_min; x < p.x_max; x++)
@@ -110,8 +112,11 @@ export class Chunk {
                         const light = bytes2[coord2 + OFFSET_LIGHT];
                         if (light > 0) {
                             uint8View[coord1 + OFFSET_LIGHT] = light;
-                            uint8View[coord1 + OFFSET_NORMAL] = bytes2[coord2 + OFFSET_NORMAL];
-                            uint8View[coord1 + OFFSET_NORMAL + 1] = bytes2[coord2 + OFFSET_NORMAL + 1];
+                            if (offsetNormal > 0) {
+                                // we ignore ending here because its set/get
+                                dataView.setUint32(coord1 + offsetNormal,
+                                    dataView2.getUint32(coord2 + offsetNormal));
+                            }
                         }
 
                         // copy AO through border
