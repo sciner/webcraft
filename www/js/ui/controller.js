@@ -254,7 +254,7 @@ let gameCtrl = async function($scope, $timeout) {
             mipmap: false
         },
         lightMode: {
-            list: [{id: 0, name: 'No'}, {id: 1, name: 'Normal'}, {id: 2, name: 'RTX'}],
+            list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
             getCurrent: function() {
                 return this.list[$scope.settings.form.use_light];
             },
