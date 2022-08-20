@@ -38,10 +38,8 @@ export default class style {
         if(material.is_portal) {
             flags |= QUAD_FLAGS.MASK_BIOME;
             // nether portal
-            lm.r = 20;
-            lm.g = 540;
-            // lm.r = 28;
-            // lm.g = 530;
+            lm.r = 68;
+            lm.g = 515;
         }
 
         // pack lm

@@ -29,6 +29,8 @@
     #define NO_CAN_TAKE_LIGHT 10
     #define FLAG_TRIANGLE 11
     #define FLAG_MIR2_TEX 12
+    #define FLAG_MULTIPLY_COLOR 13
+
 #endif
 
 #ifdef global_uniforms
@@ -115,6 +117,7 @@
     out float v_noCanTakeLight;
     out float v_Triangle;
     out float v_Mir2_Tex;
+    out float v_flagMultiplyColor;
 
     //--
 #endif
@@ -140,6 +143,7 @@
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
+    in float v_flagMultiplyColor;
 
     out vec4 outColor;
 #endif
@@ -267,6 +271,7 @@
     int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
     int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
     int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
+    int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -276,6 +281,8 @@
     v_noCanTakeLight = float(flagNoCanTakeLight);
     v_Triangle = float(flagTriangle);
     v_Mir2_Tex = float(flagMir2_Tex);
+    v_flagMultiplyColor = float(flagMultiplyColor);
+
     //--
 #endif
 

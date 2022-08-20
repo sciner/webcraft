@@ -317,6 +317,10 @@ export default class style {
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
             }
+            if(block.hasTag('multiply_color')) {
+                lm = material.multiply_color;
+                flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
+            }
 
             // Rotate
             const rotate = block.rotate || DEFAULT_ROTATE;
