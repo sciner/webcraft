@@ -21,6 +21,7 @@ import { Lang } from "./lang.js";
 
 // World container
 export class World {
+
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
@@ -89,7 +90,7 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
-                Qubatch.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
+                Qubatch.render.damageBlock(cmd.data.item, cmd.data.pos, false);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
@@ -254,7 +255,8 @@ export class World {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                    Qubatch.render.damageBlock(destroy_data.item, destroy_data.pos, false);
+                    this.onBlockDestroy(destroy_data.pos, destroy_data.item);
                 }
                 //
                 switch(mod.action_id) {
@@ -276,6 +278,11 @@ export class World {
             player.setRotate(actions.sitting.rotate);
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
         }
+    }
+
+    onBlockDestroy(pos, item) {
+        // Destroy beacon ray
+        Qubatch.render.meshes.remove('beacon/' + pos.toHash(), this);
     }
 
 }

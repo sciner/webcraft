@@ -8,7 +8,7 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 
 // Particles
-import Particles_Block_Destroy from "./particles/block_destroy.js";
+import Particles_Block_Damage from "./particles/block_damage.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Clouds from "./particles/clouds.js";
@@ -741,11 +741,9 @@ export class Renderer {
         this.camera.use(this.globalUniforms);
     }
 
-    // destroyBlock
-    destroyBlock(block, pos, small) {
-        const block_manager = this.world.block_manager;
-        // Qubatch.render.meshes.addEffectParticle('destroy_block', pos, {block, small, block_manager});
-        this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
+    // damageBlock
+    damageBlock(block, pos, small) {
+        this.meshes.add(new Particles_Block_Damage(this, block, pos, small));
     }
 
     // addExplosionParticles

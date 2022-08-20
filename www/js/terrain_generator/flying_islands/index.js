@@ -46,6 +46,7 @@ export default class Terrain_Generator extends Demo_Map {
         const dirt_block_id             = BLOCK.DIRT.id;
         const grass_block_id            = BLOCK.GRASS_BLOCK.id;
         const stone_block_id            = BLOCK.STONE.id;
+        const noise2d                   = noise.simplex2;
         const noise3d                   = noise.simplex3;
         const height                    = 80;
         const pos                       = new Vector(0, 0, 0);
@@ -56,6 +57,7 @@ export default class Terrain_Generator extends Demo_Map {
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let first = true;
+                const grass_level = Math.round(noise2d((x + chunk.coord.x) / 10, (z + chunk.coord.z) / 10) * 2);
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
                     pos.set(x + chunk.coord.x, chunk.coord.y + y, z + chunk.coord.z);
                     const d = Math.max(Math.min((1 - Math.cos(pos.y / height * (Math.PI * 2))) / 2, 1), 0);
@@ -70,7 +72,7 @@ export default class Terrain_Generator extends Demo_Map {
                             if(r < .6) {
                                 let block_id = dirt_block_id;
                                 if(pos.y > 35) block_id = grass_block_id;
-                                if(pos.y < 30) block_id = stone_block_id;
+                                if(pos.y < 30 + grass_level) block_id = stone_block_id;
                                 if(r > .8) {
                                     block_id = stone_block_id;
                                 }

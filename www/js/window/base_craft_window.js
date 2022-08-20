@@ -546,8 +546,10 @@ export class BaseCraftWindow extends Window {
     /**
     * Создание слотов для инвентаря
     * @param int sz Ширина / высота слота
+    * @param int xs Смешение словтов по оси x
+    * @param int ys Смешение словтов по оси y
     */
-    createInventorySlots(sz) {
+    createInventorySlots(sz, sx = 14, sy = 166) {
         const ct = this;
         if(ct.inventory_slots) {
             console.error('createInventorySlots() already created');
@@ -555,22 +557,22 @@ export class BaseCraftWindow extends Window {
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
-        // нижний ряд (видимые на хотбаре)
-        let sx = 14 * this.zoom;
-        let sy = 282 * this.zoom;
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
-        }
         // верхние 3 ряда
-        sx = 14 * this.zoom;
-        sy = 166 * this.zoom;
+        sx *= this.zoom;
+        sy *= this.zoom;
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
+        // нижний ряд (видимые на хотбаре)
+        sy += 116 * this.zoom;
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            ct.add(lblSlot);
+            ct.inventory_slots.push(lblSlot);
+        }
+        
     }
 
     clearCraft() {
