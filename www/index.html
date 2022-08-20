@@ -174,6 +174,42 @@
         </div>
     </form>
 
+    <!-- Enter-world -->
+    <div id="enter-world" class="enter-world animate__animated animate__fadeIn nice-form"
+        ng-if="current_window.id == 'enter-world'">
+        <div class="flex0 flex-column">
+            <div class="flex0 flex-column"
+                ng-if="mygames.enterWorld.windowMod == 'login' || mygames.enterWorld.windowMod == 'join'">
+                <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'login'"
+                ng-bind-html="Lang.enter_world_login|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+            <div ng-if="mygames.enterWorld.windowMod == 'login'" class="flex0 flex-column">
+                <button ng-click="current_window.show('login')" class="btn-main active">{{Lang.login}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="world-not-found flex0 flex-column">
+                😞
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'world-not-found'">{{Lang.no_world_by_link}}</label>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="flex0 flex-column">
+                <button ng-click="mygames.toMain()"
+                    class="active">{{Lang.ok}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
+                <div class="flex0 flex-column">
+                    <image src="{{mygames.enterWorld.worldInfo.image}}" />
+                </div>
+                <label
+                    ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+                <div class="flex0 flex-column">
+                    <button ng-click="mygames.enterWorld.joinAfterApproving()"
+                        class="btn-main active">{{Lang.join}}</button>
+                    <button ng-click="mygames.toMain()" class="btn-cancel active">{{Lang.cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main menu -->
     <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
 

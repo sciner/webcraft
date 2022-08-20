@@ -35,7 +35,7 @@ export class Kb {
                     return false;
                 }
             }
-            if (e.ctrlKey && e.key !== '0') {
+            if (e.ctrlKey && e.key !== '0' && e.keyCode !== KEY.C) {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
