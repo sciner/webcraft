@@ -197,7 +197,7 @@
             </div>
             <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
                 <div class="flex0 flex-column">
-                    <image src="{{mygames.enterWorld.worldInfo.image}}" />
+                    <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
                 </div>
                 <label
                     ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
