@@ -54,6 +54,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
+        this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
         this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
@@ -62,6 +63,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
         this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
         this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
+        this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
         // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
 
         this.hasModelMatrix = false;
@@ -102,6 +104,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const gu = this.globalUniforms;
         if (this.globalID === -1) {
             gl.uniform1i(this.u_texture, 4);
+            gl.uniform1i(this.u_texture_n, 5);
             gl.uniform1i(this.u_chunkDataSampler, 3);
             gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
             gl.uniform1i(this.u_maskColorSampler, 1);
@@ -121,6 +124,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
         gl.uniform1f(this.u_brightness, Math.max(gu.brightness, MIN_BRIGHTNESS));
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
+        gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
 
         const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;
         const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);

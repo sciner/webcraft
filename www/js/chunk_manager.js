@@ -42,7 +42,10 @@ export class ChunkManager {
         this.block_sets             = 0;
 
         this.lightPool              = null;
-        this.lightTexFormat         = 'rgba8unorm';
+        this.lightProps = {
+            texFormat: 'rgba8unorm',
+            depthMul: 1,
+        }
 
         this.bufferPool             = null;
         this.chunkDataTexture       = new ChunkDataTexture();
@@ -282,9 +285,10 @@ export class ChunkManager {
         this.update_chunks = !this.update_chunks;
     }
 
-    setLightTexFormat(texFormat) {
-        this.lightTexFormat = texFormat;
-        this.lightWorker.postMessage(['initRender', { texFormat }]);
+    setLightTexFormat(texFormat, hasNormals) {
+        this.lightProps.texFormat = texFormat;
+        this.lightProps.depthMul = hasNormals ? 2 : 1;
+        this.lightWorker.postMessage(['initRender', { texFormat, hasNormals }]);
     }
 
     /**

@@ -4,8 +4,8 @@ import {
     adjustSrc,
     BITS_QUEUE_BLOCK_INDEX,
     DIR_COUNT,
-    DISPERSE_MIN, dx, dy, dz, MASK_SRC_AMOUNT, MASK_SRC_AO,
-    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT,
+    DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
+    MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
     OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
@@ -35,7 +35,7 @@ export class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: 5,
+            strideBytes: this.world.light.offsetNormal > 0 ? LIGHT_STRIDE_BYTES_NORMAL: LIGHT_STRIDE_BYTES,
             nibble: this.disperse > 0 ? {
                 dims: new Vector(1, this.disperse, 1),
                 strideBytes: 3,
@@ -82,7 +82,8 @@ export class Chunk {
     fillOuter() {
         //checks neighbour chunks
         const {lightChunk, world} = this;
-        const {portals, aabb, uint8View, strideBytes, dif26} = lightChunk;
+        const {portals, aabb, uint8View, strideBytes, dif26, dataView} = lightChunk;
+        const {offsetNormal} = world.light;
         const {shiftCoord, cx, cy, cz} = lightChunk;
         let found = false;
 
@@ -96,6 +97,7 @@ export class Chunk {
             const p = portal.aabb;
             const inside2 = other.aabb;
             const bytes2 = other.uint8View;
+            const dataView2 = other.dataView;
             const cy2 = other.cy, cx2 = other.cx, cz2 = other.cz, shift2 = other.shiftCoord;
 
             for (let x = p.x_min; x < p.x_max; x++)
@@ -110,6 +112,11 @@ export class Chunk {
                         const light = bytes2[coord2 + OFFSET_LIGHT];
                         if (light > 0) {
                             uint8View[coord1 + OFFSET_LIGHT] = light;
+                            if (offsetNormal > 0) {
+                                // we ignore ending here because its set/get
+                                dataView.setUint32(coord1 + offsetNormal,
+                                    dataView2.getUint32(coord2 + offsetNormal));
+                            }
                         }
 
                         // copy AO through border
@@ -154,15 +161,16 @@ export class Chunk {
         }
     }
 
-    calcResult(is4444) {
+    calcResult(is4444, hasNormals) {
         const {lightChunk} = this;
         const {outerSize, uint8View, strideBytes} = lightChunk;
         const elemPerBlock = is4444 ? 1 : 4;
+        const depthMul = hasNormals ? 2 : 1;
         if (!this.lightResult) {
             if (is4444) {
-                this.lightResult = new Uint16Array(this.resultLen * elemPerBlock);
+                this.lightResult = new Uint16Array(this.resultLen * elemPerBlock * depthMul);
             } else {
-                this.lightResult = new Uint8Array(this.resultLen * elemPerBlock);
+                this.lightResult = new Uint8Array(this.resultLen * elemPerBlock * depthMul);
             }
         }
 
@@ -225,6 +233,44 @@ export class Chunk {
                         (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0,
                         (uint8View[coord0 + OFFSET_SOURCE] & MASK_SRC_AO) > 0 ? 1 : 0);
                 }
+
+        const addResult2 = (R, G, B, A) => {
+            if (!changed) {
+                pv1 = result[ind + 0];
+                pv2 = result[ind + 1];
+                pv3 = result[ind + 2];
+                pv4 = result[ind + 3];
+            }
+            result[ind++] = R;
+            result[ind++] = G;
+            result[ind++] = B;
+            result[ind++] = Math.round(A * 255.0);
+            if (!changed) {
+                if (pv1 != result[ind - 4] || pv2 != result[ind - 3] || pv3 != result[ind - 2] || pv4 != result[ind - 1]) {
+                    changed = true;
+                }
+            }
+            this.result_crc_sum += (
+                result[ind - 4] +
+                result[ind - 3] +
+                result[ind - 2] +
+                result[ind - 1]
+            );
+        };
+
+        if (hasNormals) {
+            const dataView = lightChunk.dataView;
+            for (let y = 0; y < outerSize.y; y++)
+                for (let z = 0; z < outerSize.z; z++)
+                    for (let x = 0; x < outerSize.x; x++) {
+                        const coord0 = sx * x + sy * y + sz * z;
+                        let dx = uint8View[coord0 + OFFSET_NORMAL];
+                        let dz = uint8View[coord0 + OFFSET_NORMAL + 1];
+                        let dy = uint8View[coord0 + OFFSET_NORMAL + 2];
+                        let light = uint8View[coord0 + OFFSET_LIGHT] > 0 ? 1 : 0;
+                        addResult2(light * dx, light * dz, light * dy, light);
+                    }
+        }
 
         //
         if (changed) {

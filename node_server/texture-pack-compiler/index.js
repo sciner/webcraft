@@ -3,6 +3,7 @@ import { Compiler } from "./compiler.js";
 const options = {
     resolution: 32,
     texture_pack_dir: [
+        '../../../resource-packs/faithfull_pbr',
         '../../../resource-packs/1'
     ],
     output_dir: "../../www/resource_packs/base",
