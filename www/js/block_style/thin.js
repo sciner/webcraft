@@ -33,6 +33,18 @@ export default class style {
             lm.b = anim_frames;
             flags |= QUAD_FLAGS.FLAG_ANIMATED;
         }
+
+        //
+        if(material.is_portal) {
+            flags |= QUAD_FLAGS.MASK_BIOME;
+            // nether portal
+            lm.r = 20;
+            lm.g = 540;
+            // lm.r = 28;
+            // lm.g = 530;
+        }
+
+        // pack lm
         let pp = IndexedColor.packLm(lm);
 
         switch(cardinal_direction) {
