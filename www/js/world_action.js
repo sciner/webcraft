@@ -243,9 +243,9 @@ function dropBlock(player, block, actions, force) {
     if(!isSurvival) {
         return;
     }*/
-   // if(block.material.tags.indexOf('no_drop') >= 0) {
-      //  return;
-   // }
+    if(block.material.tags.indexOf('no_drop') >= 0) {
+        return;
+    }
 
     if(block.material.drop_item) {
         const drop_block = BLOCK.fromName(block.material.drop_item?.name);
@@ -690,7 +690,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, shearLichen]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -710,6 +710,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
         // Другие действия с инструментами/предметами в руке
         if(mat_block.item) {
+            
             // Use intruments
             for(let func of [useShovel, useHoe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
@@ -1236,14 +1237,56 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     return true;
 }
 
-// подстригаем светящийся лешаник
-async function shearLichen(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || world_material.id != BLOCK.GLOW_LICHEN.id) {
+// 
+async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!world_material || mat_block.style != 'cover') {
         return false;
     }
-    //if (current_inventory_item.id == BLOCK.SHEARS.id) {
-        //dropBlock(player, new FakeTBlock(BLOCK.GLOW_LICHEN.id, null, new Vector(pos), null, null, null, null, null, null), actions, false);
-   //}
+    let position = new Vector(pos.x, pos.y, pos.z)
+    position = position.offset(pos.n.x, pos.n.y, pos.n.z);
+    const block = world.getBlock(position);
+    if (block && block.id == mat_block.id) {
+        if (pos.n.y == 1) {
+            block.extra_data.up = true;
+        }
+        if (pos.n.y == -1) {
+            block.extra_data.down = true;
+        }
+        if (pos.n.x == -1) {
+            block.extra_data.west = true;
+        }
+        if (pos.n.x == 1) {
+            block.extra_data.east = true;
+        }
+        if (pos.n.z == -1) {
+            block.extra_data.south = true;
+        }
+        if (pos.n.z == 1) {
+            block.extra_data.north = true;
+        }
+        actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    } else if (world_block.id != mat_block.id){
+        const data = {};
+        if (pos.n.y == 1) {
+            data.up = true;
+        }
+        if (pos.n.y == -1) {
+            data.down = true;
+        }
+        if (pos.n.x == -1) {
+            data.west = true;
+        }
+        if (pos.n.x == 1) {
+            data.east = true;
+        }
+        if (pos.n.z == -1) {
+            data.south = true;
+        }
+        if (pos.n.z == 1) {
+            data.north = true;
+        }
+        actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    }
     return true;
 }
 
