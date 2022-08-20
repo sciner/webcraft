@@ -27,6 +27,8 @@ export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const SPECTATOR_SPEED_MUL            = 1;
 export const FLYING_ISLANDS_START_POS       = 1040;
 export const FLYING_ISLANDS_START_Y_ADDR    = 26;
+export const PORTAL_USE_INTERVAL            = 5000; // ms
+export const PORTAL_SIZE                    = {width: 4, height: 5};
 
 export const MOUSE = {
     DOWN: 1,
