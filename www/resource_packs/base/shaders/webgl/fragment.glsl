@@ -92,7 +92,9 @@ void main() {
             mipData = manual_mip(v_texcoord0, size);
             biome = ivec2(round(v_color.rg));
             color = sampleAtlassTexture (mipData, texClamped, biome);
-            uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
+            if (u_useNormalMap > 0.5) {
+                uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
+            }
 
             if (v_animInterp > 0.0) {
                 color = mix(

@@ -157,7 +157,12 @@ export class Renderer {
 
         if (renderBackend.gl) {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
-            world.chunkManager.setLightTexFormat('rgba8unorm', true);
+            if (settings.use_light === 2) {
+                world.chunkManager.setLightTexFormat('rgba8unorm', true);
+                renderBackend.globalUniforms.useNormalMap = true;
+            } else {
+                world.chunkManager.setLightTexFormat('rgba4unorm', false);
+            }
         } else {
             world.chunkManager.setLightTexFormat('rgba8unorm', false);
         }

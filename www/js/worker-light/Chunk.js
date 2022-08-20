@@ -4,7 +4,7 @@ import {
     adjustSrc,
     BITS_QUEUE_BLOCK_INDEX,
     DIR_COUNT,
-    DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, MASK_SRC_AMOUNT, MASK_SRC_AO,
+    DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
     MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
     OFFSET_SOURCE
 } from "./LightConst.js";
@@ -35,7 +35,7 @@ export class Chunk {
 
         this.lightChunk = new DataChunk({
             size: args.size,
-            strideBytes: LIGHT_STRIDE_BYTES,
+            strideBytes: this.world.light.offsetNormal > 0 ? LIGHT_STRIDE_BYTES_NORMAL: LIGHT_STRIDE_BYTES,
             nibble: this.disperse > 0 ? {
                 dims: new Vector(1, this.disperse, 1),
                 strideBytes: 3,
