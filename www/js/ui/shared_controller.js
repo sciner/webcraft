@@ -28,6 +28,9 @@ export class NewWorldForm {
 
 }
 
+/**
+ * This class is used in another related project. DO NOT DELETE !!!
+ */
 export class Shared_Controller {
 
     constructor() {

@@ -66,7 +66,7 @@
             <span>{{Lang.share_game_with_friends}}</span>
             <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
         </div>
-        <input type="text" ng-value="shareGame.url">
+        <input type="text" readonly ng-value="shareGame.url">
         <button class="btn2 btn-action" ng-click="shareGame.copy()">{{Lang.copy}}</button>
     </div>
 
@@ -90,10 +90,6 @@
             <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Settings</span>
                 <img src="/media/icon-settings.png" style="height: 2em;" alt="Settings">
-            </button>
-            <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
-                <span style="margin-right: 1em;">Invite</span>
-                <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
             <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
                 <span style="margin-right: 1em;">Discord</span>
@@ -177,6 +173,42 @@
             </div>
         </div>
     </form>
+
+    <!-- Enter-world -->
+    <div id="enter-world" class="enter-world animate__animated animate__fadeIn nice-form"
+        ng-if="current_window.id == 'enter-world'">
+        <div class="flex0 flex-column">
+            <div class="flex0 flex-column"
+                ng-if="mygames.enterWorld.windowMod == 'login' || mygames.enterWorld.windowMod == 'join'">
+                <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'login'"
+                ng-bind-html="Lang.enter_world_login|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+            <div ng-if="mygames.enterWorld.windowMod == 'login'" class="flex0 flex-column">
+                <button ng-click="current_window.show('login')" class="btn-main active">{{Lang.login}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="world-not-found flex0 flex-column">
+                😞
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'world-not-found'">{{Lang.no_world_by_link}}</label>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="flex0 flex-column">
+                <button ng-click="mygames.toMain()"
+                    class="active">{{Lang.ok}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
+                <div class="flex0 flex-column">
+                    <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
+                </div>
+                <label
+                    ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+                <div class="flex0 flex-column">
+                    <button ng-click="mygames.enterWorld.joinAfterApproving()"
+                        class="btn-main active">{{Lang.join}}</button>
+                    <button ng-click="mygames.toMain()" class="btn-cancel active">{{Lang.cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Main menu -->
     <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
@@ -314,6 +346,13 @@
     <script src="/vendors/vanilla-toast.min.js"></script>
 
     <div id="loading"></div>
+
+    <div id="share-button-container">
+        <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
+            <span style="margin-right: 1em;">Invite</span>
+            <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
+        </button>
+    </div>
 
 </body>
 </html>

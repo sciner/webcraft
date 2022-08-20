@@ -6,6 +6,16 @@ export class ServerAPI {
     static async call(method, params, session_id) {
         console.debug('> API:' + method);
         switch(method) {
+            case '/api/Game/getWorldPublicInfo':
+                const world = await Qubatch.db.getWorld(params.worldGuid);
+                // mapping
+                const woldPublicInfo = {
+                    title: world.title,
+                    guid: world.guid,
+                    // [TO DO] image of world should be put here
+                    image: '/media/no-logo.svg'
+                };
+                return woldPublicInfo;
             case '/api/User/Registration': {
                 const session = await Qubatch.db.Registration(params.username, params.password);
                 Log.append('Registration', {username: params.username});
