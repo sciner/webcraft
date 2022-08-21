@@ -214,7 +214,7 @@
     <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
 
         <!-- Main menu -->
-        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length > 0">
+        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length >= 0">
             <div id="button-new-game" ng-click="newgame.open()"><span>{{Lang.new_world_do}}...</span></div>
             <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn" ng-if="!item.hidden">
                 <button class="btn-delete" ng-click="DeleteWorld(item.guid)"><span>{{Lang.delete}}</span></button>
