@@ -1357,9 +1357,12 @@
         {
             "id": 106,
             "name": "VINE",
+            "style": "cover",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
             "transparent": true,
+            "can_rotate": true,
+            "passable": 0.25,
             "width": 0.0625,
             "planting": false,
             "texture": {
@@ -1370,14 +1373,21 @@
             ],
             "tags": [
                 "vines",
-                "mask_biome"
+                "no_drop_ao",
+                "mask_biome",
+                "rotate_by_pos_n"
             ],
             "material": {
                 "id": "plant"
             },
-            "style": "ladder",
-            "passable": 0.25,
-            "can_rotate": true
+            "extra_data": {
+                "down": false,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false
+            }
         },
         {
             "id": 32,

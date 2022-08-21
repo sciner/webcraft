@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -1246,6 +1246,21 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
     position = position.offset(pos.n.x, pos.n.y, pos.n.z);
     const block = world.getBlock(position);
     if (block && block.id == mat_block.id) {
+        // fix old vines
+        if(!block.extra_data) {
+            if(block.material && block.material.tags.includes('vines')) {
+                block.extra_data = JSON.parse(JSON.stringify(block.material.extra_data));
+                if(block.rotate) {
+                    switch(block.rotate.x) {
+                        case DIRECTION.SOUTH: block.extra_data.south = true; break;
+                        case DIRECTION.NORTH: block.extra_data.north = true; break;
+                        case DIRECTION.WEST: block.extra_data.west = true; break;
+                        case DIRECTION.EAST: block.extra_data.east = true; break;
+                    }
+                }
+            }
+        }
+        //
         if (pos.n.y == 1) {
             block.extra_data.up = true;
         }
