@@ -690,7 +690,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, putPlate]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -702,7 +702,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop]) {
+        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1242,8 +1242,9 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
     if (!world_material || !mat_block || mat_block.style != 'cover') {
         return false;
     }
-    let position = new Vector(pos.x, pos.y, pos.z)
-    position = position.offset(pos.n.x, pos.n.y, pos.n.z);
+    const orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+    const position = new Vector(pos.x, pos.y, pos.z)
+    position.addSelf(pos.n);
     const block = world.getBlock(position);
     if (block && block.id == mat_block.id) {
         // fix old vines
@@ -1260,11 +1261,15 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
                 }
             }
         }
-        //
+        // поворт
+        if (pos.n.y != 0) {
+            block.extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
+        }
         if (pos.n.y == 1) {
             block.extra_data.up = true;
         }
         if (pos.n.y == -1) {
+            console.log(orientation)
             block.extra_data.down = true;
         }
         if (pos.n.x == -1) {
@@ -1300,6 +1305,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
         if (pos.n.z == 1) {
             data.north = true;
         }
+        data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
         actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     }
     return true;
