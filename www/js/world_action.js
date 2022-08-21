@@ -6,6 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
+// import { WorldPortal } from "../../node_server/portal.js";
 
 const _createBlockAABB = new AABB();
 
@@ -1247,40 +1248,53 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
 
 // удаление портала
 async function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    
+
+    if(!Qubatch.is_server) {
+        return;
+    }
+
     if (!world_material || (world_material.id != BLOCK.OBSIDIAN.id && world_material.id != BLOCK.NETHER_PORTAL.id)) {
         return;
     }
     
-    const blocks = [];
+    const poses = [];
     
     // проверка есть ли позиция в массиве
     const isAdded = (pos) => {
-        for (let el of blocks) {
+        for(let el of poses) {
             if (el.x == pos.x && el.y == pos.y && el.z == pos.z) {
                 return true;
             }
         }
         return false;
     }
+
+    const portal_ids = new Map();
     
     // рекурсивный поиск блоков NETHER_PORTAL
     const getNeighbours = (pos) => {
         const neighbours = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
-        for (let el of neighbours) {
-            let position = pos.offset(el[0], el[1], el[2]);
-            if (world.getBlock(position).id == BLOCK.NETHER_PORTAL.id && !isAdded(position)) {
-                blocks.push(position);
-                getNeighbours(position);
+        for(let el of neighbours) {
+            const position = pos.offset(el[0], el[1], el[2]);
+            const tblock = world.getBlock(position);
+            if(tblock && tblock.material.is_portal) {
+                if(!isAdded(position)) {
+                    if(tblock.extra_data && tblock.extra_data.id) {
+                        const portal_id = tblock.extra_data.id;
+                        portal_ids.set(portal_id, portal_id);
+                    }
+                    poses.push(position);
+                    getNeighbours(position);
+                }
             }
         }
     }
     
     getNeighbours(new Vector(pos.x, pos.y, pos.z));
     
-    if (blocks.length > 0) {
+    if(poses.length > 0) {
         const arr = [];
-        for (let el of blocks) {
+        for(let el of poses) {
             arr.push({
                 pos: el, 
                 item: {
@@ -1290,12 +1304,24 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
             });
         }
         actions.addBlocks(arr);
+        //
+        if(portal_ids.size > 0) {
+            for(let portal_id of Array.from(portal_ids.keys())) {
+                console.log('delete portal ', portal_id);
+                world.db.portal.delete(player, portal_id);
+            }
+        }
     }
+
 }
 
 // создание портала
 async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    
+
+    if(!Qubatch.is_server) {
+        return;
+    }
+
     if (!world_material || world_material.id != BLOCK.OBSIDIAN.id) {
         return;
     }
@@ -1389,21 +1415,41 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
             }
             
             if (height > 2) {
+                // Блок портала
+                const portal_block = {
+                    id: BLOCK.NETHER_PORTAL.id,
+                    rotate: new Vector(
+                        (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
+                        1,
+                        0
+                    )
+                };
+                // Сохраняем портал в БД
+                const portal = {
+                    pos:                bottom_left.clone(),
+                    rotate:             portal_block.rotate.clone(),
+                    size:               {width: width + 2, height: height + 2},
+                    player_pos:         bottom_left.clone(),
+                    portal_block_id:    portal_block.id
+                };
+                //
+                if(right_dir == DIRECTION.EAST) {
+                    portal.player_pos.addScalarSelf(width / 2, 1, .5);
+                } else {
+                    portal.player_pos.addScalarSelf(.5, 1, width / 2);
+                }
+                //
+                if(Qubatch.is_server) {
+                    portal_block.extra_data = {id: await world.db.portal.add(player.session.user_id, portal)};
+                }
                 // Заполняем окно
                 const arr = [];
-                for (let i = 0; i < height; i++) {
-                    for (let j = 0; j < width; j++) {
+                for(let i = 0; i < height; i++) {
+                    for(let j = 0; j < width; j++) {
                         arr.push(
                         {
                             pos: (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, i, 0) : bottom_left.offset(0, i, j), 
-                            item: {
-                                    id: BLOCK.NETHER_PORTAL.id,
-                                    rotate: {
-                                        x: (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
-                                        y: 1,
-                                        z: 0
-                                    }
-                                }, 
+                            item: portal_block, 
                             action_id: ServerClient.BLOCK_ACTION_CREATE
                         });
                     }

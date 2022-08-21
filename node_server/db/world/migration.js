@@ -714,6 +714,23 @@ export class DBWorldMigration {
             ...update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 77, queries: [
+            `DELETE FROM world_modify WHERE block_id = 94`,
+            `CREATE TABLE "portal" (
+                "user_id" INTEGER,
+                "dt" integer,
+                "x" integer,
+                "y" integer,
+                "z" integer,
+                "rotate" TEXT,
+                "size" REAL,
+                "player_pos" TEXT,
+                "portal_block_id" INTEGER
+            );`,
+            `CREATE INDEX "portal_xyz" ON "portal" ("x", "y", "z");`,
+            ...update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

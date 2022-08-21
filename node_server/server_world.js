@@ -140,7 +140,7 @@ export class ServerWorld {
             this.ticks_stat.add('mobs');
             // 3.
             for (let player of this.players.values()) {
-                player.tick(delta);
+                await player.tick(delta);
             }
             this.ticks_stat.add('players');
             // 4.

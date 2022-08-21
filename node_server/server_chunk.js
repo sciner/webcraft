@@ -416,9 +416,6 @@ export class ServerChunk {
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
             }
-            for(let player of Array.from(this.connections.values())) {
-                WorldPortal.checkWaitPortal(this.world, this, player);
-            }
         }
     }
 

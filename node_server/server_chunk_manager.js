@@ -304,4 +304,23 @@ export class ServerChunkManager {
         this.postWorkerMessage(['destroyMap', { players }]);
     }
 
+    //
+    getAround(pos, chunk_render_dist) {
+        const world             = this.world;
+        const margin            = Math.max(chunk_render_dist + 1, 1);
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        const chunk_addr        = getChunkAddr(pos);
+        // array like iterator
+        return (function* () {
+            for(let i = 0; i < spiral_moves_3d.length; i++) {
+                const sm = spiral_moves_3d[i];
+                const addr = chunk_addr.add(sm.pos);
+                if(ALLOW_NEGATIVE_Y || addr.y >= 0 && addr.y == FLYING_ISLANDS_START_Y_ADDR) {
+                    const chunk = world.chunks.get(addr);
+                    yield chunk;
+                }
+            }
+        })()
+    }
+
 }

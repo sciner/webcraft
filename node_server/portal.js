@@ -1,9 +1,23 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { DIRECTION, Vector } from "../www/js/helpers.js";
+import { DIRECTION, getChunkAddr, Vector } from "../www/js/helpers.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { PORTAL_SIZE } from "../www/js/constant.js";
 
+//
+export class WorldPortalWait {
+
+    constructor(old_pos, new_pos, params) {
+        this.params = params;
+        this.attempt = 0;
+        this.chunk_addr = getChunkAddr(new_pos);
+        this.old_pos = old_pos;
+        this.pos = new_pos;
+    }
+
+}
+
+//
 export class WorldPortal {
 
     constructor(pos, rotate, size, player_pos, portal_block_id) {
@@ -24,7 +38,7 @@ export class WorldPortal {
     }
 
     // build portal
-    static buildPortal(world, pos) {
+    static async buildPortal(user_id, world, pos) {
         const dirs = ['x', 'z'];
         const blocks = world.block_manager;
         //
@@ -60,7 +74,7 @@ export class WorldPortal {
                 const b_pos = pos.clone();
                 const actions = new WorldAction(randomUUID());
                 const frame_block = {id: blocks.OBSIDIAN.id};
-                const portal_block = {id: blocks.NETHER_PORTAL.id, rotate: new Vector((d == 'x') ? DIRECTION.SOUTH : DIRECTION.EAST, 1, 0)};
+                const portal_block = {id: blocks.NETHER_PORTAL.id, rotate: new Vector((d == 'x') ? DIRECTION.SOUTH : DIRECTION.EAST, 0, 0)};
                 //
                 const portal = new WorldPortal(
                     pos.clone(),
@@ -69,6 +83,7 @@ export class WorldPortal {
                     resp.clone(),
                     portal_block.id
                 );
+                portal_block.extra_data = {id: await world.db.portal.add(user_id, portal)}
                 //
                 for(b_pos.y = pos.y; b_pos.y < pos.y + PORTAL_SIZE.height; b_pos.y++) {
                     for(b_pos[d] = pos[d]; b_pos[d] < pos[d] + PORTAL_SIZE.width; b_pos[d]++) {
@@ -85,14 +100,14 @@ export class WorldPortal {
     }
 
     // Return portal floor coord as target
-    static foundPortalFloor(world, chunk) {
+    static async foundPortalFloor(user_id, world, chunk) {
         // const tb = chunk.tblocks;
         // @todo tb.non_zero always zero =(
         const pos = new Vector(0, 0, 0);
         for(pos.y = CHUNK_SIZE_Y - PORTAL_SIZE.height; pos.y >= 0; pos.y--) {
             for(pos.x = 0; pos.x < CHUNK_SIZE_X - PORTAL_SIZE.width + 1; pos.x++) {
                 for(pos.z = 0; pos.z < CHUNK_SIZE_Z - PORTAL_SIZE.width + 1; pos.z++) {
-                    const portal_floor_pos = WorldPortal.buildPortal(world, pos.add(chunk.coord));
+                    const portal_floor_pos = await WorldPortal.buildPortal(user_id, world, pos.add(chunk.coord));
                     if(portal_floor_pos) {
                         // return teleport coords
                         return portal_floor_pos;
@@ -104,12 +119,12 @@ export class WorldPortal {
     }
 
     //
-    static checkWaitPortal(world, chunk, player) {
+    static async checkWaitPortal(world, chunk, player) {
         if(!player.wait_portal) {
             return false;
         }
         const wait_info = player.wait_portal;
-        let force_teleport = !wait_info.params?.need_to_generate; // if portal not found around target coords
+        let force_teleport = !wait_info.params?.found_or_generate_portal; // if portal not found around target coords
         if(!force_teleport) {
             // check max attempts
             const max_attempts = [
@@ -121,7 +136,7 @@ export class WorldPortal {
             } else {
                 // attempt to find place for portal
                 if(chunk.addr.y == wait_info.chunk_addr.y) {
-                    const portal_floor_pos = WorldPortal.foundPortalFloor(world, chunk);
+                    const portal_floor_pos = await WorldPortal.foundPortalFloor(player.session.user_id, world, chunk);
                     if(portal_floor_pos) {
                         console.log('Found portal floor pos', portal_floor_pos.toHash());
                         wait_info.pos = portal_floor_pos;
@@ -134,20 +149,6 @@ export class WorldPortal {
             }
         }
         if(force_teleport) {
-            console.log('Teleport to', wait_info.pos.toHash());
-            delete(player.wait_portal);
-            const packets = [{
-                name: ServerClient.CMD_TELEPORT,
-                data: {
-                    pos: wait_info.pos,
-                    place_id: wait_info.params.place_id
-                }
-            }];
-            world.packets_queue.add([player.session.user_id], packets);
-            // add teleport particles
-            // const actions = new WorldAction(randomUUID());
-            // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
-            // world.actions_queue.add(null, actions);
             return true;
         }
         return false;

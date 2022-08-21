@@ -1,15 +1,17 @@
-import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
-import {Player} from "../www/js/player.js";
-import {GameMode} from "../www/js/game_mode.js";
-import {ServerClient} from "../www/js/server_client.js";
+import { Vector, VectorCollector } from "../www/js/helpers.js";
+import { Player } from "../www/js/player.js";
+import { GameMode } from "../www/js/game_mode.js";
+import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
-import {PlayerEvent} from "./player_event.js";
+import { PlayerEvent } from "./player_event.js";
 import config from "./config.js";
-import {QuestPlayer} from "./quest/player.js";
+import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "../www/js/chunk_const.js";
-import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
+import { ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
+import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
+import { WorldPortal, WorldPortalWait } from "./portal.js";
+import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 
 export class NetworkMessage {
     constructor({
@@ -51,7 +53,7 @@ export class ServerPlayer extends Player {
         this.game_mode.onSelect     = async (mode) => {
             await this.world.db.changeGameMode(this, mode.id);
             this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
-            this.world.chat.sendSystemChatMessageToSelectedPlayers('Game mode changed to ... ' + mode.title, [this.session.user_id]);
+            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
         };
         /**
          * @type {ServerWorld}
@@ -294,7 +296,7 @@ export class ServerPlayer extends Player {
         };
     }
 
-    tick(delta) {
+    async tick(delta) {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2.
@@ -304,6 +306,50 @@ export class ServerPlayer extends Player {
         // 4.
         if(Math.random() < .5) {
             this.checkInPortal();
+        }
+        // 5.
+        if(this.wait_portal) {
+            //
+            const wait_info = this.wait_portal;
+            //
+            const sendTeleport = () => {
+                console.log('Teleport to', wait_info.pos.toHash());
+                const packets = [{
+                    name: ServerClient.CMD_TELEPORT,
+                    data: {
+                        pos: wait_info.pos,
+                        place_id: wait_info.params.place_id
+                    }
+                }];
+                this.world.packets_queue.add([this.session.user_id], packets);
+                this.wait_portal = null;
+                // add teleport particles
+                // const actions = new WorldAction(randomUUID());
+                // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
+                // world.actions_queue.add(null, actions);
+            };
+            if(wait_info.params?.found_or_generate_portal) {
+                // found existed portal around near
+                const exists_portal = await this.world.db.portal.search(wait_info.pos, MAX_PORTAL_SEARCH_DIST);
+                console.log('exists_portal', exists_portal);
+                if(exists_portal) {
+                    wait_info.pos = exists_portal.player_pos;
+                    sendTeleport();
+                } else {
+                    for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
+                        if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                            if(ALLOW_NEGATIVE_Y || chunk.addr.y >= 0 && chunk.addr.y == FLYING_ISLANDS_START_Y_ADDR) {
+                                if(await WorldPortal.checkWaitPortal(this.world, chunk, this)) {
+                                    sendTeleport();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                sendTeleport();
+            }
         }
     }
 
@@ -384,14 +430,13 @@ export class ServerPlayer extends Player {
         if(this.wait_portal || (this.prev_use_portal && (performance.now() - this.prev_use_portal < PORTAL_USE_INTERVAL))) {
             return false;
         }
-        const pos_legs = new Vector(this.state.pos).flooredSelf();
-        const pos_body = pos_legs.add(Vector.YP).flooredSelf();
-        const tblock_body = this.world.getBlock(pos_body);
-        const tblock_legs = this.world.getBlock(pos_legs);
-        const in_portal = tblock_body.material?.is_portal == true && tblock_legs.material?.is_portal == true;
+        const pos_legs      = new Vector(this.state.pos).flooredSelf();
+        const pos_body      = pos_legs.add(Vector.YP).flooredSelf();
+        const tblock_body   = this.world.getBlock(pos_body);
+        const tblock_legs   = this.world.getBlock(pos_legs);
+        const in_portal     = tblock_body.material?.is_portal == true && tblock_legs.material?.is_portal == true;
         if(in_portal != this.in_portal) {
             this.in_portal = in_portal;
-            console.log(`in_portal: ${in_portal}`);
             if(this.in_portal) {
                 if(!this.wait_portal) {
                     if(pos_legs.y < FLYING_ISLANDS_START_POS) {
@@ -427,7 +472,7 @@ export class ServerPlayer extends Player {
      * @param {Object} params
      * @return {void}
      */
-     teleport(params) {
+    teleport(params) {
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -472,7 +517,7 @@ export class ServerPlayer extends Player {
                         // @todo hardcode Y start pos
                         new_pos.y = FLYING_ISLANDS_START_POS;
                         // @todo need to search portal near this coord
-                        params.need_to_generate = true; // if portal not found around target coords
+                        params.found_or_generate_portal = true; // if portal not found around target coords
                         break;
                     }
                 }
@@ -483,38 +528,15 @@ export class ServerPlayer extends Player {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            const chunk_addr = getChunkAddr(new_pos);
             //
-            teleported_player.wait_portal = {
-                params,
-                chunk_addr,
-                attempt: 0,
-                old_pos: teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
-                pos: new_pos
-            };
+            teleported_player.wait_portal = new WorldPortalWait(
+                teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
+                new_pos,
+                params
+            );
+            //
             teleported_player.state.pos = new_pos;
-            // не создавать ожидание телепорта, если ближайший чанк уже загружен и в памяти
-            const chunk_render_dist = teleported_player.state.chunk_render_dist;
-            const margin            = Math.max(chunk_render_dist + 1, 1);
-            const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
-            let teleported          = false;
-            for(let i = 0; i < spiral_moves_3d.length; i++) {
-                const sm = spiral_moves_3d[i];
-                const addr = chunk_addr.add(sm.pos);
-                if(ALLOW_NEGATIVE_Y || addr.y >= 0 && addr.y == FLYING_ISLANDS_START_Y_ADDR) {
-                    const chunk = world.chunks.get(addr);
-                    if(chunk) {
-                        if(chunk.checkWaitPortal(teleported_player)) {
-                            teleported = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            //
-            if(!teleported) {
-                world.chunks.checkPlayerVisibleChunks(teleported_player, true);
-            }
+            world.chunks.checkPlayerVisibleChunks(teleported_player, true);
         }
     }
 

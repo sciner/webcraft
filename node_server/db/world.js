@@ -9,6 +9,7 @@ import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
+import { DBWorldPortal } from "./world/portal.js";
 
 // World database provider
 export class DBWorld {
@@ -23,6 +24,7 @@ export class DBWorld {
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
+        this.portal = new DBWorldPortal(this.conn, this.world);
         return this;
     }
 
