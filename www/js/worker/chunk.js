@@ -236,11 +236,11 @@ export class Chunk {
         const { liquid } = this.tblocks;
         const index = cx * x + cy * y + cz * z + cw;
         if (this.isLiquid(block_id)) {
-            uint16View[index] = block_id;
-            liquid[index] = 0;
-        } else {
             uint16View[index] = 0;
             liquid[index] = block_id;
+        } else {
+            uint16View[index] = block_id;
+            liquid[index] = 0;
         }
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
