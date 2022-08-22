@@ -13,7 +13,7 @@ const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
 
-    constructor(world, render, onTarget, onInterractMob) {
+    constructor(world, render, onTarget, onInterractMob, onInteractFluid) {
         this.world              = world;
         this.render             = render;
         //
@@ -35,6 +35,7 @@ export class PickAt {
         }
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
         this.onInterractMob     = onInterractMob;
+        this.onInteractFluid    = onInteractFluid;
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
@@ -44,15 +45,15 @@ export class PickAt {
         this._temp_pos = new Vector(0, 0, 0);
     }
 
-    get(pos, callback, pickat_distance, view_vector, ignore_transparent) {
+    get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid) {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;
         if(view_vector) {
-            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent);
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid);
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent);
+        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
     }
 
     // setEvent...
@@ -123,8 +124,23 @@ export class PickAt {
 
     // update...
     update(pos, pickat_distance, view_vector) {
+
         // Get actual pick-at block
-        let bPos = this.get(pos, null, pickat_distance, view_vector);
+        let bPos = this.get(pos, null, pickat_distance, view_vector, false);
+
+        // Detect interact with fluid
+        let bPosFluid = this.get(pos, null, pickat_distance, view_vector, false, true);
+        if(bPosFluid && bPosFluid.block_id) {
+            const fluid_block = this.world.block_manager.fromId(bPosFluid.block_id);
+            if(fluid_block.is_fluid) {
+                if(this.onInteractFluid instanceof Function) {
+                    if(this.onInteractFluid(bPosFluid)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         target_block.visible = !!bPos && !bPos.mob;

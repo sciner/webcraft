@@ -17,13 +17,14 @@ export class RaycasterResult {
      * @param {Vector} leftTop
      * @param {Vector} side
      */
-    constructor(pos, leftTop, side, aabb) {
+    constructor(pos, leftTop, side, aabb, block_id) {
         this.aabb = aabb;
         this.x = leftTop.x;
         this.y = leftTop.y;
         this.z = leftTop.z;
         this.n = side;
         this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop);
+        this.block_id = block_id;
         if(point_precision != 1) {
             this.point.x = Math.round(this.point.x * point_precision) / point_precision;
             this.point.y = Math.round(this.point.y * point_precision) / point_precision;
@@ -58,7 +59,7 @@ export class Raycaster {
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
-    getFromView(pos, invViewMatrix, distance, callback, ignore_transparent) {
+    getFromView(pos, invViewMatrix, distance, callback, ignore_transparent, return_fluid) {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
         this._dir.z = -invViewMatrix[9];
@@ -67,7 +68,7 @@ export class Raycaster {
             return null;
         }
         this._dir.normSelf();
-        return this.get(pos, this._dir, distance, callback, ignore_transparent);
+        return this.get(pos, this._dir, distance, callback, ignore_transparent, return_fluid);
     }
 
     // intersectSphere...
@@ -149,7 +150,7 @@ export class Raycaster {
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
-    get(origin, dir, pickat_distance, callback, ignore_transparent) {
+    get(origin, dir, pickat_distance, callback, ignore_transparent, return_fluid) {
 
         const pos = this._pos.copyFrom(origin);
         startBlock.set(
@@ -190,7 +191,10 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > this.BLOCK.AIR.id;// && !b.material.is_fluid;
-            if(ignore_transparent && b.material.invisible_for_cam) {
+            if(!return_fluid && hitShape) {
+                hitShape = !b.material.is_fluid;
+            }
+            if(ignore_transparent && !return_fluid && b.material.invisible_for_cam) {
                 hitShape = false;
             }
 
@@ -253,7 +257,7 @@ export class Raycaster {
                 side.x = -side.x;
                 side.y = -side.y;
                 side.z = -side.z;
-                res = new RaycasterResult(pos, leftTop, side);
+                res = new RaycasterResult(pos, leftTop, side, null, b?.id);
                 if(res.point.y == 1) {
                     res.point.y = 0;
                 }

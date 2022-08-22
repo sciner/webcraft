@@ -142,6 +142,20 @@ export class Player {
                     data: e
                 });
             }
+        }, (bPos) => {
+            // onInteractFluid
+            const e = this.pickAt.damage_block.event;
+            const hand_current_item = this.inventory.current_item;
+            if(e && e.createBlock && hand_current_item) {
+                const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
+                if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
+                    if(e.number++ == 0) {
+                        console.log('Create LILY_PAD');
+                    }
+                    return true;
+                }
+            }
+            return false;
         });
         return true;
     }
