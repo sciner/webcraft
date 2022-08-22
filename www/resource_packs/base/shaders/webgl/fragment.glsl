@@ -49,6 +49,7 @@ void main() {
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);
+    vec3 uvNormal = vec3(0.0, 0.0, 1.0);
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
 
@@ -94,6 +95,9 @@ void main() {
             mipData = manual_mip(v_texcoord0, size);
             biome = ivec2(round(v_color.rg));
             color = sampleAtlassTexture (mipData, texClamped, biome);
+            if (u_useNormalMap > 0.5) {
+                uvNormal = texture(u_texture_n, texClamped * mipData.zw + mipData.xy).rgb * 2.0 - 1.0;
+            }
 
             if (v_animInterp > 0.0) {
                 color = mix(
@@ -124,8 +128,11 @@ void main() {
             if(v_noCanTakeAO == .0) {
                 #include<sun_light_pass>
             }
+            if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
+                #include<normal_light_pass>
+            }
             // Apply light
-            color.rgb *= combinedLight * playerLight * sunNormalLight;
+            color.rgb *= combinedLight * sunNormalLight;
         }
 
         outColor = color;

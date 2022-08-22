@@ -127,6 +127,11 @@ app.use('/api', async(req, res) => {
         );
     }
 });
+const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
+// "SPA" yet for just one type of ulrs only
+app.use('/worlds', async(req, res) => {
+    res.sendFile(pathToIndex);
+});
 
 Qubatch.start();
 

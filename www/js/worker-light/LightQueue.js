@@ -1,15 +1,28 @@
 import {MultiQueue} from '../light/MultiQueue.js';
 import {
-    maxLight, maxPotential,
-    dmask, dlen, dx, dy, dz,
-    defPageSize, globalStepMs,
+    maxLight,
+    maxPotential,
+    dmask,
+    dlen,
+    dx,
+    dy,
+    dz,
+    defPageSize,
+    globalStepMs,
     DIR_COUNT,
     BITS_QUEUE_BLOCK_INDEX,
     MASK_QUEUE_BLOCK_INDEX,
     MASK_WAVE_FORCE,
     OFFSET_SOURCE,
     OFFSET_LIGHT,
-    MASK_SRC_BLOCK, MASK_SRC_AMOUNT, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP, OFFSET_WAVE,
+    MASK_SRC_BLOCK,
+    MASK_SRC_AMOUNT,
+    OFFSET_COLUMN_DAY,
+    OFFSET_COLUMN_TOP,
+    OFFSET_WAVE,
+    NORMAL_DX,
+    NORMAL_MASK,
+    OFFSET_NORMAL, NORMAL_DEF,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -30,9 +43,13 @@ export class LightQueue {
         }
 
         this.tmpLights = [];
-        for (let i = 0; i < this.dirCount; i++) {
+        for (let i = 0; i < 2 * this.dirCount; i++) {
             this.tmpLights.push(0);
         }
+    }
+
+    setNormals(hasNormals) {
+        this.offsetNormal = hasNormals ? OFFSET_NORMAL: 0;
     }
 
     /**
@@ -96,13 +113,15 @@ export class LightQueue {
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights} = this;
+        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights, offsetNormal} = this;
         const {chunkById} = world.chunkManager;
         const apc = world.chunkManager.activePotentialCenter;
+        const hasNormals = offsetNormal > 0;
 
         let chunk = null;
         let lightChunk = null;
         let uint8View = null;
+        let dataView = null;
         let outerSize = null;
         let strideBytes = 0;
         let outerAABB = null;
@@ -139,6 +158,7 @@ export class LightQueue {
                 chunk = newChunk;
                 lightChunk = chunk.lightChunk;
                 uint8View = lightChunk.uint8View;
+                dataView = lightChunk.dataView;
                 outerSize = lightChunk.outerSize;
                 strideBytes = lightChunk.strideBytes;
                 outerAABB = lightChunk.outerAABB;
@@ -178,6 +198,7 @@ export class LightQueue {
 
             let blockMask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE] & MASK_SRC_AMOUNT
+            let normalVal = NORMAL_DEF;
             if (nibbleSource) {
                 //TODO: maybe use extra memory here, with OFFSET_SOURCE?
                 const localY = y - aabb.y_min;
@@ -196,6 +217,10 @@ export class LightQueue {
             } else {
                 prevLight = old;
             }
+            let normalOld  = NORMAL_DEF;
+            if (hasNormals) {
+                normalOld = dataView.getUint32(coordBytes + offsetNormal, true);
+            }
             let decrMask = 0;
             let block = false;
             if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
@@ -205,12 +230,21 @@ export class LightQueue {
             if (val === maxLight && val === old && val === prevLight) {
                 continue;
             }
+
+            let normalAccX = 0, normalAccY = 0, normalAccZ = 0;
+            let foundNormals = 0;
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) !== 0) {
                     continue;
                 }
                 let coord2 = coord + dif26[d];
                 let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                let normal = NORMAL_DEF;
+                if (hasNormals) {
+                    normal = (dataView.getUint32(coord2 * strideBytes + offsetNormal, true)
+                        + NORMAL_DX[d]) & NORMAL_MASK;
+                }
+
                 if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                     light = 0;
                     blockMask |= dmask[d];
@@ -219,29 +253,53 @@ export class LightQueue {
                         // dependant cell - dont update val on it!
                         decrMask |= 1 << d;
                     } else if (!block) {
-                        val = Math.max(val, light - dlen[d]);
+                        if (val < light - dlen[d]) {
+                            val = light - dlen[d];
+                            normalAccX = normalAccY = normalAccZ = 0;
+                            foundNormals = 0;
+                        }
+                        if (hasNormals && val === light - dlen[d]) {
+                            foundNormals++;
+                            normalAccX += (normal & 0xff) - 0x80;
+                            normalAccY += ((normal >> 8) & 0xff) - 0x80;
+                            normalAccZ += ((normal >> 16) & 0xff) - 0x80;
+                        }
                     }
                 }
                 tmpLights[d] = light;
+                tmpLights[d + 26] = normal;
             }
+
+            if (foundNormals > 0) {
+                normalVal = Math.round(normalAccX / foundNormals + 0x80)
+                    | (Math.round(normalAccY / foundNormals + 0x80) << 8)
+                    | (Math.round(normalAccZ / foundNormals + 0x80) << 16);
+            }
+
             let incMask = 0;
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) === 0) {
-                    if (tmpLights[d] < val - dlen[d]) {
+                    if (tmpLights[d] < val - dlen[d]
+                        || tmpLights[d] === val - dlen[d] && tmpLights[d + 26] !== normalVal) {
                         incMask |= 1 << d;
                     }
                 }
             }
             // let modMask = (~blockMask & ((1 << dirCount) - 1));
             let modMask = incMask | decrMask;
-            if (old === val && old === prevLight) {
+            if (old === val && old === prevLight
+                && (!hasNormals || val === 0 || normalVal === normalOld)
+            ) {
                 modMask = incMask;
                 if (modMask === 0) {
                     continue;
                 }
             }
             uint8View[coordBytes + OFFSET_LIGHT] = val;
-            if (old !== val) {
+            if (hasNormals) {
+                dataView.setUint32(coordBytes + offsetNormal, normalVal, true);
+            }
+            if (old !== val || val > 0 && normalVal !== normalOld) {
                 chunk.lastID++;
             }
             if (old > val) {
@@ -274,6 +332,9 @@ export class LightQueue {
                     }
                     mask2 |= 1 << p;
                     chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
+                    if (hasNormals) {
+                        chunk2.setUint32ByInd(chunk2.indexByWorld(x, y, z), offsetNormal, normalVal);
+                    }
                     chunk2.rev.lastID++;
                     for (let d = 0; d < DIR_COUNT; d++) {
                         if (modMask === 0) {

@@ -189,7 +189,8 @@ export class BaseResourcePack {
             const { texture } = await this._loadTexture(
                 this.dir + textureInfo.image_n,
                 settings,
-                renderBackend
+                renderBackend,
+                textureInfo
             );
 
             textureInfo.texture_n = texture;

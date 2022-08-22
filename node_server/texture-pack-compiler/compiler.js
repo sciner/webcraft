@@ -13,7 +13,7 @@ const BLOCK_NAMES = {
 export class Compiler {
 
     constructor(options) {
-        options.n_color = '#808080';
+        options.n_color = '#8080ff';
         options.n_texture_id = '_n';
         this.spritesheets = new Map();
         // options.blockstates_dir = options.texture_pack_dir + '/assets/minecraft/blockstates';

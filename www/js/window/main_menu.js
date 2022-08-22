@@ -39,8 +39,8 @@ export class MainMenu extends Window {
             Qubatch.hud.wm.closeAll();
             Qubatch.hud.wm.getWindow('frmStats').show();
         });
-        
-        this.addButton(Lang.btn_exit, 230, () => {location.reload()});
+        // [TODO] use callback instead of row readressing
+        this.addButton(Lang.btn_exit, 230, () => {location = "/"});
 
     }
 

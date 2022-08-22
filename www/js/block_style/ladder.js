@@ -28,13 +28,7 @@ export default class style {
         let flags       = 0;
 
         // Texture color multiplier
-        if(block.id == BLOCK.VINE.id) {
-            c = BLOCK.calcTexture(texture, DIRECTION.BACK);
-            lm = dirt_color;
-            flags = QUAD_FLAGS.MASK_BIOME;
-        } else {
-            c = BLOCK.calcTexture(texture, DIRECTION.BACK);
-        }
+        c = BLOCK.calcTexture(texture, DIRECTION.BACK);
         let pp = IndexedColor.packLm(lm);
 
         pushSym(vertices, cardinal_direction,

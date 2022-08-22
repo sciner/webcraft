@@ -7,6 +7,7 @@ import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
 import { BgEffect } from './bg_effect.js';
+import  registerTextFilter from './angular/textfilter.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -61,6 +62,7 @@ globalThis.randomUUID = () => {
 };
 
 const app = angular.module('gameApp', []);
+registerTextFilter(app);
 
 let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
@@ -96,7 +98,7 @@ let gameCtrl = async function($scope, $timeout) {
         visible: false,
         url: '',
         toggle: function() {
-            this.url = location.protocol + '//' + location.host + '#world_' + Qubatch.world.info.guid;
+            this.url = location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid;
             this.visible = !this.visible;
         },
         copy: function() {
@@ -250,8 +252,17 @@ let gameCtrl = async function($scope, $timeout) {
         form: {
             texture_pack: 'base',
             render_distance: 4,
-            use_light: true,
+            use_light: 1,
             mipmap: false
+        },
+        lightMode: {
+            list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
+            getCurrent: function() {
+                return this.list[$scope.settings.form.use_light];
+            },
+            next: function() {
+                $scope.settings.form.use_light = ($scope.settings.form.use_light + 1) % this.list.length;
+            }
         },
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));
@@ -278,6 +289,10 @@ let gameCtrl = async function($scope, $timeout) {
                 // add default render_distance
                 if(!('render_distance' in this.form)) {
                     this.form.render_distance = 4;
+                }
+                // use_light
+                if('use_light' in this.form) {
+                    this.form.use_light = parseInt(this.form.use_light | 0);
                 }
             }
         }
@@ -337,6 +352,7 @@ let gameCtrl = async function($scope, $timeout) {
         document.getElementById('bg-canvas')?.remove();
         document.getElementById('bg-circles_area')?.remove();
         document.getElementById('main-menu')?.remove();
+        document.getElementById('enter-world')?.remove();
         // stop background animation effect
         $scope.bg?.stop();
         // Show Loading...
@@ -370,6 +386,9 @@ let gameCtrl = async function($scope, $timeout) {
         list: [],
         shared_worlds: [],
         loading: false,
+        toMain: function(){
+            location = '/';
+        },
         load: function() {
             const session = $scope.App.getSession();
             if(!session) {
@@ -388,6 +407,7 @@ let gameCtrl = async function($scope, $timeout) {
                             that.shared_worlds.push(w);
                         }
                     }*/
+                    that.enterWorld.joinToWorldIfNeed();
                     that.loading = false;
                     $scope.loadingComplete();
                 });
@@ -398,37 +418,74 @@ let gameCtrl = async function($scope, $timeout) {
         add: function(form) {
             this.list.push(form);
         },
-        worldExists: function(guid) {
-            for(let world of this.list) {
-                if(world.guid == guid) {
-                    return true;
+        enterWorld: {
+            windowMod: 'off',
+            worldInfo: null,
+            getWorldGuid: function() {
+                let pathName = window.location.pathname;
+                if (pathName && pathName.startsWith('/worlds/')) {
+                    return pathName.substr(8);
                 }
-            }
-            return false;
-        },
-        checkInvite: function() {
-            var that = this;
-            let hash = window.location.hash;
-            if(hash && hash.startsWith('#world_')) {
-                if(!$scope.App.isLogged()) {
-                    vt.success(Lang.error_not_logged);
+                return null;
+            },
+            joinAfterApproving: function(){
+                let worldGuid = this.getWorldGuid();
+                $scope.App.JoinWorld({ world_guid: this.worldInfo.guid}, () => {
+                    $timeout(() => $scope.StartWorld(worldGuid), error => this.handleNoWorldOrOtherError(error));
+                });
+            },
+            joinToWorldIfNeed: function() {
+                if (this.windowMod == 'world-not-found'){
                     return;
                 }
-                let world_guid = hash.substr(7);
-                if(that.worldExists(world_guid)) {
-                    return false;
+                let worldGuid = this.getWorldGuid();
+                if (worldGuid) {
+                    for(let world of $scope.mygames.list) {
+                        if(world.guid == worldGuid) {
+                            $scope.StartWorld(worldGuid);
+                            return;
+                        }
+                    }
+                    // world is not found in exists
+                    if (this.worldInfo){
+                        this.showWorldInfo(this.worldInfo, 'approve-join')
+                        return;
+                    }
+                    $scope.App.GetWorldPublicInfo({worldGuid},
+                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'), 
+                        error => this.handleNoWorldOrOtherError(error));
+
                 }
-                $scope.App.JoinWorld({world_guid: world_guid}, (resp) => {
-                    $timeout(() => {
-                        that.list.push(resp);
-                        vt.success(Lang.you_invited_to_world + ' ' + hash);
-                        location.href = location.protocol + '//' + location.host;
-                        that.loading = false;
-                    });
-                });
-                return true;
+                
+            },
+            showWorldInfo: function(worldInfo, mode){
+                this.worldInfo = worldInfo;
+                this.windowMod = mode;
+                $scope.current_window.show('enter-world');
+                $scope.$apply();
+            },
+            handleNoWorldOrOtherError: function(error){
+                if (error.message === 'error_world_not_found'){
+                    this.windowMod = 'world-not-found'
+                    $scope.current_window.show('enter-world');
+                    $scope.$apply();
+                } else {
+                    vt.error(message);
+                }
+            },
+            checkIsWorldUrl: function(){
+                let worldGuid = this.getWorldGuid();
+                if (worldGuid) {
+                    if (!$scope.App.isLogged()) {
+                        $scope.App.GetWorldPublicInfo({worldGuid},
+                             worldInfo => this.showWorldInfo(worldInfo, 'login'), 
+                             error => this.handleNoWorldOrOtherError(error));
+                    }
+                }
             }
-        }
+        },
+        
+        
     };
 
     // New world
@@ -561,7 +618,7 @@ let gameCtrl = async function($scope, $timeout) {
             $scope.boot.init();
             $scope.login.init();
             $scope.skin.init();
-            $scope.mygames.checkInvite();
+            $scope.mygames.enterWorld.checkIsWorldUrl();
         });
     });
 

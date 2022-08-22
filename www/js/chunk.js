@@ -104,8 +104,8 @@ export class Chunk {
     }
 
     onLightGenerated(args) {
-        const cm = this.getChunkManager();
-        const arrClass = cm.lightTexFormat === 'rgb565unorm' || cm.lightTexFormat === 'rgba4unorm'
+        const lp = this.getChunkManager().lightProps;
+        const arrClass = lp.texFormat === 'rgb565unorm' || lp.texFormat === 'rgba4unorm'
             ? Uint16Array: Uint8Array;
         this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
@@ -156,12 +156,13 @@ export class Chunk {
         if (!this.lightData || !cm) {
             return null;
         }
+        const {lightProps} = cm;
         if (!cm.lightPool) {
             cm.lightPool = new CubeTexturePool(render,{
                 defWidth: CHUNK_SIZE_X + 2,
                 defHeight: CHUNK_SIZE_Z + 2,
-                defDepth: CHUNK_SIZE_Y + 2,
-                type: cm.lightTexFormat,
+                defDepth: (CHUNK_SIZE_Y + 2) * lightProps.depthMul,
+                type: lightProps.texFormat,
                 filter: 'linear',
             });
         }
@@ -170,8 +171,8 @@ export class Chunk {
             const lightTex = this.lightTex = cm.lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
-                depth: this.size.y + 2,
-                type: cm.lightTexFormat,
+                depth: (this.size.y + 2) * lightProps.depthMul,
+                type: lightProps.texFormat,
                 filter: 'linear',
                 data: this.lightData
             })

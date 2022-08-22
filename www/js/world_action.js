@@ -249,6 +249,7 @@ function dropBlock(player, block, actions, force) {
     if(block.material.tags.indexOf('no_drop') >= 0) {
         return;
     }
+
     if(block.material.drop_item) {
         const drop_block = BLOCK.fromName(block.material.drop_item?.name);
         if(drop_block) {
@@ -712,7 +713,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop]) {
+        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -720,6 +721,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
         // Другие действия с инструментами/предметами в руке
         if(mat_block.item) {
+            
             // Use intruments
             for(let func of [useShovel, useHoe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
@@ -1487,6 +1489,81 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
             }
         }
     }
+
+}
+
+// 
+async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!world_material || !mat_block || mat_block.style != 'cover') {
+        return false;
+    }
+    const orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
+    const position = new Vector(pos.x, pos.y, pos.z)
+    position.addSelf(pos.n);
+    const block = world.getBlock(position);
+    if (block && block.id == mat_block.id) {
+        // fix old vines
+        if(!block.extra_data) {
+            if(block.material && block.material.tags.includes('vines')) {
+                block.extra_data = JSON.parse(JSON.stringify(block.material.extra_data));
+                if(block.rotate) {
+                    switch(block.rotate.x) {
+                        case DIRECTION.SOUTH: block.extra_data.south = true; break;
+                        case DIRECTION.NORTH: block.extra_data.north = true; break;
+                        case DIRECTION.WEST: block.extra_data.west = true; break;
+                        case DIRECTION.EAST: block.extra_data.east = true; break;
+                    }
+                }
+            }
+        }
+        // поворт
+        if (pos.n.y != 0) {
+            block.extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
+        }
+        if (pos.n.y == 1) {
+            block.extra_data.up = true;
+        }
+        if (pos.n.y == -1) {
+            console.log(orientation)
+            block.extra_data.down = true;
+        }
+        if (pos.n.x == -1) {
+            block.extra_data.west = true;
+        }
+        if (pos.n.x == 1) {
+            block.extra_data.east = true;
+        }
+        if (pos.n.z == -1) {
+            block.extra_data.south = true;
+        }
+        if (pos.n.z == 1) {
+            block.extra_data.north = true;
+        }
+        actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    } else if (world_block.id != mat_block.id){
+        const data = {};
+        if (pos.n.y == 1) {
+            data.up = true;
+        }
+        if (pos.n.y == -1) {
+            data.down = true;
+        }
+        if (pos.n.x == -1) {
+            data.west = true;
+        }
+        if (pos.n.x == 1) {
+            data.east = true;
+        }
+        if (pos.n.z == -1) {
+            data.south = true;
+        }
+        if (pos.n.z == 1) {
+            data.north = true;
+        }
+        data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
+        actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    }
+    return true;
 }
 
 // Open fence gate

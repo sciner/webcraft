@@ -13,6 +13,14 @@ export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
 export const OFFSET_WAVE = 2;
 export const OFFSET_DAY = 3;
+export const LIGHT_STRIDE_BYTES = 5;
+export const OFFSET_NORMAL = 5;
+export const LIGHT_STRIDE_BYTES_NORMAL = 9;
+
+export const NORMAL_CX = 32;
+export const NORMAL_SCALE = 8;
+export const NORMAL_DEF = 0x808080;
+export const NORMAL_MASK = 0xffffff;
 
 export const OFFSET_COLUMN_TOP = 0;
 export const OFFSET_COLUMN_BOTTOM = 1;
@@ -48,6 +56,15 @@ export function adjustSrc(srcLight) {
 export function adjustLight(dstLight) {
     return Math.max((dstLight - 1) / 2, 0);
 }
+
+export const NORMAL_DX = [];
+export function calcNormalDx() {
+    for (let i = 0; i < 26; i++) {
+        NORMAL_DX.push(((dx[i] + (dz[i] << 8) + (dy[i] << 16)) * NORMAL_SCALE) & NORMAL_MASK);
+    }
+}
+
+calcNormalDx();
 
 export function initMasks() {
     for (let i = 0; i < DIR_COUNT; i++) {

@@ -1358,9 +1358,12 @@
         {
             "id": 106,
             "name": "VINE",
+            "style": "cover",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
             "transparent": true,
+            "can_rotate": true,
+            "passable": 0.25,
             "width": 0.0625,
             "planting": false,
             "texture": {
@@ -1371,14 +1374,21 @@
             ],
             "tags": [
                 "vines",
-                "mask_biome"
+                "no_drop_ao",
+                "mask_biome",
+                "rotate_by_pos_n"
             ],
             "material": {
                 "id": "plant"
             },
-            "style": "ladder",
-            "passable": 0.25,
-            "can_rotate": true
+            "extra_data": {
+                "down": false,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false
+            }
         },
         {
             "id": 32,
@@ -6758,6 +6768,46 @@
             "texture": {
                 "id": "default",
                 "side": "item/flint_and_steel.png"
+            }
+        },
+        {
+            "id": 230,
+            "name": "TUFF",
+            "texture": "./textures/tuff.png",
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 231,
+            "name": "GLOW_LICHEN",
+            "transparent": true,
+            "style": "cover",
+            "can_rotate": true,
+            "material": {
+                "id": "plant"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": "./textures/glow_lichen.png",
+            "tags": [
+                "no_drop_ao",
+                "no_drop",
+                "rotate_by_pos_n"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 140
+            },
+            "extra_data": {
+                "down": false,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false,
+                "rotate": false
             }
         }
     ]

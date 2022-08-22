@@ -86,6 +86,17 @@ export class UIApp {
         return result;
     }
 
+    async GetWorldPublicInfo(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/Game/getWorldPublicInfo', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     // JoinWorld...
     async JoinWorld(form, callback, callback_error, callback_progress, callback_final) {
         let result = [];
