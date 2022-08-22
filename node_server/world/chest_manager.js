@@ -19,7 +19,7 @@ export class WorldChestManager {
     async get(pos) {
         const tblock = this.world.getBlock(pos);
         if(!tblock || tblock.id < 1) {
-            throw 'error_chest_not_found';
+            throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
         }
         if(!tblock.material?.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
@@ -116,7 +116,7 @@ export class WorldChestManager {
 
     //
     sendContentToPlayers(players, block_pos) {
-        let tblock = this.world.getBlock(block_pos);
+        const tblock = this.world.getBlock(block_pos);
         if(!tblock || tblock.id < 0) {
             return false;
         }
@@ -130,7 +130,7 @@ export class WorldChestManager {
             state:          tblock.extra_data.state
         };
         for(let player of players) {
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_CHEST_CONTENT,
                 data: chest
             }];
@@ -191,6 +191,13 @@ export class WorldChestManager {
                 {id: bm.fromName('MUSIC_DISC_6').id,    count: [0, 0, 1]},
                 {id: bm.fromName('MUSIC_DISC_7').id,    count: [0, 0, 0, 1]},
                 {id: bm.fromName('MUSIC_DISC_8').id,    count: [0, 0, 0, 0, 0, 0, 1]},
+            ]);
+        }
+        //
+        if(pos.y > 500) {
+            items_kit.push(...[
+                {id: bm.fromName('PRISMARINE').id,      count: [0, 0, 2, 2, 4, 4, 6, 6, 8]},
+                {id: bm.fromName('SEA_LANTERN').id,     count: [0, 0, 1, 1, 2, 2, 3, 3, 4]},
             ]);
         }
         //

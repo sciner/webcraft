@@ -123,13 +123,23 @@ export class Spritesheet {
     }
 
     // drawTexture
-    async drawTexture(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null, subtexture_id) {
+    async drawTexture(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null, subtexture_id, compile_rules) {
         const ctx = this.getCtx(subtexture_id);
         if(globalCompositeOperation) {
             ctx.globalCompositeOperation = globalCompositeOperation;
         }
         const sw = Math.max(img.width, this.tx_sz);
         const sh = Math.max(img.height, this.tx_sz);
+        const use_filter = !!compile_rules?.filter;
+        // if using filter
+        if(use_filter) {
+            const fcanvas = new skiaCanvas.Canvas(img.width, img.height);
+            const fctx = fcanvas.getContext('2d');
+            fctx.imageSmoothingEnabled = false;
+            fctx.filter = compile_rules.filter;
+            fctx.drawImage(img, 0, 0, img.width, img.height);
+            img = fcanvas;
+        }
         ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
         if(has_mask) {
             if(overlay_mask) {
@@ -154,7 +164,7 @@ export class Spritesheet {
             }                        
         }
         // 
-        if(overlay_mask) {
+        if(overlay_mask || has_mask) {
             for(let i = 0; i < sx; i++) {
                 for(let j = 0; j < sy; j++) {
                     const index = this.XYToIndex(x + i + 1, y + j);

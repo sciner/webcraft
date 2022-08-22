@@ -1509,5 +1509,26 @@
             "item": "madcraft:sugar",
             "count": 1
         }
+    },
+    {
+        "id": "034db9b1-3ea8-4b9c-abdd-e53131f2ef35",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "I  ",
+            " F "
+        ],
+        "key": {
+            "F": {
+                "item": "madcraft:flint"
+            },
+            "I": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:flint_and_steel",
+            "count": 1
+        }
     }
 ]

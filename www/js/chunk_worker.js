@@ -126,6 +126,7 @@ async function onMessageFunc(e) {
         case 'createChunk': {
             for(let i = 0; i < args.length; i++) {
                 const item = args[i];
+                // console.log('3. createChunk: receive', new Vector(item.addr).toHash());
                 let from_cache = world.chunks.has(item.addr);
                 const update = ('update' in item) && item.update;
                 if(update) {
@@ -135,18 +136,17 @@ async function onMessageFunc(e) {
                     }
                 }
                 if(from_cache) {
-                    let chunk = world.chunks.get(item.addr);
+                    const chunk = world.chunks.get(item.addr);
                     const non_zero = chunk.tblocks.refreshNonZero();
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
                         addr:           chunk.addr,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
-
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
                     }]);
                 } else {
-                    let ci = world.createChunk(item);
+                    const ci = world.createChunk(item);
                     const non_zero = ci.tblocks.refreshNonZero();
                     const ci2 = {
                         addr: ci.addr,

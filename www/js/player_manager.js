@@ -63,26 +63,30 @@ export class PlayerManager {
 
     // setPlayerState
     setState(cmd) {
+
         const {
             data, time, 
         } = cmd;
 
-        let player = this.get(data.id);
+        const player = this.get(data.id);
 
         if(!player) { 
             return;
         }
 
-        player.sitting = data.sitting;
-        player.lies = data.lies;
+        player.distance = data.dist;
 
-        player.applyNetState({
-            pos: data.pos,
-            sneak: !!data.sneak,
-            rotate: data.rotate,
-            time: time,
-            hands: data.hands
-        });
+        if(data.pos) {
+            player.sitting = data.sitting;
+            player.lies = data.lies;
+            player.applyNetState({
+                pos: data.pos,
+                sneak: !!data.sneak,
+                rotate: data.rotate,
+                time: time,
+                hands: data.hands
+            });
+        }
     
     }
 

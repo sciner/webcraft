@@ -170,7 +170,7 @@ class Block_Material {
 // getBlockNeighbours
 export function getBlockNeighbours(world, pos) {
     let v = new Vector(0, 0, 0);
-    return neighbours = {
+    return {
         UP:     world.getBlock(v.set(pos.x, pos.y + 1, pos.z)),
         DOWN:   world.getBlock(v.set(pos.x, pos.y - 1, pos.z)),
         SOUTH:  world.getBlock(v.set(pos.x, pos.y, pos.z - 1)),

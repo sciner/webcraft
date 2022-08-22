@@ -37,12 +37,9 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "mask_color"
+                "multiply_color"
             ],
-            "compile": {
-                "overlay_mask": "./textures/water_overlay.png"
-            },
-            "mask_color": {"r": 62, "g": 150, "b": 0},
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
             "spawnable": false
         },
         {
@@ -65,9 +62,9 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "mask_color"
+                "multiply_color"
             ],
-            "mask_color": {"r": 62, "g": 150, "b": 0},
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
             "fluid": {
                 "max_power": 1,
                 "still_block_id": 202
@@ -143,7 +140,6 @@
             "can_rotate": true,
             "spawnable": false,
             "is_portal": true,
-            "_spawnable": false,
             "material": {
                 "id": "glass"
             },
@@ -151,8 +147,13 @@
                 "side": null
             },
             "tags": [
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "mask_color"
             ],
+            "mask_color": {"r": 84, "g": 540, "b": 0},
+            "compile": {
+                "filter": "saturate(0%) brightness(300%)"
+            },
             "light_power": {
                 "r": 253,
                 "g": 200,
@@ -742,22 +743,6 @@
             }
         },
         {
-            "id": 552,
-            "name": "SHEARS",
-            "transparent": true,
-            "max_in_stack": 1,
-            "style": "extruder",
-            "diagonal": true,
-            "item": {"name": "instrument", "instrument_id": "shears"},
-            "material": {
-                "id": "iron"
-            },
-            "texture": {
-                "id": "default",
-                "side": "item/shears.png"
-            }
-        },
-        {
             "id": 467,
             "name": "COARSE_DIRT",
             "sound": "madcraft:block.gravel",
@@ -1228,6 +1213,22 @@
                 "glass",
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 552,
+            "name": "SHEARS",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "shears"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/shears.png"
+            }
         },
         {
             "id": 201,
@@ -6741,6 +6742,32 @@
                 "side": "block/glass.png",
                 "down": "block/obsidian.png",
                 "east": "entity/beacon_beam.png"
+            }
+        },
+        {
+            "id": 228,
+            "name": "FLINT",
+            "style": "extruder",
+            "texture": "item/flint.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 229,
+            "name": "FLINT_AND_STEEL",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "flint_and_steel"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/flint_and_steel.png"
             }
         },
         {

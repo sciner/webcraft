@@ -418,6 +418,7 @@ export class ServerChunk {
         }
     }
 
+
     //
     scanTickingBlocks(ticking_blocks) {
         let block = null;
@@ -532,7 +533,7 @@ export class ServerChunk {
     addModifiedBlock(pos, item) {
         this.modify_list[pos.getFlatIndexInChunk()] = item;
         if(item && item.id) {
-            let block = BLOCK.fromId(item.id);
+            const block = BLOCK.fromId(item.id);
             if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
                 this.ticking_blocks.add(block.id, pos, block.ticking);
             }
