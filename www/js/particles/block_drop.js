@@ -2,6 +2,7 @@ import {Vector} from '../helpers.js';
 import { NetworkPhysicObject } from '../network_physic_object.js';
 import { MeshGroup, FakeTBlock } from '../mesh/group.js';
 
+
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
 
@@ -144,7 +145,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
                 return this.pickup();
             }
             this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalar(-MAX_FLY_SPEED * delta / 1000));
-        } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME)) {
+        } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME && !this.isDead())
+        ) {
             // if dist less need, drop item start to fly to center of player body
             this.no_update = true;
             // start timeout for pickup
@@ -160,10 +162,14 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     }
 
+    isDead() {
+        return this.deathTime < (Date.now()/1000);
+    }
+
     // Draw
     draw(render, delta) {
 
-        if(this.now_draw) {
+        if(this.now_draw || this.isDead()) {
             return false;
         }
 
@@ -208,6 +214,9 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
      * @param {mat4} prePendMatrix 
      */
      drawDirectly(render, prePendMatrix = null) {
+        if (this.isDead()){
+            return false;
+        }
         if (prePendMatrix) {
             mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
         }

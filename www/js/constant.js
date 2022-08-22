@@ -4,6 +4,7 @@ export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 128.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
+export const DROP_LIFE_TIME_SECONDS         = 60;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
