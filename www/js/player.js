@@ -150,7 +150,11 @@ export class Player {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
                 if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
                     if(e.number++ == 0) {
-                        console.log('Create LILY_PAD');
+                        e.pos = bPos;
+                        this.world.server.Send({
+                            name: ServerClient.CMD_PICKAT_ACTION,
+                            data: e
+                        });
                     }
                     return true;
                 }
