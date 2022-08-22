@@ -6,6 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
+import { Raycaster, RaycasterResult } from "./Raycaster.js";
 
 const _createBlockAABB = new AABB();
 
@@ -689,7 +690,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, test]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1328,6 +1329,17 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
     }
     return false;
 }
+//
+async function test(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(mat_block.id != 232) {
+        return false;
+    }
+    let raycaster          = new Raycaster(world);
+    let  res = raycaster.get(player.pos.add(0, 2, 0), new Vector(Math.sin(player.rotate.z), Math.sin(player.rotate.x), Math.cos(player.rotate.z)), 100);
+    console.log(res);
+    return true;
+}
+
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
 async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {

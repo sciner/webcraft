@@ -6732,6 +6732,17 @@
                 "down": "block/obsidian.png",
                 "east": "entity/beacon_beam.png"
             }
+        },
+        {
+            "id": 232,
+            "name": "LILY_PAD",
+            "transparent": true,
+            "height": 0.0625,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/lily_pad.png"
         }
     ]
 }
