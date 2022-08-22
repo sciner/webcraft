@@ -1,4 +1,4 @@
-import { IndexedColor, Vector } from '../../helpers.js';
+import { IndexedColor, Vector, Helpers } from '../../helpers.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { noise, alea } from "../default.js";
