@@ -53,6 +53,7 @@ export class ServerWorld {
         }
         //
         this.db             = db_world;
+        this.db.removeDeadDrops();
         this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
