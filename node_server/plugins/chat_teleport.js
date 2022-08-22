@@ -54,7 +54,7 @@ export default class TeleportPlugin {
                                 let row = await world.db.getTeleportPoint(id, title);
                                 if (!row) {
                                     await world.db.addTeleportPoint(id, title, x, y, z);
-                                    this.sendMessage("Точка " + title + " добавлена", player);
+                                    this.sendMessage(`teleport_point_added|${title}`, player);
                                 } else {
                                     this.sendMessage("Точка с именем " + title + " уже существует", player);
                                 }

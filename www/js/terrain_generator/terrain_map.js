@@ -327,7 +327,6 @@ export class TerrainMap extends Default_Terrain_Map {
             sums[ind] = sums[ind - ROW3] + vals[ind - ROW3]
             sums[ind + 1] = sums[ind - ROW3 + 1] + vals[ind - ROW3 + 1];
             sums[ind + 2] = sums[ind - ROW3 + 2] + vals[ind - ROW3 + 2];
-
             for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
                 for (let k = 0; k < 3; k++) {
                     const ind = ((z * SMOOTH_ROW_COUNT) + x) * 3 + k;
@@ -368,19 +367,19 @@ export class TerrainMap extends Default_Terrain_Map {
         for(let x = 0; x < CHUNK_SIZE_X; x++) {
             for(let z = 0; z < CHUNK_SIZE_Z; z++) {
                 const ind = (z + SMOOTH_RAD * 2) * SMOOTH_ROW_COUNT + (x + SMOOTH_RAD * 2);
-                let cell        = cells[ind];
-
+                const cell = cells[ind];
                 const ind1 = ind - SMOOTH_RAD * SMOOTH_ROW_COUNT - SMOOTH_RAD;
                 const ind2 = ind - SMOOTH_RAD * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
                 const ind3 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT - SMOOTH_RAD;
                 const ind4 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
-                let height_sum  = sums[ind1 * 3] + sums[ind4 * 3] - sums[ind2 * 3] - sums[ind3 * 3];
-                let dirt_color  = new IndexedColor(
+                const height_sum  = sums[ind1 * 3] + sums[ind4 * 3] - sums[ind2 * 3] - sums[ind3 * 3];
+                const dirt_color  = new IndexedColor(
                     sums[ind1 * 3 + 1] + sums[ind4 * 3 + 1] - sums[ind2 * 3 + 1] - sums[ind3 * 3 + 1],
-                sums[ind1 * 3 + 2] + sums[ind4 * 3 + 2] - sums[ind2 * 3 + 2] - sums[ind3 * 3 + 2],
-                    0);
+                    sums[ind1 * 3 + 2] + sums[ind4 * 3 + 2] - sums[ind2 * 3 + 2] - sums[ind3 * 3 + 2],
+                    0
+                );
                 // Не сглаживаем блоки пляжа и океана
-                let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
+                const smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
                     if(cell.value2 <= this.options.WATER_LINE) {

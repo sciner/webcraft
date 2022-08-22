@@ -94,6 +94,13 @@
         "given": {"en": "Given %0", "ru": "Выдан %0", "fr": "", "es": "","man":""},
         "error_unknown_item": {"en": "Unknown item %0", "ru": "Неизвестный предмет %0", "fr": "", "es": "","man":""},
         "clipboard_cleared": {"en": "Clipboard cleared", "ru": "Буфер обмена очищен", "fr": "", "es": "","man":""},
-        "bottom_caves": {"en": "Bottom caves", "ru": "Пещеры нижнего мира", "fr": "", "es": "","man":""}
+        "bottom_caves": {"en": "Bottom caves", "ru": "Пещеры нижнего мира", "fr": "", "es": "","man":""},
+        "teleport_point_added": {"en": "Teleport point `%0` added", "ru": "Точка `%0` добавлена", "fr": "", "es": "","man":""},
+        "player_connected": {"en": "Player `%0` connected", "ru": "Игрок `%0` присоединился", "fr": "", "es": "","man":""},
+        "admin_added": {"en": "Admin added", "ru": "Администратор добавлен", "fr": "", "es": "","man":""},
+        "admin_removed": {"en": "Admin removed", "ru": "Администратор удалён", "fr": "", "es": "","man":""},
+        "generator_seed": {"en": "Generator seed: %0", "ru": "Зерно генератора: %0", "fr": "", "es": "","man":""},
+        "admin_list": {"en": "%0", "ru": "%0", "fr": "%0", "es": "%0","man":"%0"},
+        "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0"}
     }
 }

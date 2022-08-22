@@ -1,7 +1,7 @@
 import {getChunkAddr, makeChunkEffectID, Vector, VectorCollector} from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
-import {BLOCK} from "./blocks.js";
+import {BLOCK, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
@@ -57,6 +57,7 @@ export class Chunk {
         this._dataTexture = null;
         this._dataTextureDirty = false;
         // Run webworker method
+        // console.log('2. createChunk: send', this.addr.toHash());
         chunkManager.postWorkerMessage(['createChunk', [
             {
                 addr:           this.addr,
@@ -77,6 +78,14 @@ export class Chunk {
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
+        }
+        //
+        const mods_arr = chunkManager.chunk_modifiers.get(this.addr);
+        if(mods_arr) {
+            chunkManager.chunk_modifiers.delete(this.addr);
+            const set_block_list = [];
+            this.newModifiers(mods_arr, set_block_list);
+            chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
         this.inited = true;
         this.initLights();
@@ -352,7 +361,7 @@ export class Chunk {
         } else {
             v = new Vector(x, y, z);
         }
-        let block = this.tblocks.get(v);
+        const block = this.tblocks.get(v);
         return block;
     }
 
@@ -484,6 +493,61 @@ export class Chunk {
         frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
         frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
         return frustum_geometry;
+    }
+
+    //
+    newModifiers(mods_arr, set_block_list) {
+        const chunkManager = this.getChunkManager();
+        const tblock_pos        = new Vector(Infinity, Infinity, Infinity);
+        let material            = null;
+        let tblock              = null;
+        const is_modify         = false;
+        for(let i = 0; i < mods_arr.length; i++) {
+            const pos = mods_arr[i].pos;
+            const type = mods_arr[i].item;
+            if(!material || material.id != type.id) {
+                material = BLOCK.fromId(type.id);
+            }
+            //
+            tblock_pos.set(pos.x - this.coord.x, pos.y - this.coord.y, pos.z - this.coord.z);
+            tblock = this.tblocks.get(tblock_pos, tblock);
+            // light
+            let oldLight = 0;
+            if(chunkManager.use_light) {
+                if(!tblock.material) {
+                    debugger
+                }
+                oldLight = tblock.material.light_power_number;
+            }
+            this.tblocks.delete(tblock_pos);
+            // fill properties
+            tblock.id = type.id;
+            const extra_data = ('extra_data' in type) ? type.extra_data : null;
+            const entity_id = ('entity_id' in type) ? type.entity_id : null;
+            const rotate = ('rotate' in type) ? type.rotate : null;
+            const power = ('power' in type) ? type.power : POWER_NO;
+            if(extra_data) tblock.extra_data = extra_data;
+            if(entity_id) tblock.entity_id = entity_id;
+            if(rotate) tblock.rotate = rotate;
+            if(power) tblock.power = power;
+            //
+            set_block_list.push({pos, type, power, rotate, extra_data, is_modify});
+            chunkManager.animated_blocks.delete(pos);
+            // light
+            if(chunkManager.use_light) {
+                const light = material.light_power_number;
+                if(oldLight !== light) {
+                    // updating light here
+                    chunkManager.postLightWorkerMessage(['setBlock', {
+                        addr:           this.addr,
+                        x:              pos.x,
+                        y:              pos.y,
+                        z:              pos.z,
+                        light_source:   light
+                    }]);
+                }
+            }
+        }
     }
 
 }
