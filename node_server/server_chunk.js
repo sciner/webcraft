@@ -5,7 +5,6 @@ import {BLOCK} from "../www/js/blocks.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {WorldAction} from "../www/js/world_action.js";
-import { WorldPortal } from "./portal.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;

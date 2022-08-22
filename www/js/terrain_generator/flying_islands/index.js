@@ -109,13 +109,15 @@ export default class Terrain_Generator extends Demo_Map {
         // Trees
         if(tree_pos && tree_pos.y < 32) {
             let type = { "percent": 0.99, "trunk": 3, "leaves": 233, "style": "wood", "height": { "min": 4, "max": 8 } };
-            let tree_height = rnd.double();
-            if(tree_height < .05) {
-                type = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
-            } else if(tree_height < .5) {
-                type = {trunk: BLOCK.BIRCH_LOG.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}};
+            const r = rnd.double();
+            if(r < .05) {
+                type = {"trunk": BLOCK.MUSHROOM_STEM.id, "leaves": BLOCK.RED_MUSHROOM_BLOCK.id, "style": 'mushroom', "height": {"min": 5, "max": 12}};
+            } else if(r < .5) {
+                type = {"trunk": BLOCK.BIRCH_LOG.id, "leaves": BLOCK.BIRCH_LEAVES.id, "style": 'wood', "height": {"min": 4, "max": 8}};
+            } else if(r < .55) {
+                type = {"trunk": BLOCK.PRISMARINE.id, "leaves": null, "style": 'tundra_stone', "height": {"min": 2, "max": 2}};
             }
-            tree_height = Math.round((tree_height) * 4 + 4)
+            const tree_height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
             this.plantTree({
                     "biome_code": "TROPICAL_SEASONAL_FOREST", "pos": tree_pos, "height": tree_height, "rad": 3,
                     type

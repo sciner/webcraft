@@ -731,6 +731,14 @@ export class DBWorldMigration {
             ...update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 78, queries: [
+            `DELETE FROM world_modify WHERE block_id = 94`,
+            `DELETE FROM portal`,
+            `ALTER TABLE portal ADD COLUMN "type" TEXT NOT NULL`,
+            `ALTER TABLE portal ADD COLUMN "pair" TEXT`,
+            ...update_world_modify_chunks,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

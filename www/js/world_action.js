@@ -6,7 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
-// import { WorldPortal } from "../../node_server/portal.js";
+import { WorldPortal } from "./portal.js";
 
 const _createBlockAABB = new AABB();
 
@@ -1253,7 +1253,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
         return;
     }
 
-    if (!world_material || (world_material.id != BLOCK.OBSIDIAN.id && world_material.id != BLOCK.NETHER_PORTAL.id)) {
+    if (!world_material || (world_material.id != BLOCK.NETHER_PORTAL.id)) {
         return;
     }
     
@@ -1318,17 +1318,19 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
 // создание портала
 async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
 
-    if(!Qubatch.is_server) {
+    if (!Qubatch.is_server || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
         return;
     }
 
-    if (!world_material || world_material.id != BLOCK.OBSIDIAN.id) {
+    const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
+
+    console.log(portal_type);
+
+    if (!portal_type) {
         return;
     }
-    
-    if (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) {
-        return;
-    }
+
+    const frame_block_id = world_material.id;
     
     // находим растояние до стенки
     const getDistanceEdge = (pos, dir) => {
@@ -1345,8 +1347,8 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
                     blockpos = new Vector(pos.x, pos.y, pos.z - i);
                     break;
             }
-            if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != BLOCK.OBSIDIAN.id) {
-                return world.getBlock(blockpos).id == BLOCK.OBSIDIAN.id ? i : 0;
+            if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != frame_block_id) {
+                return world.getBlock(blockpos).id == frame_block_id ? i : 0;
             }
         }
         return 0;
@@ -1359,17 +1361,17 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
     let left_dir = DIRECTION.WEST;
     let right_dir = DIRECTION.EAST;
     let nullpos = new Vector(pos.x + pos.n.x, pos.y + pos.n.y, pos.z + pos.n.z);
-    
+
     do {
         nullpos.addSelf(Vector.YN);
     } while(world.getBlock(nullpos).id == BLOCK.AIR.id);
     nullpos.addSelf(Vector.YP);
-    
+
     if (getDistanceEdge(nullpos, DIRECTION.EAST) == 0) {
         left_dir = DIRECTION.SOUTH;
         right_dir = DIRECTION.NORTH;
     }
-    
+
     if (nullpos) {
         // находим ширину
         const dist = getDistanceEdge(nullpos, left_dir) - 1;
@@ -1389,11 +1391,11 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
                     const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
                     const block = world.getBlock(blockpos);
                     if (i == -1) {
-                        if (block.id != BLOCK.OBSIDIAN.id) {
+                        if (block.id != frame_block_id) {
                             break rep;
                         }
                     } else if (i == width) {
-                        if (block.id != BLOCK.OBSIDIAN.id) {
+                        if (block.id != frame_block_id) {
                             break rep;
                         }
                     } else {
@@ -1408,13 +1410,13 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
             for (let j = 0; j < width; ++j) {
                 let blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, height, 0) : bottom_left.offset(0, height, j);
                 let block = world.getBlock(blockpos);
-                if (block.id != BLOCK.OBSIDIAN.id) {
+                if (block.id != frame_block_id) {
                     height = 0;
                     break;
                 }
             }
             
-            if (height > 2) {
+            if(height > 2) {
                 // Блок портала
                 const portal_block = {
                     id: BLOCK.NETHER_PORTAL.id,
@@ -1430,7 +1432,9 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
                     rotate:             portal_block.rotate.clone(),
                     size:               {width: width + 2, height: height + 2},
                     player_pos:         bottom_left.clone(),
-                    portal_block_id:    portal_block.id
+                    pair_pos:           null,
+                    portal_block_id:    portal_block.id,
+                    type:               portal_type.id
                 };
                 //
                 if(right_dir == DIRECTION.EAST) {
@@ -1438,9 +1442,25 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
                 } else {
                     portal.player_pos.addScalarSelf(.5, 1, width / 2);
                 }
+                // check restricts
+                let restricted = false;
+                for(let restrict of portal_type.open_restricts) {
+                    restricted = true;
+                    for(let k in restrict) {
+                        if(k == 'ymore' && !(portal.player_pos.y >= restrict[k])) restricted = false;
+                        if(k == 'yless' && !(portal.player_pos.y <= restrict[k])) restricted = false;
+                    }
+                    if(restricted) break;
+                }
+                if(restricted) {
+                    throw 'error_portal_restricted_place';
+                }
                 //
                 if(Qubatch.is_server) {
-                    portal_block.extra_data = {id: await world.db.portal.add(player.session.user_id, portal)};
+                    portal_block.extra_data = {
+                        id: await world.db.portal.add(player.session.user_id, portal),
+                        type: portal_type.id
+                    };
                 }
                 // Заполняем окно
                 const arr = [];

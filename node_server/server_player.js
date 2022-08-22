@@ -8,9 +8,9 @@ import { PlayerEvent } from "./player_event.js";
 import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y } from "../www/js/chunk_const.js";
-import { FLYING_ISLANDS_START_POS, FLYING_ISLANDS_START_Y_ADDR, MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
-import { WorldPortal, WorldPortalWait } from "./portal.js";
+import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
+import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 
 export class NetworkMessage {
@@ -329,20 +329,54 @@ export class ServerPlayer extends Player {
                 // world.actions_queue.add(null, actions);
             };
             if(wait_info.params?.found_or_generate_portal) {
+                const from_portal_id = wait_info.params?.from_portal_id;
+                let from_portal;
+                let from_portal_type = WorldPortal.getDefaultPortalType();
+                if(from_portal_id) {
+                    from_portal = await this.world.db.portal.getByID(from_portal_id);
+                    if(from_portal) {
+                        //if(WorldPortal.getPortalTypeByID(from_portal.type)) {
+                        //    from_portal_type = ...;
+                        //}
+                        if(from_portal.pair_pos) {
+                            wait_info.pos = from_portal.pair.pos;
+                        }
+                    }
+                }
                 // found existed portal around near
-                const exists_portal = await this.world.db.portal.search(wait_info.pos, MAX_PORTAL_SEARCH_DIST);
+                let exists_portal = null;
+                if(from_portal?.pair) {
+                    exists_portal = await this.world.db.portal.getByID(from_portal?.pair.id);
+                }
+                if(!exists_portal) {
+                    exists_portal = await this.world.db.portal.search(wait_info.pos, MAX_PORTAL_SEARCH_DIST);
+                }
                 console.log('exists_portal', exists_portal);
                 if(exists_portal) {
+                    this.prev_use_portal = performance.now();
                     wait_info.pos = exists_portal.player_pos;
                     sendTeleport();
                 } else {
+                    // check max attempts
+                    const max_attempts = [
+                        0, 0, 123, /* 2 */ 255, 455, /* 4 */ 711, 987, 1307, 1683, 2099,
+                        2567, /*10*/ 3031, 3607, 4203, 4843, 5523, 6203 /* 16 */][this.state.chunk_render_dist];
+                        // const force_teleport = ++wait_info.attempt == max_attempts;
                     for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
                         if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                            if(ALLOW_NEGATIVE_Y || chunk.addr.y >= 0 && chunk.addr.y == FLYING_ISLANDS_START_Y_ADDR) {
-                                if(await WorldPortal.checkWaitPortal(this.world, chunk, this)) {
-                                    sendTeleport();
-                                    break;
+                            const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
+                            if(new_portal) {
+                                wait_info.pos = new_portal.player_pos;
+                                this.prev_use_portal = performance.now();
+                                // pair two portals
+                                if(from_portal) {
+                                    // @todo update from portal
+                                    await this.world.db.portal.setPortalPair(from_portal.id, {id: new_portal.id, player_pos: new_portal.player_pos});
+                                    // @todo update new portal
+                                    await this.world.db.portal.setPortalPair(new_portal.id, {id: from_portal.id, player_pos: from_portal.player_pos});
                                 }
+                                sendTeleport();
+                                break;
                             }
                         }
                     }
@@ -427,22 +461,29 @@ export class ServerPlayer extends Player {
 
     // Teleport player if in portal
     checkInPortal() {
-        if(this.wait_portal || (this.prev_use_portal && (performance.now() - this.prev_use_portal < PORTAL_USE_INTERVAL))) {
+        if(this.wait_portal) {
             return false;
         }
+        if(this.prev_use_portal) {
+            if(performance.now() - this.prev_use_portal < PORTAL_USE_INTERVAL) {
+                return false;
+            }
+        }
+        //
         const pos_legs      = new Vector(this.state.pos).flooredSelf();
         const pos_body      = pos_legs.add(Vector.YP).flooredSelf();
         const tblock_body   = this.world.getBlock(pos_body);
         const tblock_legs   = this.world.getBlock(pos_legs);
-        const in_portal     = tblock_body.material?.is_portal == true && tblock_legs.material?.is_portal == true;
+        const portal_block  = tblock_body.material?.is_portal ? tblock_body : (tblock_legs.material?.is_portal ? tblock_legs : null);
+        const in_portal     = !!portal_block;
+        //
         if(in_portal != this.in_portal) {
             this.in_portal = in_portal;
             if(this.in_portal) {
                 if(!this.wait_portal) {
-                    if(pos_legs.y < FLYING_ISLANDS_START_POS) {
-                        // @todo need to check portal type
-                        this.teleport({place_id: 'portal_flyislands', pos: null});
-                    }
+                    const type = portal_block.extra_data.type;
+                    const from_portal_id = portal_block.extra_data.id;
+                    this.teleport({portal: {type, from_portal_id}});
                 }
             }
         }
@@ -476,12 +517,13 @@ export class ServerPlayer extends Player {
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
-        if (params.pos) {
+        if(params.pos) {
+            // 1. teleport to pos
             new_pos = params.pos;
-        } else if (params.p2p) {
+        } else if(params.p2p) {
+            // teleport player to player
             let from_player = null;
             let to_player = null;
-            // tp to another player
             for(let player of world.players.values()) {
                 const username = player.session?.username?.toLowerCase();
                 if(username == params.p2p.from.toLowerCase()) {
@@ -497,7 +539,8 @@ export class ServerPlayer extends Player {
             } else {
                 throw 'error_invalid_usernames';
             }
-        } else if (params.place_id) {
+        } else if(params.place_id) {
+            // teleport to place
             switch(params.place_id) {
                 case 'spawn': {
                     new_pos = this.state.pos_spawn;
@@ -511,30 +554,34 @@ export class ServerPlayer extends Player {
                     ).roundSelf();
                     break;
                 }
-                default: {
-                    if(params.place_id.startsWith('portal_')) {
-                        new_pos = new Vector(this.state.pos).flooredSelf();
-                        // @todo hardcode Y start pos
-                        new_pos.y = FLYING_ISLANDS_START_POS;
-                        // @todo need to search portal near this coord
-                        params.found_or_generate_portal = true; // if portal not found around target coords
-                        break;
-                    }
+            }
+        } else if(params.portal) {
+            // teleport by portal
+            const portal_type = WorldPortal.getPortalTypeByID(params.portal.type);
+            if(portal_type) {
+                const y_diff = Math.abs(this.state.pos.y - portal_type);
+                if(y_diff < CHUNK_SIZE_Y * 2) {
+                    // @todo what can i do if player make portal to current level?
+                }
+                new_pos = new Vector(this.state.pos).flooredSelf();
+                new_pos.y = portal_type.y;
+                params.found_or_generate_portal = true;
+                if(params.portal.from_portal_id) {
+                    params.from_portal_id = params.portal.from_portal_id;
                 }
             }
         }
+        // If need to teleport
         if(new_pos) {
             if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            //
             teleported_player.wait_portal = new WorldPortalWait(
                 teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
                 new_pos,
                 params
             );
-            //
             teleported_player.state.pos = new_pos;
             world.chunks.checkPlayerVisibleChunks(teleported_player, true);
         }

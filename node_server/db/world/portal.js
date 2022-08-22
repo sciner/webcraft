@@ -1,5 +1,5 @@
 import { Vector } from "../../../www/js/helpers.js";
-import { WorldPortal } from "../../portal.js";
+import { WorldPortal } from "../../../www/js/portal.js";
 
 export class DBWorldPortal {
 
@@ -14,7 +14,7 @@ export class DBWorldPortal {
      * @returns 
      */
     async add(user_id, portal) {
-        const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id)', {
+        const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id, type, pair) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id, :type, :pair)', {
             ':dt':              ~~(Date.now() / 1000),
             ':user_id':         user_id,
             ':x':               portal.pos.x,
@@ -23,7 +23,9 @@ export class DBWorldPortal {
             ':rotate':          JSON.stringify(portal.rotate),
             ':size':            JSON.stringify(portal.size),
             ':player_pos':      JSON.stringify(portal.player_pos),
-            ':portal_block_id': portal.portal_block_id
+            ':portal_block_id': portal.portal_block_id,
+            ':type':            portal.type,
+            ':pair':            portal.pair ? JSON.stringify(portal.pair) : null
         });
         // lastID
         let lastID = result.lastID;
@@ -48,12 +50,13 @@ export class DBWorldPortal {
     }
 
     /**
-     * Return nearest to pos portal
+     * Return nearest portal for position
      * @param {Object} pos 
      * @param {number} max_dist 
+     * @param {string} type 
      * @returns 
      */
-    async search(pos, max_dist) {
+    async search(pos, max_dist, type) {
         const row = await this.conn.get(`WITH portals AS (SELECT _rowid_ as id, *, sqrt((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) as dist
         FROM portal
         WHERE sqrt((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) < :max_dist)
@@ -66,13 +69,56 @@ export class DBWorldPortal {
         if(!row) {
             return null;
         }
+        return this.formatPortalRow(row);
+    }
+
+    /**
+     * Save portal pair
+     * @param {number} portal_id 
+     * @param {*} pair 
+     */
+    async setPortalPair(portal_id, pair) {
+        await this.conn.run('UPDATE portal SET pair = :pair WHERE _rowid_ = :portal_id', {
+            ':portal_id': portal_id,
+            ':pair':      JSON.stringify(pair)
+        });
+    }
+
+    /**
+     * Return portal by ID
+     * @param {number} portal_id 
+     * @returns 
+     */
+    async getByID(portal_id) {
+        const row = await this.conn.get(`SELECT _rowid_ as id, * FROM portal
+        WHERE _rowid_ = :portal_id`, {
+            ':portal_id': portal_id
+        });
+        if(!row) {
+            return null;
+        }
+        return this.formatPortalRow(row);
+    }
+
+    /**
+     * @param {*} row 
+     * @returns 
+     */
+    formatPortalRow(row) {
+        const pair = row.pair ? JSON.parse(row.pair) : null;
+        if(pair) {
+            pair.id = parseInt(pair.id);
+            pair.player_pos = new Vector(pair.player_pos);
+        }
         return {
             id:                 parseInt(row.id),
             portal_block_id:    parseInt(row.portal_block_id),
             pos:                new Vector(row.x, row.y, row.z),
             size:               new Vector(JSON.parse(row.size)),
             rotate:             new Vector(JSON.parse(row.rotate)),
-            player_pos:         new Vector(JSON.parse(row.player_pos))
+            player_pos:         new Vector(JSON.parse(row.player_pos)),
+            type:               row.type,
+            pair:               pair
         };
     }
 
