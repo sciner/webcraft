@@ -189,7 +189,7 @@ export class Raycaster {
             leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > this.BLOCK.AIR.id && !b.material.is_fluid;
+            let hitShape = b.id > this.BLOCK.AIR.id;// && !b.material.is_fluid;
             if(ignore_transparent && b.material.invisible_for_cam) {
                 hitShape = false;
             }

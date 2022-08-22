@@ -1334,9 +1334,20 @@ async function test(e, world, pos, player, world_block, world_material, mat_bloc
     if(mat_block.id != 232) {
         return false;
     }
-    let raycaster          = new Raycaster(world);
-    let  res = raycaster.get(player.pos.add(0, 2, 0), new Vector(Math.sin(player.rotate.z), Math.sin(player.rotate.x), Math.cos(player.rotate.z)), 100);
-    console.log(res);
+    if(Qubatch.is_server) {
+        const p = world.players.get(player.session.user_id);
+        if(p) {
+            const result = p?.raycastFromHead();
+            if(result) {
+                const b = world.getBlock(new Vector(result));
+                if (b && b.material.name == "STILL_WATER") {
+                    const position = new Vector(pos);
+                    position.addSelf(pos.n);
+                    actions.addBlocks([{pos: position, item: {id: 232}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                }
+            }
+        }
+    }
     return true;
 }
 

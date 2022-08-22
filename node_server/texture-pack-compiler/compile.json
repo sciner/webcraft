@@ -6739,9 +6739,14 @@
             "transparent": true,
             "height": 0.0625,
             "sound": "madcraft:block.stone",
+            "can_rotate": true,
             "material": {
                 "id": "stone"
             },
+            "tags": [
+                "mask_biome",
+                "no_drop_ao"
+            ],
             "texture": "block/lily_pad.png"
         }
     ]
