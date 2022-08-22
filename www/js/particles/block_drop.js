@@ -147,19 +147,25 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalar(-MAX_FLY_SPEED * delta / 1000));
         } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME && !this.isDead())
         ) {
-            // if dist less need, drop item start to fly to center of player body
-            this.no_update = true;
-            // start timeout for pickup
-            this.pickup_timeout = setTimeout(() => {
-                this.pickup();
-            }, MAX_FLY_TIME);
-            //
-            player.world.server.PickupDropItem([this.entity_id]);
+            if(this.age > 2) {
+                // if dist less need, drop item start to fly to center of player body
+                this.no_update = true;
+                // start timeout for pickup
+                this.pickup_timeout = setTimeout(() => {
+                    this.pickup();
+                }, MAX_FLY_TIME);
+                //
+                player.world.server.PickupDropItem([this.entity_id]);
+            }
         } if(!this.no_update) {
             // if drop item in calm state
             this.update();
         }
 
+    }
+
+    get age() {
+        return ~~(Date.now() / 1000) - this.dt;
     }
 
     isDead() {
