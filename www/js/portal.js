@@ -130,7 +130,15 @@ export class WorldPortal {
                     for(b_pos[d] = pos[d]; b_pos[d] < pos[d] + PORTAL_SIZE.width; b_pos[d]++) {
                         const is_frame = (b_pos.y == pos.y || b_pos.y == pos.y + PORTAL_SIZE.height - 1) ||
                             (b_pos[d] == pos[d] || b_pos[d] == pos[d] + PORTAL_SIZE.width - 1);
-                        actions.addBlocks([{pos: b_pos.clone(), item: is_frame ? frame_block : portal_block, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                        let block = is_frame ? frame_block : portal_block;
+                        if(is_frame && type.id == 'ROUTINE') {
+                            if(b_pos.y == pos.y || b_pos.y == pos.y + PORTAL_SIZE.height - 1) {
+                                if(b_pos[d] == pos[d] || b_pos[d] == pos[d] + PORTAL_SIZE.width - 1) {
+                                    block = {id: world.block_manager.SEA_LANTERN.id};
+                                }
+                            }
+                        }
+                        actions.addBlocks([{pos: b_pos.clone(), item: block, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
                     }
                 }
                 world.actions_queue.add(null, actions);

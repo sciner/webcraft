@@ -1253,7 +1253,16 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
         return;
     }
 
-    if (!world_material || (world_material.id != BLOCK.NETHER_PORTAL.id)) {
+    // get frame material
+    let portal_frame_block_name = null;
+    if(world_material) {
+        const type = WorldPortal.getPortalTypeForFrame(world_material);
+        if(type) {
+            portal_frame_block_name = type.block_name;
+        }
+    }
+
+    if (!world_material || (world_material.id != BLOCK.NETHER_PORTAL.id && world_material.name != portal_frame_block_name)) {
         return;
     }
     

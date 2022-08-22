@@ -197,6 +197,7 @@ export class WorldChestManager {
         if(pos.y > 500) {
             items_kit.push(...[
                 {id: bm.fromName('PRISMARINE').id,      count: [0, 0, 2, 2, 4, 4, 6, 6, 8]},
+                {id: bm.fromName('SEA_LANTERN').id,     count: [0, 0, 1, 1, 2, 2, 3, 3, 4]},
             ]);
         }
         //
