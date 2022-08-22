@@ -597,7 +597,6 @@ export class WorldAction {
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, current_inventory_item) {
 
-    console.log(e);
     const actions = new WorldAction(e.id);
     const destroyBlocks = new DestroyBlocks(world, player, actions);
 

@@ -41,7 +41,6 @@ export default class packet_reader {
                     user_id: player.session.user_id
                 }
             };
-            console.log(packet);
             const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
             // @todo Need to compare two actions
             // console.log(JSON.stringify(params.actions.blocks));
