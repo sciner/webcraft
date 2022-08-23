@@ -6,11 +6,8 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
-<<<<<<< HEAD
 import { Raycaster, RaycasterResult } from "./Raycaster.js";
-=======
 import { WorldPortal } from "./portal.js";
->>>>>>> main
 
 const _createBlockAABB = new AABB();
 

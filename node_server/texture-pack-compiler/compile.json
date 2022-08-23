@@ -6745,7 +6745,6 @@
             }
         },
         {
-<<<<<<< HEAD
             "id": 232,
             "name": "LILY_PAD",
             "transparent": true,
@@ -6760,7 +6759,8 @@
                 "no_drop_ao"
             ],
             "texture": "block/lily_pad.png"
-=======
+        },
+        {
             "id": 228,
             "name": "FLINT",
             "style": "extruder",
