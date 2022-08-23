@@ -1669,7 +1669,16 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
     if(world_block.material.is_water) {
         const position = new Vector(pos);
         position.addSelf(pos.n);
-        actions.addBlocks([{pos: position, item: {id: 232}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        const block_air = world.getBlock(position.add(pos.n));
+        if (block_air.id == BLOCK.AIR.id) {
+            actions.addBlocks([{
+                pos: position, 
+                item: {
+                    id: mat_block.id
+                }, 
+                action_id: ServerClient.BLOCK_ACTION_CREATE
+            }]);
+        }
     }
     return true;
 }

@@ -6750,9 +6750,8 @@
             "transparent": true,
             "height": 0.0625,
             "sound": "madcraft:block.stone",
-            "can_rotate": true,
             "material": {
-                "id": "stone"
+                "id": "plant"
             },
             "tags": [
                 "set_on_water",
