@@ -9,7 +9,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction} from "./world_action.js";
+import {doBlockAction, WorldAction} from "./world_action.js";
 import { MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
@@ -142,6 +142,27 @@ export class Player {
                     data: e
                 });
             }
+        }, (bPos) => {
+            // onInteractFluid
+            const e = this.pickAt.damage_block.event;
+            const hand_current_item = this.inventory.current_item;
+            if(e && e.createBlock && hand_current_item) {
+                const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
+                if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
+                    if(e.number++ == 0) {
+                        e.pos = bPos;
+                        const e_orig = JSON.parse(JSON.stringify(e));
+                        e_orig.actions = new WorldAction(randomUUID());
+                        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                        this.world.server.Send({
+                            name: ServerClient.CMD_PICKAT_ACTION,
+                            data: e_orig
+                        });
+                    }
+                    return true;
+                }
+            }
+            return false;
         });
         return true;
     }
