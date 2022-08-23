@@ -6751,7 +6751,7 @@
             "height": 0.0625,
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "plant"
+                "id": "stone"
             },
             "tags": [
                 "set_on_water",
