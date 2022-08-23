@@ -45,14 +45,16 @@ export class Sounds {
         this.prev_index.set(index_key, index);
         // Play
         const track = list[index];
-        const track_id = this.sound_sprite_main.play(track.name);
-        volume = isNaN(volume) ? track.volume : track.volume * volume;
-        if(action == 'step') {
-            volume *= .1;
-        }
-        if(volume > 0) {
-            console.log(tag, action, volume)
-            this.sound_sprite_main.volume(volume, track_id);
+        if(track) {
+            const track_id = this.sound_sprite_main.play(track.name);
+            volume = isNaN(volume) ? track.volume : track.volume * volume;
+            if(action == 'step') {
+                volume *= .1;
+            }
+            if(volume > 0) {
+                console.debug(tag, action, volume)
+                this.sound_sprite_main.volume(volume, track_id);
+            }
         }
         return true;
     }
