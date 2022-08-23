@@ -1334,7 +1334,13 @@ async function test(e, world, pos, player, world_block, world_material, mat_bloc
     if(mat_block.id != 232) {
         return false;
     }
-    if(Qubatch.is_server) {
+    if (world_block.material.is_water) {
+        const position = new Vector(pos);
+        position.addSelf(pos.n);
+        actions.addBlocks([{pos: position, item: {id: 232}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+    }
+    /*if(
+   Qubatch.is_server) {
         const p = world.players.get(player.session.user_id);
         if(p) {
             const result = p?.raycastFromHead();
@@ -1347,7 +1353,7 @@ async function test(e, world, pos, player, world_block, world_material, mat_bloc
                 }
             }
         }
-    }
+    }*/
     return true;
 }
 

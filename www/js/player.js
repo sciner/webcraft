@@ -142,7 +142,7 @@ export class Player {
                     data: e
                 });
             }
-        }, (bPos) => {
+        }, async (bPos) => {
             // onInteractFluid
             const e = this.pickAt.damage_block.event;
             const hand_current_item = this.inventory.current_item;
@@ -150,7 +150,18 @@ export class Player {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
                 if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
                     if(e.number++ == 0) {
-                        
+                        e.test = true;
+                        e.pos = bPos;
+                        const e_orig = JSON.parse(JSON.stringify(e));
+                        const actions = await doBlockAction(e, this.world, this, this.currentInventoryItem);
+                        await this.world.applyActions(actions, this);
+                        e_orig.actions = {blocks: actions.blocks};
+                        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                        this.world.server.Send({
+                            name: ServerClient.CMD_PICKAT_ACTION,
+                            data: e_orig
+                        });
+                        return true;
                     }
                     return true;
                 }
