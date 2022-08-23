@@ -8,7 +8,7 @@ import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
-import { Particles_BeaconRay } from "./particles/beacon_ray.js";
+import { Particles_BeaconRay } from "./particles/bn_ray.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;

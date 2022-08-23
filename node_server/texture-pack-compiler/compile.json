@@ -6722,7 +6722,7 @@
             "name": "BEACON",
             "window": "frmBeacon",
             "transparent": true,
-            "style": "beacon",
+            "style": "bn",
             "ticking": {
                 "type": "beacon"
             },

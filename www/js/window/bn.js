@@ -1,8 +1,7 @@
 import { BLOCK } from "../blocks.js";
-import { Button, Label, TextEdit, Window } from "../../tools/gui/wm.js";
+import { Button, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-
 
 // слот для залога
 class BeaconSlot extends CraftTableSlot {
@@ -55,7 +54,7 @@ class ActiveButton extends Window {
         super(x, y, size, size, id, null, null);
         
         this.ct = ct;
-        this.style.background.image = './media/gui/beacon.png';
+        this.style.background.image = './media/gui/bn.png';
         this.style.border.hidden = true;
         this.style.background.sprite = {
             'mode': 'stretch',
@@ -65,7 +64,7 @@ class ActiveButton extends Window {
             'y': 438
         };
         this.setBackground(this.style.background.image, 'sprite');
-        this.style.icon.image = './media/gui/beacon.png';
+        this.style.icon.image = './media/gui/bn.png';
         this.style.icon.sprite = {
             'mode': 'stretch',
             'width': 43,
@@ -137,7 +136,7 @@ class EffectButton extends Window {
         super(x, y, size, size, id, null, null);
         this.icon = 'speed';
         this.ct = ct;
-        this.style.background.image = './media/gui/beacon.png';
+        this.style.background.image = './media/gui/bn.png';
         this.style.border.hidden = true;
         this.style.background.sprite = {
             'mode': 'stretch',
@@ -265,7 +264,7 @@ export class BeaconWindow extends BaseCraftWindow {
         this.style.background.image_size_mode = 'stretch';
         const options = {
             background: {
-                image: './media/gui/beacon.png',
+                image: './media/gui/bn.png',
                 image_size_mode: 'sprite',
                 sprite: {
                     mode: 'stretch',
