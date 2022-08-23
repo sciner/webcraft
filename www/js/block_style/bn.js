@@ -2,12 +2,12 @@ import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
-// маяк
+// Beacon/маяк
 export default class style {
     
     static getRegInfo() {
         return {
-            styles: ['beacon'],
+            styles: ['bn'],
             func: this.func,
             aabb: this.computeAABB
         };

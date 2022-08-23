@@ -3,11 +3,6 @@
     font-family: minecraftia;
     src: url('/style/minecraftia.ttf');
 }
-body {
-    /*
-    background: url(../media/background.png);
-    */
-}
 canvas {
     background: #00000000;
 }

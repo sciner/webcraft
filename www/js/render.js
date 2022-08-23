@@ -21,7 +21,7 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, PLAYER_MAX_DRAW_DISTANCE } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT } from "./constant.js";
 import { Weather } from "./type.js";
 
 const {mat3, mat4} = glMatrix;
@@ -785,13 +785,14 @@ export class Renderer {
         if(this.world.players.list.size < 1) {
             return;
         }
-        const {renderBackend, defaultShader} = this;
+        const defaultShader = this.defaultShader;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
             if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
                 continue;
             }
-            if(this.camPos.distance(player.pos) < PLAYER_MAX_DRAW_DISTANCE) {
+            // this.camPos.distance
+            if(player.itsMe() || player.distance) {
                 player.draw(this, this.camPos, delta);
             }
         }

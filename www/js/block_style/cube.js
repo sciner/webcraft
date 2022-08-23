@@ -219,7 +219,6 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
-
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
@@ -316,6 +315,10 @@ export default class style {
                 lm = material.mask_color;
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
+            }
+            if(block.hasTag('multiply_color')) {
+                lm = material.multiply_color;
+                flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
             }
 
             // Rotate

@@ -4,6 +4,7 @@ export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 128.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
+export const DROP_LIFE_TIME_SECONDS         = 60;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -26,6 +27,11 @@ export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 
 export const SPECTATOR_SPEED_MUL            = 1;
 
+// portal
+export const PORTAL_USE_INTERVAL            = 5000; // ms
+export const PORTAL_SIZE                    = {width: 4, height: 5};
+export const MAX_PORTAL_SEARCH_DIST         = 128;
+export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 
 export const MOUSE = {
     DOWN: 1,

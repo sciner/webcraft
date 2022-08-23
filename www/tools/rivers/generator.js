@@ -47,7 +47,7 @@ await Resources.loadImage('resource_packs/base/textures/default.png', false).the
 );
 
 /*
-await Resources.loadImage('media/card.png', false).then(async (img) => {
+await Resources.loadImage('media/card.webp', false).then(async (img) => {
     
     let canvas          = document.createElement('canvas');
     const w             = img.width;

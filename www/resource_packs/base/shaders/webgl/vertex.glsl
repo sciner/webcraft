@@ -29,7 +29,7 @@ void main() {
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
         float frames = v_color.b;
-        v_color.b = 1024.0; // no mask_shift for you, sorry
+        v_color.b = 1.0; // no mask_shift for you, sorry
         float t = ((u_time * frames / 3.) / 1000.);
         float i = floor(t);
         uvCenter0.y += mod(i, frames) / 32.;

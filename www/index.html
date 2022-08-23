@@ -12,14 +12,14 @@
     <meta name="keywords" content="MadCraft, WebCraft, Minecraft, WebGL, WebGPU, Javascript">
     <meta property="og:title" content="MadCraft - JS game in browser">
     <meta property="og:description" content="Minecraft game clone on JS">
-    <meta property="og:image" content="https://madcraft.io/media/card.png">
+    <meta property="og:image" content="https://madcraft.io/media/card.webp">
     <meta property="og:site_name" content="MadCraft">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://madcraft.io">
     <meta property="twitter:card" content="summary">
     <meta property="twitter:title" content="MadCraft - JS game in browser">
     <meta property="twitter:url" content="https://madcraft.io">
-    <meta property="twitter:image" content="https://madcraft.io/media/card.png">
+    <meta property="twitter:image" content="https://madcraft.io/media/card.webp">
 	<!-- Stylesheet -->
     <link rel="stylesheet" href="vendors/animate.min.css" />
     <link rel="stylesheet" href="style/main.css" type="text/css">
@@ -84,16 +84,16 @@
         <div id="btns-pad">
             <button class="btn2 btn-success visible_in_game_menu" ng-click="skin.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Change skin...</span>
-                <img src="/media/icon-head.png" style="height: 2em;" alt="Change skin...">
+                <img src="/media/design/icon-head.png" style="height: 2em;" alt="Change skin...">
                 <div class="user-login">@{{Qubatch.App.session.username}}</div>
             </button>
             <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
                 <span style="margin-right: 1em;">Settings</span>
-                <img src="/media/icon-settings.png" style="height: 2em;" alt="Settings">
+                <img src="/media/design/icon-settings.png" style="height: 2em;" alt="Settings">
             </button>
             <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
                 <span style="margin-right: 1em;">Discord</span>
-                <img src="/media/discord.png" style="height: 32px;" alt="Discord">
+                <img src="/media/design/discord.png" style="height: 32px;" alt="Discord">
             </a>
         </div>
 
@@ -214,7 +214,7 @@
     <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
 
         <!-- Main menu -->
-        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length > 0">
+        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length >= 0">
             <div id="button-new-game" ng-click="newgame.open()"><span>{{Lang.new_world_do}}...</span></div>
             <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn" ng-if="!item.hidden">
                 <button class="btn-delete" ng-click="DeleteWorld(item.guid)"><span>{{Lang.delete}}</span></button>
@@ -350,7 +350,7 @@
     <div id="share-button-container">
         <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
             <span style="margin-right: 1em;">Invite</span>
-            <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
+            <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
         </button>
     </div>
 
