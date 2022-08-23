@@ -72,6 +72,12 @@ Qubatch.player.inventory.open();
 Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 horse creamy');
 Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
 
+// Play sounds
+Qubatch.sounds.play('madcraft:block.chicken', 'idle');
+Qubatch.sounds.play('madcraft:block.chicken', 'step');
+Qubatch.sounds.play('madcraft:block.chicken', 'death');
+Qubatch.sounds.play('madcraft:block.player', 'hit');
+
 // Admins
 // 1. admin list managed only by chat commands
 // 2. only owner or another admin can add new admin

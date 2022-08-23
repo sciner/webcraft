@@ -26,7 +26,7 @@ export class Sounds {
         this.tags[item.type] = item;
     }
 
-    play(tag, action) {
+    play(tag, action, volume) {
         if(!this.tags.hasOwnProperty(tag)) {
             return;
         }
@@ -46,7 +46,14 @@ export class Sounds {
         // Play
         const track = list[index];
         const track_id = this.sound_sprite_main.play(track.name);
-        this.sound_sprite_main.volume(track.volume, track_id);
+        volume = isNaN(volume) ? track.volume : track.volume * volume;
+        if(action == 'step') {
+            volume *= .1;
+        }
+        if(volume > 0) {
+            console.log(tag, action, volume)
+            this.sound_sprite_main.volume(volume, track_id);
+        }
         return true;
     }
 
