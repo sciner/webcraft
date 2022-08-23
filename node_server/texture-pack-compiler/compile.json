@@ -4747,6 +4747,7 @@
             "material": {
                 "id": "plant"
             },
+            "planting": false,
             "tags": [
                 "bamboo",
                 "can_put_info_pot",
@@ -6749,10 +6750,11 @@
             "name": "LILY_PAD",
             "transparent": true,
             "height": 0.0625,
-            "sound": "madcraft:block.stone",
+            "sound": "madcraft:block.grass",
             "material": {
-                "id": "stone"
+                "id": "plant"
             },
+            "planting": false,
             "tags": [
                 "set_on_water",
                 "mask_biome",
