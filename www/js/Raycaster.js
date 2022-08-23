@@ -190,7 +190,7 @@ export class Raycaster {
             leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > this.BLOCK.AIR.id;// && !b.material.is_fluid;
+            let hitShape = b.id > this.BLOCK.AIR.id;
             if(!return_fluid && hitShape) {
                 hitShape = !b.material.is_fluid;
             }

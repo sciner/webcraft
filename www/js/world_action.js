@@ -702,7 +702,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, openPortal]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, openPortal, setOnWater]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1660,31 +1660,17 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
     }
     return false;
 }
+
 //
-async function test(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(mat_block.id != 232) {
+async function setOnWater(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!mat_block || !mat_block.tags.includes('set_on_water')) {
         return false;
     }
-    if (world_block.material.is_water) {
+    if(world_block.material.is_water) {
         const position = new Vector(pos);
         position.addSelf(pos.n);
         actions.addBlocks([{pos: position, item: {id: 232}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
     }
-    /*if(
-   Qubatch.is_server) {
-        const p = world.players.get(player.session.user_id);
-        if(p) {
-            const result = p?.raycastFromHead();
-            if(result) {
-                const b = world.getBlock(new Vector(result));
-                if (b && b.material.name == "STILL_WATER") {
-                    const position = new Vector(pos);
-                    position.addSelf(pos.n);
-                    actions.addBlocks([{pos: position, item: {id: 232}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
-                }
-            }
-        }
-    }*/
     return true;
 }
 

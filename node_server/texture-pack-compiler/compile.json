@@ -6755,6 +6755,7 @@
                 "id": "stone"
             },
             "tags": [
+                "set_on_water",
                 "mask_biome",
                 "no_drop_ao"
             ],
