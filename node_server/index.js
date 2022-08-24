@@ -8,7 +8,7 @@ import { v4 as uuid } from 'uuid';
 import sqlite3 from 'sqlite3'
 import semver from 'semver';
 import bodyParser from 'body-parser';
-import fileUpload2 from "express-fileupload";
+import fileUpload from "express-fileupload";
 
 // Check version of modules
 const required_versions = {
@@ -77,9 +77,6 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
-app.use(
-  fileUpload2()
-);
 
 // Prehook
 app.use(async function(req, _res, next) {
@@ -119,6 +116,14 @@ app.use('/style', expressLess(__dirname + '/../www/style', { compress: true }));
 app.use(express.static('../www/'));
 
 // API
+
+app.use('/api/Game/Screenshot', fileUpload({
+    debug: true,
+    limits: { fileSize: 50 * 1024 * 1024 },
+    useTempFiles : true,
+    abortOnLimit: true
+}));
+
 app.use('/api', async(req, res) => {
     try {
         const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'), req);
