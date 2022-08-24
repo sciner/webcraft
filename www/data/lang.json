@@ -8,12 +8,12 @@
         {"code": "hind", "title": "Hindi", "short_title": "हिन्दी"}
     ],
     "strings": {
-        "btn_exit": {"en": "Exit", "ru": "Выйти","fr": "Sortir","es":"Salida","man":"出口","hind":""},
-        "btn_return": {"en": "Return", "ru": "Вернуться","fr": "Retour","es":"Devolver","man":"返回","hind":""},
-        "menu": {"en": "Menu", "ru": "Меню","fr": "Menu","es":"Menú","man":"菜单","hind":""},
-        "create": {"en": "Create", "ru": "Создать","fr": "Creer","es":"Crear","man":"创造","hind":""},
-        "btn_statistics": {"en": "Statistics", "ru": "Статистика","fr": "Statistique","es":"Estadísticas","man":"统计数据","hind":""},
-        "toggle_recipes": {"en": "Toggle recipes", "ru": "Рецепты","fr": "Basculer recette","es":"Alternar recetas","man":"切换食谱","hind":""},
+        "btn_exit": {"en": "Exit", "ru": "Выйти","fr": "Sortir","es":"Salida","man":"出口","hind":"बाहर निकलना"},
+        "btn_return": {"en": "Return", "ru": "Вернуться","fr": "Retour","es":"Devolver","man":"返回","hind":"वापसी"},
+        "menu": {"en": "Menu", "ru": "Меню","fr": "Menu","es":"Menú","man":"菜单","hind":"मेन्यू"},
+        "create": {"en": "Create", "ru": "Создать","fr": "Creer","es":"Crear","man":"创造","hind":"सृजन करना"},
+        "btn_statistics": {"en": "Statistics", "ru": "Статистика","fr": "Statistique","es":"Estadísticas","man":"统计数据","hind":"आंकड़े"},
+        "toggle_recipes": {"en": "Toggle recipes", "ru": "Рецепты","fr": "Basculer recette","es":"Alternar recetas","man":"切换食谱","hind":"व्यंजनों"},
         "creative_inventory": {"en": "Creative inventory", "ru": "Креативный инвентарь","fr": "Creer Inventaire","es":"Inventario creativo","man":"创意库存","hind":""},
         "change_skin": {"en": "🙂 Change skin", "ru": "Выбрать скин","fr": "Changer de peau","es":"Cambio de piel","man":"换皮肤","hind":""},
         "change_game_mode": {"en": "Change game mode", "ru": "Изменить режим игры","fr": "Changer mode jeu","es":"Cambiar modo de juego","man":"改变游戏模式","hind":""},
