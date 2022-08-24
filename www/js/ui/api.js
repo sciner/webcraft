@@ -30,7 +30,7 @@ export class API_Client {
             options.uploadEventHandlers.progress = callback_progress;
         }
         if(data instanceof FormData) {
-            options.headers['Content-Type'] = undefined;
+            delete(options.headers['Content-Type']);
         }
         // Response
         const response = await fetch(url, options)
