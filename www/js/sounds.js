@@ -1,4 +1,5 @@
 import {Resources} from "./resources.js";
+import { MAX_SOUND_DISTANCE }  from "./constant.js";
 
 export class Sounds {
 
@@ -26,7 +27,13 @@ export class Sounds {
         this.tags[item.type] = item;
     }
 
-    play(tag, action, volume) {
+    // [TODO we need get a proper sound]
+    voice_calculation(dist) {
+        //it's asumed that dist is always > max
+        return 1 - (dist / MAX_SOUND_DISTANCE);
+    }
+
+    play(tag, action, volume, dist) {
         if(!this.tags.hasOwnProperty(tag)) {
             return;
         }
@@ -51,6 +58,9 @@ export class Sounds {
             if(action == 'step') {
                 volume *= .1;
             }
+            if (dist && dist < MAX_SOUND_DISTANCE){
+                volume = volume * this.voice_calculation(dist);
+            }                
             if(volume > 0) {
                 console.debug(tag, action, volume)
                 this.sound_sprite_main.volume(volume, track_id);
