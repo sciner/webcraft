@@ -102,8 +102,11 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
+        window.playerTemp = this;
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
+            let dist = this.pos.distance(new Vector(cmd.data.pos));
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
             this.state.sitting = false;

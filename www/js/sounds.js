@@ -1,4 +1,5 @@
 import {Resources} from "./resources.js";
+import { SOUND_MAX_DIST }  from "./constant.js";
 
 export class Sounds {
 
@@ -26,7 +27,13 @@ export class Sounds {
         this.tags[item.type] = item;
     }
 
-    play(tag, action, volume) {
+    // [TODO we need get a proper sound]
+    voice_calculation(dist) {
+        // it's asumed that dist is always > max
+        return Math.max(0, 1 - (dist / SOUND_MAX_DIST));
+    }
+
+    play(tag, action, dist) {
         if(!this.tags.hasOwnProperty(tag)) {
             return;
         }
@@ -46,13 +53,14 @@ export class Sounds {
         // Play
         const track = list[index];
         if(track) {
-            const track_id = this.sound_sprite_main.play(track.name);
-            volume = isNaN(volume) ? track.volume : track.volume * volume;
+            let volume = track.volume;
+            if(!isNaN(dist)) volume *= this.voice_calculation(dist);
             if(action == 'step') {
                 volume *= .1;
             }
             if(volume > 0) {
-                console.debug(tag, action, volume)
+                console.debug(tag, action, volume);
+                const track_id = this.sound_sprite_main.play(track.name);
                 this.sound_sprite_main.volume(volume, track_id);
             }
         }
