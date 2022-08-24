@@ -7,6 +7,7 @@ import {Worker} from "worker_threads";
 import { v4 as uuid } from 'uuid';
 import sqlite3 from 'sqlite3'
 import semver from 'semver';
+import bodyParser from 'body-parser';
 
 // Check version of modules
 const required_versions = {
@@ -72,6 +73,10 @@ Resources.physics = {features}; // (await import("../../vendors/prismarine-physi
 // http://expressjs.com/en/api.html#req.originalUrl
 const app = express();
 
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json());
+
 // Prehook
 app.use(async function(req, _res, next) {
     // Log referrer
@@ -110,7 +115,6 @@ app.use('/style', expressLess(__dirname + '/../www/style', { compress: true }));
 app.use(express.static('../www/'));
 
 // API
-app.use(express.json());
 app.use('/api', async(req, res) => {
     try {
         const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'));

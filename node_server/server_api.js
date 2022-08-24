@@ -4,7 +4,7 @@ const FLAG_SYSTEM_ADMIN = 256;
 export class ServerAPI {
 
     static async call(method, params, session_id) {
-        console.debug('> API:' + method);
+        console.debug('!> API:' + method);
         switch(method) {
             case '/api/Game/getWorldPublicInfo':
                 const world = await Qubatch.db.getWorld(params.worldGuid);
@@ -78,6 +78,11 @@ export class ServerAPI {
                     }
                 }
                 return resp;
+            }
+            case '/api/Game/Screenshot': {
+                console.log(params);
+                console.log(session_id);
+                return;
             }
             default: {
                 throw 'error_method_not_exists';

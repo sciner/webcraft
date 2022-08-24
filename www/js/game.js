@@ -196,7 +196,11 @@ export class GameClass {
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
-                            this.render.downloadScreenshot();
+                            if(!this.hud.wm.hasVisibleWindow()) {
+                                Qubatch.hud.wm.getWindow('frmScreenshot').toggleVisibility();
+                            } else {
+                                this.render.downloadScreenshot();
+                            }
                         }
                         return true;
                         break;
