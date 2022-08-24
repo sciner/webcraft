@@ -43,6 +43,7 @@
         "accept_join_to_world_message": {"en": "You have not yet been to the world <b>{0}</b>. Join?", "ru": "Вы ещё не были в мире <b>{0}</b>. Приооединиться?", "fr": "Vous n'êtes pas encore allé dans le monde <b>{0}</b>. Rejoindre?", "es": "Aún no has estado en el mundo <b>{0}</b>. ¿Unirse?", "man": "您还没有去过 <b>{0}</b> 世界。 加入"},
         "join": {"en": "Join", "ru": "Присоединиться", "fr": "Rejoindre","es": "Unirse", "man": "加入"},
         "ok" : {"en": "OK", "ru": "ОК", "fr": "d'accord", "es": "OK", "man": "好的"},
+        "error_world_with_same_title_already_exist": {"en": "World with same title already exist. Please, enter a different name.", "ru" : "Мир с таким названием уже существует. Пожалуйста, укажите другое имя.", "fr": "", "es": "","man":""},
         "error_user_already_registered": {"en": "User already registered", "ru": "Такой пользователь уже зарегистрирован","fr": "Deja enregistrer","es":"Usuario ya registrado","man":"用户已注册"},
         "error_invalid_login_or_password": {"en": "Invalid login or password", "ru": "Неверное имя или пароль","fr": "Nom ou mot de passe invalide ","es":"Clave o usuario inválido","man":"无效的登录名或密码"},
         "error_player_exists_in_selected_world": {"en": "You already exists in this world", "ru": "Этот мир уже есть в списке","fr": "Vous etes deja dans ce monde","es":"Ya existes en este mundo","man":"你已经存在于这个世界"},

@@ -596,7 +596,14 @@ let gameCtrl = async function($scope, $timeout) {
                     $scope.StartWorld(world.guid);
                     that.loading = false;
                 });
-            });
+            },
+            ), (error) => {
+                if (error.message === 'error_world_not_found'){
+                    vt.error(Lang.error_world_with_same_title_already_exist);
+                } else {
+                    vt.error(message);
+                }
+            };
         },
         open: function() {
             this.generators.select(this.generators.list[0].id);
