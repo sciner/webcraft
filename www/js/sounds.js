@@ -1,5 +1,5 @@
 import {Resources} from "./resources.js";
-import { MAX_SOUND_DISTANCE, SOUND_MAX_DIST }  from "./constant.js";
+import { SOUND_MAX_DIST }  from "./constant.js";
 
 export class Sounds {
 
@@ -57,7 +57,7 @@ export class Sounds {
             if(!isNaN(dist)) volume *= this.voice_calculation(dist);
             if(action == 'step') {
                 volume *= .1;
-            }          
+            }
             if(volume > 0) {
                 console.debug(tag, action, volume);
                 const track_id = this.sound_sprite_main.play(track.name);
