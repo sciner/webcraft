@@ -10,7 +10,8 @@ import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
-import { SOUND_MAX_DIST } from "./constant.js";
+import { MAGIC_ROTATE_DIV, SOUND_MAX_DIST } from "./constant.js";
+import { JoystickController } from "./ui/joystick.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -157,7 +158,7 @@ export class GameClass {
                             add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
                             add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
                         }
-                        that.player.addRotate(add_mouse_rotate.divScalar(900));
+                        that.player.addRotate(add_mouse_rotate.divScalar(MAGIC_ROTATE_DIV));
                     }
                     return true;
                 }
@@ -415,6 +416,11 @@ export class GameClass {
             }
         });
 
+        // Joystick
+        this.Joystick = new JoystickController('stick', 64, 8, this.player, this.kb, (currentPos) => {
+            // console.log(this.Joystick.value);
+        });
+
     }
 
     // setControlsEnabled
@@ -471,6 +477,8 @@ export class GameClass {
 
         // Play mobs sound (steps, idle)
         this.mobSounds();
+
+        this.Joystick.tick(delta);
 
         // Счетчик FPS
         this.hud.FPS.incr();

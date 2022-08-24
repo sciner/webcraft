@@ -385,6 +385,44 @@ button:not(.loading) .fa-spin {
     padding: 2em;
 }
 
+// Joystick
+#Joystick {
+
+    #Joystick-left {
+        width: 128px;
+        position: fixed;
+        left: 20px;
+        bottom: 40px;
+        z-index: 99999;
+        opacity: .35;
+    }
+
+    #Joystick-right {
+        width: 138px;
+        height: 164px;
+        position: fixed;
+        right: 20px;
+        bottom: 40px;
+        z-index: 99999;
+        opacity: .45;
+        text-align: right;
+    }
+
+    #Joystick-right > * {
+        position: absolute;
+        padding: 0;
+        background: transparent;
+    }
+
+    #Joystick-right img {
+        pointer-events: none;
+    }
+}
+
+body:not(.started) .joystick, body.loading .joystick {
+    display: none;
+}
+
 /* On screens that are 600px or less, set the background color to olive */
 @media screen and (max-width: 600px) {
     #form-shareGame {

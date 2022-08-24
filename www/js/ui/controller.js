@@ -107,6 +107,11 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
+    // isMobileBrowser
+    $scope.isMobileBrowser = function() {
+        return 'ontouchstart' in document.documentElement;
+    }
+
     // sun dir
     $scope.sunDir = {
         value: new Vector(1.1493, 1.0293, 0.6293),
