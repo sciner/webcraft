@@ -132,7 +132,7 @@ chunk.sendAll(packets, []);
     View distance can take number from 2 to 16
 
 ## Portals
-    You can made 3 type of portals:
+You can made 3 type of portals:
 
 - ### Portal to bottom caves
     - You must build a frame from OBSIDIAN (minimum size 4x5) and must activate the portal by applying FLINT_AND_STEEL to the inside of the frame;
