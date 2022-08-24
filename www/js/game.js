@@ -492,8 +492,7 @@ export class GameClass {
             if(dist < SOUND_MAX_DIST) {
                 if(Math.random() < .01) {
                     const effect = Math.random() > .75 ? 'idle' : 'step';
-                    const volume = Math.max(0, 1 - (dist / SOUND_MAX_DIST));
-                    Qubatch.sounds.play('madcraft:block.' + mob.type, effect, volume);
+                    Qubatch.sounds.play('madcraft:block.' + mob.type, effect, dist);
                     // console.log(`${mob.type}.${effect}`);
                     break;
                 }

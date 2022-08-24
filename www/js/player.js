@@ -105,7 +105,7 @@ export class Player {
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
             let dist = this.pos.distance(new Vector(cmd.data.pos));
-            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, undefined, dist);
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
