@@ -81,7 +81,7 @@ export class ServerAPI {
             }
             case '/api/Game/Screenshot': {
                 // @todo Надо теперь считать файл из req
-                console.log(params);
+                console.log(req.files);
                 console.log(session_id);
                 return {};
             }

@@ -8,6 +8,7 @@ import { v4 as uuid } from 'uuid';
 import sqlite3 from 'sqlite3'
 import semver from 'semver';
 import bodyParser from 'body-parser';
+import fileUpload2 from "express-fileupload";
 
 // Check version of modules
 const required_versions = {
@@ -76,6 +77,9 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
+app.use(
+  fileUpload2()
+);
 
 // Prehook
 app.use(async function(req, _res, next) {
@@ -131,6 +135,7 @@ app.use('/api', async(req, res) => {
         );
     }
 });
+
 const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
 // "SPA" yet for just one type of ulrs only
 app.use('/worlds', async(req, res) => {
