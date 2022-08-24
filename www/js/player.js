@@ -290,7 +290,7 @@ export class Player {
             //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
             //    this.standUp();
             //} else {
-            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+            this.pickAt.setEvent(this, {button_id, shiftKey});
             if(e.button_id == 1) {
                 this.startArmSwingProgress();
             }
