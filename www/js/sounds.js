@@ -29,7 +29,6 @@ export class Sounds {
 
     // [TODO we need get a proper sound]
     voice_calculation(dist) {
-        //it's asumed that dist is always > max
         return dist < MAX_SOUND_DISTANCE 
             ? 1 - (dist / MAX_SOUND_DISTANCE)
             : 0;
