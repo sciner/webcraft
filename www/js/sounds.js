@@ -30,7 +30,9 @@ export class Sounds {
     // [TODO we need get a proper sound]
     voice_calculation(dist) {
         //it's asumed that dist is always > max
-        return 1 - (dist / MAX_SOUND_DISTANCE);
+        return dist < MAX_SOUND_DISTANCE 
+            ? 1 - (dist / MAX_SOUND_DISTANCE)
+            : 0;
     }
 
     play(tag, action, volume, dist) {
@@ -58,7 +60,7 @@ export class Sounds {
             if(action == 'step') {
                 volume *= .1;
             }
-            if (dist && dist < MAX_SOUND_DISTANCE){
+            if (dist){
                 volume = volume * this.voice_calculation(dist);
             }                
             if(volume > 0) {
