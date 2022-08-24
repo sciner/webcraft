@@ -239,7 +239,7 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.run('SELECT title FROM world WHERE title = :title', { ':title': title});
+        let worldWithSameTitle = await this.conn.run('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
         if (worldWithSameTitle != null) {
             throw 'error_world_with_same_title_already_exist';
         }
