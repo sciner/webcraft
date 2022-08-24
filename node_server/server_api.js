@@ -3,7 +3,7 @@ const FLAG_SYSTEM_ADMIN = 256;
 // JSON API
 export class ServerAPI {
 
-    static async call(method, params, session_id) {
+    static async call(method, params, session_id, req) {
         console.debug('!> API:' + method);
         switch(method) {
             case '/api/Game/getWorldPublicInfo':
@@ -80,9 +80,10 @@ export class ServerAPI {
                 return resp;
             }
             case '/api/Game/Screenshot': {
+                // @todo Надо теперь считать файл из req
                 console.log(params);
                 console.log(session_id);
-                return;
+                return {};
             }
             default: {
                 throw 'error_method_not_exists';

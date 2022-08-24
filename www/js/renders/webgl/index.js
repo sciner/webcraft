@@ -571,7 +571,7 @@ export default class WebGLRenderer extends BaseRenderer {
                 i * width * 4);
         }
         
-        const  test = Qubatch.hud.canvas.toDataURL("image/webp");
+        // const  test = Qubatch.hud.canvas.toDataURL("image/webp");
         
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -580,27 +580,14 @@ export default class WebGLRenderer extends BaseRenderer {
         ctx.putImageData(data, 0, 0);
         ctx.drawImage(Qubatch.hud.canvas, 0, 0, width, height);
         ctx.canvas.toBlob(function(blob) {
-            let filefromblob = new File([blob], 'image.webp', {type: 'image/webp'});
-            const data = new FormData();
-            data.append("body",filefromblob)
-            var headers = {
-                'X-Language-Locale': 'ru',
-                'Content-Type': 'application/json'
-            };
-            headers['X-Session-ID'] = "none";
-            var options = {
-                method:                 'POST',
-                headers:                headers,
-                body: data
-            };
-            fetch("/api/Game/Screenshot", options)
+            //
+            // Helpers.downloadBlobPNG(blob, 'screenshot.png');
+            //
+            const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
+            const form = new FormData();
+            form.append('body', fileFromBlob);
+            Qubatch.App.Screenshot(form);
         }, 'image/webp');
-        /*ctx.canvas.toBlob(function(blob) {
-            ctx.canvas.width = ctx.canvas.height = 0;
-            // let filefromblob = new File([blob], 'image.png', {type: 'image/png'});
-            Helpers.downloadBlobPNG(blob, 'screenshot.png'); // filefromblob);
-        }, 'image/png');
-        */
     }
 
 }

@@ -117,7 +117,7 @@ app.use(express.static('../www/'));
 // API
 app.use('/api', async(req, res) => {
     try {
-        const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'));
+        const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'), req);
         res.status(200).json(resp);
     } catch(e) {
         console.debug('> API: ' + e);
