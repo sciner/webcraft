@@ -216,11 +216,12 @@
         <!-- Main menu -->
         <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length >= 0">
             <div id="button-new-game" ng-click="newgame.open()"><span>{{Lang.new_world_do}}...</span></div>
-            <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn" ng-if="!item.hidden">
+            <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn" ng-if="!item.hidden" ng-class="{with_cover: !!item.cover}">
                 <button class="btn-delete" ng-click="DeleteWorld(item.guid)"><span>{{Lang.delete}}</span></button>
                 <div class="tit1 animate__animated animate__fadeInDown" style="font-size: 1.1em;">{{item.title}}<br><br></div>
                 <div class="tit2 animate__animated animate__fadeInUp" style="font-size: 1.1em;">{{item.title}}<br><br></div>
                 <button class="animate__animated animate__fadeInUp" ng-class="{'btn-secondary': !item.my}" ng-click="StartWorld(item.guid)"><span>{{Lang.play}}</span></button>
+                <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
             </div>
         </div>
         
