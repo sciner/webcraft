@@ -196,10 +196,10 @@ export class GameClass {
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
-                            if(!this.hud.wm.hasVisibleWindow()) {
+                            if(!this.hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
                                 Qubatch.hud.wm.getWindow('frmScreenshot').toggleVisibility();
                             } else {
-                                this.render.downloadScreenshot();
+                                this.render.screenshot(false);
                             }
                         }
                         return true;

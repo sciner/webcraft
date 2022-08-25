@@ -550,7 +550,7 @@ export default class WebGLRenderer extends BaseRenderer {
         return buffer;
     }
 
-    async screenshot() {
+    async screenshot(upload, world) {
         const buffer = this.toRawPixels();
         const width = this.view.width;
         const height = this.view.height;
@@ -571,23 +571,25 @@ export default class WebGLRenderer extends BaseRenderer {
                 i * width * 4);
         }
         
-        // const  test = Qubatch.hud.canvas.toDataURL("image/webp");
-        
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         ctx.canvas.width = width;
         ctx.canvas.height = height;
         ctx.putImageData(data, 0, 0);
         ctx.drawImage(Qubatch.hud.canvas, 0, 0, width, height);
-        ctx.canvas.toBlob(function(blob) {
-            //
-            // Helpers.downloadBlobPNG(blob, 'screenshot.png');
-            //
-            const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
-            const form = new FormData();
-            form.append('body', fileFromBlob);
-            Qubatch.App.Screenshot(form);
-        }, 'image/webp');
+        if (upload && world) {
+            ctx.canvas.toBlob(function(blob) {
+                const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
+                const form = new FormData();
+                form.append('body', fileFromBlob);
+                form.append('world', world);
+                Qubatch.App.Screenshot(form);
+            }, 'image/webp');
+        } else {
+            ctx.canvas.toBlob(function(blob) {
+                Helpers.downloadBlobPNG(blob, 'screenshot.png');
+            }, 'image/png');
+        }
     }
 
 }

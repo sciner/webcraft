@@ -80,9 +80,19 @@ export class ServerAPI {
                 return resp;
             }
             case '/api/Game/Screenshot': {
-                // @todo Надо теперь считать файл из req
-                console.log(req.files);
-                console.log(session_id);
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                if (req.files && session) {
+                    const guid = req.body.world.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
+                    const title = await Qubatch.db.InsertScreenshot(guid);
+                    if (title) {
+                        const path = '../world/' + guid + '/screenshot/';
+                        if (!fs.existsSync(path)) {
+                            fs.mkdirSync(path, {recursive: true});
+                        }
+                        const file = req.files.body;
+                        file.mv(path + title + '.webp');
+                    }
+                }
                 return {};
             }
             default: {

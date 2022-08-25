@@ -725,7 +725,7 @@ export class Renderer {
         // 5. Screenshot
         if(this.make_screenshot) {
             this.make_screenshot = false;
-            this.renderBackend.screenshot();
+            this.renderBackend.screenshot(this.upload_screenshot, this.player.world.info.guid);
         }
 
         renderBackend.endPass();
@@ -1160,7 +1160,8 @@ export class Renderer {
         }
     }
 
-    downloadScreenshot() {
+    screenshot(upload) {
+        this.upload_screenshot = upload;
         this.make_screenshot = true;
     }
 

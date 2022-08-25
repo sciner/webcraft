@@ -23,12 +23,12 @@ export class ScreenshotWindow extends Window {
         ct.add(new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, "Save screenshot"));
 
        this.addButton("Save screenshot", 50, () => {
-            Qubatch.render.downloadScreenshot(); 
+            Qubatch.render.screenshot(false); 
             Qubatch.hud.wm.closeAll();
         });
         
         this.addButton("set world", 100, () => {
-            Qubatch.render.uploadScreenshot(); 
+            Qubatch.render.screenshot(true);
             Qubatch.hud.wm.closeAll();
         });
 

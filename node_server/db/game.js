@@ -97,7 +97,15 @@ export class DBGame {
                 "headers" TEXT
             );`
         ]});
-
+        
+        migrations.push({version: 7, queries: [
+            `CREATE TABLE "screenshot" (
+                "dt" integer,
+                "guid_world" TEXT,
+                "guid_file" TEXT
+                );`
+        ]});
+        
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -371,6 +379,22 @@ export class DBGame {
             ':world_id':      world_id
         });
         return !!result;
+    }
+    
+    async InsertScreenshot(guid) {
+        const file = randomUUID();
+        //Проверям существование мира
+        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [guid]);
+        if (!row) {
+            return;
+        }
+        //Заносим в базу скриншот
+        const result = await this.conn.run('INSERT INTO screenshot(dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
+            ':dt':   ~~(Date.now() / 1000),
+            ':guid': guid,
+            ':file': file
+        });
+        return file;
     }
 
 }
