@@ -6,6 +6,31 @@
     z-index: 2;
 }
 
+#mobile-buttons {
+
+    position: absolute;
+    right: .5em;
+    top: .5em;
+
+    & > * {
+        font-family: 'Ubuntu';
+        margin-bottom: .5em;
+    }
+
+    #btn-mobile-menu {
+        width: 40px;
+        height: 40px;
+        border-radius: 50px;
+    }
+
+    #btn-mobile-inventory {
+        width: 40px;
+        height: 40px;
+        border-radius: 50px;
+    }
+
+}
+
 body.started.controls_enabled .visible_in_game_menu {
     display: none;
 }
@@ -404,7 +429,7 @@ button:not(.loading) .fa-spin {
         right: 30px;
         bottom: 40px;
         z-index: 99999;
-        opacity: .45;
+        opacity: .75;
         text-align: right;
     }
 
@@ -417,6 +442,7 @@ button:not(.loading) .fa-spin {
     #Joystick-right img {
         pointer-events: none;
     }
+
 }
 
 body:not(.started) .joystick, body.loading .joystick {

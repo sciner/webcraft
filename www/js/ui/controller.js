@@ -1,4 +1,4 @@
-import {Vector, Helpers} from '../helpers.js';
+import {Vector, Helpers, isMobileBrowser} from '../helpers.js';
 import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
@@ -108,9 +108,7 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     // isMobileBrowser
-    $scope.isMobileBrowser = function() {
-        return 'ontouchstart' in document.documentElement;
-    }
+    $scope.isMobileBrowser = isMobileBrowser;
 
     // sun dir
     $scope.sunDir = {
@@ -340,11 +338,23 @@ let gameCtrl = async function($scope, $timeout) {
         });
     };
 
+    //
+    $scope.toggleMainMenu = function() {
+        if(Qubatch.hud.wm.hasVisibleWindow()) {
+            Qubatch.hud.wm.closeAll();
+        } else {
+            Qubatch.hud.frmMainMenu.show();
+        }
+    }
+
     // Start world
     $scope.StartWorld = function(world_guid) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
+            if(isMobileBrowser()) {
+                document.getElementById('qubatch-canvas-container').requestFullscreen();
+            }
         }
         console.log(`StartWorld: ${world_guid}`);
         // Check session
