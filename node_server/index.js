@@ -141,8 +141,14 @@ app.use('/api', async(req, res) => {
     }
 });
 
-const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
+//
+app.use('/worldcover/', async(req, res) => {
+    const filename = path.resolve(__dirname, '..', 'world', req.url.substring(1));
+    res.sendFile(filename);
+});
+
 // "SPA" yet for just one type of ulrs only
+const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
 app.use('/worlds', async(req, res) => {
     res.sendFile(pathToIndex);
 });

@@ -211,18 +211,19 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
             for(let row of rows) {
-                let world = {
+                const world = {
                     'id':           row.id,
                     'user_id':      row.user_id,
                     'dt':           '2021-10-06T19:20:04+02:00',
                     'guid':         row.guid,
                     'title':        row.title,
                     'seed':         row.seed,
+                    'cover':        row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null,
                     'game_mode':    '',
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
