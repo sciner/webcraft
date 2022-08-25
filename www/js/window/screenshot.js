@@ -6,7 +6,7 @@ export class ScreenshotWindow extends Window {
 
     constructor(player) {
 
-        super(10, 10, 352, 155, "frmScreenshot", null, null);
+        super(10, 10, 400, 200, "frmScreenshot", null, null);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
@@ -20,15 +20,20 @@ export class ScreenshotWindow extends Window {
         ct.hide();
 
         // Add labels to window
-        ct.add(new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, "Save screenshot"));
+        ct.add(new Label(17 * this.zoom, 12 * this.zoom, 400 * this.zoom, 30 * this.zoom, 'lbl1', null, "You have taken a screenshot. Farther?"));
 
-       this.addButton("Save screenshot", 50, () => {
-            Qubatch.render.screenshot(false); 
+       this.addButton("Download screenshot", 50, () => {
+            Qubatch.render.screenshot(false, false); 
             Qubatch.hud.wm.closeAll();
         });
         
-        this.addButton("set world", 100, () => {
-            Qubatch.render.screenshot(true);
+        this.addButton("Set as world cover", 100, () => {
+            Qubatch.render.screenshot(true, true);
+            Qubatch.hud.wm.closeAll();
+        });
+        
+        this.addButton("Upload to gallery", 150, () => {
+            Qubatch.render.screenshot(true, false);
             Qubatch.hud.wm.closeAll();
         });
 

@@ -83,7 +83,7 @@ export class ServerAPI {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
                 if (req.files && session) {
                     const guid = req.body.world.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
-                    const title = await Qubatch.db.InsertScreenshot(guid);
+                    const title = await Qubatch.db.InsertScreenshot(guid, req.body.cover == 'true' ? true : false);
                     if (title) {
                         const path = '../world/' + guid + '/screenshot/';
                         if (!fs.existsSync(path)) {

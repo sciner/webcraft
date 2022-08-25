@@ -550,7 +550,7 @@ export default class WebGLRenderer extends BaseRenderer {
         return buffer;
     }
 
-    async screenshot(upload, world) {
+    async screenshot(world, upload, cover) {
         const buffer = this.toRawPixels();
         const width = this.view.width;
         const height = this.view.height;
@@ -583,6 +583,7 @@ export default class WebGLRenderer extends BaseRenderer {
                 const form = new FormData();
                 form.append('body', fileFromBlob);
                 form.append('world', world);
+                form.append('cover', cover);
                 Qubatch.App.Screenshot(form);
             }, 'image/webp');
         } else {
