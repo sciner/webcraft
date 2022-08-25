@@ -161,7 +161,7 @@ export class Spritesheet {
                         const ax = x * this.tx_sz + i;
                         const ay = y * this.tx_sz + j;
                         let hsl = this.RGBToHSL(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2]);
-                        if(hsl[1] > 5) {
+                        if(hsl[1] > 40) {
                             ctx.fillStyle = this.rgbaToHex(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2], pixs[pix_index + 3]);
                             ctx.fillRect(ax, ay, 1, 1);
                             ctx.fillStyle = '#000000';
