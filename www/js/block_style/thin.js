@@ -37,12 +37,14 @@ export default class style {
 
         //
         if(material.is_portal) {
-            flags |= QUAD_FLAGS.MASK_BIOME;
             // nether portal
-            const portal_type = WorldPortal.getPortalTypeByID(block.extra_data.type);
-            if(portal_type) {
-                lm.r = portal_type.color.r;
-                lm.g = portal_type.color.g;
+            if(block.extra_data?.type) {
+                flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
+                const portal_type = WorldPortal.getPortalTypeByID(block.extra_data.type);
+                if(portal_type) {
+                    lm.r = portal_type.color.r;
+                    lm.g = portal_type.color.g;
+                }
             }
         }
 

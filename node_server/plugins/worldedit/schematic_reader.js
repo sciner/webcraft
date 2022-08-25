@@ -7,6 +7,8 @@ import { RailShape } from "../../../www/js/block_type/rail_shape.js";
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 
+const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
+
 const SIX_VECS = {
     south: new Vector(7, 0, 0),
     west: new Vector(22, 0, 0),
@@ -76,7 +78,7 @@ export class SchematicReader {
             bpos.copyFrom(pos);
             bpos.z *= -1;
             let {name, extra_data} = this.parseBlockName(block);
-            if(name == 'AIR') {
+            if(NO_IMPORT_BLOCKS.includes(name)) {
                 return;
             }
             if(name.endsWith('ANVIL')) {

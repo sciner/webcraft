@@ -148,9 +148,9 @@
             },
             "tags": [
                 "rotate_by_pos_n",
-                "mask_color"
+                "multiply_color",
+                "noclonable"
             ],
-            "mask_color": {"r": 84, "g": 540, "b": 0},
             "compile": {
                 "filter": "saturate(0%) brightness(300%)"
             },
