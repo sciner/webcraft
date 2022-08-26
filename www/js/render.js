@@ -724,8 +724,9 @@ export class Renderer {
 
         // 5. Screenshot
         if(this.make_screenshot) {
-            this.make_screenshot = false;
-            this.renderBackend.screenshot(this.player.world.info.guid, this.upload_screenshot, this.cover_screenshot);
+            const callback = this.make_screenshot;
+            delete(this.make_screenshot);
+            this.renderBackend.screenshot('image/webp', callback);
         }
 
         renderBackend.endPass();
@@ -1160,10 +1161,8 @@ export class Renderer {
         }
     }
 
-    screenshot(upload, cover) {
-        this.cover_screenshot = cover;
-        this.upload_screenshot = upload;
-        this.make_screenshot = true;
+    screenshot(callback) {
+        this.make_screenshot = callback;
     }
 
     downloadTextImage() {

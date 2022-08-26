@@ -101,6 +101,7 @@
         "admin_removed": {"en": "Admin removed", "ru": "Администратор удалён", "fr": "", "es": "","man":""},
         "generator_seed": {"en": "Generator seed: %0", "ru": "Зерно генератора: %0", "fr": "", "es": "","man":""},
         "admin_list": {"en": "%0", "ru": "%0", "fr": "%0", "es": "%0","man":"%0"},
-        "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0"}
+        "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0"},
+        "loading": {"en": "Loading...", "ru": "Загрузка...", "fr": "%0", "es": "%0","man":"%0"}
     }
 }

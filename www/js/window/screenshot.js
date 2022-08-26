@@ -6,7 +6,7 @@ export class ScreenshotWindow extends Window {
 
     constructor(player) {
 
-        super(10, 10, 400, 210, "frmScreenshot", null, null);
+        super(10, 10, 400, 420, "frmScreenshot", null, null);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
@@ -19,22 +19,81 @@ export class ScreenshotWindow extends Window {
         ct.setBackground('./media/gui/form-empty.png');
         ct.hide();
 
-        // Add labels to window
-        ct.add(new Label(17 * this.zoom, 12 * this.zoom, 400 * this.zoom, 30 * this.zoom, 'lbl1', null, "You have taken a screenshot. Farther?"));
+        const PADDING = 20 * this.zoom;
 
-       this.addButton("Download screenshot", 50, () => {
-            Qubatch.render.screenshot(false, false); 
-            Qubatch.hud.wm.closeAll();
-        });
-        
-        this.addButton("Set as world cover", 100, () => {
-            Qubatch.render.screenshot(true, true);
-            Qubatch.hud.wm.closeAll();
-        });
-        
-        this.addButton("Upload to gallery", 150, () => {
-            Qubatch.render.screenshot(true, false);
-            Qubatch.hud.wm.closeAll();
+        // Append JSON layout
+        this.appendLayout({
+            vLayout: {
+                type: 'VerticalLayout',
+                x: PADDING,
+                y: PADDING,
+                width: this.width - PADDING * 2,
+                visible: true,
+                gap: 20,
+                enabled: false,
+                childs: {
+                    lblDesc: {
+                        type: 'Label',
+                        word_wrap: true,
+                        title: null,
+                        text: 'You have taken a screenshot. Farther?',
+                        style: {
+                            font: {size: 17 * this.zoom},
+                            background: {color: '#00000000'}
+                        }
+                    },
+                    lblPreview: {
+                        type: 'Label',
+                        word_wrap: true,
+                        height: 200 * this.zoom,
+                        title: Lang.loading,
+                        autosize: false,
+                        style: {
+                            padding: 0,
+                            font: {size: 17 * this.zoom},
+                            textAlign: {
+                                horizontal: 'center',
+                                vertical: 'middle'
+                            },
+                            background: {
+                                color: '#00000044',
+                                image_size_mode: 'cover', // none | stretch | cover
+                                image: null
+                            }
+                        }
+                    },
+                    btnDownload: {
+                        type: 'Button',
+                        title: 'Download screenshot',
+                        height: 40 * this.zoom,
+                        autosize: false,
+                        onMouseDown: () => {
+                            Qubatch.hud.wm.closeAll();
+                            Helpers.downloadBlobPNG(this.screenshot_blob, 'screenshot.webp');
+                        }
+                    },
+                    btnSetCover: {
+                        type: 'Button',
+                        title: 'Set as world cover',
+                        height: 40 * this.zoom,
+                        autosize: false,
+                        onMouseDown: () => {
+                            Qubatch.hud.wm.closeAll();
+                            this.send(true);
+                        }
+                    },
+                    btnSaveToGallery: {
+                        type: 'Button',
+                        title: 'Upload to gallery',
+                        height: 40 * this.zoom,
+                        autosize: false,
+                        onMouseDown: () => {
+                            Qubatch.hud.wm.closeAll();
+                            this.send(false);
+                        }
+                    }
+                }
+            }
         });
 
         // Обработчик открытия формы
@@ -51,12 +110,11 @@ export class ScreenshotWindow extends Window {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - this.cell_size, 12 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
+            let btnClose = new Button(ct.width - 40 * this.zoom, 15 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
-            btnClose.style.background.image_size_mode = 'stretch';
-            btnClose.onMouseDown = function(e) {
-                console.log(e);
+            // btnClose.style.background.image_size_mode = 'stretch';
+            btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();
             }
             ct.add(btnClose);
@@ -81,21 +139,41 @@ export class ScreenshotWindow extends Window {
             return false;
         }
     }
-    
-    addButton(label, y, onclick) {
-        const btnID = `btn_${this.id}_${y}`;
-        let btn = new Button(20 * this.zoom, y * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, btnID, label);
-        btn.style.background.color = '#777777ff';
-        btn.style.color = '#ffffffff';
-        btn.style.font.shadow = {
-            enable: true,
-            x: 2 * this.zoom,
-            y: 2 * this.zoom,
-            blur: 0,
-            color: 'rgba(0, 0, 0, 0.5)'
-        }
-        btn.onMouseDown = onclick;
-        this.add(btn);
+
+    // Make screenshot
+    make() {
+        const ql = this.getWindow('vLayout');
+        const lblPreview = ql.getWindow('lblPreview');
+        lblPreview.title = Lang.loading;
+        Qubatch.render.screenshot((blob) => {
+            this.show();
+            const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
+            this.screenshot_blob = blob
+            this.screenshot_file = fileFromBlob;
+            ql.enabled = true;
+            const img = new Image();
+            img.onload = function() {
+                lblPreview.title = '';
+                lblPreview.style.background.image = img;
+            }
+            img.src = URL.createObjectURL(fileFromBlob);
+
+        });
+    }
+
+    // Send screenshot to server
+    send(as_cover) {
+        const form = new FormData();
+        form.append('file', this.screenshot_file);
+        form.append('world_id', Qubatch.world.info.guid);
+        form.append('as_cover', as_cover);
+        Qubatch.App.Screenshot(form, function(result) {
+            if (result.result == "ok") {
+                vt.success("Screenshot upload to server");
+            } else {
+                vt.error("Error upload screenshot");
+            }
+        });
     }
 
 }
