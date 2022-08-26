@@ -358,18 +358,19 @@ let gameCtrl = async function($scope, $timeout) {
         // Show Loading...
         Qubatch.hud.draw();
         $timeout(async function() {
+            const options = $scope.settings.form;
             $scope.settings.save();
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            const world = await $scope.Qubatch.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
+            const world = await $scope.Qubatch.Start(server_url, world_guid, options, (resource_loading_state) => {
                 Qubatch.hud.draw(true);
             });
             if(!world.info) {
                 debugger;
             }
-            const player = new Player();
+            const player = new Player(options);
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });
