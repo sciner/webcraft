@@ -3,8 +3,8 @@ const FLAG_SYSTEM_ADMIN = 256;
 // JSON API
 export class ServerAPI {
 
-    static async call(method, params, session_id) {
-        console.debug('> API:' + method);
+    static async call(method, params, session_id, req) {
+        console.debug('!> API:' + method);
         switch(method) {
             case '/api/Game/getWorldPublicInfo':
                 const world = await Qubatch.db.getWorld(params.worldGuid);
@@ -78,6 +78,24 @@ export class ServerAPI {
                     }
                 }
                 return resp;
+            }
+            case '/api/Game/Screenshot': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                if (req.files && session) {
+                    const params = req.body;
+                    const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
+                    const title = await Qubatch.db.InsertScreenshot(world_id, params.as_cover == 'true' ? true : false);
+                    if (title) {
+                        const path = '../world/' + world_id + '/screenshot/';
+                        if (!fs.existsSync(path)) {
+                            fs.mkdirSync(path, {recursive: true});
+                        }
+                        const file = req.files.file;
+                        file.mv(path + title);
+                        return {'result':'ok'};
+                    }
+                }
+                return {'result':'error'};
             }
             default: {
                 throw 'error_method_not_exists';

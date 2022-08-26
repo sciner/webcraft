@@ -550,7 +550,12 @@ export default class WebGLRenderer extends BaseRenderer {
         return buffer;
     }
 
-    async screenshot() {
+    /**
+     * 
+     * @param {string} format 
+     * @param {Function} callback 
+     */
+    async screenshot(format, callback) {
         const buffer = this.toRawPixels();
         const width = this.view.width;
         const height = this.view.height;
@@ -577,10 +582,8 @@ export default class WebGLRenderer extends BaseRenderer {
         ctx.putImageData(data, 0, 0);
         ctx.drawImage(Qubatch.hud.canvas, 0, 0, width, height);
         ctx.canvas.toBlob(function(blob) {
-            ctx.canvas.width = ctx.canvas.height = 0;
-            // let filefromblob = new File([blob], 'image.png', {type: 'image/png'});
-            Helpers.downloadBlobPNG(blob, 'screenshot.png'); // filefromblob);
-        }, 'image/png');
+            callback(blob);
+        }, format);
     }
 
 }

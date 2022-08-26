@@ -273,6 +273,16 @@ button:not(.loading) .fa-spin {
     &.worlds-button {
         max-width: min-content;
     }
+    .world_cover {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+    }
     & > * {
         display: inline-block;
         margin-right: .5em

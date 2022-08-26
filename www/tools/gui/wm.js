@@ -31,6 +31,8 @@ export class Window {
         this.parent         = null;
         this.scrollX        = 0;
         this.scrollY        = 0;
+        this.autosize       = true;
+        this.enabled        = true;
         this.max_chars_per_line = 0;
         this.onHide         = function() {};
         this.onShow         = function() {};
@@ -649,11 +651,16 @@ export class Window {
                     control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
                     break;
                 }
+                case 'Button': {
+                    control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                    break;
+                }
             }
             if(control) {
                 if(cl.style) {
                     control.assignStyles(cl.style);
                 }
+                // set other props
                 for(let prop in cl) {
                     if(ignored_props.indexOf(prop) < 0) {
                         control[prop] = cl[prop];
@@ -682,6 +689,53 @@ export class Window {
                 }
                 case 'stretch': {
                     this.ctx.drawImage(val.image, 0, 0, iw, ih, x, y, w, h);
+                    break;
+                }
+                case 'cover': {
+                    /**
+                     * By Ken Fyrstenberg Nilsen
+                     * drawImageProp(context, image [, x, y, width, height [,offsetX, offsetY]])
+                     * If image and context are only arguments rectangle will equal canvas
+                    */
+                    function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
+                        if (arguments.length === 2) {
+                            x = y = 0;
+                            w = ctx.canvas.width;
+                            h = ctx.canvas.height;
+                        }
+                        // default offset is center
+                        offsetX = typeof offsetX === "number" ? offsetX : 0.5;
+                        offsetY = typeof offsetY === "number" ? offsetY : 0.5;
+                        // keep bounds [0.0, 1.0]
+                        if (offsetX < 0) offsetX = 0;
+                        if (offsetY < 0) offsetY = 0;
+                        if (offsetX > 1) offsetX = 1;
+                        if (offsetY > 1) offsetY = 1;
+                        var iw = img.width,
+                            ih = img.height,
+                            r = Math.min(w / iw, h / ih),
+                            nw = iw * r,   // new prop. width
+                            nh = ih * r,   // new prop. height
+                            cx, cy, cw, ch, ar = 1;
+                        // decide which gap to fill    
+                        if (nw < w) ar = w / nw;                             
+                        if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;  // updated
+                        nw *= ar;
+                        nh *= ar;
+                        // calc source rectangle
+                        cw = iw / (nw / w);
+                        ch = ih / (nh / h);
+                        cx = (iw - cw) * offsetX;
+                        cy = (ih - ch) * offsetY;
+                        // make sure source rectangle is valid
+                        if (cx < 0) cx = 0;
+                        if (cy < 0) cy = 0;
+                        if (cw > iw) cw = iw;
+                        if (ch > ih) ch = ih;
+                        // fill image in dest. rectangle
+                        ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
+                    }
+                    drawImageProp(this.ctx, val.image, x, y, w, h, 0.5, 0.5);
                     break;
                 }
                 case 'sprite': {
@@ -853,7 +907,7 @@ class Tooltip extends Label {
         }
         this.applyStyle(ctx, ax, ay);
         //
-        if(this.need_update_size) {
+        if(this.need_update_size && this.autosize) {
             this.need_update_size = false;
             let mt = ctx.measureText(this.text);
             this.width = mt.width + this.style.padding.left + this.style.padding.right;
@@ -1036,6 +1090,7 @@ export class VerticalLayout extends Window {
         super(x, y, w, 0, id, null, null);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
+        this.gap = 0;
     }
 
     refresh() {
@@ -1045,10 +1100,10 @@ export class VerticalLayout extends Window {
             w.y = y;
             w.width = this.width;
             w.updateMeasure(this.getRoot().ctx);
-            if(w.__measure.text?.height) {
+            if(w.__measure.text?.height && w.autosize) {
                 w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
             }
-            y += w.height;
+            y += w.height + this.gap;
         }
         this.calcMaxHeight();
         this.height = this.max_height;

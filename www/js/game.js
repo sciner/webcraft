@@ -197,7 +197,9 @@ export class GameClass {
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
-                            this.render.downloadScreenshot();
+                            if(!this.hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
+                                Qubatch.hud.wm.getWindow('frmScreenshot').make();
+                            }
                         }
                         return true;
                         break;
