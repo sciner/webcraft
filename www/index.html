@@ -132,7 +132,7 @@
                 <li><button class="active">{{Lang.login}}</button></li>
                 <li><button ng-click="current_window.show('registration')">{{Lang.registration}}</button></li>
             </ul>
-    
+
             <div class="flex0 flex-column">
                 <label>
                     {{Lang.enter_your_name}}:
@@ -224,7 +224,7 @@
                 <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
             </div>
         </div>
-        
+
         <!-- Settings -->
         <form class="flex-column nice-form flex-justify-start animate__animated animate__fadeIn" ng-if="texture_pack.list && current_window.id == 'settings'">
 
@@ -276,7 +276,7 @@
             </div> -->
 
         </form>
-        
+
         <!-- Change skin -->
         <form id="form-skin" class="animate__animated animate__fadeIn" ng-if="current_window.id == 'skin'">
             <h4>{{Lang.select_skin}}</h4>

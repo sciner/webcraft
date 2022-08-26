@@ -391,26 +391,26 @@ export class DBGame {
     }
     
     async InsertScreenshot(guid, cover) {
-        const file = randomUUID() + '.webp';
-        //Проверям существование мира
+        const filename = randomUUID() + '.webp';
+        // Проверям существование мира
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [guid]);
         if (!row) {
             return;
         }
-        //Если это задний фон
-        if (cover) {
-            const result = await this.conn.run('UPDATE world SET cover = :cover WHERE guid = :guid', {
-                ':cover': file,
+        // Если это задний фон
+        if(cover) {
+            await this.conn.run('UPDATE world SET cover = :cover WHERE guid = :guid', {
+                ':cover': filename,
                 ':guid':  guid
             });
         }
-        //Заносим в базу скриншот
-        const result = await this.conn.run('INSERT INTO screenshot (dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
-            ':dt':   ~~(Date.now() / 1000),
+        // Заносим в базу скриншот
+        await this.conn.run('INSERT INTO screenshot (dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
+            ':dt':  ~~(Date.now() / 1000),
             ':guid': guid,
-            ':file': file
+            ':file': filename
         });
-        return file;
+        return filename;
     }
 
 }

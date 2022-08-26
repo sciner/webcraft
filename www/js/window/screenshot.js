@@ -145,6 +145,12 @@ export class ScreenshotWindow extends Window {
         const ql = this.getWindow('vLayout');
         const lblPreview = ql.getWindow('lblPreview');
         lblPreview.title = Lang.loading;
+
+        if(typeof LocalServerClient != 'undefined') {
+            ql.delete('btnSetCover');
+            ql.delete('btnSaveToGallery');
+        }
+
         Qubatch.render.screenshot((blob) => {
             this.show();
             const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});

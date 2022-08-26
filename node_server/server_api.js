@@ -3,6 +3,15 @@ const FLAG_SYSTEM_ADMIN = 256;
 // JSON API
 export class ServerAPI {
 
+    //
+    static async isWorldAdmin(world_guid, session) {
+        const world = Qubatch.worlds.get(world_guid);
+        if(!world) {
+            return false;
+        }
+        return world.admins.checkIsAdmin({session});
+    }
+
     static async call(method, params, session_id, req) {
         console.debug('!> API:' + method);
         switch(method) {
@@ -81,18 +90,30 @@ export class ServerAPI {
             }
             case '/api/Game/Screenshot': {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
-                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                const params = req.body;
+                const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
+                if(!ServerAPI.isWorldAdmin(world_id, session)) {
+                    throw 'error_not_permitted';
+                }
                 if (req.files && session) {
-                    const params = req.body;
-                    const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
-                    const title = await Qubatch.db.InsertScreenshot(world_id, params.as_cover == 'true' ? true : false);
-                    if (title) {
-                        const path = '../world/' + world_id + '/screenshot/';
-                        if (!fs.existsSync(path)) {
-                            fs.mkdirSync(path, {recursive: true});
-                        }
+                    const filename = await Qubatch.db.InsertScreenshot(world_id, params.as_cover == 'true');
+                    if(filename) {
                         const file = req.files.file;
-                        file.mv(path + title);
+                        if(typeof fs === 'undefined') {
+                            throw 'error_fs_not_found';
+                            /*
+                            const path = '../worldcover/' + world_id + '/screenshot/';
+                            caches.open('game-cache').then(async (cache) => {
+                                await cache.put(path + filename, new Response(file));
+                            });
+                            */
+                        } else {
+                            const path = '../world/' + world_id + '/screenshot/';
+                            if (!fs.existsSync(path)) {
+                                fs.mkdirSync(path, {recursive: true});
+                            }
+                            file.mv(path + filename);
+                        }
                         return {'result':'ok'};
                     }
                 }
