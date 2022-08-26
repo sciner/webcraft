@@ -15,6 +15,9 @@ export default class packet_reader {
 
     // 
     static async read(player, packet) {
+        if(player.wait_portal) {
+            return true;
+        }
         const data = decompressPlayerStateC(packet.data);
         if(player.state.sitting || player.state.lies) {
             data.pos = player.state.pos.clone();

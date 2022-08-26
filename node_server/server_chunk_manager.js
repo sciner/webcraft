@@ -204,11 +204,11 @@ export class ServerChunkManager {
             // Find new chunks
             for(let i = 0; i < spiral_moves_3d.length; i++) {
                 const sm = spiral_moves_3d[i];
-                let addr = player.chunk_addr.add(sm.pos);
+                const addr = player.chunk_addr.add(sm.pos);
                 if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
-                        let item = {
+                        const item = {
                             addr: addr,
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };
@@ -302,6 +302,28 @@ export class ServerChunkManager {
             });
         }
         this.postWorkerMessage(['destroyMap', { players }]);
+    }
+
+    //
+    getAround(pos, chunk_render_dist) {
+        const world             = this.world;
+        const margin            = Math.max(chunk_render_dist + 1, 1);
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        const chunk_addr        = getChunkAddr(pos);
+        const _addr             = new Vector(0, 0, 0);
+        // array like iterator
+        return (function* () {
+            for(let i = 0; i < spiral_moves_3d.length; i++) {
+                const sm = spiral_moves_3d[i];
+                _addr.copyFrom(chunk_addr).addSelf(sm.pos);
+                if(ALLOW_NEGATIVE_Y || _addr.y >= 0) {
+                    const chunk = world.chunks.get(_addr);
+                    if(chunk) {
+                        yield chunk;
+                    }
+                }
+            }
+        })()
     }
 
 }

@@ -1,6 +1,7 @@
 import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import { CubeSym } from '../core/CubeSym.js';
+import { WorldPortal } from '../portal.js';
 
 // Панель
 export default class style {
@@ -33,6 +34,21 @@ export default class style {
             lm.b = anim_frames;
             flags |= QUAD_FLAGS.FLAG_ANIMATED;
         }
+
+        //
+        if(material.is_portal) {
+            // nether portal
+            if(block.extra_data?.type) {
+                flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
+                const portal_type = WorldPortal.getPortalTypeByID(block.extra_data.type);
+                if(portal_type) {
+                    lm.r = portal_type.color.r;
+                    lm.g = portal_type.color.g;
+                }
+            }
+        }
+
+        // pack lm
         let pp = IndexedColor.packLm(lm);
 
         switch(cardinal_direction) {

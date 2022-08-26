@@ -9,6 +9,8 @@ import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
+import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
+import { DBWorldPortal } from "./world/portal.js";
 
 // World database provider
 export class DBWorld {
@@ -23,6 +25,7 @@ export class DBWorld {
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
+        this.portal = new DBWorldPortal(this.conn, this.world);
         return this;
     }
 
@@ -273,8 +276,9 @@ export class DBWorld {
     // Create drop item
     async createDropItem(params) {
         const entity_id = randomUUID();
+        let dt = ~~(Date.now() / 1000);
         await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              dt,
             ':entity_id':       entity_id,
             ':items':           JSON.stringify(params.items),
             ':x':               params.pos.x,
@@ -282,8 +286,16 @@ export class DBWorld {
             ':z':               params.pos.z
         });
         return {
-            entity_id
+            entity_id,
+            dt
         };
+    }
+
+      // Delete drop item
+      async removeDeadDrops(entity_id) {
+        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE dt < :dt', {
+            ':dt': ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS)
+        });
     }
 
     // Delete drop item
@@ -296,7 +308,8 @@ export class DBWorld {
 
     // Load drop items
     async loadDropItems(addr, size) {
-        const rows = await this.conn.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.conn.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND dt >= :death_date AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':death_date' : ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS),
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -307,6 +320,7 @@ export class DBWorld {
         const resp = new Map();
         for(let row of rows) {
             const item = new DropItem(this.world, {
+                dt:         row.dt,
                 id:         row.id,
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,

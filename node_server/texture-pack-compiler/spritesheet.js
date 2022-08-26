@@ -123,13 +123,23 @@ export class Spritesheet {
     }
 
     // drawTexture
-    async drawTexture(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null, subtexture_id) {
+    async drawTexture(img, x, y, has_mask, globalCompositeOperation = null, overlay_mask = null, subtexture_id, compile_rules) {
         const ctx = this.getCtx(subtexture_id);
         if(globalCompositeOperation) {
             ctx.globalCompositeOperation = globalCompositeOperation;
         }
         const sw = Math.max(img.width, this.tx_sz);
         const sh = Math.max(img.height, this.tx_sz);
+        const use_filter = !!compile_rules?.filter;
+        // if using filter
+        if(use_filter) {
+            const fcanvas = new skiaCanvas.Canvas(img.width, img.height);
+            const fctx = fcanvas.getContext('2d');
+            fctx.imageSmoothingEnabled = false;
+            fctx.filter = compile_rules.filter;
+            fctx.drawImage(img, 0, 0, img.width, img.height);
+            img = fcanvas;
+        }
         ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
         if(has_mask) {
             if(overlay_mask) {
@@ -143,6 +153,23 @@ export class Spritesheet {
                 ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
                 ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
                 ctx.globalCompositeOperation = 'source-over';
+                // copy colores pixels
+                const pixs = ctx.getImageData((x + 1) * this.tx_sz, y * this.tx_sz, this.tx_sz, this.tx_sz).data;
+                let pix_index = 0;
+                for(let j = 0; j < this.tx_sz; j++) {
+                    for(let i = 0; i < this.tx_sz; i++) {
+                        const ax = x * this.tx_sz + i;
+                        const ay = y * this.tx_sz + j;
+                        let hsl = this.RGBToHSL(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2]);
+                        if(hsl[1] > 40) {
+                            ctx.fillStyle = this.rgbaToHex(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2], pixs[pix_index + 3]);
+                            ctx.fillRect(ax, ay, 1, 1);
+                            ctx.fillStyle = '#000000';
+                            ctx.fillRect(ax + this.tx_sz, ay, 1, 1);
+                        }
+                        pix_index += 4;
+                    }
+                }
             }
         }
         const sx = Math.ceil(img.width / this.tx_sz);
@@ -154,7 +181,7 @@ export class Spritesheet {
             }                        
         }
         // 
-        if(overlay_mask) {
+        if(overlay_mask || has_mask) {
             for(let i = 0; i < sx; i++) {
                 for(let j = 0; j < sy; j++) {
                     const index = this.XYToIndex(x + i + 1, y + j);
@@ -201,6 +228,34 @@ export class Spritesheet {
                 throw 'error_no_place';
             }
         }
+    }
+
+    RGBToHSL(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const l = Math.max(r, g, b);
+        const s = l - Math.min(r, g, b);
+        const h = s
+            ? l === r
+                ? (g - b) / s
+                : l === g
+                    ? 2 + (b - r) / s
+                    : 4 + (r - g) / s
+            : 0;
+        return [
+            60 * h < 0 ? 60 * h + 360 : 60 * h,
+            100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0),
+            (100 * (2 * l - s)) / 2,
+        ];
+    }
+
+    rgbaToHex(r, g, b, a) {
+        function componentToHex(c) {
+            var hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b) + componentToHex(a);
     }
 
 }

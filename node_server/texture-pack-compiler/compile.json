@@ -37,12 +37,9 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "mask_color"
+                "multiply_color"
             ],
-            "compile": {
-                "overlay_mask": "./textures/water_overlay.png"
-            },
-            "mask_color": {"r": 62, "g": 150, "b": 0},
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
             "spawnable": false
         },
         {
@@ -65,9 +62,9 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "mask_color"
+                "multiply_color"
             ],
-            "mask_color": {"r": 62, "g": 150, "b": 0},
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
             "fluid": {
                 "max_power": 1,
                 "still_block_id": 202
@@ -143,7 +140,6 @@
             "can_rotate": true,
             "spawnable": false,
             "is_portal": true,
-            "_spawnable": false,
             "material": {
                 "id": "glass"
             },
@@ -151,8 +147,13 @@
                 "side": null
             },
             "tags": [
-                "rotate_by_pos_n"
+                "rotate_by_pos_n",
+                "multiply_color",
+                "noclonable"
             ],
+            "compile": {
+                "filter": "saturate(0%) brightness(300%)"
+            },
             "light_power": {
                 "r": 253,
                 "g": 200,
@@ -742,22 +743,6 @@
             }
         },
         {
-            "id": 552,
-            "name": "SHEARS",
-            "transparent": true,
-            "max_in_stack": 1,
-            "style": "extruder",
-            "diagonal": true,
-            "item": {"name": "instrument", "instrument_id": "shears"},
-            "material": {
-                "id": "iron"
-            },
-            "texture": {
-                "id": "default",
-                "side": "item/shears.png"
-            }
-        },
-        {
             "id": 467,
             "name": "COARSE_DIRT",
             "sound": "madcraft:block.gravel",
@@ -1230,6 +1215,22 @@
             ]
         },
         {
+            "id": 552,
+            "name": "SHEARS",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "shears"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/shears.png"
+            }
+        },
+        {
             "id": 201,
             "name": "SPONGE",
             "sound": "madcraft:block.cloth",
@@ -1357,9 +1358,12 @@
         {
             "id": 106,
             "name": "VINE",
+            "style": "cover",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
             "transparent": true,
+            "can_rotate": true,
+            "passable": 0.25,
             "width": 0.0625,
             "planting": false,
             "texture": {
@@ -1370,14 +1374,21 @@
             ],
             "tags": [
                 "vines",
-                "mask_biome"
+                "no_drop_ao",
+                "mask_biome",
+                "rotate_by_pos_n"
             ],
             "material": {
                 "id": "plant"
             },
-            "style": "ladder",
-            "passable": 0.25,
-            "can_rotate": true
+            "extra_data": {
+                "down": false,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false
+            }
         },
         {
             "id": 32,
@@ -4736,6 +4747,7 @@
             "material": {
                 "id": "plant"
             },
+            "planting": false,
             "tags": [
                 "bamboo",
                 "can_put_info_pot",
@@ -6711,7 +6723,7 @@
             "name": "BEACON",
             "window": "frmBeacon",
             "transparent": true,
-            "style": "beacon",
+            "style": "bn",
             "ticking": {
                 "type": "beacon"
             },
@@ -6731,6 +6743,89 @@
                 "side": "block/glass.png",
                 "down": "block/obsidian.png",
                 "east": "entity/beacon_beam.png"
+            }
+        },
+        {
+            "id": 232,
+            "name": "LILY_PAD",
+            "transparent": true,
+            "height": 0.0625,
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "planting": false,
+            "tags": [
+                "set_on_water",
+                "mask_biome",
+                "no_drop_ao"
+            ],
+            "texture": "block/lily_pad.png"
+        },
+        {
+            "id": 228,
+            "name": "FLINT",
+            "style": "extruder",
+            "texture": "item/flint.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 229,
+            "name": "FLINT_AND_STEEL",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "item": {"name": "instrument", "instrument_id": "flint_and_steel"},
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "default",
+                "side": "item/flint_and_steel.png"
+            }
+        },
+        {
+            "id": 230,
+            "name": "TUFF",
+            "texture": "./textures/tuff.png",
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 231,
+            "name": "GLOW_LICHEN",
+            "transparent": true,
+            "style": "cover",
+            "can_rotate": true,
+            "material": {
+                "id": "plant"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": "./textures/glow_lichen.png",
+            "tags": [
+                "no_drop_ao",
+                "no_drop",
+                "rotate_by_pos_n"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 140
+            },
+            "extra_data": {
+                "down": false,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false,
+                "rotate": false
             }
         }
     ]

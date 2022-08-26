@@ -10,6 +10,7 @@ import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
+import { SOUND_MAX_DIST } from "./constant.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -468,12 +469,35 @@ export class GameClass {
         // Draw world
         this.render.draw(delta, args);
 
+        // Play mobs sound (steps, idle)
+        this.mobSounds();
+
         // Счетчик FPS
         this.hud.FPS.incr();
         this.averageClockTimer.add(performance.now() - tm);
 
         // we must request valid loop
         this.render.requestAnimationFrame(this.loop);
+    }
+
+    // Play mob idle or step sounds
+    mobSounds() {
+        const mul = this.hud.FPS.fps / 120;
+        if(Math.random() > .2 * mul) {
+            return;
+        }
+        const camPos = this.render.camPos;
+        for(const [_, mob] of this.world.mobs.list.entries()) {
+            const dist = mob._pos.distance(camPos);
+            if(dist < SOUND_MAX_DIST) {
+                if(Math.random() < .01) {
+                    const effect = Math.random() > .75 ? 'idle' : 'step';
+                    Qubatch.sounds.play('madcraft:block.' + mob.type, effect, dist);
+                    // console.log(`${mob.type}.${effect}`);
+                    break;
+                }
+            }
+        }
     }
 
     // Отправка информации о позиции и ориентации игрока на сервер

@@ -219,7 +219,6 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
-
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
@@ -317,6 +316,10 @@ export default class style {
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
             }
+            if(block.hasTag('multiply_color')) {
+                lm = material.multiply_color;
+                flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
+            }
 
             // Rotate
             const rotate = block.rotate || DEFAULT_ROTATE;
@@ -383,7 +386,7 @@ export default class style {
         }
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
-        if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id) {
+        if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id || block.id == BLOCK.LILY_PAD.id) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             axes_up = UP_AXES[rv % 4];
             autoUV = false;

@@ -8,7 +8,7 @@ import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
-import { Particles_BeaconRay } from "./particles/beacon_ray.js";
+import { Particles_BeaconRay } from "./particles/bn_ray.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -62,6 +62,8 @@ export class ChunkManager {
         this.worker_inited          = false;
         this.timer60fps             = 0;
         this.dataWorld              = new DataWorld();
+
+        this.chunk_modifiers        = new VectorCollector();
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
@@ -157,6 +159,7 @@ export class ChunkManager {
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
+            // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
             this.setChunkState(cmd.data);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
@@ -191,7 +194,8 @@ export class ChunkManager {
                     break;
                 }
                 case 'blocks_generated': {
-                    let chunk = that.chunks.get(args.addr);
+                    // console.log('4. createChunk: generated', new Vector(args.addr).toHash());
+                    const chunk = that.chunks.get(args.addr);
                     if(chunk) {
                         chunk.onBlocksGenerated(args);
                     }

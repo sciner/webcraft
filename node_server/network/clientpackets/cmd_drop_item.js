@@ -17,9 +17,7 @@ export default class packet_reader {
         if(!player.game_mode.canDropItems()) {
             return true;
         }
-        const mobs = player.world.getMobsNear(player.state.pos, 100);
-        console.log(mobs);
-        // player.inventory.dropItem();
+        player.inventory.dropItem();
         return true;
     }
 

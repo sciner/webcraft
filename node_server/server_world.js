@@ -53,6 +53,7 @@ export class ServerWorld {
         }
         //
         this.db             = db_world;
+        this.db.removeDeadDrops();
         this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
@@ -140,7 +141,7 @@ export class ServerWorld {
             this.ticks_stat.add('mobs');
             // 3.
             for (let player of this.players.values()) {
-                player.tick(delta);
+                await player.tick(delta);
             }
             this.ticks_stat.add('players');
             // 4.
@@ -152,11 +153,11 @@ export class ServerWorld {
             await this.packet_reader.queue.process();
             this.ticks_stat.add('packet_reader_queue');
             //
-            this.packets_queue.send();
-            this.ticks_stat.add('packets_queue_send');
-            //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
+            //
+            this.packets_queue.send();
+            this.ticks_stat.add('packets_queue_send');
             //
             if(this.ticks_stat.number % 100 != 0) {
                 this.chunks.checkDestroyMap();
@@ -212,7 +213,7 @@ export class ServerWorld {
             data: player.exportState()
         }], []);
         // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' connected', this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
         const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
         if(drag_item) {

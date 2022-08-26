@@ -424,13 +424,19 @@ export class TypedBlocks3 {
         return this.id[index];
     }
 
-    setBlockRotateExtra(x, y, z, rotate, extra_data) {
+    setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power) {
         const vec = TypedBlocks3._tmp.set(x, y, z);
         if (rotate !== undefined) {
             this.rotate.set(vec, rotate);
         }
         if (extra_data !== undefined) {
             this.extra_data.set(vec, extra_data);
+        }
+        if (entity_id !== undefined) {
+            this.entity_id.set(vec, entity_id);
+        }
+        if (power !== undefined) {
+            this.power.set(vec, power);
         }
     }
 

@@ -361,7 +361,9 @@ export class HUD {
             if(p.itsMe()) {
                 this.text += ' ⬅ YOU';
             } else {
-                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
+                if(p.distance) {
+                    this.text += ` ... ${p.distance}m`;
+                }
             }
             this.text += '\n';
             if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {

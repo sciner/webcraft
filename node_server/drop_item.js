@@ -13,6 +13,7 @@ export class DropItem {
     constructor(world, params, velocity) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
+        this.dt             = params.dt,
         this.items          = params.items;
         this.pos            = new Vector(params.pos);
         this.posO           = new Vector(Infinity, Infinity, Infinity);
@@ -81,6 +82,7 @@ export class DropItem {
         }
         let result = await world.db.createDropItem(params);
         params.entity_id = result.entity_id;
+        params.dt = result.dt;
         return new DropItem(world, params, velocity);
     }
 
