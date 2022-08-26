@@ -6,7 +6,7 @@ export class ScreenshotWindow extends Window {
 
     constructor(player) {
 
-        super(10, 10, 400, 200, "frmScreenshot", null, null);
+        super(10, 10, 400, 210, "frmScreenshot", null, null);
 
         this.width *= this.zoom;
         this.height *= this.zoom;

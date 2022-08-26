@@ -90,10 +90,11 @@ export class ServerAPI {
                             fs.mkdirSync(path, {recursive: true});
                         }
                         const file = req.files.body;
-                        file.mv(path + title + '.webp');
+                        file.mv(path + title);
+                        return {'result':'ok'};
                     }
                 }
-                return {};
+                return {'result':'error'};
             }
             default: {
                 throw 'error_method_not_exists';

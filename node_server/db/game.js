@@ -387,7 +387,7 @@ export class DBGame {
     }
     
     async InsertScreenshot(guid, cover) {
-        const file = randomUUID();
+        const file = randomUUID() + '.webp';
         //Проверям существование мира
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [guid]);
         if (!row) {

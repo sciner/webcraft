@@ -584,7 +584,13 @@ export default class WebGLRenderer extends BaseRenderer {
                 form.append('body', fileFromBlob);
                 form.append('world', world);
                 form.append('cover', cover);
-                Qubatch.App.Screenshot(form);
+                Qubatch.App.Screenshot(form, function(result){
+                    if (result.result == "ok") {
+                        vt.success("Screenshot upload to server");
+                    } else {
+                        vt.error("Error upload screenshot");
+                    }
+                });
             }, 'image/webp');
         } else {
             ctx.canvas.toBlob(function(blob) {
