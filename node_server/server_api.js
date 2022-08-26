@@ -81,6 +81,7 @@ export class ServerAPI {
             }
             case '/api/Game/Screenshot': {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
+                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
                 if (req.files && session) {
                     const params = req.body;
                     const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36);
