@@ -53,11 +53,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let DENSITY_COEFF           = 1;
         let fill_count              = 0;
 
-        const { cx, cy, cz, cw, tblocks } = chunk;
         //
         const getBlock = (x, y, z) => {
-            const index = cx * x + cy * y + cz * z + cw;
-            return tblocks.id[index];
+            return chunk.tblocks.getBlockId(x, y, z);
         };
 
         //
@@ -226,7 +224,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             temp_vec_amethyst.set(x, y, z);
                             let dist = Math.round(room_pos.distance(temp_vec_amethyst));
                             if(dist < AMETHYST_ROOM_RADIUS - 1.5) {
-                                if(getBlock(x, y, z) == 0) {
+                                const block = getBlock(x, y, z);
+                                if(block == 0) {
                                     let set_vec     = null;
                                     let attempts    = 0;
                                     let rotate      = null;

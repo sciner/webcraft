@@ -252,6 +252,10 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
+        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
+        if (worldWithSameTitle != null) {
+            throw 'error_world_with_same_title_already_exist';
+        }
         const guid = randomUUID();
         let default_pos_spawn = new Vector(2895.7, 120, 2783.06);
         switch(generator?.id) {

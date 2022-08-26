@@ -23,9 +23,13 @@ export default class Ticker {
         
         // драгоценный блок или нет
         const isPrecious = (n) => {
+            const vec = new Vector();
             for (let i = -n; i <= n; i++) {
                 for (let j = -n; j <= n; j++) {
-                    const block = world.getBlock(pos.add(new Vector(i, -n, j)));
+                    const block = world.getBlock(vec.copyFrom(pos).addScalarSelf(i, -n, j));
+                    if(!block) {
+                        return false;
+                    }
                     // можно строить только из алмазных, изумрудных, золотых, железных, незеритовых
                     if (![BLOCK.GOLD_BLOCK.id, BLOCK.DIAMOND_BLOCK.id, BLOCK.EMERALD_BLOCK.id, BLOCK.IRON_BLOCK.id, BLOCK.NETHERITE_BLOCK.id].includes(block.id)) {
                         return false;

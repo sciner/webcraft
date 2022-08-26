@@ -6,6 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
+import { Raycaster, RaycasterResult } from "./Raycaster.js";
 import { WorldPortal } from "./portal.js";
 
 const _createBlockAABB = new AABB();
@@ -701,7 +702,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, openPortal]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, openPortal, setOnWater]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1659,6 +1660,29 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
     }
     return false;
 }
+
+//
+async function setOnWater(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!mat_block || !mat_block.tags.includes('set_on_water')) {
+        return false;
+    }
+    if(world_block.material.is_water) {
+        const position = new Vector(pos);
+        position.addSelf(pos.n);
+        const block_air = world.getBlock(position.add(pos.n));
+        if (block_air.id == BLOCK.AIR.id) {
+            actions.addBlocks([{
+                pos: position, 
+                item: {
+                    id: mat_block.id
+                }, 
+                action_id: ServerClient.BLOCK_ACTION_CREATE
+            }]);
+        }
+    }
+    return true;
+}
+
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
 async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {

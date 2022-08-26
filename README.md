@@ -72,6 +72,12 @@ Qubatch.player.inventory.open();
 Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 horse creamy');
 Qubatch.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
 
+// Play sounds
+Qubatch.sounds.play('madcraft:block.chicken', 'idle');
+Qubatch.sounds.play('madcraft:block.chicken', 'step');
+Qubatch.sounds.play('madcraft:block.chicken', 'death');
+Qubatch.sounds.play('madcraft:block.player', 'hit');
+
 // Admins
 // 1. admin list managed only by chat commands
 // 2. only owner or another admin can add new admin
@@ -126,7 +132,7 @@ chunk.sendAll(packets, []);
     View distance can take number from 2 to 16
 
 ## Portals
-    You can made 3 type of portals:
+You can made 3 type of portals:
 
 - ### Portal to bottom caves
     - You must build a frame from OBSIDIAN (minimum size 4x5) and must activate the portal by applying FLINT_AND_STEEL to the inside of the frame;

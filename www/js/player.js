@@ -9,7 +9,7 @@ import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
-import {doBlockAction} from "./world_action.js";
+import {doBlockAction, WorldAction} from "./world_action.js";
 import { MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
@@ -102,8 +102,11 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Qubatch.sounds.play(cmd.data.tag, cmd.data.action);});
+        window.playerTemp = this;
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
+            let dist = this.pos.distance(new Vector(cmd.data.pos));
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
             this.state.sitting = false;
@@ -142,6 +145,27 @@ export class Player {
                     data: e
                 });
             }
+        }, (bPos) => {
+            // onInteractFluid
+            const e = this.pickAt.damage_block.event;
+            const hand_current_item = this.inventory.current_item;
+            if(e && e.createBlock && hand_current_item) {
+                const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
+                if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
+                    if(e.number++ == 0) {
+                        e.pos = bPos;
+                        const e_orig = JSON.parse(JSON.stringify(e));
+                        e_orig.actions = new WorldAction(randomUUID());
+                        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                        this.world.server.Send({
+                            name: ServerClient.CMD_PICKAT_ACTION,
+                            data: e_orig
+                        });
+                    }
+                    return true;
+                }
+            }
+            return false;
         });
         return true;
     }
