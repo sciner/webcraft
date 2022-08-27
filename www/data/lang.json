@@ -117,6 +117,7 @@
         "enter_world_name": {"en": "Enter name", "ru": "Введите название", "fr": "", "es": "", "man": ""},
         "logout": {"en": "Log-out", "ru": "Выйти из игры", "fr": "", "es": "", "man": ""},
         "error_player_exists": {"en": "Player with same name exists", "ru": "Игрок с таким именем уже зарегистрирован", "fr": "", "es": "", "man": ""},
-        "players_online": {"en": "Players online", "ru": "Игроков онлайн", "fr": "", "es": "", "man": ""}
+        "players_online": {"en": "Players online", "ru": "Игроков онлайн", "fr": "", "es": "", "man": ""},
+        "forced_joystick_control": {"en": "Forced Joystick control", "ru": "Принудительное использование джойстиков управления", "fr": "", "es": "", "man": ""}
     }
 }

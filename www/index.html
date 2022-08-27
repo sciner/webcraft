@@ -65,13 +65,13 @@
 
         <!-- Joystick -->
         <div id="Joystick">
-            <div id="Joystick-left" class="joystick" ng-if="isMobileBrowser()">
+            <div id="Joystick-left" class="joystick" ng-if="isJoystickControl()">
                 <img src="/media/joystick/joystick-base.png" style="pointer-events: none;" />
                 <div id="stick" style="position: absolute; left:32px; top:32px;" style="pointer-events: none;" >
                     <img src="/media/joystick/joystick-red.png" />
                 </div>
             </div>
-            <div id="Joystick-right" class="joystick" ng-if="isMobileBrowser()">
+            <div id="Joystick-right" class="joystick" ng-if="isJoystickControl()">
                 <div style="left: 37px; top: -2px;" ng-mousedown="Qubatch.Joystick.action('walk', true)" ng-mouseup="Qubatch.Joystick.action('walk', false)" ontouchstart="Qubatch.Joystick.action('walk', true)" ontouchend="Qubatch.Joystick.action('walk', false)"><img src="/media/joystick/walk.png" /></div>
                 <div style="left: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('atack', true)" ng-mouseup="Qubatch.Joystick.action('atack', false)" ontouchstart="Qubatch.Joystick.action('atack', true)" ontouchend="Qubatch.Joystick.action('atack', false)"><img src="/media/joystick/atack.png" /></div>
                 <div style="right: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('jump', true)" ng-mouseup="Qubatch.Joystick.action('jump', false)" ontouchstart="Qubatch.Joystick.action('jump', true)" ontouchend="Qubatch.Joystick.action('jump', false)"><img src="/media/joystick/jump.png" /></div>
@@ -80,9 +80,17 @@
         </div>
 
         <!-- Mobile buttons -->
-        <div id="mobile-buttons" ng-if="isMobileBrowser()">
-            <button id="btn-mobile-menu" class="secondary btn-round" ng-click="toggleMainMenu()">☰</button>
-            <button id="btn-mobile-inventory" class="secondary btn-round" ng-click="Qubatch.player.inventory.open()">inv</button>
+        <div id="mobile-buttons" ng-if="isJoystickControl()">
+            <div id="btn-mobile-inventory" class="secondary btn" ng-click="toggleFullscreen()">⛶</div>
+            <div id="btn-mobile-menu" class="secondary btn" ng-click="toggleMainMenu()">☰</div>
+            <div id="btn-mobile-inventory" class="secondary btn" ng-click="Qubatch.player.inventory.open()">inv</div>
+        </div>
+
+        <div id="share-button-container">
+            <button class="secondary visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
+                <span style="margin-right: 1em;">Invite</span>
+                <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
+            </button>
         </div>
         
     </div>
@@ -295,6 +303,13 @@
                         <p>{{Lang.language}}</p>
                         <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
                     </div>
+                    <div class="switcher-container">
+                        <input type="checkbox" id="test1" value="" ng-model="settings.form.forced_joystick_control" />
+                        <div class="switcher">
+                            <small></small>
+                        </div>
+                        <label for="test1">{{Lang.forced_joystick_control}}</label>
+                    </div>
                 </div>
                 <div class="video">
                     <h1>{{Lang.video}}</h1>
@@ -473,13 +488,6 @@
 
     <script src="/vendors/vanilla-toast.min.js"></script>
     <div id="loading"></div>
-
-    <div id="share-button-container">
-        <button class="secondary visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
-            <span style="margin-right: 1em;">Invite</span>
-            <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
-        </button>
-    </div>
     
 </body>
 </html>
