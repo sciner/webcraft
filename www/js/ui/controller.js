@@ -120,8 +120,11 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    // isMobileBrowser
+    // Is mobile browser
     $scope.isMobileBrowser = isMobileBrowser;
+    $scope.isJoystickControl = () => {
+        return isMobileBrowser() || $scope.settings.form.forced_joystick_control;
+    };
 
     // sun dir
     $scope.sunDir = {
@@ -300,6 +303,10 @@ let gameCtrl = async function($scope, $timeout) {
                 if('use_light' in this.form) {
                     this.form.use_light = parseInt(this.form.use_light | 0);
                 }
+                // forced Joystick control
+                if(!('render_distance' in this.form)) {
+                    this.form.forced_joystick_control = false;
+                }
             }
         }
     };
@@ -350,13 +357,36 @@ let gameCtrl = async function($scope, $timeout) {
         }
     }
 
+    //
+    $scope.toggleFullscreen = function () {
+        const el = document.getElementById('qubatch-canvas-container');
+        if (!document.fullscreenElement &&    // alternative standard method
+            !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
+            if (el.requestFullscreen) {
+                el.requestFullscreen();
+            } else if (el.mozRequestFullScreen) {
+                el.mozRequestFullScreen();
+            } else if (el.webkitRequestFullscreen) {
+                el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.cancelFullScreen) {
+                document.cancelFullScreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            }
+        }
+    };
+
     // Start world
     $scope.StartWorld = function(world_guid) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
             if(isMobileBrowser()) {
-                document.getElementById('qubatch-canvas-container').requestFullscreen();
+                $scope.toggleFullscreen();
             }
         }
         console.log(`StartWorld: ${world_guid}`);
