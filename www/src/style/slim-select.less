@@ -1,23 +1,23 @@
-@import 'vars.scss';
+@import 'vars.less';
 
-$height: 60px !default;
-$white: $color-button !default;
-$font-color: #fff !default;
-$font-placeholder-color: #8a8a8a !default;
-$font-disabled-color: #dedede !default;
-$primary-color: #5897fb !default;
-$border-color: transparent !default;
-$search-highlight-color: #fffb8c !default;
-$border-radius: 10px !default;
-$spacing-l: 8px !default;
-$spacing-m: 18px !default;
-$spacing-s: 4px !default;
+@height: 60px;
+@white: @color-button;
+@font-color: #fff;
+@font-placeholder-color: #8a8a8a;
+@font-disabled-color: #dedede;
+@primary-color: #5897fb;
+@border-color: transparent;
+@search-highlight-color: #fffb8c;
+@border-radius: 10px;
+@spacing-l: 8px;
+@spacing-m: 18px;
+@spacing-s: 4px;
 
 .ss-main {
   position: relative;
   display: inline-block;
   user-select: none;
-  color: $font-color;
+  color: @font-color;
   width: 100%;
 
   .ss-single-selected {
@@ -25,17 +25,17 @@ $spacing-s: 4px !default;
     gap: 20px;
     cursor: pointer;
     width: 100%;
-    height: $height;
-    padding: $spacing-m;
-    border: 1px solid $border-color;
-    border-radius: $border-radius;
-    background-color: $white;
+    height: @height;
+    padding: @spacing-m;
+    border: 1px solid @border-color;
+    border-radius: @border-radius;
+    background-color: @white;
     outline: 0;
     box-sizing: border-box;
     transition: background-color, border .3s;
 
     &.ss-disabled {
-      background-color: $border-color;
+      background-color: @border-color;
       cursor: default;
     }
     &:hover:not(.ss-open-above):not(.ss-open-below) {
@@ -75,7 +75,7 @@ $spacing-s: 4px !default;
       }
 
       .ss-disabled {
-        color: $font-disabled-color;
+        color: @font-disabled-color;
       }
     }
 
@@ -84,7 +84,7 @@ $spacing-s: 4px !default;
       align-items: center;
       justify-content: flex-end;
       flex: 0 1 auto;
-      margin: 0 $spacing-m 0 $spacing-m;
+      margin: 0 @spacing-m 0 @spacing-m;
       font-weight: bold;
 
       &.ss-hide {
@@ -100,7 +100,7 @@ $spacing-s: 4px !default;
       margin: 0;
 
       span {
-        border: solid $font-color;
+        border: solid @font-color;
         border-width: 0 2px 2px 0;
         display: inline-block;
         padding: 3px;
@@ -122,23 +122,23 @@ $spacing-s: 4px !default;
     display: flex;
     flex-direction: row;
     cursor: pointer;
-    min-height: $height;
+    min-height: @height;
     width: 100%;
     padding: 0 0 0 3px;
-    border: 1px solid $border-color;
-    border-radius: $border-radius;
-    background-color: $white;
+    border: 1px solid @border-color;
+    border-radius: @border-radius;
+    background-color: @white;
     outline: 0;
     box-sizing: border-box;
     transition: background-color .1s;
 
     &.ss-disabled {
-      background-color: $border-color;
+      background-color: @border-color;
       cursor: default;
 
       .ss-values {
         .ss-disabled {
-          color: $font-color;
+          color: @font-color;
         }
 
         .ss-value {
@@ -172,7 +172,7 @@ $spacing-s: 4px !default;
         line-height: 1em;
         align-items: center;
         width: 100%;
-        color: $font-disabled-color;
+        color: @font-disabled-color;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -194,9 +194,9 @@ $spacing-s: 4px !default;
         font-size: 12px;
         padding: 3px 5px;
         margin: 3px 5px 3px 0px;
-        color: $white;
-        background-color: $primary-color;
-        border-radius: $border-radius;
+        color: @white;
+        background-color: @primary-color;
+        border-radius: @border-radius;
         animation-name: scaleIn;
         animation-duration: .1s;
         animation-timing-function: ease-out;
@@ -224,14 +224,14 @@ $spacing-s: 4px !default;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: $font-color;
+        background: @font-color;
         position: relative;
         height: 10px;
         width: 2px;
         transition: transform .1s;
 
         &:after {
-          background: $font-color;
+          background: @font-color;
           content: "";
           position: absolute;
           height: 2px;
@@ -253,9 +253,9 @@ $spacing-s: 4px !default;
   width: 100%;
   margin: -1px 0 0 0;
   box-sizing: border-box;
-  border: solid 1px $border-color;
+  border: solid 1px @border-color;
   z-index: 1010;
-  background-color: $white;
+  background-color: @white;
   transform-origin: center top;
   transition: transform .1s, opacity .1s;
   opacity: 0;
@@ -267,13 +267,13 @@ $spacing-s: 4px !default;
     display: block;
     opacity: 1;
     transform: scaleY(1);
-    border-radius: $border-radius;
+    border-radius: @border-radius;
   }
 
   .ss-search {
     display: flex;
     flex-direction: row;
-    padding: $spacing-l $spacing-l $spacing-m $spacing-l;
+    padding: @spacing-l @spacing-l @spacing-m @spacing-l;
 
     &.ss-hide {
       height: 0px;
@@ -297,11 +297,11 @@ $spacing-s: 4px !default;
       width: 100%;
       min-width: 0px;
       height: 30px;
-      padding: $spacing-m $spacing-l;
+      padding: @spacing-m @spacing-l;
       margin: 0;
-      border: 1px solid $border-color;
-      border-radius: $border-radius;
-      background-color: $white;
+      border: 1px solid @border-color;
+      border-radius: @border-radius;
+      background-color: @white;
       outline: 0;
       text-align: left;
       box-sizing: border-box;
@@ -309,12 +309,12 @@ $spacing-s: 4px !default;
       -webkit-appearance: textfield;
       
       &::placeholder {
-        color: $font-placeholder-color;
+        color: @font-placeholder-color;
         vertical-align: middle;
       }
 
       &:focus {
-        box-shadow: 0 0 5px $primary-color;
+        box-shadow: 0 0 5px @primary-color;
       }
     }
 
@@ -328,8 +328,8 @@ $spacing-s: 4px !default;
       flex: 0 0 30px;
       height: 30px;
       margin: 0 0 0 8px;
-      border: 1px solid $border-color;
-      border-radius: $border-radius;
+      border: 1px solid @border-color;
+      border-radius: @border-radius;
       box-sizing: border-box;
     }
   }
@@ -360,8 +360,8 @@ $spacing-s: 4px !default;
       cursor: pointer;
       
       &:hover {
-        // color: $white;
-        background-color: $primary-color;
+        // color: @white;
+        background-color: @primary-color;
       }
     }
 
@@ -375,29 +375,29 @@ $spacing-s: 4px !default;
       }
 
       &:hover, &.ss-highlighted {
-        // color: $white;
-        background-color: $primary-color;
+        // color: @white;
+        background-color: @primary-color;
       }
 
       &.ss-disabled {
         cursor: default;
-        color: $font-disabled-color;
-        background-color: $white;
+        color: @font-disabled-color;
+        background-color: @white;
       }
 
       // &:not(.ss-disabled).ss-option-selected {
-      //   color: $font-color;
-      //   background-color: rgba($primary-color, .1);
+      //   color: @font-color;
+      //   background-color: rgba(@primary-color, .1);
       // }
 
       &.ss-option-selected {
         color: #221A5B;
-        background-color: lighten($color-yellow-active,20%);
+        background-color: lighten(@color-yellow-active,20%);
       }
       &.ss-hide { display: none; }
 
       .ss-search-highlight {
-        background-color: $search-highlight-color;
+        background-color: @search-highlight-color;
       }
     }
   }

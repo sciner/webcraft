@@ -1,8 +1,8 @@
-@import 'vars.scss';
+@import 'vars.less';
 
 .create-w-page {
     .form {
-        width: $content-width;
+        width: @content-width;
         max-width: 100%;
         display: flex;
         flex-direction: column;
@@ -42,7 +42,7 @@
         .buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            @media only screen and (max-width: $media-mobile) {
+            @media only screen and (max-width: @media-mobile) {
                 grid-template-columns: 1fr;
                 button:nth-child(2) {
                     order: -1;

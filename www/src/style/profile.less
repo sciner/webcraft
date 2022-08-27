@@ -1,8 +1,8 @@
-@import 'vars.scss';
+@import 'vars.less';
 
 .profile-page {
     .content {
-        width: $content-width;
+        width: @content-width;
         max-width: 100%;
         display: flex;
         flex-direction: column;
@@ -74,7 +74,7 @@
             width: 94px;
             &.active {
                 background: linear-gradient(180deg, rgba(255, 171, 0, 0.2) 0%, rgba(255, 171, 0, 0.5) 100%);
-                border: 2px solid $color-yellow;
+                border: 2px solid @color-yellow;
                 border-radius: 12px;
             }
             img {
@@ -91,9 +91,9 @@
             width: 50px;
             height: 50px;
             margin: auto;
-            background: $color-yellow;
+            background: @color-yellow;
             &:hover {
-                background: $color-yellow-active;
+                background: @color-yellow-active;
             }
             &.disabled {
                 pointer-events: none;
@@ -118,11 +118,12 @@
         gap: 8px;
         padding: 40px 0 30px 0;
         justify-content: center;
-        color: $color-grey;
+        color: @color-grey;
 		border-top: 2px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px 16px 0px 0px;
+        background-color: transparent;
         &:hover {
-            color: $color-yellow-active;
+            color: @color-yellow-active;
         }
     }
     .save {

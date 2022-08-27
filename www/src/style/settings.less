@@ -1,8 +1,8 @@
-@import 'vars.scss';
+@import 'vars.less';
 
 .settings-page {
     .form {
-        width: $content-width;
+        width: @content-width;
         max-width: 100%;
         display: flex;
         flex-direction: column;
@@ -64,7 +64,7 @@
     /******** Chrome, Safari, Opera and Edge Chromium styles ********/
     /* slider track */
     input[type="range"]::-webkit-slider-runnable-track {
-        background-color: $color-yellow;
+        background-color: @color-yellow;
         border-radius: 2px;
         height: 6px;
     }
@@ -73,7 +73,7 @@
         -webkit-appearance: none; /* Override default look */
         appearance: none;
         margin-top: -10px; /* Centers thumb on the track */
-        background-color: $color-yellow;
+        background-color: @color-yellow;
         border: 1px solid #170E3E;
         border-radius: 6px;
         height: 26px;
@@ -81,7 +81,7 @@
         transition: box-shadow 0.3s;
     }
     input[type="range"]:hover::-webkit-slider-thumb {
-        background-color: $color-yellow-active;
+        background-color: @color-yellow-active;
     }
     input[type="range"]:active::-webkit-slider-thumb {
         box-shadow:0 0 4px 1px #170E3E;
@@ -89,20 +89,20 @@
     /*********** Firefox styles ***********/
     /* slider track */
     input[type="range"]::-moz-range-track {
-        background-color: $color-yellow;
+        background-color: @color-yellow;
         border-radius: 2px;
         height: 6px;
     }
     /* slider thumb */
     input[type="range"]::-moz-range-thumb {
-        background-color: $color-yellow;
+        background-color: @color-yellow;
         border: none; /*Removes extra border that FF applies*/
         border-radius: 6px;
         height: 26px;
         width: 14px;
     }
     input[type="range"]:focus::-moz-range-thumb{
-        outline: 3px solid $color-yellow;
+        outline: 3px solid @color-yellow;
         outline-offset: 0.125rem;
     }
 
