@@ -622,10 +622,9 @@ let gameCtrl = async function($scope, $timeout) {
                 }
                 return value;
             },
-            select: function(item) {
-                const id = item.id;
-                $scope.newgame.form.generator.id = id;
+            select: function(generator_id) {
                 const form = $scope.newgame.form;
+                form.generator.id = generator_id;
                 const current = this.getCurrent();
                 if(!('has_options' in current)) {
                     current.has_options = !!current.options;
