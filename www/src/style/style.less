@@ -11,6 +11,22 @@
 	font-family: Ubuntu-Bold;
 	src: url('/style/Ubuntu-Bold.ttf');
 }
+.flex0 {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-justify-start {
+  justify-content: flex-start;
+}
+
+.flex-gap {
+  grid-gap: 1em;
+}
+
 .worlds-page .grid {
   display: grid;
   // grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -287,6 +303,7 @@
   display: none;
 }
 .start-page .block .social {
+  z-index: 1;
   gap: 24px;
   margin: 60px auto 30px auto;
   position: unset;
@@ -1269,6 +1286,7 @@ h1 {
 }
 
 .social {
+  z-index: 1;
   position: fixed;
   right: 50px;
   bottom: 40px;
@@ -1343,8 +1361,7 @@ h1 {
   padding: 2em;
 }
 
-
-#form-shareGame {
+.nice-form {
   position: fixed;
   left: 50%;
   top: 50%;
@@ -1359,6 +1376,10 @@ h1 {
   max-width: 100%;
   padding: 1em;
   border-radius: 1em;
+}
+
+#form-shareGame {
+  .nice-form;
   input {
     width: 100%;
     margin-bottom: 1em;
@@ -1369,6 +1390,28 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+}
+
+#formEnterWorld {
+  .nice-form;
+  display: flex;
+  justify-content: center;
+  img {
+      margin: 2em;
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      background-color: rgba(0,0,0,.2);
+  }
+  label {
+    display: block;
+      margin: 1em 0;
+      font-size: 22px;
+      text-align: center;
+  }
+  button {
+      display: block;
   }
 }
 

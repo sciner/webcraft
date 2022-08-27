@@ -22,7 +22,7 @@ export class ServerAPI {
                     title: world.title,
                     guid: world.guid,
                     // [TO DO] image of world should be put here
-                    image: '/media/no-logo.svg'
+                    cover: world.cover ? `/worldcover/${world.guid}/screenshot/${world.cover}` : null
                 };
                 return woldPublicInfo;
             case '/api/User/Registration': {

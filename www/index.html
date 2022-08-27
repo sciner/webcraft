@@ -76,6 +76,46 @@
         <button class="primary" ng-click="shareGame.copy()">{{Lang.copy}}</button>
     </div>
 
+    <!-- Not supported browser -->
+    <form id="form-not-supported" ng-if="Qubatch && current_window.id == 'not_supported_browser'">
+        {{Lang.browser_not_supported_1}}
+        <br />{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
+    </form>
+
+    <!-- Enter to invited world -->
+    <div id="formEnterWorld" ng-if="current_window.id == 'enter-world'">
+        <div class="flex0 flex-column">
+            <div class="flex0 flex-column" ng-if="mygames.enterWorld.windowMod == 'login' || mygames.enterWorld.windowMod == 'join'">
+                <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'login'" ng-bind-html="Lang.enter_world_login|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+            <div ng-if="mygames.enterWorld.windowMod == 'login'" class="flex0 flex-column flex-gap">
+                <button ng-click="current_window.show('login')" class="primary active">{{Lang.login}}</button>
+                <button ng-click="mygames.toMain()" class="secondary active">{{Lang.cancel}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="world-not-found flex0 flex-column">
+                😞
+            </div>
+            <label ng-if="mygames.enterWorld.windowMod == 'world-not-found'">{{Lang.no_world_by_link}}</label>
+            <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="flex0 flex-column">
+                <button ng-click="mygames.toMain()" class="primary active">{{Lang.ok}}</button>
+            </div>
+            <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
+                <div class="flex0 flex-column">
+                    <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                    <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
+                </div>
+                <label ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+                <div class="flex0 flex-column">
+                    <button ng-click="mygames.enterWorld.joinAfterApproving()" class="btn-main active">{{Lang.join}}</button>
+                    <button ng-click="mygames.toMain()" class="secondary active">{{Lang.cancel}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start page -->
     <div class="start-page" ng-if="Qubatch && !login.logged">
         <input id="sign-modal-toggle" type="checkbox" class="hidden">
         <div class="bg" ng-init="initSelects()">
@@ -116,10 +156,10 @@
                         </div>
                     </div>
                     <div class="social">
-                        <a class="icon" href="#">
+                        <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                             <img src="src/img/discord.svg" alt="">
                         </a>
-                        <a class="icon" href="#">
+                        <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
                             <img src="src/img/youtube.svg" alt="">
                         </a>
                     </div>
@@ -198,10 +238,10 @@
 
             <!-- Social -->
 			<div class="social">
-                <a class="icon" href="#">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="src/img/discord.svg" alt="">
                 </a>
-                <a class="icon" href="#">
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
                     <img src="src/img/youtube.svg" alt="">
                 </a>
             </div>
@@ -324,10 +364,10 @@
                 </button>
             </div>
             <div class="social">
-                <a class="icon" href="#">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="../../src/img/discord.svg" alt="">
                 </a>
-                <a class="icon" href="#">
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
                     <img src="../../src/img/youtube.svg" alt="">
                 </a>
             </div>

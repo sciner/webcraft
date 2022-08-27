@@ -73,6 +73,11 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.App                      = Qubatch.App = new UIApp();
     $scope.login_tab                = 'login';
 
+    $scope.links = {
+        discord: 'https://discord.gg/QQw2zadu3T',
+        youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
+    };
+
     // Working with lang
     $scope.Lang = Lang;
     $scope.current_lang = null;
