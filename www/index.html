@@ -38,8 +38,12 @@
     <script src="vendors/angular.min.js"></script>
     <script src="js/ui/controller.js" type="module"></script>
     <script>
+        function isMobileBrowser() {
+            return 'ontouchstart' in document.documentElement;
+        }
+
         function windowResized(event) {
-            const dpr = window.devicePixelRatio;
+            const dpr = isMobileBrowser() ? 1 : window.devicePixelRatio;
             for(let id of ['qubatchRenderSurface', 'qubatchHUD']) {
                 const c = document.getElementById(id);
                 // const sz = c.parentElement.getBoundingClientRect();
@@ -60,8 +64,32 @@
     </div>
 
     <div id="qubatch-canvas-container">
+
         <canvas id="qubatchRenderSurface" ng-click="Qubatch.setupMousePointer(true)" width="800" height="600"></canvas>
         <canvas id="qubatchHUD" width="800" height="600"></canvas>
+
+        <!-- Joystick -->
+        <div id="Joystick">
+            <div id="Joystick-left" class="joystick" ng-if="isMobileBrowser()">
+                <img src="/media/joystick/joystick-base.png" style="pointer-events: none;" />
+                <div id="stick" style="position: absolute; left:32px; top:32px;" style="pointer-events: none;" >
+                    <img src="/media/joystick/joystick-red.png" />
+                </div>
+            </div>
+            <div id="Joystick-right" class="joystick" ng-if="isMobileBrowser()">
+                <div style="left: 37px; top: -2px;" ng-mousedown="Qubatch.Joystick.action('walk', true)" ng-mouseup="Qubatch.Joystick.action('walk', false)" ontouchstart="Qubatch.Joystick.action('walk', true)" ontouchend="Qubatch.Joystick.action('walk', false)"><img src="/media/joystick/walk.png" /></div>
+                <div style="left: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('atack', true)" ng-mouseup="Qubatch.Joystick.action('atack', false)" ontouchstart="Qubatch.Joystick.action('atack', true)" ontouchend="Qubatch.Joystick.action('atack', false)"><img src="/media/joystick/atack.png" /></div>
+                <div style="right: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('jump', true)" ng-mouseup="Qubatch.Joystick.action('jump', false)" ontouchstart="Qubatch.Joystick.action('jump', true)" ontouchend="Qubatch.Joystick.action('jump', false)"><img src="/media/joystick/jump.png" /></div>
+                <div style="left: 37px; bottom: 0px;" ng-mousedown="Qubatch.Joystick.action('place', true)" ng-mouseup="Qubatch.Joystick.action('place', false)" ontouchstart="Qubatch.Joystick.action('place', true)" ontouchend="Qubatch.Joystick.action('place', false)"><img src="/media/joystick/place.png" /></div>
+            </div>
+        </div>
+
+        <!-- Mobile buttons -->
+        <div id="mobile-buttons" ng-if="isMobileBrowser()">
+            <button id="btn-mobile-menu" class="btn-round" ng-click="toggleMainMenu()">☰</button>
+            <button id="btn-mobile-inventory" class="btn-round" ng-click="Qubatch.player.inventory.open()">inv</button>
+        </div>
+        
     </div>
 
     <canvas id="bg-canvas"></canvas>

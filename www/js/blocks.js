@@ -535,7 +535,7 @@ export class BLOCK {
             block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';

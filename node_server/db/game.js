@@ -248,6 +248,7 @@ export class DBGame {
             ':user_id': user_id,
             ':world_id': world_id
         });
+        return true;
     }
 
     // Создание нового мира (сервера)

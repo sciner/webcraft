@@ -338,8 +338,10 @@ body {
             display: none;
         }
     }
-    &:not(.started) #qubatchRenderSurface {
-        display: none;
+    &:not(.started) {
+        #qubatchRenderSurface, #mobile-buttons {
+            display: none;
+        }
     }
 }
 
