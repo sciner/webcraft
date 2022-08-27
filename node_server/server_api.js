@@ -22,7 +22,7 @@ export class ServerAPI {
                     title: world.title,
                     guid: world.guid,
                     // [TO DO] image of world should be put here
-                    image: '/media/no-logo.svg'
+                    cover: world.cover ? `/worldcover/${world.guid}/screenshot/${world.cover}` : null
                 };
                 return woldPublicInfo;
             case '/api/User/Registration': {
@@ -55,6 +55,10 @@ export class ServerAPI {
             case '/api/Game/MyWorlds': {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
                 const resp = await Qubatch.db.MyWorlds(session.user_id);
+                for(let item of resp) {
+                    const world = Qubatch.worlds.get(item.guid);
+                    item.players_online = world ? world.players.size : 0;
+                }
                 return resp;
             }
             case '/api/Game/DeleteWorld': {

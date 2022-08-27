@@ -1,0 +1,380 @@
+@use 'worlds-page.scss';
+@use 'create-w-page.scss';
+@use 'start-page.scss';
+@use 'slim-select.scss';
+@use 'profile.scss';
+@use 'settings.scss';
+@import 'vars.scss';
+@import '../icomoon/style.css';
+
+
+
+html {
+    background: #1C1149;
+}
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Ubuntu', sans-serif!important;
+    height: 100vh;
+    font-size: 18px;
+    background: url('../img/bg.png') no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+}
+.container {
+    max-width: $container-width;
+    padding: 125px 30px 30px 30px;
+    width: 100%;
+    height: 100%;
+    @media only screen and (max-width: $media-tablet) {
+        padding: 0 0 30px 0;
+    }
+    
+}
+button, .btn {
+    position: relative;
+    padding: 18px 25px;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.3s;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    &.primary {
+        background: $color-yellow;
+        clip-path: polygon(calc(15px) 0, 0% 25%, 0 100%, calc(100% - 15px) 100%, 100% 75%, 100% 0);
+        &:hover {
+            background: $color-yellow-active;
+        }
+        &:active {
+            background: darken($color: $color-yellow-active, $amount: 10);
+        }
+    }
+    &.secondary {
+        background: $color-button;
+        clip-path: polygon(calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px), 0 0);
+        &:hover {
+            background: $color-button-active;
+        }
+        &:focus {
+            background: darken($color: $color-button-active, $amount: 10);
+        }
+    }
+}
+input {
+    &[type=text], &[type=password]  {
+        font-family: "Ubuntu", sans-serif !important;
+        height: 60px;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 1rem;
+        padding-left: 24px;
+        border: none;
+        background-color: $color-inputs;
+        transition: all 0.3s;
+        border: 1px solid transparent;
+        &::placeholder {
+            color: #B7B2CC;
+        }
+    }
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    &:focus {
+        outline: none;
+        border-color: #fff;
+    }
+    &.hidden {
+        position: absolute;
+        width: 0;
+        height: 0;
+    }
+}
+label {
+    display: flex;
+    cursor: pointer;
+}
+header {
+    display: flex;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    height: 120px;
+    width: 100%;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #1C1149 0%, rgba(28, 17, 73, 0.5) 100%);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+	border-radius: 0 0 16px 16px;
+    @media only screen and (max-width: $media-tablet) {
+        position: unset;
+        height: auto;
+        padding-top: 100px;
+    }
+    nav {
+        position: relative;
+        max-width: $container-width;
+        margin: 0 auto;
+        .logo {
+            position: absolute;
+            @media only screen and (max-width: $media-tablet) {
+                top: 60px;
+            }
+            top: 50%; right: 50%;
+            transform: translate(50%,-50%);
+            width: 136px;
+            margin: 0 auto;
+            img {
+                width: 100%;
+            }
+        }
+        .user {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            gap: 12px;
+            padding: 8px;
+    
+            img {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+            }
+        }
+    }
+}
+nav.tabs {
+    display: flex;
+    width: 100%;
+    padding: 0 30px;
+    @media only screen and (max-width: $media-tablet) {
+        position: unset;
+        padding: 0;
+        flex-direction: column;
+        .user-block {
+            margin-left: auto;
+            display: flex;
+        }
+    }
+    .tabs-block {
+        display: flex;
+        @media only screen and (max-width: $media-tablet) {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            .tab {
+                justify-content: center;
+            }
+        }
+    }
+    .user-block {
+        margin-left: auto;
+        display: flex;
+        @media only screen and (max-width: $media-tablet) {
+            order: -1;
+			margin: 10px auto;
+        }
+    }
+    .tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 48px 20px 48px 20px;
+        transition: all 0.3s;
+        font-weight: 700;
+        color: #fff;
+        @media only screen and (max-width: $media-tablet) {
+           padding: 20px;
+        }
+        &:hover {
+            color: $color-yellow;
+        }
+    }
+    a.tab::after, label.tab span::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        transition: all 0.3s;
+        background-color: transparent;
+    }
+    .tab.active {
+        color: $color-yellow;
+        &::after {
+            background-color: $color-yellow;
+        }
+    }
+    input.toggle:checked + span {
+        color: $color-yellow;
+        &::after {
+            background-color: $color-yellow;
+        }
+    }
+}
+a {
+    cursor: pointer;
+    text-decoration: none!important
+}
+p {
+    margin-bottom: 0;
+}
+h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-top: 0;
+    @media only screen and (max-width: $media-mobile) {
+        text-align: center;
+    }
+}
+.content {
+    padding: 30px 0 50px 0;
+    @media only screen and (max-width: $media-tablet) {
+        padding: 30px 15px 50px 15px;
+    }
+}
+.switcher-container {
+	position: relative;
+    display: flex;
+    gap: 10px;
+	&:hover {
+		.switcher {
+			border: 1px solid $color-yellow-active;
+			small{
+				background: $color-yellow-active;
+			}
+		}
+		label {
+			color: $color-yellow-active;
+		}
+		// 
+		input:checked {
+			& ~ .switcher {
+				border: 1px solid $color-yellow-active;;
+				background-color: $color-yellow-active;;
+			}
+			& ~ label {
+				color: $color-yellow-active;;
+			}
+		}
+	}
+	input {
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		cursor: pointer;
+		& ~ .switcher {
+			border-radius: 12px;
+			position: relative;
+			display: inline-block;
+			width: 44px;
+			height: 24px;
+			background: transparent;
+			border-radius: 12px;
+			transition: all 0.3s ease-in-out;
+			border: 1px solid #fff;
+			small {
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 4px;
+				display: block;
+				width: 16px;
+				height: 16px;
+				margin: auto 0;
+				background: #fff;
+				border-radius: 50%;
+				transition: all 0.3s ease-in-out;
+			}
+		}
+		& ~ label {
+			transition: all 0.3s ease-in-out;
+		}
+		&:checked {
+			& ~ .switcher {
+				border: 1px solid #AEEA00;
+				background-color: #AEEA00;
+				small {
+				   left: 50%;
+				   background: #221A5B;;
+				}
+			}
+			& ~ label {
+				color: #AEEA00;
+			}
+		}
+	}
+    .switcher {
+       display: flex;
+       padding: 0;
+       margin: 0;
+       
+    }   
+ }
+ .social {
+    position: fixed;
+    right: 50px;
+    bottom: 40px;
+    padding: 10px;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+	display: flex;
+	.icon {
+		width: 50px;
+		height: 50px;
+		background-position: center;
+		border-radius: 12px;
+		overflow: hidden;
+		img {
+			transition: all 0.3s;
+		}
+		&:hover {
+			img {
+				transform: scale(1.2);
+			}
+		}
+	}
+}
+.font-m {
+    font-size: 1rem;
+}
+.flex {
+    display: flex;
+}
+.justify-between {
+    justify-content: space-between;
+}
+.items-center {
+    align-items: center;
+}
+.m-0 {
+    margin: 0;
+}
+.m-auto {
+    margin: auto;
+}
+.ml-auto {
+    margin-left: auto;
+}
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+* {
+    box-sizing: border-box;
+}
