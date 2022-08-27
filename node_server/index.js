@@ -113,7 +113,6 @@ app.use(compression({
 
 // Serves resources from public folder
 app.use('/style', expressLess(__dirname + '/../www/style', { compress: true, debug: true }));
-app.use('/src/style', expressLess(__dirname + '/../www/src/style', { compress: true }));
 app.use(express.static('../www/'));
 
 // API
