@@ -11,6 +11,9 @@
 	font-family: Ubuntu-Bold;
 	src: url('/style/Ubuntu-Bold.ttf');
 }
+
+@media-width: 640px;
+
 .flex0 {
   display: flex;
 }
@@ -971,7 +974,7 @@ body {
   width: 100%;
   height: 100%;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   .container {
     padding: 0 0 30px 0;
   }
@@ -1058,7 +1061,7 @@ header {
   backdrop-filter: blur(12px);
   border-radius: 0 0 16px 16px;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   header {
     position: unset;
     height: auto;
@@ -1078,7 +1081,7 @@ header nav .logo {
   width: 136px;
   margin: 0 auto;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   header nav .logo {
     top: 60px;
   }
@@ -1107,7 +1110,7 @@ nav.tabs {
   width: 100%;
   padding: 0 30px;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   nav.tabs {
     position: unset;
     padding: 0;
@@ -1121,7 +1124,7 @@ nav.tabs {
 nav.tabs .tabs-block {
   display: flex;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   nav.tabs .tabs-block {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
@@ -1134,7 +1137,7 @@ nav.tabs .user-block {
   margin-left: auto;
   display: flex;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   nav.tabs .user-block {
     order: -1;
     margin: 10px auto;
@@ -1150,7 +1153,7 @@ nav.tabs .tab {
   color: #fff;
   background-color: transparent;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   nav.tabs .tab {
     padding: 20px;
   }
@@ -1204,7 +1207,7 @@ h1 {
 .content {
   padding: 30px 0 50px 0;
 }
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: @media-width) {
   .content {
     padding: 30px 15px 50px 15px;
   }
@@ -1459,4 +1462,73 @@ body.started .visible_only_in_lobbi {
       position: absolute;
   }
 
+}
+
+// mobile-buttons
+#mobile-buttons {
+
+  position: absolute;
+  right: .5em;
+  top: .5em;
+
+  & > * {
+      font-family: 'Ubuntu';
+      margin-bottom: .5em;
+  }
+
+  button {
+      .flex0;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+  }
+
+  #btn-mobile-menu {
+  }
+
+  #btn-mobile-inventory {
+  }
+
+}
+
+// Joystick
+#Joystick {
+
+  #Joystick-left {
+      width: 128px;
+      position: fixed;
+      left: 20px;
+      bottom: 40px;
+      z-index: 99999;
+      opacity: .35;
+  }
+
+  #Joystick-right {
+      width: 138px;
+      height: 164px;
+      position: fixed;
+      right: 30px;
+      bottom: 40px;
+      z-index: 99999;
+      opacity: .75;
+      text-align: right;
+  }
+
+  #Joystick-right > * {
+      position: absolute;
+      padding: 0;
+      background: transparent;
+  }
+
+  #Joystick-right img {
+      pointer-events: none;
+  }
+
+}
+
+body:not(.started), body.loading {
+  .joystick, #qubatchRenderSurface, #mobile-buttons {
+    display: none;
+  }
 }
