@@ -248,6 +248,7 @@ export class DBGame {
             ':user_id': user_id,
             ':world_id': world_id
         });
+        return true;
     }
 
     // Создание нового мира (сервера)
@@ -365,6 +366,7 @@ export class DBGame {
             title:      row.title,
             seed:       row.seed,
             game_mode:  row.game_mode,
+            cover:      row.cover,
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null

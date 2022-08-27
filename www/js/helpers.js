@@ -1828,6 +1828,11 @@ export async function digestMessage(message) {
     return hashHex;
 }
 
+//
+export function isMobileBrowser() {
+    return 'ontouchstart' in document.documentElement;
+}
+
 // md5
 export let md5 = (function() {
     var MD5 = function (d) {

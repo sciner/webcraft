@@ -11,9 +11,9 @@
     "start-rebuild": "npm run rollup && npm run start"
   },
   "dependencies": {
-    "express-fileupload": "^1.4.0",
     "compression": "^1.7.4",
     "express": "^4.17.1",
+    "express-fileupload": "^1.4.0",
     "express-less": "^0.1.0",
     "prismarine-schematic": "github:sciner/prismarine-schematic#master",
     "semver": "^7.3.7",

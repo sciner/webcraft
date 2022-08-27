@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer} from "./helpers.js";
+import {Vector, AverageClockTimer, isMobileBrowser} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -10,7 +10,8 @@ import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
-import { SOUND_MAX_DIST } from "./constant.js";
+import { MAGIC_ROTATE_DIV, SOUND_MAX_DIST } from "./constant.js";
+import { JoystickController } from "./ui/joystick.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -35,7 +36,7 @@ export class GameClass {
 
     static resetZoom() {
         const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
-        globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
+        globalThis.UI_ZOOM = Math.max(Math.round(isMobileBrowser() ? 1 : window.devicePixelRatio), 1) * RES_SCALE;
         globalThis.UI_FONT = 'Ubuntu';
     }
 
@@ -116,7 +117,7 @@ export class GameClass {
             },
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 const hasVisibleWindow = this.hud.wm.hasVisibleWindow();
-                const DPR = window.devicePixelRatio;
+                const DPR = isMobileBrowser() ? 1 : window.devicePixelRatio;
                 if(type == MOUSE.DOWN && hasVisibleWindow) {
                     this.hud.wm.mouseEventDispatcher({
                         type:       e.type,
@@ -157,7 +158,7 @@ export class GameClass {
                             add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
                             add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
                         }
-                        that.player.addRotate(add_mouse_rotate.divScalar(900));
+                        that.player.addRotate(add_mouse_rotate.divScalar(MAGIC_ROTATE_DIV));
                     }
                     return true;
                 }
@@ -417,6 +418,11 @@ export class GameClass {
             }
         });
 
+        // Joystick
+        this.Joystick = new JoystickController('stick', 64, 8, this.player, this.kb, (currentPos) => {
+            // console.log(this.Joystick.value);
+        });
+
     }
 
     // setControlsEnabled
@@ -473,6 +479,8 @@ export class GameClass {
 
         // Play mobs sound (steps, idle)
         this.mobSounds();
+
+        this.Joystick.tick(delta);
 
         // Счетчик FPS
         this.hud.FPS.incr();
@@ -552,6 +560,7 @@ export class GameClass {
 
     // setupMousePointer...
     setupMousePointer(check_opened_windows) {
+
         if(check_opened_windows && this.hud.wm.hasVisibleWindow()) {
             return;
         }
@@ -566,24 +575,31 @@ export class GameClass {
             this.setupMousePointer(false);
         };
 
+        // requestPointerLock
         const element = this.render.canvas;
         element.requestPointerLock = element.requestPointerLock || element.webkitRequestPointerLock;
-
-        if(this.player.controls.inited) {
-            element.requestPointerLock();
-            return;
+        const requestPointerLock = () => {
+            if(isMobileBrowser()) {
+                this.setControlsEnabled(true);
+                this.hud.toggleInfo();
+            } else {
+                element.requestPointerLock();
+            }
         }
 
-        const pointerlockchange = (event) => {
+        // If already inited
+        if(this.player.controls.inited) {
+            return requestPointerLock();
+        }
 
+        // pointerlockchange
+        const pointerlockchange = (event) => {
             if (document.pointerLockElement === element || document.webkitPointerLockElement === element) {
                 this.setControlsEnabled(true);
             }  else {
                 this.setControlsEnabled(false);
                 this.kb.clearStates();
-
                 if(!this.hud.wm.hasVisibleWindow() && !this.player.chat.active) {
-
                     // Safari emit ESC keyup since ~100 ms after pointer lock left event
                     // we should skip this ESC
                     // otherwise we never can open mine menu
@@ -594,6 +610,7 @@ export class GameClass {
             }
         }
 
+        // Catch pointer errors
         const pointerlockerror = function(event) {
             console.warn('Error setting pointer lock!', event);
         }
@@ -606,8 +623,10 @@ export class GameClass {
         document.addEventListener('mozpointerlockerror', pointerlockerror, false);
         document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
 
-        element.requestPointerLock();
+        // Lock and mark as inited
+        requestPointerLock();
         this.player.controls.inited = true;
+
     }
 
     // setupMouseListeners...

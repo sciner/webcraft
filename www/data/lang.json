@@ -104,6 +104,19 @@
         "generator_seed": {"en": "Generator seed: %0", "ru": "Зерно генератора: %0", "fr": "", "es": "","man":"","hind":""},
         "admin_list": {"en": "%0", "ru": "%0", "fr": "%0", "es": "%0","man":"%0","hind":""},
         "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0","hind":""},
-        "loading": {"en": "Loading...", "ru": "Загрузка...", "fr": "%0", "es": "%0","man":"%0"}
+        "loading": {"en": "Loading...", "ru": "Загрузка...", "fr": "", "es": "","man":""},
+        "video": {"en": "Video", "ru": "Видео", "fr": "", "es": "", "man": ""},
+        "language": {"en": "Language", "ru": "Язык", "fr": "", "es": "", "man": ""},
+        "main": {"en": "Main", "ru": "Основное", "fr": "", "es": "", "man": ""},
+        "servers": {"en": "Servers", "ru": "Серверы", "fr": "", "es": "", "man": ""},
+        "friends": {"en": "Friends", "ru": "Друзья", "fr": "", "es": "", "man": ""},
+        "worlds": {"en": "Worlds", "ru": "Миры", "fr": "", "es": "", "man": ""},
+        "gamemode_survival": {"en": "Survival", "ru": "Выживание", "fr": "", "es": "", "man": ""},
+        "render_options": {"en": "Render Options", "ru": "Опции отображения", "fr": "", "es": "", "man": ""},
+        "world_options": {"en": "World options", "ru": "Опции мира", "fr": "", "es": "", "man": ""},
+        "enter_world_name": {"en": "Enter name", "ru": "Введите название", "fr": "", "es": "", "man": ""},
+        "logout": {"en": "Log-out", "ru": "Выйти из игры", "fr": "", "es": "", "man": ""},
+        "error_player_exists": {"en": "Player with same name exists", "ru": "Игрок с таким именем уже зарегистрирован", "fr": "", "es": "", "man": ""},
+        "players_online": {"en": "Players online", "ru": "Игроков онлайн", "fr": "", "es": "", "man": ""}
     }
 }
