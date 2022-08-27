@@ -6827,6 +6827,26 @@
                 "west": false,
                 "rotate": false
             }
+        },
+        {
+            "id": 503,
+            "name": "LECTERN",
+            "transparent": true,
+            "style": "lectern",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": {
+                "up": "block/lectern_top.png",
+                "side": "block/lectern_sides.png",
+                "down": "block/lectern_base.png",
+                "north": "block/lectern_front.png"
+            },
+            "tags": [
+                "no_drop_ao"
+            ]
         }
     ]
 }
