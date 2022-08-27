@@ -57,14 +57,14 @@ export class DBWorldPortal {
      * @returns 
      */
     async search(pos, max_dist, type) {
-        const row = await this.conn.get(`WITH portals AS (SELECT _rowid_ as id, *, sqrt((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) as dist
+        const row = await this.conn.get(`WITH portals AS (SELECT _rowid_ as id, *, ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) as dist
         FROM portal
-        WHERE sqrt((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) < :max_dist)
+        WHERE ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) < :max_dist)
         SELECT * FROM portals ORDER BY dist ASC LIMIT 1`, {
             ':x': pos.x,
             ':y': pos.y,
             ':z': pos.z,
-            ':max_dist': max_dist
+            ':max_dist': Math.pow(max_dist, 2)
         });
         if(!row) {
             return null;

@@ -5,9 +5,10 @@ export class SkinManager {
 
     #controller;
 
-    constructor(controller) {   
+    constructor(controller, $timeout) {   
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
         this.#controller    = controller;
+        this.$timeout       = $timeout;
         this.list           = [];
         this.index          = 0;
         this.loading        = true;
@@ -65,6 +66,24 @@ export class SkinManager {
         }
         this.#controller.Qubatch.skins = this;
         this.#controller.Qubatch.skin = list[this.index];
+    }
+
+    //
+    initProfilePage() {
+        if(this.$timeout) {
+            this.$timeout(() => {
+                this.catchSlider(initProfilePage(this.index));
+            });
+        } else {
+            this.catchSlider(initProfilePage(this.index));
+        }
+    }
+
+    //
+    catchSlider(slider) {
+        slider.on('slideChanged', (e) => {
+            this.index = e.track.details.abs;
+        });
     }
 
 }

@@ -481,9 +481,11 @@ export class ServerPlayer extends Player {
             this.in_portal = in_portal;
             if(this.in_portal) {
                 if(!this.wait_portal) {
-                    const type = portal_block.extra_data.type;
-                    const from_portal_id = portal_block.extra_data.id;
-                    this.teleport({portal: {type, from_portal_id}});
+                    const type = portal_block.extra_data?.type;
+                    if(type) {
+                        const from_portal_id = portal_block.extra_data.id;
+                        this.teleport({portal: {type, from_portal_id}});
+                    }
                 }
             }
         }
@@ -519,7 +521,7 @@ export class ServerPlayer extends Player {
         let teleported_player = this;
         if(params.pos) {
             // 1. teleport to pos
-            new_pos = params.pos;
+            new_pos = params.pos = new Vector(params.pos);
         } else if(params.p2p) {
             // teleport player to player
             let from_player = null;

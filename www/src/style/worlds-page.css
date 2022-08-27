@@ -1,0 +1,184 @@
+.worlds-page .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+.worlds-page .grid .item {
+  border-radius: 16px;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.worlds-page .grid .item.card {
+  display: flex;
+  flex-direction: column;
+  background-color: #536DFE;
+}
+.worlds-page .grid .item.card:hover .card-body {
+  clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+}
+.worlds-page .grid .item.card:hover .card-body::before {
+  background: #18FFFF;
+}
+.worlds-page .grid .item.card:hover .card-body::after {
+  opacity: 1;
+  clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+}
+.worlds-page .grid .item.card:hover .card-body .img-cover {
+  clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+}
+.worlds-page .grid .item.card:hover .card-body .btn-delete {
+  opacity: 1;
+}
+.worlds-page .grid .item.card:hover .card-footer {
+  display: flex;
+  flex-direction: column;
+}
+.worlds-page .grid .item.card:hover .card-footer .animated-mask {
+  bottom: calc(100% + 40px);
+}
+.worlds-page .grid .item.card:hover .card-footer .buttons {
+  margin-top: auto;
+  opacity: 1;
+}
+.worlds-page .grid .item.card .card-body {
+  position: relative;
+  flex: 1;
+  background: white;
+  clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+  transition: clip-path 0.2s ease-in-out;
+}
+.worlds-page .grid .item.card .card-body::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: linear-gradient(to top, #18FFFF, #18ffff1e 100%);
+}
+.worlds-page .grid .item.card .card-body::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  left: 0;
+  bottom: 0;
+  margin: 2px;
+  border-radius: 16px 16px 0 0;
+  transition: all 0.2s ease-in-out;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(28, 17, 73, 0.4) 0%, #1C1149 100%);
+  clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+}
+.worlds-page .grid .item.card .card-body .img-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  background-color: #1C1149;
+  background-size: cover;
+  background-repeat: no-repeat;
+  margin: 2px;
+  padding: 0 15px 15px 15px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  border-radius: 16px 16px 0 0;
+  transition: all 0.2s ease-in-out;
+  clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+  text-align: center;
+}
+.worlds-page .grid .item.card .card-body .img-cover p {
+  font-size: 14px;
+  max-width: 250px;
+}
+.worlds-page .grid .item.card .card-body .btn-delete {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  right: 20px;
+  top: 20px;
+  z-index: 1;
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.worlds-page .grid .item.card .card-body .btn-delete:hover i {
+  color: #FFAB00;
+}
+.worlds-page .grid .item.card h2 {
+  margin-bottom: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.worlds-page .grid .item.card .card-footer {
+  background-color: #536DFE;
+  padding: 15px 20px 20px 20px;
+  height: 33%;
+  position: relative;
+}
+.worlds-page .grid .item.card .card-footer .animated-mask {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: calc(100% - 40px);
+  transition: all 0.2s ease-in-out;
+}
+.worlds-page .grid .item.card .card-footer .animated-mask .flex {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+.worlds-page .grid .item.card .card-footer .animated-mask .flex .game-mode {
+  font-weight: 500;
+  margin: 0;
+}
+.worlds-page .grid .item.card .card-footer .animated-mask .flex .users-online {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.worlds-page .grid .item.card .card-footer .buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+}
+.worlds-page .grid .item.card .card-footer .buttons .primary {
+  align-items: center;
+  gap: 8px;
+}
+.worlds-page .grid .item.card .card-footer .buttons .primary span {
+  transition: all 0.2s ease-in-out;
+  transform: translate(0, 0);
+}
+.worlds-page .grid .item.card .card-footer .buttons .primary i {
+  transition: all 0.2s ease-in-out;
+  transform: translate(0, 0);
+  font-size: 14px;
+}
+.worlds-page .grid .item.card .card-footer .buttons .primary:hover span {
+  transform: translate(-5px, -5px);
+}
+.worlds-page .grid .item.card .card-footer .buttons .primary:hover i {
+  transform: translate(5px, 5px);
+}
+.worlds-page .grid .btn-add {
+  flex-direction: column;
+  align-items: center;
+  clip-path: none;
+  font-size: 36px;
+  text-align: center;
+  text-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
+}

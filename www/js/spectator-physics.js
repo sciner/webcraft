@@ -5,10 +5,10 @@ import { Vector } from "./helpers.js";
 
 export class PlayerControl  {
 
-    constructor() {
+    constructor(options) {
         this.mouseX             = 0;
         this.mouseY             = 0;
-        this.mouse_sensitivity  = 1.0;
+        this.mouse_sensitivity  = options.mouse_sensitivity ?? 1.0;
         this.inited             = false;
         this.enabled            = false;
         this.reset();

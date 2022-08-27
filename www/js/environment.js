@@ -515,7 +515,7 @@ export const FOG_PRESETS = {
 
     [PRESET_NAMES.WATER]: {
         color: [55 / 255, 100 / 255, 230 / 255, 0],
-        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
+        addColor: [40 / 255, 40 / 255, 120 / 255, 0.45],
         density: 0.1,
         illuminate: 0.1,
     },

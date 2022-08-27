@@ -129,7 +129,7 @@ export class ServerPlayerInventory extends Inventory {
 
     // Клонирование материала в инвентарь
     cloneMaterial(mat, allow_create_new) {
-        if(mat.id < 2 || mat.deprecated) {
+        if(mat.id < 2 || mat.deprecated || mat.tags.includes('noclonable')) {
             return false;
         }
         while(mat.previous_part && mat.previous_part.id != mat.id) {

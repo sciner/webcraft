@@ -253,6 +253,7 @@
 
     // Apply fog
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
+    // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
     outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
 
     // special effect for sunrise
