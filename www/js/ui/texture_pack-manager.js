@@ -11,6 +11,7 @@ export class TexturePackManager {
         this.list = [...resource_packs.variants];
         // Prepend default resource-pack option
         this.list.unshift({"id": "base", "name": "Base"});
+        this.set(this.getCurrent());
         return this;
     }
 
@@ -30,6 +31,16 @@ export class TexturePackManager {
     select(index) {
         index = index % this.list.length;
         this.$scope.settings.form.texture_pack = this.list[index].id;
+        this.current = this.getCurrent();
+    }
+
+    set(item) {
+        for(let i in this.list) {
+            let tp = this.list[i];
+            if(tp.id == item.id) {
+                this.select(i);
+            }
+        }
     }
 
     getCurrent() {

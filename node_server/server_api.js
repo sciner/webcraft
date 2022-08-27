@@ -55,6 +55,10 @@ export class ServerAPI {
             case '/api/Game/MyWorlds': {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
                 const resp = await Qubatch.db.MyWorlds(session.user_id);
+                for(let item of resp) {
+                    const world = Qubatch.worlds.get(item.guid);
+                    item.players_online = world ? world.players.size : 0;
+                }
                 return resp;
             }
             case '/api/Game/DeleteWorld': {

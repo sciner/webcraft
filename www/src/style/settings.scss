@@ -1,0 +1,109 @@
+@import 'vars.scss';
+
+.settings-page {
+    .form {
+        width: $content-width;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(28, 17, 73, 0.01);
+        backdrop-filter: blur(12px);
+        margin: 0 auto;
+        padding: 30px;
+        border-width: 3px;
+        border-style: solid;
+        border-image: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent) 0 1 0 1;
+
+        .input-group {
+            margin-bottom: 24px;
+
+            p {
+                font-weight: 700;
+                margin: 0 0 10px 0;
+            }
+
+            input {
+                width: 100%;
+            }
+        }
+
+        .video,
+        .audio {
+            padding: 40px 0;
+            border-width: 3px;
+            border-style: solid;
+            border-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent) 1 0 1;
+        }
+
+        .save {
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px 16px 0px 0px;
+            display: flex;
+            padding: 30px;
+            margin: 0 -30px;
+
+            button {
+                width: 100%;
+            }
+        }
+    }
+
+    // input range
+    /*********** Baseline, reset styles ***********/
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: 100%;
+    }
+    /* Removes default focus */
+    input[type="range"]:focus {
+        outline: none;
+    }
+    /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+    /* slider track */
+    input[type="range"]::-webkit-slider-runnable-track {
+        background-color: $color-yellow;
+        border-radius: 2px;
+        height: 6px;
+    }
+    /* slider thumb */
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; /* Override default look */
+        appearance: none;
+        margin-top: -10px; /* Centers thumb on the track */
+        background-color: $color-yellow;
+        border: 1px solid #170E3E;
+        border-radius: 6px;
+        height: 26px;
+        width: 14px;
+        transition: box-shadow 0.3s;
+    }
+    input[type="range"]:hover::-webkit-slider-thumb {
+        background-color: $color-yellow-active;
+    }
+    input[type="range"]:active::-webkit-slider-thumb {
+        box-shadow:0 0 4px 1px #170E3E;
+    }
+    /*********** Firefox styles ***********/
+    /* slider track */
+    input[type="range"]::-moz-range-track {
+        background-color: $color-yellow;
+        border-radius: 2px;
+        height: 6px;
+    }
+    /* slider thumb */
+    input[type="range"]::-moz-range-thumb {
+        background-color: $color-yellow;
+        border: none; /*Removes extra border that FF applies*/
+        border-radius: 6px;
+        height: 26px;
+        width: 14px;
+    }
+    input[type="range"]:focus::-moz-range-thumb{
+        outline: 3px solid $color-yellow;
+        outline-offset: 0.125rem;
+    }
+
+}
