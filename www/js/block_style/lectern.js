@@ -18,6 +18,9 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
+        if (for_physic) {
+            return [new AABB().set(0, 0, 0, 1, 1, 1)]
+        }
         const aabb = [];
         aabb.push(new AABB().set(0.25, 0.13, 0.25, 0.75, 0.94, 0.75));
         aabb.push(new AABB().set(0, 0, 0, 1, 0.13, 1));
@@ -25,7 +28,7 @@ export default class style {
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
-        if(typeof block == 'undefined') {
+        if(!block || typeof block == 'undefined') {
             return;
         }
         
@@ -97,7 +100,54 @@ export default class style {
             });
         }
         
+        drawBook(vertices, pos, matrix);
         
     }
     
+}
+
+function drawBook(vertices, pos, matrix) {
+    const book = BLOCK.calcTexture({'up':[24, 24]}, DIRECTION.UP);
+    const flag = 0;
+    const parts = [];
+    parts.push(...[
+        {
+            "size": {"x": 6, "y": 1, "z": 10},
+            "translate": {"x": -3, "y": 8, "z": 1},
+            "faces": {
+                "up": {"uv": [3, 5], "flag": flag, "texture": book}
+            },
+            "rot": [Math.PI / 12, 0, 0]
+        }, 
+        {
+            "size": {"x": 6, "y": 1, "z": 10},
+            "translate": {"x": 3, "y": 8, "z": 1},
+            "faces": {
+                "up": {"uv": [19, 5], "flag": flag, "texture": book}
+            },
+            "rot": [Math.PI / 12, 0, 0]
+        },
+        {
+            "size": {"x": 11, "y": 0.5, "z": 8},
+            "translate": {"x": 0, "y": 9, "z": 1},
+            "faces": {
+                "up": {"uv": [6.5, 15], "flag": flag, "texture": book},
+                "north": {"uv": [6.5, 12], "flag": flag, "texture": book},
+                "south": {"uv": [6.5, 12], "flag": flag, "texture": book},
+                "west": {"uv": [6.5, 18], "flag": flag, "texture": book},
+                "east": {"uv": [6.5, 18], "flag": flag, "texture": book}
+            },
+            "rot": [Math.PI / 12, 0, 0]
+        }
+    ]);
+          
+    const lm = IndexedColor.WHITE;
+    for(let part of parts) {
+        default_style.pushAABB(vertices, {
+            ...part,
+            lm:         lm,
+            pos:        pos,
+            matrix:     matrix
+        });
+    }
 }

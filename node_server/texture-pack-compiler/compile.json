@@ -14,7 +14,8 @@
         {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"}
+        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
     ],
     "blocks" : [
         {
@@ -6834,6 +6835,7 @@
             "transparent": true,
             "style": "lectern",
             "can_rotate": true,
+            "window": "frmBook",
             "material": {
                 "id": "stone"
             },
