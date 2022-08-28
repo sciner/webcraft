@@ -1,4 +1,4 @@
-import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.mjs';
+import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.min.mjs';
 
 const COL_D = '|';
 const ROW_D = '\t';
