@@ -622,9 +622,9 @@ let gameCtrl = async function($scope, $timeout) {
                 }
                 return value;
             },
-            select: function(generator_id) {
+            select: function(generator) {
                 const form = $scope.newgame.form;
-                form.generator.id = generator_id;
+                form.generator.id = generator.id;
                 const current = this.getCurrent();
                 if(!('has_options' in current)) {
                     current.has_options = !!current.options;
@@ -669,7 +669,7 @@ let gameCtrl = async function($scope, $timeout) {
             });
         },
         open: function() {
-            this.generators.select(this.generators.list[0].id);
+            this.generators.select(this.generators.list[0]);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },
