@@ -46,6 +46,9 @@
                 c.width = sz.width * dpr;
                 c.height = sz.height * dpr;
             }
+            if(typeof Qubatch !== 'undefined') {
+                Qubatch?.hud?.draw();
+            }
         }
         window.addEventListener('resize', windowResized, true);
     </script>

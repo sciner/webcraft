@@ -5,6 +5,7 @@ import {BLOCK} from "../www/js/blocks.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {WorldAction} from "../www/js/world_action.js";
+import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -87,14 +88,16 @@ class TickingBlockManager {
             }
             //
             v.ticks++;
-            const ticker = world.tickers.get(ticking.type);
-            if(ticker) {
-                const upd_blocks = ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
-                if(Array.isArray(upd_blocks)) {
-                    updated_blocks.push(...upd_blocks);
+            if(!NO_TICK_BLOCKS) {
+                const ticker = world.tickers.get(ticking.type);
+                if(ticker) {
+                    const upd_blocks = ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
+                    if(Array.isArray(upd_blocks)) {
+                        updated_blocks.push(...upd_blocks);
+                    }
+                } else {
+                    console.log(`Invalid ticking type: ${ticking.type}`);
                 }
-            } else {
-                console.log(`Invalid ticking type: ${ticking.type}`);
             }
         }
         //
@@ -250,8 +253,9 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADING);
         //
-        const afterLoad = (modify_list) => {
-            this.modify_list = modify_list;
+        const afterLoad = (result) => {
+            this.modify_list = result.obj;
+            this.modify_list_compressed = result.compressed;
             this.ticking = new Map();
             this.setState(CHUNK_STATE_LOADED);
             // Send requet to worker for create blocks structure
@@ -349,15 +353,15 @@ export class ServerChunk {
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
-        const packets = [{
-            name: ServerClient.CMD_CHUNK_LOADED,
-            data: {
-                addr:        this.addr,
-                modify_list: this.modify_list
-            }
-        }];
-        this.world.sendSelected(packets, player_ids, []);
-        return true
+        const name = ServerClient.CMD_CHUNK_LOADED;
+        const data = {addr: this.addr};
+        data.modify_list = {obj: null, compressed: null};
+        if(this.modify_list_compressed) {
+            data.modify_list.compressed = this.modify_list_compressed.toString('base64');
+        } else {
+            data.modify_list.obj = this.modify_list;
+        }
+        return this.world.sendSelected([{name, data}], player_ids, []);
     }
 
     sendMobs(player_user_ids) {

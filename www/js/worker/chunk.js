@@ -8,6 +8,7 @@ import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
+import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -133,6 +134,11 @@ export class Chunk {
         if(!this.modify_list) {
             return;
         }
+        // uncompress
+        if(this.modify_list.compressed) {
+            this.modify_list = decompressWorldModifyChunk(Uint8Array.from(atob(this.modify_list.compressed), c => c.charCodeAt(0)));
+        }
+        //
         const pos = new Vector(0, 0, 0);
         const block_vec_index = new Vector(0, 0, 0);
         for(let index in this.modify_list) {
@@ -149,7 +155,7 @@ export class Chunk {
             this.emitted_blocks.delete(index);
 
         }
-        this.modify_list = [];
+        this.modify_list = null;
     }
 
     // Get the type of the block at the specified position.
