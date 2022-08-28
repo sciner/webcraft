@@ -220,8 +220,8 @@ export class ServerChat {
                     drop_items:     this.world.all_drop_items.size,
                     players:        this.world.players.size,
                     chunks:         this.world.chunkManager.all.size,
-                    net_in:         this.world.network_stat.in + ` (cnt: ${this.world.network_stat.in_count})`,
-                    net_out:        this.world.network_stat.out + ` (cnt: ${this.world.network_stat.out_count})`,
+                    net_in:         this.world.network_stat.in.toLocaleString() + ` bytes (packets: ${this.world.network_stat.in_count})`,
+                    net_out:        this.world.network_stat.out.toLocaleString() + ` bytes (packets: ${this.world.network_stat.out_count})`,
                     working_time:   Math.round((performance.now() - this.world.start_time) / 1000) + ' sec',
                     ticking_blocks: {total:0}
                 };

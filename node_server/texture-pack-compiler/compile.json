@@ -3641,7 +3641,7 @@
         },
         {
             "id": 596,
-            "name": "AMETHYST",
+            "name": "AMETHYST_BLOCK",
             "sound": "madcraft:block.amethyst",
             "material": {
                 "id": "amethyst"
@@ -6826,6 +6826,54 @@
                 "up": false,
                 "west": false,
                 "rotate": false
+            }
+        },
+        {
+            "id": 194,
+            "name": "DEEPSLATE_REDSTONE_ORE",
+            "sound": "madcraft:block.stone",
+            "drop_item": {"name": "REDSTONE", "count": 2, "chance": 1},
+            "texture": "block/deepslate_redstone_ore.png",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "ore"
+            ]
+        },
+        {
+            "id": 594,
+            "name": "DEEPSLATE_GOLD_ORE",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "GOLD_INGOT", "count": 1},
+            "texture": "block/deepslate_gold_ore.png",
+            "material": {
+                "id": "gold"
+            },
+            "tags": [
+                "ore"
+            ]
+        },
+        {
+            "id": 595,
+            "name": "DEEPSLATE_IRON_ORE",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "IRON_INGOT", "count": 1},
+            "texture": "block/deepslate_iron_ore.png",
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "ore"
+            ]
+        },
+        {
+            "id": 502,
+            "name": "SMOOTH_BASALT",
+            "sound": "madcraft:block.stone",
+            "texture": "block/smooth_basalt.png",
+            "material": {
+                "id": "stone"
             }
         }
     ]

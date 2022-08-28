@@ -257,34 +257,47 @@ export default class WorldEdit {
             throw 'error_not_copied_blocks';
         }
         const pn_set = performance.now();
-        const actions_list = [];
-        let actions = new WorldAction(null, null, true, false/*, false*/);
+        //
+        const actions_list = new VectorCollector();
+        const createwWorldActions = () => {
+            const resp = new WorldAction(null, null, true, false);
+            return resp;
+        };
         //
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
         //
         const data = player._world_edit_copy;
         const blockIter = data.blocks.entries();
+        let chunk_addr = null;
+        let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+        const action_id = ServerClient.BLOCK_ACTION_CREATE;
+        let actions = null;
         for(let [bpos, item] of blockIter) {
             const shift = bpos;
-            const new_pos = player_pos.add(shift);
-            actions.addBlocks([{pos: new_pos, item: item, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
-            affected_count++;
-            if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
-                actions_list.push(actions);
-                actions = new WorldAction(null, null, true, false/*, false*/);
+            const pos = player_pos.add(shift);
+            chunk_addr = getChunkAddr(pos, chunk_addr);
+            if(!chunk_addr_o.equal(chunk_addr)) {
+                chunk_addr_o.copyFrom(chunk_addr);
+                actions = actions_list.get(chunk_addr);
+                if(!actions) {
+                    actions = createwWorldActions();
+                    actions_list.set(chunk_addr, actions);
+                }
             }
-        }
-        if(actions.blocks.list.length > 0) {
-            actions_list.push(actions);
+            actions.addBlocks([{pos, item, action_id}]);
+            affected_count++;
         }
         //
-        for(let actions of actions_list) {
+        for(const [_, actions] of actions_list.entries()) {
             chat.world.actions_queue.add(null, actions);
         }
-        let msg = `${affected_count} block(s) affected`;
+        const msg = `${affected_count} block(s) affected`;
+        const pn = Math.round((performance.now() - pn_set) * 10) / 10;
+        const blocks_per_sec = Math.round(affected_count / (pn / 1000));
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
-        console.log('Time took: ' + (performance.now() - pn_set));
+        console.log(`world_edit: ${msg}`);
+        console.log(`world_edit: cmd_paste time: ${pn} ms, chunks: ${actions_list.size}; blocks_per_sec: ${blocks_per_sec}`);
     }
 
     /**
@@ -343,7 +356,7 @@ export default class WorldEdit {
         chat.world.actions_queue.add(null, actions);
         let msg = `${affected_count} block(s) affected`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
-        console.log('Time took: ' + (performance.now() - pn_set));
+        console.log('world_edit.replace time took: ' + (performance.now() - pn_set));
     }
 
     //
@@ -428,7 +441,7 @@ export default class WorldEdit {
         }
         chat.world.actions_queue.add(null, actions);
         chat.sendSystemChatMessageToSelectedPlayers(`${affected_count} blocks changed`, [player.session.user_id]);
-        console.log('Time took: ' + (performance.now() - pn_set));
+        console.log('world_edit.fill_quboid time took: ' + (performance.now() - pn_set));
     }
 
     // Return quboid info
