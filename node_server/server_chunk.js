@@ -550,6 +550,7 @@ export class ServerChunk {
     // Store in modify list
     addModifiedBlock(pos, item) {
         const ml = this.modify_list;
+        if(!ml.obj) ml.obj = {};
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
         if(item && item.id) {
