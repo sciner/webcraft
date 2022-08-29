@@ -61,7 +61,7 @@ export default class Ticker {
                         extra_data.stage++;
                     }
                     updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                } else if (tblock.id == BLOCK.SUGAR_CANES.id) {
+                } else if (tblock.id == BLOCK.SUGAR_CANE.id) {
                     // Если блок это сахарный тростник
                     const over_pos = v.pos.clone().addScalarSelf(0, 1, 0);
                     if(over_pos.y < extra_data.pos.y + extra_data.max_height) {
@@ -71,7 +71,7 @@ export default class Ticker {
                             updated_blocks.push({
                                 pos: over_pos, 
                                 item: {
-                                    id: BLOCK.SUGAR_CANES.id,
+                                    id: BLOCK.SUGAR_CANE.id,
                                     extra_data: {
                                         stage:      over_pos.y - extra_data.pos.y,
                                         pos:        new Vector(extra_data.pos),

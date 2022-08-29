@@ -254,7 +254,7 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_LOADING);
         //
         const afterLoad = (result) => {
-            this.modify_list = result.obj;
+            this.modify_list = result.obj ?? {};
             this.modify_list_compressed = result.compressed;
             this.ticking = new Map();
             this.setState(CHUNK_STATE_LOADED);
