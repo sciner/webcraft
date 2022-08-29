@@ -131,20 +131,24 @@ export class Chunk {
 
     //
     applyModifyList() {
-        if(!this.modify_list) {
+        let ml = this.modify_list;
+        if(!ml) {
             return;
         }
         // uncompress
-        if(this.modify_list.compressed) {
-            this.modify_list = decompressWorldModifyChunk(Uint8Array.from(atob(this.modify_list.compressed), c => c.charCodeAt(0)));
+        if(ml.obj) {
+            ml = ml.obj;
+        } else if(ml.compressed) {
+            ml = decompressWorldModifyChunk(Uint8Array.from(atob(ml.compressed), c => c.charCodeAt(0)));
         } else {
-            this.modify_list = this.modify_list.obj ?? null;
+            ml = {};
         }
+        this.modify_list = ml;
         //
         const pos = new Vector(0, 0, 0);
         const block_vec_index = new Vector(0, 0, 0);
-        for(let index in this.modify_list) {
-            const m = this.modify_list[index];
+        for(let index in ml) {
+            const m = ml[index];
             if(!m) continue;
             pos.fromFlatChunkIndex(index);
             if(m.id < 1) {

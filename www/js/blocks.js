@@ -1092,7 +1092,7 @@ export class BLOCK {
                 }
                 case 'thin': {
                     // F R B L
-                    if(!for_physic) {
+                    if(!(material.is_portal && for_physic)) {
                         let cardinal_direction = b.getCardinalDirection();
                         if(cardinal_direction == CubeSym.ROT_X) {
                             cardinal_direction = ROTATE.E;

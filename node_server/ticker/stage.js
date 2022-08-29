@@ -64,22 +64,24 @@ export default class Ticker {
                 } else if (tblock.id == BLOCK.SUGAR_CANE.id) {
                     // Если блок это сахарный тростник
                     const over_pos = v.pos.clone().addScalarSelf(0, 1, 0);
-                    if(over_pos.y < extra_data.pos.y + extra_data.max_height) {
-                        const over_block = world.getBlock(over_pos);
-                        // Если наверху нет преграды
-                        if(over_block.id == BLOCK.AIR.id) {
-                            updated_blocks.push({
-                                pos: over_pos, 
-                                item: {
-                                    id: BLOCK.SUGAR_CANE.id,
-                                    extra_data: {
-                                        stage:      over_pos.y - extra_data.pos.y,
-                                        pos:        new Vector(extra_data.pos),
-                                        max_height: extra_data.max_height
-                                    }
-                                }, 
-                                action_id: ServerClient.BLOCK_ACTION_CREATE
-                            });
+                    if(extra_data.pos) {
+                        if(over_pos.y < extra_data.pos.y + extra_data.max_height) {
+                            const over_block = world.getBlock(over_pos);
+                            // Если наверху нет преграды
+                            if(over_block.id == BLOCK.AIR.id) {
+                                updated_blocks.push({
+                                    pos: over_pos, 
+                                    item: {
+                                        id: BLOCK.SUGAR_CANE.id,
+                                        extra_data: {
+                                            stage:      over_pos.y - extra_data.pos.y,
+                                            pos:        new Vector(extra_data.pos),
+                                            max_height: extra_data.max_height
+                                        }
+                                    }, 
+                                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                                });
+                            }
                         }
                     }
                     // @todo need refactor this method for delete ticking blocks

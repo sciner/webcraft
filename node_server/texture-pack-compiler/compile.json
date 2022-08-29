@@ -6868,7 +6868,7 @@
             ]
         },
         {
-            "id": 502,
+            "id": 211,
             "name": "SMOOTH_BASALT",
             "sound": "madcraft:block.stone",
             "texture": "block/smooth_basalt.png",
@@ -6931,6 +6931,43 @@
             "texture": {
                 "side": "block/polished_basalt_side.png",
                 "up": "block/polished_basalt_top.png"
+            }
+        },
+        {
+            "id": 212,
+            "name": "GILD_NUGGET",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "item/gold_nugget.png"
+        },
+        {
+            "id": 213,
+            "name": "GILDED_BLACKSTONE",
+            "sound": "madcraft:block.stone",
+            "drop_item": {"name": "GILD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/gilded_blackstone.png"
+        },
+        {
+            "id": 214,
+            "name": "CRIMSON_STEM",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/crimson_stem.png",
+                "up": "block/crimson_stem_top.png",
+                "down": "block/crimson_stem_top.png"
+            },
+            "texture_animations": {
+                "side": null,
+                "up": 0,
+                "down": 0
             }
         }
     ]

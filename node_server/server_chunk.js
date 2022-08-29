@@ -6,6 +6,7 @@ import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {WorldAction} from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
+import { decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -247,15 +248,17 @@ export class ServerChunk {
     }
 
     // Load state from DB
-    async load() {
+    load() {
         if(this.load_state > CHUNK_STATE_NEW) {
             return;
         }
         this.setState(CHUNK_STATE_LOADING);
         //
-        const afterLoad = (result) => {
-            this.modify_list = result.obj ?? {};
-            this.modify_list_compressed = result.compressed;
+        const afterLoad = (ml) => {
+            if(!ml.obj && ml.compressed) {
+                ml.obj = decompressWorldModifyChunk(ml.compressed)
+            }
+            this.modify_list = ml;
             this.ticking = new Map();
             this.setState(CHUNK_STATE_LOADED);
             // Send requet to worker for create blocks structure
@@ -264,7 +267,7 @@ export class ServerChunk {
                     {
                         update:         true,
                         addr:           this.addr,
-                        modify_list:    this.modify_list
+                        modify_list:    ml
                     }
                 ]
             ]);
@@ -354,12 +357,12 @@ export class ServerChunk {
     sendToPlayers(player_ids) {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
-        const data = {addr: this.addr};
-        data.modify_list = {obj: null, compressed: null};
-        if(this.modify_list_compressed) {
-            data.modify_list.compressed = this.modify_list_compressed.toString('base64');
+        const data = {addr: this.addr, modify_list: {}};
+        const ml = this.modify_list;
+        if(ml.compressed) {
+            data.modify_list.compressed = ml.compressed.toString('base64');
         } else {
-            data.modify_list.obj = this.modify_list;
+            data.modify_list.obj = ml.obj;
         }
         return this.world.sendSelected([{name, data}], player_ids, []);
     }
@@ -400,6 +403,13 @@ export class ServerChunk {
         if (!chunkManager) {
             return;
         }
+        if(this.addr.equal(new Vector(-10,0,-1))) {
+            let ids = [];
+            for(let i = 0; i < args.tblocks.id.length; i++) {
+                let id = args.tblocks.id[i];
+                if(id > 0) ids.push(id);
+            }
+        }
         this.tblocks = newTypedBlocks(this.coord, this.size);
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
@@ -425,11 +435,15 @@ export class ServerChunk {
 
     //
     scanTickingBlocks(ticking_blocks) {
+        if(NO_TICK_BLOCKS) {
+            return false;
+        }
         let block = null;
         let pos = new Vector(0, 0, 0);
+        const ml = this.modify_list.obj;
         // 1. Check modified blocks
-        for(let index in this.modify_list) {
-            const current_block_on_pos = this.modify_list[index];
+        for(let index in ml) {
+            const current_block_on_pos = ml[index];
             if(!current_block_on_pos) {
                 continue;
             }
@@ -446,7 +460,7 @@ export class ServerChunk {
         if(ticking_blocks.length > 0) {
             for(let k of ticking_blocks) {
                 pos.fromHash(k);
-                if(!this.modify_list[pos.getFlatIndexInChunk()]) {
+                if(!ml[pos.getFlatIndexInChunk()]) {
                     const block = this.getBlock(pos);
                     if(block.material.ticking && block.extra_data && !('notick' in block.extra_data)) {
                         this.ticking_blocks.add(block.id, pos, block.material.ticking);
@@ -535,7 +549,9 @@ export class ServerChunk {
 
     // Store in modify list
     addModifiedBlock(pos, item) {
-        this.modify_list[pos.getFlatIndexInChunk()] = item;
+        const ml = this.modify_list;
+        ml.obj[pos.getFlatIndexInChunk()] = item;
+        ml.compressed = null;
         if(item && item.id) {
             const block = BLOCK.fromId(item.id);
             if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
