@@ -163,18 +163,18 @@ export class BookWindow extends Window {
         this.page_n = 0;
         
         this.lbl_pages = new Label(150 * this.zoom, 30 * this.zoom, 110 * this.zoom, 12 * this.zoom, 'lblPages', null, '');
-        this.lbl_pages.style.font.size = 22;
+        this.lbl_pages.style.font.size = 11 * this.zoom;
         this.add(this.lbl_pages);
         
         this.lbl_text = new Label(25 * this.zoom, 50 * this.zoom, 240 * this.zoom, 270 * this.zoom, 'lblText', null, '');
-        this.lbl_text.style.font.size = 24;
+        this.lbl_text.style.font.size = 12 * this.zoom;
         this.lbl_text.word_wrap = true;
         this.add(this.lbl_text);
     }
     
     createButtons() {
-        this.btn_next = new ActiveButton(220 * this.zoom, 320 * this.zoom, 32 * 2, 26 * 2, 'btnNext', 'next', this);
-        this.btn_back = new ActiveButton(40 * this.zoom, 320 * this.zoom, 32 * 2, 26 * 2, 'btnBack', 'back', this);
+        this.btn_next = new ActiveButton(220 * this.zoom, 320 * this.zoom, 32 * this.zoom, 26 * this.zoom, 'btnNext', 'next', this);
+        this.btn_back = new ActiveButton(40 * this.zoom, 320 * this.zoom, 32 * this.zoom, 26 * this.zoom, 'btnBack', 'back', this);
         this.btn_back.setEnable(false);
         this.add(this.btn_next);
         this.add(this.btn_back);

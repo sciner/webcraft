@@ -18,13 +18,22 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
-        if (for_physic) {
+        /*if (for_physic) {
             return [new AABB().set(0, 0, 0, 1, 1, 1)]
         }
         const aabb = [];
         aabb.push(new AABB().set(0.25, 0.13, 0.25, 0.75, 0.94, 0.75));
         aabb.push(new AABB().set(0, 0, 0, 1, 0.13, 1));
-        return aabb;
+        const cd = block.getCardinalDirection();
+        if (cd == DIRECTION.NORTH) {
+            let n = 0.05;
+            aabb.push(new AABB().set(0, 0.85, 0.1, 1, 1.05, 0.4));
+            aabb.push(new AABB().set(0, 0.75, 0.4, 1, 0.95, 0.7));
+            aabb.push(new AABB().set(0, 0.7, 0.7, 1, 0.9, 1));
+        }*/
+        const aabb = new AABB();
+        aabb.set(0, 0, 0, 1, 1, 1);
+        return [aabb];
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
@@ -45,10 +54,10 @@ export default class style {
                 "size": {"x": 8, "y": 13, "z": 8},
                 "translate": {"x": 0, "y": 0.5, "z": 0},
                 "faces": {
-                    "north": {"uv": [12, 8], "flag": flag, "texture": front},
+                    "north": {"uv": [12, 9], "flag": flag, "texture": front},
                     "south": {"uv": [4, 8], "flag": flag, "texture": front},
-                    "west":  {"uv": [4, 8], "flag": flag, "texture": side},
-                    "east":  {"uv": [4, 8], "flag": flag, "texture": side}
+                    "west":  {"uv": [12, 9], "flag": flag, "texture": front},
+                    "east":  {"uv": [12, 9], "flag": flag, "texture": front}
                 }
             },
             {
@@ -58,7 +67,7 @@ export default class style {
                     "up": {"uv": [8, 8], "flag": flag, "texture": base},
                     "down": {"uv": [8, 8], "flag": flag, "texture": bottom},
                     "north": {"uv": [6, 1.5], "flag": flag, "texture": base},
-                    "south": {"uv": [8, 12.5], "flag": flag, "texture": base},
+                    "south": {"uv": [8, 13], "flag": flag, "texture": base},
                     "west":  {"uv": [6, 1.5], "flag": flag, "texture": base},
                     "east":  {"uv": [6, 1.5], "flag": flag, "texture": base}
                 }
@@ -68,6 +77,7 @@ export default class style {
                 "translate": {"x": 0, "y": 6, "z": 1.5},
                 "faces": {
                     "up": { "uv": [8, 8], "flag": flag, "texture": up},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": bottom},
                     "north": {"uv": [12, 8], "flag": flag, "texture": side},
                     "south": {"uv": [8, 8], "flag": flag, "texture": side},
                     "west":  {"uv": [8, 8], "flag": flag, "texture": side},
@@ -113,31 +123,43 @@ function drawBook(vertices, pos, matrix) {
     parts.push(...[
         {
             "size": {"x": 6, "y": 1, "z": 10},
-            "translate": {"x": -3, "y": 8, "z": 1},
+            "translate": {"x": -3.7, "y": 7.6, "z": 1},
             "faces": {
                 "up": {"uv": [3, 5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, 0, 0]
+            "rot": [Math.PI / 12, Math.PI / 140, Math.PI / 36]
         }, 
         {
             "size": {"x": 6, "y": 1, "z": 10},
-            "translate": {"x": 3, "y": 8, "z": 1},
+            "translate": {"x": 3.7, "y": 7.6, "z": 1},
             "faces": {
                 "up": {"uv": [19, 5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, 0, 0]
+            "rot": [Math.PI / 12, -Math.PI / 140, -Math.PI / 36]
         },
         {
-            "size": {"x": 11, "y": 0.5, "z": 8},
-            "translate": {"x": 0, "y": 9, "z": 1},
+            "size": {"x": 5, "y": 1, "z": 8},
+            "translate": {"x": -3.3, "y": 8.6, "z": 1},
             "faces": {
-                "up": {"uv": [6.5, 15], "flag": flag, "texture": book},
-                "north": {"uv": [6.5, 12], "flag": flag, "texture": book},
-                "south": {"uv": [6.5, 12], "flag": flag, "texture": book},
-                "west": {"uv": [6.5, 18], "flag": flag, "texture": book},
-                "east": {"uv": [6.5, 18], "flag": flag, "texture": book}
+                "up": {"uv": [3.5, 15], "flag": flag, "texture": book},
+                "north": {"uv": [3.5, 10.5], "flag": flag, "texture": book},
+                "south": {"uv": [3.5, 10.5], "flag": flag, "texture": book},
+                "west": {"uv": [5, 10.5], "flag": flag, "texture": book},
+                "east": {"uv": [5, 10.5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, 0, 0]
+            "rot": [Math.PI / 12, Math.PI / 140, Math.PI / 36]
+        },
+        {
+            "size": {"x": 5, "y": 1, "z": 8},
+            "translate": {"x": 3.3, "y": 8.6, "z": 1},
+            "faces": {
+                "up": {"uv": [3.5, 15], "flag": flag, "texture": book},
+                "north": {"uv": [3.5, 10.5], "flag": flag, "texture": book},
+                "south": {"uv": [3.5, 10.5], "flag": flag, "texture": book},
+                "west": {"uv": [5, 10.5], "flag": flag, "texture": book},
+                "east": {"uv": [5, 10.5], "flag": flag, "texture": book}
+            },
+            "rot": [Math.PI / 12, -Math.PI / 140, -Math.PI / 36]
         }
     ]);
           
