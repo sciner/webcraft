@@ -46,6 +46,11 @@
                 c.width = sz.width * dpr;
                 c.height = sz.height * dpr;
             }
+            //if(typeof Qubatch !== 'undefined') {
+            //    if(Qubatch?.hud?.splash?.loading) {
+            //        Qubatch?.hud?.draw();
+            //    }
+            //}
         }
         window.addEventListener('resize', windowResized, true);
     </script>
@@ -139,7 +144,7 @@
                 </div>
                 <label ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
                 <div class="flex0 flex-column">
-                    <button ng-click="mygames.enterWorld.joinAfterApproving()" class="btn-main active">{{Lang.join}}</button>
+                    <button ng-click="mygames.enterWorld.joinAfterApproving()" class="primary active">{{Lang.join}}</button>
                     <button ng-click="mygames.toMain()" class="secondary active">{{Lang.cancel}}</button>
                 </div>
             </div>

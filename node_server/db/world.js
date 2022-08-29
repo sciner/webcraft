@@ -11,6 +11,7 @@ import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
 import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
+import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 
 // World database provider
 export class DBWorld {
@@ -23,6 +24,7 @@ export class DBWorld {
     async init() {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
+        await this.compressModifiers();
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
         this.portal = new DBWorldPortal(this.conn, this.world);
@@ -84,6 +86,29 @@ export class DBWorld {
 
     async TransactionRollback() {
         await this.conn.get('rollback');
+    }
+
+    //
+    async compressModifiers() {
+        let p_start = performance.now();
+        let chunks_count = 0;
+        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE data_blob IS NULL', {});
+        for(let row of rows) {
+            chunks_count++;
+            let p = performance.now();
+            const compressed = compressWorldModifyChunk(JSON.parse(row.data), true);
+            let p1 = Math.round((performance.now() - p) * 1000) / 1000;
+            p = performance.now();
+            // save compressed
+            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob WHERE _rowid_ = :_rowid_', {
+                ':data_blob':  compressed,
+                ':_rowid_':    row.rowid
+            });
+            let p2 = Math.round((performance.now() - p) * 1000) / 1000;
+            console.log(`compressModifiers: upd times: ${p1}, ${p2} ms`);
+        }
+        console.log(`compressModifiers: chunks: ${chunks_count}, elapsed: ${Math.round((performance.now() - p_start) * 1000) / 1000} ms`);
+        return true;
     }
 
     // getDefaultPlayerIndicators...
@@ -263,9 +288,8 @@ export class DBWorld {
 
     // Chunk became modified
     async chunkBecameModified() {
-        let resp = new Set();
-        let rows = await this.conn.all(`SELECT DISTINCT chunk_x, chunk_y, chunk_z
-        FROM world_modify`);
+        const resp = new Set();
+        const rows = await this.conn.all(`SELECT DISTINCT x chunk_x, y chunk_y, z chunk_z FROM world_modify_chunks`);
         for(let row of rows) {
             let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
             resp.add(addr);
@@ -333,9 +357,10 @@ export class DBWorld {
 
     // Load chunk modify list
     async loadChunkModifiers(addr) {
-        let resp = {};
+        const resp = {obj: null, compressed: null};
         await this.conn.each(`
-                SELECT data
+                SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
+                CASE WHEN data_blob IS NULL THEN 0 ELSE 1 END compressed
                 FROM world_modify_chunks
                 WHERE x = :x AND y = :y AND z = :z`, {
             ':x': addr.x,
@@ -345,9 +370,16 @@ export class DBWorld {
             if(err) {
                 console.error(err);
             } else {
-                resp = JSON.parse(row.data);
+                if(row.compressed == 1) {
+                    resp.compressed = row.data;
+                } else {
+                    resp.obj = JSON.parse(row.data);
+                }
             }
         });
+        if(resp.compressed) {
+            resp.obj = decompressWorldModifyChunk(resp.compressed);
+        }
         return resp;
     }
 
@@ -543,24 +575,30 @@ export class DBWorld {
 
     //
     async updateChunks(address_list) {
-        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data)
-        SELECT json_extract(value, '$.x') x, json_extract(value, '$.y') y, json_extract(value, '$.z') z, (SELECT
-            json_group_object(cast(m."index" as TEXT),
-            json_patch(
-                'null',
-                json_object(
-                    'id',           COALESCE(m.block_id, 0),
-                    'extra_data',   json(m.extra_data),
-                    'entity_id',    m.entity_id,
-                    'ticks',        m.ticks,
-                    'rotate',       json_extract(m.params, '$.rotate')
-                )
-            ))
-        FROM world_modify m
-        WHERE m.chunk_x = json_extract(value, '$.x') AND
-              m.chunk_y = json_extract(value, '$.y') AND
-              m.chunk_z = json_extract(value, '$.z')
-        ORDER BY m.id ASC)
+        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob)
+        SELECT
+            json_extract(value, '$.x') x,
+            json_extract(value, '$.y') y,
+            json_extract(value, '$.z') z,
+            (SELECT
+                json_group_object(cast(m."index" as TEXT),
+                json_patch(
+                    'null',
+                    json_object(
+                        'id',           COALESCE(m.block_id, 0),
+                        'extra_data',   json(m.extra_data),
+                        'entity_id',    m.entity_id,
+                        'ticks',        m.ticks,
+                        'rotate',       json_extract(m.params, '$.rotate')
+                    )
+                ))
+                FROM world_modify m
+                WHERE m.chunk_x = json_extract(value, '$.x') AND
+                    m.chunk_y = json_extract(value, '$.y') AND
+                    m.chunk_z = json_extract(value, '$.z')
+                ORDER BY m.id ASC
+            ),
+            NULL
         FROM json_each(:address_list) addrs`, {
             ':address_list': JSON.stringify(address_list)
         });

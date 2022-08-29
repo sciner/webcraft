@@ -4274,7 +4274,7 @@
         },
         {
             "id": 636,
-            "name": "REDSTONE",
+            "name": "REDSTONE_WIRE",
             "sound": "madcraft:block.stone",
             "style": "redstone",
             "inventory_style": "extruder",
@@ -4883,7 +4883,7 @@
         },
         {
             "id": 1004,
-            "name": "SWEET_BERRIES",
+            "name": "SWEET_BERRY_BUSH",
             "passable": 0.5,
             "style": "planting",
             "inventory_style": "extruder",
@@ -4891,10 +4891,10 @@
             "seeds": {
                 "result": {
                     "incomplete": [
-                        {"name": "SWEET_BERRIES", "count": {"min": 1, "max": 2}}
+                        {"name": "SWEET_BERRY_BUSH", "count": {"min": 1, "max": 2}}
                     ],
                     "complete": [
-                        {"name": "SWEET_BERRIES", "count": {"min": 2, "max": 3}}
+                        {"name": "SWEET_BERRY_BUSH", "count": {"min": 2, "max": 3}}
                     ]
                 }
             },
@@ -6681,7 +6681,7 @@
         },
         {
             "id": 486,
-            "name": "SUGAR_CANES",
+            "name": "SUGAR_CANE",
             "passable": 1,
             "transparent": true,
             "style": "planting",
@@ -6868,12 +6868,106 @@
             ]
         },
         {
-            "id": 502,
+            "id": 211,
             "name": "SMOOTH_BASALT",
             "sound": "madcraft:block.stone",
             "texture": "block/smooth_basalt.png",
             "material": {
                 "id": "stone"
+            }
+        },
+        {
+            "id": 1498,
+            "name": "CRIMSON_FENCE",
+            "transparent": true,
+            "style": "fence",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/crimson_planks.png"
+        },
+        {
+            "id": 1499,
+            "name": "CRIMSON_TRAPDOOR",
+            "transparent": true,
+            "style": "trapdoor",
+            "sound": "madcraft:block.wooden_trapdoor",
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "trapdoor"
+            ],
+            "texture": "block/crimson_trapdoor.png",
+            "extra_data": {
+                "opened": false,
+                "point": {"x":0, "y":0, "z":0}
+            },
+            "can_rotate": true
+        },
+        {
+            "id": 794,
+            "name": "POLISHED_DIORITE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "texture": "block/polished_diorite.png",
+            "can_rotate": true
+        },
+        {
+            "id": 795,
+            "name": "POLISHED_BASALT",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/polished_basalt_side.png",
+                "up": "block/polished_basalt_top.png"
+            }
+        },
+        {
+            "id": 212,
+            "name": "GILD_NUGGET",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "item/gold_nugget.png"
+        },
+        {
+            "id": 213,
+            "name": "GILDED_BLACKSTONE",
+            "sound": "madcraft:block.stone",
+            "drop_item": {"name": "GILD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/gilded_blackstone.png"
+        },
+        {
+            "id": 214,
+            "name": "CRIMSON_STEM",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/crimson_stem.png",
+                "up": "block/crimson_stem_top.png",
+                "down": "block/crimson_stem_top.png"
+            },
+            "texture_animations": {
+                "side": null,
+                "up": 0,
+                "down": 0
             }
         }
     ]

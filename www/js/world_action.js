@@ -1333,6 +1333,10 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
         return;
     }
 
+    if(world.info.generator.id != 'biome2') {
+        throw 'error_not_permitted';
+        return;
+    }
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
 
     console.log(portal_type);

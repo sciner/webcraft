@@ -64,9 +64,13 @@ export class SchematicReader {
         // Prepare BlockEntities for fast search
         const BlockEntities = new VectorCollector();
         const bePos = new Vector(0, 0, 0);
-        for(let i = 0; i < schematic.blockEntities.length; i++) {
-            const item = schematic.blockEntities[i];
-            BlockEntities.set(bePos.set(item.Pos[0], item.Pos[1], item.Pos[2]), item);
+        if(schematic.blockEntities) {
+            for(let i = 0; i < schematic.blockEntities.length; i++) {
+                const item = schematic.blockEntities[i];
+                BlockEntities.set(bePos.set(item.Pos[0], item.Pos[1], item.Pos[2]), item);
+            }
+        } else {
+            console.error('schematic reader not support read chests and other block entities')
         }
 
         const not_found_blocks = new Map();

@@ -62,7 +62,7 @@ export class Chunk {
             {
                 addr:           this.addr,
                 seed:           this.seed,
-                modify_list:    modify_list || [],
+                modify_list:    modify_list || null,
                 dataId: this.getDataTextureOffset()
             }
         ]]);
