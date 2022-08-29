@@ -1530,5 +1530,26 @@
             "item": "madcraft:flint_and_steel",
             "count": 1
         }
+    },
+    {
+        "id": "7a508fce-4785-469f-8595-03e9b47867bb",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "SSS",
+            " B ",
+            " S "
+        ],
+        "key": {
+            "S": {
+                "item": ["madcraft:birch_slab", "madcraft:oak_slab", "madcraft:acacia_slab", "madcraft:spruce_slab", "madcraft:jungle_slab", "madcraft:dark_oak_slab"]
+            },
+            "B": {
+                "item": "madcraft:bookshelf"
+            }
+        },
+        "result": {
+            "item": "madcraft:lectern",
+            "count": 1
+        }
     }
 ]
