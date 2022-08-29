@@ -200,6 +200,23 @@
             }
         },
         {
+            "id": 214,
+            "name": "CRIMSON_STEM",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "block/crimson_stem.png",
+                "up": "block/crimson_stem_top.png",
+                "down": "block/crimson_stem_top.png"
+            },
+            "texture_animations": {
+                "side": null,
+                "up": 0,
+                "down": 0
+            }
+        },
+        {
             "id": 660,
             "name": "CAMPFIRE",
             "style": "campfire",
@@ -6952,23 +6969,6 @@
                 "id": "stone"
             },
             "texture": "block/gilded_blackstone.png"
-        },
-        {
-            "id": 214,
-            "name": "CRIMSON_STEM",
-            "material": {
-                "id": "wood"
-            },
-            "texture": {
-                "side": "block/crimson_stem.png",
-                "up": "block/crimson_stem_top.png",
-                "down": "block/crimson_stem_top.png"
-            },
-            "texture_animations": {
-                "side": null,
-                "up": 0,
-                "down": 0
-            }
         }
     ]
 }
