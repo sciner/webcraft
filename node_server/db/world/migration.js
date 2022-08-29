@@ -739,6 +739,10 @@ export class DBWorldMigration {
             ...update_world_modify_chunks,
         ]});
 
+        migrations.push({version: 79, queries: [
+            `DELETE FROM world WHERE json_extract(generator, '$.id') IS NULL`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

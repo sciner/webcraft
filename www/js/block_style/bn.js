@@ -35,7 +35,7 @@ export default class style {
         
         if (typeof worker != 'undefined') {
             worker.postMessage([
-                (block.extra_data.level != 0) ? 'add_beacon_ray' : 'del_beacon_ray', 
+                (block.extra_data?.level != 0) ? 'add_beacon_ray' : 'del_beacon_ray', 
                 {
                     pos: block.posworld
                 }
