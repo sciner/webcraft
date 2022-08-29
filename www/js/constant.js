@@ -6,6 +6,7 @@ export const DEFAULT_CLOUD_HEIGHT           = 128.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const SOUND_MAX_DIST                 = 16;
+export const NO_TICK_BLOCKS                 = false;
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -13,6 +14,7 @@ export const INVENTORY_SLOT_COUNT           = 42;
 export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
 export const INVENTORY_DRAG_SLOT_INDEX      = 41;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
+export const MAGIC_ROTATE_DIV               = 900;
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 

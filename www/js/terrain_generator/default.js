@@ -459,15 +459,14 @@ export class Default_Terrain_Generator {
         let ystart = y + TREE_HEIGHT
         let maxW = Math.floor(TREE_HEIGHT / 2)
         let minW = Math.floor(TREE_HEIGHT / 3)
-        this.temp_block.id = options.type.trunk
-        let mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y
+        this.temp_block.id = options.type.trunk;
+        const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
+        const vine_block = { id: BLOCK.VINE.id };
         // получаю большое число
-        let cnt = Math.floor(
-            this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58)
-        )
-        let dy = Math.floor(cnt / 2 ** 32)
+        const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58))
+        const dy = Math.floor(cnt / 2 ** 32)
         // преобразование числа в массив байт
-        let arr = [
+        const arr = [
             cnt << 24,
             cnt << 16,
             cnt << 8,
@@ -478,11 +477,11 @@ export class Default_Terrain_Generator {
             dy,
         ].map((z) => z >>> 24)
         // ствол + лианы вокруг
-        let xyz = chunk.coord.add(new Vector(x, y, z));
-        let random = new alea('tree' + xyz.toHash());
+        const xyz = chunk.coord.add(new Vector(x, y, z));
+        const random = new alea('tree' + xyz.toHash());
         for(let p = y; p < ystart; p++) {
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true)
-            let block_id = BLOCK.VINE.id;
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            let block_id = vine_block.id;
             let extra_data = null;
             const makeCocoa = () => {
                 if(random.double() < .04 && p < y + 4) {
@@ -490,82 +489,60 @@ export class Default_Terrain_Generator {
                     extra_data = {stage: 2};
                 }
             }
-            if ((p + arr[p % 7]) % 2 == 0) {
+            if((p + arr[p % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x + 1, p, z, { id: block_id }, false, {
-                    x: 3,
-                    y: 0,
-                    z: 0,
-                }, extra_data)
+                this.setTreeBlock(options, chunk, x + 1, p, z, { id: block_id }, false, new Vector(3, 0, 0), extra_data)
             }
-            if ((p + arr[(p + 1) % 7]) % 2 == 0) {
+            if((p + arr[(p + 1) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x - 1, p, z, { id: block_id }, false, {
-                    x: 1,
-                    y: 0,
-                    z: 0,
-                }, extra_data)
+                this.setTreeBlock(options, chunk, x - 1, p, z, { id: block_id }, false, new Vector(1, 0, 0), extra_data)
             }
-            if ((p + arr[(p + 2) % 7]) % 2 == 0) {
+            if((p + arr[(p + 2) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x, p, z + 1, { id: block_id }, false, {
-                    x: 0,
-                    y: 0,
-                    z: 3,
-                }, extra_data)
+                this.setTreeBlock(options, chunk, x, p, z + 1, { id: block_id }, false, new Vector(0, 0, 3), extra_data)
             }
-            if ((p + arr[(p + 3) % 7]) % 2 == 0) {
+            if((p + arr[(p + 3) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x, p, z - 1, { id: block_id }, false, {
-                    x: 2,
-                    y: 0,
-                    z: 0,
-                }, extra_data)
+                this.setTreeBlock(options, chunk, x, p, z - 1, { id: block_id }, false, new Vector(2, 0, 0), extra_data)
             }
         }
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad, rnd) => {
-            for (let h = 0; h <= 1; h++) {
+            for(let h = 0; h <= 1; h++) {
                 let w = Math.max(rad - h * 2, 5 - h)
                 let dx = Math.floor(x - w / 2)
                 let dz = Math.floor(z - w / 2)
                 let d = null
-                for (let a = dx; a <= dx + w; a++) {
-                    for (let b = dz; b <= dz + w; b++) {
-                        if(a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z) {
+                for(let a = dx; a <= dx + w; a++) {
+                    for(let b = dz; b <= dz + w; b++) {
+                        if(check_chunk_size && (a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z)) {
                             continue;
                         }
-                        let l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
-                        if (l <= w / 2) {
+                        const l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
+                        if(l <= w / 2) {
                             this.xyz_temp_find.set(a, y + h, b)
                             d = chunk.tblocks.get(this.xyz_temp_find, d)
-                            let d_id = d.id
-                            if (!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
-                                this.temp_block.id = options.type.leaves
-                                this.setTreeBlock(options, chunk, a, y + h, b, this.temp_block, false)
+                            const d_id = d.id
+                            if(!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
+                                this.temp_block.id = options.type.leaves;
+                                this.setTreeBlock(options, chunk, a, y + h, b, this.temp_block, false);
                                 if (
                                     rad % 2 == 0 &&
                                     h == 0 &&
                                     (a == dx || a == dx + w || b == dz || b == dz + w)
                                 ) {
-                                    for (
-                                        let t = 1;
-                                        t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255));
-                                        t++
-                                    ) {
-                                        this.setBlock(
+                                    for(let t = 1; t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255)); t++) {
+                                        this.setTreeBlock(
                                             options,
                                             chunk,
-                                            a,
-                                            y + h - t,
-                                            b,
-                                            { id: BLOCK.VINE.id },
+                                            a, y + h - t, b,
+                                            vine_block,
                                             false,
-                                            {
-                                                x: a == dx ? 3 : a == dx + w ? 1 : b == dz + w ? 2 : 0,
-                                                y: 0,
-                                                z: b == dz ? 3 : 0,
-                                            }
+                                            new Vector(
+                                                a == dx ? 3 : a == dx + w ? 1 : b == dz + w ? 2 : 0,
+                                                0,
+                                                b == dz ? 3 : 0
+                                            )
                                         )
                                     }
                                 }
@@ -576,23 +553,23 @@ export class Default_Terrain_Generator {
             }
         }
         // построение веток дерева
-        for (let i = 0; i < arr[7]; i++) {
-            this.temp_block.id = options.type.trunk
-            let pos = Math.floor(
+        for(let i = 0; i < arr[7]; i++) {
+            this.temp_block.id = options.type.trunk;
+            const pos = Math.floor(
                 TREE_HEIGHT / 2.5 + (TREE_HEIGHT / 2) * (arr[6 - i] / 255)
-            )
+            );
             let rad = Math.floor(minW + (maxW * arr[1 + i]) / 255 / 4)
             let side = (i + (arr[7] % 2)) % 4
             let x1 = x
             let z1 = z
             let dy = 0
-            for (let k = 0; k < rad; k++) {
+            for(let k = 0; k < rad; k++) {
                 x1 = side < 2 ? (side == 0 ? x1 - 1 : x1 + 1) : x1
                 z1 = side >= 2 ? (side == 2 ? z1 - 1 : z1 + 1) : z1
-                if (arr[k % 7] % 2 == 0) {
+                if(arr[k % 7] % 2 == 0) {
                     dy++
                 }
-                this.setTreeBlock(options, chunk, x1, y + pos + dy, z1, this.temp_block, true)
+                this.setTreeBlock(options, chunk, x1, y + pos + dy, z1, this.temp_block, true);
             }
             this.temp_block.id = options.type.leaves
             generateLeaves(x1, y + pos + dy + 1, z1, rad, arr)

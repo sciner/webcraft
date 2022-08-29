@@ -6,7 +6,6 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
-import { Raycaster, RaycasterResult } from "./Raycaster.js";
 import { WorldPortal } from "./portal.js";
 
 const _createBlockAABB = new AABB();
@@ -1330,10 +1329,14 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
 // создание портала
 async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
 
-    if (!Qubatch.is_server || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
+    if (!Qubatch.is_server || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
         return;
     }
 
+    if(world.info.generator.id != 'biome2') {
+        throw 'error_not_permitted';
+        return;
+    }
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
 
     console.log(portal_type);

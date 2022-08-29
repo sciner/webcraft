@@ -1,0 +1,205 @@
+@import 'vars.less';
+
+@cards-animation-time: 0.2s ease-in-out;
+
+.worlds-page {
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill,minmax(230px, 1fr));
+		gap: 24px;
+
+		.item {
+			border-radius: 16px;
+			aspect-ratio: 1;
+			overflow: hidden;
+			&.card {
+				display: flex;
+				flex-direction: column;
+				background-color: @color-blue-light;
+				&:hover {
+					.card-body {
+						clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+						&::before {
+							background: #18FFFF;
+						}
+						&::after {
+							opacity: 1;
+							clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+						}
+						.img-cover {
+							clip-path: polygon(100% 0%, 100% 0, 100% 93%, 90% 93%, 85% 100%, 15% 100%, 10% 93%, 0 93%, 0 0);
+						}
+						.btn-delete {
+							opacity: 1;
+						}
+					}
+					.card-footer {
+						display: flex;
+						flex-direction: column;
+						.animated-mask {
+							bottom: calc(100% + 40px);
+						}
+						.buttons {
+							margin-top: auto;
+							opacity: 1;
+						}
+					}
+				}
+
+				.card-body {
+					position: relative;
+					flex: 1;
+					background: rgb(255, 255, 255);
+					clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+					transition: clip-path @cards-animation-time;
+					&::before {
+						content: '';
+						position: absolute;
+						z-index: 0;
+						width: 100%;
+						height: 100%;
+						left: 0;
+						top: 0;
+						background: linear-gradient(to top, #18FFFF, #18ffff1e 100%);
+					}
+					&::after {
+						content: '';
+						position: absolute;
+						z-index: 0;
+						width: calc(100% - 4px);
+						height: calc(100% - 4px);
+						left: 0;
+						bottom: 0;
+						margin: 2px;
+						border-radius: 16px 16px 0 0;
+						transition: all @cards-animation-time;
+						opacity: 0;
+						background: linear-gradient(180deg, rgba(28, 17, 73, 0.4) 0%, #1C1149 100%);
+						
+						clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+					}
+					.img-cover {
+						display: flex;
+						flex-direction: column;
+						justify-content: center;
+						align-items: center;
+						position: absolute;
+						background-color: #1C1149;
+						background-size: cover;
+						background-repeat: no-repeat;
+						margin: 2px;
+						padding: 0 15px 15px 15px;
+						width: calc(100% - 4px);
+						height: calc(100% - 4px);
+						border-radius: 16px 16px 0 0;
+						transition: all @cards-animation-time;
+						clip-path: polygon(50% 0%, 100% 0, 100% 100%, 100% 100%, 100% 100%, 70% 100%, 63% 93%, 0 93%, 0 0);
+						text-align: center;
+						&.with_cover {
+							padding: 0;
+						}
+						p {
+							font-size: 14px;
+							max-width: 250px;
+						}
+					}
+					.btn-delete {
+						position: absolute;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						right: 20px;
+						top: 20px;
+						z-index: 1;
+						opacity: 0;
+						transition: all @cards-animation-time;
+						width: 44px;
+						height: 44px;
+						background: rgba(0, 0, 0, 0.2);
+						&:hover i{
+							color: @color-yellow;
+						}
+					}
+				}
+				h2 {
+					margin-bottom: 0;
+					font-size: 18px;
+					font-weight: 700;
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+				}
+				.card-footer {
+					background-color: @color-blue-light;
+					padding: 15px 20px 20px 20px;
+					height: 33%;
+					position: relative;
+
+					.animated-mask {
+						position: absolute;
+						bottom: 20px;
+						left: 20px;
+						width: calc(100% - 40px);
+						transition: all @cards-animation-time;
+						.flex {
+							margin-top: 6px;
+							display: flex;
+							justify-content: space-between;
+							.game-mode {
+								font-weight: 500;
+								margin: 0;
+							}
+							.users-online {
+								display: flex;
+								align-items: center;
+								gap: 8px;
+								padding: 4px 8px;
+								background: rgba(0, 0, 0, 0.2);
+								border-radius: 10px;
+								font-size: 16px;
+								font-weight: 500;
+							}
+						}
+					}
+					.buttons {
+						display: grid;
+						grid-template-columns: 1fr 1fr;
+						gap: 20px;
+						opacity: 0;
+						transition: all @cards-animation-time;
+						.primary {
+							align-items: center;
+							gap: 8px;
+							span {
+								transition: all @cards-animation-time;
+								transform: translate(0,0);
+							}
+							i {
+								transition: all @cards-animation-time;
+								transform: translate(0,0);
+								font-size: 14px;
+							}
+							&:hover {
+								span {
+									transform: translate(-5px,-5px);
+								}
+								i {
+									transform: translate(5px,5px);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		.btn-add {
+			flex-direction: column;
+			align-items: center;
+			clip-path: none;
+			font-size: 36px;
+			text-align: center;
+			text-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
+		}
+	}
+	
+}

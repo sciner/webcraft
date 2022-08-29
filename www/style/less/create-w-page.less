@@ -1,0 +1,57 @@
+@import 'vars.less';
+
+.create-w-page {
+    .form {
+        width: @content-width;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(28, 17, 73, 0.01);
+        backdrop-filter: blur(12px);
+        margin: 0 auto;
+        .block {
+            border-width: 3px;
+            border-style: solid;
+            border-image: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent,) 0 1 0 1;
+            padding: 0 30px 30px 30px;
+            margin-bottom: 16px;
+			h1 {
+				margin: 0 0 40px 0;
+			}
+            .input-group {
+                margin-bottom: 24px;
+                p {
+                    font-weight: 700;
+                    margin: 0 0 10px 0;
+                }
+                input {
+                    width: 100%;
+                }
+            }
+            .switchers {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .grid-2 {
+                display: grid;
+                grid-template-columns: repeat(auto-fill,minmax(230px, 1fr));
+                gap: 24px;
+            }
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            @media only screen and (max-width: @media-mobile) {
+                grid-template-columns: 1fr;
+                button:nth-child(2) {
+                    order: -1;
+                }
+            }
+            gap: 24px;
+            padding: 30px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px 16px 0px 0px;
+        }
+    }
+}

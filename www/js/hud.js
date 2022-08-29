@@ -2,7 +2,7 @@ import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import {Helpers} from './helpers.js';
+import { isMobileBrowser } from "./helpers.js";
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
@@ -269,110 +269,133 @@ export class HUD {
 
     //
     prepareText() {
-        this.text = '';
-        // If render inited
+
+        // If render not inited
         if(!Qubatch.render || !Qubatch.world || !Qubatch.player) {
             return;
         }
-        const world = Qubatch.world;
-        const player = Qubatch.player;
-        this.text = 'Render: ' + Qubatch.render.renderBackend.kind + '\n';
-        const vci = Qubatch.render.getVideoCardInfo();
+
+        const world             = Qubatch.world;
+        const player            = Qubatch.player;
+        const render            = Qubatch.render;
+        const short_info        = isMobileBrowser();
+        const draw_player_list  = !short_info
+        const draw_tech_info    = true;
+
+        this.text = '';
+        if(render.renderBackend.kind != 'webgl') {
+            this.text = 'Render: ' + render.renderBackend.kind + '\n';
+        }
+
+        // Video card info
+        const vci = render.getVideoCardInfo();
         if(!vci.error) {
             this.text += 'Renderer: ' + vci.renderer + '\n';
         }
+
+        // FPS
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
-        this.text += '\nMAT: ';
-        const mat = player.currentInventoryItem;
-        if(mat) {
-            const current_mat_key =  mat.entity_id ?? mat.id;
-            if(this.prev_mat_key != current_mat_key) {
-                this.prev_mat_key = current_mat_key;
-                this.mat_name = player.world.block_manager.fromId(mat.id).name;
-                if(mat.extra_data?.label) {
-                    this.mat_name = mat.extra_data?.label;
+
+        //
+        if(!short_info) {
+            this.text += '\nMAT: ';
+            const mat = player.currentInventoryItem;
+            if(mat) {
+                const current_mat_key =  mat.entity_id ?? mat.id;
+                if(this.prev_mat_key != current_mat_key) {
+                    this.prev_mat_key = current_mat_key;
+                    this.mat_name = player.world.block_manager.fromId(mat.id).name;
+                    if(mat.extra_data?.label) {
+                        this.mat_name = mat.extra_data?.label;
+                    }
                 }
+                this.text += ` ${mat.id} / ${this.mat_name}`;
+                if(mat.is_fluid) {
+                    this.text += ' ' + '(FLUID!)';
+                }
+            } else {
+                this.text += 'NULL';
             }
-            this.text += ` ${mat.id} / ${this.mat_name}`;
-            if(mat.is_fluid) {
-                this.text += ' ' + '(FLUID!)';
+            this.text += '\nGame mode: ' + player.game_mode.getCurrent().title;
+            if(player.world.server.ping_value) {
+                this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
             }
-        } else {
-            this.text += 'NULL';
-        }
-        this.text += '\nGame mode: ' + player.game_mode.getCurrent().title;
-        if(player.world.server.ping_value) {
-            this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
-        }
 
-        this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
+            // LAG
+            this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
 
-        const time = world.getTime();
-        if(time) {
-            this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
-        }
-        // If render inited
-        if(Qubatch.render) {
+            // Day time
+            const time = world.getTime();
+            if(time) {
+                this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
+            }
+
             // Chunks inited
             this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
-            //
+            
+            // Quads and Lightmap
             let quads_length_total = world.chunkManager.vertices_length_total;
-            this.text += '\nQuads: ' + Math.round(Qubatch.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+            this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
                 + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
-            //
-        }
-        
-        // Draw tech info
-        const drawTechInfo = true;
-        if(drawTechInfo) {
-            this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
-            if(Qubatch.render) {
-                this.text += '\nParticles: ' + Particles_Effects.current_count;
-                this.text += '\nDrawcalls: ' + Qubatch.render.renderBackend.stat.drawcalls;
 
-                if (Qubatch.render.renderBackend.stat.multidrawcalls) {
-                    this.text += ' + ' + Qubatch.render.renderBackend.stat.multidrawcalls + '(multi)';
+            // Draw tech info
+            if(draw_tech_info) {
+                this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
+                if(render) {
+                    this.text += '\nParticles: ' + Particles_Effects.current_count;
+                    this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
+                    if (render.renderBackend.stat.multidrawcalls) {
+                        this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';
+                    }
                 }
             }
+
         }
 
-        // Console =)
+        // My XYZ
         const playerBlockPos = player.getBlockPos();
-        const chunk = player.overChunk;
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
-        if(chunk) {
-            /*let biome = null;
-            if(chunk.map) {
-                try {
-                    biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
-                } catch(e) {
-                    //
-                }
-            }*/
-            this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n'; // + ' / ' + biome + '\n';
+
+        if(!short_info) {
+            const chunk = player.overChunk;
+            if(chunk) {
+                /*let biome = null;
+                if(chunk.map) {
+                    try {
+                        biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
+                    } catch(e) {
+                        //
+                    }
+                }*/
+                this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n'; // + ' / ' + biome + '\n';
+            }
         }
+
         // Players list
-        this.text += '\nOnline:\n';
-        let pcnt = 0;
-        for(let [id, p] of world.players.list) {
-            this.text += '🙎‍♂️' + p.username;
-            if(p.itsMe()) {
-                this.text += ' ⬅ YOU';
-            } else {
-                if(p.distance) {
-                    this.text += ` ... ${p.distance}m`;
+        if(draw_player_list) {
+            this.text += '\nOnline:\n';
+            let pcnt = 0;
+            for(let [id, p] of world.players.list) {
+                this.text += '🙎‍♂️' + p.username;
+                if(p.itsMe()) {
+                    this.text += ' ⬅ YOU';
+                } else {
+                    if(p.distance) {
+                        this.text += ` ... ${p.distance}m`;
+                    }
+                }
+                this.text += '\n';
+                if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {
+                    break;
                 }
             }
-            this.text += '\n';
-            if(++pcnt == ONLINE_MAX_VISIBLE_IN_F3) {
-                break;
+            if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
+                this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
             }
         }
-        if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
-            this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
-        }
+
         if(this.prevInfo == this.text) {
             return false;
         }
@@ -412,6 +435,9 @@ export class HUD {
 
     // Draw active quest
     drawActiveQuest() {
+        if(isMobileBrowser()) {
+            return false;
+        }
         const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
         if(active_quest) {
             if(!active_quest.mt) {

@@ -6,6 +6,7 @@ import { RailShape } from "../../../www/js/block_type/rail_shape.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
+const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 
 const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
 
@@ -63,9 +64,13 @@ export class SchematicReader {
         // Prepare BlockEntities for fast search
         const BlockEntities = new VectorCollector();
         const bePos = new Vector(0, 0, 0);
-        for(let i = 0; i < schematic.blockEntities.length; i++) {
-            const item = schematic.blockEntities[i];
-            BlockEntities.set(bePos.set(item.Pos[0], item.Pos[1], item.Pos[2]), item);
+        if(schematic.blockEntities) {
+            for(let i = 0; i < schematic.blockEntities.length; i++) {
+                const item = schematic.blockEntities[i];
+                BlockEntities.set(bePos.set(item.Pos[0], item.Pos[1], item.Pos[2]), item);
+            }
+        } else {
+            console.error('schematic reader not support read chests and other block entities')
         }
 
         const not_found_blocks = new Map();
@@ -74,9 +79,14 @@ export class SchematicReader {
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
         // each all blocks
         const ep = new Vector(0, 0, 0);
+        let min_y = Infinity;
+        const cached_blocks = new Map();
         await schematic.forEach((block, pos) => {
             bpos.copyFrom(pos);
             bpos.z *= -1;
+            if(bpos.y < min_y) {
+                min_y = bpos.y;
+            }
             let {name, extra_data} = this.parseBlockName(block);
             if(NO_IMPORT_BLOCKS.includes(name)) {
                 return;
@@ -87,22 +97,31 @@ export class SchematicReader {
             let b = BLOCK[name];
             let new_block = null;
             if(b) {
-                // read entity props
-                let readEntityProps = false;
-                if(b.is_chest) {
-                    readEntityProps = true;
-                } else if(b.is_sign) {
-                    readEntityProps = true;
-                } else if(b.name == 'ITEM_FRAME') {
-                    readEntityProps = true;
-                } else if(b.is_banner) {
-                    readEntityProps = true;
+                // speed optiomization
+                if(b.is_simple_qube) {
+                    new_block = cached_blocks.get(b.id);
                 }
-                if(readEntityProps) {
-                    ep.copyFrom(pos).subSelf(schematic.offset);
-                    block.entities = BlockEntities.get(ep);
+                if(!new_block) {
+                    // read entity props
+                    let readEntityProps = false;
+                    if(b.is_chest) {
+                        readEntityProps = true;
+                    } else if(b.is_sign) {
+                        readEntityProps = true;
+                    } else if(b.name == 'ITEM_FRAME') {
+                        readEntityProps = true;
+                    } else if(b.is_banner) {
+                        readEntityProps = true;
+                    }
+                    if(readEntityProps) {
+                        ep.copyFrom(pos).subSelf(schematic.offset);
+                        block.entities = BlockEntities.get(ep);
+                    }
+                    new_block = this.createBlockFromSchematic(block, b, extra_data);
+                    if(b.is_simple_qube) {
+                        cached_blocks.set(b.id, new_block);
+                    }
                 }
-                new_block = this.createBlockFromSchematic(block, b, extra_data);
             } else {
                 if(name.indexOf('POTTED_') === 0) {
                     // POTTED_PINK_TULIP - ALLIUM
@@ -129,9 +148,7 @@ export class SchematicReader {
             }
             // If not implemented block 
             if(!new_block) {
-                if(!not_found_blocks.has(name)) {
-                    not_found_blocks.set(name, name);
-                }
+                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
                 // replace with TEST block and store original to his extra_data
                 new_block = {...TEST_BLOCK};
                 new_block.extra_data = {
@@ -147,7 +164,20 @@ export class SchematicReader {
             }
             this.blocks.set(bpos, new_block);
         });
-        console.log('Not found blocks: ', Array.from(not_found_blocks.keys()).join('; '));
+        //
+        const not_found_blocks_arr = [];
+        for(const [name, count] of not_found_blocks.entries()) {
+            not_found_blocks_arr.push({name, count});
+        }
+        not_found_blocks_arr.sort(function(a, b){return b.count - a.count});
+        let not_found_blocks_str = '';
+        let i = 0;
+        for(let item of not_found_blocks_arr) {
+            not_found_blocks_str += `${++i}. ${item.name} ... ${item.count}\n`;
+        }
+        console.log(`min_y ... ${min_y}`);
+        console.log('Not found blocks:');
+        console.log(not_found_blocks_str);
         return schematic;
     }
 
@@ -465,9 +495,11 @@ export class SchematicReader {
                     setExtraData('dir', props.vertical_direction == 'up' ? 1 : -1);
                 }
                 if('thickness' in props) {
-                    const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
-                    const index = dripstone_stages.indexOf(props.thickness);
-                    if(index < 0) index = 0;
+                    let index = dripstone_stages.indexOf(props.thickness);
+                    if(index < 0) {
+                        index = 0;
+                        console.error('unexpected props.thickness', props.thickness);
+                    }
                     setExtraData('stage', index);
                 }
             }

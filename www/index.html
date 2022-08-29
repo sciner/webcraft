@@ -20,18 +20,25 @@
     <meta property="twitter:title" content="MadCraft - JS game in browser">
     <meta property="twitter:url" content="https://madcraft.io">
     <meta property="twitter:image" content="https://madcraft.io/media/card.webp">
-	<!-- Stylesheet -->
+	<!-- Design3 -->
+    <script type="text/javascript" src="style/js/slim-select.js"></script>
+    <link rel="stylesheet" href="style/less/style.css">
+    <link rel="stylesheet" href="style/less/keen-slider.min.css">
+    <script src="style/js/keen-slider.min.js"></script>
+    <script src="style/js/profile-page.js"></script>
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="vendors/animate.min.css" />
-    <link rel="stylesheet" href="style/main.css" type="text/css">
     <link rel="stylesheet" href="style/circles.css" />
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
     <script src="js/ui/controller.js" type="module"></script>
     <script>
-
+        function isMobileBrowser() {
+            return 'ontouchstart' in document.documentElement;
+        }
         function windowResized(event) {
-            const dpr = window.devicePixelRatio;
+            const dpr = isMobileBrowser() ? 1 : window.devicePixelRatio;
             for(let id of ['qubatchRenderSurface', 'qubatchHUD']) {
                 const c = document.getElementById(id);
                 // const sz = c.parentElement.getBoundingClientRect();
@@ -39,10 +46,13 @@
                 c.width = sz.width * dpr;
                 c.height = sz.height * dpr;
             }
+            //if(typeof Qubatch !== 'undefined') {
+            //    if(Qubatch?.hud?.splash?.loading) {
+            //        Qubatch?.hud?.draw();
+            //    }
+            //}
         }
-
         window.addEventListener('resize', windowResized, true);
-
     </script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: Qubatch && login.logged}" onload="windowResized()">
@@ -54,8 +64,40 @@
     </div>
 
     <div id="qubatch-canvas-container">
+
         <canvas id="qubatchRenderSurface" ng-click="Qubatch.setupMousePointer(true)" width="800" height="600"></canvas>
         <canvas id="qubatchHUD" width="800" height="600"></canvas>
+
+        <!-- Joystick -->
+        <div id="Joystick">
+            <div id="Joystick-left" class="joystick" ng-if="isJoystickControl()">
+                <img src="/media/joystick/joystick-base.png" style="pointer-events: none;" />
+                <div id="stick" style="position: absolute; left:32px; top:32px;" style="pointer-events: none;" >
+                    <img src="/media/joystick/joystick-red.png" />
+                </div>
+            </div>
+            <div id="Joystick-right" class="joystick" ng-if="isJoystickControl()">
+                <div style="left: 37px; top: -2px;" ng-mousedown="Qubatch.Joystick.action('walk', true)" ng-mouseup="Qubatch.Joystick.action('walk', false)" ontouchstart="Qubatch.Joystick.action('walk', true)" ontouchend="Qubatch.Joystick.action('walk', false)"><img src="/media/joystick/walk.png" /></div>
+                <div style="left: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('atack', true)" ng-mouseup="Qubatch.Joystick.action('atack', false)" ontouchstart="Qubatch.Joystick.action('atack', true)" ontouchend="Qubatch.Joystick.action('atack', false)"><img src="/media/joystick/atack.png" /></div>
+                <div style="right: -16px; bottom: 48px;" ng-mousedown="Qubatch.Joystick.action('jump', true)" ng-mouseup="Qubatch.Joystick.action('jump', false)" ontouchstart="Qubatch.Joystick.action('jump', true)" ontouchend="Qubatch.Joystick.action('jump', false)"><img src="/media/joystick/jump.png" /></div>
+                <div style="left: 37px; bottom: 0px;" ng-mousedown="Qubatch.Joystick.action('place', true)" ng-mouseup="Qubatch.Joystick.action('place', false)" ontouchstart="Qubatch.Joystick.action('place', true)" ontouchend="Qubatch.Joystick.action('place', false)"><img src="/media/joystick/place.png" /></div>
+            </div>
+        </div>
+
+        <!-- Mobile buttons -->
+        <div id="mobile-buttons" ng-if="isJoystickControl()">
+            <div id="btn-mobile-inventory" class="secondary btn" ng-click="toggleFullscreen()">⛶</div>
+            <div id="btn-mobile-menu" class="secondary btn" ng-click="toggleMainMenu()">☰</div>
+            <div id="btn-mobile-inventory" class="secondary btn" ng-click="Qubatch.player.inventory.open()">inv</div>
+        </div>
+
+        <div id="share-button-container">
+            <button class="secondary visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
+                <span style="margin-right: 1em;">Invite</span>
+                <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
+            </button>
+        </div>
+        
     </div>
 
     <canvas id="bg-canvas"></canvas>
@@ -64,296 +106,393 @@
     <div id="form-shareGame" class="form-normal visible_only_in_game_menu visible_in_game_menu" ng-if="shareGame.visible">
         <div>
             <span>{{Lang.share_game_with_friends}}</span>
-            <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
+            <button class="secondary" ng-click="shareGame.toggle()">×</button>
         </div>
         <input type="text" readonly ng-value="shareGame.url">
-        <button class="btn2 btn-action" ng-click="shareGame.copy()">{{Lang.copy}}</button>
+        <button class="primary" ng-click="shareGame.copy()">{{Lang.copy}}</button>
     </div>
-
-    <div id="topbar" class="visible_in_game_menu visible_only_in_lobbi">
-
-        <!-- Logo -->
-        <img src="/media/design/logo.webp" class="cpointer" alt="MadCraft" ng-click="current_window.toggle('main')" ng-if="current_window.id != 'hello'">
-
-        <!-- Languages -->
-        <div id="lang-pad">
-            <button class="btn btn-main" ng-click="changeLang(item)" ng-class="{active: item.active}" ng-repeat="item in Lang.list">{{item.short_title}}</button>
-        </div>
-
-        <!-- Corner buttons -->
-        <div id="btns-pad">
-            <button class="btn2 btn-success visible_in_game_menu" ng-click="skin.toggle()" ng-if="login.logged">
-                <span style="margin-right: 1em;">Change skin...</span>
-                <img src="/media/design/icon-head.png" style="height: 2em;" alt="Change skin...">
-                <div class="user-login">@{{Qubatch.App.session.username}}</div>
-            </button>
-            <button class="btn2 btn-success visible_in_game_menu" ng-click="settings.toggle()" ng-if="login.logged">
-                <span style="margin-right: 1em;">Settings</span>
-                <img src="/media/design/icon-settings.png" style="height: 2em;" alt="Settings">
-            </button>
-            <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
-                <span style="margin-right: 1em;">Discord</span>
-                <img src="/media/design/discord.png" style="height: 32px;" alt="Discord">
-            </a>
-        </div>
-
-    </div>
-
-    <div id="main-pictures" class="flex0" ng-if="Qubatch && current_window.id == 'hello' && !login.logged">
-        <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'" alt="MadCraft">
-        <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'" alt="Art">
-        <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'"  alt="MadCraft">
-    </div>
-
-    <!-- Hello -->
-    <form id="form-hello" ng-if="Qubatch && current_window.id == 'hello'">
-        <div class="flex0 flex-column">
-            <button class="btn btn-main" ng-click="current_window.show('login')" style="font-size: 200%; border-radius: 50px;">
-                <span>{{Lang.start_game}}</span>
-            </button>
-            <!-- <button class="btn btn-warning" ng-click="current_window.show('registration')">
-                <span>{{Lang.registration}}</span>
-            </button> -->
-        </div>
-    </form>
 
     <!-- Not supported browser -->
     <form id="form-not-supported" ng-if="Qubatch && current_window.id == 'not_supported_browser'">
         {{Lang.browser_not_supported_1}}
-        <br/>{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
+        <br />{{Lang.browser_not_supported_2}} <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
     </form>
 
-    <!-- Login -->
-    <form id="form-login" class="animate__animated animate__fadeIn nice-form" ng-if="Qubatch && current_window.id == 'login'">
-
+    <!-- Enter to invited world -->
+    <div id="formEnterWorld" ng-if="current_window.id == 'enter-world'">
         <div class="flex0 flex-column">
-
-            <ul class="tabs">
-                <li><button class="active">{{Lang.login}}</button></li>
-                <li><button ng-click="current_window.show('registration')">{{Lang.registration}}</button></li>
-            </ul>
-    
-            <div class="flex0 flex-column">
-                <label>
-                    {{Lang.enter_your_name}}:
-                    <br><input type="text" ng-model="login.form.username" my-enter="login.submit()">
-                </label>
-                <label>
-                    {{Lang.enter_your_password}}:
-                    <br><input type="password" ng-model="login.form.password" my-enter="login.submit()">
-                </label>
-                <button class="btn btn-main" ng-click="login.submit()" ng-class="{disabled: !login.isValid()}">
-                    <span>{{Lang.enter}}</span>
-                </button>
+            <div class="flex0 flex-column" ng-if="mygames.enterWorld.windowMod == 'login' || mygames.enterWorld.windowMod == 'join'">
+                <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
             </div>
-        </div>
-    </form>
-
-    <!-- Registration -->
-    <form id="form-registration" class="animate__animated animate__fadeIn nice-form" ng-if="Qubatch && current_window.id == 'registration'">
-        <div class="flex0 flex-column">
-
-            <ul class="tabs">
-                <li><button ng-click="current_window.show('login')">{{Lang.login}}</button></li>
-                <li><button class="active">{{Lang.registration}}</button></li>
-            </ul>
-
-            <div class="flex0 flex-column">
-                <label>
-                    {{Lang.enter_your_name}}:
-                    <br><input type="text" ng-model="registration.form.username" my-enter="registration.submit()">
-                </label>
-                <label>
-                    {{Lang.enter_your_password}}:
-                    <br><input type="password" ng-model="registration.form.password" my-enter="registration.submit()">
-                </label>
-                <button class="btn btn-main" ng-click="registration.submit()" ng-class="{disabled: !registration.isValid()}">
-                    <span>{{Lang.submit}}</span>
-                </button>
-            </div>
-        </div>
-    </form>
-
-    <!-- Enter-world -->
-    <div id="enter-world" class="enter-world animate__animated animate__fadeIn nice-form"
-        ng-if="current_window.id == 'enter-world'">
-        <div class="flex0 flex-column">
-            <div class="flex0 flex-column"
-                ng-if="mygames.enterWorld.windowMod == 'login' || mygames.enterWorld.windowMod == 'join'">
-                <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
-            </div>
-            <label ng-if="mygames.enterWorld.windowMod == 'login'"
-                ng-bind-html="Lang.enter_world_login|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
-            <div ng-if="mygames.enterWorld.windowMod == 'login'" class="flex0 flex-column">
-                <button ng-click="current_window.show('login')" class="btn-main active">{{Lang.login}}</button>
+            <label ng-if="mygames.enterWorld.windowMod == 'login'" ng-bind-html="Lang.enter_world_login|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+            <div ng-if="mygames.enterWorld.windowMod == 'login'" class="flex0 flex-column flex-gap">
+                <button ng-click="current_window.show('login')" class="primary active">{{Lang.login}}</button>
+                <button ng-click="mygames.toMain()" class="secondary active">{{Lang.cancel}}</button>
             </div>
             <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="world-not-found flex0 flex-column">
                 😞
             </div>
             <label ng-if="mygames.enterWorld.windowMod == 'world-not-found'">{{Lang.no_world_by_link}}</label>
             <div ng-if="mygames.enterWorld.windowMod == 'world-not-found'" class="flex0 flex-column">
-                <button ng-click="mygames.toMain()"
-                    class="active">{{Lang.ok}}</button>
+                <button ng-click="mygames.toMain()" class="primary active">{{Lang.ok}}</button>
             </div>
             <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
                 <div class="flex0 flex-column">
-                    <image ng-src="{{mygames.enterWorld.worldInfo.image}}" />
+                    <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                    <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
                 </div>
-                <label
-                    ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
+                <label ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
                 <div class="flex0 flex-column">
-                    <button ng-click="mygames.enterWorld.joinAfterApproving()"
-                        class="btn-main active">{{Lang.join}}</button>
-                    <button ng-click="mygames.toMain()" class="btn-cancel active">{{Lang.cancel}}</button>
+                    <button ng-click="mygames.enterWorld.joinAfterApproving()" class="primary active">{{Lang.join}}</button>
+                    <button ng-click="mygames.toMain()" class="secondary active">{{Lang.cancel}}</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main menu -->
-    <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Qubatch && login.logged">
-
-        <!-- Main menu -->
-        <div class="my-worlds worlds-card animate__animated animate__fadeIn" ng-if="current_window.id == 'main' && mygames.list.length >= 0">
-            <div id="button-new-game" ng-click="newgame.open()"><span>{{Lang.new_world_do}}...</span></div>
-            <div ng-repeat="item in mygames.list track by item.id" ng-click="StartWorld(item.guid)" class="animate__animated animate__zoomIn" ng-if="!item.hidden" ng-class="{with_cover: !!item.cover}">
-                <button class="btn-delete" ng-click="DeleteWorld(item.guid)"><span>{{Lang.delete}}</span></button>
-                <div class="tit1 animate__animated animate__fadeInDown" style="font-size: 1.1em;">{{item.title}}<br><br></div>
-                <div class="tit2 animate__animated animate__fadeInUp" style="font-size: 1.1em;">{{item.title}}<br><br></div>
-                <button class="animate__animated animate__fadeInUp" ng-class="{'btn-secondary': !item.my}" ng-click="StartWorld(item.guid)"><span>{{Lang.play}}</span></button>
-                <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
+    <!-- Start page -->
+    <div class="start-page" ng-if="Qubatch && !login.logged">
+        <input id="sign-modal-toggle" type="checkbox" class="hidden">
+        <div class="bg" ng-init="initSelects()">
+            <div class="container">
+                <div class="block">
+                    <img class="logo" src="style/img/logo.webp" alt="">
+                    <div class="step-1">
+                        <label for="sign-modal-toggle" class="btn primary" style="width: 210px; margin-bottom: 60px;">{{Lang.start_game}}</label>
+                    </div>
+                    <div class="step-2 m-auto">
+                        <nav class="tabs">
+                            <div class="tabs-block">
+                                <label class="tab" for="tab-login">
+                                    <input class="hidden toggle" id="tab-login" type="radio" name="active-tab" checked ng-model="login_tab" value="login">
+                                    <span>{{Lang.login}}</span>
+                                </label>
+                                <label class="tab" for="tab-registration">
+                                    <input class="hidden toggle" id="tab-registration" type="radio" name="active-tab" ng-model="login_tab" value="registration">
+                                    <span>{{Lang.registration}}</span>
+                                </label>
+                            </div>
+                        </nav>
+                        <!-- login -->
+                        <div class="animate__animated animate__fadeIn" ng-if="login_tab == 'login'">
+                            <div class="border-block">
+                                <input type="text" placeholder="Username" ng-model="login.form.username" my-enter="login.submit()">
+                                <input type="password" placeholder="Password" ng-model="login.form.password" my-enter="login.submit()">
+                                <button class="btn primary" ng-click="login.submit()" ng-class="{disabled: !login.isValid()}">{{Lang.enter}}</button>
+                            </div>
+                        </div>
+                        <!-- registration -->
+                        <div class="animate__animated animate__fadeIn" ng-if="login_tab == 'registration'">
+                            <div class="border-block">
+                                <input type="text" placeholder="Username" ng-model="registration.form.username" my-enter="registration.submit()">
+                                <input type="password" placeholder="Password" ng-model="registration.form.password" my-enter="registration.submit()">
+                                <button class="btn primary" ng-click="registration.submit()" ng-class="{disabled: !registration.isValid()}">{{Lang.enter}}</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="social">
+                        <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
+                            <img src="style/img/discord.svg" alt="">
+                        </a>
+                        <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
+                            <img src="style/img/youtube.svg" alt="">
+                        </a>
+                    </div>
+                </div>
+                <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
             </div>
         </div>
-        
+    </div>
+
+	<div class="container" ng-if="Qubatch && login.logged">
+
+        <!-- Header -->
+		<header class="animate__animated animate__fadeIn">
+			<nav class="tabs">
+				<div class="logo cpointer" ng-click="current_window.show('main')">
+					<img src="style/img/logo.webp" alt="">
+				</div>
+				<div class="tabs-block">
+					<!-- <button class="tab">{{Lang.servers}}</button>
+					<button class="tab">{{Lang.friends}}</button> -->
+					<button class="tab active" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
+				</div>
+				<div class="user-block">
+					<button class="tab user" ng-click="skin.toggle()">
+						<img src="media/design/icon-head.png" alt="">
+						@{{Qubatch.App.session.username}}
+					</button>
+					<button class="tab" href="#" ng-click="settings.toggle()">
+						<i class="icon-settings" style="font-size: 22px;"></i>
+                    </button>
+				</div>
+			</nav>
+		</header>
+
+        <!-- Worlds -->
+		<div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'main'">
+
+            <div class="grid">
+				<button class="btn btn-add primary item" ng-click="newgame.open()">
+					<span style="font-size: 100px;">+</span>
+					<span>{{Lang.new_world_do}}</span>
+                </button>
+				<div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.list track by item.id" ng-if="!item.hidden">
+					<div class="card-body">
+						<button class="btn-delete" ng-click="DeleteWorld(item.guid)">
+							<i class="icon-bx_trash-alt"></i>
+						</button>
+						<div class="img-cover" ng-class="{with_cover: !!item.cover}">
+							<h2 ng-if="!item.cover">No cover</h2>
+							<p ng-if="!item.cover">Set the cover of the world in the game with the F2 key</p>
+                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
+						</div>
+					</div>
+					<div class="card-footer">
+						<div class="animated-mask">
+							<h2 class="m-0">{{item.title}}</h2>
+							<div class="flex">
+								<p class="game-mode">{{Lang.gamemode_survival}}</p>
+								<div class="users-online" title="{{Lang.players_online}}">
+									<i class="icon-bx-user" style="font-size: 14px; color: #AEEA00;"></i>
+									<span>{{item.players_online}}</span>
+								</div>
+							</div>
+						</div>
+						<div class="buttons">
+							<button class="primary" ng-click="StartWorld(item.guid)">
+								<span>{{Lang.play}}</span>
+								<i class="icon-arrows-right"></i>
+							</button>
+							<!-- <button class="secondary">Edit</button> -->
+						</div>
+						
+					</div>
+				</div>
+			</div>
+
+            <!-- Social -->
+			<div class="social">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/discord.svg" alt="">
+                </a>
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/youtube.svg" alt="">
+                </a>
+            </div>
+
+		</div>
+
         <!-- Settings -->
-        <form class="flex-column nice-form flex-justify-start animate__animated animate__fadeIn" ng-if="texture_pack.list && current_window.id == 'settings'">
+        <div class="settings-page" ng-if="texture_pack.list && current_window.id == 'settings'">
 
-            <h4>{{Lang.settings}}</h4>
-            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
-
-            <div style="margin-bottom: 1em;">
-                <!-- Texture pack -->
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <button ng-click="texture_pack.next()">{{Lang.textures}}:<strong style="margin-left: .25em;">{{texture_pack.getCurrent().name}}</strong></button>
+            <form class="form" ng-init="initSelects()">
+                <div class="main">
+                    <h1>{{Lang.main}}</h1>
+                    <!-- <div class="input-group">
+                        <p>Mouse Sensitivity: 30</p>
+                        <div class="input-range">
+                            <input type="range" min="0" value="0" max="100" step="1" >
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <p>HUD Scale: 100%</p>
+                        <input type="range" min="0" value="0" max="100" step="20">
+                    </div> -->
+                    <div class="input-group">
+                        <p>{{Lang.textures}}</p>
+                        <select class="slim-select" id="settings-select-texture" ng-options="item as item.name for item in texture_pack.list" ng-model="texture_pack.current" ng-change="texture_pack.set(texture_pack.current)"></select>
+                    </div>
+                    <div class="input-group">
+                        <p>{{Lang.language}}</p>
+                        <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
+                    </div>
+                    <div class="switcher-container">
+                        <input type="checkbox" id="test1" value="" ng-model="settings.form.forced_joystick_control" />
+                        <div class="switcher">
+                            <small></small>
+                        </div>
+                        <label for="test1">{{Lang.forced_joystick_control}}</label>
+                    </div>
                 </div>
-                <!-- Generate mipmap -->
-                <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                    <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
-                    <label for="input-mipmap">{{Lang.generate_mipmap}}</label>
+                <div class="video">
+                    <h1>{{Lang.video}}</h1>
+                    <!-- <div class="input-group">
+                        <p>Render Distance: {{settings.form.render_distance}}</p>
+                        <input type="range" min="2" value="{{settings.form.render_distance}}" max="16" step="1" ng-model="settings.form.render_distance">
+                    </div> -->
+                    <div class="input-group">
+                        <p>{{Lang.render_options}}</p>
+                        <div class="switcher-container">
+                            <input type="checkbox" id="test1" value="" ng-model="settings.form.mipmap" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="test1">{{Lang.generate_mipmap}}</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <p>{{Lang.use_light}}</p>
+                        <select class="slim-select" id="settings-select-light" ng-options="item as item.name for item in settings.lightMode.list" ng-model="settings.lightMode.current"></select>
+                    </div>
                 </div>
-                <!-- Use light -->
-                <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                    <button ng-click="settings.lightMode.next()">{{Lang.use_light}}:<strong style="margin-left: .25em;">{{settings.lightMode.getCurrent().name}}</strong></button>
-                </div>
-                <!-- Render distance -->
-                <!-- <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
-                    <div>
-                        <label for="input-render_distance">Render distance: <span style="width: 5em; display: inline-block;">{{settings.form.render_distance}}</span></label>
-                        <br><input type="range" id="input-render_distance" ng-model="settings.form.render_distance" min="2" max="16" style="width: 100%; height: 20px;"></input>
+                <!-- <div class="audio">
+                    <h1>Audio</h1>
+                    <div class="input-group">
+                        <p>Background Music: 30</p>
+                        <input type="range" min="0" value="0" max="100" step="1">
+                    </div>
+                    <div class="input-group">
+                        <p>Musical Devices: 70</p>
+                        <input type="range" min="0" value="0" max="100" step="1">
+                    </div>
+                    <div class="input-group">
+                        <p>Effects: 100</p>
+                        <input type="range" min="0" value="0" max="100" step="1">
                     </div>
                 </div> -->
-            </div>
 
-            <div class="form-title" style="margin-top: 2em;">
-                <!-- <span>@{{Qubatch.App.session.username}}</span> -->
-                <button class="btn btn-danger btn-small" ng-click="App.logout()">&times; logout</button>
-            </div>
-
-            <!-- <div>
-                <h4 class="text-center" style="margin-top: 0;">{{Lang.lbl_commands}}:</h4>
-                <div>
-                    <kbd>WASD</kbd> - {{Lang.kb_help_wasd}}
-                    <br><kbd>F4</kbd> - {{Lang.kb_help_f4}}
-                    <br><kbd>R</kbd> - {{Lang.kb_help_r}}
-                    <br><kbd>0-9</kbd> - {{Lang.kb_help_09}}
-                    <br><kbd>{{Lang.mouse_button_left}}</kbd> - {{Lang.kb_help_lm}}
-                    <br><kbd>{{Lang.mouse_button_right}}</kbd> - {{Lang.kb_help_rm}}
-                    <br><kbd>{{Lang.mouse_wheel}}</kbd> - {{Lang.kb_help_mm}}
-                    <br><kbd>{{Lang.kb_help_ctrlw_key}}</kbd> - {{Lang.kb_help_ctrlw}}
-                    <br><br>{{Lang.lbl_other}}:
-                    <br><kbd>F10</kbd> - {{Lang.change_game_mode}}
+                <div class="save">
+                    <button class="primary" ng-click="settings.save()">{{Lang.save}}</button>
                 </div>
-            </div> -->
+            </form>
 
-        </form>
-        
-        <!-- Change skin -->
-        <form id="form-skin" class="animate__animated animate__fadeIn" ng-if="current_window.id == 'skin'">
-            <h4>{{Lang.select_skin}}</h4>
-            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
-            <div id="skin-preview"><img ng-repeat="k in skin.list" ng-src="{{k.preview}}" alt="player skin"></div>
-            <div id="skin-selector">
-                <button ng-click="skin.prev()"><span>🡄<!-- {{Lang.short_prev}} --></span></button>
-                <div>
-                    <div ng-repeat="k in skin.list">
-                        <img ng-src="{{k.preview}}" ng-if="$index == skin.index" alt="player skin" class="animate__animated animate__flipInY">
+        </div>
+
+        <!-- Profile -->
+        <div class="profile-page" ng-if="current_window.id == 'skin'">
+
+            <div class="content" ng-init="skin.initProfilePage()">
+                <h1 class="flex items-center justify-between">
+                    {{Lang.select_skin}}
+                    <p class="font-m m-0" style="color: #B7B2CC;">
+                        <span id="skins-current"></span>/<span id="skins-length"></span>
+                    </p>
+                </h1>
+                <div id="skins-slider" class="keen-slider zoom-out">
+                    <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list">
+                        <div>
+                            <img ng-src="{{k.preview}}" alt="preview skin" />
+                        </div>
                     </div>
                 </div>
-                <button ng-click="skin.next()"><span><!-- {{Lang.short_next}}  -->🡆</span></button>
+                <div class="preview-buttons">
+                    <button id="slider-prev" class="slider-btn disabled" onclick="sliderPrev()">
+                        <i class="icon-chevron-left"></i>
+                    </button>
+                    <div id="skins-preview-slider" class="keen-slider thumbnail">
+                        <div class="keen-slider__slide" ng-repeat="k in skin.list"><img ng-src="{{k.preview}}"/></div>
+                    </div>
+                    <button id="slider-next" class="slider-btn" onclick="sliderNext()">
+                        <i class="icon-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="save">
+                    <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
+                </div>
+                <!-- <form class="form">
+                    <label for="">Password</label>
+                    <div class="grid">
+                        <input type="text" placeholder="Current password">
+                        <input type="text" placeholder="New password">
+                    </div>
+                    <button class="secondary" type='button'>Change password</button>
+                </form> -->
             </div>
-            <div style="padding-bottom: 1em;">
-                {{skin.index + 1}} / {{skin.list.length}}
-            </div>
-            <div class="btn-bar">
-                <button class="btn btn-main" ng-click="skin.save()">
-                    <span>✅ {{Lang.save}}</span>
+            <div class="content" style="border: none; padding-top: 10px;">
+                <button class="logout" ng-click="App.logout()">
+                    <i class="icon-bx-log-out"></i>
+                    {{Lang.logout}}
                 </button>
-                <button class="btn btn-danger" ng-click="skin.close()">
-                    <span>❌ {{Lang.cancel}} </span>
-                </button>
             </div>
-        </form>
-
-        <!-- Loading -->
-        <div ng-show="current_window.id == 'loading'" style="color: white; text-align: center; padding: 15px; background: rgba(255,255,255,.25); font-size: 24px; text-transform: uppercase;">
-            {{Lang.loading_resources}}... <span ng-if="resource_loading_state">{{resource_loading_state.percent | number:0}} %</span>
+            <div class="social">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/discord.svg" alt="">
+                </a>
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/youtube.svg" alt="">
+                </a>
+            </div>
         </div>
 
         <!-- New game -->
-        <form class="nice-form animate__animated animate__fadeIn" ng-show="current_window.id == 'newgame'">
-            <h4>{{Lang.new_world}}</h4>
-            <button class="btn-round btn-form-close" ng-click="current_window.toggle('main')">&times;</button>
-            <div>
-                {{Lang.world_name}}:
-                <br><input type="text" ng-model="newgame.form.title" autofocus>
-            </div>
-            <div>
-                {{Lang.world_seed}}:
-                <br><input type="text" ng-model="newgame.form.seed" autofocus>
-            </div>
-            <div>
-                <button ng-click="newgame.generators.next()">
-                    <span>{{Lang.world_generator_type}}: {{newgame.generators.getCurrent().title}}</span>
-                </button>
-                <!-- Options -->
-                <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
-                    <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)">
-                        <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
-                    </button>
-                </div>
-            </div>
-            <div class="btn-bar">
-                <button class="btn-main" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">
-                    <span>✅ {{Lang.create}}</span>
-                </button>
-                <button class="btn btn-danger" ng-click="newgame.close()">
-                    <span>❌ {{Lang.cancel}}</span>
-                </button>
-            </div>
-        </form>
+        <div class="create-w-page" ng-if="current_window.id == 'newgame'">
+            <div class="content" ng-init="initSelects()">
+                <form class="form">
+                    <div class="block">
+                        <h1>{{Lang.new_world}}</h1>
+                        <div class="input-group">
+                            <p>{{Lang.world_name}}</p>
+                            <input type="text" placeholder="{{Lang.enter_world_name}}" ng-model="newgame.form.title">
+                        </div>
+                        <div class="grid-2 input-group">
+                            <div>
+                                <p>{{Lang.world_generator_type}}</p>
+                                <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
+                                <!-- <select name="" class="slim-select" id="">
+                                    <option value="{{item.id}}" ng-repeat="item in newgame.generators.list">{{item.title}}</option>
+                                </select> -->
+                            </div>
+                            <!-- <div>
+                                <p>Difficulty</p>
+                                <select name="" class="slim-select" id="create-w-select2">
+                                    <option value="1">Difficulty 1</option>
+                                    <option value="2">Difficulty 2</option>
+                                    <option value="3">Difficulty 3</option>
+                                </select>
+                            </div> -->
+                        </div>
+                        <div class="input-group">
+                            <p>{{Lang.world_seed}}</p>
+                            <input type="text" placeholder="" ng-model="newgame.form.seed">
+                        </div>
+        
+                        <div class="switchers" ng-if="newgame.generators.getCurrent().has_options">
+                            <p>{{Lang.world_options}}</p>
+                            <!-- Options -->
+                            <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
+                                <!-- <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)">
+                                    <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
+                                </button> -->
+                                <div class="switcher-container" ng-if="option.type == 'checkbox'">
+                                    <input type="checkbox" id="test1" value="" ng-model="newgame.form.generator.options[key]" />
+                                    <div class="switcher">
+                                        <small></small>
+                                    </div>
+                                    <label for="test1">{{option.title}}</label>
+                                </div>
+                            </div>
 
-    </div>
+                            <!-- <div class="switcher-container">
+                                <input type="checkbox" id="test1" value="" />
+                                <div class="switcher">
+                                    <small></small>
+                                </div>
+                                <label for="test1">Spawn mobs</label>
+                            </div>
+                            <div class="switcher-container">
+                                <input type="checkbox" id="test2" value="" />
+                                <div class="switcher">
+                                    <small></small>
+                                </div>
+                                <label for="test2">PVP</label>
+                            </div> -->
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button class="primary" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">{{Lang.create}}</button>
+                        <button class="secondary" ng-click="newgame.close()">{{Lang.cancel}}</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+	</div>
 
     <script src="/vendors/vanilla-toast.min.js"></script>
-
     <div id="loading"></div>
-
-    <div id="share-button-container">
-        <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
-            <span style="margin-right: 1em;">Invite</span>
-            <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
-        </button>
-    </div>
-
+    
 </body>
 </html>

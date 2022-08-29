@@ -198,6 +198,7 @@ export class Shared_Controller {
 
     // Start world
     async startWorld(world_guid) {
+        const options = this.settings.form;
         // Check session
         const session = this.App.getSession();
         if(!session) {
@@ -206,13 +207,13 @@ export class Shared_Controller {
         // Show Loading...
         Qubatch.hud.draw();
         const server_url = this.getServerURL();
-        const world = await this.Qubatch.Start(server_url, world_guid, this.settings.form, (resource_loading_state) => {
+        const world = await this.Qubatch.Start(server_url, world_guid, options, (resource_loading_state) => {
             Qubatch.hud.draw(true);
         });
         if(!world.info) {
             debugger;
         }
-        const player = new Player();
+        const player = new Player(options);
         player.JoinToWorld(world, () => {
             Qubatch.Started(player);
         });

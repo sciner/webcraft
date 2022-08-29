@@ -295,6 +295,7 @@ export class ServerWorld {
                 player.sendPackets(packets);
             }
         }
+        return true;
     }
 
     //

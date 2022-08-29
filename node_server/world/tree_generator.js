@@ -1,4 +1,4 @@
-import {Vector} from "../../www/js/helpers.js";
+import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {ServerClient} from "../../www/js/server_client.js";
 import {Default_Terrain_Generator} from '../../www/js/terrain_generator/default.js';
 
@@ -75,6 +75,9 @@ export class TreeGenerator extends Default_Terrain_Generator {
             coord: world_chunk.coord,
             size: world_chunk.size,
             tblocks: {
+                getBlockId: function() {
+                    return 0;
+                },
                 get: function() {
                     return {id: 0};
                 }
@@ -82,21 +85,41 @@ export class TreeGenerator extends Default_Terrain_Generator {
         };
         //
         let is_invalid_operation = false;
+        const ubl = new VectorCollector();
         this.setBlock = function(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
+            if(is_invalid_operation) {
+                return false;
+            }
             _temp_vec.set(x, y, z);
-            let near_block = world.getBlock(_temp_vec);
-            if(!near_block) {
+            let tblock = world.getBlock(_temp_vec);
+            if(!tblock) {
                 is_invalid_operation = true;
                 return false;
             }
-            if(near_block.id == 0 || near_block.material.material.id == 'leaves' || near_block.material.material.id == 'plant' || near_block.material.is_sapling) {
-                updated_blocks.push({pos: new Vector(x, y, z), item: {id: block_type.id, extra_data: extra_data, rotate: rotate}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            if(tblock.id == 0 || tblock.material.is_leaves || tblock.material.is_sapling || tblock.material.material.id == 'plant') {
+                ubl.set(new Vector(x, y, z), {id: block_type.id, extra_data, rotate})
                 return true;
             }
             return false;
         };
-        this.plantTree({height: tree_height, type: {...tree_type, style: tree_style}}, chunk, pos.x, pos.y, pos.z, false);
-        return is_invalid_operation ? [] : updated_blocks;
+        this.plantTree(
+            {
+                height: tree_height,
+                type: {...tree_type, style: tree_style}
+            },
+            chunk,
+            pos.x,
+            pos.y,
+            pos.z,
+            false
+        );
+        if(is_invalid_operation) {
+            return [];
+        }
+        for(const [pos, item] of ubl.entries()) {
+            updated_blocks.push({pos: new Vector(pos), item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        }
+        return updated_blocks;
     }
 
 }

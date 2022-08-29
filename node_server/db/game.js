@@ -97,7 +97,19 @@ export class DBGame {
                 "headers" TEXT
             );`
         ]});
-
+        
+        migrations.push({version: 7, queries: [
+            `CREATE TABLE "screenshot" (
+                "dt" integer,
+                "guid_world" TEXT,
+                "guid_file" TEXT
+            );`
+        ]});
+        
+        migrations.push({version: 8, queries: [
+            `ALTER TABLE "world" ADD "cover" TEXT;`
+        ]});
+        
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -199,18 +211,19 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
             for(let row of rows) {
-                let world = {
+                const world = {
                     'id':           row.id,
                     'user_id':      row.user_id,
                     'dt':           '2021-10-06T19:20:04+02:00',
                     'guid':         row.guid,
                     'title':        row.title,
                     'seed':         row.seed,
+                    'cover':        row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null,
                     'game_mode':    '',
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
@@ -235,11 +248,12 @@ export class DBGame {
             ':user_id': user_id,
             ':world_id': world_id
         });
+        return true;
     }
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.run('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
+        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
         if (worldWithSameTitle != null) {
             throw 'error_world_with_same_title_already_exist';
         }
@@ -352,6 +366,7 @@ export class DBGame {
             title:      row.title,
             seed:       row.seed,
             game_mode:  row.game_mode,
+            cover:      row.cover,
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null
@@ -375,6 +390,29 @@ export class DBGame {
             ':world_id':      world_id
         });
         return !!result;
+    }
+    
+    async InsertScreenshot(guid, cover) {
+        const filename = randomUUID() + '.webp';
+        // Проверям существование мира
+        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [guid]);
+        if (!row) {
+            return;
+        }
+        // Если это задний фон
+        if(cover) {
+            await this.conn.run('UPDATE world SET cover = :cover WHERE guid = :guid', {
+                ':cover': filename,
+                ':guid':  guid
+            });
+        }
+        // Заносим в базу скриншот
+        await this.conn.run('INSERT INTO screenshot (dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
+            ':dt':  ~~(Date.now() / 1000),
+            ':guid': guid,
+            ':file': filename
+        });
+        return filename;
     }
 
 }

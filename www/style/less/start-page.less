@@ -1,0 +1,93 @@
+@import 'vars.less';
+
+.start-page {
+    min-height: 100%;
+    .bg  {
+        width: 100%;
+        height: 100%;
+        background: url('../img/bg-start-page.png') no-repeat;
+        background-size: cover;
+        background-position: center;
+    }
+    .container {
+        padding: 125px 15px 0 15px;
+    }
+    .block {
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        height: 100%;
+        .logo {
+            // width: 300px;
+            // max-width: 100%;
+            // margin: auto;
+            display: none;
+        }
+        .social {
+            gap: 24px;
+            margin: 60px auto 30px auto;
+            position: unset;
+            padding: 0px;
+            background: unset;
+        }
+    }
+    #sign-modal-toggle:checked ~ .bg {
+        background: none;
+        .logo {
+            display: block;
+            width: 136px;
+            margin: 15px auto 0 auto;
+        }
+        .step-1 {
+            display: none;
+        }
+        .step-2 {
+            display: flex;
+        }
+    }
+    .step-1 {
+        display: flex;
+        justify-content: center;
+        margin-top: auto;
+    }
+    .step-2 {
+        display: none;
+        flex-direction: column;
+        width: 400px;
+        max-width: 100%;
+        backdrop-filter: blur(4px);
+        .border-block {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 30px;
+            border-width: 2px;
+            border-style: solid;
+            border-image: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent) 0 1 0 1;
+            .btn {
+                margin-top: 8px;
+            }
+        }
+    }
+    .lang-dropdown {
+        position: absolute;
+        right: 30px;
+        top: 30px;
+        width: auto;
+    }
+    nav.tabs {
+        .tab {
+            flex: 1;
+            justify-content: center;
+            padding: 25px 20px 25px 20px;
+        }
+    }
+    .tabs {
+        background: rgba(28, 17, 73, 0.01);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        .tabs-block {
+            width: 100%;
+        }
+    }
+}

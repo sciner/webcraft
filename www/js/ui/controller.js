@@ -1,8 +1,8 @@
-import {Vector, Helpers} from '../helpers.js';
-import {UIApp} from './app.js';
-import {TexturePackManager} from './texture_pack-manager.js';
-import {SkinManager} from './skin-manager.js';
-import {GameClass} from '../game.js';
+import { Helpers, isMobileBrowser, Vector } from '../helpers.js';
+import { UIApp } from './app.js';
+import { TexturePackManager } from './texture_pack-manager.js';
+import { SkinManager } from './skin-manager.js';
+import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
@@ -71,8 +71,21 @@ let gameCtrl = async function($scope, $timeout) {
 
     globalThis.Qubatch              = new GameClass();
     $scope.App                      = Qubatch.App = new UIApp();
-    $scope.Lang                     = Lang;
+    $scope.login_tab                = 'login';
 
+    $scope.links = {
+        discord: 'https://discord.gg/QQw2zadu3T',
+        youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
+    };
+
+    // Working with lang
+    $scope.Lang = Lang;
+    $scope.current_lang = null;
+    for(let item of Lang.list) {
+        if(item.active) {
+            $scope.current_lang = item;
+        }
+    }
     $scope.changeLang = (item) => {
         Lang.change(item);
         // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
@@ -105,6 +118,12 @@ let gameCtrl = async function($scope, $timeout) {
             Clipboard.copy(this.url);
             vt.success(Lang.copied);
         }
+    };
+
+    // Is mobile browser
+    $scope.isMobileBrowser = isMobileBrowser;
+    $scope.isJoystickControl = () => {
+        return isMobileBrowser() || $scope.settings.form.forced_joystick_control;
     };
 
     // sun dir
@@ -257,35 +276,25 @@ let gameCtrl = async function($scope, $timeout) {
         },
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
-            getCurrent: function() {
+            get current() {
                 return this.list[$scope.settings.form.use_light];
             },
-            next: function() {
-                $scope.settings.form.use_light = ($scope.settings.form.use_light + 1) % this.list.length;
+            set current(item) {
+                $scope.settings.form.use_light = item.id;
             }
         },
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));
+            $scope.current_window.show('main');
         },
         toggle: function() {
             $scope.current_window.toggle('settings');
+            return false;
         },
         load: function() {
             const form = localStorage.getItem('settings');
             if(form) {
                 this.form = Object.assign(this.form, JSON.parse(form));
-                // fix texture_pack id
-                if('texture_pack' in this.form) {
-                    let found = false;
-                    for(let tp of $scope.texture_pack.list) {
-                        if(tp.id == this.form.texture_pack) {
-                            found = true;
-                        }
-                    }
-                    if(!found) {
-                        this.form.texture_pack = $scope.texture_pack.list[0].id;
-                    }
-                }
                 // add default render_distance
                 if(!('render_distance' in this.form)) {
                     this.form.render_distance = 4;
@@ -293,6 +302,10 @@ let gameCtrl = async function($scope, $timeout) {
                 // use_light
                 if('use_light' in this.form) {
                     this.form.use_light = parseInt(this.form.use_light | 0);
+                }
+                // forced Joystick control
+                if(!('render_distance' in this.form)) {
+                    this.form.forced_joystick_control = false;
                 }
             }
         }
@@ -335,11 +348,46 @@ let gameCtrl = async function($scope, $timeout) {
         });
     };
 
+    //
+    $scope.toggleMainMenu = function() {
+        if(Qubatch.hud.wm.hasVisibleWindow()) {
+            Qubatch.hud.wm.closeAll();
+        } else {
+            Qubatch.hud.frmMainMenu.show();
+        }
+    }
+
+    //
+    $scope.toggleFullscreen = function () {
+        const el = document.getElementById('qubatch-canvas-container');
+        if (!document.fullscreenElement &&    // alternative standard method
+            !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
+            if (el.requestFullscreen) {
+                el.requestFullscreen();
+            } else if (el.mozRequestFullScreen) {
+                el.mozRequestFullScreen();
+            } else if (el.webkitRequestFullscreen) {
+                el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        } else {
+            if (document.cancelFullScreen) {
+                document.cancelFullScreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            }
+        }
+    };
+
     // Start world
     $scope.StartWorld = function(world_guid) {
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
+            if(isMobileBrowser()) {
+                $scope.toggleFullscreen();
+            }
         }
         console.log(`StartWorld: ${world_guid}`);
         // Check session
@@ -347,29 +395,28 @@ let gameCtrl = async function($scope, $timeout) {
         if(!session) {
             return;
         }
-        document.getElementById('main-pictures')?.remove();
-        document.getElementById('topbar')?.remove();
+        //
+        $scope.current_window.show('world-loading');
+        Array.from(document.getElementsByTagName('header')).map(h => h.remove());
         document.getElementById('bg-canvas')?.remove();
         document.getElementById('bg-circles_area')?.remove();
-        document.getElementById('main-menu')?.remove();
-        document.getElementById('enter-world')?.remove();
         // stop background animation effect
         $scope.bg?.stop();
         // Show Loading...
         Qubatch.hud.draw();
         $timeout(async function() {
-            $scope.settings.save();
+            const options = $scope.settings.form;
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            const world = await $scope.Qubatch.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
+            const world = await $scope.Qubatch.Start(server_url, world_guid, options, (resource_loading_state) => {
                 Qubatch.hud.draw(true);
             });
             if(!world.info) {
                 debugger;
             }
-            const player = new Player();
+            const player = new Player(options);
             player.JoinToWorld(world, () => {
                 Qubatch.Started(player);
             });
@@ -509,27 +556,42 @@ let gameCtrl = async function($scope, $timeout) {
                 {id: 'biome2', title: Lang.world_generator_type_default, options: {
                     auto_generate_mobs: {
                         title: Lang.world_generator_generate_mobs,
+                        default_value: true,
+                        type: 'checkbox'
+                        /*
                         type: 'select',
                         options: [
                             {value: true, title: 'Yes'},
                             {value: false, title: 'No'}
-                        ]
+                        ]*/
                     }
                 }},
+                {id: 'flat', title: Lang.generator_flat_world},
                 {id: 'city', title: Lang.generator_city1},
                 {id: 'city2', title: Lang.generator_city2},
                 {id: 'bottom_caves', title: Lang.bottom_caves},
-                {id: 'flat', title: Lang.generator_flat_world},
                 // {id: 'test_trees', title: 'Тестовые деревья'},
                 // {id: 'mine', title: 'Заброшенная шахта'}
             ],
+            get current() {
+                return this.getCurrent();
+            },
+            set current(item) {
+                for(let i in this.list) {
+                    const t = this.list[i];
+                    if(t.id == item.id) {
+                        this.index = i;
+                        break;
+                    }
+                }
+            },
             getCurrent: function() {
                 return this.list[this.index];
             },
-            next: function() {
+            /*next: function() {
                 this.index = (this.index + 1) % this.list.length;
                 this.select(this.getCurrent().id);
-            },
+            },*/
             toggleSelect: function(key) {
                 const form = $scope.newgame.form;
                 if(!form.generator.options) {
@@ -560,16 +622,24 @@ let gameCtrl = async function($scope, $timeout) {
                 }
                 return value;
             },
-            select: function(id) {
-                $scope.newgame.form.generator.id = id;
+            select: function(generator) {
                 const form = $scope.newgame.form;
-                this.getCurrent().options_form = form.generator.options = this.getCurrent().options_form || {};
-                const options = this.getCurrent().options;
+                form.generator.id = generator.id;
+                const current = this.getCurrent();
+                if(!('has_options' in current)) {
+                    current.has_options = !!current.options;
+                }
+                current.options_form = form.generator.options = current.options_form || {};
+                const options = current.options;
                 if(options) {
                     for(let k in options) {
                         const op = options[k];
                         let value = null;
                         switch(op.type) {
+                            case 'checkbox': {
+                                value = op.default_value;
+                                break;
+                            }
                             case 'select': {
                                 value = op.options[0].value;
                                 break;
@@ -599,7 +669,7 @@ let gameCtrl = async function($scope, $timeout) {
             });
         },
         open: function() {
-            this.generators.select(this.generators.list[0].id);
+            this.generators.select(this.generators.list[0]);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },
@@ -608,13 +678,25 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
+    //
+    $scope.initSelects = function() {
+        const selects = document.querySelectorAll('.slim-select')
+        selects.forEach((selectElement) => {
+            new SlimSelect({
+                select: selectElement,
+                showSearch: false
+            });
+            // setSlimData(selectElement)
+        })
+    }
+
+    $scope.settings.load();
     $scope.Qubatch      = globalThis.Qubatch;
-    $scope.skin         = new SkinManager($scope);
+    $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
-    
+
     $scope.texture_pack.init().then(() => {
         $timeout(() => {
-            $scope.settings.load();
             $scope.boot.init();
             $scope.login.init();
             $scope.skin.init();

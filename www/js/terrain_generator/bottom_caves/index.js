@@ -202,7 +202,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         // air
                                         continue;
                                     } else if (dist >= AMETHYST_ROOM_RADIUS - 1.42) {
-                                        chunk.setBlockIndirect(x, y, z, BLOCK.AMETHYST.id);
+                                        chunk.setBlockIndirect(x, y, z, BLOCK.AMETHYST_BLOCK.id);
                                     }
                                 } else {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.AIR.id);

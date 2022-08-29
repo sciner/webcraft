@@ -521,7 +521,7 @@ export class ServerPlayer extends Player {
         let teleported_player = this;
         if(params.pos) {
             // 1. teleport to pos
-            new_pos = params.pos;
+            new_pos = params.pos = new Vector(params.pos);
         } else if(params.p2p) {
             // teleport player to player
             let from_player = null;

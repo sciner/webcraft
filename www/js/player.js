@@ -23,8 +23,9 @@ export class Player {
 
     #forward = new Vector(0, 0, 0);
 
-    constructor() {
+    constructor(options) {
         this.inMiningProcess = false;
+        this.options = options;
     }
 
     JoinToWorld(world, cb) {
@@ -95,7 +96,7 @@ export class Player {
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         this.chat                   = new Chat(this);
-        this.controls               = new PlayerControl();
+        this.controls               = new PlayerControl(this.options);
         this.windows                = new PlayerWindowManager(this);
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
@@ -290,7 +291,7 @@ export class Player {
             //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
             //    this.standUp();
             //} else {
-            this.pickAt.setEvent(this, {button_id: button_id, shiftKey: shiftKey});
+            this.pickAt.setEvent(this, {button_id, shiftKey});
             if(e.button_id == 1) {
                 this.startArmSwingProgress();
             }
