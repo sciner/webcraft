@@ -137,6 +137,8 @@ export class Chunk {
         // uncompress
         if(this.modify_list.compressed) {
             this.modify_list = decompressWorldModifyChunk(Uint8Array.from(atob(this.modify_list.compressed), c => c.charCodeAt(0)));
+        } else {
+            this.modify_list = this.modify_list.obj ?? null;
         }
         //
         const pos = new Vector(0, 0, 0);
