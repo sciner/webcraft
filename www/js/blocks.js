@@ -532,7 +532,6 @@ export class BLOCK {
         } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.id == 649 ||
-            block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover'

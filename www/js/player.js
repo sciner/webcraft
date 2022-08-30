@@ -643,7 +643,6 @@ export class Player {
 
     // 
     triggerEvent(name, args) {
-        console.log(name);
         switch(name) {
             case 'step': {
                 this.onStep(args);
