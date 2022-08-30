@@ -6,7 +6,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
-// точильный камень
+// стойка для доспехов
 export default class style {
     
     static getRegInfo() {
@@ -18,8 +18,11 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
+        if (for_physic) {
+            return [];
+        }
         const aabb = new AABB();
-        aabb.set(0.12, 0, 0.12, 0.88, 1, 0.88);
+        aabb.set(0.16, 0, 0.16, 0.84, 1, 0.84);
         return [aabb];
     }
     
@@ -27,20 +30,121 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        
+    
         const planks = BLOCK.calcTexture(BLOCK.DARK_OAK_LOG.texture, DIRECTION.UP);
+        const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.UP);
         const flag = 0;
         const parts = [];
         parts.push(...[
             {
-                "size": {"x": 2, "y": 7, "z": 4},
-                "translate": {"x": 5, "y": -4.5, "z": 0},
+                "size": {"x": 12, "y": 1, "z": 12},
+                "translate": {"x":0, "y": -7, "z": 0},
                 "faces": {
-                    "down": {"uv": [12, 9], "flag": flag, "texture": planks},
-                    "north": {"uv": [12, 9], "flag": flag, "texture": planks},
-                    "south": {"uv": [4, 8], "flag": flag, "texture": planks},
-                    "west":  {"uv": [12, 9], "flag": flag, "texture": planks},
-                    "east":  {"uv": [12, 9], "flag": flag, "texture": planks}
+                    "up": {"uv": [8, 8], "flag": flag, "texture": stone},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": stone},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": stone},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": stone},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": stone},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": stone}
+                }
+            },{
+                "size": {"x": 2, "y": 11, "z": 2},
+                "translate": {"x":-2, "y": -2, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },{
+                "size": {"x": 2, "y": 11, "z": 2},
+                "translate": {"x":2, "y": -2, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },{
+                "size": {"x": 8, "y": 2, "z": 2},
+                "translate": {"x":0, "y": 4.5, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },{
+                "size": {"x": 2, "y": 7, "z": 2},
+                "translate": {"x":-2, "y": 9, "z": 0},
+                "faces": {
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },{
+                "size": {"x": 2, "y": 7, "z": 2},
+                "translate": {"x":2, "y": 9, "z": 0},
+                "faces": {
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            }, 
+            {
+                "size": {"x": 10, "y": 3, "z": 3},
+                "translate": {"x":0, "y": 14, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },
+            {
+                "size": {"x": 2, "y": 7, "z": 2},
+                "translate": {"x":0, "y": 19, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },
+            {
+                "size": {"x": 2, "y": 12, "z": 2},
+                "translate": {"x":-6, "y": 9.5, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
+                }
+            },
+            {
+                "size": {"x": 2, "y": 12, "z": 2},
+                "translate": {"x":6, "y": 9.5, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "down": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
             }
         ]);

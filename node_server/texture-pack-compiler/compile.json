@@ -6974,15 +6974,17 @@
             "id": 505,
             "name": "ARMOR_STAND",
             "sound": "madcraft:block.wood",
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/armor_stand.png"
+            },
             "style": "armor_stand",
             "material": {
                 "id": "wood"
             },
+            "can_rotate": true,
             "transparent": true,
-            "inventory": {
-                "style": "extruder",
-                "texture": "item/armor_stand.png"
-            }
+            "texture": "item/armor_stand.png"
         }
     ]
 }
