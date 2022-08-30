@@ -6969,6 +6969,20 @@
                 "id": "stone"
             },
             "texture": "block/gilded_blackstone.png"
+        },
+        {
+            "id": 505,
+            "name": "ARMOR_STAND",
+            "sound": "madcraft:block.wood",
+            "style": "armor_stand",
+            "material": {
+                "id": "wood"
+            },
+            "transparent": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/armor_stand.png"
+            }
         }
     ]
 }
