@@ -111,6 +111,17 @@ export class DBWorld {
         return true;
     }
 
+    //
+    async saveCompressedWorldModifyChunk(addr, compressed) {
+        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob) 
+          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob)`, {
+            ':data_blob':   compressed,
+            ':x':           addr.x,
+            ':y':           addr.y,
+            ':z':           addr.z
+        });
+    }
+
     // getDefaultPlayerIndicators...
     getDefaultPlayerIndicators() {
         return {
@@ -480,17 +491,6 @@ export class DBWorld {
                 params.pos.getFlatIndexInChunk()
             ];
         }
-        this.conn.run(`CREATE TEMPORARY TABLE IF NOT EXISTS world_modify_import_bulk(data TEXT);`);
-        const result = await this.conn.run('INSERT INTO world_modify_import_bulk(data) VALUES(:data)', {
-            ':data': JSON.stringify(data)
-        });
-        // lastID
-        let lastID = result.lastID;
-        if(!lastID) {
-            const row = await this.conn.get('SELECT MAX(_rowid_) AS lastID FROM world_modify_import_bulk', {});
-            lastID = row.lastID;
-        }
-        lastID = parseInt(lastID);
         //
         await this.conn.run(`INSERT INTO world_modify(
                 user_id, dt, world_id, params, x, y, z, chunk_x, chunk_y, chunk_z,
@@ -511,7 +511,9 @@ export class DBWorld {
                 json_extract(value, '$[11]'),
                 json_extract(value, '$[12]'),
                 json_extract(value, '$[13]')
-            FROM json_each((SELECT data FROM world_modify_import_bulk WHERE _rowid_ = ${lastID}))`);
+            FROM json_each(:data)`, {
+                ':data': JSON.stringify(data)
+            });
     }
 
     // Change player game mode

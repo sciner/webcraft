@@ -6,7 +6,7 @@ import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import {impl as alea} from '../www/vendors/alea.js';
 import {WorldAction} from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
-import { decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -359,12 +359,24 @@ export class ServerChunk {
         const name = ServerClient.CMD_CHUNK_LOADED;
         const data = {addr: this.addr, modify_list: {}};
         const ml = this.modify_list;
+        if(!ml.compressed && ml.obj) {
+            this.compressModifyList();
+        }
         if(ml.compressed) {
             data.modify_list.compressed = ml.compressed.toString('base64');
         } else {
             data.modify_list.obj = ml.obj;
         }
         return this.world.sendSelected([{name, data}], player_ids, []);
+    }
+
+    // Compress modify list
+    compressModifyList() {
+        const ml = this.modify_list;
+        if(ml.obj) {
+            ml.compressed = Buffer.from(compressWorldModifyChunk(ml.obj, true));
+            this.world.db.saveCompressedWorldModifyChunk(this.addr, ml.compressed);
+        }
     }
 
     sendMobs(player_user_ids) {
