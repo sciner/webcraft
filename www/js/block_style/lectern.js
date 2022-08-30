@@ -97,7 +97,9 @@ export default class style {
             });
         }
         
-        drawBook(vertices, pos, matrix);
+        if(block.extra_data?.book) {
+            drawBook(vertices, pos, matrix);
+        }
         
     }
     
