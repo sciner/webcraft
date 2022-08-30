@@ -534,7 +534,8 @@ export class BLOCK {
         } else if(block.id == 649 ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
+                'lectern'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';

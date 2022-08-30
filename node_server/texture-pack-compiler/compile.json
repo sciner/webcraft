@@ -14,7 +14,8 @@
         {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"}
+        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
     ],
     "blocks" : [
         {
@@ -6843,6 +6844,40 @@
                 "up": false,
                 "west": false,
                 "rotate": false
+            }
+        },
+        {
+            "id": 503,
+            "name": "LECTERN",
+            "transparent": true,
+            "style": "lectern",
+            "can_rotate": true,
+            "window": "frmBook",
+            "material": {
+                "id": "stone"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": {
+                "up": "block/lectern_top.png",
+                "side": "block/lectern_sides.png",
+                "down": "block/lectern_base.png",
+                "north": "block/lectern_front.png"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "page": 0,
+                "book": {
+                    "id":"written_book",
+                    "pages":[
+                        {"text":"Hello world!\n\nHow are you?\nEnd of first page\n"},
+                        {"text":"This is page #2"}
+                    ],
+                    "author":"Username",
+                    "title":"Test book",
+                    "resolved":1
+                }
             }
         },
         {
