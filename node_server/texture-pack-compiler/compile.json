@@ -6848,7 +6848,19 @@
             },
             "tags": [
                 "no_drop_ao"
-            ]
+            ],
+            "extra_data": {
+                "book": {
+                    "id":"written_book",
+                    "pages":[
+                        {"text":"Hello world!\n\nHow are you?\nEnd of first page\n"},
+                        {"text":"This is page #2"}
+                    ],
+                    "author":"Username",
+                    "title":"Test book",
+                    "resolved":1
+                }
+            }
         },
         {
             "id": 194,

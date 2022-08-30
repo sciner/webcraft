@@ -18,19 +18,6 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
-        /*if (for_physic) {
-            return [new AABB().set(0, 0, 0, 1, 1, 1)]
-        }
-        const aabb = [];
-        aabb.push(new AABB().set(0.25, 0.13, 0.25, 0.75, 0.94, 0.75));
-        aabb.push(new AABB().set(0, 0, 0, 1, 0.13, 1));
-        const cd = block.getCardinalDirection();
-        if (cd == DIRECTION.NORTH) {
-            let n = 0.05;
-            aabb.push(new AABB().set(0, 0.85, 0.1, 1, 1.05, 0.4));
-            aabb.push(new AABB().set(0, 0.75, 0.4, 1, 0.95, 0.7));
-            aabb.push(new AABB().set(0, 0.7, 0.7, 1, 0.9, 1));
-        }*/
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];

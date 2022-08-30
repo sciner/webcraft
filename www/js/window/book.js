@@ -41,12 +41,12 @@ class ActiveButton extends Window {
         this.onMouseDown = function() {
             if (this.enable) {
                 if (this == this.ct.btn_back) {
-                    this.ct.page_n--;
+                    this.ct.page--;
                 } else {
-                    this.ct.page_n++;
+                    this.ct.page++;
                 }
-                this.ct.btn_back.setEnable(this.ct.page_n > 0 ? true : false);
-                this.ct.btn_next.setEnable(this.ct.page_n < this.ct.page_count - 1 ? true : false);
+                this.ct.btn_back.setEnable(this.ct.page > 0 ? true : false);
+                this.ct.btn_next.setEnable(this.ct.page < this.ct.pages.length - 1 ? true : false);
             }
         };
     }
@@ -85,7 +85,7 @@ export class BookWindow extends Window {
 
         this.width *= this.zoom;
         this.height *= this.zoom;
-
+        this.pages = [];
         // Get window by ID
         const ct = this;
         const options = {
@@ -113,7 +113,8 @@ export class BookWindow extends Window {
         this.createButtons();
         
         // Обработчик открытия формы
-        this.onShow = function() {
+        this.onShow = function(args) {
+            this.pages = args.extra_data.book.pages;
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
         }
@@ -158,9 +159,7 @@ export class BookWindow extends Window {
     }
     
     createLabels(){
-        this.data = "Minecraft (от англ. mine — «шахта; добывать» + craft — «ремесло; создавать») — компьютерная инди-игра в жанре песочницы, созданная шведским программистом Маркусом Перссоном и выпущенная его компанией Mojang AB. Перссон опубликовал начальную версию игры в 2009 году; в конце 2011 года была выпущена стабильная версия для ПК Microsoft Windows, распространявшаяся через официальный сайт. В последующие годы Minecraft была портирована на Linux и macOS для персональных компьютеров; на Android, iOS и Windows Phone для мобильных устройств; на игровые приставки PlayStation 4, Vita, VR, Xbox One, Nintendo 3DS, Switch и Wii U. В 2014 году корпорация Microsoft приобрела права на Minecraft вместе с компанией Mojang AB за 2,5 миллиарда $. Студия 4J портировала игру на игровые приставки, а Xbox Game Studios разработала мультиплатформенную версию Minecraft и специальное издание игры для образовательных учреждений[⇨]. Перссон написал Minecraft на Java с использованием библиотеки графического вывода LWJGL, черпая идеи из таких игр, как Dwarf Fortress, Dungeon Keeper и Infiniminer  (англ.)рус.[⇨]. Minecraft даёт в распоряжение игрока процедурно генерируемый и изменяемый трёхмерный мир, полностью состоящий из кубов — его можно свободно перестраивать, создавая из этих кубов сложные сооружения — эта особенность делает игру схожей с различными конструкторами, такими как LEGO. Minecraft не ставит перед игроком каких-либо конкретных целей, но предлагает ему свободу действий: например, игрок может исследовать мир, добывать полезные ископаемые, сражаться с противниками и многое другое[⇨]";    
-        this.page_count = Math.ceil(this.data.length / CHAR_TO_PAGE);
-        this.page_n = 0;
+        this.page = 0;
         
         this.lbl_pages = new Label(150 * this.zoom, 30 * this.zoom, 110 * this.zoom, 12 * this.zoom, 'lblPages', null, '');
         this.lbl_pages.style.font.size = 11 * this.zoom;
@@ -180,19 +179,11 @@ export class BookWindow extends Window {
         this.add(this.btn_back);
     }
     
-    wrapText() {
-        let end = (this.page_n + 1) * CHAR_TO_PAGE;
-        let start = this.page_n * CHAR_TO_PAGE;
-        let pos = this.data.indexOf(' ', end);
-        end = (pos - end > 10 || pos == -1) ? end : pos;
-        pos = this.data.indexOf(' ', start);
-        start = (start - pos > 10 || pos == -1 || start == 0) ? start : pos;
-        return this.data.substring(start, end);
-    }
-    
     draw(ctx, ax, ay) {
-        this.lbl_pages.setText('Страница ' + (this.page_n + 1) + ' из ' + this.page_count);
-        this.lbl_text.setText(this.wrapText());
+        if (this.pages.length > 0) {
+            this.lbl_pages.setText('Страница ' + (this.page + 1) + ' из ' + this.pages.length);
+            this.lbl_text.setText(this.pages[this.page].text);
+        }
         super.draw(ctx, ax, ay);
     }
 
