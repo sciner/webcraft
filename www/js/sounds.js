@@ -13,15 +13,15 @@ export class Sounds {
     }
 
     async add(item) {
-        for(let action of ['dig', 'place', 'open', 'close', 'hit', 'eat', 'burp', 'fuse', 'break', 'explode', 'click', 'hurt', 'strong_atack', 'death', 'idle', 'step']) {
-            if(item.hasOwnProperty(action)) {
-                let volume = 1.;
-                if(action == 'hit') {
-                    volume = 0.2;
-                }
-                for(let i in item[action]) {
-                    item[action][i] = {name: item[action][i], volume: volume};
-                }
+        for(let action in item) {
+            if(['type'].includes(action)) {
+                continue;
+            }
+            let volume = 1.;
+            if(['step', 'entering_water', 'exiting_water', 'swim'].includes(action)) volume = .1;
+            if(['hit', 'step', 'water_splash'].includes(action)) volume = .2;
+            for(let i in item[action]) {
+                item[action][i] = {name: item[action][i], volume};
             }
         }
         this.tags[item.type] = item;
@@ -52,19 +52,21 @@ export class Sounds {
         this.prev_index.set(index_key, index);
         // Play
         const track = list[index];
+        let track_id;
         if(track) {
             let volume = track.volume;
             if(!isNaN(dist)) volume *= this.voice_calculation(dist);
-            if(action == 'step') {
-                volume *= .1;
-            }
             if(volume > 0) {
-                console.debug(tag, action, volume);
-                const track_id = this.sound_sprite_main.play(track.name);
+                // console.debug(tag, action, volume);
+                track_id = this.sound_sprite_main.play(track.name);
                 this.sound_sprite_main.volume(volume, track_id);
             }
         }
-        return true;
+        return track_id;
+    }
+
+    stop(track_id) {
+        this.sound_sprite_main.stop(track_id);
     }
 
     getList(tag, action) {

@@ -1,5 +1,26 @@
 [
     {
+        "type": "madcraft:environment",
+        "underwater_ambience": [
+            "Underwater_Ambience"
+        ],
+        "entering_water": [
+            "Entering_water"
+        ],
+        "exiting_water": [
+            "Exiting_water"
+        ],
+        "water_splash": [
+            "Water_splash2"
+        ],
+        "swim": [
+            "Swim1",
+            "Swim2",
+            "Swim3",
+            "Swim4"
+        ]
+    },
+    {
         "type": "madcraft:block.player",
         "hit": [
             "hit3"

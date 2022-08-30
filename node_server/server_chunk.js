@@ -441,6 +441,9 @@ export class ServerChunk {
         let block = null;
         let pos = new Vector(0, 0, 0);
         const ml = this.modify_list.obj;
+        if(!ml) {
+            return false;
+        }
         // 1. Check modified blocks
         for(let index in ml) {
             const current_block_on_pos = ml[index];
