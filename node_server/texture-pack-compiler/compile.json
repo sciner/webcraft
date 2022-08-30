@@ -6850,6 +6850,7 @@
                 "no_drop_ao"
             ],
             "extra_data": {
+                "page": 0,
                 "book": {
                     "id":"written_book",
                     "pages":[

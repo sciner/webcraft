@@ -2,8 +2,6 @@ import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { Lang } from "../lang.js";
 import { Helpers } from "../helpers.js";
 
-const CHAR_TO_PAGE = 700;
-
 // кнопки перелистывания
 class ActiveButton extends Window {
     
@@ -85,6 +83,8 @@ export class BookWindow extends Window {
 
         this.width *= this.zoom;
         this.height *= this.zoom;
+        this.extra_data = null;
+        this.page = 0;
         this.pages = [];
         // Get window by ID
         const ct = this;
@@ -114,13 +114,22 @@ export class BookWindow extends Window {
         
         // Обработчик открытия формы
         this.onShow = function(args) {
-            this.pages = args.extra_data.book.pages;
+            this.page = 0;
+            this.pages = [];
+            this.btn_back.setEnable(false);
+            this.btn_next.setEnable(false);
+            if (args?.extra_data?.book) {
+                this.page = args.extra_data.page;
+                this.pages = args.extra_data.book.pages;
+                this.btn_next.setEnable(true);
+            }
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
         }
 
         // Обработчик закрытия формы
-        this.onHide = function() {}
+        this.onHide = function() {
+        }
 
         // Add close button
         this.loadCloseButtonImage((image) => {
@@ -159,12 +168,9 @@ export class BookWindow extends Window {
     }
     
     createLabels(){
-        this.page = 0;
-        
         this.lbl_pages = new Label(150 * this.zoom, 30 * this.zoom, 110 * this.zoom, 12 * this.zoom, 'lblPages', null, '');
         this.lbl_pages.style.font.size = 11 * this.zoom;
         this.add(this.lbl_pages);
-        
         this.lbl_text = new Label(25 * this.zoom, 50 * this.zoom, 240 * this.zoom, 270 * this.zoom, 'lblText', null, '');
         this.lbl_text.style.font.size = 12 * this.zoom;
         this.lbl_text.word_wrap = true;

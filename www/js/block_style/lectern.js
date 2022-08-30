@@ -34,6 +34,7 @@ export default class style {
         const front = BLOCK.calcTexture(texture, DIRECTION.NORTH);
         const base = BLOCK.calcTexture(texture, DIRECTION.DOWN);
         const bottom = BLOCK.calcTexture(BLOCK.OAK_PLANKS.texture, DIRECTION.UP);
+        
         const flag = 0;
         const parts = [];
         parts.push(...[
@@ -65,10 +66,10 @@ export default class style {
                 "faces": {
                     "up": { "uv": [8, 8], "flag": flag, "texture": up},
                     "down": {"uv": [8, 8], "flag": flag, "texture": bottom},
-                    "north": {"uv": [12, 8], "flag": flag, "texture": side},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": side},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": side},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": side}
+                    "north": {"uv": [8, 8], "flag": flag, "texture": bottom},
+                    "south": {"uv": [8, 2], "flag": flag, "texture": [up[0], up[1], up[2], up[3] * -1]},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": bottom},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": bottom}
                 },
                 "rot": [Math.PI / 12, 0, 0]
             }
