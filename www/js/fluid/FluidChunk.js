@@ -39,7 +39,7 @@ export class FluidChunk {
     }
 
     setFluidIndirect(x, y, z, block_id) {
-        const { cx, cy, cz, cw } = this.tblocks.dataChunk;
+        const { cx, cy, cz, cw } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
         const index = cx * x + cy * y + cz * z + cw;
 
