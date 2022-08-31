@@ -151,9 +151,12 @@ export class Spritesheet {
             } else {
                 ctx.globalCompositeOperation = 'difference';
                 ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.filter = 'grayscale(100%)';
                 ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.filter = 'none';
                 ctx.globalCompositeOperation = 'source-over';
                 // copy colores pixels
+                /*
                 const pixs = ctx.getImageData((x + 1) * this.tx_sz, y * this.tx_sz, this.tx_sz, this.tx_sz).data;
                 let pix_index = 0;
                 for(let j = 0; j < this.tx_sz; j++) {
@@ -162,6 +165,7 @@ export class Spritesheet {
                         const ay = y * this.tx_sz + j;
                         let hsl = this.RGBToHSL(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2]);
                         if(hsl[1] > 40) {
+                            // copy color
                             ctx.fillStyle = this.rgbaToHex(pixs[pix_index + 0], pixs[pix_index + 1], pixs[pix_index + 2], pixs[pix_index + 3]);
                             ctx.fillRect(ax, ay, 1, 1);
                             ctx.fillStyle = '#000000';
@@ -169,7 +173,7 @@ export class Spritesheet {
                         }
                         pix_index += 4;
                     }
-                }
+                }*/
             }
         }
         const sx = Math.ceil(img.width / this.tx_sz);

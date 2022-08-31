@@ -13,6 +13,7 @@ import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Clouds from "./particles/clouds.js";
 import Particles_Rain from "./particles/rain.js";
+import { Particles_Stars } from "./particles/stars.js";
 
 import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
@@ -243,6 +244,9 @@ export class Renderer {
         // Clouds
         // @todo Переделать в связи с появлением TBlock
         this.clouds = this.meshes.add(new Particles_Clouds(this, DEFAULT_CLOUD_HEIGHT));
+
+        // Stars
+        this.stars = this.meshes.add(new Particles_Stars(this));
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
@@ -1105,7 +1109,7 @@ export class Renderer {
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
             this.step_side = viewMatrix[1];
-            player.onStep(this.step_side);
+            player.triggerEvent('step', {step_side: this.step_side});
         }
     }
 

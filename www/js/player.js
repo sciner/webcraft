@@ -85,6 +85,7 @@ export class Player {
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.walkDist               = 0;
+        this.swimingDist            = 0;
         this.walkDistO              = 0;
         this.bob                    = 0;
         this.oBob                   = 0;
@@ -243,31 +244,36 @@ export class Player {
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
-    onStep(step_side, force) {
+    onStep(args) {
         this.steps_count++;
         if(this.isSneak) {
             return;
         }
-        let world = this.world;
-        let player = this;
-        if(!player || (!force && (player.in_water || !player.walking || !player.controls.enabled))) {
+        const world = this.world;
+        const player = this;
+        if(!player || (!args.force && (player.in_water || !player.walking || !player.controls.enabled))) {
             return;
         }
-        let f = this.walkDist - this.walkDistO;
-        if(f > 0 || force) {
+        const f = this.walkDist - this.walkDistO;
+        if(f > 0 || args.force) {
             const pos = player.pos;
-            let world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
-            if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
-                let default_sound   = 'madcraft:block.stone';
-                let action          = 'hit';
-                let sound           = world_block.getSound();
-                let sound_list      = Qubatch.sounds.getList(sound, action);
-                if(!sound_list) {
-                    sound = default_sound;
-                }
-                Qubatch.sounds.play(sound, action);
-                if(player.running) {
-                    Qubatch.render.damageBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+            const world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
+            const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
+            if(can_play_sound) {
+                const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
+                if(!block_over || !block_over.material.is_fluid) {
+                    const default_sound   = 'madcraft:block.stone';
+                    const action          = 'hit';
+                    let sound             = world_block.getSound();
+                    const sound_list      = Qubatch.sounds.getList(sound, action);
+                    if(!sound_list) {
+                        sound = default_sound;
+                    }
+                    Qubatch.sounds.play(sound, action);
+                    if(player.running) {
+                        // play destroy particles
+                        Qubatch.render.damageBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+                    }
                 }
             }
         }
@@ -545,11 +551,19 @@ export class Player {
             this.isOnLadder = pc.player_state.isOnLadder;
             this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
-            if(this.onGround && !this.onGroundO) {
-                this.onStep(null, true);
-            }
             this.in_water   = pc.player_state.isInWater;
-            let velocity    = pc.player_state.vel;
+            // Trigger events
+            if(this.onGround && !this.onGroundO) {
+                this.triggerEvent('step', {force: true});
+            }
+            if(this.in_water && !this.in_water_o) {
+                this.triggerEvent('legs_enter_to_water');
+            }
+            if(!this.in_water && this.in_water_o) {
+                this.triggerEvent('legs_exit_from_water');
+            }
+            //
+            const velocity = pc.player_state.vel;
             // Update player model
             this.updateModelProps();
             // Check falling
@@ -599,10 +613,70 @@ export class Player {
                     this.eyes_in_block = (eye_y < (eye_y | 0) + power + .01) ? this.headBlock.material : null;
                 }
             }
+            //
+            if(this.eyes_in_block && !this.eyes_in_block_o) {
+                if(this.eyes_in_block.is_water) {
+                    this.triggerEvent('eyes_enter_to_water');
+                }
+            }
+            if(this.eyes_in_block_o && !this.eyes_in_block) {
+                if(this.eyes_in_block_o.is_water) {
+                    this.triggerEvent('eyes_exit_to_water');
+                }
+            }
+            if(this.in_water && this.in_water_o && !this.eyes_in_block) {
+                this.swimingDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
+                if(this.swimingDistIntPrev) {
+                    if(this.swimingDistIntPrevO != this.swimingDistIntPrev) {
+                        this.swimingDistIntPrevO = this.swimingDistIntPrev;
+                        this.triggerEvent('swim_under_water');
+                    }
+                }
+                this.swimingDistIntPrev = Math.round(this.swimingDist);
+                // console.log(this.swimingDist);
+            }
             // Update FOV
             Qubatch.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
         }
         this.lastUpdate = performance.now();
+    }
+
+    // 
+    triggerEvent(name, args) {
+        switch(name) {
+            case 'step': {
+                this.onStep(args);
+                break;
+            }
+            case 'legs_enter_to_water': {
+                Qubatch.sounds.play('madcraft:environment', 'water_splash');
+                break;
+            }
+            case 'swim_under_water': {
+                Qubatch.sounds.play('madcraft:environment', 'swim');
+                break;
+            }
+            case 'legs_exit_from_water': {
+                break;
+            }
+            case 'eyes_enter_to_water': {
+                // turn on 'Underwater_Ambience' sound
+                if(!this.underwater_track_id) {
+                    Qubatch.sounds.play('madcraft:environment', 'entering_water');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience');
+                }
+                break;
+            }
+            case 'eyes_exit_to_water': {
+                // turn off 'Underwater_Ambience' sound
+                if(this.underwater_track_id) {
+                    Qubatch.sounds.stop(this.underwater_track_id);
+                    this.underwater_track_id = null;
+                }
+                Qubatch.sounds.play('madcraft:environment', 'exiting_water');
+                break;
+            }
+        }
     }
 
     getModel() {

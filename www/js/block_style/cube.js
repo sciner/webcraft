@@ -283,7 +283,7 @@ export default class style {
             }
 
             // Leaves
-            if(material.transparent && material.is_leaves) {
+            /*if(material.transparent && material.is_leaves) {
                 if(neighbours.SOUTH.material.is_leaves) {
                     canDrawSOUTH = false;
                 }
@@ -293,7 +293,7 @@ export default class style {
                 if(neighbours.UP.material.is_leaves) {
                     canDrawUP = false;
                 }
-            }
+            }*/
 
             // Glass
             if(material.transparent && material.is_glass) {

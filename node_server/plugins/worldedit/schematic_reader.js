@@ -110,6 +110,8 @@ export class SchematicReader {
                         readEntityProps = true;
                     } else if(b.name == 'ITEM_FRAME') {
                         readEntityProps = true;
+                    } else if(b.name == 'LECTERN') {
+                        readEntityProps = true;
                     } else if(b.is_banner) {
                         readEntityProps = true;
                     }
@@ -273,6 +275,34 @@ export class SchematicReader {
                     setExtraData('glowing_text', block.entities.GlowingText);
                 }
             } else if(b.is_banner) {
+                if('Patterns' in block.entities) {
+                    setExtraData('patterns', block.entities.Color);
+                }
+            } else if(b.name == 'LECTERN') {
+                if(block.entities.Book) {
+                    const ent = block.entities;
+                    console.log(JSON.stringify(ent, null, 4));
+                    if('Page' in ent && 'Book' in ent) {
+                        setExtraData('page', ent.Page);
+                        const book = {
+                            id: 'WRITTEN_BOOK',
+                            count: 1,
+                            pages: []
+                        };
+                        const tag = ent.Book.tag;
+                        if(tag) {
+                            if('author' in tag) book.author = tag.author;
+                            if('title' in tag) book.title = tag.title;
+                            if('resolved' in tag) book.resolved = tag.resolved;
+                            if('pages' in tag) {
+                                for(let page of ent.Book.tag.pages) {
+                                    book.pages.push(JSON.parse(page));
+                                }
+                            }
+                            setExtraData('book', book);
+                        }
+                    }
+                }
                 if('Patterns' in block.entities) {
                     setExtraData('patterns', block.entities.Color);
                 }

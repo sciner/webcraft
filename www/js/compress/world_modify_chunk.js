@@ -11,7 +11,7 @@ const VERSION_1 = '1';
  * @param {boolean} need_to_gzip 
  * @returns 
  */
-export function compressWorldModifyChunk(json, need_to_gzip) {
+export function compressWorldModifyChunk(json, need_to_gzip = true) {
     let resp = [VERSION_1];
     let prev_id = null;
     let prev_index = null;

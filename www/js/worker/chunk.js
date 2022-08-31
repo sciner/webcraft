@@ -44,9 +44,9 @@ export class ChunkManager {
     // Возвращает блок по абсолютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        let chunkAddr = getChunkAddr(x, y, z);
+        const chunkAddr = getChunkAddr(x, y, z);
         // обращаемся к чанку
-        let chunk = this.getChunk(chunkAddr);
+        const chunk = this.getChunk(chunkAddr);
         // если чанк найден
         if(chunk) {
             // просим вернуть блок передав абсолютные координаты
