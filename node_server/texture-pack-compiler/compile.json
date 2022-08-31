@@ -194,6 +194,10 @@
                 "up": "block/warped_stem_top.png",
                 "down": "block/warped_stem_top.png"
             },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
             "texture_animations": {
                 "side": null,
                 "up": 0,
@@ -211,6 +215,10 @@
                 "up": "block/crimson_stem_top.png",
                 "down": "block/crimson_stem_top.png"
             },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
             "texture_animations": {
                 "side": null,
                 "up": 0,
@@ -4155,6 +4163,9 @@
             "material": {
                 "id": "wood"
             },
+            "tags": [
+                "rotate_by_pos_n"
+            ],
             "texture": {
                 "side": "block/hay_block_side.png",
                 "up": "block/hay_block_top.png",
