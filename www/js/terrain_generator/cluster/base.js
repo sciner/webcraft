@@ -47,7 +47,7 @@ export class ClusterBase {
         } else {
             return false;
         }
-        chunk.tblocks.setBlockIndirect(x, y, z, block_id, rotate, extra_data);
+        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data);
         return true;
     }
 
