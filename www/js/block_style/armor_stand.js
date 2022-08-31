@@ -37,6 +37,7 @@ export default class style {
         const parts = [];
         const stand = [];
         stand.push(...[
+            // stand
             {
                 "size": {"x": 12, "y": 1, "z": 12},
                 "translate": {"x":0, "y": -7, "z": 0},
@@ -51,6 +52,7 @@ export default class style {
             }
         ]);
         parts.push(...[
+            // left leg
             {
                 "size": {"x": 2, "y": 11, "z": 2},
                 "translate": {"x":-2, "y": -2, "z": 0},
@@ -62,7 +64,9 @@ export default class style {
                     "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
-            },{
+            },
+            // right leg
+            {
                 "size": {"x": 2, "y": 11, "z": 2},
                 "translate": {"x":2, "y": -2, "z": 0},
                 "faces": {
@@ -73,7 +77,9 @@ export default class style {
                     "west":  {"uv": [8, 8], "flag": flag, "texture": planks},
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
-            },{
+            },
+            // body 
+            {
                 "size": {"x": 8, "y": 2, "z": 2},
                 "translate": {"x":0, "y": 4.5, "z": 0},
                 "faces": {
@@ -115,6 +121,7 @@ export default class style {
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
             },
+            // head
             {
                 "size": {"x": 2, "y": 7, "z": 2},
                 "translate": {"x":0, "y": 19, "z": 0},
@@ -127,6 +134,7 @@ export default class style {
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
             },
+            // left hand
             {
                 "size": {"x": 2, "y": 12, "z": 2},
                 "translate": {"x":-6, "y": 9.5, "z": 0},
@@ -139,6 +147,7 @@ export default class style {
                     "east":  {"uv": [8, 8], "flag": flag, "texture": planks}
                 }
             },
+            // right hand
             {
                 "size": {"x": 2, "y": 12, "z": 2},
                 "translate": {"x":6, "y": 9.5, "z": 0},
