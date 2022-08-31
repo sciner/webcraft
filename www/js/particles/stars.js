@@ -62,8 +62,6 @@ export class Particles_Stars {
         if(this.b == this.bo) return;
         this.bo = this.b;
 
-        console.log('redraw stars');
-
         if(this.buffer) {
             this.buffer.destroy();
         }
