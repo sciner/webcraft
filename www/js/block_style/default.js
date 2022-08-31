@@ -115,7 +115,6 @@ export default class style {
         if(part.matrix) {
             matrix = mat4.multiply(matrix, matrix, part.matrix);
         }
-
         //
         const anim = part?.lm?.b || 1;
 
