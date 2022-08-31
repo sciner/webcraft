@@ -1,10 +1,19 @@
-import {DIRECTION, QUAD_FLAGS, IndexedColor, Vector} from '../helpers.js';
+import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import { BLOCK } from "../blocks.js";
+import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 
 const {mat4} = glMatrix;
+
+const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
+const randoms = new Array(RANDOMS_COUNT);
+const a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
 
 // стойка для доспехов
 export default class style {
@@ -31,6 +40,8 @@ export default class style {
             return;
         }
         const rot = Math.round((((block.rotate.x - 2) / 4) * -(Math.PI * 2)) / 0.5233) * 0.5233;
+        const head_rot_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+        const head_rot = randoms[head_rot_index] * .2 - .1;
         const planks = BLOCK.calcTexture(BLOCK.OAK_LOG.texture, DIRECTION.UP);
         const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.UP);
         const flag = 0;
@@ -125,6 +136,7 @@ export default class style {
             {
                 "size": {"x": 2, "y": 7, "z": 2},
                 "translate": {"x":0, "y": 19, "z": 0},
+                "rot": [0, head_rot, 0],
                 "faces": {
                     "up": {"uv": [8, 8], "flag": flag, "texture": planks},
                     "down": {"uv": [8, 8], "flag": flag, "texture": planks},

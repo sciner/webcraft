@@ -6986,7 +6986,8 @@
             "transparent": true,
             "texture": "item/armor_stand.png",
             "tags":[
-                "rotate_x16"
+                "rotate_x16",
+                "no_drop_ao"
             ]
         }
     ]

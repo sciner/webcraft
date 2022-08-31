@@ -133,7 +133,7 @@ export default class style {
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
             if(is_grass || is_flower) {
-                let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
+                let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
                 dx = randoms[index] * 12/16 - 6/16;
                 dz = randoms[RANDOMS_COUNT - index] * 12/16 - 6/16;
                 dy -= .2 * randoms[index];
