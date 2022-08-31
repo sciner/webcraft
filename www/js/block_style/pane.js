@@ -1,14 +1,30 @@
-import {DIRECTION, IndexedColor, QUAD_FLAGS, ROTATE} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
+import { BLOCK } from "../blocks.js";
+import {impl as alea} from "../../vendors/alea.js";
+import { AABB } from '../core/AABB.js';
+import { default as default_style } from './default.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 
+const {mat4} = glMatrix;
 // Панель
 export default class style {
 
     static getRegInfo() {
         return {
             styles: ['pane'],
-            func: this.func
+            func: this.func,
+            aabb: this.computeAABB
         };
+    }
+    
+    static computeAABB(block, for_physic) {
+        if (for_physic) {
+            return [];
+        }
+        const aabb = new AABB();
+        aabb.set(0.16, 0, 0.16, 0.84, 1, 0.84);
+        return [aabb];
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
@@ -18,9 +34,99 @@ export default class style {
         }
 
         const material = block.material;
-        let flags = 0;
-        let lm = IndexedColor.WHITE;
-        const cardinal_direction = block.getCardinalDirection();
+        let flag = 0;
+        const pos = new Vector(x, y, z);
+        const lm = IndexedColor.WHITE;
+        const texture = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
+        const parts = [];
+        parts.push(...[
+            {
+                "size": {"x": 2, "y": 16, "z": 2},
+                "translate": {"x": 0, "y": 0, "z": 0},
+                "faces": {
+                    "up": {"uv": [8, 1], "flag": flag, "texture": texture},
+                    "down": {"uv": [8, 15], "flag": flag, "texture": texture},
+                    "north": {"uv": [8, 8], "flag": flag, "texture": texture},
+                    "south": {"uv": [8, 8], "flag": flag, "texture": texture},
+                    "west":  {"uv": [8, 8], "flag": flag, "texture": texture},
+                    "east":  {"uv": [8, 8], "flag": flag, "texture": texture}
+                }
+            }
+        ]);
+        if (neighbours.WEST.id == block.id) {
+            parts.push(...[
+                {
+                    "size": {"x": 7, "y": 16, "z": 2},
+                    "translate": {"x": -4.5, "y": 0, "z": 0},
+                    "faces": {
+                        "up": {"uv": [3.5, 1], "flag": flag, "texture": texture},
+                        "down": {"uv": [3.5, 15], "flag": flag, "texture": texture},
+                        "north": {"uv": [3.5, 8], "flag": flag, "texture": texture},
+                        "south": {"uv": [3.5, 8], "flag": flag, "texture": texture},
+                        "west":  {"uv": [1, 8], "flag": flag, "texture": texture},
+                        "east":  {"uv": [15, 8], "flag": flag, "texture": texture}
+                    }
+                }
+            ]);
+        }
+        if (neighbours.EAST.id == block.id) {
+            parts.push(...[
+                {
+                    "size": {"x": 7, "y": 16, "z": 2},
+                    "translate": {"x": 4.5, "y": 0, "z": 0},
+                    "faces": {
+                        "up": {"uv": [12.5, 1], "flag": flag, "texture": texture},
+                        "down": {"uv": [12.5, 15], "flag": flag, "texture": texture},
+                        "north": {"uv": [12.5, 8], "flag": flag, "texture": texture},
+                        "south": {"uv": [12.5, 8], "flag": flag, "texture": texture},
+                        "west":  {"uv": [1, 8], "flag": flag, "texture": texture},
+                        "east":  {"uv": [15, 8], "flag": flag, "texture": texture}
+                    }
+                }
+            ]);
+        }
+        if (neighbours.NORTH.id == block.id) {
+            parts.push(...[
+                {
+                    "size": {"x": 2, "y": 16, "z": 7},
+                    "translate": {"x": 0, "y": 0, "z": 4.5},
+                    "faces": {
+                        "up": {"uv": [12.5, 1], "flag": flag, "texture": texture},
+                        "down": {"uv": [12.5, 15], "flag": flag, "texture": texture},
+                        "north": {"uv": [12.5, 8], "flag": flag, "texture": texture},
+                        "south": {"uv": [12.5, 8], "flag": flag, "texture": texture},
+                        "west":  {"uv": [12.5, 8], "flag": flag, "texture": texture},
+                        "east":  {"uv": [12.5, 8], "flag": flag, "texture": texture}
+                    }
+                }
+            ]);
+        }
+        if (neighbours.SOUTH.id == block.id) {
+            parts.push(...[
+                {
+                    "size": {"x": 2, "y": 16, "z": 7},
+                    "translate": {"x": 0, "y": 0, "z": -4.5},
+                    "faces": {
+                        "up": {"uv": [3.5, 1], "flag": flag, "texture": texture},
+                        "down": {"uv": [3.5, 15], "flag": flag, "texture": texture},
+                        "north": {"uv": [3.5, 8], "flag": flag, "texture": texture},
+                        "south": {"uv": [3.5, 8], "flag": flag, "texture": texture},
+                        "west":  {"uv": [3.5, 8], "flag": flag, "texture": texture},
+                        "east":  {"uv": [3.5, 8], "flag": flag, "texture": texture}
+                    }
+                }
+            ]);
+        }
+        for(const part of parts) {
+            default_style.pushAABB(vertices, {
+                ...part,
+                lm:         lm,
+                pos:        pos,
+                matrix:     matrix
+            });
+        }
+        
+        /*const cardinal_direction = block.getCardinalDirection();
 
         let DIRECTION_BACK          = DIRECTION.BACK;
         let DIRECTION_RIGHT         = DIRECTION.RIGHT;
@@ -117,7 +223,7 @@ export default class style {
             if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
             if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
             push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs, pp, flags);
-        }
+        }*/
 
     }
 
