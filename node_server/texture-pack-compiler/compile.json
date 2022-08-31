@@ -2949,7 +2949,6 @@
             "style": "ladder",
             "inventory_style": "extruder",
             "transparent": true,
-            "passable": 0.25,
             "sound": "madcraft:block.wood",
             "material": {
                 "id": "wood"
