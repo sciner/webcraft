@@ -2,6 +2,7 @@ import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./serv
 import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
+import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
@@ -30,7 +31,8 @@ export class ServerChunkManager {
                 return this.material;
             }
         };
-        this.dataWorld = new DataWorld();
+        this.dataWorld = new DataWorld(this);
+        this.fluidWorld = new FluidWorld(this);
     }
 
     // Init worker

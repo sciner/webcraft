@@ -132,7 +132,7 @@ export class TypedBlocks3 {
          */
         this.vertices  = null;
         this.id = this.dataChunk.uint16View;
-        this.liquid = new Uint8Array(this.dataChunk.outerLen);
+        this.fluid = null;
     }
 
     ensureVertices() {
@@ -464,30 +464,6 @@ export class TypedBlocks3 {
         return pcnt;
     }
 
-    setLiquid(x, y, z, value) {
-        const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
-        const index = cx * x + cy * y + cz * z + cw;
-        this.liquid[index] = value;
-        //TODO: check in liquid queue here
-        const wx = x + pos.x;
-        const wy = y + pos.y;
-        const wz = z + pos.z;
-        if (safeAABB.contains(wx, wy, wz)) {
-            return 0;
-        }
-        let pcnt = 0;
-        //TODO: use only face-portals
-        for (let i = 0; i < portals.length; i++) {
-            if (portals[i].aabb.contains(wx, wy, wz)) {
-                const other = portals[i].toRegion;
-                other.rev.tblocks.water[other.indexByWorld(wx, wy, wz)] = value;
-                pcnt++;
-            }
-        }
-
-        return pcnt;
-    }
-
     static tempAABB = new AABB();
     static tempAABB2 = new AABB();
     static tempVec = new Vector();
@@ -549,8 +525,9 @@ export class TypedBlocks3 {
 }
 
 export class DataWorld {
-    constructor() {
+    constructor(chunkManager) {
         const INF = 1000000000;
+        this.chunkManager = chunkManager;
         this.base = new BaseChunk({size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -565,6 +542,9 @@ export class DataWorld {
         }
         chunk.dataChunk.rev = chunk;
         this.base.addSub(chunk.dataChunk);
+        if (this.chunkManager.fluidWorld) {
+            this.chunkManager.fluidWorld.addChunk(chunk);
+        }
     }
 
     removeChunk(chunk) {
@@ -572,6 +552,9 @@ export class DataWorld {
             return;
         }
         this.base.removeSub(chunk.dataChunk);
+        if (this.chunkManager.fluidWorld) {
+            this.chunkManager.fluidWorld.removeChunk(chunk);
+        }
     }
 
     /**
@@ -582,6 +565,8 @@ export class DataWorld {
             return;
         }
 
+        const fluid = chunk.fluid.uint8View;
+
         const { portals, aabb, uint16View, cx, cy, cz } = chunk.dataChunk;
         const cw = chunk.dataChunk.shiftCoord;
         const tempAABB = new AABB();
@@ -589,6 +574,7 @@ export class DataWorld {
             const portal = portals[i];
             const other = portals[i].toRegion;
             const otherView = other.uint16View;
+            const otherFluid = other.rev.fluid.uint8View;
 
             const cx2 = other.cx;
             const cy2 = other.cy;
@@ -599,13 +585,19 @@ export class DataWorld {
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
                 for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
-                        otherView[x * cx2 + y * cy2 + z * cz2 + cw2] = uint16View[x * cx + y * cy + z * cz + cw];
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        otherView[ind2] = uint16View[ind];
+                        otherFluid[ind2] = fluid[ind];
                     }
             tempAABB.setIntersect(other.aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
                 for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
-                        uint16View[x * cx + y * cy + z * cz + cw] = otherView[x * cx2 + y * cy2 + z * cz2 + cw2];
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        uint16View[ind] = otherView[ind2];
+                        fluid[ind] = otherFluid[ind2];
                     }
         }
     }

@@ -9,6 +9,7 @@ import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
+import {FluidWorld} from "../fluid/FluidWorld.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -28,7 +29,8 @@ export class ChunkManager {
                 return this.properties;
             }
         };
-        this.dataWorld = new DataWorld();
+        this.dataWorld = new DataWorld(this);
+        this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new Worker05GeometryPool(null, {});
 
         this.materialToId = new Map();
@@ -81,6 +83,11 @@ export class Chunk {
 
         this.vertexBuffers = new Map();
         this.serializedVertices = null;
+
+        this.fluid = null;
+        if (world.fluid) {
+            world.fluid.addChunk(this);
+        }
     }
 
     init() {
@@ -244,16 +251,14 @@ export class Chunk {
 
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power) {
-        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
-        const { liquid } = this.tblocks;
-        const index = cx * x + cy * y + cz * z + cw;
-        if (this.isLiquid(block_id)) {
-            uint16View[index] = 0;
-            liquid[index] = block_id;
-        } else {
-            uint16View[index] = block_id;
-            liquid[index] = 0;
+        if (this.fluid.isFluid(block_id)) {
+            this.fluid.setFluidIndirect(x, y, z, block_id);
+            return;
         }
+
+        const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        uint16View[index] = block_id;
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power);
         }
@@ -268,10 +273,6 @@ export class Chunk {
 
     isWater(id) {
         return id == 200 || id == 202;
-    }
-
-    isLiquid(id) {
-        return id == 200 || id == 202 || id == 170 || id == 171;
     }
 
     static neibMat = [null, null, null, null, null, null];

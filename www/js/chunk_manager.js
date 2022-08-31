@@ -9,6 +9,7 @@ import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
 import { Particles_BeaconRay } from "./particles/bn_ray.js";
+import {FluidWorld} from "./fluid/FluidWorld.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -61,7 +62,8 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.worker_inited          = false;
         this.timer60fps             = 0;
-        this.dataWorld              = new DataWorld();
+        this.dataWorld              = new DataWorld(this);
+        this.fluidWorld             = new FluidWorld(this);
 
         this.chunk_modifiers        = new VectorCollector();
 
