@@ -6984,7 +6984,10 @@
             },
             "can_rotate": true,
             "transparent": true,
-            "texture": "item/armor_stand.png"
+            "texture": "item/armor_stand.png",
+            "tags":[
+                "rotate_x16"
+            ]
         }
     ]
 }

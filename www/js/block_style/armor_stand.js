@@ -30,12 +30,13 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-    
-        const planks = BLOCK.calcTexture(BLOCK.DARK_OAK_LOG.texture, DIRECTION.UP);
+        const rot = Math.round((((block.rotate.x - 2) / 4) * -(Math.PI * 2)) / 0.5233) * 0.5233;
+        const planks = BLOCK.calcTexture(BLOCK.OAK_LOG.texture, DIRECTION.UP);
         const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.UP);
         const flag = 0;
         const parts = [];
-        parts.push(...[
+        const stand = [];
+        stand.push(...[
             {
                 "size": {"x": 12, "y": 1, "z": 12},
                 "translate": {"x":0, "y": -7, "z": 0},
@@ -47,7 +48,10 @@ export default class style {
                     "west":  {"uv": [8, 8], "flag": flag, "texture": stone},
                     "east":  {"uv": [8, 8], "flag": flag, "texture": stone}
                 }
-            },{
+            }
+        ]);
+        parts.push(...[
+            {
                 "size": {"x": 2, "y": 11, "z": 2},
                 "translate": {"x":-2, "y": -2, "z": 0},
                 "faces": {
@@ -148,22 +152,19 @@ export default class style {
                 }
             }
         ]);
-        const cd = block.getCardinalDirection();
-        matrix = mat4.create();
-        switch(cd) {
-            case DIRECTION.NORTH: 
-                mat4.rotateY(matrix, matrix, Math.PI);
-                break;
-            case DIRECTION.WEST: 
-                mat4.rotateY(matrix, matrix, -Math.PI / 2);
-                break;
-            case DIRECTION.EAST: 
-                mat4.rotateY(matrix, matrix, Math.PI / 2);
-                break;
-        }
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
-        for(let part of parts) {
+        for(const el of stand) {
+            default_style.pushAABB(vertices, {
+                ...el,
+                lm:         lm,
+                pos:        pos,
+                matrix:     matrix
+            });
+        }
+        matrix = mat4.create();
+        mat4.rotateY(matrix, matrix, rot);
+        for(const part of parts) {
             default_style.pushAABB(vertices, {
                 ...part,
                 lm:         lm,
