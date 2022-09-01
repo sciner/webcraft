@@ -161,9 +161,11 @@ export class ServerChunkManager {
     }
 
     unloadInvalidChunks() {
-        if(this.invalid_chunks_queue.length > 0) {
-            console.debug('Unload invalid chunks: ' + this.invalid_chunks_queue.length);
+        const cnt = this.invalid_chunks_queue.length;
+        if(cnt == 0) {
+            return false;
         }
+        const p = performance.now();
         while(this.invalid_chunks_queue.length > 0) {
             const chunk = this.invalid_chunks_queue.pop();
             if(chunk.connections.size == 0) {
@@ -171,6 +173,8 @@ export class ServerChunkManager {
                 chunk.onUnload();
             }
         }
+        const elapsed = Math.round((performance.now() - p) * 10) / 10;
+        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed} ms`);
     }
 
     add(chunk) {
