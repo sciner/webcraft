@@ -499,6 +499,7 @@ export class MobModel extends NetworkPhysicObject {
         this.width                      = 0;
         this.height                     = 0;
         this.sneak                      = 0;
+        this.body_rotate                = 0;
 
         Object.assign(this, props);
 
