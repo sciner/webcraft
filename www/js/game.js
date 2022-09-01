@@ -193,7 +193,6 @@ export class GameClass {
                             this.hud.toggleActive();
                         }
                         return true;
-                        break;
                     }
                     // [F2]
                     case KEY.F2: {
@@ -203,7 +202,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                     // [F3] Toggle info
                     case KEY.F3: {
@@ -211,7 +209,29 @@ export class GameClass {
                             this.hud.toggleInfo();
                         }
                         return true;
-                        break;
+                    }
+                    // [F5] (Camera mode)
+                    case KEY.F5: {
+                        if(this.hud.frmMainMenu.visible) {
+                            return false;
+                        }
+                        if(e.down) {
+                            if(!this.hud.wm.hasVisibleWindow()) {
+                                Qubatch.render.nextCameraMode();
+                            }
+                        }
+                        if(e.e_orig) {
+                            e.e_orig.preventDefault();
+                            e.e_orig.stopPropagation();
+                        }
+                    }
+                    // [F6]
+                    case KEY.F6: {
+                        if(e.e_orig) {
+                            e.e_orig.preventDefault();
+                            e.e_orig.stopPropagation();
+                        }
+                        return true;
                     }
                 }
                 // Windows
@@ -241,7 +261,6 @@ export class GameClass {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist + 1);
                         }
                         return true;
-                        break;
                     }
                     // Set render distance [Page Down]
                     case KEY.PAGE_DOWN: {
@@ -249,7 +268,6 @@ export class GameClass {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist - 1);
                         }
                         return true;
-                        break;
                     }
                     case KEY.SLASH: {
                         if(!e.down) {
@@ -258,7 +276,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                     // [F4] set spawnpoint
                     case KEY.F4: {
@@ -271,15 +288,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
-                    }
-                    // [F6] (Camera mode)
-                    case KEY.F6: {
-                        if(!e.down) {
-                            Qubatch.render.nextCameraMode();
-                        }
-                        return true;
-                        break;
                     }
                     // [F7]
                     case KEY.F7: {
@@ -287,7 +295,6 @@ export class GameClass {
                             this.render.testLightOn = !this.render.testLightOn;
                         }
                         return true;
-                        break;
                     }
                     // [F8] Random teleport
                     case KEY.F8: {
@@ -309,7 +316,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
@@ -317,7 +323,6 @@ export class GameClass {
                             player.world.server.GameModeNext();
                         }
                         return true;
-                        break;
                     }
                     // R (Respawn)
                     case KEY.R: {
@@ -333,7 +338,6 @@ export class GameClass {
                             this.player.world.server.DropItem();
                         }
                         return true;
-                        break;
                     }
                     // E (Inventory)
                     case KEY.E: {
@@ -363,7 +367,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                 }
                 // Player controls
