@@ -1,12 +1,12 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, PLAYER_HEIGHT, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
-const {mat4, quat} = glMatrix;
+const {quat} = glMatrix;
 const SWING_DURATION = 6;
 
 const KEY_SLOT_MAP = {
@@ -45,7 +45,9 @@ export class PlayerAnimation extends MobAnimation {
             pitch = 0.5; 
         }
 
-        quat.fromEuler(part.quat, -pitch * 90, 0, 0);
+        const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
+
+        quat.fromEuler(part.quat, -pitch * 90, 0, yaw);
 
         part.updateMatrix();
     }
@@ -83,6 +85,9 @@ export class PlayerModel extends MobModel {
         this.swingProgress = 0;
         this.swingProgressInt = 0;
         this.isSwingInProgress = false;
+
+        //
+        this.body_rotate = 0;
 
     }
 
@@ -302,6 +307,11 @@ export class PlayerModel extends MobModel {
     startArmSwingProgress() {
         this.stopArmSwingProgress();
         this.isSwingInProgress = true;
+    }
+
+    // value: -1 ... 0 ... 1
+    setBodyRotate(value) {
+        this.body_rotate = value;
     }
 
     updateArmSwingProgress(delta) {

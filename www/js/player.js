@@ -10,7 +10,7 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
-import { MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -92,6 +92,9 @@ export class Player {
         this.overChunk              = null;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
+        this.body_rotate            = 0;
+        this.body_rotate_o          = 0;
+        this.body_rotate_speed      = BODY_ROTATE_SPEED;
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
@@ -496,7 +499,7 @@ export class Player {
     }
 
     // Updates this local player (gravity, movement)
-    update() {
+    update(delta) {
         this.inMiningProcess = false;
         // View
         if(this.lastUpdate) {
@@ -515,7 +518,7 @@ export class Player {
             let isSpectator = this.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
-            let pc                 = this.getPlayerControl();
+            const pc               = this.getPlayerControl();
             this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
             const applyControl = !this.state.sitting && !this.state.lies;
             pc.controls.back       = applyControl && this.controls.back;
@@ -526,6 +529,8 @@ export class Player {
             pc.controls.sneak      = applyControl && this.controls.sneak;
             pc.controls.sprint     = applyControl && this.controls.sprint;
             pc.player_state.yaw    = this.rotate.z;
+            //
+            this.checkBodyRot(delta);
             // Physics tick
             let ticks = pc.tick(delta);
             //
@@ -641,6 +646,25 @@ export class Player {
         this.lastUpdate = performance.now();
     }
 
+    //
+    checkBodyRot(delta) {
+        const pc = this.getPlayerControl();
+        const value = delta * this.body_rotate_speed;
+        if(pc.controls.right && !pc.controls.left) {
+            this.body_rotate = Math.min(this.body_rotate + value, 1);
+        } else if(pc.controls.left && !pc.controls.right) {
+            this.body_rotate = Math.max(this.body_rotate - value, -1);
+        } else if(pc.controls.forward || pc.controls.back) {
+            if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
+            if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
+        }
+        if(this.body_rotate_o != this.body_rotate) {
+            // body rot changes
+            this.body_rotate_o = this.body_rotate;
+            this.triggerEvent('body_rot_changed', {value: this.body_rotate});
+        }
+    }
+
     // 
     triggerEvent(name, args) {
         switch(name) {
@@ -674,6 +698,13 @@ export class Player {
                     this.underwater_track_id = null;
                 }
                 Qubatch.sounds.play('madcraft:environment', 'exiting_water');
+                break;
+            }
+            case 'body_rot_changed': {
+                const itsme = this.getModel()
+                if(itsme) {
+                    itsme.setBodyRotate(args.value);
+                }
                 break;
             }
         }

@@ -452,7 +452,7 @@ export class GameClass {
 
         if(this.player.controls.enabled && !this.hud.splash.loading) {
             // Update local player
-            player.update();
+            player.update(delta);
         } else {
             player.lastUpdate = null;
         }

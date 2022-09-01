@@ -160,7 +160,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'destructChunk': {
-            console.log('Worker destructChunk:', args.length);
+            console.debug('Worker destructChunk:', args.length);
             for(let addr of args) {
                 world.destructChunk(addr);
             }
