@@ -8,6 +8,9 @@ export class FluidChunk {
         this.parentChunk = parentChunk;
         this.uint8View = parentChunk.tblocks.fluid = new Uint8Array(this.dataChunk.outerLen);
         // depends on client/server/worker it should be different
+
+        this.waterGeom = null; // transparent geom
+        this.lavaGeom = null; // non-transparent glowy geom
     }
 
     setValue(x, y, z, value) {
@@ -49,5 +52,9 @@ export class FluidChunk {
         if (block_id === 170 || block_id === 171) {
             uint8View[index] = FLUID_LAVA_ID | FLUID_GENERATED_FLAG;
         }
+    }
+
+    buildVertices() {
+        //check non-zero first
     }
 }

@@ -1,9 +1,12 @@
 import {VectorCollector} from "../helpers.js";
 import {FluidChunk} from "./FluidChunk.js";
+import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 
 export class FluidWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
+
+        this.geometryPool = new Worker05GeometryPool(null, {});
     }
 
     addChunk(chunk) {
