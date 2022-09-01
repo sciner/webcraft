@@ -86,9 +86,6 @@ export class PlayerModel extends MobModel {
         this.swingProgressInt = 0;
         this.isSwingInProgress = false;
 
-        //
-        this.body_rotate = 0;
-
     }
 
     applyNetState(state) {
