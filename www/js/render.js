@@ -797,7 +797,7 @@ export class Renderer {
                 continue;
             }
             // this.camPos.distance
-            if(player.itsMe() || player.distance) {
+            if(player.itsMe() || player.distance !== null) {
                 player.draw(this, this.camPos, delta);
             }
         }

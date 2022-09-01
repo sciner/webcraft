@@ -1,6 +1,10 @@
 export class WorldTickStat {
 
+    #history = new Array(20);
+    #index = 0;
+
     constructor() {
+        this.tps = 0;
         this.number = 0;
         this.pn = null;
         this.last = 0;
@@ -20,11 +24,6 @@ export class WorldTickStat {
         };
     }
 
-    start() {
-        this.pn = performance.now();
-        this.pn_values = performance.now();
-    }
-
     add(field) {
         const value = this.values[field];
         if (value) {
@@ -39,10 +38,19 @@ export class WorldTickStat {
         this.pn_values = performance.now();
     }
 
+    start() {
+        this.pn = performance.now();
+        this.pn_values = performance.now();
+    }
+
     end() {
         if(this.pn !== null) {
             // Calculate stats of elapsed time for ticks
             this.last = performance.now() - this.pn;
+
+            this.#history[this.#index++ % this.#history.length] = this.last;
+            this.tps = Math.min(1000 / (this.#history.reduce((a, b) => a + b) / this.#history.length), 20);
+
             this.total += this.last;
             this.count++;
             if (this.last < this.min) this.min = this.last;

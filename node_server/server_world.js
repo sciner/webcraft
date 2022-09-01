@@ -159,7 +159,7 @@ export class ServerWorld {
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
             //
-            if(this.ticks_stat.number % 100 != 0) {
+            if(this.ticks_stat.number % 100 == 0) {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
             }
