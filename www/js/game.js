@@ -199,7 +199,7 @@ export class GameClass {
                     case KEY.F2: {
                         if(!e.down) {
                             if(!this.hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
-                                Qubatch.hud.wm.getWindow('frmScreenshot').make();
+                                this.hud.wm.getWindow('frmScreenshot').make();
                             }
                         }
                         return true;
@@ -217,15 +217,15 @@ export class GameClass {
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
-                        if(Qubatch.hud.wm.getWindow('frmQuests').visible) {
-                            Qubatch.hud.wm.getWindow('frmQuests').hide();
+                        if(this.hud.wm.getWindow('frmQuests').visible) {
+                            this.hud.wm.getWindow('frmQuests').hide();
                             return true;
                         }
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(Qubatch.hud.frmMainMenu.visible) {
-                                Qubatch.hud.wm.closeAll();
+                            if(this.hud.frmMainMenu.visible) {
+                                this.hud.wm.closeAll();
                                 Qubatch.setupMousePointer(false);
                                 return true;
                             }
@@ -349,7 +349,7 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!this.hud.wm.hasVisibleWindow()) {
-                                Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
+                                this.hud.wm.getWindow('frmQuests').toggleVisibility();
                                 return true;
                             }
                         }
@@ -457,7 +457,7 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
-        if (player.pickAt && Qubatch.hud.active && player.game_mode.canBlockAction()) {
+        if (player.pickAt && this.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
         }
 
@@ -599,6 +599,7 @@ export class GameClass {
             }  else {
                 this.setControlsEnabled(false);
                 this.kb.clearStates();
+                this.player.clearStates();
                 if(!this.hud.wm.hasVisibleWindow() && !this.player.chat.active) {
                     // Safari emit ESC keyup since ~100 ms after pointer lock left event
                     // we should skip this ESC

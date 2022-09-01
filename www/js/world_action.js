@@ -604,6 +604,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     const destroyBlocks = new DestroyBlocks(world, player, actions);
 
     if(e.pos == false) {
+        console.error('empty e.pos');
         return actions;
     }
 
@@ -615,7 +616,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
-        console.log('error_empty_world_material', world_block.id, pos);
+        console.error('error_empty_world_material', world_block.id, pos);
         return actions;
     }
 
@@ -637,7 +638,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removeFromPot]) {
+            for(let func of [removeFromPot, deletePortal]) {
                 if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -645,7 +646,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // 2.
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
                 const tblock = world.getBlock(pos);
-                if(tblock.id >= 0) {
+                if(tblock.id > 0) {
                     destroyBlocks.add(tblock, pos);
                     //
                     actions.decrement_instrument = {id: tblock.id};
@@ -661,14 +662,6 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
         }
-        
-        // Проверка выполняемых действий с блоками в мире
-        for(let func of [deletePortal]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return actions;
-            }
-        }
-        
         return actions;
     }
 
@@ -686,17 +679,16 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 4. Create
     if(e.createBlock) {
-    
-       
+
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
-        
-        
+
         if(mat_block && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
         if(mat_block && mat_block.deprecated) {
+            console.error('mat_block.deprecated');
             return actions;
         }
 
@@ -709,6 +701,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
         // Дальше идут действия, которые обязательно требуют, чтобы в инвентаре что-то было выбрано
         if(!current_inventory_item || current_inventory_item.count < 1) {
+            console.error('no current_inventory_item');
             return actions;
         }
 
@@ -753,6 +746,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 const block_on_posn = world.getBlock(pos);
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!block_on_posn.canReplace()) {
+                    console.error('!canReplace', block_on_posn.material.name);
                     return actions;
                 }
             }
@@ -768,17 +762,20 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     z_min: player.pos.z - player.radius / 2,
                     z_max: player.pos.z - player.radius / 2 + player.radius
                 })) {
+                    console.error('intersect with player');
                     return actions;
                 }
             }
     
             // Некоторые блоки можно ставить только на что-то сверху
             if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
+                console.error('mat_block.is_layering');
                 return actions;
             }
     
             // Некоторые блоки можно только подвешивать на потолок
             if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
+                console.error('place_only_to_ceil');
                 return actions;
             }
 
@@ -1263,10 +1260,6 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
 // удаление портала
 async function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
 
-    if(!Qubatch.is_server) {
-        return;
-    }
-
     // get frame material
     let portal_frame_block_name = null;
     if(world_material) {
@@ -1295,7 +1288,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
     const portal_ids = new Map();
     
     // рекурсивный поиск блоков NETHER_PORTAL
-    const getNeighbours = (pos) => {
+    const findNeighbours = (pos) => {
         const neighbours = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
         for(let el of neighbours) {
             const position = pos.offset(el[0], el[1], el[2]);
@@ -1307,13 +1300,13 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
                         portal_ids.set(portal_id, portal_id);
                     }
                     poses.push(position);
-                    getNeighbours(position);
+                    findNeighbours(position);
                 }
             }
         }
     }
     
-    getNeighbours(new Vector(pos.x, pos.y, pos.z));
+    findNeighbours(new Vector(pos.x, pos.y, pos.z));
     
     if(poses.length > 0) {
         const arr = [];
@@ -1328,7 +1321,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
         }
         actions.addBlocks(arr);
         //
-        if(portal_ids.size > 0) {
+        if(portal_ids.size > 0 && Qubatch.is_server) {
             for(let portal_id of Array.from(portal_ids.keys())) {
                 console.log('delete portal ', portal_id);
                 world.db.portal.delete(player, portal_id);
@@ -1341,17 +1334,15 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
 // создание портала
 async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
 
-    if (!Qubatch.is_server || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
+    if (!current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
         return;
     }
 
     if(world.info.generator.id != 'biome2') {
         throw 'error_not_permitted';
-        return;
     }
-    const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
 
-    console.log(portal_type);
+    const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
 
     if (!portal_type) {
         return;
@@ -1486,6 +1477,11 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
                 if(Qubatch.is_server) {
                     portal_block.extra_data = {
                         id: await world.db.portal.add(player.session.user_id, portal),
+                        type: portal_type.id
+                    };
+                } else {
+                    portal_block.extra_data = {
+                        id: null,
                         type: portal_type.id
                     };
                 }

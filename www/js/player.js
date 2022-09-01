@@ -765,4 +765,12 @@ export class Player {
         }
     }
 
+    //
+    clearStates() {
+        this.controls.reset();
+        this.pickAt.clearEvent();
+        this.pickAt.resetTargetPos();
+        this.inMiningProcess = false;
+    }
+
 }

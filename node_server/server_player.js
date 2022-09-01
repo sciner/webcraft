@@ -430,7 +430,9 @@ export class ServerPlayer extends Player {
                 data: data
             })
         }
-        this.world.sendSelected(packets, [this.session.user_id]);
+        if(packets.length > 0) {
+            this.world.sendSelected(packets, [this.session.user_id]);
+        }
     }
 
     //
