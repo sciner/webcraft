@@ -4120,7 +4120,11 @@
                 "id": "stone"
             },
             "texture": "block/iron_bars.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "tags": [
+                "alpha",
+                "no_drop_ao"
+            ]
         },
         {
             "id": 628,
