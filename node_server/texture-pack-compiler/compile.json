@@ -7062,6 +7062,9 @@
             },
             "ticking": {
                 "type": "fire"
+            },
+            "extra_data": {
+                "age": 0
             }
         }
     ]
