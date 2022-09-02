@@ -12,6 +12,7 @@ import {Tracker_Player} from "./tracker_player.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { MAGIC_ROTATE_DIV, SOUND_MAX_DIST } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
+import { Lang } from "./lang.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -293,6 +294,22 @@ export class GameClass {
                     case KEY.F7: {
                         if(!e.down) {
                             this.render.testLightOn = !this.render.testLightOn;
+                            const ghost = {
+                                "name": ServerClient.CMD_PLAYER_JOIN,
+                                "data": {
+                                    "id": -1,
+                                    "username": Lang.im,
+                                    "pos": player.lerpPos.clone(),
+                                    "rotate": player.rotate.clone(),
+                                    "skin": player.state.skin,
+                                    "hands": player.state.hands,
+                                    "sitting": player.state.sitting,
+                                    "lies": player.state.lies
+                                },
+                                "time": ~~(new Date())
+                            };
+                            player.world.players.add(ghost);
+                            player.world.players.list.get(-1).sneak = player.sneak;
                         }
                         return true;
                     }
