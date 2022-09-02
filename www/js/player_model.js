@@ -1,7 +1,7 @@
 import { BLOCK } from "./blocks.js";
 import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { Helpers, NORMALS, Vector } from './helpers.js';
+import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
@@ -238,15 +238,18 @@ export class PlayerModel extends MobModel {
             return;
         }
 
-        const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
-        const angX = 0; // @todo
+        const rot = new Vector(
+            0,
+            0,
+            180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI
+        );
 
         this.nametag.visible = !this.sneak && !this.hide_nametag;
 
         const zoom = camPos.distance(this.pos) / 6;
         this.nametag.scale.set([0.005 * zoom, 1, 0.005 * zoom]);
 
-        quat.fromEuler(this.nametag.quat, angX, 0, angZ);
+        quat.fromEuler(this.nametag.quat, rot.x, rot.y, rot.z);
         this.nametag.updateMatrix();
     }
 
@@ -289,6 +292,7 @@ export class PlayerModel extends MobModel {
         const node = new SceneNode();
         node.name = 'name_tag';
         node.terrainGeometry = new GeometryTerrain(vertices);
+        node.terrainGeometry.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG);
         node.material = render.defaultShader.materials.label.getSubMat(texture);
 
         return node;
