@@ -43,7 +43,7 @@ export default class style {
             {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -8, "y": 0, "z": 0}},
         ]);
         
-        const flag = QUAD_FLAGS.FLAG_ANIMATED;
+        const flag = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO;
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         lm.b = 16;//BLOCK.getAnimations({"material": BLOCK.CAMPFIRE.texture_animations}, 'up');

@@ -7053,6 +7053,13 @@
                 "no_drop_ao",
                 "alpha"
             ],
+            "is_fire": true,
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
             "ticking": {
                 "type": "fire"
             }
