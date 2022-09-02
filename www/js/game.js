@@ -460,7 +460,7 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
-        if (player.pickAt && this.hud.active && player.game_mode.canBlockAction()) {
+        if (player.pickAt && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
         }
 

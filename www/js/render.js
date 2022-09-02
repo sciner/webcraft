@@ -1037,7 +1037,7 @@ export class Renderer {
         let cam_rotate = rotate;
 
         this.bobView(player, tmp);
-        this.crosshairOn = this.camera_mode === CAMERA_MODE.SHOOTER
+        this.crosshairOn = (this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active;
 
         if(this.camera_mode === CAMERA_MODE.SHOOTER) {
             // do nothing

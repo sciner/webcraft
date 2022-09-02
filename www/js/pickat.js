@@ -215,6 +215,9 @@ export class PickAt {
 
     // Draw meshes
     draw() {
+        if(!Qubatch.hud.active) {
+            return;
+        }
         if(!this.material_target) {
             this.initMaterials();
         }
