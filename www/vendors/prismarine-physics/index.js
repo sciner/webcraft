@@ -2,6 +2,7 @@ import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
+import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../js/constant.js";
 
 const BLOCK_NOT_EXISTS = -2;
 
@@ -65,15 +66,15 @@ export function Physics(mcData, fake_world, options) {
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
+        stepHeight: typeof options.stepHeight === 'undefined' ? (0.65 * PLAYER_ZOOM) : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
         honeyblockSpeed: 0.4,
         honeyblockJumpSpeed: 0.4,
         ladderMaxSpeed: 0.15,
         ladderClimbSpeed: 0.2,
-        playerHalfWidth: typeof options.playerHalfWidth === 'undefined' ? 0.3 : options.playerHalfWidth,
-        playerHeight: typeof options.playerHeight === 'undefined' ? 1.8 : options.playerHeight,
+        playerHalfWidth: typeof options.playerHalfWidth === 'undefined' ? 0.3 * PLAYER_ZOOM : options.playerHalfWidth,
+        playerHeight: typeof options.playerHeight === 'undefined' ? PLAYER_HEIGHT : options.playerHeight,
         waterInertia: 0.8,
         lavaInertia: 0.5,
         liquidAcceleration: 0.02,
@@ -363,8 +364,8 @@ export function Physics(mcData, fake_world, options) {
 
         speed = multiplier / Math.max(speed, 1)
 
-        strafe *= speed
-        forward *= speed
+        strafe *= speed * PLAYER_ZOOM
+        forward *= speed * PLAYER_ZOOM
 
         const yaw = Math.PI - entity.yaw
         const sin = Math.sin(yaw)
@@ -593,7 +594,7 @@ export function Physics(mcData, fake_world, options) {
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
                 vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                vel.y = Math.fround(0.42)
+                vel.y = Math.fround(Math.pow(0.42, 1/PLAYER_ZOOM))
                 if(honeyblockId != BLOCK_NOT_EXISTS) {
                     const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                     vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);

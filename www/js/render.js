@@ -22,7 +22,7 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./type.js";
 
 const {mat3, mat4} = glMatrix;
@@ -1054,7 +1054,7 @@ export class Renderer {
             const view_vector = player.forward.clone();
             view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
             //
-            const d = 5; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+            const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
             cam_pos_new.moveToSelf(cam_rotate, d);
             if(!player.game_mode.isSpectator()) {
                 // raycast from eyes to cam
@@ -1084,8 +1084,8 @@ export class Renderer {
 
         let p_109140_ = player.walking_frame * 2 % 1;
         //
-        let f = player.walkDist - player.walkDistO;
-        let f1 = -(player.walkDist + f * p_109140_);
+        let f = (player.walkDist - player.walkDistO) / PLAYER_ZOOM;
+        let f1 = -(player.walkDist + f * p_109140_) / PLAYER_ZOOM;
         let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
         //
         let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;

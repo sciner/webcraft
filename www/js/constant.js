@@ -25,9 +25,11 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 
 // player
-export const PLAYER_HEIGHT                  = 1.7;
+export const PLAYER_ZOOM                    = 1;
+export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
 export const SNEAK_MINUS_Y_MUL              = 0.2; // decrease player height to this percent value
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
+export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1;
 

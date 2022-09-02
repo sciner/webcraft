@@ -1,5 +1,5 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT } from "./constant.js";
+import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
@@ -195,7 +195,7 @@ export class PlayerModel extends MobModel {
         super.postLoad(tree);
         
         for(let i = 0; i < tree.length; i++) {
-            tree[i].scale.set([0.9, 0.9, 0.9]);
+            tree[i].scale.set([0.9 * PLAYER_ZOOM, 0.9 * PLAYER_ZOOM, 0.9 * PLAYER_ZOOM]);
         }
         
         if (this.nametag || !this.sceneTree) {
