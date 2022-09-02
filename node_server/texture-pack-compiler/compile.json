@@ -7038,6 +7038,24 @@
                 "rotate_x16",
                 "no_drop_ao"
             ]
+        },
+        {
+            
+            "id": 506,
+            "name": "FIRE",
+            "sound": "madcraft:block.wood",
+            "style": "fire",
+            "material": {
+                "id": "wood"
+            },
+            "transparent": true,
+            "tags":[
+                "no_drop_ao",
+                "alpha"
+            ],
+            "ticking": {
+                "type": "fire"
+            }
         }
     ]
 }

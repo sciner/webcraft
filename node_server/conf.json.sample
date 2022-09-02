@@ -35,7 +35,8 @@
         "stage",
         "furnace",
         "bee_nest",
-        "bn"
+        "bn",
+        "fire"
     ],
     "chat_plugins": [
         "chat_teleport",
