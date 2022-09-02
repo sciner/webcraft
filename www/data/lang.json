@@ -118,6 +118,10 @@
         "logout": {"en": "Log-out", "ru": "Выйти из игры", "fr": "", "es": "", "man": ""},
         "error_player_exists": {"en": "Player with same name exists", "ru": "Игрок с таким именем уже зарегистрирован", "fr": "", "es": "", "man": ""},
         "players_online": {"en": "Players online", "ru": "Игроков онлайн", "fr": "", "es": "", "man": ""},
-        "forced_joystick_control": {"en": "Forced Joystick control", "ru": "Принудительное использование джойстиков управления", "fr": "", "es": "", "man": ""}
+        "forced_joystick_control": {"en": "Forced Joystick control", "ru": "Принудительное использование джойстиков управления", "fr": "", "es": "", "man": ""},
+        "please_rotate_to_landscape": {"en": "Please rotate your device to landscape mode", "ru": "", "fr": "", "es": "", "man": ""},
+        "press_f11_to_fullscreen": {"en": "Press F11 to full screen", "ru": "Нажмите F11 чтобы смотреть на весь экран", "fr": "", "es": "", "man": ""},
+        "loading_game_connecting": {"en": "CONNECTING TO SERVER...", "ru": "СОЕДИНЕНИЕ С СЕРВЕРОМ ...", "fr": "", "es": "", "man": ""},
+        "loading_game_generate_planet": {"en": "GENERATE PLANET ...", "ru": "ГЕНЕРАЦИЯ ПЛАНЕТЫ ...", "fr": "", "es": "", "man": ""}
     }
 }
