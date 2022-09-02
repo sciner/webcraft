@@ -20,7 +20,7 @@ export default class style {
     
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
-        aabb.set(0, 0, 0, 1, 1, 1);
+        aabb.set(0, 0, 0, 1, 0.06, 1);
         return [aabb];
     }
 
@@ -31,7 +31,8 @@ export default class style {
             return;
         }
         
-        const texture = BLOCK.calcTexture(BLOCK.CAMPFIRE.texture, DIRECTION.UP);
+        const material = block.material;
+        const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
         
         const planes = [];
         planes.push(...[
@@ -43,10 +44,10 @@ export default class style {
             {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -8, "y": 0, "z": 0}},
         ]);
         
-        const flag = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO;
+        const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
-        lm.b = 16;//BLOCK.getAnimations({"material": BLOCK.CAMPFIRE.texture_animations}, 'up');
+        lm.b = BLOCK.getAnimations(material, "west");
         for(const plane of planes) {
             default_style.pushPlane(vertices, {
                 ...plane,

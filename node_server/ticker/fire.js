@@ -28,13 +28,15 @@ export default class Ticker {
         
         const age = tblock.extra_data.age;
         const updated_blocks = [];
-        if (age >= 15) {
+        const block = world.getBlock(pos.add(Vector.YN));
+        if (age >= 15 || block.id == BLOCK.AIR.id) {
             updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             const new_age = Math.min(15, age + rndInt(3) / 2);
             if (age != new_age) {
                 tblock.extra_data.age = new_age;
             }
+
             
             // Поджигаем или уничтожаем боковушки
             setFireOrDes(world, pos.add(Vector.XN), 300, age, updated_blocks);
@@ -44,7 +46,7 @@ export default class Ticker {
             setFireOrDes(world, pos.add(Vector.YN), 250, age, updated_blocks);
             setFireOrDes(world, pos.add(Vector.YP), 250, age, updated_blocks);
             
-            // Поджигаем всё что вокруг
+            /* Поджигаем всё что вокруг
             for (let x = -1; x <= 1; ++x) {
                 for (let z = -1; z <= 1; ++z) {
                     for (let y = -1; y <= 4; ++y) {
@@ -66,7 +68,7 @@ export default class Ticker {
                         }
                     }
                 }
-            }
+            }*/
             
         }
         return updated_blocks;

@@ -166,6 +166,39 @@
             }
         },
         {
+            "id": 506,
+            "name": "FIRE",
+            "sound": "madcraft:block.wood",
+            "style": "fire",
+            "material": {
+                "id": "wood"
+            },
+            "transparent": true,
+            "tags":[
+                "no_drop_ao",
+                "alpha"
+            ],
+            "is_fire": true,
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
+            "ticking": {
+                "type": "fire"
+            },
+            "extra_data": {
+                "age": 0
+            },
+            "texture": {
+                "side":"block/fire_0.png"
+            },
+            "texture_animations": {
+                "side": null
+            }
+        },
+        {
             "id": 540,
             "name": "SEAGRASS",
             "passable": 1,
@@ -7038,34 +7071,6 @@
                 "rotate_x16",
                 "no_drop_ao"
             ]
-        },
-        {
-            
-            "id": 506,
-            "name": "FIRE",
-            "sound": "madcraft:block.wood",
-            "style": "fire",
-            "material": {
-                "id": "wood"
-            },
-            "transparent": true,
-            "tags":[
-                "no_drop_ao",
-                "alpha"
-            ],
-            "is_fire": true,
-            "light_power": {
-                "r": 255,
-                "g": 235,
-                "b": 35,
-                "a": 255
-            },
-            "ticking": {
-                "type": "fire"
-            },
-            "extra_data": {
-                "age": 0
-            }
         }
     ]
 }
