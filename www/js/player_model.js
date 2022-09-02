@@ -243,14 +243,16 @@ export class PlayerModel extends MobModel {
 
         this.nametag.visible = !this.sneak && !this.hide_nametag;
 
+        const zoom = camPos.distance(this.pos) / 6;
+        this.nametag.scale.set([0.005 * zoom, 1, 0.005 * zoom]);
+
         quat.fromEuler(this.nametag.quat, angX, 0, angZ);
         this.nametag.updateMatrix();
     }
 
-    // Returns the texture and vertex buffer for drawing the name
-    // tag of the specified player over head.
     /**
-     *
+     * Returns the texture and vertex buffer for drawing the name
+     * tag of the specified player over head.
      * @param {string} username
      * @param render
      * @return {{texture: BaseTexture, model: GeometryTerrain}}
@@ -275,18 +277,18 @@ export class PlayerModel extends MobModel {
         });
 
         // Create model
-        let vertices = [
+        const vertices = GeometryTerrain.convertFrom12([
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             w/2, 0, h, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             -w/2, 0, 0, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-        ];
+        ]);
 
         const node = new SceneNode();
         node.name = 'name_tag';
-        node.terrainGeometry = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
+        node.terrainGeometry = new GeometryTerrain(vertices);
         node.material = render.defaultShader.materials.label.getSubMat(texture);
 
         return node;

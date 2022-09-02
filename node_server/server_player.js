@@ -68,6 +68,7 @@ export class ServerPlayer extends Player {
         this.in_portal              = false;
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
+        this.prev_near_players      = new Map();
     }
 
     init(init_info) {
@@ -300,7 +301,7 @@ export class ServerPlayer extends Player {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2.
-        this.sendState();
+        this.sendNearPlayers();
         // 3.
         this.checkIndicators();
         // 4.
@@ -391,51 +392,34 @@ export class ServerPlayer extends Player {
     }
 
     // Send other players states for me
-    sendState() {
+    sendNearPlayers() {
         const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }
         //
-        const world = this.world;
         const packets = [];
-        for(let player of world.players.values()) {
-            if(this.session.user_id == player.session.user_id) {
+        const current_visible_players = new Map();
+        for(let player of this.world.players.values()) {
+            const user_id = player.session.user_id;
+            if(this.session.user_id == user_id) {
                 continue;
             }
-            /*
-            {
-                id: 1001,
-                username: 'Username',
-                pos: Vector { x: 2926.587, y: 1057, z: 2730.722 },
-                rotate: Vector { x: -0.5019, y: 0, z: 5.271 },
-                skin: '1',
-                hands: { left: { id: null }, right: { id: 65 } },
-                sneak: false,
-                sitting: false,
-                lies: false
-            }
-            */
-            const data = player.exportState();
-            const dist = Math.floor(player.state.pos.distance(this.state.pos));
-            data.dist = dist < PLAYER_MAX_DRAW_DISTANCE ? dist : null;
-            if(data.dist === null) {
-                continue;
-                /*
-                delete(data.pos);
-                delete(data.rotate);
-                delete(data.skin);
-                delete(data.hands);
-                delete(data.sneak);
-                delete(data.sitting);
-                delete(data.lies);
-                */
+            let dist = Math.floor(player.state.pos.distance(this.state.pos));
+            if(dist < PLAYER_MAX_DRAW_DISTANCE) {
+                current_visible_players.set(user_id, null);
+            } else {
+                if(!this.prev_near_players.has(user_id)) {
+                    continue;
+                }
+                dist = null;
             }
             packets.push({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: data
+                data: {dist, ...player.exportState()}
             })
         }
+        this.prev_near_players = current_visible_players;
         if(packets.length > 0) {
             this.world.sendSelected(packets, [this.session.user_id]);
         }

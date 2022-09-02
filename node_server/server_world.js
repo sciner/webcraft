@@ -644,7 +644,7 @@ export class ServerWorld {
             server_player.state.lies = false;
             server_player.state.rotate = actions.sitting.rotate;
             server_player.state.pos = actions.sitting.pos;
-            server_player.sendState();
+            server_player.sendNearPlayers();
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {

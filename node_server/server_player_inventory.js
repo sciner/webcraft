@@ -25,7 +25,7 @@ export class ServerPlayerInventory extends Inventory {
         // Save inventory to DB
         this.save();
         // Send for all except player
-        this.player.sendState();
+        this.player.sendNearPlayers();
         // Send to player
         if(send_state) {
             this.send();
