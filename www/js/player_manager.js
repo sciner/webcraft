@@ -13,7 +13,6 @@ export class PlayerManager {
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_PLAYER_JOIN: {
-                    console.log(cmd)
                     this.add(cmd);
                     break;
                 }
