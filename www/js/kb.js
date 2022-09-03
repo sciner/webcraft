@@ -61,6 +61,7 @@ export class Kb {
         canvas.onmouseup    = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
         canvas.onmousemove  = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
         canvas.onclick      = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
+        canvas.onmousewheel = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey); return false; }
 
         document.addEventListener('paste', function(e) {
             // onPaste

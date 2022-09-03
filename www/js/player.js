@@ -10,12 +10,12 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
-const SNEAK_HEIGHT                      = 6/16; // in blocks
+const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
 // Creates a new local player manager.
@@ -26,6 +26,7 @@ export class Player {
     constructor(options) {
         this.inMiningProcess = false;
         this.options = options;
+        this.scale = PLAYER_ZOOM;
     }
 
     JoinToWorld(world, cb) {
@@ -193,14 +194,13 @@ export class Player {
 
     // Return player height
     get height() {
-        let sneak = this.isSneak;
-        //
-        const target_height = PLAYER_HEIGHT - (sneak ? SNEAK_HEIGHT : 0);
+        const sneak = this.isSneak;
+        const target_height = PLAYER_HEIGHT * (sneak ? SNEAK_HEIGHT : 1);
         // If sneak changed
         if(this.sneak !== sneak) {
             this.sneak = sneak;
             this.pn_start_change_sneak = performance.now();
-            this._sneak_period = Math.abs(target_height - this._height) / SNEAK_HEIGHT;
+            this._sneak_period = Math.abs(target_height - this._height) / (PLAYER_HEIGHT - PLAYER_HEIGHT * SNEAK_HEIGHT);
             if(this._sneak_period == 0) {
                 this._height = target_height
             } else {
@@ -275,7 +275,7 @@ export class Player {
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.damageBlock(world_block.material, player.pos.add(new Vector(-.5, -.5, -.5)), true);
+                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale);
                     }
                 }
             }
@@ -352,7 +352,7 @@ export class Player {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Qubatch.render.damageBlock(block, new Vector(bPos), true);
+                    Qubatch.render.damageBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
@@ -435,8 +435,7 @@ export class Player {
 
     // changeSpawnpoint
     changeSpawnpoint() {
-        const pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
-        this.world.server.SetPosSpawn(pos);
+        this.world.server.SetPosSpawn(this.lerpPos.clone());
     }
 
     // Teleport
@@ -453,7 +452,7 @@ export class Player {
         return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
     }
 
-    // getBlockPos
+    // Return player block position
     getBlockPos() {
         return this._block_pos.copyFrom(this.lerpPos).floored();
     }
@@ -532,7 +531,7 @@ export class Player {
             //
             this.checkBodyRot(delta);
             // Physics tick
-            let ticks = pc.tick(delta);
+            let ticks = pc.tick(delta, this.scale);
             //
             if(isSpectator) {
                 this.lerpPos = pc.player.entity.position;
@@ -549,8 +548,8 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
-            this.lerpPos.roundSelf(3);
-            this.moving     = !this.lerpPos.equal(this.posO) && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
+            this.lerpPos.roundSelf(8);
+            this.moving     = !this.lerpPos.round(3).equal(this.posO.round(3)) && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
             this.isOnLadder = pc.player_state.isOnLadder;
@@ -747,7 +746,7 @@ export class Player {
             }
         } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
             let bp = this.getBlockPos();
-            let height = bp.y - this.lastBlockPos.y;
+            let height = (bp.y - this.lastBlockPos.y) / this.scale;
             if(height < 0) {
                 let damage = -height - MAX_UNDAMAGED_HEIGHT;
                 if(damage > 0) {
