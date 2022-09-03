@@ -31,18 +31,32 @@ export default class style {
             return;
         }
         
+        const extra_data = block.extra_data;
         const material = block.material;
         const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
-        
+        console.log(extra_data);
         const planes = [];
         planes.push(...[
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": 0}},
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 0}},
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 8, "y": 0, "z": 0}},
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": -8, "y": 0, "z": 0}},
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 8, "y": 0, "z": 0}},
-            {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -8, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 8, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": -8, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 8, "y": 0, "z": 0}},
+            //{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -8, "y": 0, "z": 0}},
         ]);
+        
+        if (extra_data.west || extra_data.up) {
+            planes.push(...[{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 7.8, "y": 0, "z": 0}}]);
+        }
+        if (extra_data.east || extra_data.up) {
+            planes.push(...[{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": -7.8, "y": 0, "z": 0}}]);
+        }
+        if (extra_data.north || extra_data.up) {
+            planes.push(...[{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -7.8, "y": 0, "z": 0}}]);
+        }
+        if (extra_data.south || extra_data.up) {
+            planes.push(...[{"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 7.8, "y": 0, "z": 0}}]);
+        }
         
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);

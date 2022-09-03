@@ -26,10 +26,16 @@ export default class Ticker {
             return;
         }
         
+        // Проверяем установку блока
+        const block = world.getBlock(pos.add(Vector.YN));
+        if (block.id == BLOCK.AIR.id) {
+            
+        }
+        
         const age = tblock.extra_data.age;
         const updated_blocks = [];
         const block = world.getBlock(pos.add(Vector.YN));
-        if (age >= 15 || block.id == BLOCK.AIR.id) {
+        if (age >= 15) {
             updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             const new_age = Math.min(15, age + rndInt(3) / 2);
@@ -37,7 +43,6 @@ export default class Ticker {
                 tblock.extra_data.age = new_age;
             }
 
-            
             // Поджигаем или уничтожаем боковушки
             setFireOrDes(world, pos.add(Vector.XN), 300, age, updated_blocks);
             setFireOrDes(world, pos.add(Vector.XP), 300, age, updated_blocks);
@@ -74,6 +79,11 @@ export default class Ticker {
         return updated_blocks;
     }
     
+}
+
+function canPlaceBlockAt(world, pos) {
+    const block = world.getBlock(pos.add(Vector.YN));
+    return block.id != BLOCK.AIR.id
 }
 
 function getNeighborFlame(world, pos) {

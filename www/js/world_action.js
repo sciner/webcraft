@@ -1505,11 +1505,37 @@ async function openPortal(e, world, pos, player, world_block, world_material, ma
 }
 
 async function useFlipAndSteel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!world_material || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id)) {
+    if (!world_material || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || pos.n.y == -1) {
         return false;
     }
     const position = new Vector(pos.x, pos.y, pos.z);
-    actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: {age:0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+    position.addSelf(pos.n);
+    const neighbor = world.getBlock(position.add(Vector.YN));
+    const data = {
+        "age": 0,
+        "east":false,
+        "north": false,
+        "south": false,
+        "up": false,
+        "west": false
+    };
+    if (neighbor.id != BLOCK.AIR.id) {
+        data.up = true;
+    } else {
+        if (pos.n.x == -1) {
+            data.west = true;
+        }
+        if (pos.n.x == 1) {
+            data.east = true;
+        }
+        if (pos.n.z == -1) {
+            data.south = true;
+        }
+        if (pos.n.z == 1) {
+            data.north = true;
+        }
+    }
+    actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
     return true;
 }
 
@@ -1545,7 +1571,6 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
             block.extra_data.up = true;
         }
         if (pos.n.y == -1) {
-            console.log(orientation)
             block.extra_data.down = true;
         }
         if (pos.n.x == -1) {
