@@ -76,16 +76,16 @@ export class InHandOverlay {
 
     bobViewItem(player, viewMatrix) {
 
-        //if(!player || !player.walking  || player.getFlying()  || player.in_water ) {
-        //    return;
-        //}
-
         let p_109140_ = player.walking_frame * 2 % 1;
+
         //
         let speed_mul = 1.0;
-        let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
+        let f = (player.walkDist * speed_mul - player.walkDistO * speed_mul);
         let f1 = -(player.walkDist * speed_mul + f * p_109140_);
         let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+
+        f1 /= player.scale
+        f2 /= player.scale
 
         let RotateAngleX = Math.sin(f1 * Math.PI) * f2 * 1.0
         let RotateAngleY = -Math.abs(Math.cos(f1 * Math.PI) * f2) * 1;

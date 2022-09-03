@@ -113,6 +113,10 @@
     out float v_lightId;
     out vec4 v_lightOffset;
     out vec3 v_aoOffset;
+    out vec3 v_axisU;
+    out vec3 v_axisV;
+
+    // quad flags
     out float v_noCanTakeAO;
     out float v_flagFlagOpacity;
     out float v_flagQuadSDF;
@@ -120,8 +124,6 @@
     out float v_Triangle;
     out float v_Mir2_Tex;
     out float v_flagMultiplyColor;
-    out vec3 v_axisU;
-    out vec3 v_axisV;
 
     //--
 #endif
@@ -142,14 +144,16 @@
     in float v_useFog;
     in float v_lightId;
     in vec4 v_lightOffset;
+    in vec3 v_axisU;
+    in vec3 v_axisV;
+
+    // quad flags
     in float v_noCanTakeAO;
     in float v_flagFlagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
     in float v_flagMultiplyColor;
-    in vec3 v_axisU;
-    in vec3 v_axisV;
 
     out vec4 outColor;
 #endif
@@ -180,10 +184,7 @@
             (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
             y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
             ) {
-                outColor.r = 1.0 - outColor.r;
-                outColor.g = 1.0 - outColor.g;
-                outColor.b = 1.0 - outColor.b;
-                outColor.a = 1.0;
+                outColor = vec4(1. - outColor.rgb, 1.);
         }
     }
     //--

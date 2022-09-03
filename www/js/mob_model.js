@@ -4,7 +4,7 @@ import * as ModelBuilder from "./modelBuilder.js";
 import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
-import { SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { HEAD_MAX_ROTATE_ANGLE, SNEAK_MINUS_Y_MUL } from "./constant.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -499,6 +499,7 @@ export class MobModel extends NetworkPhysicObject {
         this.width                      = 0;
         this.height                     = 0;
         this.sneak                      = 0;
+        this.body_rotate                = 0;
 
         Object.assign(this, props);
 
@@ -636,7 +637,10 @@ export class MobModel extends NetworkPhysicObject {
 
         // root rotation
         for(let st of this.sceneTree) {
-            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - this.draw_yaw) / Math.PI);
+
+            let draw_yaw = this.draw_yaw;
+            const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
+            quat.fromEuler(st.quat, 0, 0, 180 * (Math.PI - (draw_yaw + add_angle)) / Math.PI);
 
             //
             let subY = 0;
@@ -646,10 +650,14 @@ export class MobModel extends NetworkPhysicObject {
                 subY = SNEAK_MINUS_Y_MUL;
             }
 
+            // TODO
+            let levitation = .2 + Math.sin(performance.now() / 1000) * .1;
+            levitation = 0;
+
             st.position.set([
                 this.pos.x - this.drawPos.x,
                 this.pos.z - this.drawPos.z,
-                this.pos.y - this.drawPos.y - subY + this.fix_z_fighting,
+                this.pos.y - this.drawPos.y - subY + this.fix_z_fighting + levitation,
             ]);
 
             st.updateMatrix();

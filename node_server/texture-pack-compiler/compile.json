@@ -14,7 +14,8 @@
         {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"}
+        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
     ],
     "blocks" : [
         {
@@ -193,6 +194,10 @@
                 "up": "block/warped_stem_top.png",
                 "down": "block/warped_stem_top.png"
             },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
             "texture_animations": {
                 "side": null,
                 "up": 0,
@@ -210,6 +215,10 @@
                 "up": "block/crimson_stem_top.png",
                 "down": "block/crimson_stem_top.png"
             },
+            "tags": [
+                "can_put_info_pot",
+                "rotate_by_pos_n_xyz"
+            ],
             "texture_animations": {
                 "side": null,
                 "up": 0,
@@ -2948,7 +2957,6 @@
             "style": "ladder",
             "inventory_style": "extruder",
             "transparent": true,
-            "passable": 0.25,
             "sound": "madcraft:block.wood",
             "material": {
                 "id": "wood"
@@ -4112,7 +4120,11 @@
                 "id": "stone"
             },
             "texture": "block/iron_bars.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "tags": [
+                "alpha",
+                "no_drop_ao"
+            ]
         },
         {
             "id": 628,
@@ -4155,6 +4167,9 @@
             "material": {
                 "id": "wood"
             },
+            "tags": [
+                "rotate_by_pos_n"
+            ],
             "texture": {
                 "side": "block/hay_block_side.png",
                 "up": "block/hay_block_top.png",
@@ -6846,6 +6861,40 @@
             }
         },
         {
+            "id": 503,
+            "name": "LECTERN",
+            "transparent": true,
+            "style": "lectern",
+            "can_rotate": true,
+            "window": "frmBook",
+            "material": {
+                "id": "stone"
+            },
+            "sound": "madcraft:block.cloth",
+            "texture": {
+                "up": "block/lectern_top.png",
+                "side": "block/lectern_sides.png",
+                "down": "block/lectern_base.png",
+                "north": "block/lectern_front.png"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "page": 0,
+                "book": {
+                    "id":"written_book",
+                    "pages":[
+                        {"text":"Hello world!\n\nHow are you?\nEnd of first page\n"},
+                        {"text":"This is page #2"}
+                    ],
+                    "author":"Username",
+                    "title":"Test book",
+                    "resolved":1
+                }
+            }
+        },
+        {
             "id": 194,
             "name": "DEEPSLATE_REDSTONE_ORE",
             "sound": "madcraft:block.stone",
@@ -6969,6 +7018,26 @@
                 "id": "stone"
             },
             "texture": "block/gilded_blackstone.png"
+        },
+        {
+            "id": 505,
+            "name": "ARMOR_STAND",
+            "sound": "madcraft:block.wood",
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/armor_stand.png"
+            },
+            "style": "armor_stand",
+            "material": {
+                "id": "wood"
+            },
+            "can_rotate": true,
+            "transparent": true,
+            "texture": "item/armor_stand.png",
+            "tags":[
+                "rotate_x16",
+                "no_drop_ao"
+            ]
         }
     ]
 }

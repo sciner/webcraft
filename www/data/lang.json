@@ -123,6 +123,11 @@
         "confirm_action" : {"en": "Confirm action", "ru": "Подтверждение действия", "fr": "", "es": "", "man": ""},
         "no_cover" : {"en": "No cover", "ru": "Нет обложки", "fr": "", "es": "", "man": ""},
         "no_cover_note" : {"en": "Set the cover of the world in the game with the F2 key", "ru": "Для установки обложки, нажмите F2 в игре", "fr": "", "es": "", "man": ""},
-        "you_sure_want_to_delete" : {"en": "Are you sure you want to delete", "ru": "Вы действительно хотите удалить", "fr": "", "es": "", "man": ""}
+        "you_sure_want_to_delete" : {"en": "Are you sure you want to delete", "ru": "Вы действительно хотите удалить", "fr": "", "es": "", "man": ""},
+        "please_rotate_to_landscape": {"en": "Please rotate your device to landscape mode", "ru": "", "fr": "", "es": "", "man": ""},
+        "press_f11_to_fullscreen": {"en": "Press F11 to full screen", "ru": "Нажмите F11 чтобы смотреть на весь экран", "fr": "", "es": "", "man": ""},
+        "loading_game_connecting": {"en": "CONNECTING TO SERVER...", "ru": "СОЕДИНЕНИЕ С СЕРВЕРОМ ...", "fr": "", "es": "", "man": ""},
+        "loading_game_generate_planet": {"en": "GENERATE PLANET ...", "ru": "ГЕНЕРАЦИЯ ПЛАНЕТЫ ...", "fr": "", "es": "", "man": ""},
+        "im": {"en": "I'm", "ru": "Я", "fr": "", "es": "", "man": ""}
     }
 }

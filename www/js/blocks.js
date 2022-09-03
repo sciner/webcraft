@@ -532,10 +532,10 @@ export class BLOCK {
         } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.id == 649 ||
-            block.is_leaves ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
-                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover'
+                'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
+                'lectern'
             ].indexOf(block.style) >= 0
             ) {
             group = 'doubleface';
@@ -654,7 +654,7 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         //
         if(block.planting && !('inventory_style' in block)) {
@@ -1008,6 +1008,12 @@ export class BLOCK {
         let f = !!expanded ? .001 : 0;
         if(!material.passable && !material.planting) {
             switch(material.style) {
+                case 'ladder': {
+                    let cardinal_direction = b.getCardinalDirection();
+                    let width = 3/15.9;
+                    shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
+                    break;
+                }
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;
                     //
@@ -1157,7 +1163,7 @@ export class BLOCK {
                     let cardinal_direction = b.getCardinalDirection();
                     let opened = this.isOpened(b);
                     let on_ceil = this.isOnCeil(b);
-                    let sz = 3 / 15.9;
+                    let sz = 3 / 16; // 15.9;
                     if(opened) {
                         shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
                     } else {
@@ -1217,12 +1223,6 @@ export class BLOCK {
                             let hw = (12/16) / 2;
                             let h = 12/16;
                             shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
-                            break;
-                        }
-                        case 'ladder': {
-                            let cardinal_direction = b.getCardinalDirection();
-                            let width = 1/16;
-                            shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
                             break;
                         }
                     }

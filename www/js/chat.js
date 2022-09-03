@@ -277,11 +277,6 @@ export class Chat extends TextBox {
                 }
                 break;
             }
-            case KEY.F5: {
-                console.log(99999)
-                return false;
-                break;
-            }
             case KEY.ESC: {
                 if(down) {
                     this.close();

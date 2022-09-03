@@ -159,7 +159,7 @@ export class ServerWorld {
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
             //
-            if(this.ticks_stat.number % 100 != 0) {
+            if(this.ticks_stat.number % 100 == 0) {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
             }
@@ -502,7 +502,7 @@ export class ServerWorld {
                                         packets: [{
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
-                                                pos: params.pos,
+                                                pos: params.pos.add(new Vector(.5, .5, .5)),
                                                 item: { id: params.destroy_block_id }
                                             }
                                         }]
@@ -644,7 +644,7 @@ export class ServerWorld {
             server_player.state.lies = false;
             server_player.state.rotate = actions.sitting.rotate;
             server_player.state.pos = actions.sitting.pos;
-            server_player.sendState();
+            server_player.sendNearPlayers();
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {

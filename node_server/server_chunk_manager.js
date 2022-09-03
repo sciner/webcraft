@@ -19,6 +19,7 @@ export class ServerChunkManager {
         this.chunk_queue_gen_mobs   = new VectorCollector();
         this.ticking_chunks         = new VectorCollector();
         this.invalid_chunks_queue   = [];
+        this.unloaded_chunk_addrs   = [];
         //
         this.DUMMY = {
             id:         world.block_manager.DUMMY.id,
@@ -137,6 +138,11 @@ export class ServerChunkManager {
                 chunk.tick(delta);
             }
         }
+        // 4.
+        if(this.unloaded_chunk_addrs.length > 0) {
+            this.postWorkerMessage(['destructChunk', this.unloaded_chunk_addrs]);
+            this.unloaded_chunk_addrs = [];
+        }
     }
 
     addTickingChunk(addr) {
@@ -155,16 +161,20 @@ export class ServerChunkManager {
     }
 
     unloadInvalidChunks() {
-        if(this.invalid_chunks_queue.length > 0) {
-            console.debug('Unload invalid chunks: ' + this.invalid_chunks_queue.length);
+        const cnt = this.invalid_chunks_queue.length;
+        if(cnt == 0) {
+            return false;
         }
+        const p = performance.now();
         while(this.invalid_chunks_queue.length > 0) {
-            let chunk = this.invalid_chunks_queue.pop();
+            const chunk = this.invalid_chunks_queue.pop();
             if(chunk.connections.size == 0) {
                 this.remove(chunk.addr);
                 chunk.onUnload();
             }
         }
+        const elapsed = Math.round((performance.now() - p) * 10) / 10;
+        console.debug(`Unload invalid chunks: ${cnt}; elapsed: ${elapsed} ms`);
     }
 
     add(chunk) {
@@ -285,6 +295,11 @@ export class ServerChunkManager {
             resp.push(chunk);
         }
         return resp;
+    }
+
+    chunkUnloaded(addr) {
+        this.unloaded_chunk_addrs.push(addr);
+        this.removeTickingChunk(addr);
     }
 
     // Send command to server worker
