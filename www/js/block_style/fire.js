@@ -19,12 +19,7 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
-        if (for_physic) {
-            return [];
-        }
-        const aabb = new AABB();
-        aabb.set(0, 0, 0, 1, 0.06, 1);
-        return [aabb];
+        return [];
     }
 
     // Build function
@@ -38,25 +33,30 @@ export default class style {
         const material = block.material;
         const texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
         const planes = [];
-        if (neighbours.WEST.id != BLOCK.AIR.id || neighbours.DOWN.id != BLOCK.AIR.id) {
-            planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": -7.99, "y": 0, "z": 0}} ]);
-        }
-        if (neighbours.EAST.id != BLOCK.AIR.id || neighbours.DOWN.id != BLOCK.AIR.id) {
-            planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 7.99, "y": 0, "z": 0}} ]);
-        }
-        if (neighbours.NORTH.id != BLOCK.AIR.id || neighbours.DOWN.id != BLOCK.AIR.id) {
-            planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}} ]);
-        }
-        if (neighbours.SOUTH.id != BLOCK.AIR.id || neighbours.DOWN.id != BLOCK.AIR.id) {
-            planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": -7.99, "y": 0, "z": 0}} ]);
-        }
-        if (neighbours.DOWN.id != BLOCK.AIR.id) {
+        if (neighbours.DOWN.id != BLOCK.AIR.id && neighbours.DOWN.id != BLOCK.FIRE.id) {
             planes.push(...[
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
                 {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
                 {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
                 {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
                 {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 2, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
             ]);
+        } else {
+            if (neighbours.WEST.material.flammable) {
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI, 0], "translate": {"x": 7.99, "y": 0, "z": 0}}]);
+            }
+            if (neighbours.EAST.material.flammable) {
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "translate": {"x": 7.99, "y": 0, "z": 0}}]);
+            }
+            if (neighbours.NORTH.material.flammable) {
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}}]);
+            }
+            if (neighbours.SOUTH.material.flammable) {
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}}]);
+            }
         }
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);

@@ -2,14 +2,6 @@ import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
 
-const BURN_BLOCKS = [
-    {
-        id: BLOCK.OAK_PLANKS.id,
-        flame: 5,
-        burn: 20
-    }
-];
-
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
 
 export default class Ticker {
@@ -74,9 +66,8 @@ export default class Ticker {
                         const position = pos.offset(x, y, z);
                         const flames = getNeighborFlame(world, position);
                         if (flames > 0) {
-                            const burns = (flames + 1) / (age + 30);
+                            const burns = (flames + 3 * 7) / (age + 30); // @todo hard noraml easy
                             if (burns > 0 && rndInt(chance) < burns) {
-                                console.log("burn!!!");
                                 const mod_age = Math.min((age + rndInt(5) / 4), 15);
                                 updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                             }
@@ -92,14 +83,10 @@ export default class Ticker {
 
 // Возможность воспламенения соседних блоков (зависит от материала)
 function getNeighborFlame(world, pos) {
-    let block = world.getBlock(pos);
-    if (!block || block.id != BLOCK.AIR.id) {
-        return 0;
-    }
     let flames = 0;
     for (const face of FACES) {
         const block = world.getBlock(pos.add(face));
-        flames = Math.max(getFlame(block.id), flames);
+        flames = Math.max(getFlame(block), flames);
     }
     return flames;
 }
@@ -108,7 +95,7 @@ function getNeighborFlame(world, pos) {
 function idBurnPosition(world, pos) {
     for (const face of FACES) {
         const block = world.getBlock(pos.add(face));
-        if (getBurn(block.id) > 0) {
+        if (getBurn(block) > 0) {
             return true;
         }
     }
@@ -119,20 +106,16 @@ function rndInt(chance) {
     return (Math.random() * chance) | 0;
 }
 
-function getFlame(id) {
-    for (const block of BURN_BLOCKS) {
-        if (block.id == id) {
-            return block.flame;
-        }
+function getFlame(block) {
+    if (block?.material?.flammable?.catch_chance_modifier) {
+        return block.material.flammable.catch_chance_modifier;
     }
     return 0;
 }
 
-function getBurn(id) {
-    for (const block of BURN_BLOCKS) {
-        if (block.id == id) {
-            return block.burn;
-        }
+function getBurn(block) {
+    if (block?.material?.flammable?.destroy_chance_modifier) {
+        return block.material.flammable.destroy_chance_modifier;
     }
     return 0;
 }
@@ -142,7 +125,7 @@ function setFireOrDes(world, pos, chance, age, updated) {
     if (!block || block.id == BLOCK.AIR.id) {
         return;
     }
-    const burn = getBurn(block.id);
+    const burn = getBurn(block);
     if (rndInt(chance) < burn) {
         if (rndInt(age + 10) < 5) {
             const def_age = Math.min((age + rndInt(5) / 4), 15);
