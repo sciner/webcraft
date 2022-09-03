@@ -308,6 +308,30 @@ let gameCtrl = async function($scope, $timeout) {
                     this.form.forced_joystick_control = false;
                 }
             }
+        },
+        updateSlider: function (inputId) {
+            const slider = document.getElementById(inputId);
+            const text = document.getElementById(inputId + '_text');
+            const step = parseInt(slider.getAttribute("step"));
+            const perc = (slider.value);
+            //change current value text
+            text.innerHTML = slider.value;
+            //track background
+            slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
+            //ticks set active
+            const ticks = document.getElementById(inputId + '_ticks').children;
+            const tickMarks = Array.prototype.slice.call(ticks);
+            tickMarks.map(function (tick, index) {
+                var tickIndex = index * step;
+                tick.classList.remove("active");
+                tick.classList.remove("passed");
+                if (tickIndex <= Math.floor(slider.value)) {
+                    tick.classList.add("passed");
+                    if (tickIndex == Math.round(slider.value)) {
+                        tick.classList.add("active");
+                    }
+                }
+            });
         }
     };
 
@@ -321,31 +345,47 @@ let gameCtrl = async function($scope, $timeout) {
     };
 
     // Delete world
-    $scope.DeleteWorld = function(world_guid) {
-        window.event.preventDefault();
-        window.event.stopPropagation();
-        if(!confirm(Lang.confirm_delete_world)) {
-            return false;
-        }
-        let world = null;
-        for(let w of $scope.mygames.list) {
-            if(w.guid == world_guid) {
-                world = w;
-                break;
+    $scope.DeleteWorld = {
+        world_guid: '',
+        world_title: '',
+        showModal: function(world_guid) {
+            $scope.modalWindow.show('modal-delete-world');
+            this.world_guid = world_guid;
+            for(let w of $scope.mygames.list) {
+                if(w.guid == world_guid) {
+                    this.world_title = w.title;
+                    break;
+                }
             }
-        }
-        if(!world) {
-            return Qubatch.App.showError('error_world_not_found', 4000);
-        }
-        world.hidden = true;
-        $scope.App.DeleteWorld({world_guid}, () => {
-            vt.success(Lang.success_world_deleted);
-        }, (e) => {
-            $timeout(() => {
-                world.hidden = false;
+        },
+        delete: function() {
+            var world_guid = this.world_guid;
+            window.event.preventDefault();
+            window.event.stopPropagation();
+            // if(!confirm(Lang.confirm_delete_world)) {
+            //     return false;
+            // }
+            let world = null;
+            for(let w of $scope.mygames.list) {
+                if(w.guid == world_guid) {
+                    world = w;
+                    break;
+                }
+            }
+            if(!world) {
+                return Qubatch.App.showError('error_world_not_found', 4000);
+            }
+            world.hidden = true;
+            $scope.App.DeleteWorld({world_guid}, () => {
+                vt.success(Lang.success_world_deleted);
+            }, (e) => {
+                $timeout(() => {
+                    world.hidden = false;
+                });
+                vt.error(e.message);
             });
-            vt.error(e.message);
-        });
+            $scope.modalWindow.hide('modal-delete-world');
+        },
     };
 
     //
@@ -689,6 +729,17 @@ let gameCtrl = async function($scope, $timeout) {
             // setSlimData(selectElement)
         })
     }
+    // modal windows show/hide
+    $scope.modalWindow = {
+        show: function(modalId) {
+            document.getElementById(modalId).style.visibility = 'visible';
+            document.body.style.overflow = 'hidden';
+        },
+        hide: function(modalId) {
+            document.getElementById(modalId).style.visibility = 'hidden';
+            document.body.style.overflow = 'unset';
+        },
+    };
 
     $scope.settings.load();
     $scope.Qubatch      = globalThis.Qubatch;
