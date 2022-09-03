@@ -443,6 +443,8 @@ export class ServerPlayer extends Player {
         if(this.state.indicators.live.value <= 0) {
             this.is_dead = true;
             this.state.stats.death++;
+            // TODO: check and drop inventory items if need
+            // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
             packets.push({
                 name: ServerClient.CMD_DIE,
                 data: {}

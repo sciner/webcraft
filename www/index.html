@@ -477,43 +477,37 @@
 
         <!-- New game -->
         <div class="create-w-page" ng-if="current_window.id == 'newgame'">
-            <div class="content" ng-init="initSelects()">
+            <div class="content">
                 <form class="form">
                     <div class="block">
+
                         <h1>{{Lang.new_world}}</h1>
-                        <div class="input-group">
-                            <p>{{Lang.world_name}}</p>
-                            <input type="text" placeholder="{{Lang.enter_world_name}}" ng-model="newgame.form.title">
-                        </div>
-                        <div class="grid-2 input-group">
-                            <div>
-                                <p>{{Lang.world_generator_type}}</p>
-                                <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
-                                <!-- <select name="" class="slim-select" id="">
-                                    <option value="{{item.id}}" ng-repeat="item in newgame.generators.list">{{item.title}}</option>
-                                </select> -->
+
+                        <div id="world-generator-main-info"  ng-init="initSelects('#world-generator-main-info .slim-select')">
+
+                            <div class="input-group">
+                                <p>{{Lang.world_name}}</p>
+                                <input type="text" placeholder="{{Lang.enter_world_name}}" ng-model="newgame.form.title">
                             </div>
-                            <!-- <div>
-                                <p>Difficulty</p>
-                                <select name="" class="slim-select" id="create-w-select2">
-                                    <option value="1">Difficulty 1</option>
-                                    <option value="2">Difficulty 2</option>
-                                    <option value="3">Difficulty 3</option>
-                                </select>
-                            </div> -->
+
+                            <div class="grid-2 input-group">
+                                <div>
+                                    <p>{{Lang.world_generator_type}}</p>
+                                    <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <p>{{Lang.world_seed}}</p>
+                                <input type="text" placeholder="" ng-model="newgame.form.seed">
+                            </div>
+
                         </div>
-                        <div class="input-group">
-                            <p>{{Lang.world_seed}}</p>
-                            <input type="text" placeholder="" ng-model="newgame.form.seed">
-                        </div>
-        
-                        <div class="switchers" ng-if="newgame.generators.getCurrent().has_options">
-                            <p>{{Lang.world_options}}</p>
+
+                        <div id="world-generator-options" class="switchers" ng-if="newgame.generators.current.has_options">
+                            <h2>{{Lang.world_options}}</h2>
                             <!-- Options -->
-                            <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
-                                <!-- <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)">
-                                    <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
-                                </button> -->
+                            <div ng-repeat="(key, option) in newgame.generators.current.options">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
                                     <input type="checkbox" id="test1" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">
@@ -521,23 +515,13 @@
                                     </div>
                                     <label for="test1">{{option.title}}</label>
                                 </div>
-                            </div>
-
-                            <!-- <div class="switcher-container">
-                                <input type="checkbox" id="test1" value="" />
-                                <div class="switcher">
-                                    <small></small>
+                                <div ng-if="option.type == 'select'">
+                                    <p>{{option.title}}</p>
+                                    <select id="select-option-{{key}}" class="slim-select" ng-options="item.value as item.title for item in option.options" ng-model="newgame.form.generator.options[key]"></select>
                                 </div>
-                                <label for="test1">Spawn mobs</label>
                             </div>
-                            <div class="switcher-container">
-                                <input type="checkbox" id="test2" value="" />
-                                <div class="switcher">
-                                    <small></small>
-                                </div>
-                                <label for="test2">PVP</label>
-                            </div> -->
                         </div>
+
                     </div>
                     <div class="buttons">
                         <button class="primary" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">{{Lang.create}}</button>

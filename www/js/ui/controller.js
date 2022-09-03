@@ -67,18 +67,8 @@ registerTextFilter(app);
 let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
 
-    await Lang.init();
-
-    globalThis.Qubatch              = new GameClass();
-    $scope.App                      = Qubatch.App = new UIApp();
-    $scope.login_tab                = 'login';
-
-    $scope.links = {
-        discord: 'https://discord.gg/QQw2zadu3T',
-        youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
-    };
-
     // Working with lang
+    await Lang.init();
     $scope.Lang = Lang;
     $scope.current_lang = null;
     for(let item of Lang.list) {
@@ -90,6 +80,16 @@ let gameCtrl = async function($scope, $timeout) {
         Lang.change(item);
         // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
         location.reload();
+    };
+
+    //
+    globalThis.Qubatch              = new GameClass();
+    $scope.App                      = Qubatch.App = new UIApp();
+    $scope.login_tab                = 'login';
+
+    $scope.links = {
+        discord: 'https://discord.gg/QQw2zadu3T',
+        youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
     };
 
     //
@@ -586,35 +586,22 @@ let gameCtrl = async function($scope, $timeout) {
                 options: null
             }
         },
-        reset: function() {
+        reset() {
             this.form.title = '';
             this.form.seed  = '';
         },
+        init() {
+            $scope.App.Generators({}, (generators) => {
+                $timeout(() => {
+                    this.generators.list = generators;
+                });
+            });
+        },
         generators: {
             index: 0,
-            list: [
-                {id: 'biome2', title: Lang.world_generator_type_default, options: {
-                    auto_generate_mobs: {
-                        title: Lang.world_generator_generate_mobs,
-                        default_value: true,
-                        type: 'checkbox'
-                        /*
-                        type: 'select',
-                        options: [
-                            {value: true, title: 'Yes'},
-                            {value: false, title: 'No'}
-                        ]*/
-                    }
-                }},
-                {id: 'flat', title: Lang.generator_flat_world},
-                {id: 'city', title: Lang.generator_city1},
-                {id: 'city2', title: Lang.generator_city2},
-                {id: 'bottom_caves', title: Lang.bottom_caves},
-                // {id: 'test_trees', title: 'Тестовые деревья'},
-                // {id: 'mine', title: 'Заброшенная шахта'}
-            ],
+            list: [],
             get current() {
-                return this.getCurrent();
+                return this.list[this.index];
             },
             set current(item) {
                 for(let i in this.list) {
@@ -625,47 +612,10 @@ let gameCtrl = async function($scope, $timeout) {
                     }
                 }
             },
-            getCurrent: function() {
-                return this.list[this.index];
-            },
-            /*next: function() {
-                this.index = (this.index + 1) % this.list.length;
-                this.select(this.getCurrent().id);
-            },*/
-            toggleSelect: function(key) {
-                const form = $scope.newgame.form;
-                if(!form.generator.options) {
-                    return null;
-                }
-                const value = form.generator.options[key];
-                const op = this.getCurrent().options[key];
-                let next_index = 0;
-                for(let i in op.options) {
-                    const option = op.options[i];
-                    if(value == option.value) {
-                        next_index = parseInt(i) + 1;
-                    }
-                }
-                form.generator.options[key] = op.options[next_index % op.options.length].value;
-            },
-            getSelectTitle: function(key) {
-                const form = $scope.newgame.form;
-                if(!form.generator.options) {
-                    return null;
-                }
-                const value = form.generator.options[key];
-                const op = this.getCurrent().options[key];
-                for(let option of op.options) {
-                    if(option.value == value) {
-                        return option.title;
-                    }
-                }
-                return value;
-            },
-            select: function(generator) {
+            select(generator) {
                 const form = $scope.newgame.form;
                 form.generator.id = generator.id;
-                const current = this.getCurrent();
+                const current = this.current;
                 if(!('has_options' in current)) {
                     current.has_options = !!current.options;
                 }
@@ -681,7 +631,7 @@ let gameCtrl = async function($scope, $timeout) {
                                 break;
                             }
                             case 'select': {
-                                value = op.options[0].value;
+                                value = op.default_value ? op.default_value + '': op.options[0].value;
                                 break;
                             }
                             default: {
@@ -692,9 +642,10 @@ let gameCtrl = async function($scope, $timeout) {
                         form.generator.options[k] = value;
                     }
                 }
+                $scope.initSelects('#world-generator-options .slim-select');
             }
         },
-        submit: function() {
+        submit() {
             var that = this;
             that.loading = true;
             let form = {...that.form};
@@ -708,27 +659,30 @@ let gameCtrl = async function($scope, $timeout) {
                 });
             });
         },
-        open: function() {
+        open() {
             this.generators.select(this.generators.list[0]);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },
-        close: function() {
+        close() {
             $scope.current_window.show('main');
         }
     };
 
     //
-    $scope.initSelects = function() {
-        const selects = document.querySelectorAll('.slim-select')
-        selects.forEach((selectElement) => {
-            new SlimSelect({
-                select: selectElement,
-                showSearch: false
-            });
-            // setSlimData(selectElement)
-        })
+    $scope.initSelects = function(selector) {
+        $timeout(() => {
+            const selects = document.querySelectorAll(selector ?? '.slim-select')
+            selects.forEach((selectElement) => {
+                new SlimSelect({
+                    select: selectElement,
+                    showSearch: false
+                });
+                // setSlimData(selectElement)
+            })
+        }, 0);
     }
+
     // modal windows show/hide
     $scope.modalWindow = {
         show: function(modalId) {
@@ -745,6 +699,7 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.Qubatch      = globalThis.Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
+    $scope.newgame.init();
 
     $scope.texture_pack.init().then(() => {
         $timeout(() => {
