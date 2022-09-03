@@ -234,11 +234,11 @@
 		<div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'main'">
             <div class="modal-wrapper" id="modal-delete-world">
                 <div class="modal">
-                    <h3 class="header">Password change</h3>
-                    <p>Are you sure you want to delete «World name»?</p>
+                    <h3 class="header">{{Lang.confirm_action}}</h3>
+                    <p>{{Lang.you_sure_want_to_delete}} «{{DeleteWorld.world_title}}»?</p>
                     <div class="buttons">
-                        <button class="secondary" ng-click="modalWindow.hide('modal-delete-world')">Cancel</button>
-                        <button class="primary" ng-click="DeleteWorld.delete()">Apply</button>
+                        <button class="secondary" ng-click="modalWindow.hide('modal-delete-world')">{{Lang.cancel}}</button>
+                        <button class="primary" ng-click="DeleteWorld.delete()">{{Lang.apply}}</button>
                     </div>
                 </div>
             </div>
@@ -253,8 +253,8 @@
 							<i class="icon-bx_trash-alt"></i>
 						</button>
 						<div class="img-cover" ng-class="{with_cover: !!item.cover}">
-							<h2 ng-if="!item.cover">No cover</h2>
-							<p ng-if="!item.cover">Set the cover of the world in the game with the F2 key</p>
+							<h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
+							<p ng-if="!item.cover">{{Lang.no_cover_note}}</p>
                             <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
 						</div>
 					</div>
@@ -460,11 +460,11 @@
                     Change password
                 </button> -->
             </div>
-            <div class="content" style="border: none; padding-top: 10px;">
+            <!-- <div class="content" style="border: none; padding-top: 10px;">
                 <div class="save">
                     <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
                 </div>
-            </div>
+            </div> -->
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="style/img/discord.svg" alt="">

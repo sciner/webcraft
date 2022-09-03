@@ -347,11 +347,17 @@ let gameCtrl = async function($scope, $timeout) {
     // Delete world
     $scope.DeleteWorld = {
         world_guid: '',
+        world_title: '',
         showModal: function(world_guid) {
             $scope.modalWindow.show('modal-delete-world');
             this.world_guid = world_guid;
+            for(let w of $scope.mygames.list) {
+                if(w.guid == world_guid) {
+                    this.world_title = w.title;
+                    break;
+                }
+            }
         },
-       
         delete: function() {
             var world_guid = this.world_guid;
             window.event.preventDefault();
