@@ -44,6 +44,9 @@ export default class style {
         // Matrix
         let matrix = mat4.create();
         if(plane.rot && !isNaN(plane.rot[0])) {
+            if (plane.rot[2] != 0) {
+                mat4.rotateZ(matrix, matrix, plane.rot[2]);
+            }
             if (plane.rot[1] != 0) {
                 mat4.rotateY(matrix, matrix, plane.rot[1]);
             }
