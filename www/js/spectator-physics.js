@@ -35,8 +35,7 @@ export class SpectatorPlayerControl {
         this.physicsEnabled     = true;
         this.keys               = {};
         //
-        this.physics            = {
-        }
+        this.physics            = {}
         //
         this.player             = {
             entity: {
@@ -65,7 +64,7 @@ export class SpectatorPlayerControl {
     }
 
     // Tick
-    tick(delta) {
+    tick(delta, scale) {
         if(this.controls.forward) {
             if(!this.keys[KEY.W]) this.keys[KEY.W] = performance.now();
         } else {
@@ -93,12 +92,12 @@ export class SpectatorPlayerControl {
         let velocity  = this.player_state.vel;
         // Flying
         if(this.controls.jump) {
-            velocity.y = 8;
+            velocity.y = 8 * scale;
         } else {
-            velocity.y += -(15 * delta);
+            velocity.y += -(15 * delta) * scale;
             if(velocity.y < 0) velocity.y = 0;
         }
-        if(this.controls.sneak) velocity.y = -8;
+        if(this.controls.sneak) velocity.y = -8 * scale;
         // Calculate new velocity
         let add_force = this.calcForce();
         let y = delta/(1/(60/(delta/(1/60))));
@@ -109,11 +108,11 @@ export class SpectatorPlayerControl {
             .mul(new Vector(p, 1, p));
         //
         let passable = 1;
-        const mul = (this.controls.sprint ? this.player_state.flying ? 1.15 * SPECTATOR_SPEED_MUL : 1.5 : 1) * passable / 2.8;
-        this.player.entity.position.set(
-            Math.round(((this.player.entity.position.x + this.player_state.vel.x * delta * mul)) * 1000) / 1000,
-            Math.round(((this.player.entity.position.y + this.player_state.vel.y * delta)) * 1000) / 1000,
-            Math.round(((this.player.entity.position.z + this.player_state.vel.z * delta * mul)) * 1000) / 1000
+        const mul = ((this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8) * SPECTATOR_SPEED_MUL;
+        this.player.entity.position.addScalarSelf(
+            this.player_state.vel.x * delta * mul,
+            this.player_state.vel.y * delta,
+            this.player_state.vel.z * delta * mul
         );
     }
 

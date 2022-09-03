@@ -4,7 +4,7 @@ import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 const INF = 100000.0;
 const eps = 1e-3;
 const coord = ['x', 'y', 'z'];
-const point_precision = 1000;
+const point_precision = 1; // 000;
 const side = new Vector(0, 0, 0);
 const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
@@ -152,6 +152,8 @@ export class Raycaster {
      */
     get(origin, dir, pickat_distance, callback, ignore_transparent, return_fluid) {
 
+        const origin_block_pos = new Vector(origin).flooredSelf();
+
         const pos = this._pos.copyFrom(origin);
         startBlock.set(
             Math.floor(pos.x) + 0.5,
@@ -190,8 +192,8 @@ export class Raycaster {
             leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > this.BLOCK.AIR.id;
-            if(!return_fluid && hitShape) {
+            let hitShape = b.id > this.BLOCK.AIR.id && !origin_block_pos.equal(leftTop);
+            if(hitShape && !return_fluid) {
                 hitShape = !b.material.is_fluid;
             }
             if(ignore_transparent && !return_fluid && b.material.invisible_for_cam) {

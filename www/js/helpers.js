@@ -763,7 +763,7 @@ export class Vector {
      * @return {Vector}
      */
     round(decimals) {
-        return this.roundSelf(decimals).clone();
+        return this.clone().roundSelf(decimals);
     }
 
     /**

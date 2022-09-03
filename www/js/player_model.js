@@ -104,6 +104,7 @@ export class PlayerModel extends MobModel {
         super({type: 'player', skin: '1', ...props});
 
         this.height = PLAYER_HEIGHT;
+        this.scale = 0.9 * PLAYER_ZOOM;
 
         /**
          * @type {HTMLCanvasElement}
@@ -239,7 +240,7 @@ export class PlayerModel extends MobModel {
         super.postLoad(tree);
         
         for(let i = 0; i < tree.length; i++) {
-            tree[i].scale.set([0.9 * PLAYER_ZOOM, 0.9 * PLAYER_ZOOM, 0.9 * PLAYER_ZOOM]);
+            tree[i].scale.set([this.scale, this.scale, this.scale]);
         }
         
         if (this.nametag || !this.sceneTree) {
