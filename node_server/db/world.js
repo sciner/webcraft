@@ -9,7 +9,7 @@ import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
 import { DBWorldMob } from './world/mob.js';
 import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
-import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
+import { DROP_LIFE_TIME_SECONDS, MAX_OXYGEN_POINTS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
@@ -130,7 +130,7 @@ export class DBWorld {
         return {
             live: {
                 name:  'live',
-                value: 20,
+                value: MAX_OXYGEN_POINTS,
             },
             food: {
                 name:  'food',

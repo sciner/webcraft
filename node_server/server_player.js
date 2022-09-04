@@ -9,9 +9,14 @@ import config from "./config.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MAX_OXYGEN_POINTS } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
+import headEffectsChecker from "./effects/head_effects_checker.js";
+
+/**
+ * @typedef {import ("./effects/effect").Effect} Effect
+ */
 
 export class NetworkMessage {
     constructor({
@@ -69,6 +74,10 @@ export class ServerPlayer extends Player {
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
         this.prev_near_players      = new Map();
+        /**
+         * @type {Effect[]}
+         */
+        this.effects = [];
     }
 
     init(init_info) {
@@ -176,6 +185,28 @@ export class ServerPlayer extends Player {
         console.log(`Player live ${prev_value} -> ${ind.value}`);
         this.indicators_changed = true;
         return true;
+    }
+
+    /**
+     * 
+     * @param {number} value 
+     * @returns {number}
+     */
+    changeOxygen(value) {
+        const ind = this.state.indicators.oxygen;
+        const prev_value = ind.value;
+        ind.value = Math.min(MAX_OXYGEN_POINTS, Math.max(prev_value + value, 0));
+        console.log(`Player live ${prev_value} -> ${ind.value}`);
+        this.indicators_changed = true;
+        return ind.value;
+    }
+
+     /**
+     * 
+     * @returns {number}
+     */
+    getOxygenLevel() {
+        return this.state.indicators.oxygen;
     }
 
     /**
@@ -306,9 +337,34 @@ export class ServerPlayer extends Player {
         // 3.
         this.checkIndicators();
         // 4.
-        if(Math.random() < .5) this.checkInPortal();
+        this.checkHeadEffects();
         // 5.
+        if(Math.random() < .5) this.checkInPortal();
+        // 6.
+        this.applyEffects();
+        // 7.
         await this.checkWaitPortal();
+    }
+
+    applyEffects(){
+        for(let i = 0; i < this.effects.length; i++){
+            let effect = this.effects[i];
+            effect.ticks--;
+            if (effect.ticks === 0){
+                let removeEffect = effect.action();
+                if (removeEffect === true){
+                    this.effects.slice(i, 1);
+                    i--;
+                }
+            } 
+        }
+    }
+
+    checkHeadEffects() {
+        const pos_legs = new Vector(this.state.pos).flooredSelf();
+        pos_legs.y = pos_legs.y + 1;
+        const tblock_head = this.world.getBlock(pos_legs);
+        headEffectsChecker.checkEffectOfBlock(this, tblock_head);
     }
 
     async checkWaitPortal() {

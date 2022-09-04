@@ -262,13 +262,13 @@ export class Hotbar {
             }
             // foods && oxygen
             const right_inds = [
-                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_min: 20},
-                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_min: 19}
+                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_max: 2},
+                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_max: 1}
             ];
             for(let i in right_inds) {
                 const ind = right_inds[i];
                 const yoffset = i * (ss + 2 * this.zoom);
-                if(ind.value <= ind.visible_min) {
+                if(ind.value == ind.visible_max) {
                     continue;
                 }
                 for(let i = 0; i < Math.floor(ind.value * 10); i++) {
@@ -287,10 +287,10 @@ export class Hotbar {
                 if(Math.round(ind.value * 10) > Math.floor(ind.value * 10)) {
                     hud.ctx.drawImage(
                         this.image,
-                        ind.img_full_half.x,
-                        ind.img_full_half.y,
-                        ind.img_full_half.width,
-                        ind.img_full_half.height,
+                        ind.img_half.x,
+                        ind.img_half.y,
+                        ind.img_half.width,
+                        ind.img_half.height,
                         hud_pos.x + dst.w - (Math.floor(ind.value * 10) * 24 * this.zoom + ss),
                         hud_pos.y + 30 * this.zoom - yoffset,
                         ss,
