@@ -225,7 +225,7 @@ export class SchematicReader {
         }
         if(b.is_chest) {
             new_block.extra_data = { can_destroy: true, slots: {} };
-        } else if(b.tags.included('sign')) {
+        } else if(b.tags.includes('sign')) {
             new_block.extra_data = new_block.extra_data || null;
         }
         if(b.can_rotate) {
@@ -319,7 +319,7 @@ export class SchematicReader {
         if(props) {
             // button
             if(b.is_button) {
-                if(b.tags.included('rotate_by_pos_n_12')) {
+                if(b.tags.includes('rotate_by_pos_n_12')) {
                     if('face' in props && 'facing' in props) {
                         // ceiling wall floor
                         if(props.face == 'ceiling') {
@@ -388,7 +388,7 @@ export class SchematicReader {
                 }
                 // facing
                 if('facing' in props) {
-                    if(b.tags.included('rotate_by_pos_n_6')) {
+                    if(b.tags.includes('rotate_by_pos_n_6')) {
                         new_block.rotate = SIX_VECS[props.facing].clone();
                     } else {
                         new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
@@ -461,7 +461,7 @@ export class SchematicReader {
                 }
             }
             // sign
-            if(b.tags.included('sign')) {
+            if(b.tags.includes('sign')) {
                 if(block.signText) {
                     setExtraData('text', block.signText);
                 }
@@ -476,7 +476,7 @@ export class SchematicReader {
                 }
             }
             // log
-            if(b.tags.included('rotate_by_pos_n') && 'axis' in props) {
+            if(b.tags.includes('rotate_by_pos_n') && 'axis' in props) {
                 // axis: x|y|z
                 switch(props.axis) {
                     case 'x': {

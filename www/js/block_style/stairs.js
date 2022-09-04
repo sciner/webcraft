@@ -136,7 +136,7 @@ export default class style {
         if(checked_block_on_ceil != on_ceil) {
             return false;
         }
-        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.included('stairs');
+        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.includes('stairs');
     }
 
     // Main func

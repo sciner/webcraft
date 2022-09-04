@@ -488,8 +488,8 @@ export class Renderer {
                 let image = tex.texture.source;
 
                 const tint = material.tags && (
-                    material.tags.included('mask_biome') ||
-                    material.tags.included('mask_color') ||
+                    material.tags.includes('mask_biome') ||
+                    material.tags.includes('mask_color') ||
                     mask_color
                 );
 

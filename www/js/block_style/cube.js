@@ -108,7 +108,7 @@ export default class style {
             const matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
             if(block.rotate && block.rotate.y == -1) {
-                if(block.material.tags.included('rotate_by_pos_n')) {
+                if(block.material.tags.includes('rotate_by_pos_n')) {
                     aabb.translate(0, 1 - aabb.y_max, 0)
                 }
             }
@@ -149,10 +149,10 @@ export default class style {
 
         // Texture color multiplier
         let lm = IndexedColor.WHITE;
-        if(material.tags.included('mask_biome')) {
+        if(material.tags.includes('mask_biome')) {
             lm = dirt_color || IndexedColor.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
-        } else if(material.tags.included('mask_color')) {
+        } else if(material.tags.includes('mask_color')) {
             flags = QUAD_FLAGS.MASK_BIOME;
             lm = material.mask_color;
         }
@@ -368,7 +368,7 @@ export default class style {
                     //
                     if (
                         CubeSym.matrices[cardinal_direction][4] <= 0 ||
-                        (material.tags.included('rotate_by_pos_n') && rotate.y != 0)
+                        (material.tags.includes('rotate_by_pos_n') && rotate.y != 0)
                     ) {
                         // @todo: calculate canDrawUP and neighbours based on rotation
                         canDrawUP = true;

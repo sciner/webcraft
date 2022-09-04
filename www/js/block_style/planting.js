@@ -77,7 +77,7 @@ export default class style {
             let matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
             if(block.rotate && block.rotate.y == -1) {
-                if(block.material.tags.included('rotate_by_pos_n')) {
+                if(block.material.tags.includes('rotate_by_pos_n')) {
                     aabb.translate(0, 1 - aabb.y_max, 0)
                 }
             }

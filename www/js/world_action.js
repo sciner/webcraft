@@ -246,7 +246,7 @@ function dropBlock(player, block, actions, force) {
     if(!isSurvival) {
         return;
     }*/
-    if(block.material.tags.included('no_drop')) {
+    if(block.material.tags.includes('no_drop')) {
         return;
     }
 
@@ -774,7 +774,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
     
             // Некоторые блоки можно только подвешивать на потолок
-            if(mat_block.tags.included('place_only_to_ceil') && pos.n.y != -1) {
+            if(mat_block.tags.includes('place_only_to_ceil') && pos.n.y != -1) {
                 console.error('place_only_to_ceil');
                 return actions;
             }
@@ -801,7 +801,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
             // Rotate block one of 16 poses
-            if(mat_block.tags.included('rotate_x16')) {
+            if(mat_block.tags.includes('rotate_x16')) {
                 if(new_item.rotate.y != 0) {
                     new_item.rotate.x = player.rotate.z / 90;
                 }
@@ -837,10 +837,10 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 //
 function calcBlockOrientation(mat_block, rotate, n) {
     let resp = null;
-    const can_set_on_wall = mat_block.tags.included('can_set_on_wall');
-    if(mat_block.tags.included('rotate_by_pos_n')) {
+    const can_set_on_wall = mat_block.tags.includes('can_set_on_wall');
+    if(mat_block.tags.includes('rotate_by_pos_n')) {
         resp = calcRotateByPosN(rotate, n);
-        if(mat_block.tags.included('rotate_by_pos_n_xyz')) {
+        if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
             if(resp.y) resp.set(0, 1, 0);
             if(resp.x == 18) resp.set(7, 0, 0);
             if(resp.x == 22) resp.set(13, 0, 0);
@@ -1005,7 +1005,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 
 // Put into pot
 async function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const item_frame = world_material && world_material.tags.included('item_frame');
+    const item_frame = world_material && world_material.tags.includes('item_frame');
     extra_data = extra_data ? extra_data : {};
     // rotate item in frame
     if(item_frame && extra_data?.item) {
@@ -1019,12 +1019,12 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
     }
     //
     const putIntoPot = !e.shiftKey && world_material &&
-                        (world_material.tags.included('pot')) &&
+                        (world_material.tags.includes('pot')) &&
                         (
                             item_frame ||
                             mat_block.planting ||
-                            [BLOCK.CACTUS.id].included(mat_block.id) ||
-                            mat_block.tags.included('can_put_info_pot')
+                            [BLOCK.CACTUS.id].includes(mat_block.id) ||
+                            mat_block.tags.includes('can_put_info_pot')
                         );
     if(!putIntoPot) {
         return false;
@@ -1052,7 +1052,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
 // Put disc into Jukebox
 async function putDiscIntoJukebox(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {        
     if(mat_block.item && mat_block.item && mat_block.item.name == 'music_disc') {
-        if(!e.shiftKey && world_material.tags.included('jukebox')) {
+        if(!e.shiftKey && world_material.tags.includes('jukebox')) {
             const discs = await Resources.loadMusicDiscs();
             for(let disc of discs) {
                 if(disc.id == mat_block.id) {
@@ -1156,7 +1156,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const block_for_sittings = (world_material.tags.included('stairs')) || world_block_is_slab;
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab;
     if(!block_for_sittings || mat_block) {
         return false;
     }
@@ -1185,13 +1185,13 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
 
 // Нельзя ничего ставить поверх этого блока
 async function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const noSetOnTop = world_material.tags.included('no_set_on_top');
+    const noSetOnTop = world_material.tags.includes('no_set_on_top');
     return noSetOnTop && pos.n.y == 1;
 }
 
 // Edit sign
 async function editSign(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const isEditSign = e.changeExtraData && world_material && world_material.tags.included('sign');
+    const isEditSign = e.changeExtraData && world_material && world_material.tags.includes('sign');
     if(!isEditSign) {
         return false;
     }
@@ -1216,7 +1216,7 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
 
 // Go to bed
 async function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const goToBed = !e.shiftKey && world_material && (world_material.tags.included('bed'));
+    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'));
     if(!goToBed) {
         return false;
     }
@@ -1226,7 +1226,7 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
 
 // Eat cake
 function eatCake(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const eatCake = !e.shiftKey && world_material && (world_material.tags.included('cake'));
+    const eatCake = !e.shiftKey && world_material && (world_material.tags.includes('cake'));
     if(!eatCake) {
         return false;
     }
@@ -1601,7 +1601,7 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
 // Open door
 async function openDoor(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const isEditDoor = !e.shiftKey && world_material &&
-        (world_material.tags.included('trapdoor') || world_material.tags.included('door'));
+        (world_material.tags.includes('trapdoor') || world_material.tags.includes('door'));
     if(!isEditDoor) {
         return false;
     }
@@ -1636,7 +1636,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
 
 // Remove plant from pot
 async function removeFromPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(world_material && world_material.tags.included('pot')) {
+    if(world_material && world_material.tags.includes('pot')) {
         if(extra_data?.item) {
             extra_data = extra_data ? extra_data : {};
             const drop_item = extra_data?.item;
@@ -1695,7 +1695,7 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
 async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(mat_block.tags.included('set_only_fullface')) {
+    if(mat_block.tags.includes('set_only_fullface')) {
         const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
         if(!underBlock || underBlock.material.transparent) {
             return true;
@@ -1741,7 +1741,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
                 }
             }
             const cardinal_block = world.getBlock(pos2);
-            if(cardinal_block.transparent && !(mat_block.tags.included('anycardinal'))) {
+            if(cardinal_block.transparent && !(mat_block.tags.includes('anycardinal'))) {
                 cardinal_direction = cd;
                 ok = true;
                 break;

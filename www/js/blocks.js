@@ -84,9 +84,9 @@ export class FakeTBlock {
         if(!Array.isArray(mat.tags)) {
             return false;
         }
-        let resp = mat.tags.included(tag);
+        let resp = mat.tags.includes(tag);
         if(!resp && this.tags) {
-            resp = this.tags.included(tag);
+            resp = this.tags.includes(tag);
         }
         return resp;
     }
@@ -320,9 +320,9 @@ export class BLOCK {
     // Call before setBlock
     static makeExtraData(block, pos, orientation, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
-        const is_trapdoor = block.tags.included('trapdoor');
-        const is_stairs = block.tags.included('stairs');
-        const is_door = block.tags.included('door');
+        const is_trapdoor = block.tags.includes('trapdoor');
+        const is_stairs = block.tags.includes('stairs');
+        const is_door = block.tags.includes('door');
         const is_slab = block.is_layering && block.layering.slab;
         //
         let extra_data = null;
@@ -625,7 +625,7 @@ export class BLOCK {
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
-        if(block.tags.included('rotate_by_pos_n_xyz') || block.tags.included('rotate_by_pos_n_6') || block.tags.included('rotate_by_pos_n_12')) {
+        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
             block.tags.push('rotate_by_pos_n');
         }
         //
@@ -635,11 +635,11 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
-        block.is_jukebox        = block.tags.included('jukebox');
-        block.is_mushroom_block = block.tags.included('mushroom_block');
-        block.is_button         = block.tags.included('button');
-        block.is_sapling        = block.tags.included('sapling');
-        block.is_battery        = ['car_battery'].included(block?.item?.name);
+        block.is_jukebox        = block.tags.includes('jukebox');
+        block.is_mushroom_block = block.tags.includes('mushroom_block');
+        block.is_button         = block.tags.includes('button');
+        block.is_sapling        = block.tags.includes('sapling');
+        block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
         block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600, 194, 594, 595, 502].includes(block.id);
         block.is_qube           = block.style == 'default' && !('width' in block) && !('height' in block)
@@ -691,7 +691,7 @@ export class BLOCK {
                                   !block.is_fluid &&
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
-        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.included('no_drop_ao')) {
+        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.includes('no_drop_ao')) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
                 this.ao_invisible_blocks.push(block.id);
             }
@@ -718,10 +718,10 @@ export class BLOCK {
         if(block.spawn_egg && BLOCK.spawn_eggs.indexOf(block.id) < 0) {
             BLOCK.spawn_eggs.push(block.id);
         }
-        if(block.tags.included('mask_biome') && !BLOCK.MASK_BIOME_BLOCKS.included(block.id)) {
+        if(block.tags.includes('mask_biome') && !BLOCK.MASK_BIOME_BLOCKS.includes(block.id)) {
             BLOCK.MASK_BIOME_BLOCKS.push(block.id)
         }
-        if(block.tags.included('mask_color') && !BLOCK.MASK_COLOR_BLOCKS.included(block.id)) {
+        if(block.tags.includes('mask_color') && !BLOCK.MASK_COLOR_BLOCKS.includes(block.id)) {
             BLOCK.MASK_COLOR_BLOCKS.push(block.id)
         }
         // Parse tags
@@ -754,8 +754,8 @@ export class BLOCK {
         }
         const is_slab = !!mat.is_layering;
         const is_bed = mat.style == 'bed';
-        const is_dirt = mat.tags.included('dirt');
-        const is_carpet = mat.tags.included('carpet');
+        const is_dirt = mat.tags.includes('dirt');
+        const is_carpet = mat.tags.includes('carpet');
         const is_farmland = mat.name.indexOf('FARMLAND') == 0;
         if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
             return false;
@@ -1248,7 +1248,7 @@ export class BLOCK {
     static async sortBlocks() {
         //
         const sortByMaterial = (b, index) => {
-            if(b.tags.included('ore')) {
+            if(b.tags.includes('ore')) {
                 index -= .01;
             } else if(b.window) {
                 index -= .02;

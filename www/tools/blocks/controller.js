@@ -55,7 +55,7 @@ let gameCtrl = async function($scope, $timeout) {
                         addTexture(t, b.tx_cnt);
                     }
                     // mask_biome || mask_color
-                    if(b.tags.included('mask_biome') || b.tags.included('mask_color')) {
+                    if(b.tags.includes('mask_biome') || b.tags.includes('mask_color')) {
                         for(let dir of [DIRECTION.UP, DIRECTION.DOWN, DIRECTION.LEFT, DIRECTION.RIGHT, DIRECTION.FORWARD, DIRECTION.BACK]) {
                             const t = BLOCK.calcTexture(b.texture, dir, b.tx_cnt);
                             addTexture([t[0] + (1 / b.tx_cnt), t[1]], b.tx_cnt);

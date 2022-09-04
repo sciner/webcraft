@@ -70,7 +70,7 @@ export class EditSignWindow extends Window {
         this.onHide = () => {
             const pos = this.args.pos;
             const block = Qubatch.world.getBlock(pos);
-            if(block.material.tags.included('sign')) {
+            if(block.material.tags.includes('sign')) {
                 let extra_data = block.extra_data || {};
                 const lines = txtEdit1.calcPrintLines(txtEdit1.buffer.join(''));
                 extra_data.text = lines.join("\r");

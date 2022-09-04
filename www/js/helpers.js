@@ -1749,7 +1749,7 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
                 }
                 */
             } else if(rotate.y != 0) {
-                if(material.tags.included('rotate_by_pos_n')) {
+                if(material.tags.includes('rotate_by_pos_n')) {
                     matrix = mat4.create();
                     if(rotate.y == 1) {
                         // on the floor

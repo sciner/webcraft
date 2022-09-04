@@ -138,11 +138,10 @@ export class Compiler {
                     block.texture = {side: block.texture};
                 }
                 // Tags
-                block.tags = block.tags || [];
+                const tags = block.tags = block.tags || [];
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
                 }
-                const tags = ('tags' in block) ? block.tags : [];
                 //
                 for(let tid in block.texture) {
                     const value = block.texture[tid];
@@ -168,7 +167,7 @@ export class Compiler {
                     }
                     let x_size = 1;
                     let y_size = 1;
-                    const has_mask = tags.included('mask_biome') || tags.included('mask_color');
+                    const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
                     const compile = block.compile;
                     if(!tex) {
                         const img = await spritesheet.loadTex(value);
