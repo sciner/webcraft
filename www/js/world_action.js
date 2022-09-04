@@ -1153,16 +1153,6 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
     return false;
 }
 
-// Fuse TNT
-async function fuseTNT(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(e.shiftKey || world_material.name != 'TNT') {
-        return false;
-    }
-    actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-    // @todo make explosion like a creeper
-    return true;
-}
-
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
@@ -1498,7 +1488,7 @@ async function useFlipAndSteel(e, world, pos, player, world_block, world_materia
     }
     
     // детонатация tnt
-    if (world_block.id == BLOCK.TNT.id) {
+    if (!e.shiftKey && world_block.id == BLOCK.TNT.id) {
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
         // @todo make explosion like a creeper
         return true;
