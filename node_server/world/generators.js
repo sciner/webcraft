@@ -29,8 +29,21 @@ export class WorldGenerators {
         }
         const resp = {
             id: generator.id,
-            options: {}
+            options: {},
+            rules: {}
         };
+        // rules
+        for(let name in generator.rules) {
+            resp.rules[name] = generator.rules[name];
+        }
+        if('rules' in params) {
+            for(let name in params.rules) {
+                if(name in generator.rules) {
+                    resp.rules[name] = params.rules[name];
+                }
+            }
+        }
+        // options
         for(let name in generator.options) {
             const option = generator.options[name];
             resp.options[name] = WorldGenerators.strictType(option.default_value, option.strict_type);
@@ -86,6 +99,9 @@ export class WorldGenerators {
         {
             "id": "biome2",
             "title": "Стандартный",
+            "rules": {
+                "portals": true
+            },
             "options": {
                 "auto_generate_mobs": {
                     "title": "Спавнить мобов",
@@ -170,19 +186,31 @@ export class WorldGenerators {
         },
         {
             "id": "flat",
-            "title": "Плоский мир"
+            "title": "Плоский мир",
+            "rules": {
+                "portals": false
+            }
         },
         {
             "id": "city",
-            "title": "Город 1"
+            "title": "Город 1",
+            "rules": {
+                "portals": false
+            }
         },
         {
             "id": "city2",
-            "title": "Город 2"
+            "title": "Город 2",
+            "rules": {
+                "portals": false
+            }
         },
         {
             "id": "bottom_caves",
-            "title": "Пещеры нижнего мира"
+            "title": "Пещеры нижнего мира",
+            "rules": {
+                "portals": false
+            }
         }
     ];
 

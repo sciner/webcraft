@@ -2225,7 +2225,7 @@
             "id": 102,
             "name": "GLASS_PANE",
             "transparent": true,
-            "style": "thin",
+            "style": "pane",
             "inventory_style": "extruder",
             "sound": "madcraft:block.glass",
             "material": {

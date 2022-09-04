@@ -706,7 +706,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useFlipAndSteel, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [useFlintAndSteel, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1321,18 +1321,18 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
 
 }
 
-async function useFlipAndSteel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    
+async function useFlintAndSteel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+
     if (!world_material || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id)) {
         return false;
     }
-    
+
     const position = new Vector(pos.x, pos.y, pos.z);
     position.addSelf(pos.n);
-    
-    // Если материла используется для портала и игрок в биоме
+
+    // Если материл используется для портала и игрок в биоме
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
-    if (portal_type && world.info.generator.id == 'biome2') {
+    if (portal_type && world.info.generator.rules.portals) {
         const frame_block_id = world_material.id;
         // находим растояние до стенки
         const getDistanceEdge = (pos, dir) => {
