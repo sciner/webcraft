@@ -65,7 +65,7 @@ export default class Ticker {
                         const position = pos.offset(x, y, z);
                         const flames = getNeighborFlame(world, position);
                         if (flames > 0) {
-                            const burns = (flames + 4 * 10) / (age + 30); // @todo 7 hard 4 noraml 3 easy
+                            const burns = (flames + 3 * 10) / (age + 30); // @todo 7 hard 4 noraml 3 easy
                             if (burns > 0 && rndInt(chance) < burns) {
                                 const mod_age = Math.min((age + rndInt(5) / 4), 15);
                                 updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
@@ -129,7 +129,7 @@ function setFireOrDes(world, pos, chance, age, updated) {
         return;
     }
     if (block.id == BLOCK.TNT.id) {
-        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         return;
     }
     const burn = getBurn(block);
@@ -139,6 +139,6 @@ function setFireOrDes(world, pos, chance, age, updated) {
             updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data:{age: def_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-        }        
+        }
     }
 }

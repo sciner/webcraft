@@ -1490,7 +1490,7 @@ async function useFlipAndSteel(e, world, pos, player, world_block, world_materia
     // детонатация tnt
     if (!e.shiftKey && world_block.id == BLOCK.TNT.id) {
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-        // @todo make explosion like a creeper
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         return true;
     }
     
