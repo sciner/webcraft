@@ -144,7 +144,7 @@ export class Compiler {
                     block.tags.push('no_drop_ao');
                 }
                 if(block.tags.includes('leaves')) {
-                    // block.tags.push('doubleface');
+                    block.tags.push('doubleface');
                 }
                 const tags = ('tags' in block) ? block.tags : [];
                 //
