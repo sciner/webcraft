@@ -2738,6 +2738,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2757,6 +2758,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2776,6 +2778,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2795,6 +2798,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2814,6 +2818,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2833,6 +2838,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5469,6 +5475,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5488,6 +5495,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5507,6 +5515,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5526,6 +5535,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5545,6 +5555,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5564,6 +5575,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5583,6 +5595,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],

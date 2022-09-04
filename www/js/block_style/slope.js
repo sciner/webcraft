@@ -98,7 +98,7 @@ export default class style {
             if(top_parts_count == 3) {
                 // inner corner
                 const n = neighbours[dirs_name[cd]];
-                if(n.material.tags.indexOf('stairs') >= 0) {
+                if(n.material.tags.included('stairs')) {
                     const n_on_ceil = style.isOnCeil(n);
                     let index = (cd - 1 + 4) % 4;
                     if(n.getCardinalDirection() == index && on_ceil == n_on_ceil) {

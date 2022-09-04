@@ -168,7 +168,7 @@ export class Compiler {
                     }
                     let x_size = 1;
                     let y_size = 1;
-                    const has_mask = tags.indexOf('mask_biome') >= 0 || tags.indexOf('mask_color') >= 0;
+                    const has_mask = tags.included('mask_biome') || tags.included('mask_color');
                     const compile = block.compile;
                     if(!tex) {
                         const img = await spritesheet.loadTex(value);

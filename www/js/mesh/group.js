@@ -33,7 +33,7 @@ export class FakeTBlock {
 
     hasTag(tag) {
         let mat = this.material;
-        return mat.tags && mat.tags.indexOf(tag) >= 0;
+        return mat.tags && mat.tags.included(tag);
     }
 
     getCardinalDirection() {
