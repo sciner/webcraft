@@ -20,7 +20,6 @@ export default class Ticker {
             return;
         }
         const updated_blocks = [];
-        
         // Проверяем установку блока
         const block = world.getBlock(pos.add(Vector.YN));
         const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
@@ -32,7 +31,6 @@ export default class Ticker {
         }
         const new_age = Math.min(15, age + rndInt(3) / 2);
         if (age != new_age) {
-            console.log("age: " + new_age);
             tblock.extra_data.age = new_age;
         }
         if (!infiniburn) {
@@ -130,6 +128,10 @@ function setFireOrDes(world, pos, chance, age, updated) {
     if (!block || block.id == BLOCK.AIR.id) {
         return;
     }
+    if (block.id == BLOCK.TNT.id) {
+        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        return;
+    }
     const burn = getBurn(block);
     if (rndInt(chance) < burn) {
         if (rndInt(age + 10) < 5) {
@@ -137,6 +139,6 @@ function setFireOrDes(world, pos, chance, age, updated) {
             updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data:{age: def_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-        }
+        }        
     }
 }
