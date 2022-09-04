@@ -501,7 +501,6 @@ export class Vector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
-
     /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
