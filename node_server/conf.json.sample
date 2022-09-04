@@ -36,7 +36,8 @@
         "furnace",
         "bee_nest",
         "bn",
-        "fire"
+        "fire",
+        "tnt"
     ],
     "chat_plugins": [
         "chat_teleport",

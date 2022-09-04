@@ -2701,6 +2701,13 @@
                 "up": "block/tnt_top.png",
                 "down": "block/tnt_bottom.png",
                 "side": "block/tnt_side.png"
+            },
+            "extra_data": {
+                "explode": false,
+                "fuse": 0
+            },
+            "ticking": {
+                "type": "tnt"
             }
         },
         {
