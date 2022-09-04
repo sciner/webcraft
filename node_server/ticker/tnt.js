@@ -1,6 +1,4 @@
-import { BLOCK } from '../../www/js/blocks.js';
-import { Vector } from '../../www/js/helpers.js';
-import { ServerClient } from '../../www/js/server_client.js';
+import { WorldAction } from "../../www/js/world_action.js";
 
 export default class Ticker {
 
@@ -12,14 +10,22 @@ export default class Ticker {
         const extra_data = tblock.extra_data;
         const pos = v.pos.clone();
 
-        // only every ~1 sec
-        if(v.ticks % 10 != 0) {
+        // only every ~0.5 sec
+        if(v.ticks % 5 != 0) {
             return;
         }
         
-        const updated_blocks = [];
-        actions.makeExplosion(mobPosCenter, rad, true, 1/3, 6);
-        return updated_blocks;
+        if (extra_data.explode) {
+            extra_data.fuse++;
+            if (extra_data.fuse >= 8) {
+                const actions = new WorldAction(null, world, false, false);
+                actions.makeExplosion(pos, 3, true, 1/3, 6);
+                actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: pos });
+                world.actions_queue.add(null, actions);
+            }
+        }
+        
+        return [];
     }
     
 }

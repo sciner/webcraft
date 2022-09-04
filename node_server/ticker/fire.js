@@ -129,7 +129,7 @@ function setFireOrDes(world, pos, chance, age, updated) {
         return;
     }
     if (block.id == BLOCK.TNT.id) {
-        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         return;
     }
     const burn = getBurn(block);
@@ -139,6 +139,6 @@ function setFireOrDes(world, pos, chance, age, updated) {
             updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data:{age: def_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-        }        
+        }
     }
 }
