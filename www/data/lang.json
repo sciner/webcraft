@@ -128,6 +128,7 @@
         "press_f11_to_fullscreen": {"en": "Press F11 to full screen", "ru": "Нажмите F11 чтобы смотреть на весь экран", "fr": "", "es": "", "man": ""},
         "loading_game_connecting": {"en": "CONNECTING TO SERVER...", "ru": "СОЕДИНЕНИЕ С СЕРВЕРОМ ...", "fr": "", "es": "", "man": ""},
         "loading_game_generate_planet": {"en": "GENERATE PLANET ...", "ru": "ГЕНЕРАЦИЯ ПЛАНЕТЫ ...", "fr": "", "es": "", "man": ""},
-        "im": {"en": "I'm", "ru": "Я", "fr": "", "es": "", "man": ""}
+        "im": {"en": "I'm", "ru": "Я", "fr": "", "es": "", "man": ""},
+        "beautiful_leaves": {"en": "Beautiful leaves", "ru": "Красивые листья", "fr": "", "es": "", "man": ""}
     }
 }

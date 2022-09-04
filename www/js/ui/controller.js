@@ -272,6 +272,7 @@ let gameCtrl = async function($scope, $timeout) {
             texture_pack: 'base',
             render_distance: 4,
             use_light: 1,
+            beautiful_leaves: true,
             mipmap: false
         },
         lightMode: {
