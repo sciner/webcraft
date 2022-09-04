@@ -138,7 +138,9 @@ export class Hotbar {
                 live: {x: 0, y: 300, width: 54, height: 54},
                 live_half: {x: 0, y: 354, width: 54, height: 54},
                 food: {x: 54, y: 300, width: 54, height: 54},
-                food_half: {x: 54, y: 354, width: 54, height: 54}
+                food_half: {x: 54, y: 354, width: 54, height: 54},
+                oxygen: {x: 108, y: 300, width: 54, height: 54},
+                oxygen_half: {x: 108, y: 354, width: 54, height: 54}
             }
         };
 
@@ -196,6 +198,7 @@ export class Hotbar {
             let indicators = player.indicators;
             let live = indicators.live.value / 20;
             let food = indicators.food.value / 20;
+            let oxygen = indicators.oxygen.value / 20;
             //
             let spn = Math.round(performance.now() / 75);
             let calcShiftY = (i, live) => {
@@ -257,33 +260,43 @@ export class Hotbar {
                     ss
                 );
             }
-            // foods
-            food = 0.55;
-            for(let i = 0; i < Math.floor(food * 10); i++) {
-                hud.ctx.drawImage(
-                    this.image,
-                    src.icons.food.x,
-                    src.icons.food.y,
-                    src.icons.food.width,
-                    src.icons.food.height,
-                    hud_pos.x + dst.w - (i * 24 * this.zoom + ss),
-                    hud_pos.y + 30 * this.zoom,
-                    ss,
-                    ss
-                );
-            }
-            if(Math.round(food * 10) > Math.floor(food * 10)) {
-                hud.ctx.drawImage(
-                    this.image,
-                    src.icons.food_half.x,
-                    src.icons.food_half.y,
-                    src.icons.food_half.width,
-                    src.icons.food_half.height,
-                    hud_pos.x + dst.w - (Math.floor(food * 10) * 24 * this.zoom + ss),
-                    hud_pos.y + 30 * this.zoom,
-                    ss,
-                    ss
-                );
+            // foods && oxygen
+            const right_inds = [
+                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_min: 20},
+                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_min: 19}
+            ];
+            for(let i in right_inds) {
+                const ind = right_inds[i];
+                const yoffset = i * (ss + 2 * this.zoom);
+                if(ind.value <= ind.visible_min) {
+                    continue;
+                }
+                for(let i = 0; i < Math.floor(ind.value * 10); i++) {
+                    hud.ctx.drawImage(
+                        this.image,
+                        ind.img_full.x,
+                        ind.img_full.y,
+                        ind.img_full.width,
+                        ind.img_full.height,
+                        hud_pos.x + dst.w - (i * 24 * this.zoom + ss),
+                        hud_pos.y + 30 * this.zoom - yoffset,
+                        ss,
+                        ss
+                    );
+                }
+                if(Math.round(ind.value * 10) > Math.floor(ind.value * 10)) {
+                    hud.ctx.drawImage(
+                        this.image,
+                        ind.img_full_half.x,
+                        ind.img_full_half.y,
+                        ind.img_full_half.width,
+                        ind.img_full_half.height,
+                        hud_pos.x + dst.w - (Math.floor(ind.value * 10) * 24 * this.zoom + ss),
+                        hud_pos.y + 30 * this.zoom - yoffset,
+                        ss,
+                        ss
+                    );
+                }
             }
         } else {
             // bar

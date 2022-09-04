@@ -4,6 +4,7 @@ import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
+import { Vector } from "./helpers.js";
 
 /**
  * World generation unfo passed from server
@@ -255,7 +256,7 @@ export class World {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    Qubatch.render.damageBlock(destroy_data.item, destroy_data.pos, false);
+                    Qubatch.render.damageBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
                     this.onBlockDestroy(destroy_data.pos, destroy_data.item);
                 }
                 //

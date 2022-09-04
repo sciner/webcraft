@@ -821,7 +821,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "BIRCH_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/birch_leaves.png",
+            "texture": {
+                "side": "block/birch_leaves.png",
+                "round": "./textures/birch_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -837,7 +840,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "OAK_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/oak_leaves.png",
+            "texture": {
+                "side": "block/oak_leaves.png",
+                "round": "./textures/oak_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -853,7 +859,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "ACACIA_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/acacia_leaves.png",
+            "texture": {
+                "side": "block/acacia_leaves.png",
+                "round": "./textures/acacia_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -869,7 +878,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "SPRUCE_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/spruce_leaves.png",
+            "texture": {
+                "side": "block/spruce_leaves.png",
+                "round": "./textures/spruce_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -885,7 +897,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "DARK_OAK_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/dark_oak_leaves.png",
+            "texture": {
+                "side": "block/dark_oak_leaves.png",
+                "round": "./textures/dark_oak_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -901,7 +916,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "JUNGLE_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/jungle_leaves.png",
+            "texture": {
+                "side": "block/jungle_leaves.png",
+                "round": "./textures/jungle_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -916,7 +934,7 @@
             "name": "JUNGLE_LEAVES_FLOWER",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "texture": "block/jungle_leaves.png",
+            "texture": "./textures/jungle_leaves.png",
             "material": {
                 "id": "leaves"
             },
@@ -4627,6 +4645,9 @@
                 "b": 255,
                 "a": 96
             },
+            "tags": [
+                "doubleface"
+            ],
             "texture": {
                 "side": "block/spawner.png"
             }

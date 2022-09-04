@@ -22,7 +22,7 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./type.js";
 
 const {mat3, mat4} = glMatrix;
@@ -41,7 +41,7 @@ const FOV_NORMAL                = 65;
 const FOV_FLYING                = FOV_NORMAL * 1.075;
 const FOV_WIDE                  = FOV_NORMAL * 1.15;
 const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE             = 2 / 16;
+const NEAR_DISTANCE             = (2 / 16) * PLAYER_ZOOM;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
@@ -752,8 +752,8 @@ export class Renderer {
     }
 
     // damageBlock
-    damageBlock(block, pos, small) {
-        this.meshes.add(new Particles_Block_Damage(this, block, pos, small));
+    damageBlock(block, pos, small, scale) {
+        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale));
     }
 
     // addExplosionParticles
@@ -793,8 +793,10 @@ export class Renderer {
         const defaultShader = this.defaultShader;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(player.itsMe() && this.camera_mode == CAMERA_MODE.SHOOTER) {
-                continue;
+            if(player.itsMe()) {
+                if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
+                    continue;
+                }
             }
             // this.camPos.distance
             if(player.itsMe() || player.distance !== null) {
@@ -845,6 +847,10 @@ export class Renderer {
         if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera_mode) < 0) {
             return false;
         }
+        const player = Qubatch.player;
+        if(player.game_mode.isSpectator()) {
+            return false;
+        }
         const world = Qubatch.world;
         const TARGET_TEXTURES = [.5, .5, 1, 1];
         // Material (shadow)
@@ -865,10 +871,10 @@ export class Renderer {
             }));
         }
         //
-        const a_pos = new Vector(0.5, 0.5, 0.5).addSelf(Qubatch.player.blockPos);
+        const a_pos = new Vector(0.5, 0.5, 0.5).addSelf(player.blockPos);
         // Build vertices for each player
-        const player_pos = Qubatch.player.lerpPos;
-        const blockPosDiff = player_pos.sub(Qubatch.player.blockPos);
+        const player_pos = player.lerpPos;
+        const blockPosDiff = player_pos.sub(player.blockPos);
         const vertices = [];
         const vec = new Vector();
         const appendPos = (pos) => {
@@ -911,7 +917,7 @@ export class Renderer {
             }
             const player_vertices = [];
             this.createShadowVertices(player_vertices, shapes, pos, TARGET_TEXTURES);
-            //if(player.username != Qubatch.player.session.username) {
+            //if(player.username != player.session.username) {
                 const dist = player_pos.sub(pos.flooredSelf()).subSelf(blockPosDiff)
                 for(let i = 0; i < player_vertices.length; i += GeometryTerrain.strideFloats) {
                     player_vertices[i + 0] -= dist.x;
@@ -1018,10 +1024,11 @@ export class Renderer {
     setCamera(player, pos, rotate) {
 
         const tmp = mat4.create();
+        const hotbar = Qubatch.hotbar;
 
         // Shake camera on damage
-        if(Qubatch.hotbar.last_damage_time && performance.now() - Qubatch.hotbar.last_damage_time < DAMAGE_TIME) {
-            const percent = (performance.now() - Qubatch.hotbar.last_damage_time) / DAMAGE_TIME;
+        if(hotbar.last_damage_time && performance.now() - hotbar.last_damage_time < DAMAGE_TIME) {
+            const percent = (performance.now() - hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
@@ -1037,7 +1044,7 @@ export class Renderer {
         let cam_rotate = rotate;
 
         this.bobView(player, tmp);
-        this.crosshairOn = (this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active;
+        this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
 
         if(this.camera_mode === CAMERA_MODE.SHOOTER) {
             // do nothing
@@ -1054,21 +1061,23 @@ export class Renderer {
             const view_vector = player.forward.clone();
             view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
             //
-            const d = 5; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+            const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
             cam_pos_new.moveToSelf(cam_rotate, d);
-            // raycast from eyes to cam
-            const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
-            if(bPos) {
-                this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
-                this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
-                let dist1 = pos.distance(cam_pos_new);
-                let dist2 = pos.distance(this.obstacle_pos);
-                if(dist2 < dist1) {
-                    cam_pos_new.copyFrom(this.obstacle_pos);
+            if(!player.game_mode.isSpectator()) {
+                // raycast from eyes to cam
+                const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
+                if(bPos) {
+                    this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
+                    this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
+                    let dist1 = pos.distance(cam_pos_new);
+                    let dist2 = pos.distance(this.obstacle_pos);
+                    if(dist2 < dist1) {
+                        cam_pos_new.copyFrom(this.obstacle_pos);
+                    }
                 }
+                const safe_margin = -.1;
+                cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
             }
-            const safe_margin = -.1;
-            cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
             cam_pos.copyFrom(cam_pos_new);
         }
 
@@ -1080,31 +1089,33 @@ export class Renderer {
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {
 
-        let p_109140_ = player.walking_frame * 2 % 1;
+        let p_109140_ = (player.walking_frame * 2) % 1;
+
         //
-        let f = player.walkDist - player.walkDistO;
-        let f1 = -(player.walkDist + f * p_109140_);
+        let speed_mul = 1.0 / player.scale;
+        let f = (player.walkDist * speed_mul - player.walkDistO * speed_mul);
+        let f1 = -(player.walkDist * speed_mul + f * p_109140_);
         let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+
         //
-        let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
-        let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
+        let zmul = (Mth.sin(f1 * Math.PI) * f2 * 3.0) / player.scale;
+        let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) / player.scale;
         let m = Math.PI / 180;
 
-        if (!forDrop) {
-
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
-
-            mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.5,
-                0.0,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
-            ]);
-        } else {
+        //
+        if(forDrop) {
             mat4.translate(viewMatrix, viewMatrix, [
                 Mth.sin(f1 * Math.PI) * f2 * 0.25,
                 -Math.abs(Mth.cos(f1 * Math.PI) * f2) * 1,
                 0.0,
+            ]);
+        } else {
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+            mat4.translate(viewMatrix, viewMatrix, [
+                Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                0.0,
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
             ]);
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {

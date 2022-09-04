@@ -12,6 +12,7 @@ import { DBWorldQuest } from './world/quest.js';
 import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
+import { WorldGenerators } from "../world/generators.js";
 
 // World database provider
 export class DBWorld {
@@ -38,9 +39,9 @@ export class DBWorld {
 
     // Возвращает мир по его GUID либо создает и возвращает его
     async getWorld(world_guid) {
-        let row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
-            return {
+            const resp = {
                 id:         row.id,
                 user_id:    row.user_id,
                 dt:         row.dt,
@@ -54,6 +55,8 @@ export class DBWorld {
                 state:      null,
                 add_time:   row.add_time,
             }
+            resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
+            return resp;
         }
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
@@ -135,7 +138,7 @@ export class DBWorld {
             },
             oxygen: {
                 name:  'oxygen',
-                value: 10,
+                value: 20,
             },
         };
     }

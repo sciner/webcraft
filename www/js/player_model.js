@@ -1,18 +1,62 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT } from "./constant.js";
+import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { Helpers, NORMALS, Vector } from './helpers.js';
+import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
-const {quat} = glMatrix;
+const { quat, mat4 } = glMatrix;
 const SWING_DURATION = 6;
 
 const KEY_SLOT_MAP = {
     left: 'LeftArm',
     right: 'RightArm'
 };
+
+const setFromUnitVectors = (q, vFrom, vTo ) => {
+
+    // assumes direction vectors vFrom and vTo are normalized
+    vFrom = vFrom.normalize();
+    vTo = vTo.normalize();
+
+    let r = vFrom.dot( vTo ) + 1;
+
+    if ( r < Number.EPSILON ) {
+
+        // vFrom and vTo point in opposite directions
+
+        r = 0;
+
+        if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+
+            q[0] = - vFrom.y;
+            q[1] = vFrom.x;
+            q[2] = 0;
+            q[3] = r;
+
+        } else {
+
+            q[0] = 0;
+            q[1] = - vFrom.z;
+            q[2] = vFrom.y;
+            q[3] = r;
+
+        }
+
+    } else {
+
+        q[0] = vFrom.y * vTo.z - vFrom.z * vTo.y;
+        q[1] = vFrom.z * vTo.x - vFrom.x * vTo.z;
+        q[2] = vFrom.x * vTo.y - vFrom.y * vTo.x;
+        q[3] = r;
+
+    }
+
+    quat.normalize(q, q);
+
+    return q;
+}
 
 export class ModelSlot {
     constructor(name = '', parent = null) {
@@ -60,6 +104,7 @@ export class PlayerModel extends MobModel {
         super({type: 'player', skin: '1', ...props});
 
         this.height = PLAYER_HEIGHT;
+        this.scale = 0.9 * PLAYER_ZOOM;
 
         /**
          * @type {HTMLCanvasElement}
@@ -195,7 +240,7 @@ export class PlayerModel extends MobModel {
         super.postLoad(tree);
         
         for(let i = 0; i < tree.length; i++) {
-            tree[i].scale.set([0.9, 0.9, 0.9]);
+            tree[i].scale.set([this.scale, this.scale, this.scale]);
         }
         
         if (this.nametag || !this.sceneTree) {
@@ -218,7 +263,7 @@ export class PlayerModel extends MobModel {
         this.nametag.scale.set([0.005, 1, 0.005]);
         this.nametag.position[2] = 
             (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head'))
-            .pivot[2] + 0.5;
+            .pivot[2] + 0.6;
         
         this.nametag.updateMatrix();
 
@@ -238,15 +283,29 @@ export class PlayerModel extends MobModel {
             return;
         }
 
-        const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
-        const angX = 0; // @todo
-
         this.nametag.visible = !this.sneak && !this.hide_nametag;
 
-        const zoom = camPos.distance(this.pos) / 6;
-        this.nametag.scale.set([0.005 * zoom, 1, 0.005 * zoom]);
+        if (!this.nametag.visible) {
+            return;
+        }
 
-        quat.fromEuler(this.nametag.quat, angX, 0, angZ);
+        const d = camPos.distance(this.pos);
+        const dx = camPos.x - this.pos.x;
+        const dy = camPos.y - this.pos.y - this.nametag.position[2];
+        const dz = camPos.z - this.pos.z;        
+        const d2 = Math.hypot(dz, dx)
+        const pitch = Math.PI / 2 - Math.atan2(d2, dy);
+        const yaw = this.yaw + Math.PI/2 + Math.atan2(dz, dx);
+
+        const zoom = 0.005 * (d / 6);
+
+        this.nametag.scale.set([zoom, 1, zoom]);
+
+        quat.identity(this.nametag.quat);
+
+        quat.rotateZ(this.nametag.quat,this.nametag.quat, yaw)
+        quat.rotateX(this.nametag.quat,this.nametag.quat, pitch)
+
         this.nametag.updateMatrix();
     }
 
@@ -278,17 +337,18 @@ export class PlayerModel extends MobModel {
 
         // Create model
         const vertices = GeometryTerrain.convertFrom12([
-            -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, h, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2, 0, 0, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            -w/2, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2, 0, h / 2, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            -w/2, 0, -h / 2, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            -w/2, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         ]);
 
         const node = new SceneNode();
         node.name = 'name_tag';
         node.terrainGeometry = new GeometryTerrain(vertices);
+        node.terrainGeometry.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG);
         node.material = render.defaultShader.materials.label.getSubMat(texture);
 
         return node;
