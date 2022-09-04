@@ -11,6 +11,18 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
+// Leaves
+const leaves_planes = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
+];
+const _pl = {};
+const _vec = new Vector(0, 0, 0);
+const matrix_leaves = mat4.create();
+mat4.scale(matrix_leaves, matrix_leaves, [2, 2, 2]);
+
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
@@ -223,6 +235,7 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
+
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
@@ -230,6 +243,32 @@ export default class style {
 
         const material              = block.material;
         const no_anim               = material.is_simple_qube || !material.texture_animations;
+
+        // Beautiful leaves
+        if(material.transparent && material.is_leaves) {
+            const lm_leaves = dirt_color.clone();
+            lm_leaves.b = 2; // offset for mask
+            for(let i = 0; i < leaves_planes.length; i++) {
+                const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
+                const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
+                const plane = leaves_planes[i];
+                // fill object
+                _pl.size     = plane.size;
+                _pl.uv       = plane.uv;
+                _pl.rot      = [Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]];
+                _pl.lm       = lm_leaves;
+                _pl.pos      = _vec.set(
+                    x + (plane.move?.x || 0),
+                    y + (plane.move?.y || 0),
+                    z + (plane.move?.z || 0)
+                );
+                _pl.matrix   = matrix_leaves;
+                _pl.flag     = QUAD_FLAGS.MASK_BIOME;
+                _pl.texture  = [29/TX_CNT, 25/TX_CNT, 2/TX_CNT, 2/TX_CNT];
+                default_style.pushPlane(vertices, _pl);
+            }
+            return;
+        }
 
         let width                   = 1;
         let height                  = 1;
@@ -374,56 +413,6 @@ export default class style {
                 autoUV = false;
             }
 
-        }
-
-        // Beautiful leaves
-        if(material.transparent && material.is_leaves) {
-            /*const planes = [
-                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
-            ];
-            const _pl = {};
-            const _vec = new Vector(0, 0, 0);
-            let dx = 0, dy = 0, dz = 0;
-            const max = mat4.create();
-            mat4.scale(max, max, [2, 2, 2]);
-            const lm_beautify = lm.clone();
-            lm_beautify.b = 2; // offset for mask
-            for(let i = 0; i < planes.length; i++) {
-                const plane = planes[i];
-                // fill object
-                _pl.size     = plane.size;
-                _pl.uv       = plane.uv;
-                _pl.rot      = [plane.rot[0], plane.rot[1] + Math.random() * 0.01, plane.rot[2]];
-                _pl.lm       = lm_beautify;
-                _pl.pos      = _vec.set(
-                    x + dx + (plane.move?.x || 0),
-                    y + dy + (plane.move?.y || 0),
-                    z + dz + (plane.move?.z || 0)
-                );
-                _pl.matrix   = max;
-                _pl.flag     = QUAD_FLAGS.MASK_BIOME; // flags | sideFlags | upFlags;
-                _pl.texture  = [29/TX_CNT, 25/TX_CNT, 2/TX_CNT, 2/TX_CNT];
-                default_style.pushPlane(vertices, _pl);
-            }
-            // rotate main block
-            if(!matrix) {
-                matrix = mat4.create();
-            }
-            mat4.rotateY(matrix, matrix, Math.PI*2 * Math.random());
-            y += Math.random() * .2;
-            if(neighbours.SOUTH.material.is_leaves) {
-                canDrawSOUTH = false;
-            }
-            if(neighbours.WEST.material.is_leaves) {
-                canDrawWEST = false;
-            }
-            if(neighbours.UP.material.is_leaves) {
-                canDrawUP = false;
-            }
-            */
         }
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
