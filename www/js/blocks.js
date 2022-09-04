@@ -526,17 +526,17 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags.indexOf('alpha') >= 0) || ['thin'].indexOf(block.style) >= 0) {
+        if(WATER_BLOCKS_ID.includes(block.id) || (block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
-        } else if(block.id == 649 ||
+        } else if(block.tags.includes('doubleface') ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
                 'lectern'
-            ].indexOf(block.style) >= 0
+            ].includes(block.style)
             ) {
             group = 'doubleface';
         }

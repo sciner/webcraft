@@ -143,6 +143,9 @@ export class Compiler {
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
                 }
+                if(block.tags.includes('leaves')) {
+                    // block.tags.push('doubleface');
+                }
                 const tags = ('tags' in block) ? block.tags : [];
                 //
                 for(let tid in block.texture) {

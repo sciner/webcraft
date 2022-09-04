@@ -1,11 +1,15 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import { default as default_style } from './default.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
 
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
@@ -282,19 +286,6 @@ export default class style {
                 }
             }
 
-            // Leaves
-            /*if(material.transparent && material.is_leaves) {
-                if(neighbours.SOUTH.material.is_leaves) {
-                    canDrawSOUTH = false;
-                }
-                if(neighbours.WEST.material.is_leaves) {
-                    canDrawWEST = false;
-                }
-                if(neighbours.UP.material.is_leaves) {
-                    canDrawUP = false;
-                }
-            }*/
-
             // Glass
             if(material.transparent && material.is_glass) {
                 if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.style == material.style) canDrawSOUTH = false;
@@ -383,6 +374,56 @@ export default class style {
                 autoUV = false;
             }
 
+        }
+
+        // Beautiful leaves
+        if(material.transparent && material.is_leaves) {
+            /*const planes = [
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
+            ];
+            const _pl = {};
+            const _vec = new Vector(0, 0, 0);
+            let dx = 0, dy = 0, dz = 0;
+            const max = mat4.create();
+            mat4.scale(max, max, [2, 2, 2]);
+            const lm_beautify = lm.clone();
+            lm_beautify.b = 2; // offset for mask
+            for(let i = 0; i < planes.length; i++) {
+                const plane = planes[i];
+                // fill object
+                _pl.size     = plane.size;
+                _pl.uv       = plane.uv;
+                _pl.rot      = [plane.rot[0], plane.rot[1] + Math.random() * 0.01, plane.rot[2]];
+                _pl.lm       = lm_beautify;
+                _pl.pos      = _vec.set(
+                    x + dx + (plane.move?.x || 0),
+                    y + dy + (plane.move?.y || 0),
+                    z + dz + (plane.move?.z || 0)
+                );
+                _pl.matrix   = max;
+                _pl.flag     = QUAD_FLAGS.MASK_BIOME; // flags | sideFlags | upFlags;
+                _pl.texture  = [29/TX_CNT, 25/TX_CNT, 2/TX_CNT, 2/TX_CNT];
+                default_style.pushPlane(vertices, _pl);
+            }
+            // rotate main block
+            if(!matrix) {
+                matrix = mat4.create();
+            }
+            mat4.rotateY(matrix, matrix, Math.PI*2 * Math.random());
+            y += Math.random() * .2;
+            if(neighbours.SOUTH.material.is_leaves) {
+                canDrawSOUTH = false;
+            }
+            if(neighbours.WEST.material.is_leaves) {
+                canDrawWEST = false;
+            }
+            if(neighbours.UP.material.is_leaves) {
+                canDrawUP = false;
+            }
+            */
         }
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)

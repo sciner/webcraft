@@ -15,7 +15,8 @@
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
-        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"},
+        {"spritesheet_id": "default", "x": 28, "y": 24, "image": "./textures/cranberry.png", "has_mask": true}
     ],
     "blocks" : [
         {
@@ -4582,6 +4583,9 @@
                 "b": 255,
                 "a": 96
             },
+            "tags": [
+                "doubleface"
+            ],
             "texture": {
                 "side": "block/spawner.png"
             }
