@@ -1,8 +1,7 @@
-import { TBlock } from "../../www/js/typed_blocks3.js";
-import { ServerPlayer } from "../server_player.js";
+//[JsDoc]
+//import { TBlock } from "../../www/js/typed_blocks3.js";
+//[JsDoc]import { ServerPlayer } from "../server_player.js";
 import { LackOfOxygenAndAsphyxiationEffectID, LackOfOxygenAndAsphyxiationEffect } from "./lack_of_oxygen_and_asphyxiation_effect.js";
-
-
 
 class HeadEffectChecker {
     /**
@@ -12,7 +11,6 @@ class HeadEffectChecker {
      */
 
     checkEffectOfBlock(player, block) {
-
         // now it's only one effect
         /**
          * @type {null|LackOfOxygenAndAsphyxiationEffect}
@@ -42,11 +40,12 @@ class HeadEffectChecker {
      * @returns {boolean}
      */
     blockHasOxygen(block){
-        //[TODO] make better check with other types of material
-        if(block.material.is_water === true){
-            return false;
-        }
-        return true;
+        let mat = block.material;
+        return !(mat.is_fluid || (mat.id > 0 && mat.passable == 0 && !mat.transparent));
+        // if(block.material.is_water === true){
+        //     return false;
+        // }
+        // return true;
     }
 }
 export default new HeadEffectChecker();
