@@ -2628,6 +2628,17 @@
             "texture": "item/coal.png"
         },
         {
+            "id": 487,
+            "name": "CHARCOAL",
+            "item": {"name": "coal"},
+            "style": "extruder",
+            "fuel_time": 80,
+            "material": {
+                "id": "wood"
+            },
+            "texture": "item/charcoal.png"
+        },
+        {
             "id": 199,
             "name": "TEST",
             "sound": "madcraft:block.wood",

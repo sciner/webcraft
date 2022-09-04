@@ -142,6 +142,9 @@ export class Compiler {
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
                 }
+                if(tags.includes('log') && !block.coocked_item) {
+                    block.coocked_item = {name: 'CHARCOAL', count: 1};
+                }
                 //
                 for(let tid in block.texture) {
                     const value = block.texture[tid];
