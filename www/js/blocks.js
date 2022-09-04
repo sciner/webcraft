@@ -17,6 +17,8 @@ export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'e
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['power'];
 
+export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
 
@@ -526,17 +528,17 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags.indexOf('alpha') >= 0) || ['thin'].indexOf(block.style) >= 0) {
+        if(WATER_BLOCKS_ID.includes(block.id) || (block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
-        } else if(block.id == 649 ||
+        } else if(block.tags.includes('doubleface') ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
                 'lectern'
-            ].indexOf(block.style) >= 0
+            ].includes(block.style)
             ) {
             group = 'doubleface';
         }
@@ -643,10 +645,18 @@ export class BLOCK {
         block.is_qube           = block.style == 'default' && !('width' in block) && !('height' in block)
         block.is_grass          = ['GRASS', 'TALL_GRASS'].indexOf(block.name) >= 0;
         block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].indexOf(block.name) >= 0;
-        block.is_leaves         = block.tags.indexOf('leaves') >= 0;
-        block.is_glass          = block.tags.indexOf('glass') >= 0 || (block.material.id == 'glass');
-        block.is_sign           = block.tags.indexOf('sign') >= 0;
+        block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
+        block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style == 'banner';
+        // не переносить!
+        if(block.is_leaves) {
+            const beautiful_leaves = resource_pack?.manager?.settings?.beautiful_leaves;
+            if(beautiful_leaves) {
+                block.is_leaves = LEAVES_TYPE.BEAUTIFUL;
+                block.tags.push('doubleface');
+            }
+        }
         block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
@@ -654,7 +664,7 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         //
         if(block.planting && !('inventory_style' in block)) {
@@ -862,6 +872,7 @@ export class BLOCK {
                 case DIRECTION.RIGHT: {prop = 'east'; break;}
                 case DIRECTION.FORWARD: {prop = 'north'; break;}
                 case DIRECTION.BACK: {prop = 'south'; break;}
+                default: {prop = dir;}
             }
             if(c.hasOwnProperty(prop)) {
                 c = c[prop];
@@ -875,11 +886,12 @@ export class BLOCK {
             debugger;
         }
         const flags = c[2] | 0;
+        const size = c[3] ?? 1;
         return [
-            (c[0] + 0.5) / tx_cnt,
-            (c[1] + 0.5) / tx_cnt,
-            ((flags & 1) != 0) ? - 1 / tx_cnt : 1 / tx_cnt,
-            ((flags & 2) != 0)  ? - 1 / tx_cnt : 1 / tx_cnt
+            (c[0] + size/2) / tx_cnt,
+            (c[1] + size/2) / tx_cnt,
+            ((flags & 1) != 0) ? - size / tx_cnt : size / tx_cnt,
+            ((flags & 2) != 0)  ? - size / tx_cnt : size / tx_cnt
         ];
     }
 

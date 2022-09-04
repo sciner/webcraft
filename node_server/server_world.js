@@ -502,7 +502,7 @@ export class ServerWorld {
                                         packets: [{
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {
-                                                pos: params.pos,
+                                                pos: params.pos.add(new Vector(.5, .5, .5)),
                                                 item: { id: params.destroy_block_id }
                                             }
                                         }]

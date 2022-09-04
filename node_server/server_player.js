@@ -204,6 +204,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
+        params.pos = new Vector(params.pos).multiplyScalar(1000).floored().divScalar(1000);
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
@@ -442,6 +443,8 @@ export class ServerPlayer extends Player {
         if(this.state.indicators.live.value <= 0) {
             this.is_dead = true;
             this.state.stats.death++;
+            // TODO: check and drop inventory items if need
+            // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
             packets.push({
                 name: ServerClient.CMD_DIE,
                 data: {}

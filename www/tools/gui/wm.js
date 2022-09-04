@@ -1076,6 +1076,7 @@ export class WindowManager extends Window {
                 }
                 break;
             }
+            case 'mousewheel':
             case 'wheel': {
                 if(!this.drag.getItem()) {
                     let evt = {

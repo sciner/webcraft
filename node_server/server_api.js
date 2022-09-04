@@ -1,3 +1,5 @@
+import { WorldGenerators } from "./world/generators.js";
+
 const FLAG_SYSTEM_ADMIN = 256;
 
 // JSON API
@@ -38,7 +40,7 @@ export class ServerAPI {
             case '/api/Game/CreateWorld': {
                 const title       = params.title;
                 const seed        = params.seed;
-                const generator   = params.generator;
+                const generator   = WorldGenerators.validateAndFixOptions(params.generator);
                 const game_mode   = 'survival';
                 const session     = await Qubatch.db.GetPlayerSession(session_id);
                 const world       = await Qubatch.db.InsertNewWorld(session.user_id, generator, seed, title, game_mode);
@@ -122,6 +124,9 @@ export class ServerAPI {
                     }
                 }
                 return {'result':'error'};
+            }
+            case '/api/Game/Generators': {
+                return WorldGenerators.list;
             }
             default: {
                 throw 'error_method_not_exists';
