@@ -2,7 +2,7 @@
 
 import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK} from "../blocks.js";
+import { BLOCK, LEAVES_TYPE } from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
@@ -245,9 +245,10 @@ export default class style {
         const no_anim               = material.is_simple_qube || !material.texture_animations;
 
         // Beautiful leaves
-        if(material.transparent && material.is_leaves) {
+        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL) {
+            const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
             const lm_leaves = dirt_color.clone();
-            lm_leaves.b = 2; // offset for mask
+            lm_leaves.b = leaves_tex[3] * TX_CNT;
             for(let i = 0; i < leaves_planes.length; i++) {
                 const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
                 const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
@@ -264,7 +265,7 @@ export default class style {
                 );
                 _pl.matrix   = matrix_leaves;
                 _pl.flag     = QUAD_FLAGS.MASK_BIOME;
-                _pl.texture  = [29/TX_CNT, 25/TX_CNT, 2/TX_CNT, 2/TX_CNT];
+                _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
             }
             return;
@@ -422,42 +423,42 @@ export default class style {
             autoUV = false;
         }
 
+        //
+        const calcSideParams = (side, dir) => {
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
+            const f = flags | upFlags | sideFlags | animFlag;
+            if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
+                lm.b = t[3] * TX_CNT;
+            }
+            return {anim_frames, t, f};
+        };
+
         // Push vertices
         if(canDrawUP) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'up');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
-            sides.up = _sides.up.set(t, flags | upFlags | animFlag, anim_frames, lm, axes_up, autoUV);
+            const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP);
+            sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV);
         }
         if(canDrawDOWN) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'down');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
-            sides.down = _sides.down.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+            const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN);
+            sides.down = _sides.down.set(t, f, anim_frames, lm, null, true);
         }
         if(canDrawSOUTH) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'south');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, width, height, block);
-            sides.south = _sides.south.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK);
+            sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
-            sides.north = _sides.north.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('north', DIRECTION_FORWARD);
+            sides.north = _sides.north.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
-            sides.west = _sides.west.set(t,  flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('west', DIRECTION_LEFT);
+            sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'east');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, width, height, block);
-            sides.east = _sides.east.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('east', DIRECTION_RIGHT);
+            sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
         }
 
         // AABB

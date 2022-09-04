@@ -411,7 +411,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
         } = PLANES[key];
 
         const {
-            uv, flag = 0, anim = 1, autoUV = true, rawColor
+            uv, flag = 0, anim = 0, autoUV = true, rawColor
         } = sides[key];
 
         const lm = sides[key].lm || lm_default;
@@ -423,7 +423,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, cen
 
         let r = lm.r;
         let g = lm.g;
-        let b = anim;
+        let b = anim || lm.b;
 
         if (rawColor) {
             r = rawColor[0];

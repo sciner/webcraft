@@ -37,7 +37,6 @@ export class Compiler {
     getSpritesheet(id) {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
-            console.log(this.base_conf);
             const tx_cnt = this.base_conf.textures[id].tx_cnt;
             spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options);
             this.spritesheets.set(id, spritesheet);
@@ -143,9 +142,6 @@ export class Compiler {
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
                 }
-                if(block.tags.includes('leaves')) {
-                    block.tags.push('doubleface');
-                }
                 const tags = ('tags' in block) ? block.tags : [];
                 //
                 for(let tid in block.texture) {
@@ -180,15 +176,14 @@ export class Compiler {
                         if(block.name == BLOCK_NAMES.DIRT) {
                             dirt_image = img.texture;
                         }
+                        x_size = Math.min(Math.ceil(img.texture.width / spritesheet.tx_sz), spritesheet.tx_cnt);
+                        y_size = Math.min(Math.ceil(img.texture.height / spritesheet.tx_sz), spritesheet.tx_cnt);
                         //
                         if(has_mask) {
-                            x_size = 2;
-                        } else {
-                            x_size = Math.ceil(img.texture.width / spritesheet.tx_sz);
-                            y_size = Math.min(img.texture.height / spritesheet.tx_sz, spritesheet.tx_cnt);
+                            x_size *= 2;
                         }
                         if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                            y_size = 2;
+                            y_size *= 2;
                         }
                         //
                         const pos = spritesheet.findPlace(block, x_size, y_size);
@@ -267,6 +262,13 @@ export class Compiler {
                     }
                     //
                     block.texture[tid] = [tex.pos.x, tex.pos.y];
+                    // check big size textures
+                    const tex_slot_count = has_mask ? tex.x_size/2 : tex.x_size;
+                    if(tex_slot_count > 1) {
+                        if(block.texture[tid].length == 2) block.texture[tid].push(0);
+                        block.texture[tid].push(tex_slot_count);
+                    }
+
                     // check compile rules
                     if(block.compile) {
                         const compile = block.compile;
