@@ -25,13 +25,14 @@ export default class Ticker {
         const block = world.getBlock(pos.add(Vector.YN));
         const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
         const rain = false; // @todo [rain, burn, fire]
-        const age = tblock.extra_data.age; // Время горения
+        const age = tblock.extra_data.age || 0; // Время горения
         if (!infiniburn && rain && Math.random() < 0.2 + age * 0.03) {
             updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
             return updated_blocks;
         }
         const new_age = Math.min(15, age + rndInt(3) / 2);
         if (age != new_age) {
+            console.log("age: " + new_age);
             tblock.extra_data.age = new_age;
         }
         if (!infiniburn) {
@@ -66,7 +67,7 @@ export default class Ticker {
                         const position = pos.offset(x, y, z);
                         const flames = getNeighborFlame(world, position);
                         if (flames > 0) {
-                            const burns = (flames + 3 * 7) / (age + 30); // @todo hard noraml easy
+                            const burns = (flames + 3 * 10) / (age + 30); // @todo 7 hard 4 noraml 3 easy
                             if (burns > 0 && rndInt(chance) < burns) {
                                 const mod_age = Math.min((age + rndInt(5) / 4), 15);
                                 updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
@@ -83,9 +84,13 @@ export default class Ticker {
 
 // Возможность воспламенения соседних блоков (зависит от материала)
 function getNeighborFlame(world, pos) {
+    let block = world.getBlock(pos);
+    if (getFlame(block) == 0) {
+        return 0;
+    }
     let flames = 0;
     for (const face of FACES) {
-        const block = world.getBlock(pos.add(face));
+        block = world.getBlock(pos.add(face));
         flames = Math.max(getFlame(block), flames);
     }
     return flames;
