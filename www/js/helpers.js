@@ -1124,6 +1124,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
     QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
     QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
+    QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

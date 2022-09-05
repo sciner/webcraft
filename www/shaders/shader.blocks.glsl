@@ -30,6 +30,7 @@
     #define FLAG_TRIANGLE 11
     #define FLAG_MIR2_TEX 12
     #define FLAG_MULTIPLY_COLOR 13
+    #define FLAG_LEAVES 14
 
 #endif
 
@@ -124,6 +125,7 @@
     out float v_Triangle;
     out float v_Mir2_Tex;
     out float v_flagMultiplyColor;
+    out float v_flagLeaves;
 
     //--
 #endif
@@ -280,6 +282,7 @@
     int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
     int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
     int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
+    int flagLeaves = (flags >> FLAG_LEAVES) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -290,6 +293,7 @@
     v_Triangle = float(flagTriangle);
     v_Mir2_Tex = float(flagMir2_Tex);
     v_flagMultiplyColor = float(flagMultiplyColor);
+    v_flagLeaves = float(flagLeaves);
 
     //--
 #endif

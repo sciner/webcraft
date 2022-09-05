@@ -264,7 +264,7 @@ export default class style {
                     z + (plane.move?.z || 0)
                 );
                 _pl.matrix   = matrix_leaves;
-                _pl.flag     = QUAD_FLAGS.MASK_BIOME;
+                _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
                 _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
             }

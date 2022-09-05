@@ -81,6 +81,15 @@ void main() {
     }
 
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
+
+    if(flagLeaves == 1 && gl_VertexID == 1) {
+        float wing_speed = 2.;
+        float wing_smplitude = 0.1;
+        v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_smplitude;
+        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_smplitude;
+        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_smplitude;
+    }
+
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
