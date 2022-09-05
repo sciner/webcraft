@@ -127,6 +127,7 @@ export default class style {
         const is_grass = material.is_grass;
         if(is_grass) {
             dy -= .15;
+            flag |= QUAD_FLAGS.FLAG_LEAVES;
         }
 
         // Matrix
