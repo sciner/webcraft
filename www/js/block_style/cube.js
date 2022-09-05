@@ -424,7 +424,7 @@ export default class style {
         }
 
         //
-        const calcSideParams = (side, dir) => {
+        const calcSideParams = (side, dir, width, height) => {
             const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
             const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
@@ -437,27 +437,27 @@ export default class style {
 
         // Push vertices
         if(canDrawUP) {
-            const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP);
+            const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP, null, null);
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV);
         }
         if(canDrawDOWN) {
-            const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN);
+            const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
             sides.down = _sides.down.set(t, f, anim_frames, lm, null, true);
         }
         if(canDrawSOUTH) {
-            const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK);
+            const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK, width, height);
             sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            const {anim_frames, t, f} = calcSideParams('north', DIRECTION_FORWARD);
+            const {anim_frames, t, f} = calcSideParams('north', DIRECTION_FORWARD, width, height);
             sides.north = _sides.north.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            const {anim_frames, t, f} = calcSideParams('west', DIRECTION_LEFT);
+            const {anim_frames, t, f} = calcSideParams('west', DIRECTION_LEFT, width, height);
             sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            const {anim_frames, t, f} = calcSideParams('east', DIRECTION_RIGHT);
+            const {anim_frames, t, f} = calcSideParams('east', DIRECTION_RIGHT, width, height);
             sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
         }
 
