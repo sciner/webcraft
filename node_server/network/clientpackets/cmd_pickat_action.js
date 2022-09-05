@@ -43,43 +43,45 @@ export default class packet_reader {
             };
             const actions = await doBlockAction(packet.data, world, player_info, currentInventoryItem);
             // compare two actions
-            const player_json = JSON.stringify(packet.data.actions.blocks.list);
-            const server_json = JSON.stringify(actions.blocks.list);
-            const same_results = player_json == server_json;
-            if(!same_results) {
-                // собрать патч, для мира игрока:
-                const patch_blocks = new VectorCollector();
-                // 1. вложить в патчк реальные блоки на указанных игроком позициях изменённых юлоков
-                for(let item of packet.data.actions.blocks.list) {
-                    if('pos' in item) {
-                        const pos = new Vector(item.pos);
-                        if(pos.distance(player.state.pos) < 64) {
-                            const tblock = world.getBlock(pos);
-                            if(tblock && tblock.id >= 0) {
-                                const patch = tblock.convertToDBItem();
-                                patch_blocks.set(pos, patch);
+            if(packet.data.actions?.blocks?.list) {
+                const player_json = JSON.stringify(packet.data.actions.blocks.list);
+                const server_json = JSON.stringify(actions.blocks.list);
+                const same_results = player_json == server_json;
+                if(!same_results) {
+                    // собрать патч, для мира игрока:
+                    const patch_blocks = new VectorCollector();
+                    // 1. вложить в патчк реальные блоки на указанных игроком позициях изменённых юлоков
+                    for(let item of packet.data.actions.blocks.list) {
+                        if('pos' in item) {
+                            const pos = new Vector(item.pos);
+                            if(pos.distance(player.state.pos) < 64) {
+                                const tblock = world.getBlock(pos);
+                                if(tblock && tblock.id >= 0) {
+                                    const patch = tblock.convertToDBItem();
+                                    patch_blocks.set(pos, patch);
+                                }
                             }
                         }
                     }
+                    // 2. пропатчить этот массив текущим серверным изменением
+                    for(let item of actions.blocks.list) {
+                        patch_blocks.set(item.pos, item.item);
+                    }
+                    // 3. Make patch commands
+                    const packets = [];
+                    for(const [pos, item] of patch_blocks.entries()) {
+                        packets.push({
+                            name: ServerClient.CMD_BLOCK_SET,
+                            data: {
+                                action_id: ServerClient.BLOCK_ACTION_CREATE,
+                                pos,
+                                item
+                            }
+                        });
+                    }
+                    world.sendSelected(packets, [player.session.user_id], []);
+                    console.error(`player patch blocks '${player.session.username}'`);
                 }
-                // 2. пропатчить этот массив текущим серверным изменением
-                for(let item of actions.blocks.list) {
-                    patch_blocks.set(item.pos, item.item);
-                }
-                // 3. Make patch commands
-                const packets = [];
-                for(const [pos, item] of patch_blocks.entries()) {
-                    packets.push({
-                        name: ServerClient.CMD_BLOCK_SET,
-                        data: {
-                            action_id: ServerClient.BLOCK_ACTION_CREATE,
-                            pos,
-                            item
-                        }
-                    });
-                }
-                world.sendSelected(packets, [player.session.user_id], []);
-                console.error(`player patch blocks '${player.session.username}'`);
             }
             world.actions_queue.add(player, actions);
         }
