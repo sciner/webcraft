@@ -25,6 +25,9 @@ export class HeadEffectChecker {
     atGameModeSet(gameMode){
         if (gameMode.mayGetDamaged ? gameMode.mayGetDamaged() : gameMode.can_take_damage){
             this.checkEffectOfBlock = this.activeCheckEffectOfBlock;
+            // this is need in case no anought oxygen.
+            // if it's oxygen place and oxygen on max this effect would be deleted
+            new LackOfOxygenAndAsphyxiationEffect(this.player);
         } else {
             this.checkEffectOfBlock = this.dummyCheckEffectOfBlock;
             this.removeTemporaryEffects();
@@ -85,7 +88,7 @@ export class HeadEffectChecker {
         let effects = this.player.effects;
         for (let i = 0; i < effects.length; i++) {
             if (effects[i].effectId == LackOfOxygenAndAsphyxiationEffectID) {
-                effects.slice(i, 1);
+                effects.splice(i, 1);
             }
         }
     }

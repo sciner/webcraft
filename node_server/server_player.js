@@ -357,7 +357,7 @@ export class ServerPlayer extends Player {
             if (effect.ticks === 0){
                 let removeEffect = effect.action();
                 if (removeEffect === true){
-                    this.effects.slice(i, 1);
+                    this.effects.splice(i, 1);
                     i--;
                 }
             } 
