@@ -444,6 +444,7 @@ export class TypedBlocks3 {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.id[index] = id;
+        this.fluid.syncBlockProps(index, id);
 
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -457,6 +458,7 @@ export class TypedBlocks3 {
             if (portals[i].aabb.contains(wx, wy, wz)) {
                 const other = portals[i].toRegion;
                 other.uint16View[other.indexByWorld(wx, wy, wz)] = id;
+                other.rev.fluid.syncBlockProps(index, id);
                 pcnt++;
             }
         }
@@ -565,7 +567,7 @@ export class DataWorld {
             return;
         }
 
-        const fluid = chunk.fluid.uint8View;
+        const fluid = chunk.fluid.uint16View;
 
         const { portals, aabb, uint16View, cx, cy, cz } = chunk.dataChunk;
         const cw = chunk.dataChunk.shiftCoord;
@@ -574,7 +576,7 @@ export class DataWorld {
             const portal = portals[i];
             const other = portals[i].toRegion;
             const otherView = other.uint16View;
-            const otherFluid = other.rev.fluid.uint8View;
+            const otherFluid = other.rev.fluid.uint16View;
 
             const cx2 = other.cx;
             const cy2 = other.cy;
@@ -600,6 +602,8 @@ export class DataWorld {
                         fluid[ind] = otherFluid[ind2];
                     }
         }
+
+        chunk.fluid.syncAllProps();
     }
 
     /**

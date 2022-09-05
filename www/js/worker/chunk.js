@@ -10,6 +10,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
+import {isFluidId} from "../fluid/FluidConst.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -251,7 +252,7 @@ export class Chunk {
 
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power) {
-        if (this.fluid.isFluid(block_id)) {
+        if (isFluidId(block_id)) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return;
         }

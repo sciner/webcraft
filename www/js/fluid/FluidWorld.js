@@ -15,6 +15,7 @@ export class FluidWorld {
             dataId: chunk.dataId,
             parentChunk: chunk,
             world: this});
+        chunk.tblocks.fluid = chunk.fluid;
         // fillOuter for water here!!!
     }
 
