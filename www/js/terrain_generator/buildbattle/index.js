@@ -47,11 +47,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     for(let x = 0; x < chunk.size.x; x++) {
                         for (let z = 0; z < chunk.size.z; z++) {
                             if(x == 0 || x >= 14) {
-                                this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
+                                this.setBlock(chunk, x, 0, z, BLOCK.STONE, false);
                             } else if (x == 1 || x == 13) {
                                 this.setBlock(chunk, x, 0, z, BLOCK.STONE, false);
                             } else if(x) {
-                                this.setBlock(chunk, x, 0, z, BLOCK.GRASS_BLOCK, false);
+                                this.setBlock(chunk, x, 0, z, BLOCK.STONE, false);
                             }
                         }
                     }
@@ -77,17 +77,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     for(let x = 0; x < chunk.size.x; x++) {
                         for (let z = 0; z < chunk.size.z; z++) {
                             for (let y = 0; y < 1; y++) {
-                                if (x > 0 && x < 14 && z > 1 && z < 15) {
+                                if (x > 0 && x < 15 && z > 1 && z < 16) {
                                     // территория строений
                                     // трава
-                                    if (x >= 2 && x <= 12 && z >= 3 && z <= 13) {
+                                    if (x >= 2 && x <= 12 && z >= 3 && z <= 14) {
                                         this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK, false);
                                     } else {
-                                        this.setBlock(chunk, x, y, z, BLOCK.STONE, false);
+                                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK, false);
                                     }
                                 } else {
                                     // дороги вокруг дома
-                                    this.setBlock(chunk, x, y, z, BLOCK.BEDROCK, false);
+                                    this.setBlock(chunk, x, y, z, BLOCK.SAND, false);
                                 }
                             }
                         }
