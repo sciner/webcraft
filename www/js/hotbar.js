@@ -195,10 +195,12 @@ export class Hotbar {
                 dst.h        // dh
             );
             // Indicators
+            const MAX_INDICATOR_VALUE = 20;
+            const INDICATOR_PIECES = 10;
             let indicators = player.indicators;
-            let live = indicators.live.value / 20;
-            let food = indicators.food.value / 20;
-            let oxygen = indicators.oxygen.value / 20;
+            let live = indicators.live.value / MAX_INDICATOR_VALUE;
+            let food = indicators.food.value / MAX_INDICATOR_VALUE;
+            let oxygen = indicators.oxygen.value / MAX_INDICATOR_VALUE;
             //
             let spn = Math.round(performance.now() / 75);
             let calcShiftY = (i, live) => {
@@ -232,7 +234,7 @@ export class Hotbar {
                 );
             }
             hud.ctx.filter = 'none';
-            for(let i = 0; i < Math.floor(live * 10); i++) {
+            for(let i = 0; i < Math.floor(live * INDICATOR_PIECES); i++) {
                 let shift_y = calcShiftY(i, live);
                 hud.ctx.drawImage(
                     this.image,
@@ -246,15 +248,15 @@ export class Hotbar {
                     ss
                 );
             }
-            if(Math.round(live * 10) > Math.floor(live * 10)) {
-                let shift_y = calcShiftY(Math.floor(live * 10), live);
+            if(Math.round(live * INDICATOR_PIECES) > Math.floor(live * INDICATOR_PIECES)) {
+                let shift_y = calcShiftY(Math.floor(live * INDICATOR_PIECES), live);
                 hud.ctx.drawImage(
                     this.image,
                     src.icons.live_half.x,
                     src.icons.live_half.y,
                     src.icons.live_half.width,
                     src.icons.live_half.height,
-                    hud_pos.x + Math.floor(live * 10) * (24 * this.zoom),
+                    hud_pos.x + Math.floor(live * INDICATOR_PIECES) * (24 * this.zoom),
                     hud_pos.y + (30 * this.zoom) + shift_y,
                     ss,
                     ss
@@ -262,16 +264,16 @@ export class Hotbar {
             }
             // foods && oxygen
             const right_inds = [
-                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_min: 20},
-                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_min: 19}
+                {value: food, img_full: src.icons.food, img_half: src.icons.food_half, visible_min: 1},
+                {value: oxygen, img_full: src.icons.oxygen, img_half: src.icons.oxygen_half, visible_min: .95}
             ];
             for(let i in right_inds) {
                 const ind = right_inds[i];
                 const yoffset = i * (ss + 2 * this.zoom);
-                if(ind.value <= ind.visible_min) {
+                if(ind.value > ind.visible_min) {
                     continue;
                 }
-                for(let i = 0; i < Math.floor(ind.value * 10); i++) {
+                for(let i = 0; i < Math.floor(ind.value * INDICATOR_PIECES); i++) {
                     hud.ctx.drawImage(
                         this.image,
                         ind.img_full.x,
@@ -284,14 +286,14 @@ export class Hotbar {
                         ss
                     );
                 }
-                if(Math.round(ind.value * 10) > Math.floor(ind.value * 10)) {
+                if(Math.round(ind.value * INDICATOR_PIECES) > Math.floor(ind.value * INDICATOR_PIECES)) {
                     hud.ctx.drawImage(
                         this.image,
-                        ind.img_full_half.x,
-                        ind.img_full_half.y,
-                        ind.img_full_half.width,
-                        ind.img_full_half.height,
-                        hud_pos.x + dst.w - (Math.floor(ind.value * 10) * 24 * this.zoom + ss),
+                        ind.img_half.x,
+                        ind.img_half.y,
+                        ind.img_half.width,
+                        ind.img_half.height,
+                        hud_pos.x + dst.w - (Math.floor(ind.value * INDICATOR_PIECES) * 24 * this.zoom + ss),
                         hud_pos.y + 30 * this.zoom - yoffset,
                         ss,
                         ss
