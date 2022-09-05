@@ -12,7 +12,7 @@ import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
 import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MAX_OXYGEN_POINTS } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
-import headEffectsChecker from "./effects/head_effects_checker.js";
+import {HeadEffectChecker} from "./effects/head_effects_checker.js";
 
 /**
  * @typedef {import ("./effects/effect").Effect} Effect
@@ -54,12 +54,8 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-        this.game_mode              = new GameMode(null, this);
-        this.game_mode.onSelect     = async (mode) => {
-            await this.world.db.changeGameMode(this, mode.id);
-            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
-            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
-        };
+        this.headEffectsChecker     = new HeadEffectChecker(this);
+        
         /**
          * @type {ServerWorld}
          */
@@ -82,6 +78,14 @@ export class ServerPlayer extends Player {
 
     init(init_info) {
         this.state = init_info.state;
+        this.game_mode = new GameMode(this, this.state.game_mode);
+        this.headEffectsChecker.atGameModeSet(this.game_mode);
+        this.game_mode.onSelect     = async (mode) => {
+            await this.world.db.changeGameMode(this, mode.id);
+            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
+            this.headEffectsChecker.atGameModeSet(mode);
+            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
+        };
         this.state.lies = this.state?.lies || false;
         this.state.sitting = this.state?.sitting || false;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
@@ -364,7 +368,7 @@ export class ServerPlayer extends Player {
         const pos_legs = new Vector(this.state.pos).flooredSelf();
         pos_legs.y = pos_legs.y + 1;
         const tblock_head = this.world.getBlock(pos_legs);
-        headEffectsChecker.checkEffectOfBlock(this, tblock_head);
+        this.headEffectsChecker.checkEffectOfBlock(tblock_head);
     }
 
     async checkWaitPortal() {

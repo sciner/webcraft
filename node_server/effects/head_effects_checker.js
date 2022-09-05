@@ -1,24 +1,70 @@
 //[JsDoc]
 //import { TBlock } from "../../www/js/typed_blocks3.js";
-//[JsDoc]import { ServerPlayer } from "../server_player.js";
+//import { GameMode } from "../../www/js/game_mode.js";
+//import { ServerPlayer } from "../server_player.js";
+//[JsDoc]
+
 import { LackOfOxygenAndAsphyxiationEffectID, LackOfOxygenAndAsphyxiationEffect } from "./lack_of_oxygen_and_asphyxiation_effect.js";
 
-class HeadEffectChecker {
+export class HeadEffectChecker {
     /**
      * 
      * @param {ServerPlayer} player 
+     */
+    constructor(player) {
+        /**
+         * @type {ServerPlayer}
+         */
+        this.player = player;
+    }
+
+    /**
+     * 
+     * @param {GameMode} gameMode 
+     */
+    atGameModeSet(gameMode){
+        if (gameMode.mayGetDamaged ? gameMode.mayGetDamaged() : gameMode.can_take_damage){
+            this.checkEffectOfBlock = this.activeCheckEffectOfBlock;
+        } else {
+            this.checkEffectOfBlock = this.dummyCheckEffectOfBlock;
+            this.removeTemporaryEffects();
+        }
+    }
+
+    /**
+     * Description of the function
+     * @name CheckEffectOfBlockAction
+     * @function
+     * @param {TBlock} block 
+    */
+
+    /**
+     * @type {CheckEffectOfBlockAction}
+     */
+    checkEffectOfBlock = this.activeCheckEffectOfBlock;
+
+    /**
+     * @private
      * @param {TBlock} block 
      */
 
-    checkEffectOfBlock(player, block) {
+    dummyCheckEffectOfBlock(block) {}
+
+    /**
+     * @private
+     * @param {TBlock} block 
+     */
+
+    activeCheckEffectOfBlock(block) {
         // now it's only one effect
         /**
          * @type {null|LackOfOxygenAndAsphyxiationEffect}
          */
         let effect = null;
-        for (let i = 0; i < player.effects.length; i++) {
-            if (player.effects[i].effectId == LackOfOxygenAndAsphyxiationEffectID) {
-                effect = player.effects[i];
+        let effects = this.player.effects;
+        for (let i = 0; i < effects.length; i++) {
+            if (effects[i].effectId == LackOfOxygenAndAsphyxiationEffectID) {
+                effect = effects[i];
             }
         }
         if (this.blockHasOxygen(block)){
@@ -28,9 +74,19 @@ class HeadEffectChecker {
             effect.oxygenGot();
         } else {
             if (effect === null) {
-                effect = new LackOfOxygenAndAsphyxiationEffect(player);
+                effect = new LackOfOxygenAndAsphyxiationEffect(this.player);
             }
             effect.oxygenBeenLost();
+        }
+    }
+
+    removeTemporaryEffects() {
+        // remove Asphyxiation
+        let effects = this.player.effects;
+        for (let i = 0; i < effects.length; i++) {
+            if (effects[i].effectId == LackOfOxygenAndAsphyxiationEffectID) {
+                effects.slice(i, 1);
+            }
         }
     }
 
@@ -39,13 +95,8 @@ class HeadEffectChecker {
      * @param {TBlock} block 
      * @returns {boolean}
      */
-    blockHasOxygen(block){
+    blockHasOxygen(block) {
         let mat = block.material;
         return !(mat.is_fluid || (mat.id > 0 && mat.passable == 0 && !mat.transparent));
-        // if(block.material.is_water === true){
-        //     return false;
-        // }
-        // return true;
     }
 }
-export default new HeadEffectChecker();

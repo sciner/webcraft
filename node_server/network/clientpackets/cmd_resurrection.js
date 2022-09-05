@@ -20,8 +20,8 @@ export default class packet_reader {
         player.state.indicators.live.value = 20;
         player.state.indicators.oxygen.value = MAX_OXYGEN_POINTS;
         player.state.indicators.food.value = 20;
-        // drop all effects
-        player.effects = [];
+        player.headEffectsChecker.removeTemporaryEffects();
+      
         player.is_dead = false;
         new CMD_ENTITY_INDICATORS(player);
         player.teleport({

@@ -6,11 +6,11 @@ import { MAX_OXYGEN_POINTS } from "../../www/js/constant.js";
 // lost one point of oxygen after
 export const lostOxygenTicks = 10; // after half a second
 // get one point of oxygen after
-export const restoreOxygenTicks = lostOxygenTicks;
+export const restoreOxygenTicks = 2;
 // lost helth points after
-export const lostHelpTicks = 20 // after a second
+export const lostHelpTicks = 10 // after a second
 // lost helpth points
-const lostHelthPoint = 2 // standard Maincraft 
+const lostHelthPoint = 1 // standard Maincraft 
 
 export const LackOfOxygenAndAsphyxiationEffectID = 1;
 
