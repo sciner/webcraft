@@ -24,7 +24,7 @@ export default class packet_reader {
                 if(value >= 0) {
                     throw 'error_invalid_indicator_value';
                 }
-                player.changeLive(value);
+                player.changeIndicator('live', value);
             }
         }
         // player.changeLive(-this.explosion_damage);

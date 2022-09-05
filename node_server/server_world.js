@@ -89,6 +89,10 @@ export class ServerWorld {
         await this.tick();
     }
 
+    getDefaultPlayerIndicators() {
+        return this.db.getDefaultPlayerIndicators();
+    }
+
     get serverTime() {
         return Date.now() + SERVE_TIME_LAG;
     }
@@ -141,7 +145,7 @@ export class ServerWorld {
             this.ticks_stat.add('mobs');
             // 3.
             for (let player of this.players.values()) {
-                await player.tick(delta);
+                await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
             // 4.

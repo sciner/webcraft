@@ -15,7 +15,7 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-        player.state.indicators.live.value = 20;
+        player.state.indicators.live.value = player.world.getDefaultPlayerIndicators().live.value;
         player.is_dead = false;
         new CMD_ENTITY_INDICATORS(player);
         player.teleport({
