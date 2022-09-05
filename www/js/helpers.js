@@ -501,7 +501,6 @@ export class Vector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
-
     /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
@@ -763,7 +762,7 @@ export class Vector {
      * @return {Vector}
      */
     round(decimals) {
-        return this.roundSelf(decimals).clone();
+        return this.clone().roundSelf(decimals);
     }
 
     /**
@@ -1125,6 +1124,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.FLAG_TRIANGLE = 1 << 11;
     QUAD_FLAGS.FLAG_MIR2_TEX = 1 << 12;
     QUAD_FLAGS.FLAG_MULTIPLY_COLOR = 1 << 13;
+    QUAD_FLAGS.FLAG_LEAVES = 1 << 14;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
@@ -1750,7 +1750,7 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
                 }
                 */
             } else if(rotate.y != 0) {
-                if(material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                if(material.tags.includes('rotate_by_pos_n')) {
                     matrix = mat4.create();
                     if(rotate.y == 1) {
                         // on the floor

@@ -113,6 +113,7 @@ export class ScreenshotWindow extends Window {
             let btnClose = new Button(ct.width - 40 * this.zoom, 15 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
+            btnClose.z = 1;
             // btnClose.style.background.image_size_mode = 'stretch';
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();

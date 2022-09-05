@@ -1,11 +1,27 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK} from "../blocks.js";
+import { BLOCK, LEAVES_TYPE } from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import { default as default_style } from './default.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
+
+// Leaves
+const leaves_planes = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
+];
+const _pl = {};
+const _vec = new Vector(0, 0, 0);
+const matrix_leaves = mat4.create();
+mat4.scale(matrix_leaves, matrix_leaves, [2, 2, 2]);
 
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
@@ -92,7 +108,7 @@ export default class style {
             const matrix = CubeSym.matrices[cardinal_direction];
             // on the ceil
             if(block.rotate && block.rotate.y == -1) {
-                if(block.material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                if(block.material.tags.includes('rotate_by_pos_n')) {
                     aabb.translate(0, 1 - aabb.y_max, 0)
                 }
             }
@@ -133,10 +149,10 @@ export default class style {
 
         // Texture color multiplier
         let lm = IndexedColor.WHITE;
-        if(material.tags.indexOf('mask_biome') >= 0) {
+        if(material.tags.includes('mask_biome')) {
             lm = dirt_color || IndexedColor.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
-        } else if(material.tags.indexOf('mask_color') >= 0) {
+        } else if(material.tags.includes('mask_color')) {
             flags = QUAD_FLAGS.MASK_BIOME;
             lm = material.mask_color;
         }
@@ -219,6 +235,7 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
+
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
@@ -226,6 +243,33 @@ export default class style {
 
         const material              = block.material;
         const no_anim               = material.is_simple_qube || !material.texture_animations;
+
+        // Beautiful leaves
+        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL) {
+            const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
+            const lm_leaves = dirt_color.clone();
+            lm_leaves.b = leaves_tex[3] * TX_CNT;
+            for(let i = 0; i < leaves_planes.length; i++) {
+                const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
+                const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
+                const plane = leaves_planes[i];
+                // fill object
+                _pl.size     = plane.size;
+                _pl.uv       = plane.uv;
+                _pl.rot      = [Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]];
+                _pl.lm       = lm_leaves;
+                _pl.pos      = _vec.set(
+                    x + (plane.move?.x || 0),
+                    y + (plane.move?.y || 0),
+                    z + (plane.move?.z || 0)
+                );
+                _pl.matrix   = matrix_leaves;
+                _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
+                _pl.texture  = leaves_tex;
+                default_style.pushPlane(vertices, _pl);
+            }
+            return;
+        }
 
         let width                   = 1;
         let height                  = 1;
@@ -282,19 +326,6 @@ export default class style {
                 }
             }
 
-            // Leaves
-            /*if(material.transparent && material.is_leaves) {
-                if(neighbours.SOUTH.material.is_leaves) {
-                    canDrawSOUTH = false;
-                }
-                if(neighbours.WEST.material.is_leaves) {
-                    canDrawWEST = false;
-                }
-                if(neighbours.UP.material.is_leaves) {
-                    canDrawUP = false;
-                }
-            }*/
-
             // Glass
             if(material.transparent && material.is_glass) {
                 if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.style == material.style) canDrawSOUTH = false;
@@ -337,7 +368,7 @@ export default class style {
                     //
                     if (
                         CubeSym.matrices[cardinal_direction][4] <= 0 ||
-                        (material.tags.indexOf('rotate_by_pos_n') >= 0 && rotate.y != 0)
+                        (material.tags.includes('rotate_by_pos_n') && rotate.y != 0)
                     ) {
                         // @todo: calculate canDrawUP and neighbours based on rotation
                         canDrawUP = true;
@@ -392,42 +423,42 @@ export default class style {
             autoUV = false;
         }
 
+        //
+        const calcSideParams = (side, dir, width, height) => {
+            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
+            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
+            const f = flags | upFlags | sideFlags | animFlag;
+            if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
+                lm.b = t[3] * TX_CNT;
+            }
+            return {anim_frames, t, f};
+        };
+
         // Push vertices
         if(canDrawUP) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'up');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
-            sides.up = _sides.up.set(t, flags | upFlags | animFlag, anim_frames, lm, axes_up, autoUV);
+            const {anim_frames, t, f} = calcSideParams('up', DIRECTION_UP, null, null);
+            sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV);
         }
         if(canDrawDOWN) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'down');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
-            sides.down = _sides.down.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+            const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
+            sides.down = _sides.down.set(t, f, anim_frames, lm, null, true);
         }
         if(canDrawSOUTH) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'south');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, width, height, block);
-            sides.south = _sides.south.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK, width, height);
+            sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawNORTH) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'north');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, width, height, block);
-            sides.north = _sides.north.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('north', DIRECTION_FORWARD, width, height);
+            sides.north = _sides.north.set(t, f, anim_frames, lm, null, false);
         }
         if(canDrawWEST) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'west');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, width, height, block);
-            sides.west = _sides.west.set(t,  flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('west', DIRECTION_LEFT, width, height);
+            sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
         }
         if(canDrawEAST) {
-            const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, 'east');
-            const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
-            const t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, width, height, block);
-            sides.east = _sides.east.set(t, flags | sideFlags | animFlag, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = calcSideParams('east', DIRECTION_RIGHT, width, height);
+            sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
         }
 
         // AABB

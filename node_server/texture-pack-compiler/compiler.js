@@ -29,13 +29,14 @@ export class Compiler {
         const ctx = this.default_n.getContext('2d');
         ctx.fillStyle = options.n_color;
         ctx.fillRect(0, 0, options.resolution, options.resolution);
+        //
+        this.initFlamable();
     }
 
     // Return spritesheet file
     getSpritesheet(id) {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
-            console.log(this.base_conf);
             const tx_cnt = this.base_conf.textures[id].tx_cnt;
             spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options);
             this.spritesheets.set(id, spritesheet);
@@ -128,6 +129,7 @@ export class Compiler {
         for(let block of blocks) {
             if('texture' in block) {
                 console.log(++num_blocks, block.name);
+                block.flammable = this.flammable_blocks.get(block.name) ?? false;
                 let spritesheet_id = 'default';
                 if(Array.isArray(block.texture)) {
                     throw 'error_invalid_texture_declaration1';
@@ -136,11 +138,13 @@ export class Compiler {
                     block.texture = {side: block.texture};
                 }
                 // Tags
-                block.tags = block.tags || [];
+                const tags = block.tags = block.tags || [];
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
                 }
-                const tags = ('tags' in block) ? block.tags : [];
+                if(tags.includes('log') && !block.coocked_item) {
+                    block.coocked_item = {name: 'CHARCOAL', count: 1};
+                }
                 //
                 for(let tid in block.texture) {
                     const value = block.texture[tid];
@@ -166,7 +170,7 @@ export class Compiler {
                     }
                     let x_size = 1;
                     let y_size = 1;
-                    const has_mask = tags.indexOf('mask_biome') >= 0 || tags.indexOf('mask_color') >= 0;
+                    const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
                     const compile = block.compile;
                     if(!tex) {
                         const img = await spritesheet.loadTex(value);
@@ -174,15 +178,14 @@ export class Compiler {
                         if(block.name == BLOCK_NAMES.DIRT) {
                             dirt_image = img.texture;
                         }
+                        x_size = Math.min(Math.ceil(img.texture.width / spritesheet.tx_sz), spritesheet.tx_cnt);
+                        y_size = Math.min(Math.ceil(img.texture.height / spritesheet.tx_sz), spritesheet.tx_cnt);
                         //
                         if(has_mask) {
-                            x_size = 2;
-                        } else {
-                            x_size = Math.ceil(img.texture.width / spritesheet.tx_sz);
-                            y_size = Math.min(img.texture.height / spritesheet.tx_sz, spritesheet.tx_cnt);
+                            x_size *= 2;
                         }
                         if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                            y_size = 2;
+                            y_size *= 2;
                         }
                         //
                         const pos = spritesheet.findPlace(block, x_size, y_size);
@@ -261,6 +264,13 @@ export class Compiler {
                     }
                     //
                     block.texture[tid] = [tex.pos.x, tex.pos.y];
+                    // check big size textures
+                    const tex_slot_count = has_mask ? tex.x_size/2 : tex.x_size;
+                    if(tex_slot_count > 1) {
+                        if(block.texture[tid].length == 2) block.texture[tid].push(0);
+                        block.texture[tid].push(tex_slot_count);
+                    }
+
                     // check compile rules
                     if(block.compile) {
                         const compile = block.compile;
@@ -344,6 +354,154 @@ export class Compiler {
 
             }
         }
+    }
+
+    setFlammable(block_name, catch_chance_modifier, destroy_chance_modifier) {
+        this.flammable_blocks.set(block_name, {catch_chance_modifier, destroy_chance_modifier});
+    }
+
+    initFlamable() {
+        this.flammable_blocks = new Map();
+        this.setFlammable('OAK_PLANKS', 5, 20);
+        this.setFlammable('SPRUCE_PLANKS', 5, 20);
+        this.setFlammable('BIRCH_PLANKS', 5, 20);
+        this.setFlammable('JUNGLE_PLANKS', 5, 20);
+        this.setFlammable('ACACIA_PLANKS', 5, 20);
+        this.setFlammable('DARK_OAK_PLANKS', 5, 20);
+        this.setFlammable('OAK_SLAB', 5, 20);
+        this.setFlammable('SPRUCE_SLAB', 5, 20);
+        this.setFlammable('BIRCH_SLAB', 5, 20);
+        this.setFlammable('JUNGLE_SLAB', 5, 20);
+        this.setFlammable('ACACIA_SLAB', 5, 20);
+        this.setFlammable('DARK_OAK_SLAB', 5, 20);
+        this.setFlammable('OAK_FENCE_GATE', 5, 20);
+        this.setFlammable('SPRUCE_FENCE_GATE', 5, 20);
+        this.setFlammable('BIRCH_FENCE_GATE', 5, 20);
+        this.setFlammable('JUNGLE_FENCE_GATE', 5, 20);
+        this.setFlammable('DARK_OAK_FENCE_GATE', 5, 20);
+        this.setFlammable('ACACIA_FENCE_GATE', 5, 20);
+        this.setFlammable('OAK_FENCE', 5, 20);
+        this.setFlammable('SPRUCE_FENCE', 5, 20);
+        this.setFlammable('BIRCH_FENCE', 5, 20);
+        this.setFlammable('JUNGLE_FENCE', 5, 20);
+        this.setFlammable('DARK_OAK_FENCE', 5, 20);
+        this.setFlammable('ACACIA_FENCE', 5, 20);
+        this.setFlammable('OAK_STAIRS', 5, 20);
+        this.setFlammable('BIRCH_STAIRS', 5, 20);
+        this.setFlammable('SPRUCE_STAIRS', 5, 20);
+        this.setFlammable('JUNGLE_STAIRS', 5, 20);
+        this.setFlammable('ACACIA_STAIRS', 5, 20);
+        this.setFlammable('DARK_OAK_STAIRS', 5, 20);
+        this.setFlammable('OAK_LOG', 5, 5);
+        this.setFlammable('SPRUCE_LOG', 5, 5);
+        this.setFlammable('BIRCH_LOG', 5, 5);
+        this.setFlammable('JUNGLE_LOG', 5, 5);
+        this.setFlammable('ACACIA_LOG', 5, 5);
+        this.setFlammable('DARK_OAK_LOG', 5, 5);
+        this.setFlammable('STRIPPED_OAK_LOG', 5, 5);
+        this.setFlammable('STRIPPED_SPRUCE_LOG', 5, 5);
+        this.setFlammable('STRIPPED_BIRCH_LOG', 5, 5);
+        this.setFlammable('STRIPPED_JUNGLE_LOG', 5, 5);
+        this.setFlammable('STRIPPED_ACACIA_LOG', 5, 5);
+        this.setFlammable('STRIPPED_DARK_OAK_LOG', 5, 5);
+        this.setFlammable('STRIPPED_OAK_WOOD', 5, 5);
+        this.setFlammable('STRIPPED_SPRUCE_WOOD', 5, 5);
+        this.setFlammable('STRIPPED_BIRCH_WOOD', 5, 5);
+        this.setFlammable('STRIPPED_JUNGLE_WOOD', 5, 5);
+        this.setFlammable('STRIPPED_ACACIA_WOOD', 5, 5);
+        this.setFlammable('STRIPPED_DARK_OAK_WOOD', 5, 5);
+        this.setFlammable('OAK_WOOD', 5, 5);
+        this.setFlammable('SPRUCE_WOOD', 5, 5);
+        this.setFlammable('BIRCH_WOOD', 5, 5);
+        this.setFlammable('JUNGLE_WOOD', 5, 5);
+        this.setFlammable('ACACIA_WOOD', 5, 5);
+        this.setFlammable('DARK_OAK_WOOD', 5, 5);
+        this.setFlammable('OAK_LEAVES', 30, 60);
+        this.setFlammable('SPRUCE_LEAVES', 30, 60);
+        this.setFlammable('BIRCH_LEAVES', 30, 60);
+        this.setFlammable('JUNGLE_LEAVES', 30, 60);
+        this.setFlammable('ACACIA_LEAVES', 30, 60);
+        this.setFlammable('DARK_OAK_LEAVES', 30, 60);
+        this.setFlammable('BOOKSHELF', 30, 20);
+        this.setFlammable('TNT', 15, 100);
+        this.setFlammable('GRASS', 60, 100);
+        this.setFlammable('FERN', 60, 100);
+        this.setFlammable('DEAD_BUSH', 60, 100);
+        this.setFlammable('SUNFLOWER', 60, 100);
+        this.setFlammable('LILAC', 60, 100);
+        this.setFlammable('ROSE_BUSH', 60, 100);
+        this.setFlammable('PEONY', 60, 100);
+        this.setFlammable('TALL_GRASS', 60, 100);
+        this.setFlammable('LARGE_FERN', 60, 100);
+        this.setFlammable('DANDELION', 60, 100);
+        this.setFlammable('POPPY', 60, 100);
+        this.setFlammable('BLUE_ORCHID', 60, 100);
+        this.setFlammable('ALLIUM', 60, 100);
+        this.setFlammable('AZURE_BLUET', 60, 100);
+        this.setFlammable('RED_TULIP', 60, 100);
+        this.setFlammable('ORANGE_TULIP', 60, 100);
+        this.setFlammable('WHITE_TULIP', 60, 100);
+        this.setFlammable('PINK_TULIP', 60, 100);
+        this.setFlammable('OXEYE_DAISY', 60, 100);
+        this.setFlammable('CORNFLOWER', 60, 100);
+        this.setFlammable('LILY_OF_THE_VALLEY', 60, 100);
+        this.setFlammable('WITHER_ROSE', 60, 100);
+        this.setFlammable('WHITE_WOOL', 30, 60);
+        this.setFlammable('ORANGE_WOOL', 30, 60);
+        this.setFlammable('MAGENTA_WOOL', 30, 60);
+        this.setFlammable('LIGHT_BLUE_WOOL', 30, 60);
+        this.setFlammable('YELLOW_WOOL', 30, 60);
+        this.setFlammable('LIME_WOOL', 30, 60);
+        this.setFlammable('PINK_WOOL', 30, 60);
+        this.setFlammable('GRAY_WOOL', 30, 60);
+        this.setFlammable('LIGHT_GRAY_WOOL', 30, 60);
+        this.setFlammable('CYAN_WOOL', 30, 60);
+        this.setFlammable('PURPLE_WOOL', 30, 60);
+        this.setFlammable('BLUE_WOOL', 30, 60);
+        this.setFlammable('BROWN_WOOL', 30, 60);
+        this.setFlammable('GREEN_WOOL', 30, 60);
+        this.setFlammable('RED_WOOL', 30, 60);
+        this.setFlammable('BLACK_WOOL', 30, 60);
+        this.setFlammable('VINE', 15, 100);
+        this.setFlammable('COAL_BLOCK', 5, 5);
+        this.setFlammable('HAY_BLOCK', 60, 20);
+        this.setFlammable('TARGET', 15, 20);
+        this.setFlammable('WHITE_CARPET', 60, 20);
+        this.setFlammable('ORANGE_CARPET', 60, 20);
+        this.setFlammable('MAGENTA_CARPET', 60, 20);
+        this.setFlammable('LIGHT_BLUE_CARPET', 60, 20);
+        this.setFlammable('YELLOW_CARPET', 60, 20);
+        this.setFlammable('LIME_CARPET', 60, 20);
+        this.setFlammable('PINK_CARPET', 60, 20);
+        this.setFlammable('GRAY_CARPET', 60, 20);
+        this.setFlammable('LIGHT_GRAY_CARPET', 60, 20);
+        this.setFlammable('CYAN_CARPET', 60, 20);
+        this.setFlammable('PURPLE_CARPET', 60, 20);
+        this.setFlammable('BLUE_CARPET', 60, 20);
+        this.setFlammable('BROWN_CARPET', 60, 20);
+        this.setFlammable('GREEN_CARPET', 60, 20);
+        this.setFlammable('RED_CARPET', 60, 20);
+        this.setFlammable('BLACK_CARPET', 60, 20);
+        this.setFlammable('DRIED_KELP_BLOCK', 30, 60);
+        this.setFlammable('BAMBOO', 60, 60);
+        this.setFlammable('SCAFFOLDING', 60, 60);
+        this.setFlammable('LECTERN', 30, 20);
+        this.setFlammable('COMPOSTER', 5, 20);
+        this.setFlammable('SWEET_BERRY_BUSH', 60, 100);
+        this.setFlammable('BEEHIVE', 5, 20);
+        this.setFlammable('BEE_NEST', 30, 20);
+        this.setFlammable('AZALEA_LEAVES', 30, 60);
+        this.setFlammable('FLOWERING_AZALEA_LEAVES', 30, 60);
+        this.setFlammable('CAVE_VINES', 15, 60);
+        this.setFlammable('CAVE_VINES_PLANT', 15, 60);
+        this.setFlammable('SPORE_BLOSSOM', 60, 100);
+        this.setFlammable('AZALEA', 30, 60);
+        this.setFlammable('FLOWERING_AZALEA', 30, 60);
+        this.setFlammable('BIG_DRIPLEAF', 60, 100);
+        this.setFlammable('BIG_DRIPLEAF_STEM', 60, 100);
+        this.setFlammable('SMALL_DRIPLEAF', 60, 100);
+        this.setFlammable('HANGING_ROOTS', 30, 60);
+        this.setFlammable('GLOW_LICHEN', 15, 100);
     }
 
 }

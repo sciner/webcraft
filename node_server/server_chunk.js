@@ -601,11 +601,7 @@ export class ServerChunk {
             }
         }
         // Need unload in worker
-        this.world.chunks.postWorkerMessage(['destructChunk',
-            [this.addr]
-        ]);
-        //
-        this.world.chunks.removeTickingChunk(this.addr);
+        this.world.chunks.chunkUnloaded(this.addr);
     }
 
 }

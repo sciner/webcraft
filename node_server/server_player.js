@@ -68,6 +68,7 @@ export class ServerPlayer extends Player {
         this.in_portal              = false;
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
+        this.prev_near_players      = new Map();
     }
 
     init(init_info) {
@@ -203,6 +204,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
+        params.pos = new Vector(params.pos).multiplyScalar(1000).floored().divScalar(1000);
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
@@ -300,137 +302,128 @@ export class ServerPlayer extends Player {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2.
-        this.sendState();
+        this.sendNearPlayers();
         // 3.
         this.checkIndicators();
         // 4.
-        if(Math.random() < .5) {
-            this.checkInPortal();
-        }
+        if(Math.random() < .5) this.checkInPortal();
         // 5.
-        if(this.wait_portal) {
-            //
-            const wait_info = this.wait_portal;
-            //
-            const sendTeleport = () => {
-                console.log('Teleport to', wait_info.pos.toHash());
-                const packets = [{
-                    name: ServerClient.CMD_TELEPORT,
-                    data: {
-                        pos: wait_info.pos,
-                        place_id: wait_info.params.place_id
-                    }
-                }];
-                this.world.packets_queue.add([this.session.user_id], packets);
-                this.wait_portal = null;
-                // add teleport particles
-                // const actions = new WorldAction(randomUUID());
-                // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
-                // world.actions_queue.add(null, actions);
-            };
-            if(wait_info.params?.found_or_generate_portal) {
-                const from_portal_id = wait_info.params?.from_portal_id;
-                let from_portal;
-                let from_portal_type = WorldPortal.getDefaultPortalType();
-                if(from_portal_id) {
-                    from_portal = await this.world.db.portal.getByID(from_portal_id);
-                    if(from_portal) {
-                        //if(WorldPortal.getPortalTypeByID(from_portal.type)) {
-                        //    from_portal_type = ...;
-                        //}
-                        if(from_portal.pair_pos) {
-                            wait_info.pos = from_portal.pair.pos;
-                        }
-                    }
+        await this.checkWaitPortal();
+    }
+
+    async checkWaitPortal() {
+        if(!this.wait_portal) {
+            return false;
+        }
+        //
+        const wait_info = this.wait_portal;
+        //
+        const sendTeleport = () => {
+            console.log('Teleport to', wait_info.pos.toHash());
+            const packets = [{
+                name: ServerClient.CMD_TELEPORT,
+                data: {
+                    pos: wait_info.pos,
+                    place_id: wait_info.params.place_id
                 }
-                // found existed portal around near
-                let exists_portal = null;
-                if(from_portal?.pair) {
-                    exists_portal = await this.world.db.portal.getByID(from_portal?.pair.id);
-                }
-                if(!exists_portal) {
-                    exists_portal = await this.world.db.portal.search(wait_info.pos, MAX_PORTAL_SEARCH_DIST);
-                }
-                console.log('exists_portal', exists_portal);
-                if(exists_portal) {
-                    this.prev_use_portal = performance.now();
-                    wait_info.pos = exists_portal.player_pos;
-                    sendTeleport();
-                } else {
-                    // check max attempts
-                    const max_attempts = [
-                        0, 0, 123, /* 2 */ 255, 455, /* 4 */ 711, 987, 1307, 1683, 2099,
-                        2567, /*10*/ 3031, 3607, 4203, 4843, 5523, 6203 /* 16 */][this.state.chunk_render_dist];
-                        // const force_teleport = ++wait_info.attempt == max_attempts;
-                    for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
-                        if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                            const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
-                            if(new_portal) {
-                                wait_info.pos = new_portal.player_pos;
-                                this.prev_use_portal = performance.now();
-                                // pair two portals
-                                if(from_portal) {
-                                    // @todo update from portal
-                                    await this.world.db.portal.setPortalPair(from_portal.id, {id: new_portal.id, player_pos: new_portal.player_pos});
-                                    // @todo update new portal
-                                    await this.world.db.portal.setPortalPair(new_portal.id, {id: from_portal.id, player_pos: from_portal.player_pos});
-                                }
-                                sendTeleport();
-                                break;
-                            }
-                        }
+            }];
+            this.world.packets_queue.add([this.session.user_id], packets);
+            this.wait_portal = null;
+            // add teleport particles
+            // const actions = new WorldAction(randomUUID());
+            // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
+            // world.actions_queue.add(null, actions);
+        };
+        if(wait_info.params?.found_or_generate_portal) {
+            const from_portal_id = wait_info.params?.from_portal_id;
+            let from_portal;
+            let from_portal_type = WorldPortal.getDefaultPortalType();
+            if(from_portal_id) {
+                from_portal = await this.world.db.portal.getByID(from_portal_id);
+                if(from_portal) {
+                    //if(WorldPortal.getPortalTypeByID(from_portal.type)) {
+                    //    from_portal_type = ...;
+                    //}
+                    if(from_portal.pair_pos) {
+                        wait_info.pos = from_portal.pair.pos;
                     }
                 }
-            } else {
-                sendTeleport();
             }
+            // found existed portal around near
+            let exists_portal = null;
+            if(from_portal?.pair) {
+                exists_portal = await this.world.db.portal.getByID(from_portal?.pair.id);
+            }
+            if(!exists_portal) {
+                exists_portal = await this.world.db.portal.search(wait_info.pos, MAX_PORTAL_SEARCH_DIST);
+            }
+            console.log('exists_portal', exists_portal);
+            if(exists_portal) {
+                this.prev_use_portal = performance.now();
+                wait_info.pos = exists_portal.player_pos;
+                sendTeleport();
+            } else {
+                // check max attempts
+                //const max_attempts = [
+                //    0, 0, 123, /* 2 */ 255, 455, /* 4 */ 711, 987, 1307, 1683, 2099,
+                //    2567, /*10*/ 3031, 3607, 4203, 4843, 5523, 6203 /* 16 */][this.state.chunk_render_dist];
+                //    // const force_teleport = ++wait_info.attempt == max_attempts;
+                for(let chunk of this.world.chunks.getAround(wait_info.pos, this.state.chunk_render_dist)) {
+                    if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                        const new_portal = await WorldPortal.foundPortalFloorAndBuild(this.session.user_id, this.world, chunk, from_portal_type);
+                        if(new_portal) {
+                            wait_info.pos = new_portal.player_pos;
+                            this.prev_use_portal = performance.now();
+                            // pair two portals
+                            if(from_portal) {
+                                // @todo update from portal
+                                await this.world.db.portal.setPortalPair(from_portal.id, {id: new_portal.id, player_pos: new_portal.player_pos});
+                                // @todo update new portal
+                                await this.world.db.portal.setPortalPair(new_portal.id, {id: from_portal.id, player_pos: from_portal.player_pos});
+                            }
+                            sendTeleport();
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            sendTeleport();
         }
     }
 
     // Send other players states for me
-    sendState() {
+    sendNearPlayers() {
         const chunk_over = this.world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }
         //
-        const world = this.world;
         const packets = [];
-        for(let player of world.players.values()) {
-            if(this.session.user_id == player.session.user_id) {
+        const current_visible_players = new Map();
+        for(let player of this.world.players.values()) {
+            const user_id = player.session.user_id;
+            if(this.session.user_id == user_id) {
                 continue;
             }
-            /*
-            {
-                id: 1001,
-                username: 'Username',
-                pos: Vector { x: 2926.587, y: 1057, z: 2730.722 },
-                rotate: Vector { x: -0.5019, y: 0, z: 5.271 },
-                skin: '1',
-                hands: { left: { id: null }, right: { id: 65 } },
-                sneak: false,
-                sitting: false,
-                lies: false
-            }
-            */
-            const data = player.exportState();
-            const dist = Math.floor(player.state.pos.distance(this.state.pos));
-            data.dist = dist < PLAYER_MAX_DRAW_DISTANCE ? dist : null;
-            if(!data.dist) {
-                delete(data.pos);
-                delete(data.rotate);
-                delete(data.skin);
-                delete(data.hands);
-                delete(data.sneak);
-                delete(data.sitting);
-                delete(data.lies);
+            let dist = Math.floor(player.state.pos.distance(this.state.pos));
+            if(dist < PLAYER_MAX_DRAW_DISTANCE) {
+                current_visible_players.set(user_id, null);
+            } else {
+                if(!this.prev_near_players.has(user_id)) {
+                    continue;
+                }
+                dist = null;
             }
             packets.push({
                 name: ServerClient.CMD_PLAYER_STATE,
-                data: data
+                data: {dist, ...player.exportState()}
             })
         }
-        this.world.sendSelected(packets, [this.session.user_id]);
+        this.prev_near_players = current_visible_players;
+        if(packets.length > 0) {
+            this.world.sendSelected(packets, [this.session.user_id]);
+        }
     }
 
     //
@@ -450,6 +443,8 @@ export class ServerPlayer extends Player {
         if(this.state.indicators.live.value <= 0) {
             this.is_dead = true;
             this.state.stats.death++;
+            // TODO: check and drop inventory items if need
+            // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
             packets.push({
                 name: ServerClient.CMD_DIE,
                 data: {}
@@ -471,10 +466,8 @@ export class ServerPlayer extends Player {
         }
         //
         const pos_legs      = new Vector(this.state.pos).flooredSelf();
-        const pos_body      = pos_legs.add(Vector.YP).flooredSelf();
-        const tblock_body   = this.world.getBlock(pos_body);
         const tblock_legs   = this.world.getBlock(pos_legs);
-        const portal_block  = tblock_body.material?.is_portal ? tblock_body : (tblock_legs.material?.is_portal ? tblock_legs : null);
+        const portal_block  = tblock_legs.material?.is_portal ? tblock_legs : null;
         const in_portal     = !!portal_block;
         //
         if(in_portal != this.in_portal) {

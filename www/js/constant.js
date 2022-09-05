@@ -7,6 +7,8 @@ export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const SOUND_MAX_DIST                 = 16;
 export const NO_TICK_BLOCKS                 = false;
+export const BODY_ROTATE_SPEED              = 7;
+export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -23,11 +25,13 @@ export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
 
 // player
-export const PLAYER_HEIGHT                  = 1.7;
-export const SNEAK_MINUS_Y_MUL              = 0.2; // decrease player height to this percent value
+export const PLAYER_ZOOM                    = 1;
+export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
+export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
+export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
-export const SPECTATOR_SPEED_MUL            = 1;
+export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms
@@ -40,6 +44,7 @@ export const MOUSE = {
     UP: 2,
     MOVE: 3,
     CLICK: 4,
+    WHEEL: 5,
     BUTTON_LEFT: 0,
     BUTTON_WHEEL: 1,
     BUTTON_RIGHT: 2

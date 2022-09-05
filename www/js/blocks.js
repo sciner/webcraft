@@ -17,6 +17,8 @@ export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'e
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['power'];
 
+export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
+
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
 
@@ -82,9 +84,9 @@ export class FakeTBlock {
         if(!Array.isArray(mat.tags)) {
             return false;
         }
-        let resp = mat.tags.indexOf(tag) >= 0;
+        let resp = mat.tags.includes(tag);
         if(!resp && this.tags) {
-            resp = this.tags.indexOf(tag) >= 0;
+            resp = this.tags.includes(tag);
         }
         return resp;
     }
@@ -318,9 +320,9 @@ export class BLOCK {
     // Call before setBlock
     static makeExtraData(block, pos, orientation, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
-        const is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
-        const is_stairs = block.tags.indexOf('stairs') >= 0;
-        const is_door = block.tags.indexOf('door') >= 0;
+        const is_trapdoor = block.tags.includes('trapdoor');
+        const is_stairs = block.tags.includes('stairs');
+        const is_door = block.tags.includes('door');
         const is_slab = block.is_layering && block.layering.slab;
         //
         let extra_data = null;
@@ -526,17 +528,17 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || (block.tags.indexOf('alpha') >= 0) || ['thin'].indexOf(block.style) >= 0) {
+        if(WATER_BLOCKS_ID.includes(block.id) || (block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {
             group = 'transparent';
-        } else if(block.id == 649 ||
+        } else if(block.tags.includes('doubleface') ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
                 'lectern'
-            ].indexOf(block.style) >= 0
+            ].includes(block.style)
             ) {
             group = 'doubleface';
         }
@@ -623,7 +625,7 @@ export class BLOCK {
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
-        if(block.tags.indexOf('rotate_by_pos_n_xyz') >= 0 || block.tags.indexOf('rotate_by_pos_n_6') >= 0 || block.tags.indexOf('rotate_by_pos_n_12') >= 0) {
+        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
             block.tags.push('rotate_by_pos_n');
         }
         //
@@ -633,20 +635,28 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
-        block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
-        block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
-        block.is_button         = block.tags.indexOf('button') >= 0;
-        block.is_sapling        = block.tags.indexOf('sapling') >= 0;
-        block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
+        block.is_jukebox        = block.tags.includes('jukebox');
+        block.is_mushroom_block = block.tags.includes('mushroom_block');
+        block.is_button         = block.tags.includes('button');
+        block.is_sapling        = block.tags.includes('sapling');
+        block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
         block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600, 194, 594, 595, 502].includes(block.id);
         block.is_qube           = block.style == 'default' && !('width' in block) && !('height' in block)
         block.is_grass          = ['GRASS', 'TALL_GRASS'].indexOf(block.name) >= 0;
         block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].indexOf(block.name) >= 0;
-        block.is_leaves         = block.tags.indexOf('leaves') >= 0;
-        block.is_glass          = block.tags.indexOf('glass') >= 0 || (block.material.id == 'glass');
-        block.is_sign           = block.tags.indexOf('sign') >= 0;
+        block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
+        block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style == 'banner';
+        // не переносить!
+        if(block.is_leaves) {
+            const beautiful_leaves = resource_pack?.manager?.settings?.beautiful_leaves;
+            if(beautiful_leaves) {
+                block.is_leaves = LEAVES_TYPE.BEAUTIFUL;
+                block.tags.push('doubleface');
+            }
+        }
         block.group             = this.getBlockStyleGroup(block);
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
@@ -654,7 +664,7 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         //
         if(block.planting && !('inventory_style' in block)) {
@@ -681,7 +691,7 @@ export class BLOCK {
                                   !block.is_fluid &&
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
-        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
+        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.includes('no_drop_ao')) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
                 this.ao_invisible_blocks.push(block.id);
             }
@@ -708,10 +718,10 @@ export class BLOCK {
         if(block.spawn_egg && BLOCK.spawn_eggs.indexOf(block.id) < 0) {
             BLOCK.spawn_eggs.push(block.id);
         }
-        if(block.tags.indexOf('mask_biome') >= 0 && BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) < 0) {
+        if(block.tags.includes('mask_biome') && !BLOCK.MASK_BIOME_BLOCKS.includes(block.id)) {
             BLOCK.MASK_BIOME_BLOCKS.push(block.id)
         }
-        if(block.tags.indexOf('mask_color') >= 0 && BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) < 0) {
+        if(block.tags.includes('mask_color') && !BLOCK.MASK_COLOR_BLOCKS.includes(block.id)) {
             BLOCK.MASK_COLOR_BLOCKS.push(block.id)
         }
         // Parse tags
@@ -744,8 +754,8 @@ export class BLOCK {
         }
         const is_slab = !!mat.is_layering;
         const is_bed = mat.style == 'bed';
-        const is_dirt = mat.tags.indexOf('dirt') >= 0;
-        const is_carpet = mat.tags.indexOf('carpet') >= 0;
+        const is_dirt = mat.tags.includes('dirt');
+        const is_carpet = mat.tags.includes('carpet');
         const is_farmland = mat.name.indexOf('FARMLAND') == 0;
         if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
             return false;
@@ -862,6 +872,7 @@ export class BLOCK {
                 case DIRECTION.RIGHT: {prop = 'east'; break;}
                 case DIRECTION.FORWARD: {prop = 'north'; break;}
                 case DIRECTION.BACK: {prop = 'south'; break;}
+                default: {prop = dir;}
             }
             if(c.hasOwnProperty(prop)) {
                 c = c[prop];
@@ -875,11 +886,12 @@ export class BLOCK {
             debugger;
         }
         const flags = c[2] | 0;
+        const size = c[3] ?? 1;
         return [
-            (c[0] + 0.5) / tx_cnt,
-            (c[1] + 0.5) / tx_cnt,
-            ((flags & 1) != 0) ? - 1 / tx_cnt : 1 / tx_cnt,
-            ((flags & 2) != 0)  ? - 1 / tx_cnt : 1 / tx_cnt
+            (c[0] + size/2) / tx_cnt,
+            (c[1] + size/2) / tx_cnt,
+            ((flags & 1) != 0) ? - size / tx_cnt : size / tx_cnt,
+            ((flags & 2) != 0)  ? - size / tx_cnt : size / tx_cnt
         ];
     }
 
@@ -1236,7 +1248,7 @@ export class BLOCK {
     static async sortBlocks() {
         //
         const sortByMaterial = (b, index) => {
-            if(b.tags.indexOf('ore') >= 0) {
+            if(b.tags.includes('ore')) {
                 index -= .01;
             } else if(b.window) {
                 index -= .02;

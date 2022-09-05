@@ -195,7 +195,7 @@ export class ServerChat {
             case '/tps': {
                 let temp = [];
                 for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end'].indexOf(k) >= 0) continue;
+                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end', 'number', 'min'].indexOf(k) >= 0) continue;
                     temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);

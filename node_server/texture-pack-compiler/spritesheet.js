@@ -130,6 +130,7 @@ export class Spritesheet {
         }
         const sw = Math.max(img.width, this.tx_sz);
         const sh = Math.max(img.height, this.tx_sz);
+        const mask_width = sw / this.tx_sz;
         const use_filter = !!compile_rules?.filter;
         // if using filter
         if(use_filter) {
@@ -152,7 +153,7 @@ export class Spritesheet {
                 ctx.globalCompositeOperation = 'difference';
                 ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
                 ctx.filter = 'grayscale(100%)';
-                ctx.drawImage(img, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
+                ctx.drawImage(img, (x + mask_width) * this.tx_sz, y * this.tx_sz, sw, sh);
                 ctx.filter = 'none';
                 ctx.globalCompositeOperation = 'source-over';
                 // copy colores pixels
@@ -178,6 +179,7 @@ export class Spritesheet {
         }
         const sx = Math.ceil(img.width / this.tx_sz);
         const sy = Math.ceil(img.height / this.tx_sz);
+        //
         for(let i = 0; i < sx; i++) {
             for(let j = 0; j < sy; j++) {
                 const index = this.XYToIndex(x + i, y + j);
@@ -188,7 +190,7 @@ export class Spritesheet {
         if(overlay_mask || has_mask) {
             for(let i = 0; i < sx; i++) {
                 for(let j = 0; j < sy; j++) {
-                    const index = this.XYToIndex(x + i + 1, y + j);
+                    const index = this.XYToIndex(x + i + mask_width, y + j);
                     this.map[index] = true;
                 }                        
             }

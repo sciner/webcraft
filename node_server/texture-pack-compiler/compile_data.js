@@ -467,6 +467,7 @@ export class CompileData {
                 "sound": "madcraft:block.glass",
                 "inventory_style": "extruder",
                 "can_rotate": true,
+                "tags": ["alpha"],
                 "texture": `block/${color}_stained_glass.png`
             };
             this.blocks.push(b);

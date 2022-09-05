@@ -668,7 +668,7 @@ export class ChunkManager {
             };
             if(mat.is_chest) {
                 item.extra_data = { can_destroy: true, slots: {} };
-            } else if(mat.tags.indexOf('sign') >= 0) {
+            } else if(mat.tags.includes('sign')) {
                 item.extra_data = {
                     text: 'Hello, World!',
                     username: 'Server',

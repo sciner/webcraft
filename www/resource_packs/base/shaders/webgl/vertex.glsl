@@ -28,12 +28,12 @@ void main() {
     // Animated textures
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
-        float frames = v_color.b;
+        int frames = int(v_color.b);
         v_color.b = 1.0; // no mask_shift for you, sorry
-        float t = ((u_time * frames / 3.) / 1000.);
-        float i = floor(t);
-        uvCenter0.y += mod(i, frames) / 32.;
-        uvCenter1.y += mod(i + 1., frames) / 32.;
+        float t = ((u_time * float(frames) / 3.) / 1000.);
+        int i = int(t);
+        uvCenter0.y += float(i % frames) / 32.;
+        uvCenter1.y += float((i + 1) % frames) / 32.;
         v_animInterp = fract(t);
     }
 
@@ -81,6 +81,15 @@ void main() {
     }
 
     v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
+
+    if(flagLeaves == 1 && gl_VertexID == 1) {
+        float wing_speed = 2.;
+        float wing_smplitude = 0.1;
+        v_chunk_pos.x += sin((u_time / 1000. + v_chunk_pos.x) * wing_speed) * wing_smplitude;
+        // v_chunk_pos.y += sin((u_time / 1000. + v_chunk_pos.y) * wing_speed) * wing_smplitude;
+        // v_chunk_pos.z += sin((u_time / 1000. + v_chunk_pos.z) * wing_speed) * wing_smplitude;
+    }
+
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);

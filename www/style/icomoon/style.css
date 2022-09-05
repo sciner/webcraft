@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?dp9yra');
-  src:  url('fonts/icomoon.eot?dp9yra#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?dp9yra') format('truetype'),
-    url('fonts/icomoon.woff?dp9yra') format('woff'),
-    url('fonts/icomoon.svg?dp9yra#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?l6grkk');
+  src:  url('fonts/icomoon.eot?l6grkk#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?l6grkk') format('truetype'),
+    url('fonts/icomoon.woff?l6grkk') format('woff'),
+    url('fonts/icomoon.svg?l6grkk#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,27 +25,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-bx-log-out:before {
-  content: "\e907";
-}
-.icon-chevron-left:before {
-  content: "\e905";
-}
-.icon-chevron-right:before {
-  content: "\e906";
-}
-.icon-bx_plus:before {
-  content: "\e904";
-}
-.icon-arrows-right:before {
+.icon-bx_lock-alt:before {
   content: "\e900";
 }
-.icon-bx_trash-alt:before {
+.icon-arrows-right:before {
   content: "\e901";
 }
-.icon-bx-user:before {
+.icon-bx_trash-alt:before {
   content: "\e902";
 }
-.icon-settings:before {
+.icon-bx-user:before {
   content: "\e903";
+}
+.icon-settings:before {
+  content: "\e904";
+}
+.icon-bx_plus:before {
+  content: "\e905";
+}
+.icon-chevron-left:before {
+  content: "\e906";
+}
+.icon-chevron-right:before {
+  content: "\e907";
+}
+.icon-bx-log-out:before {
+  content: "\e908";
 }

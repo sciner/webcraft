@@ -166,6 +166,44 @@
             }
         },
         {
+            "id": 506,
+            "name": "FIRE",
+            "sound": "madcraft:block.wood",
+            "style": "fire",
+            "material": {
+                "id": "wood"
+            },
+            "transparent": true,
+            "tags":[
+                "no_drop_ao",
+                "alpha"
+            ],
+            "is_fire": true,
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
+            },
+            "ticking": {
+                "type": "fire"
+            },
+            "extra_data": {
+                "age": 0,
+                "east":false,
+                "north": false,
+                "south": false,
+                "up": false,
+                "west": false
+            },
+            "texture": {
+                "side":"block/fire_0.png"
+            },
+            "texture_animations": {
+                "side": null
+            }
+        },
+        {
             "id": 540,
             "name": "SEAGRASS",
             "passable": 1,
@@ -783,7 +821,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "BIRCH_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/birch_leaves.png",
+            "texture": {
+                "side": "block/birch_leaves.png",
+                "round": "./textures/birch_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -799,7 +840,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "OAK_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/oak_leaves.png",
+            "texture": {
+                "side": "block/oak_leaves.png",
+                "round": "./textures/oak_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -815,7 +859,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "ACACIA_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/acacia_leaves.png",
+            "texture": {
+                "side": "block/acacia_leaves.png",
+                "round": "./textures/acacia_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -831,7 +878,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "SPRUCE_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/spruce_leaves.png",
+            "texture": {
+                "side": "block/spruce_leaves.png",
+                "round": "./textures/spruce_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -847,7 +897,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "DARK_OAK_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/dark_oak_leaves.png",
+            "texture": {
+                "side": "block/dark_oak_leaves.png",
+                "round": "./textures/dark_oak_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -863,7 +916,10 @@
             "transparent": true,
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "JUNGLE_SAPLING", "count": 1, "chance": 0.05},
-            "texture": "block/jungle_leaves.png",
+            "texture": {
+                "side": "block/jungle_leaves.png",
+                "round": "./textures/jungle_leaves.png"
+            },
             "material": {
                 "id": "leaves"
             },
@@ -878,7 +934,7 @@
             "name": "JUNGLE_LEAVES_FLOWER",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "texture": "block/jungle_leaves.png",
+            "texture": "./textures/jungle_leaves.png",
             "material": {
                 "id": "leaves"
             },
@@ -2169,7 +2225,7 @@
             "id": 102,
             "name": "GLASS_PANE",
             "transparent": true,
-            "style": "thin",
+            "style": "pane",
             "inventory_style": "extruder",
             "sound": "madcraft:block.glass",
             "material": {
@@ -2572,6 +2628,17 @@
             "texture": "item/coal.png"
         },
         {
+            "id": 487,
+            "name": "CHARCOAL",
+            "item": {"name": "coal"},
+            "style": "extruder",
+            "fuel_time": 80,
+            "material": {
+                "id": "wood"
+            },
+            "texture": "item/charcoal.png"
+        },
+        {
             "id": 199,
             "name": "TEST",
             "sound": "madcraft:block.wood",
@@ -2663,6 +2730,13 @@
                 "up": "block/tnt_top.png",
                 "down": "block/tnt_bottom.png",
                 "side": "block/tnt_side.png"
+            },
+            "extra_data": {
+                "explode": false,
+                "fuse": 0
+            },
+            "ticking": {
+                "type": "tnt"
             }
         },
         {
@@ -2675,6 +2749,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2694,6 +2769,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2713,6 +2789,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2732,6 +2809,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2751,6 +2829,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -2770,6 +2849,7 @@
                 "id": "wood"
             },
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -4120,7 +4200,11 @@
                 "id": "stone"
             },
             "texture": "block/iron_bars.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "tags": [
+                "alpha",
+                "no_drop_ao"
+            ]
         },
         {
             "id": 628,
@@ -4578,6 +4662,9 @@
                 "b": 255,
                 "a": 96
             },
+            "tags": [
+                "doubleface"
+            ],
             "texture": {
                 "side": "block/spawner.png"
             }
@@ -5399,6 +5486,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5418,6 +5506,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5437,6 +5526,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5456,6 +5546,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5475,6 +5566,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5494,6 +5586,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],
@@ -5513,6 +5606,7 @@
             "fuel_time": 16,
             "can_rotate": true,
             "tags": [
+                "log",
                 "can_put_info_pot",
                 "rotate_by_pos_n_xyz"
             ],

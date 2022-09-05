@@ -30,6 +30,7 @@
     #define FLAG_TRIANGLE 11
     #define FLAG_MIR2_TEX 12
     #define FLAG_MULTIPLY_COLOR 13
+    #define FLAG_LEAVES 14
 
 #endif
 
@@ -113,6 +114,10 @@
     out float v_lightId;
     out vec4 v_lightOffset;
     out vec3 v_aoOffset;
+    out vec3 v_axisU;
+    out vec3 v_axisV;
+
+    // quad flags
     out float v_noCanTakeAO;
     out float v_flagFlagOpacity;
     out float v_flagQuadSDF;
@@ -120,8 +125,7 @@
     out float v_Triangle;
     out float v_Mir2_Tex;
     out float v_flagMultiplyColor;
-    out vec3 v_axisU;
-    out vec3 v_axisV;
+    out float v_flagLeaves;
 
     //--
 #endif
@@ -142,14 +146,16 @@
     in float v_useFog;
     in float v_lightId;
     in vec4 v_lightOffset;
+    in vec3 v_axisU;
+    in vec3 v_axisV;
+
+    // quad flags
     in float v_noCanTakeAO;
     in float v_flagFlagOpacity;
     in float v_flagQuadSDF;
     in float v_noCanTakeLight;
     in float v_Triangle;
     in float v_flagMultiplyColor;
-    in vec3 v_axisU;
-    in vec3 v_axisV;
 
     out vec4 outColor;
 #endif
@@ -180,10 +186,7 @@
             (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
             y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
             ) {
-                outColor.r = 1.0 - outColor.r;
-                outColor.g = 1.0 - outColor.g;
-                outColor.b = 1.0 - outColor.b;
-                outColor.a = 1.0;
+                outColor = vec4(1. - outColor.rgb, 1.);
         }
     }
     //--
@@ -279,6 +282,7 @@
     int flagTriangle = (flags >> FLAG_TRIANGLE) & 1;
     int flagMir2_Tex = (flags >> FLAG_MIR2_TEX) & 1;
     int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
+    int flagLeaves = (flags >> FLAG_LEAVES) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -289,6 +293,7 @@
     v_Triangle = float(flagTriangle);
     v_Mir2_Tex = float(flagMir2_Tex);
     v_flagMultiplyColor = float(flagMultiplyColor);
+    v_flagLeaves = float(flagLeaves);
 
     //--
 #endif

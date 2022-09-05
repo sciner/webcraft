@@ -2,6 +2,7 @@ import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
+import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../js/constant.js";
 
 const BLOCK_NOT_EXISTS = -2;
 
@@ -53,11 +54,14 @@ export function Physics(mcData, fake_world, options) {
     const bubblecolumnId = blocksByName.bubble_column ? blocksByName.bubble_column.id : BLOCK_NOT_EXISTS // 1.13+
     if (blocksByName.bubble_column) waterLike.add(bubblecolumnId)
 
+    const scale = PLAYER_ZOOM;
+
     const physics = {
-        gravity: 0.08, // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
+        scale: scale,
+        gravity: 0.08 * scale, // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
         // Flying
         flyinGravity: 0.06,
-        flyingYSpeed: Math.fround(0.42 / 2),
+        flyingYSpeed: Math.fround(0.42 / 2) * scale,
         flyingInertiaMultiplyer: 1.5,
         //
         airdrag: Math.fround(1 - 0.02), // actually (1 - drag)
@@ -71,9 +75,9 @@ export function Physics(mcData, fake_world, options) {
         honeyblockSpeed: 0.4,
         honeyblockJumpSpeed: 0.4,
         ladderMaxSpeed: 0.15,
-        ladderClimbSpeed: 0.2,
+        ladderClimbSpeed: 0.2 * scale,
         playerHalfWidth: typeof options.playerHalfWidth === 'undefined' ? 0.3 : options.playerHalfWidth,
-        playerHeight: typeof options.playerHeight === 'undefined' ? 1.8 : options.playerHeight,
+        playerHeight: typeof options.playerHeight === 'undefined' ? PLAYER_HEIGHT : options.playerHeight,
         waterInertia: 0.8,
         lavaInertia: 0.5,
         liquidAcceleration: 0.02,
@@ -108,14 +112,14 @@ export function Physics(mcData, fake_world, options) {
     }
 
     function getPlayerBB (pos) {
-        const w = physics.playerHalfWidth
+        const w = physics.playerHalfWidth * physics.scale
         return new AABB(-w, 0, -w, w, physics.playerHeight, w).offset(pos.x, pos.y, pos.z)
     }
 
     function setPositionToBB(bb, pos) {
-        pos.x = bb.minX + physics.playerHalfWidth
+        pos.x = bb.minX + physics.playerHalfWidth * physics.scale
         pos.y = bb.minY
-        pos.z = bb.minZ + physics.playerHalfWidth
+        pos.z = bb.minZ + physics.playerHalfWidth * physics.scale
     }
 
     function getSurroundingBBs(world, queryBB) {
@@ -220,7 +224,7 @@ export function Physics(mcData, fake_world, options) {
         playerBB.offset(0, 0, dz)
 
         // Step on block if height < stepHeight
-        if (physics.stepHeight > 0 &&
+        if (physics.stepHeight * physics.scale > 0 &&
             (entity.onGround || (dy !== oldVelY && oldVelY < 0)) &&
             (dx !== oldVelX || dz !== oldVelZ)) {
             const oldVelXCol = dx
@@ -228,7 +232,7 @@ export function Physics(mcData, fake_world, options) {
             const oldVelZCol = dz
             const oldBBCol = playerBB.clone()
 
-            dy = physics.stepHeight
+            dy = physics.stepHeight * physics.scale
             const queryBB = oldBB.clone().extend(oldVelX, dy, oldVelZ)
             const surroundingBBs = getSurroundingBBs(world, queryBB)
 
@@ -363,8 +367,8 @@ export function Physics(mcData, fake_world, options) {
 
         speed = multiplier / Math.max(speed, 1)
 
-        strafe *= speed
-        forward *= speed
+        strafe *= speed * physics.scale
+        forward *= speed * physics.scale
 
         const yaw = Math.PI - entity.yaw
         const sin = Math.sin(yaw)
@@ -593,7 +597,7 @@ export function Physics(mcData, fake_world, options) {
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
                 vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                vel.y = Math.fround(0.42)
+                vel.y = Math.fround(0.42 * physics.scale)
                 if(honeyblockId != BLOCK_NOT_EXISTS) {
                     const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                     vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
@@ -603,9 +607,9 @@ export function Physics(mcData, fake_world, options) {
                 }
                 if (entity.control.sprint) {
                     // @fixed Без этого фикса игрок притормаживает при беге с прыжками
-                    const yaw = Math.PI - entity.yaw
-                    vel.x += Math.sin(yaw) * 0.2
-                    vel.z -= Math.cos(yaw) * 0.2
+                    const yaw = Math.PI - entity.yaw;
+                    vel.x += Math.sin(yaw) * (0.2 * physics.scale)
+                    vel.z -= Math.cos(yaw) * (0.2 * physics.scale)
                 }
                 entity.jumpTicks = physics.autojumpCooldown
             } else if(entity.flying) {
@@ -760,4 +764,5 @@ export class PlayerState {
         bot.jumpTicks                       = this.jumpTicks
         bot.jumpQueued                      = this.jumpQueued
     }
+
 }

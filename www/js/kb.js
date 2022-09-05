@@ -12,16 +12,17 @@ export class Kb {
 
         let makeEvent = function(e, down, first) {
             return {
-                keyCode: e.keyCode,
-                down: down,
-                first: first,
-                shiftKey: e.shiftKey,
-                ctrlKey: e.ctrlKey
+                e_orig:     e,
+                keyCode:    e.keyCode,
+                down:       down,
+                first:      first,
+                shiftKey:   e.shiftKey,
+                ctrlKey:    e.ctrlKey
             };
         };
 
         document.onkeydown = function(e) {
-            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
+            if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
                 if (e.code !== undefined) {
                     if(e.code == 'KeyV' && e.ctrlKey)  {
                         return true;
@@ -60,6 +61,7 @@ export class Kb {
         canvas.onmouseup    = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
         canvas.onmousemove  = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
         canvas.onclick      = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
+        canvas.onmousewheel = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.WHEEL, e.which, e.shiftKey); return false; }
 
         document.addEventListener('paste', function(e) {
             // onPaste
@@ -101,7 +103,7 @@ export class Kb {
         if(!this.dbl_press.has(e.keyCode)) {
             this.dbl_press.set(e.keyCode, {count: 0, t: -1000});
         }
-        let dp = this.dbl_press.get(e.keyCode);
+        const dp = this.dbl_press.get(e.keyCode);
         if(e.down) {
             if(dp.count == 0 && performance.now() - dp.t < 250) {
                 // Fire double keypress callback

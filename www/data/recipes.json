@@ -206,7 +206,7 @@
                 "item": "madcraft:stick"
             },
             "X": {
-                "item": "madcraft:coal"
+                "item": ["madcraft:coal", "madcraft:charcoal"]
             }
         },
         "result": {

@@ -6,6 +6,7 @@ import { isMobileBrowser } from "./helpers.js";
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
+import { Lang } from "./lang.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -94,11 +95,11 @@ export class HUD {
                 if(Resources.progress && Resources.progress.percent < 100) {
                     texts.push('LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%');
                 } else if(cl == 0) {
-                    texts.push('CONNECTING TO SERVER...');
+                    texts.push(Lang.loading_game_connecting);
                 } else {
-                    texts.push('GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
+                    texts.push(Lang.loading_game_generate_planet + ' ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%');
                 }
-                texts.push('Press F11 to full screen');
+                texts.push(Lang[isMobileBrowser() ? 'please_rotate_to_landscape' : 'press_f11_to_fullscreen']);
                 //
                 let x = w / 2;
                 let y = h / 2;

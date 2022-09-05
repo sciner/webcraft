@@ -216,14 +216,14 @@
 				<div class="tabs-block">
 					<!-- <button class="tab">{{Lang.servers}}</button>
 					<button class="tab">{{Lang.friends}}</button> -->
-					<button class="tab active" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
+					<button class="tab" ng-class="{ active: current_window.id == 'main'}" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
 				</div>
 				<div class="user-block">
-					<button class="tab user" ng-click="skin.toggle()">
+					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
 						<img src="media/design/icon-head.png" alt="">
 						@{{Qubatch.App.session.username}}
 					</button>
-					<button class="tab" href="#" ng-click="settings.toggle()">
+					<button class="tab" ng-class="{ active: current_window.id == 'settings'}"  href="#" ng-click="settings.toggle()">
 						<i class="icon-settings" style="font-size: 22px;"></i>
                     </button>
 				</div>
@@ -232,7 +232,16 @@
 
         <!-- Worlds -->
 		<div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'main'">
-
+            <div class="modal-wrapper" id="modal-delete-world">
+                <div class="modal">
+                    <h3 class="header">{{Lang.confirm_action}}</h3>
+                    <p>{{Lang.you_sure_want_to_delete}} «{{DeleteWorld.world_title}}»?</p>
+                    <div class="buttons">
+                        <button class="secondary" ng-click="modalWindow.hide('modal-delete-world')">{{Lang.cancel}}</button>
+                        <button class="primary" ng-click="DeleteWorld.delete()">{{Lang.apply}}</button>
+                    </div>
+                </div>
+            </div>
             <div class="grid">
 				<button class="btn btn-add primary item" ng-click="newgame.open()">
 					<span style="font-size: 100px;">+</span>
@@ -240,12 +249,12 @@
                 </button>
 				<div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.list track by item.id" ng-if="!item.hidden">
 					<div class="card-body">
-						<button class="btn-delete" ng-click="DeleteWorld(item.guid)">
+                        <button class="btn-delete" ng-click="DeleteWorld.showModal(item.guid)">
 							<i class="icon-bx_trash-alt"></i>
 						</button>
 						<div class="img-cover" ng-class="{with_cover: !!item.cover}">
-							<h2 ng-if="!item.cover">No cover</h2>
-							<p ng-if="!item.cover">Set the cover of the world in the game with the F2 key</p>
+							<h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
+							<p ng-if="!item.cover">{{Lang.no_cover_note}}</p>
                             <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover}}" alt="cover" />
 						</div>
 					</div>
@@ -291,14 +300,22 @@
                 <div class="main">
                     <h1>{{Lang.main}}</h1>
                     <!-- <div class="input-group">
-                        <p>Mouse Sensitivity: 30</p>
-                        <div class="input-range">
-                            <input type="range" min="0" value="0" max="100" step="1" >
+                        <p>Mouse Sensitivity: <span id="inputRange_Mouse_text">30</span></p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_Mouse" class="slider" type="range" step="1" value="{test11}"
+                                ng-model="test11" ng-change="settings.updateSlider('inputRange_Mouse')">
                         </div>
+                        <div id="inputRange_Mouse_ticks"></div>
                     </div>
                     <div class="input-group">
-                        <p>HUD Scale: 100%</p>
-                        <input type="range" min="0" value="0" max="100" step="20">
+                        <p>HUD Scale: <span id="inputRange_HudScale_text">30</span></p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_HudScale" class="slider" type="range" step="20" value="{test22}" ng-model="test22" ng-change="settings.updateSlider('inputRange_HudScale')">
+                            <div class="ticks" id="inputRange_HudScale_ticks">
+                                <span class="passed active"></span>
+                                <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
                     </div> -->
                     <div class="input-group">
                         <p>{{Lang.textures}}</p>
@@ -319,8 +336,18 @@
                 <div class="video">
                     <h1>{{Lang.video}}</h1>
                     <!-- <div class="input-group">
-                        <p>Render Distance: {{settings.form.render_distance}}</p>
-                        <input type="range" min="2" value="{{settings.form.render_distance}}" max="16" step="1" ng-model="settings.form.render_distance">
+                        <div class="input-group">
+                            <p>Render Distance: <span id="inputRange_renderDistance_text">30</span></p>
+                            <div class="rangeContainer" style="margin-bottom: 20px;">
+                                <input id="inputRange_renderDistance" class="slider" type="range" step="20" value="{settings.form.render_distance}"
+                                ng-model="settings.form.render_distance"                              
+                                    ng-change="settings.updateSlider('inputRange_renderDistance')">
+                                <div class="ticks" id="inputRange_renderDistance_ticks">
+                                    <span class="passed active"></span>
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>
                     </div> -->
                     <div class="input-group">
                         <p>{{Lang.render_options}}</p>
@@ -331,6 +358,13 @@
                             </div>
                             <label for="test1">{{Lang.generate_mipmap}}</label>
                         </div>
+                        <div class="switcher-container" style="margin: 1em 0;">
+                            <input type="checkbox" id="test2" value="" ng-model="settings.form.beautiful_leaves" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="test1">{{Lang.beautiful_leaves}}</label>
+                        </div>
                     </div>
                     <div class="input-group">
                         <p>{{Lang.use_light}}</p>
@@ -340,16 +374,28 @@
                 <!-- <div class="audio">
                     <h1>Audio</h1>
                     <div class="input-group">
-                        <p>Background Music: 30</p>
-                        <input type="range" min="0" value="0" max="100" step="1">
+                        <p>Background Music: <span id="inputRange_musicBg_text">30</span></p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_musicBg" class="slider" type="range" step="1" value="{test33}"
+                                ng-model="test33" ng-change="settings.updateSlider('inputRange_musicBg')">
+                        </div>
+                        <div id="inputRange_musicBg_ticks"></div>
                     </div>
                     <div class="input-group">
-                        <p>Musical Devices: 70</p>
-                        <input type="range" min="0" value="0" max="100" step="1">
+                        <p>Musical Devices: <span id="inputRange_musicDevices_text">30</span></p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_musicDevices" class="slider" type="range" step="1" value="{test44}"
+                                ng-model="test44" ng-change="settings.updateSlider('inputRange_musicDevices')">
+                        </div>
+                        <div id="inputRange_musicDevices_ticks"></div>
                     </div>
                     <div class="input-group">
-                        <p>Effects: 100</p>
-                        <input type="range" min="0" value="0" max="100" step="1">
+                        <p>Effects: <span id="inputRange_musicEffects_text">30</span></p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_musicEffects" class="slider" type="range" step="1" value="{test55}"
+                                ng-model="test55" ng-change="settings.updateSlider('inputRange_musicEffects')">
+                        </div>
+                        <div id="inputRange_musicEffects_ticks"></div>
                     </div>
                 </div> -->
 
@@ -362,7 +408,18 @@
 
         <!-- Profile -->
         <div class="profile-page" ng-if="current_window.id == 'skin'">
-
+            <div class="modal-wrapper" id="modal-change-pass">
+                <div class="modal">
+                    <h3 class="header">Password change</h3>
+                    <input type="password" name="" id="" placeholder="Current password">
+                    <input type="password" name="" id="" placeholder="New password">
+                    <input type="password" name="" id="" placeholder="Repeat new password">
+                    <div class="buttons">
+                        <button class="secondary" ng-click="modalWindow.hide('modal-change-pass')">Cancel</button>
+                        <button class="primary" ng-click="">Apply</button>
+                    </div>
+                </div>
+            </div>
             <div class="content" ng-init="skin.initProfilePage()">
                 <h1 class="flex items-center justify-between">
                     {{Lang.select_skin}}
@@ -405,7 +462,16 @@
                     <i class="icon-bx-log-out"></i>
                     {{Lang.logout}}
                 </button>
+                <!-- <button class="change-pass" ng-click="modalWindow.show('modal-change-pass')">
+                    <i class="icon-bx_lock-alt" style="margin-top: -3px;"></i>
+                    Change password
+                </button> -->
             </div>
+            <!-- <div class="content" style="border: none; padding-top: 10px;">
+                <div class="save">
+                    <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
+                </div>
+            </div> -->
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="style/img/discord.svg" alt="">
@@ -418,43 +484,37 @@
 
         <!-- New game -->
         <div class="create-w-page" ng-if="current_window.id == 'newgame'">
-            <div class="content" ng-init="initSelects()">
+            <div class="content">
                 <form class="form">
                     <div class="block">
+
                         <h1>{{Lang.new_world}}</h1>
-                        <div class="input-group">
-                            <p>{{Lang.world_name}}</p>
-                            <input type="text" placeholder="{{Lang.enter_world_name}}" ng-model="newgame.form.title">
-                        </div>
-                        <div class="grid-2 input-group">
-                            <div>
-                                <p>{{Lang.world_generator_type}}</p>
-                                <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
-                                <!-- <select name="" class="slim-select" id="">
-                                    <option value="{{item.id}}" ng-repeat="item in newgame.generators.list">{{item.title}}</option>
-                                </select> -->
+
+                        <div id="world-generator-main-info"  ng-init="initSelects('#world-generator-main-info .slim-select')">
+
+                            <div class="input-group">
+                                <p>{{Lang.world_name}}</p>
+                                <input type="text" placeholder="{{Lang.enter_world_name}}" ng-model="newgame.form.title">
                             </div>
-                            <!-- <div>
-                                <p>Difficulty</p>
-                                <select name="" class="slim-select" id="create-w-select2">
-                                    <option value="1">Difficulty 1</option>
-                                    <option value="2">Difficulty 2</option>
-                                    <option value="3">Difficulty 3</option>
-                                </select>
-                            </div> -->
+
+                            <div class="grid-2 input-group">
+                                <div>
+                                    <p>{{Lang.world_generator_type}}</p>
+                                    <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <p>{{Lang.world_seed}}</p>
+                                <input type="text" placeholder="" ng-model="newgame.form.seed">
+                            </div>
+
                         </div>
-                        <div class="input-group">
-                            <p>{{Lang.world_seed}}</p>
-                            <input type="text" placeholder="" ng-model="newgame.form.seed">
-                        </div>
-        
-                        <div class="switchers" ng-if="newgame.generators.getCurrent().has_options">
-                            <p>{{Lang.world_options}}</p>
+
+                        <div id="world-generator-options" class="switchers" ng-if="newgame.generators.current.has_options">
+                            <h2>{{Lang.world_options}}</h2>
                             <!-- Options -->
-                            <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
-                                <!-- <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)">
-                                    <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
-                                </button> -->
+                            <div ng-repeat="(key, option) in newgame.generators.current.options">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
                                     <input type="checkbox" id="test1" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">
@@ -462,23 +522,13 @@
                                     </div>
                                     <label for="test1">{{option.title}}</label>
                                 </div>
-                            </div>
-
-                            <!-- <div class="switcher-container">
-                                <input type="checkbox" id="test1" value="" />
-                                <div class="switcher">
-                                    <small></small>
+                                <div ng-if="option.type == 'select'">
+                                    <p>{{option.title}}</p>
+                                    <select id="select-option-{{key}}" class="slim-select" ng-options="item.value as item.title for item in option.options" ng-model="newgame.form.generator.options[key]"></select>
                                 </div>
-                                <label for="test1">Spawn mobs</label>
                             </div>
-                            <div class="switcher-container">
-                                <input type="checkbox" id="test2" value="" />
-                                <div class="switcher">
-                                    <small></small>
-                                </div>
-                                <label for="test2">PVP</label>
-                            </div> -->
                         </div>
+
                     </div>
                     <div class="buttons">
                         <button class="primary" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">{{Lang.create}}</button>

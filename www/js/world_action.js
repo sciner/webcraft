@@ -246,7 +246,7 @@ function dropBlock(player, block, actions, force) {
     if(!isSurvival) {
         return;
     }*/
-    if(block.material.tags.indexOf('no_drop') >= 0) {
+    if(block.material.tags.includes('no_drop')) {
         return;
     }
 
@@ -604,6 +604,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     const destroyBlocks = new DestroyBlocks(world, player, actions);
 
     if(e.pos == false) {
+        console.error('empty e.pos');
         return actions;
     }
 
@@ -615,7 +616,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
-        console.log('error_empty_world_material', world_block.id, pos);
+        console.error('error_empty_world_material', world_block.id, pos);
         return actions;
     }
 
@@ -637,7 +638,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removeFromPot]) {
+            for(let func of [removeFromPot, deletePortal]) {
                 if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -645,7 +646,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // 2.
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
                 const tblock = world.getBlock(pos);
-                if(tblock.id >= 0) {
+                if(tblock.id > 0) {
                     destroyBlocks.add(tblock, pos);
                     //
                     actions.decrement_instrument = {id: tblock.id};
@@ -661,14 +662,6 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
         }
-        
-        // Проверка выполняемых действий с блоками в мире
-        for(let func of [deletePortal]) {
-            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return actions;
-            }
-        }
-        
         return actions;
     }
 
@@ -686,22 +679,21 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 4. Create
     if(e.createBlock) {
-    
-       
+
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
-        
-        
+
         if(mat_block && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
         if(mat_block && mat_block.deprecated) {
+            console.error('mat_block.deprecated');
             return actions;
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, fuseTNT, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, openPortal, setOnWater]) {
+        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -709,11 +701,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
         // Дальше идут действия, которые обязательно требуют, чтобы в инвентаре что-то было выбрано
         if(!current_inventory_item || current_inventory_item.count < 1) {
+            console.error('no current_inventory_item');
             return actions;
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [useFlintAndSteel, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -753,6 +746,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 const block_on_posn = world.getBlock(pos);
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!block_on_posn.canReplace()) {
+                    console.error('!canReplace', block_on_posn.material.name);
                     return actions;
                 }
             }
@@ -768,17 +762,20 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     z_min: player.pos.z - player.radius / 2,
                     z_max: player.pos.z - player.radius / 2 + player.radius
                 })) {
+                    console.error('intersect with player');
                     return actions;
                 }
             }
     
             // Некоторые блоки можно ставить только на что-то сверху
             if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
+                console.error('mat_block.is_layering');
                 return actions;
             }
     
             // Некоторые блоки можно только подвешивать на потолок
-            if(mat_block.tags.indexOf('place_only_to_ceil') >= 0 && pos.n.y != -1) {
+            if(mat_block.tags.includes('place_only_to_ceil') && pos.n.y != -1) {
+                console.error('place_only_to_ceil');
                 return actions;
             }
 
@@ -804,7 +801,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 }
             }
             // Rotate block one of 16 poses
-            if(mat_block.tags.indexOf('rotate_x16') >= 0) {
+            if(mat_block.tags.includes('rotate_x16')) {
                 if(new_item.rotate.y != 0) {
                     new_item.rotate.x = player.rotate.z / 90;
                 }
@@ -840,10 +837,10 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 //
 function calcBlockOrientation(mat_block, rotate, n) {
     let resp = null;
-    const can_set_on_wall = mat_block.tags.indexOf('can_set_on_wall') >= 0;
-    if(mat_block.tags.indexOf('rotate_by_pos_n') >= 0) {
+    const can_set_on_wall = mat_block.tags.includes('can_set_on_wall');
+    if(mat_block.tags.includes('rotate_by_pos_n')) {
         resp = calcRotateByPosN(rotate, n);
-        if(mat_block.tags.indexOf('rotate_by_pos_n_xyz') >= 0) {
+        if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
             if(resp.y) resp.set(0, 1, 0);
             if(resp.x == 18) resp.set(7, 0, 0);
             if(resp.x == 22) resp.set(13, 0, 0);
@@ -1008,7 +1005,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 
 // Put into pot
 async function putIntoPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const item_frame = world_material && world_material.tags.indexOf('item_frame') >= 0;
+    const item_frame = world_material && world_material.tags.includes('item_frame');
     extra_data = extra_data ? extra_data : {};
     // rotate item in frame
     if(item_frame && extra_data?.item) {
@@ -1022,12 +1019,12 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
     }
     //
     const putIntoPot = !e.shiftKey && world_material &&
-                        (world_material.tags.indexOf('pot') >= 0) &&
+                        (world_material.tags.includes('pot')) &&
                         (
                             item_frame ||
                             mat_block.planting ||
-                            [BLOCK.CACTUS.id].indexOf(mat_block.id) >= 0 ||
-                            mat_block.tags.indexOf('can_put_info_pot') >= 0
+                            [BLOCK.CACTUS.id].includes(mat_block.id) ||
+                            mat_block.tags.includes('can_put_info_pot')
                         );
     if(!putIntoPot) {
         return false;
@@ -1055,7 +1052,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
 // Put disc into Jukebox
 async function putDiscIntoJukebox(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {        
     if(mat_block.item && mat_block.item && mat_block.item.name == 'music_disc') {
-        if(!e.shiftKey && world_material.tags.indexOf('jukebox') >= 0) {
+        if(!e.shiftKey && world_material.tags.includes('jukebox')) {
             const discs = await Resources.loadMusicDiscs();
             for(let disc of discs) {
                 if(disc.id == mat_block.id) {
@@ -1156,20 +1153,10 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
     return false;
 }
 
-// Fuse TNT
-async function fuseTNT(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(e.shiftKey || world_material.name != 'TNT') {
-        return false;
-    }
-    actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-    // @todo make explosion like a creeper
-    return true;
-}
-
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const block_for_sittings = (world_material.tags.indexOf('stairs') >= 0) || world_block_is_slab;
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab;
     if(!block_for_sittings || mat_block) {
         return false;
     }
@@ -1198,13 +1185,13 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
 
 // Нельзя ничего ставить поверх этого блока
 async function noSetOnTop(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
+    const noSetOnTop = world_material.tags.includes('no_set_on_top');
     return noSetOnTop && pos.n.y == 1;
 }
 
 // Edit sign
 async function editSign(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const isEditSign = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    const isEditSign = e.changeExtraData && world_material && world_material.tags.includes('sign');
     if(!isEditSign) {
         return false;
     }
@@ -1229,7 +1216,7 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
 
 // Go to bed
 async function goToBed(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const goToBed = !e.shiftKey && world_material && (world_material.tags.indexOf('bed') >= 0);
+    const goToBed = !e.shiftKey && world_material && (world_material.tags.includes('bed'));
     if(!goToBed) {
         return false;
     }
@@ -1239,7 +1226,7 @@ async function goToBed(e, world, pos, player, world_block, world_material, mat_b
 
 // Eat cake
 function eatCake(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const eatCake = !e.shiftKey && world_material && (world_material.tags.indexOf('cake') >= 0);
+    const eatCake = !e.shiftKey && world_material && (world_material.tags.includes('cake'));
     if(!eatCake) {
         return false;
     }
@@ -1262,10 +1249,6 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
 
 // удаление портала
 async function deletePortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-
-    if(!Qubatch.is_server) {
-        return;
-    }
 
     // get frame material
     let portal_frame_block_name = null;
@@ -1295,7 +1278,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
     const portal_ids = new Map();
     
     // рекурсивный поиск блоков NETHER_PORTAL
-    const getNeighbours = (pos) => {
+    const findNeighbours = (pos) => {
         const neighbours = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
         for(let el of neighbours) {
             const position = pos.offset(el[0], el[1], el[2]);
@@ -1307,13 +1290,13 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
                         portal_ids.set(portal_id, portal_id);
                     }
                     poses.push(position);
-                    getNeighbours(position);
+                    findNeighbours(position);
                 }
             }
         }
     }
     
-    getNeighbours(new Vector(pos.x, pos.y, pos.z));
+    findNeighbours(new Vector(pos.x, pos.y, pos.z));
     
     if(poses.length > 0) {
         const arr = [];
@@ -1328,7 +1311,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
         }
         actions.addBlocks(arr);
         //
-        if(portal_ids.size > 0) {
+        if(portal_ids.size > 0 && Qubatch.is_server) {
             for(let portal_id of Array.from(portal_ids.keys())) {
                 console.log('delete portal ', portal_id);
                 world.db.portal.delete(player, portal_id);
@@ -1338,174 +1321,187 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
 
 }
 
-// создание портала
-async function openPortal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function useFlintAndSteel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
 
-    if (!Qubatch.is_server || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id) || !world_material) {
-        return;
+    if (!world_material || !current_inventory_item || (current_inventory_item.id != BLOCK.FLINT_AND_STEEL.id)) {
+        return false;
     }
 
-    if(world.info.generator.id != 'biome2') {
-        throw 'error_not_permitted';
-        return;
-    }
+    const position = new Vector(pos.x, pos.y, pos.z);
+    position.addSelf(pos.n);
+
+    // Если материл используется для портала и игрок в биоме
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
-
-    console.log(portal_type);
-
-    if (!portal_type) {
-        return;
-    }
-
-    const frame_block_id = world_material.id;
-    
-    // находим растояние до стенки
-    const getDistanceEdge = (pos, dir) => {
-        for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
-            let blockpos = new Vector(pos.x + i, pos.y, pos.z);
-            switch(dir) {
-                case DIRECTION.WEST:
-                    blockpos = new Vector(pos.x - i, pos.y, pos.z);
-                    break;
-                case DIRECTION.NORTH:
-                    blockpos = new Vector(pos.x, pos.y, pos.z + i);
-                    break;
-                case DIRECTION.SOUTH:
-                    blockpos = new Vector(pos.x, pos.y, pos.z - i);
-                    break;
+    if (portal_type && world.info.generator.rules.portals) {
+        const frame_block_id = world_material.id;
+        // находим растояние до стенки
+        const getDistanceEdge = (pos, dir) => {
+            for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
+                let blockpos = new Vector(pos.x + i, pos.y, pos.z);
+                switch(dir) {
+                    case DIRECTION.WEST:
+                        blockpos = new Vector(pos.x - i, pos.y, pos.z);
+                        break;
+                    case DIRECTION.NORTH:
+                        blockpos = new Vector(pos.x, pos.y, pos.z + i);
+                        break;
+                    case DIRECTION.SOUTH:
+                        blockpos = new Vector(pos.x, pos.y, pos.z - i);
+                        break;
+                }
+                if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != frame_block_id) {
+                    return world.getBlock(blockpos).id == frame_block_id ? i : 0;
+                }
             }
-            if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != frame_block_id) {
-                return world.getBlock(blockpos).id == frame_block_id ? i : 0;
-            }
+            return 0;
         }
-        return 0;
-    }
-    
-    // размер окна
-    let width = 0;
-    let height = 0;
-    let bottom_left;
-    let left_dir = DIRECTION.WEST;
-    let right_dir = DIRECTION.EAST;
-    let nullpos = new Vector(pos.x + pos.n.x, pos.y + pos.n.y, pos.z + pos.n.z);
+        // размер окна
+        let width = 0;
+        let height = 0;
+        let bottom_left;
+        let left_dir = DIRECTION.WEST;
+        let right_dir = DIRECTION.EAST;
+        const nullpos = position.clone();
 
-    do {
-        nullpos.addSelf(Vector.YN);
-    } while(world.getBlock(nullpos).id == BLOCK.AIR.id);
-    nullpos.addSelf(Vector.YP);
+        do {
+            nullpos.addSelf(Vector.YN);
+        } while(world.getBlock(nullpos).id == BLOCK.AIR.id);
+        nullpos.addSelf(Vector.YP);
 
-    if (getDistanceEdge(nullpos, DIRECTION.EAST) == 0) {
-        left_dir = DIRECTION.SOUTH;
-        right_dir = DIRECTION.NORTH;
-    }
-
-    if (nullpos) {
-        // находим ширину
-        const dist = getDistanceEdge(nullpos, left_dir) - 1;
-        if (dist >= 0) {
-            bottom_left = (left_dir == DIRECTION.WEST) ? nullpos.offset(-dist, 0, 0) : nullpos.offset(0, 0, -dist);
-            width = getDistanceEdge(bottom_left, right_dir);
-            if (width < 2 || width > MAX_SIZE_PORTAL) {
-                width = 0;
-            }
+        if (getDistanceEdge(nullpos, DIRECTION.EAST) == 0) {
+            left_dir = DIRECTION.SOUTH;
+            right_dir = DIRECTION.NORTH;
         }
-        
-        // находим высоту
-        if (width != 0) {
-            rep:
-            for (height = 0; height < MAX_SIZE_PORTAL; ++height) {
-                for (let i = -1; i <= width; ++i) {
-                    const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
-                    const block = world.getBlock(blockpos);
-                    if (i == -1) {
-                        if (block.id != frame_block_id) {
-                            break rep;
-                        }
-                    } else if (i == width) {
-                        if (block.id != frame_block_id) {
-                            break rep;
-                        }
-                    } else {
-                        if (block.id != BLOCK.AIR.id) {
-                            break rep;
-                        }
-                    }
+
+        if (nullpos) {
+            // находим ширину
+            const dist = getDistanceEdge(nullpos, left_dir) - 1;
+            if (dist >= 0) {
+                bottom_left = (left_dir == DIRECTION.WEST) ? nullpos.offset(-dist, 0, 0) : nullpos.offset(0, 0, -dist);
+                width = getDistanceEdge(bottom_left, right_dir);
+                if (width < 2 || width > MAX_SIZE_PORTAL) {
+                    width = 0;
                 }
             }
             
-            // проверям перекладину
-            for (let j = 0; j < width; ++j) {
-                let blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, height, 0) : bottom_left.offset(0, height, j);
-                let block = world.getBlock(blockpos);
-                if (block.id != frame_block_id) {
-                    height = 0;
-                    break;
-                }
-            }
-            
-            if(height > 2) {
-                // Блок портала
-                const portal_block = {
-                    id: BLOCK.NETHER_PORTAL.id,
-                    rotate: new Vector(
-                        (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
-                        1,
-                        0
-                    )
-                };
-                // Сохраняем портал в БД
-                const portal = {
-                    pos:                bottom_left.clone(),
-                    rotate:             portal_block.rotate.clone(),
-                    size:               {width: width + 2, height: height + 2},
-                    player_pos:         bottom_left.clone(),
-                    pair_pos:           null,
-                    portal_block_id:    portal_block.id,
-                    type:               portal_type.id
-                };
-                //
-                if(right_dir == DIRECTION.EAST) {
-                    portal.player_pos.addScalarSelf(width / 2, 1, .5);
-                } else {
-                    portal.player_pos.addScalarSelf(.5, 1, width / 2);
-                }
-                // check restricts
-                let restricted = false;
-                for(let restrict of portal_type.open_restricts) {
-                    restricted = true;
-                    for(let k in restrict) {
-                        if(k == 'ymore' && !(portal.player_pos.y >= restrict[k])) restricted = false;
-                        if(k == 'yless' && !(portal.player_pos.y <= restrict[k])) restricted = false;
+            // находим высоту
+            if (width != 0) {
+                rep:
+                for (height = 0; height < MAX_SIZE_PORTAL; ++height) {
+                    for (let i = -1; i <= width; ++i) {
+                        const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
+                        const block = world.getBlock(blockpos);
+                        if (i == -1) {
+                            if (block.id != frame_block_id) {
+                                break rep;
+                            }
+                        } else if (i == width) {
+                            if (block.id != frame_block_id) {
+                                break rep;
+                            }
+                        } else {
+                            if (block.id != BLOCK.AIR.id) {
+                                break rep;
+                            }
+                        }
                     }
-                    if(restricted) break;
                 }
-                if(restricted) {
-                    throw 'error_portal_restricted_place';
+                
+                // проверям перекладину
+                for (let j = 0; j < width; ++j) {
+                    let blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, height, 0) : bottom_left.offset(0, height, j);
+                    let block = world.getBlock(blockpos);
+                    if (block.id != frame_block_id) {
+                        height = 0;
+                        break;
+                    }
                 }
-                //
-                if(Qubatch.is_server) {
-                    portal_block.extra_data = {
-                        id: await world.db.portal.add(player.session.user_id, portal),
-                        type: portal_type.id
+                
+                if(height > 2) {
+                    // Блок портала
+                    const portal_block = {
+                        id: BLOCK.NETHER_PORTAL.id,
+                        rotate: new Vector(
+                            (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
+                            1,
+                            0
+                        )
                     };
-                }
-                // Заполняем окно
-                const arr = [];
-                for(let i = 0; i < height; i++) {
-                    for(let j = 0; j < width; j++) {
-                        arr.push(
-                        {
-                            pos: (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, i, 0) : bottom_left.offset(0, i, j), 
-                            item: portal_block, 
-                            action_id: ServerClient.BLOCK_ACTION_CREATE
-                        });
+                    // Сохраняем портал в БД
+                    const portal = {
+                        pos:                bottom_left.clone(),
+                        rotate:             portal_block.rotate.clone(),
+                        size:               {width: width + 2, height: height + 2},
+                        player_pos:         bottom_left.clone(),
+                        pair_pos:           null,
+                        portal_block_id:    portal_block.id,
+                        type:               portal_type.id
+                    };
+                    //
+                    if(right_dir == DIRECTION.EAST) {
+                        portal.player_pos.addScalarSelf(width / 2, 1, .5);
+                    } else {
+                        portal.player_pos.addScalarSelf(.5, 1, width / 2);
                     }
+                    // check restricts
+                    let restricted = false;
+                    for(let restrict of portal_type.open_restricts) {
+                        restricted = true;
+                        for(let k in restrict) {
+                            if(k == 'ymore' && !(portal.player_pos.y >= restrict[k])) restricted = false;
+                            if(k == 'yless' && !(portal.player_pos.y <= restrict[k])) restricted = false;
+                        }
+                        if(restricted) break;
+                    }
+                    if(restricted) {
+                        throw 'error_portal_restricted_place';
+                    }
+                    //
+                    if(Qubatch.is_server) {
+                        portal_block.extra_data = {
+                            id: await world.db.portal.add(player.session.user_id, portal),
+                            type: portal_type.id
+                        };
+                    } else {
+                        portal_block.extra_data = {
+                            id: null,
+                            type: portal_type.id
+                        };
+                    }
+                    // Заполняем окно
+                    const arr = [];
+                    for(let i = 0; i < height; i++) {
+                        for(let j = 0; j < width; j++) {
+                            arr.push(
+                            {
+                                pos: (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, i, 0) : bottom_left.offset(0, i, j), 
+                                item: portal_block, 
+                                action_id: ServerClient.BLOCK_ACTION_CREATE
+                            });
+                        }
+                    }
+                    actions.addBlocks(arr);
+                    return true;
                 }
-                actions.addBlocks(arr);
             }
         }
     }
-
+    
+    // детонатация tnt
+    if (!e.shiftKey && world_block.id == BLOCK.TNT.id) {
+        actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        return true;
+    }
+    
+    // поджигаем блок
+    if (pos.n.y != -1) {
+        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: 0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        return true;
+    }
+    
+    return false;
+    
 }
 
 // 
@@ -1540,7 +1536,6 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
             block.extra_data.up = true;
         }
         if (pos.n.y == -1) {
-            console.log(orientation)
             block.extra_data.down = true;
         }
         if (pos.n.x == -1) {
@@ -1606,7 +1601,7 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
 // Open door
 async function openDoor(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const isEditDoor = !e.shiftKey && world_material &&
-        (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
+        (world_material.tags.includes('trapdoor') || world_material.tags.includes('door'));
     if(!isEditDoor) {
         return false;
     }
@@ -1641,7 +1636,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
 
 // Remove plant from pot
 async function removeFromPot(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(world_material && world_material.tags.indexOf('pot') >= 0) {
+    if(world_material && world_material.tags.includes('pot')) {
         if(extra_data?.item) {
             extra_data = extra_data ? extra_data : {};
             const drop_item = extra_data?.item;
@@ -1698,10 +1693,9 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
     return true;
 }
 
-
 // Можно поставить только на полный (непрозрачный блок, снизу)
 async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(mat_block.tags.indexOf('set_only_fullface') >= 0) {
+    if(mat_block.tags.includes('set_only_fullface')) {
         const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
         if(!underBlock || underBlock.material.transparent) {
             return true;
@@ -1747,7 +1741,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
                 }
             }
             const cardinal_block = world.getBlock(pos2);
-            if(cardinal_block.transparent && !(mat_block.tags.indexOf('anycardinal') >= 0)) {
+            if(cardinal_block.transparent && !(mat_block.tags.includes('anycardinal'))) {
                 cardinal_direction = cd;
                 ok = true;
                 break;

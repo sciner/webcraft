@@ -10,8 +10,9 @@ import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 import {Tracker_Player} from "./tracker_player.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
-import { MAGIC_ROTATE_DIV, SOUND_MAX_DIST } from "./constant.js";
+import { MAGIC_ROTATE_DIV, MOUSE, SOUND_MAX_DIST } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
+import { Lang } from "./lang.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -79,9 +80,8 @@ export class GameClass {
         this.prev_player_state  = null;
         //
         this.render.setPlayer(player);
-        this.setInputCanvas(this.render.canvas);
+        this.setInputElement(this.render.canvas);
         this.setupMousePointer(false);
-        this.setupMouseListeners();
         //
         let bodyClassList = document.querySelector('body').classList;
         bodyClassList.add('started');
@@ -99,16 +99,16 @@ export class GameClass {
     }
 
     // Set the canvas the renderer uses for some input operations.
-    setInputCanvas(canvas) {
+    setInputElement(canvas) {
+        const that = this;
         const player = this.player;
         const add_mouse_rotate = new Vector();
-        const that = this;
         const controls = that.player.controls;
         const kb = this.kb = new Kb(canvas, {
             onPaste: (e) => {
-                let clipboardData = e.clipboardData || window.clipboardData;
+                const clipboardData = e.clipboardData || window.clipboardData;
                 if(clipboardData) {
-                    let pastedData = clipboardData.getData('Text');
+                    const pastedData = clipboardData.getData('Text');
                     if(pastedData) {
                         player.chat.pasteText(pastedData);
                     }
@@ -154,11 +154,29 @@ export class GameClass {
                         x *= -1;
                         add_mouse_rotate.x = (x / DPR) * controls.mouse_sensitivity;
                         add_mouse_rotate.z = (z / DPR) * controls.mouse_sensitivity;
-                        if(that.player.zoom) {
+                        if(player.zoom) {
                             add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
                             add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
                         }
-                        that.player.addRotate(add_mouse_rotate.divScalar(MAGIC_ROTATE_DIV));
+                        player.addRotate(add_mouse_rotate.divScalar(MAGIC_ROTATE_DIV));
+                    }
+                    return true;
+                } else if (type == MOUSE.WHEEL) {
+                    if(e.ctrlKey) return;
+                    if(player) {
+                        if(controls.enabled) {
+                            player.onScroll(e.deltaY > 0);
+                        }
+                        if(that.hud.wm.hasVisibleWindow()) {
+                            that.hud.wm.mouseEventDispatcher({
+                                original_event:     e,
+                                type:               e.type,
+                                shiftKey:           e.shiftKey,
+                                button:             e.button,
+                                offsetX:            controls.mouseX * (that.hud.width / that.render.canvas.width),
+                                offsetY:            controls.mouseY * (that.hud.height / that.render.canvas.height)
+                            });
+                        }
                     }
                     return true;
                 }
@@ -193,17 +211,15 @@ export class GameClass {
                             this.hud.toggleActive();
                         }
                         return true;
-                        break;
                     }
                     // [F2]
                     case KEY.F2: {
                         if(!e.down) {
                             if(!this.hud.wm.hasVisibleWindow() && this.player.session.user_id == this.world.info.user_id) {
-                                Qubatch.hud.wm.getWindow('frmScreenshot').make();
+                                this.hud.wm.getWindow('frmScreenshot').make();
                             }
                         }
                         return true;
-                        break;
                     }
                     // [F3] Toggle info
                     case KEY.F3: {
@@ -211,21 +227,43 @@ export class GameClass {
                             this.hud.toggleInfo();
                         }
                         return true;
-                        break;
+                    }
+                    // [F5] (Camera mode)
+                    case KEY.F5: {
+                        if(this.hud.frmMainMenu.visible) {
+                            return false;
+                        }
+                        if(e.down) {
+                            if(!this.hud.wm.hasVisibleWindow()) {
+                                Qubatch.render.nextCameraMode();
+                            }
+                        }
+                        if(e.e_orig) {
+                            e.e_orig.preventDefault();
+                            e.e_orig.stopPropagation();
+                        }
+                    }
+                    // [F6]
+                    case KEY.F6: {
+                        if(e.e_orig) {
+                            e.e_orig.preventDefault();
+                            e.e_orig.stopPropagation();
+                        }
+                        return true;
                     }
                 }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
                     if(e.down && e.keyCode == KEY.TAB) {
-                        if(Qubatch.hud.wm.getWindow('frmQuests').visible) {
-                            Qubatch.hud.wm.getWindow('frmQuests').hide();
+                        if(this.hud.wm.getWindow('frmQuests').visible) {
+                            this.hud.wm.getWindow('frmQuests').hide();
                             return true;
                         }
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(Qubatch.hud.frmMainMenu.visible) {
-                                Qubatch.hud.wm.closeAll();
+                            if(this.hud.frmMainMenu.visible) {
+                                this.hud.wm.closeAll();
                                 Qubatch.setupMousePointer(false);
                                 return true;
                             }
@@ -241,7 +279,6 @@ export class GameClass {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist + 1);
                         }
                         return true;
-                        break;
                     }
                     // Set render distance [Page Down]
                     case KEY.PAGE_DOWN: {
@@ -249,7 +286,6 @@ export class GameClass {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist - 1);
                         }
                         return true;
-                        break;
                     }
                     case KEY.SLASH: {
                         if(!e.down) {
@@ -258,7 +294,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                     // [F4] set spawnpoint
                     case KEY.F4: {
@@ -271,23 +306,34 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
-                    }
-                    // [F6] (Camera mode)
-                    case KEY.F6: {
-                        if(!e.down) {
-                            Qubatch.render.nextCameraMode();
-                        }
-                        return true;
-                        break;
                     }
                     // [F7]
                     case KEY.F7: {
                         if(!e.down) {
                             this.render.testLightOn = !this.render.testLightOn;
+                            if(player.world.players.list.has(-1)) {
+                                player.world.players.list.delete(-1);
+                            } else {
+                                const ghost = {
+                                    "name": ServerClient.CMD_PLAYER_JOIN,
+                                    "data": {
+                                        "id":       -1,
+                                        "username": Lang.im,
+                                        "pos":      player.lerpPos.clone(),
+                                        "rotate":   player.rotate.clone(),
+                                        "skin":     player.state.skin,
+                                        "hands":    player.state.hands,
+                                        "sitting":  player.state.sitting,
+                                        "lies":     player.state.lies,
+                                        "scale":    player.state.scale
+                                    },
+                                    "time": ~~(new Date())
+                                };
+                                player.world.players.add(ghost);
+                                player.world.players.list.get(-1).sneak = player.sneak;
+                            }
                         }
                         return true;
-                        break;
                     }
                     // [F8] Random teleport
                     case KEY.F8: {
@@ -309,7 +355,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
@@ -317,7 +362,6 @@ export class GameClass {
                             player.world.server.GameModeNext();
                         }
                         return true;
-                        break;
                     }
                     // R (Respawn)
                     case KEY.R: {
@@ -333,7 +377,6 @@ export class GameClass {
                             this.player.world.server.DropItem();
                         }
                         return true;
-                        break;
                     }
                     // E (Inventory)
                     case KEY.E: {
@@ -349,7 +392,7 @@ export class GameClass {
                     case KEY.TAB: {
                         if(e.down) {
                             if(!this.hud.wm.hasVisibleWindow()) {
-                                Qubatch.hud.wm.getWindow('frmQuests').toggleVisibility();
+                                this.hud.wm.getWindow('frmQuests').toggleVisibility();
                                 return true;
                             }
                         }
@@ -363,7 +406,6 @@ export class GameClass {
                             }
                         }
                         return true;
-                        break;
                     }
                 }
                 // Player controls
@@ -449,7 +491,7 @@ export class GameClass {
 
         if(this.player.controls.enabled && !this.hud.splash.loading) {
             // Update local player
-            player.update();
+            player.update(delta);
         } else {
             player.lastUpdate = null;
         }
@@ -457,7 +499,7 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
-        if (player.pickAt && Qubatch.hud.active && player.game_mode.canBlockAction()) {
+        if (player.pickAt && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
         }
 
@@ -503,7 +545,6 @@ export class GameClass {
                 if(Math.random() < .01) {
                     const effect = Math.random() > .75 ? 'idle' : 'step';
                     Qubatch.sounds.play('madcraft:block.' + mob.type, effect, dist);
-                    // console.log(`${mob.type}.${effect}`);
                     break;
                 }
             }
@@ -512,13 +553,13 @@ export class GameClass {
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState(player) {
-        this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
-        this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
+        this.current_player_state.rotate.copyFrom(player.rotate).roundSelf(4);
+        this.current_player_state.pos.copyFrom(player.lerpPos).roundSelf(4);
         this.current_player_state.sneak = player.isSneak;
         this.ping = Math.round(this.player.world.server.ping_value);
         const cs = this.current_player_state;
         const ps = this.prev_player_state;
-        let not_equal = !ps ||
+        const not_equal = !ps ||
             (
                 ps.rotate.x != cs.rotate.x ||
                 ps.rotate.y != cs.rotate.y ||
@@ -550,7 +591,6 @@ export class GameClass {
     // releaseMousePointer
     releaseMousePointer() {
         try {
-            // this.render.canvas.exitPointerLock();
             // Attempt to unlock
             document.exitPointerLock();
         } catch(e) {
@@ -599,6 +639,7 @@ export class GameClass {
             }  else {
                 this.setControlsEnabled(false);
                 this.kb.clearStates();
+                this.player.clearStates();
                 if(!this.hud.wm.hasVisibleWindow() && !this.player.chat.active) {
                     // Safari emit ESC keyup since ~100 ms after pointer lock left event
                     // we should skip this ESC
@@ -627,32 +668,6 @@ export class GameClass {
         requestPointerLock();
         this.player.controls.inited = true;
 
-    }
-
-    // setupMouseListeners...
-    setupMouseListeners() {
-        let that = this;
-        // Mouse wheel
-        document.addEventListener('wheel', function(e) {
-            if(e.ctrlKey) return;
-            if(that.player) {
-                //
-                if(that.player.controls.enabled) {
-                    that.player.onScroll(e.deltaY > 0);
-                }
-                //
-                if(that.hud.wm.hasVisibleWindow()) {
-                    that.hud.wm.mouseEventDispatcher({
-                        original_event:     e,
-                        type:               e.type,
-                        shiftKey:           e.shiftKey,
-                        button:             e.button,
-                        offsetX:            that.player.controls.mouseX * (that.hud.width / that.render.canvas.width),
-                        offsetY:            that.player.controls.mouseY * (that.hud.height / that.render.canvas.height)
-                    });
-                }
-            }
-        });
     }
 
     drawInstruments() {
@@ -698,7 +713,7 @@ export class GameClass {
             }
         }
         for(var tim of timers) {
-            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1; // Math.round(tim.total / cnt * 100) / 100;
+            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1;
             tim.total = Math.round(tim.total * 100) / 100;
             tim.cnt = cnt;
         }

@@ -284,10 +284,16 @@ export class Window {
         }
         // Restore the default state
         ctx.restore();
+        //
+        const visible_windows = [];
         for(let w of this.list.values()) {
             if(w.visible) {
-                w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
+                visible_windows.push(w);
             }
+        }
+        visible_windows.sort((a, b) => b.z - a.z);
+        for(let w of visible_windows) {
+            w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
         }
     }
     updateMeasure(ctx, ax, ay) {
@@ -432,10 +438,18 @@ export class Window {
         let entered = [];
         let leaved = [];
         // let fire_mousemove = [];
+        //
+        const visible_windows = [];
         for(let w of this.list.values()) {
             if(!w.catchEvents) {
                 continue;
             }
+            if(w.visible) {
+                visible_windows.push(w);
+            }
+        }
+        visible_windows.sort((a, b) => b.z - a.z);
+        for(let w of visible_windows) {
             let old_hover = w.hover;
             w.hover = false;
             if(w.visible) {
@@ -481,18 +495,24 @@ export class Window {
         }*/
     }
     _mousedown(e) {
+        //
+        const visible_windows = [];
         for(let w of this.list.values()) {
             if(w.visible) {
-                let e2 = {...e};
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                    e2.x = x + this.x;
-                    e2.y = y + this.y - w.scrollY;
-                    e2.target = w;
-                    w._mousedown(e2);
-                    return;
-                }
+                visible_windows.push(w);
+            }
+        }
+        visible_windows.sort((a, b) => b.z - a.z);
+        for(let w of visible_windows) {
+            let e2 = {...e};
+            let x = e2.x - (this.ax + w.x);
+            let y = e2.y - (this.ay + w.y);
+            if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                e2.x = x + this.x;
+                e2.y = y + this.y - w.scrollY;
+                e2.target = w;
+                w._mousedown(e2);
+                return;
             }
         }
         this.onMouseDown(e);
@@ -1056,6 +1076,7 @@ export class WindowManager extends Window {
                 }
                 break;
             }
+            case 'mousewheel':
             case 'wheel': {
                 if(!this.drag.getItem()) {
                     let evt = {

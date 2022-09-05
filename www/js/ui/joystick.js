@@ -1,9 +1,9 @@
-import { MAGIC_ROTATE_DIV, MOUSE } from "../constant.js";
+import { MAGIC_ROTATE_DIV } from "../constant.js";
 import { Vector } from "../helpers.js";
 
 export class JoystickController {
 
-    constructor(stickID, maxDistance, deadzone, player, kb, callback) {
+    constructor(stickID, maxDistance, deadzone, player, kb) {
 
         this.player = player;
         this.kb = kb;
@@ -15,7 +15,6 @@ export class JoystickController {
             return;
         }
 
-        this.callback = callback;
         // location from which drag begins, used to calculate offsets
         this.dragStart = null;
         // track touch identifier in case multiple joysticks present
@@ -110,17 +109,16 @@ export class JoystickController {
     }
 
     action(name, state) {
-        // console.log(state, name);
         const player = this.player;
-        const kb = this.kb;
         const pickAt = player.pickAt;
+        const kb = this.kb;
         switch(name) {
             case 'jump': {
-                this.player.controls.jump = state;
+                player.controls.jump = state;
                 break;
             }
             case 'walk': {
-                this.player.controls.forward = state;
+                player.controls.forward = state;
                 break;
             }
             case 'atack': {
