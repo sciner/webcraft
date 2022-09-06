@@ -16,13 +16,17 @@ export class PlayerControl  {
 
     // reset controls
     reset() {
-        this.back               = false;
-        this.forward            = false;
-        this.right              = false;
-        this.left               = false;
-        this.jump               = false;
-        this.sneak              = false;
-        this.sprint             = false;
+        this.setState(false, false, false, false, false, false, false);
+    }
+
+    setState(forward, back, left, right, jump, sneak, sprint) {
+        this.forward            = forward;
+        this.back               = back;
+        this.left               = left;
+        this.right              = right;
+        this.jump               = jump;
+        this.sneak              = sneak;
+        this.sprint             = sprint;
     }
 
 }

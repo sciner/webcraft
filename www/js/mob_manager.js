@@ -1,3 +1,4 @@
+import { SOUND_MAX_DIST } from "./constant.js";
 import { Vector } from "./helpers.js";
 import {MobModel} from "./mob_model.js";
 import {ServerClient} from "./server_client.js";
@@ -7,6 +8,10 @@ export class MobManager {
     constructor(world) {
         this.world = world;
         this.list = new Map();
+        // Interval functions
+        this.sendStateInterval = setInterval(() => {
+            this.playSounds();
+        }, 50);
     }
 
     // Client side method
@@ -95,6 +100,21 @@ export class MobManager {
     // delete
     delete(id) {
         this.list.delete(id);
+    }
+
+    // Play mob idle or step sounds
+    playSounds() {
+        const camPos = Qubatch.render.camPos;
+        for(const [_, mob] of this.list.entries()) {
+            const dist = mob._pos.distance(camPos);
+            if(dist < SOUND_MAX_DIST) {
+                if(Math.random() < .01) {
+                    const effect = Math.random() > .75 ? 'idle' : 'step';
+                    Qubatch.sounds.play('madcraft:block.' + mob.type, effect, dist);
+                    break;
+                }
+            }
+        }
     }
 
 }

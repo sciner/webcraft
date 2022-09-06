@@ -22,7 +22,7 @@ export class QuestActionType {
 // Canvas used to draw HUD
 export class HUD {
 
-    constructor(width, height) {
+    constructor() {
 
         this.canvas                     = document.getElementById('qubatchHUD');
         this.ctx                        = this.canvas.getContext('2d');
@@ -31,8 +31,8 @@ export class HUD {
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
         this.texture                    = null;
         this.buffer                     = null;
-        this.width                      = width;
-        this.height                     = height;
+        this.width                      = 0;
+        this.height                     = 0;
         this.text                       = null;
         this.items                      = [];
         this.prevInfo                   = null;

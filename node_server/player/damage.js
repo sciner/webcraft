@@ -1,3 +1,5 @@
+import {ServerClient} from "../../www/js/server_client.js";
+
 export class ServerPlayerDamage {
     
     constructor(player) {
@@ -46,9 +48,20 @@ export class ServerPlayerDamage {
                     player.changeIndicator(ind_def.name, -1);
                 } else {
                     player.changeIndicator('live', -1);
+                    if(player.state.indicators.live.value % 2 == 1) {
+                        this.sendDamageSound('hit');
+                    }
                 }
             }
         }
+    }
+
+    sendDamageSound(action) {
+        const packets = [{
+            name: ServerClient.CMD_PLAY_SOUND,
+            data: { tag: 'madcraft:block.player', action: action, pos: null}
+        }];
+        this.player.world.sendSelected(packets, [this.player.session.user_id]);
     }
 
 }
