@@ -17,7 +17,7 @@ export default class Ticker {
         }
         const updated_blocks = [];
         if(extra_data && extra_data.stage < ticking.max_stage) {
-            const mul = 16 / world.getGeneratorOptions('sapling_speed_multipliyer', 1);
+            const mul = 4 * world.getGeneratorOptions('sapling_speed_multipliyer', 1);
             if(v.ticks % (ticking.times_per_stage * mul) == 0) {
                 // Если семена арбуза
                 if(tblock.id == BLOCK.MELON_SEEDS.id) {
