@@ -241,7 +241,7 @@ export class Resources {
                 .catch((e) => {
                     vt.error('Error loadImage in resources');
                     setTimeout(() => {
-                        location.reload();
+                        Qubatch.exit();
                     }, 1000);
                 });
         }

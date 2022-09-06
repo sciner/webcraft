@@ -51,7 +51,7 @@ export class DieWindow extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         btnClose.onMouseDown = function (e) {
-            location.reload();
+            Qubatch.exit();
         }
         btnClose.onMouseEnter = function () {
             this.style.background.color = '#8892c9';

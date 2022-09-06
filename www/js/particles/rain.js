@@ -187,7 +187,7 @@ export default class Particles_Rain {
                         block_pos.z -= chunk.coord.z;
                         block = chunk.tblocks.get(block_pos, block);
                         if(block.id > 0) {
-                            item.max_y = pos.y + k + 1;
+                            item.max_y = pos.y + k;
                             break;
                         }
                     }

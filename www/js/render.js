@@ -577,13 +577,6 @@ export class Renderer {
 
         this.frame++;
 
-        // Add jukebox animations
-        for(let [pos, disc] of TrackerPlayer.vc.entries()) {
-            if(Math.random() < .1) {
-                Qubatch.render.meshes.addEffectParticle('music_note', pos);
-            }
-        }
-
         // this.env.computeFogRelativeSun();
         // todo - refact this
         // viewport is context-dependent

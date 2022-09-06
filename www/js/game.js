@@ -85,6 +85,12 @@ export class GameClass {
             player.sendState();
             // TrackerPlayer change volumes
             TrackerPlayer.changePos(this.player.lerpPos);
+            // Add jukebox animations
+            for(let pos of TrackerPlayer.vc.keys()) {
+                if(Math.random() < .1) {
+                    Qubatch.render.meshes.addEffectParticle('music_note', pos);
+                }
+            }
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
@@ -638,6 +644,10 @@ export class GameClass {
             tim.cnt = cnt;
         }
         console.table(timers);
+    }
+
+    exit() {
+        location = '/';
     }
 
 }
