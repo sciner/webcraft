@@ -301,10 +301,6 @@ export class ChunkManager {
      */
     prepareRenderList(render) {
 
-        if(Qubatch.render.testLightOn) {
-            return false;
-        }
-
         if (!this.bufferPool) {
             if (render.renderBackend.multidrawExt) {
                  this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
