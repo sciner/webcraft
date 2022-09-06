@@ -204,11 +204,20 @@ export default class Terrain_Generator extends Demo_Map {
                         }
                     }
                     // ice
+                    let iced = false;
                     if(cell.equator < .6 && cell.humidity > .4) {
                         const vl = map.options.WATER_LINE;
                         if(vl >= chunk.coord.y && vl < chunk.coord.y + chunk.size.y) {
                             temp_vec.y = vl - chunk.coord.y;
                             chunk.setBlockIndirect(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
+                            iced = true;
+                        }
+                    }
+                    // LILI_PAD
+                    if(!iced) {
+                        const water_depth = map.options.WATER_LINE - value;
+                        if(water_depth < 2 && rnd < .025) {
+                            chunk.setBlockIndirect(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.LILY_PAD.id);
                         }
                     }
                 }
