@@ -170,6 +170,7 @@
             "name": "FIRE",
             "sound": "madcraft:block.wood",
             "style": "fire",
+            "spawnable": false,
             "material": {
                 "id": "wood"
             },
@@ -2228,6 +2229,7 @@
             "style": "pane",
             "inventory_style": "extruder",
             "sound": "madcraft:block.glass",
+            "group": "regular",
             "material": {
                 "id": "glass"
             },
@@ -2236,7 +2238,11 @@
                 "alpha",
                 "no_drop_ao"
             ],
-            "texture": "block/glass.png",
+            "texture": {
+                "side": "block/glass.png",
+                "up": "block/glass_pane_top.png",
+                "up_rot": "block/glass_pane_top.png;rc1"
+            },
             "can_rotate": true
         },
         {
@@ -4196,6 +4202,7 @@
             "style": "pane",
             "inventory_style": "extruder",
             "sound": "madcraft:block.stone",
+            "group": "doubleface",
             "material": {
                 "id": "stone"
             },
