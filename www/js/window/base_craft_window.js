@@ -284,6 +284,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             }
                             break;
                         }
+                        case 'frmBarrel':
                         case 'frmChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
@@ -557,22 +558,22 @@ export class BaseCraftWindow extends Window {
         }
         ct.inventory_slots  = [];
         const xcnt = INVENTORY_HOTBAR_SLOT_COUNT;
-        // верхние 3 ряда
         sx *= this.zoom;
         sy *= this.zoom;
+        // не менять порядок нижних и верхних!
+        // иначе нарушится их порядок в массиве ct.inventory_slots
+        // нижний ряд (видимые на хотбаре)
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, (sy + 116 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            ct.add(lblSlot);
+            ct.inventory_slots.push(lblSlot);
+        }
+        // верхние 3 ряда
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        // нижний ряд (видимые на хотбаре)
-        sy += 116 * this.zoom;
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
-        }
-        
     }
 
     clearCraft() {
