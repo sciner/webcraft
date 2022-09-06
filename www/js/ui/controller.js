@@ -87,6 +87,21 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.App                      = Qubatch.App = new UIApp();
     $scope.login_tab                = 'login';
 
+    //
+    Qubatch.onControlsEnabledChanged = (value) => {
+        const bodyClassList = document.querySelector('body').classList;
+        if(value) {
+            bodyClassList.add('controls_enabled');
+        } else {
+            bodyClassList.remove('controls_enabled');
+        }
+    };
+
+    Qubatch.onStarted = () => {
+        const bodyClassList = document.querySelector('body').classList;
+        bodyClassList.add('started');
+    };
+
     $scope.links = {
         discord: 'https://discord.gg/QQw2zadu3T',
         youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'

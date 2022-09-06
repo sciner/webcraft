@@ -26,7 +26,10 @@ export class World {
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
-    constructor() {
+    constructor(settings, block_manager) {
+
+        this.settings = settings;
+        this.block_manager = block_manager;
 
         /**
          * @type {TWorldInfo}
@@ -117,11 +120,6 @@ export class World {
                 location.reload();
             });
         });
-    }
-
-    init(settings, block_manager) {
-        this.settings = settings;
-        this.block_manager = block_manager;
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения

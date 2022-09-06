@@ -11,6 +11,7 @@ import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -27,6 +28,12 @@ export class Player {
         this.inMiningProcess = false;
         this.options = options;
         this.scale = PLAYER_ZOOM;
+        this.current_state = {
+            rotate:             new Vector(),
+            pos:                new Vector(),
+            sneak:              false,
+            ping:               0
+        };
     }
 
     JoinToWorld(world, cb) {
@@ -110,7 +117,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            let dist = this.pos.distance(new Vector(cmd.data.pos));
+            let dist = cmd.data.pos ? this.pos.distance(new Vector(cmd.data.pos)) : null;
             Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
@@ -802,6 +809,40 @@ export class Player {
         this.pickAt.clearEvent();
         this.pickAt.resetTargetPos();
         this.inMiningProcess = false;
+    }
+
+    // Отправка информации о позиции и ориентации игрока на сервер
+    sendState() {
+        const cs = this.current_state;
+        const ps = this.previous_state;
+        cs.rotate.copyFrom(this.rotate).roundSelf(4);
+        cs.pos.copyFrom(this.lerpPos).roundSelf(4);
+        cs.sneak = this.isSneak;
+        this.ping = Math.round(this.world.server.ping_value);
+        const not_equal = !ps ||
+            (
+                ps.rotate.x != cs.rotate.x || ps.rotate.y != cs.rotate.y || ps.rotate.z != cs.rotate.z ||
+                ps.pos.x != cs.pos.x || ps.pos.y != cs.pos.y || ps.pos.z != cs.pos.z ||
+                ps.sneak != cs.sneak ||
+                ps.ping != cs.ping
+            );
+        if(not_equal) {
+            if(!ps) {
+                this.previous_state = JSON.parse(JSON.stringify(cs));
+                this.previous_state.rotate = new Vector(cs.rotate);
+                this.previous_state.pos = new Vector(cs.pos);
+            } else {
+                // copy current state to previous state
+                this.previous_state.rotate.copyFrom(cs.rotate);
+                this.previous_state.pos.copyFrom(cs.pos);
+                this.previous_state.sneak = cs.sneak;
+                this.previous_state.ping = cs.ping;
+            }
+            this.world.server.Send({
+                name: ServerClient.CMD_PLAYER_STATE,
+                data: compressPlayerStateC(cs)
+            });
+        }
     }
 
 }

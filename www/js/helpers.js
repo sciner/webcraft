@@ -486,6 +486,13 @@ export class Color {
     toArray() {
         return [this.r, this.g, this.b, this.a];
     }
+    
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
 
 }
 

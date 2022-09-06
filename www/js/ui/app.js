@@ -5,7 +5,7 @@ import {Helpers} from '../helpers.js';
 export class UIApp {
 
     constructor() {
-        this.api = Qubatch.local_server?.getAPIClient() || new API_Client();
+        this.api = Qubatch.local_server_client?.getAPIClient() || new API_Client();
         // Session
         this._loadSession();
         // Hooks
