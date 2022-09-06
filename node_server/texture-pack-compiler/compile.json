@@ -3009,11 +3009,11 @@
         {
             "id": 52,
             "name": "BARREL",
-            "window": "frmChest",
+            "window": "frmBarrel",
             "is_entity": true,
             "is_chest": true,
             "transparent": true,
-            "sound": "madcraft:block.chest",
+            "sound": "madcraft:block.barrel",
             "can_rotate": true,
             "tags": [
                 "rotate_by_pos_n_6"

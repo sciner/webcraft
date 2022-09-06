@@ -339,6 +339,7 @@ export class Window {
     calcMaxHeight() {
         let mh = 0;
         for(let w of this.list.values()) {
+            if(!w.visible) continue;
             if(w.y + w.height > mh) {
                 mh = w.y + w.height;
             }
@@ -508,8 +509,10 @@ export class Window {
             let x = e2.x - (this.ax + w.x);
             let y = e2.y - (this.ay + w.y);
             if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                e2.x = x + this.x;
-                e2.y = y + this.y - w.scrollY;
+                e2.x = w.ax + x;
+                e2.y = w.ay + y - w.scrollY;
+                // e2.x = x + this.x;
+                // e2.y = y + this.y - w.scrollY;
                 e2.target = w;
                 w._mousedown(e2);
                 return;
@@ -524,8 +527,10 @@ export class Window {
                 let x = e2.x - (this.ax + w.x);
                 let y = e2.y - (this.ay + w.y);
                 if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                    e2.x = x + this.x;
-                    e2.y = y + this.y - w.scrollY;
+                    e2.x = w.ax + x;
+                    e2.y = w.ay + y - w.scrollY;
+                    // e2.x = x + this.x;
+                    // e2.y = y + this.y - w.scrollY;
                     w._drop(e2);
                     return;
                 }
@@ -537,9 +542,13 @@ export class Window {
         for(let w of this.list.values()) {
             if(w.visible) {
                 let e2 = {...e};
-                e2.x -= (this.ax + w.x);
-                e2.y -= (this.ay + w.y);
-                if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
+                //e2.x -= (this.ax + w.x);
+                //e2.y -= (this.ay + w.y);
+                let x = e2.x - (this.ax + w.x);
+                let y = e2.y - (this.ay + w.y);
+                if(x >= 0 && y >= 0 && x < w.width && y < w.height)  {
+                    e2.x = w.ax + x;
+                    e2.y = w.ay + y - w.scrollY;
                     e2.target = w;
                     w._wheel(e2);
                     return;
@@ -659,21 +668,25 @@ export class Window {
         for(let id in layout) {
             const cl = layout[id];
             let control = null;
-            switch(cl.type) {
-                case 'VerticalLayout': {
-                    control = new VerticalLayout(cl.x, cl.y, cl.width, id);
-                    if(cl.childs) {
-                        control.appendLayout(cl.childs);
+            if(cl instanceof Window) {
+                control = cl;
+            } else {
+                switch(cl.type) {
+                    case 'VerticalLayout': {
+                        control = new VerticalLayout(cl.x, cl.y, cl.width, id);
+                        if(cl.childs) {
+                            control.appendLayout(cl.childs);
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'Label': {
-                    control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                    break;
-                }
-                case 'Button': {
-                    control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                    break;
+                    case 'Label': {
+                        control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                        break;
+                    }
+                    case 'Button': {
+                        control = new Button(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                        break;
+                    }
                 }
             }
             if(control) {
@@ -1117,12 +1130,15 @@ export class VerticalLayout extends Window {
     refresh() {
         let y = 0;
         for(let w of this.list.values()) {
+            if(!w.visible) continue;
             w.x = 0;
             w.y = y;
-            w.width = this.width;
             w.updateMeasure(this.getRoot().ctx);
-            if(w.__measure.text?.height && w.autosize) {
-                w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+            if(w.autosize) {
+                w.width = this.width;
+                if(w.__measure.text?.height && w.autosize) {
+                    w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+                }
             }
             y += w.height + this.gap;
         }
