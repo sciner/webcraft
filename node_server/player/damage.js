@@ -35,8 +35,7 @@ export class ServerPlayerDamage {
         const ind_def = world.getDefaultPlayerIndicators().oxygen;
         const ind_player = player.state.indicators[ind_def.name];
         const mat = params.tblocks.head.material;
-        const block_has_oxygen = !(mat.is_fluid || (mat.id > 0 && mat.passable == 0 && !mat.transparent));
-        if(block_has_oxygen) {
+        if(mat.has_oxygen) {
             if((params.tick_number % GOT_TICKS) == 0) {
                 if(ind_player.value < ind_def.value) {
                     player.changeIndicator(ind_def.name, 1)

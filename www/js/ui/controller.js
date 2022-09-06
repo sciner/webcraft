@@ -102,6 +102,10 @@ let gameCtrl = async function($scope, $timeout) {
         bodyClassList.add('started');
     };
 
+    Qubatch.exit = () => {
+        location = '/';
+    };
+
     $scope.links = {
         discord: 'https://discord.gg/QQw2zadu3T',
         youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'

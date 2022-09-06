@@ -649,6 +649,7 @@ export class BLOCK {
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style == 'banner';
+        block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent));
         // не переносить!
         if(block.is_leaves) {
             const beautiful_leaves = resource_pack?.manager?.settings?.beautiful_leaves;

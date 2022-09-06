@@ -51,12 +51,6 @@ export class ServerPlayer extends Player {
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
         this.damage                 = new ServerPlayerDamage(this);
-        this.game_mode              = new GameMode(null, this);
-        this.game_mode.onSelect     = async (mode) => {
-            await this.world.db.changeGameMode(this, mode.id);
-            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
-            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
-        };
         /**
          * @type {ServerWorld}
          */
@@ -78,7 +72,13 @@ export class ServerPlayer extends Player {
         this.state.lies = this.state?.lies || false;
         this.state.sitting = this.state?.sitting || false;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
-        this.game_mode.applyMode(init_info.state.game_mode, false);
+        // GameMode
+        this.game_mode = new GameMode(this, init_info.state.game_mode);
+        this.game_mode.onSelect = async (mode) => {
+            await this.world.db.changeGameMode(this, mode.id);
+            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
+            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
+        };
     }
 
     // On crafted listener

@@ -117,7 +117,7 @@ export class World {
             await this.server.connect(() => {
 
             }, () => {
-                location.reload();
+                Qubatch.exit();
             });
         });
     }
