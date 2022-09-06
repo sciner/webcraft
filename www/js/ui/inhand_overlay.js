@@ -36,7 +36,6 @@ export class InHandOverlay {
         this.changeAnimation = true;
         this.changAnimationTime = 0;
 
-        this.minePeriod = 0;
         this.mineTime = 0;
     }
 
@@ -115,8 +114,8 @@ export class InHandOverlay {
         // const itsme = Qubatch.player.getModel()
         // this.mineTime = itsme.swingProgress;
 
-        if (player.inMiningProcess || this.mineTime > dt * 2 / RENDER_DEFAULT_ARM_HIT_PERIOD) {
-            this.mineTime += dt / RENDER_DEFAULT_ARM_HIT_PERIOD;
+        if (player.inMiningProcess || this.mineTime > dt * 10 / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += dt / (10 * RENDER_DEFAULT_ARM_HIT_PERIOD);
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
             }
@@ -132,7 +131,7 @@ export class InHandOverlay {
         }
 
         if (this.changeAnimation) {
-            this.changAnimationTime += 0.05 * dt;
+            this.changAnimationTime += 0.01 * dt;
 
             if (this.changAnimationTime > 0.5) {
                 this.reconstructInHandItem(id);
@@ -182,30 +181,7 @@ export class InHandOverlay {
             clearColor: false
         });
 
-        const animMatrix = mat4.identity(tmpMatrix);
         const phasedTime = this.mineTime;
-
-        // shift matrix for left hand
-        const orient = handMesh.isLeft ? -1 : 1;
-        const attacPhase = Math.sin(phasedTime * phasedTime * Math.PI * 2 - Math.PI);
-        const rotPhase = Math.min(-attacPhase, 0);
-        const animY = (1 - Math.cos(phasedTime * Math.PI * 2)) * 0.5;
-
-        mat4.rotateZ(
-            animMatrix,
-            animMatrix,
-            -orient * rotPhase * Math.PI / 4
-        );
-
-        mat4.translate(animMatrix, animMatrix, [
-            orient,
-            attacPhase *  0.8,
-            animY * 0.8,
-        ]);
-
-        handMesh.drawDirectly(render, animMatrix);
-
-        mat4.rotateX(animMatrix, animMatrix, rotPhase * Math.PI / 4)
 
         if (inHandItemMesh) {
             const {
@@ -213,21 +189,33 @@ export class InHandOverlay {
             } = inHandItemMesh;
 
             mat4.identity(modelMatrix);
-            pos.set(0,0,0);
-
-            // for axe and sticks
+            pos.set(0, 0, 0);
+            
             if (block_material.diagonal) {
-                mat4.scale(modelMatrix, modelMatrix, [0.8, 0.8, 0.8]);
-                mat4.rotateZ(modelMatrix, modelMatrix, -orient * 2 * Math.PI / 5);
-                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI / 4);
-                pos.set(0,0.2,0);
-
+                const trig = Math.abs(Math.sin(phasedTime * Math.PI * 2));
+                const trig2 = Math.abs(Math.cos(phasedTime * Math.PI * 2));
+                mat4.translate(modelMatrix, modelMatrix, [1.1 - trig * 1.1, 0.8, -0.4]);
+                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * trig / 4);
+                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * trig / 4);
+                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
             } else {
-                mat4.scale(modelMatrix, modelMatrix, [0.5, 0.5, 0.5]);
-                mat4.rotateZ(modelMatrix, modelMatrix, -orient * Math.PI / 4 + Math.PI);
+                let trig = 0;
+                let fast = 0;
+                let slow = 0;
+                if (block_material?.item?.name == 'food') {
+                    fast = Math.abs(Math.sin(phasedTime * Math.PI * 8));
+                    trig = 1 - Math.pow(1 - phasedTime, 10);
+                } else {
+                    trig = Math.abs(Math.sin(phasedTime * Math.PI * 8));
+                    slow = trig * 2;
+                }
+                mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, slow, fast * 0.2 - 0.6]);
+                mat4.rotateX(modelMatrix, modelMatrix, 0);
+                mat4.rotateY(modelMatrix, modelMatrix, 0);
+                mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
             }
-
-            inHandItemMesh.drawDirectly(render, animMatrix);
+            
+            inHandItemMesh.drawDirectly(render, modelMatrix);
         }
 
         renderBackend.endPass();
