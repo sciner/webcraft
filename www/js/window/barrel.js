@@ -5,7 +5,7 @@ export class BarrelWindow extends BaseChestWindow {
 
     constructor(inventory) {
         super(10, 10, 352, 332, 'frmBarrel', null, null, inventory, {
-            title: 'Chest',
+            title: 'Barrel',
             background: {
                 image: './media/gui/form-chest.png',
                 image_size_mode: 'sprite',
