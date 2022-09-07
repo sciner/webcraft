@@ -1329,6 +1329,8 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
     const position = new Vector(pos.x, pos.y, pos.z);
     position.addSelf(pos.n);
+    
+    actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]});
 
     // Если материл используется для портала и игрок в биоме
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);

@@ -31,11 +31,10 @@ export class InHandOverlay {
         this.inHandItemBroken = false;
         this.inHandItemId = -1;
 
-        this.handMesh = new Particle_Hand(skinId, render, false);
-
         this.changeAnimation = true;
         this.changAnimationTime = 0;
 
+        this.minePeriod = 0;
         this.mineTime = 0;
     }
 
@@ -75,13 +74,13 @@ export class InHandOverlay {
 
     bobViewItem(player, viewMatrix) {
 
-        let p_109140_ = player.walking_frame * 2 % 1;
+        let frame = player.walking_frame * 2 % 1;
 
         //
         let speed_mul = 1.0;
         let f = (player.walkDist * speed_mul - player.walkDistO * speed_mul);
-        let f1 = -(player.walkDist * speed_mul + f * p_109140_);
-        let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+        let f1 = -(player.walkDist * speed_mul + f * frame);
+        let f2 = Mth.lerp(frame, player.oBob, player.bob);
 
         f1 /= player.scale
         f2 /= player.scale
@@ -113,9 +112,12 @@ export class InHandOverlay {
 
         // const itsme = Qubatch.player.getModel()
         // this.mineTime = itsme.swingProgress;
-
-        if (player.inMiningProcess || this.mineTime > dt * 10 / RENDER_DEFAULT_ARM_HIT_PERIOD) {
-            this.mineTime += dt / (10 * RENDER_DEFAULT_ARM_HIT_PERIOD);
+        if (!player.inMiningProcess) {
+            this.mineTime = 0;
+        }
+        
+        if (player.inMiningProcess || this.mineTime > (dt * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += dt / (5 * RENDER_DEFAULT_ARM_HIT_PERIOD);
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
             }
@@ -131,7 +133,7 @@ export class InHandOverlay {
         }
 
         if (this.changeAnimation) {
-            this.changAnimationTime += 0.01 * dt;
+            this.changAnimationTime += 0.05 * dt;
 
             if (this.changAnimationTime > 0.5) {
                 this.reconstructInHandItem(id);
@@ -150,7 +152,7 @@ export class InHandOverlay {
         } = render;
 
         const {
-            camera, handMesh, inHandItemMesh
+            camera, inHandItemMesh
         } = this;
 
         this.update(render, dt);
@@ -180,44 +182,39 @@ export class InHandOverlay {
             clearDepth: true,
             clearColor: false
         });
-
+        
         const phasedTime = this.mineTime;
-
+        
         if (inHandItemMesh) {
             const {
                 modelMatrix, block_material, pos
             } = inHandItemMesh;
-
+            
             mat4.identity(modelMatrix);
             pos.set(0, 0, 0);
             
+            // for axe and sticks
             if (block_material.diagonal) {
-                const trig = Math.abs(Math.sin(phasedTime * Math.PI * 2));
-                const trig2 = Math.abs(Math.cos(phasedTime * Math.PI * 2));
-                mat4.translate(modelMatrix, modelMatrix, [1.1 - trig * 1.1, 0.8, -0.4]);
-                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * trig / 4);
-                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * trig / 4);
+                const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
+                mat4.translate(modelMatrix, modelMatrix, [1.1 - fast * 1.1, 0.8, -0.4]);
+                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * fast / 4);
+                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
                 mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
             } else {
-                let trig = 0;
-                let fast = 0;
-                let slow = 0;
                 if (block_material?.item?.name == 'food') {
-                    fast = Math.abs(Math.sin(phasedTime * Math.PI * 8));
-                    trig = 1 - Math.pow(1 - phasedTime, 10);
+                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6));
+                    const trig = 1 - Math.pow(1 - phasedTime, 10);
+                    mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
+                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
                 } else {
-                    trig = Math.abs(Math.sin(phasedTime * Math.PI * 8));
-                    slow = trig * 2;
+                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
+                    mat4.translate(modelMatrix, modelMatrix, [1.8 - fast * 1.8, fast * 2, fast * 0.6 - 0.6]);
+                    mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 14);
+                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 - fast * Math.PI / 4);
                 }
-                mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, slow, fast * 0.2 - 0.6]);
-                mat4.rotateX(modelMatrix, modelMatrix, 0);
-                mat4.rotateY(modelMatrix, modelMatrix, 0);
-                mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
             }
-            
             inHandItemMesh.drawDirectly(render, modelMatrix);
         }
-
         renderBackend.endPass();
     }
 }
