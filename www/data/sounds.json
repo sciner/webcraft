@@ -21,6 +21,21 @@
         ]
     },
     {
+        "type": "madcraft:fire",
+        "extinguished": [
+            "Fizz"
+        ],
+        "crackles": [
+            "Fire"
+        ],
+        "fireball_whooshes": [
+            "Ghast_fireball4"
+        ],
+        "flint_and_steel_click": [
+            "Flint_and_steel_click"
+        ]
+    },
+    {
         "type": "madcraft:block.player",
         "hit": [
             "hit3"
@@ -251,6 +266,36 @@
         ],
         "close": [
             "Chest_close"
+        ],
+        "hit": [
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
+        ]
+    },
+    {
+        "type": "madcraft:block.barrel",
+        "dig": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "place": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "open": [
+            "Barrel_open1",
+            "Barrel_open2"
+        ],
+        "close": [
+            "Barrel_close"
         ],
         "hit": [
             "Wood_hit1",

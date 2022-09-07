@@ -15,3 +15,5 @@ export { AnvilWindow } from "./anvil.js";
 export { BeaconWindow } from "./bn.js";
 export { ScreenshotWindow } from "./screenshot.js";
 export { BookWindow } from "./book.js";
+export { BarrelWindow } from "./barrel.js";
+export { InGameMain } from "./ingamemain.js";

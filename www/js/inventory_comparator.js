@@ -10,27 +10,23 @@ export class InventoryComparator {
         // generate key
         let key = item.id;
         if('entity_id' in item && item.entity_id) {
+            // если есть entity id, то нужно брать только это поле
             key = item.entity_id;
         } else {
             let entity_key = null;
             for(let prop of ITEM_INVENTORY_KEY_PROPS) {
-                if(prop in b) {
-                    if(prop != 'power' || b.power != 0) {
-                        if(prop in item) {
-                            const jvalue = JSON.stringify(item[prop]);
-                            const prop_key = `|${prop}:${jvalue}`;
-                            key += prop_key;
-                            entity_key += `/${item.id}:${prop_key}`;
-                        }
+                if(prop != 'power' || b.power != 0) {
+                    if(prop in item) {
+                        const jvalue = JSON.stringify(item[prop]);
+                        const prop_key = `|${prop}:${jvalue}`;
+                        key += prop_key;
+                        entity_key += `/${item.id}:${prop_key}`;
                     }
                 }
             }
             //
             if(entity_key) {
-                let counter = same_items.get(entity_key);
-                if(!counter) {
-                    counter = 0;
-                }
+                const counter = same_items.get(entity_key) ?? 0;
                 same_items.set(entity_key, counter + 1);
                 key += `|_:${counter}`;
             }
@@ -133,7 +129,7 @@ export class InventoryComparator {
                     break;
                 }
                 if(!InventoryComparator.itemsIsEqual(old_item, item)) {
-                    console.log('* Comparator not equal (new,old):', JSON.stringify([item, old_item]));
+                    console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                     equal = false;
                     break;
                 }

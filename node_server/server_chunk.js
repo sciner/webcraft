@@ -13,7 +13,6 @@ export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 //
-export const STAGE_TIME_MUL                = 5; // 20;
 
 // Ticking block
 class TickingBlock {
@@ -219,7 +218,7 @@ export class ServerChunk {
         this.mobs           = new Map();
         this.drop_items     = new Map();
         this.ticking_blocks = new TickingBlockManager(this);
-        this.options        = {STAGE_TIME_MUL};
+        this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
         }

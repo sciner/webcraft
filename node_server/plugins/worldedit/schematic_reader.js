@@ -565,7 +565,7 @@ export class SchematicReader {
                     }
                 } else {
                     const chest_slot = BLOCK.convertItemToDBItem(BLOCK.fromName('TEST'));
-                    chest_slot.count = 1;
+                    chest_slot.count = item.Count ?? 1;
                     chest_slot.extra_data = {chest_slot: item};
                     chest_extra_data.slots[slot_index] = chest_slot;
                 }
