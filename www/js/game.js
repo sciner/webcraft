@@ -121,7 +121,7 @@ export class GameClass {
                     hud.wm.mouseEventDispatcher({
                         type:       e.type,
                         shiftKey:   e.shiftKey,
-                        button:     e.button,
+                        button_id:  e.button_id,
                         offsetX:    e.offsetX * DPR,
                         offsetY:    e.offsetY * DPR,
                     });
@@ -141,7 +141,7 @@ export class GameClass {
                         that.hud.wm.mouseEventDispatcher({
                             type:       e.type,
                             shiftKey:   e.shiftKey,
-                            button:     e.button,
+                            button_id:  e.button_id,
                             offsetX:    e.offsetX * DPR,
                             offsetY:    e.offsetY * DPR
                         });
@@ -167,7 +167,7 @@ export class GameClass {
                                 original_event:     e,
                                 type:               e.type,
                                 shiftKey:           e.shiftKey,
-                                button:             e.button,
+                                button_id:          e.button_id,
                                 offsetX:            controls.mouseX * (that.hud.width / that.render.canvas.width),
                                 offsetY:            controls.mouseY * (that.hud.height / that.render.canvas.height)
                             });

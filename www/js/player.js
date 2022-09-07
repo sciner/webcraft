@@ -10,7 +10,7 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
@@ -301,17 +301,13 @@ export class Player {
     // Hook for mouse input
     onMouseEvent(e) {
         let {type, button_id, shiftKey} = e;
+
         // Mouse actions
         if (type == MOUSE.DOWN) {
-            // console.log(e.button_id, this.state.sitting, this.state.lies)
-            //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
-            //    this.standUp();
-            //} else {
             this.pickAt.setEvent(this, {button_id, shiftKey});
-            if(e.button_id == 1) {
+            if(e.button_id == MOUSE.BUTTON_LEFT) {
                 this.startArmSwingProgress();
             }
-            //}
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }

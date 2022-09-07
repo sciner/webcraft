@@ -4,7 +4,7 @@ import * as ModelBuilder from "./modelBuilder.js";
 import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
-import { HEAD_MAX_ROTATE_ANGLE, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { HEAD_MAX_ROTATE_ANGLE, MOUSE, SNEAK_MINUS_Y_MUL } from "./constant.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -553,7 +553,7 @@ export class MobModel extends NetworkPhysicObject {
         if(!this.isAlive()) {
             return false;
         }
-        if(e.button_id == 1) {
+        if(e.button_id == MOUSE.BUTTON_LEFT) {
             // play punch
             Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
             // play mob cry

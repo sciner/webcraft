@@ -4,6 +4,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
+import { MOUSE } from "./constant.js";
 
 const {mat4} = glMatrix;
 
@@ -59,9 +60,9 @@ export class PickAt {
     // setEvent...
     setEvent(player, e) {
         e.start_time        = performance.now();
-        e.destroyBlock      = e.button_id == 1;
-        e.cloneBlock        = e.button_id == 2;
-        e.createBlock       = e.button_id == 3;
+        e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
+        e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
+        e.createBlock       = e.button_id == MOUSE.BUTTON_RIGHT;
         e.interractMobID    = null;
         e.number            = 0;
         const damage_block  = this.damage_block;

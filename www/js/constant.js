@@ -46,9 +46,9 @@ export const MOUSE = {
     MOVE: 3,
     CLICK: 4,
     WHEEL: 5,
-    BUTTON_LEFT: 0,
-    BUTTON_WHEEL: 1,
-    BUTTON_RIGHT: 2
+    BUTTON_LEFT: 1,
+    BUTTON_WHEEL: 2,
+    BUTTON_RIGHT: 3
 };
 
 export const KEY = {
