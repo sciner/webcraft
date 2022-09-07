@@ -42,6 +42,11 @@ float median(vec4 p) {
     return max(min(p.r, p.g), min(max(p.r, p.g), p.b));
 }
 
+vec3 colorCorrection(vec3 color) {
+    // color = pow(color, vec3(1.0/1.2));
+    return color;
+}
+
 void main() {
 
     vec2 size = vec2(textureSize(u_texture, 0));
@@ -136,6 +141,7 @@ void main() {
         }
 
         outColor = color;
+        outColor.rgb = colorCorrection(outColor.rgb);
 
         #include<fog_frag>
         if(u_crosshairOn) {
