@@ -354,7 +354,7 @@ export class Player {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            const mul           = Qubatch.world.info.generator.options.tool_mining_speed;
+            const mul           = Qubatch.world.info.generator.options.tool_mining_speed || 1;
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
