@@ -298,10 +298,16 @@ export class Player {
         }
     }
 
+    //
+    resetMouseActions() {
+        if(this.pickAt) {
+            this.pickAt.resetProgress();
+        }
+    }
+
     // Hook for mouse input
     onMouseEvent(e) {
-        let {type, button_id, shiftKey} = e;
-
+        const {type, button_id, shiftKey} = e;
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});

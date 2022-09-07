@@ -101,7 +101,7 @@ export class InHandOverlay {
 
     }
 
-    update(render, dt) {
+    update(render, delta) {
 
         const {
             player, renderBackend, camera
@@ -116,8 +116,8 @@ export class InHandOverlay {
             this.mineTime = 0;
         }
         
-        if (player.inMiningProcess || this.mineTime > (dt * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
-            this.mineTime += dt / (5 * RENDER_DEFAULT_ARM_HIT_PERIOD);
+        if (player.inMiningProcess || this.mineTime > (delta * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += delta / (5 * RENDER_DEFAULT_ARM_HIT_PERIOD);
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
             }
@@ -133,7 +133,7 @@ export class InHandOverlay {
         }
 
         if (this.changeAnimation) {
-            this.changAnimationTime += 0.05 * dt;
+            this.changAnimationTime += 0.05 * delta;
 
             if (this.changAnimationTime > 0.5) {
                 this.reconstructInHandItem(id);
