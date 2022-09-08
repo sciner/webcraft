@@ -7,7 +7,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
     };
 
     constructor({context = null, size = 128} = {}) {
-        super({context, size, strideFloats: TerrainMultiGeometry.strideFloats});
+        super({context, size, strideFloats: FluidMultiGeometry.strideFloats});
         this.hasInstance = false;
     }
 
@@ -32,12 +32,12 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
 
         this.buffer.bind();
 
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.UNSIGNED_INT, false, stride, 0 * 4);
-        gl.vertexAttribPointer(attribs.a_fluidId, 1, gl.UNSIGNED_INT, false, stride, 1 * 4);
+        gl.vertexAttribIPointer(attribs.a_chunkId, 1, gl.UNSIGNED_INT, stride, 0 * 4);
+        gl.vertexAttribIPointer(attribs.a_fluidId, 1, gl.UNSIGNED_INT, stride, 1 * 4);
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 2 * 4);
         gl.vertexAttribPointer(attribs.a_uv, 2, gl.FLOAT, false, stride, 5 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 1, gl.UNSIGNED_INT, false, stride, 7 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, false, stride, 8 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 7 * 4);
+        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 8 * 4);
 
         // TODO: shared index buffer!
     }

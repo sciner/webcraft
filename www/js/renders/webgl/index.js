@@ -1,5 +1,6 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import { BaseCubeShader } from "../BaseShader.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
@@ -247,7 +248,7 @@ export class WebGLTexture extends BaseTexture {
                     null
                 );
             }
-            
+
             if (this.minFilter && this.minFilter.indexOf('mipmap') > -1) {
                 gl.generateMipmap(type);
             }
@@ -551,9 +552,9 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     /**
-     * 
-     * @param {string} format 
-     * @param {Function} callback 
+     *
+     * @param {string} format
+     * @param {Function} callback
      */
     async screenshot(format, callback) {
         const buffer = this.toRawPixels();

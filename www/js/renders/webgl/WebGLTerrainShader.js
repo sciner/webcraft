@@ -1,5 +1,4 @@
-import {BaseTerrainShader} from "../BaseRenderer.js";
-import WebGLRenderer from "./index.js";
+import {BaseTerrainShader} from "../BaseShader.js";
 import { MIN_BRIGHTNESS } from "../../constant.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {

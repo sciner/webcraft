@@ -11,10 +11,10 @@ uniform uint u_fluidFrames[4];
 
 in uint a_chunkId;
 in uint a_fluidId;
-in uint a_flags;
 in vec3 a_position;
 in vec2 a_uv;
 in uint a_color;
+in uint a_flags;
 
 // please, replace all out with v_
 out vec3 v_world_pos;

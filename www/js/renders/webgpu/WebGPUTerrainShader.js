@@ -1,4 +1,4 @@
-import {BaseTerrainShader} from "../BaseRenderer.js";
+import {BaseTerrainShader} from "../BaseShader.js";
 import {TerrainTextureUniforms} from "../common.js";
 
 export class WebGPUTerrainShader extends BaseTerrainShader{
