@@ -192,27 +192,39 @@ export class InHandOverlay {
             
             mat4.identity(modelMatrix);
             pos.set(0, 0, 0);
+
+            let animation_name = 'hit';
+            if (block_material?.item?.name == 'food' && player.inItemUseProcess) {
+                animation_name = 'food';
+            } else if(block_material.diagonal) {
+                animation_name = 'diagonal';
+            }
             
-            // for axe and sticks
-            if (block_material.diagonal) {
-                const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
-                mat4.translate(modelMatrix, modelMatrix, [1.1 - fast * 1.1, 0.8, -0.4]);
-                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * fast / 4);
-                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
-                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
-            } else {
-                if (block_material?.item?.name == 'food' && player.inItemUseProcess) {
-                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6 * (RENDER_EAT_FOOD_DURATION / 1000)));
-                    const trig = 1 - Math.pow(1 - phasedTime, 10);
-                    mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
-                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
-                } else {
+            switch(animation_name) {
+                case 'hit': {
                     const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
                     mat4.translate(modelMatrix, modelMatrix, [1.8 - fast * 1.8, fast * 2, fast * 0.6 - 0.6]);
                     mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 14);
                     mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 - fast * Math.PI / 4);
+                    break;
+                }
+                case 'food': {
+                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6 * (RENDER_EAT_FOOD_DURATION / 1000)));
+                    const trig = 1 - Math.pow(1 - phasedTime, 10);
+                    mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
+                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
+                    break;
+                }
+                case 'diagonal': {
+                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
+                    mat4.translate(modelMatrix, modelMatrix, [1.1 - fast * 1.1, 0.8, -0.4]);
+                    mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * fast / 4);
+                    mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
+                    mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
+                    break;
                 }
             }
+
             inHandItemMesh.drawDirectly(render, modelMatrix);
         }
         renderBackend.endPass();

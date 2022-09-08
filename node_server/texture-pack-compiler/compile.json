@@ -3990,6 +3990,7 @@
             "name": "CARROT",
             "item": {"name": "food"},
             "style": "extruder",
+            "diagonal": true,
             "material": {
                 "id": "food"
             },
@@ -4000,6 +4001,7 @@
             "name": "APPLE",
             "item": {"name": "food"},
             "style": "extruder",
+            "diagonal": true,
             "material": {
                 "id": "food"
             },
@@ -4321,6 +4323,7 @@
             "name": "WHEAT",
             "item": {"name": "food"},
             "style": "extruder",
+            "diagonal": true,
             "material": {
                 "id": "food"
             },
@@ -4331,6 +4334,7 @@
             "name": "BREAD",
             "item": {"name": "food"},
             "style": "extruder",
+            "diagonal": true,
             "material": {
                 "id": "food"
             },
@@ -4831,6 +4835,7 @@
             "style": "cake",
             "transparent": true,
             "can_rotate": true,
+            "diagonal": true,
             "inventory": {
                 "style": "extruder",
                 "texture": "item/cake.png"
@@ -5053,6 +5058,7 @@
             "id": 1420,
             "name": "BONE_MEAL",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/bone_meal.png",
             "sound": "madcraft:block.bone_meal",
             "item": {"name": "bone_meal"},
@@ -5064,6 +5070,7 @@
             "id": 1421,
             "name": "ROTTEN_FLESH",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/rotten_flesh.png",
             "item": {"name": "food"},
             "material": {
@@ -5074,6 +5081,7 @@
             "id": 1422,
             "name": "COOKIE",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cookie.png",
             "item": {"name": "food"},
             "material": {
@@ -5084,6 +5092,7 @@
             "id": 1423,
             "name": "EGG",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/egg.png",
             "item": {"name": "food"},
             "material": {
@@ -5194,6 +5203,7 @@
             "id": 1433,
             "name": "PUMPKIN_PIE",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/pumpkin_pie.png",
             "item": {"name": "food"},
             "material": {
@@ -5214,6 +5224,7 @@
             "id": 1435,
             "name": "CHICKEN",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/chicken.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "COOKED_CHICKEN", "count": 1},
@@ -5225,6 +5236,7 @@
             "id": 1436,
             "name": "COOKED_CHICKEN",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cooked_chicken.png",
             "item": {"name": "food"},
             "material": {
@@ -5235,6 +5247,7 @@
             "id": 1437,
             "name": "MUTTON",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/mutton.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "COOKED_MUTTON", "count": 1},
@@ -5246,6 +5259,7 @@
             "id": 1438,
             "name": "COOKED_MUTTON",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cooked_mutton.png",
             "item": {"name": "food"},
             "material": {
@@ -5256,6 +5270,7 @@
             "id": 1439,
             "name": "RABBIT",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/rabbit.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "COOKED_RABBIT", "count": 1},
@@ -5267,6 +5282,7 @@
             "id": 1440,
             "name": "COOKED_RABBIT",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cooked_rabbit.png",
             "item": {"name": "food"},
             "material": {
@@ -5277,6 +5293,7 @@
             "id": 1441,
             "name": "BEEF",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/beef.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "COOKED_BEEF", "count": 1},
@@ -5288,6 +5305,7 @@
             "id": 1442,
             "name": "COOKED_BEEF",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cooked_beef.png",
             "item": {"name": "food"},
             "material": {
@@ -5298,6 +5316,7 @@
             "id": 1443,
             "name": "PORKCHOP",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/porkchop.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "COOKED_PORKCHOP", "count": 1},
@@ -5309,6 +5328,7 @@
             "id": 1444,
             "name": "COOKED_PORKCHOP",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/cooked_porkchop.png",
             "item": {"name": "food"},
             "material": {
@@ -6561,6 +6581,7 @@
             "id": 599,
             "name": "SUGAR",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/sugar.png",
             "item": {
                 "name": "food"
@@ -6791,6 +6812,7 @@
             "id": 196,
             "name": "POTATO",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/potato.png",
             "item": {"name": "food"},
             "coocked_item": {"name": "BAKED_POTATO", "count": 1},
@@ -6802,6 +6824,7 @@
             "id": 197,
             "name": "BAKED_POTATO",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/baked_potato.png",
             "item": {"name": "food"},
             "material": {
