@@ -37,6 +37,10 @@ export class Player {
         };
     }
 
+    isUsingItem() {
+        return this.inItemUseProcess;
+    }
+
     JoinToWorld(world, cb) {
         this.world = world;
         //

@@ -21,6 +21,8 @@ export default class Particles_Block_Damage extends Particles_Base {
 
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
+        let flags       = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
+        let lm          = IndexedColor.WHITE;
 
         scale = scale ?? 1;
         this.pos = new Vector(pos);
@@ -38,9 +40,6 @@ export default class Particles_Block_Damage extends Particles_Base {
             this.life = 0;
             return;
         }
-
-        let flags       = QUAD_FLAGS.NORMAL_UP; // QUAD_FLAGS.NO_AO;
-        let lm          = IndexedColor.WHITE;
 
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
             this.life = 0;
@@ -103,17 +102,14 @@ export default class Particles_Block_Damage extends Particles_Base {
             push_plane(this.vertices, 0, 0, 0, c_half, lm, true, false, sz * scale, sz * scale, sz * scale, flags);
 
             const p = {
-                x:              x,
-                y:              y,
-                z:              z,
-                //
                 vertices_count: 1,
-                //
+                pos:            new Vector(x, y, z),
                 velocity:       new Vector(0, 0, 0),
                 mass:           0.05 * scale, // kg
-                // const
                 radius:         0.00, // 1 = 1m
-                restitution:    -0.7
+                restitution:    -0.07,
+                life:           1 + Math.random(),
+                visible:        true
             };
 
             this.particles.push(p);
@@ -141,11 +137,22 @@ export default class Particles_Block_Damage extends Particles_Base {
     update(delta) {
 
         delta /= 1000;
-        this.life -= delta * 0.1;
+        let alive_particles = 0;
 
         for (let i = 0; i < this.particles.length; i++) {
 
             const p = this.particles[i];
+
+            // particle life
+            if(p.life <= 0) {
+                continue;
+            }
+            p.life -= delta;
+            if(p.life < 0) {
+                p.visible = false;
+            }
+            alive_particles++;
+
             const A = Math.PI * p.radius * p.radius / (100); // m^2
 
             // Drag force: Fd = -1/2 * Cd * A * rho * v * v
@@ -164,20 +171,24 @@ export default class Particles_Block_Damage extends Particles_Base {
             p.velocity.z += az * delta;
             
             // Integrate to get position
-            p.x += p.velocity.x * delta;
-            p.y += p.velocity.y * delta;
-            p.z += p.velocity.z * delta;
+            p.pos.x += p.velocity.x * delta;
+            p.pos.y += p.velocity.y * delta;
+            p.pos.z += p.velocity.z * delta;
 
             // Handle collisions
             const floor = 1;
-            const abs_y = this.pos.y + p.y;
+            const abs_y = this.pos.y + p.pos.y;
             if(abs_y - p.radius < floor) {
                 p.velocity.x *= Math.abs(p.restitution);
                 p.velocity.y *= p.restitution;
                 p.velocity.z *= Math.abs(p.restitution);
-                p.y = (floor + p.radius) - this.pos.y;
+                p.pos.y = (floor + p.radius) - this.pos.y;
             }
 
+        }
+
+        if(alive_particles == 0) {
+            this.life = 0;
         }
 
     }

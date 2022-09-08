@@ -4,7 +4,7 @@ import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
 import { Mth, Vector } from "../helpers.js";
 import Particles_Block_Drop from "../particles/block_drop.js";
-import { Particle_Hand } from "../particles/block_hand.js";
+// import { Particle_Hand } from "../particles/block_hand.js";
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -146,7 +146,8 @@ export class InHandOverlay {
         }
     }
 
-    draw(render, dt) {
+    //
+    draw(render, delta) {
         const {
             player, globalUniforms, renderBackend
         } = render;
@@ -155,78 +156,111 @@ export class InHandOverlay {
             camera, inHandItemMesh
         } = this;
 
-        this.update(render, dt);
+        this.update(render, delta);
 
         mat4.identity(camera.bobPrependMatrix);
         this.bobViewItem(player, camera.bobPrependMatrix);
 
         const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
 
-        camera.pos.set(
-            0,
-            0.5,
-            -1.5 * animFrame
-        );
-        camera.set(
-            camera.pos,
-            Vector.ZERO,
-            camera.bobPrependMatrix
-        );
+        camera.pos.set(0, 0.5, -1.5 * animFrame);
+        camera.set(camera.pos, Vector.ZERO, camera.bobPrependMatrix);
 
         // change GU for valid in hand block drawings
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
         globalUniforms.update();
 
-        renderBackend.beginPass({
-            clearDepth: true,
-            clearColor: false
-        });
+        renderBackend.beginPass({clearDepth: true, clearColor: false});
         
         const phasedTime = this.mineTime;
         
-        if (inHandItemMesh) {
+        if(inHandItemMesh) {
+
             const {
-                modelMatrix, block_material, pos
+                modelMatrix, block_material: matInHand, pos
             } = inHandItemMesh;
-            
+
             mat4.identity(modelMatrix);
             pos.set(0, 0, 0);
 
-            let animation_name = 'hit';
-            if (block_material?.item?.name == 'food' && player.inItemUseProcess) {
-                animation_name = 'food';
-            } else if(block_material.diagonal) {
-                animation_name = 'diagonal';
-            }
-            
-            switch(animation_name) {
-                case 'hit': {
-                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
-                    mat4.translate(modelMatrix, modelMatrix, [1.8 - fast * 1.8, fast * 2, fast * 0.6 - 0.6]);
-                    mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 14);
-                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 - fast * Math.PI / 4);
-                    break;
-                }
-                case 'food': {
-                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6 * (RENDER_EAT_FOOD_DURATION / 1000)));
-                    const trig = 1 - Math.pow(1 - phasedTime, 10);
-                    mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
-                    mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
-                    break;
-                }
-                case 'diagonal': {
-                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
-                    mat4.translate(modelMatrix, modelMatrix, [1.1 - fast * 1.1, 0.8, -0.4]);
-                    mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * fast / 4);
-                    mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
-                    mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
-                    break;
-                }
-            }
+            // @param {float}
+            let p_109373_;
+            // @param {float}
+            let p_109374_
+            // @param {InteractionHand}
+            let hand;
+            // @param {float}
+            // p_109376_ ... phasedTime
+            // @param {MultiBufferSource}
+            let p_109380_;
+            // @param {int}
+            let p_109381_;
+
+            this.renderArmWithItem(
+                player,
+                p_109373_,
+                p_109374_,
+                hand,
+                phasedTime,
+                matInHand,
+                delta,
+                modelMatrix,
+                p_109380_,
+                p_109381_
+            );
 
             inHandItemMesh.drawDirectly(render, modelMatrix);
         }
         renderBackend.endPass();
     }
+
+    /**
+     * @param {Player} player
+     * @param {float} p_109373_
+     * @param {float} p_109374_
+     * @param {InteractionHand} hand
+     * @param {float} phasedTime
+     * @param {ItemStack} matInHand
+     * @param {float} delta
+     * @param {*} modelMatrix
+     * @param {MultiBufferSource} p_109380_
+     * @param {int} p_109381_
+     */
+    renderArmWithItem(player, p_109373_, p_109374_, hand, phasedTime, matInHand, delta, modelMatrix, p_109380_, p_109381_) {
+
+        let animation_name = 'hit';
+        if (matInHand?.item?.name == 'food' && player.inItemUseProcess) {
+            animation_name = 'food';
+        } else if(matInHand.diagonal) {
+            animation_name = 'diagonal';
+        }
+        
+        switch(animation_name) {
+            case 'hit': {
+                const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
+                mat4.translate(modelMatrix, modelMatrix, [1.8 - fast * 1.8, fast * 2, fast * 0.6 - 0.6]);
+                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 14);
+                mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 - fast * Math.PI / 4);
+                break;
+            }
+            case 'food': {
+                const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6 * (RENDER_EAT_FOOD_DURATION / 1000)));
+                const trig = 1 - Math.pow(1 - phasedTime, 10);
+                mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
+                mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);
+                break;
+            }
+            case 'diagonal': {
+                const fast = Math.abs(Math.sin(phasedTime * Math.PI * 4));
+                mat4.translate(modelMatrix, modelMatrix, [1.1 - fast * 1.1, 0.8, -0.4]);
+                mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 10 - Math.PI * fast / 4);
+                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
+                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
+                break;
+            }
+        }
+
+    }
+
 }
