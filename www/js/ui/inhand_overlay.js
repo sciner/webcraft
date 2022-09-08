@@ -1,7 +1,7 @@
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
-import { RENDER_DEFAULT_ARM_HIT_PERIOD } from "../constant.js";
+import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
 import { Mth, Vector } from "../helpers.js";
 import Particles_Block_Drop from "../particles/block_drop.js";
 import { Particle_Hand } from "../particles/block_hand.js";
@@ -112,12 +112,12 @@ export class InHandOverlay {
 
         // const itsme = Qubatch.player.getModel()
         // this.mineTime = itsme.swingProgress;
-        if (!player.inMiningProcess) {
+        if (!player.inMiningProcess && !player.inItemUseProcess) {
             this.mineTime = 0;
         }
         
-        if (player.inMiningProcess || this.mineTime > (delta * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
-            this.mineTime += delta / (5 * RENDER_DEFAULT_ARM_HIT_PERIOD);
+        if (player.inMiningProcess || player.inItemUseProcess || this.mineTime > (delta * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += delta / player.inhand_animation_duration;
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
             }
@@ -201,8 +201,8 @@ export class InHandOverlay {
                 mat4.rotateY(modelMatrix, modelMatrix, -Math.PI * fast / 4);
                 mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 6);
             } else {
-                if (block_material?.item?.name == 'food') {
-                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6));
+                if (block_material?.item?.name == 'food' && player.inItemUseProcess) {
+                    const fast = Math.abs(Math.sin(phasedTime * Math.PI * 6 * (RENDER_EAT_FOOD_DURATION / 1000)));
                     const trig = 1 - Math.pow(1 - phasedTime, 10);
                     mat4.translate(modelMatrix, modelMatrix, [1.8 - trig * 1.8, 0, fast * 0.2 - 0.6]);
                     mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 + trig * Math.PI / 4);

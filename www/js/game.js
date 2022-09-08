@@ -564,8 +564,7 @@ export class GameClass {
                 this.setControlsEnabled(true);
             }  else {
                 this.setControlsEnabled(false);
-                this.kb.clearStates();
-                this.player.clearStates();
+                this.player.stopAllActivity();
                 if(!this.hud.wm.hasVisibleWindow() && !this.player.chat.active) {
                     // Safari emit ESC keyup since ~100 ms after pointer lock left event
                     // we should skip this ESC

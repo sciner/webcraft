@@ -184,7 +184,7 @@ export class BaseChestWindow extends Window {
         //
         if(this.loading) {
             this.loading = false;
-            this.inventory.player.clearEvents();
+            this.inventory.player.stopAllActivity();
         }
         //
         this.lbl1.setText(this.options.title);

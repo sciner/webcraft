@@ -127,7 +127,7 @@ export class JoystickController {
                     const shiftKey = false;
                     pickAt.setEvent(player, {button_id, shiftKey});
                 } else {
-                    player.clearEvents();
+                    player.stopAllActivity();
                 }
                 break;
             }
@@ -137,7 +137,7 @@ export class JoystickController {
                     const shiftKey = false;
                     pickAt.setEvent(player, {button_id, shiftKey});
                 } else {
-                    player.clearEvents();
+                    player.stopAllActivity();
                 }
                 break;
             }

@@ -412,8 +412,7 @@ export class WorldAction {
             open_window:                null,
             put_in_backet:              null,
             clone_block:                false,
-            reset_target_pos:           false,
-            reset_target_event:         false,
+            reset_mouse_actions:        false,
             decrement:                  false,
             decrement_extended:         null,
             decrement_instrument:       false,
@@ -999,7 +998,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
             }
         }
     }
-    actions.reset_target_event = true;
+    actions.reset_mouse_actions = true;
     return true;
 }
 
@@ -1147,7 +1146,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
         pos = new Vector(pos);
         actions.addBlocks([{pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.reset_target_pos = true;
+        actions.reset_mouse_actions = true;
         return true;
     }
     return false;
@@ -1172,7 +1171,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         }
         const dist = player.pos.distance(obj_pos);
         if(dist < 3.0) {
-            actions.reset_target_pos = true;
+            actions.reset_mouse_actions = true;
             actions.setSitting(
                 obj_pos.addScalarSelf(0, .5, 0),
                 new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
@@ -1240,7 +1239,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos), except_players: [player.session.user_id]});
         } else {
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-            actions.reset_target_pos = true;
+            actions.reset_mouse_actions = true;
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
     }
@@ -1618,7 +1617,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
     if(world_material.sound) {
         actions.addPlaySound({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
     }
-    actions.reset_target_pos = true;
+    actions.reset_mouse_actions = true;
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     // Если блок имеет пару (двери)
     if(world_material.has_head) {
@@ -1958,7 +1957,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
             actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});    
         }
     }
-    actions.reset_target_pos = true;
+    actions.reset_mouse_actions = true;
     actions.decrement = true;
     return true;
 }
@@ -1978,7 +1977,7 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
         extra_data.candles++;
         actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.reset_target_pos = true;
+        actions.reset_mouse_actions = true;
         actions.decrement = true;
     }
     return true;

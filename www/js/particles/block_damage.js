@@ -8,19 +8,23 @@ import { Particles_Base } from './particles_base.js';
 
 const push_plane = push_plane_style.getRegInfo().func;
 
+const Cd = 0.47; // dimensionless
+const rho = 1.22; // kg / m^3 (коэфицент трения, вязкость)
+const ag = 9.81;  // m / s^2
+
 export default class Particles_Block_Damage extends Particles_Base {
 
     // Constructor
-    constructor(render, block, pos, small, scale) {
+    constructor(render, block, pos, small, scale = 1, force = 1) {
 
         super();
 
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
-        
+
         scale = scale ?? 1;
         this.pos = new Vector(pos);
-        this.user_scale = scale;
+        this.force = force;
 
         block = BLOCK.fromId(block.id);
 
@@ -71,7 +75,9 @@ export default class Particles_Block_Damage extends Particles_Base {
         const tex = this.resource_pack.textures.get(texture_id);
         const c = BLOCK.calcTexture(this.texture, DIRECTION.DOWN, tex.tx_cnt); // полная текстура
         const count = (small ? 5 : 30) * 2; // particles count
-        const max_sz = small ? .25 / 16 : 3 / 16;
+        const max_sz = small ? (.25 / 16) : (3 / 16);
+
+        force *= 3;
 
         for(let i = 0; i < count; i++) {
 
@@ -79,8 +85,9 @@ export default class Particles_Block_Damage extends Particles_Base {
             const half      = sz / block.tx_cnt;
 
             // random tex coord (случайная позиция в текстуре)
-            const cx        = c[0] + Math.random() * (half * 3);
-            const cy        = c[1] + Math.random() * (half * 3);
+            const cx        = c[0] + Math.random() * ((1 - half) / block.tx_cnt);
+            const cy        = c[1] + Math.random() * ((1 - half) / block.tx_cnt);
+
             const c_half    = [
                 cx - c[2] / 2 + half / 2,
                 cy - c[3] / 2 + half / 2,
@@ -99,26 +106,28 @@ export default class Particles_Block_Damage extends Particles_Base {
                 x:              x,
                 y:              y,
                 z:              z,
+                //
                 sx:             x,
                 sy:             y,
                 sz:             z,
-
-                dx:             0,
-                dz:             0,
-                dy:             0,
+                //
                 vertices_count: 1,
-                gravity:        .06 * scale,
-                speed:          .00375,
+                //
+                velocity:       new Vector(0, 0, 0),
+                mass:           0.05 * scale, // kg
+                // const
+                radius:         10 * scale // 1 = 1cm
             };
 
             this.particles.push(p);
 
-            // random direction
-            p.dx = Math.random() - Math.random();
-            p.dz = Math.random() - Math.random();
-            const l = Math.sqrt(p.dx * p.dx + p.dz * p.dz);
-            p.dx = p.dx / l * p.speed;
-            p.dz = p.dz / l * p.speed;
+            // random direction * force
+            p.velocity.set(
+                Math.random() - Math.random(),
+                1,
+                Math.random() - Math.random()
+            );
+            p.velocity.normSelf().multiplyScalar(force)
 
         }
 
@@ -133,14 +142,35 @@ export default class Particles_Block_Damage extends Particles_Base {
     // we can use external emitter or any animatin lib
     // because isolate view and math
     update (delta) {
-        delta *= 75 * this.user_scale;
-        this.life -= delta / 100000;
+
+        delta /= 1000;
+        // this.life -= delta / 100000;
+
         for (let i = 0; i < this.particles.length; i++) {
+
             const p = this.particles[i];
-            p.x += p.dx * delta * p.speed;
-            p.y += p.dy * delta * p.speed + (delta / 1000) * p.gravity;
-            p.z += p.dz * delta * p.speed;
-            p.gravity -= delta / 250000;
+            const A = Math.PI * p.radius * p.radius / (10000); // m^2
+
+            // Drag force: Fd = -1/2 * Cd * A * rho * v * v
+            const Fx = -0.5 * Cd * A * rho * p.velocity.x * p.velocity.x * p.velocity.x / Math.abs(p.velocity.x);
+            const Fy = -0.5 * Cd * A * rho * p.velocity.y * p.velocity.y * p.velocity.y / Math.abs(p.velocity.y);
+            const Fz = -0.5 * Cd * A * rho * p.velocity.z * p.velocity.z * p.velocity.z / Math.abs(p.velocity.z);
+
+            // Calculate acceleration (F = ma)
+            const ax = Fx / p.mass;
+            const ay = (ag + (Fy / p.mass)) * -1;
+            const az = Fz / p.mass;
+            
+            // Integrate to get velocity
+            p.velocity.x += ax * delta;
+            p.velocity.y += ay * delta;
+            p.velocity.z += az * delta;
+            
+            // Integrate to get position
+            p.x += p.velocity.x * delta;
+            p.y += p.velocity.y * delta;
+            p.z += p.velocity.z * delta;
+
         }
 
     }

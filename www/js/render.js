@@ -744,9 +744,9 @@ export class Renderer {
         this.camera.use(this.globalUniforms);
     }
 
-    // damageBlock
-    damageBlock(block, pos, small, scale) {
-        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale));
+    // Damage block particles
+    damageBlock(block, pos, small, scale = 1, force = 1) {
+        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale, force));
     }
 
     // addExplosionParticles

@@ -24,6 +24,7 @@ export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
+export const RENDER_EAT_FOOD_DURATION       = 1800;
 
 // player
 export const PLAYER_ZOOM                    = 1;

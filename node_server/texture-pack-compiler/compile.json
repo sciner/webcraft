@@ -6908,7 +6908,7 @@
             "max_in_stack": 1,
             "style": "extruder",
             "diagonal": true,
-            "item": {"name": "instrument", "instrument_id": "flint_and_steel"},
+            "item": {"name": "tool", "instrument_id": "flint_and_steel"},
             "material": {
                 "id": "iron"
             },

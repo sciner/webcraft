@@ -75,16 +75,6 @@ export class PickAt {
         }*/
     }
 
-    // clearEvent...
-    clearEvent() {
-        const damage_block = this.damage_block;
-        damage_block.event = null;
-        if(damage_block.mesh) {
-            damage_block.mesh.destroy();
-            damage_block.mesh = null;
-        }
-    }
-
     // setDamagePercent...
     setDamagePercent(pos, percent) {
         let damage_block = this.damage_block;
@@ -112,14 +102,6 @@ export class PickAt {
             damage_block.times      = 0;
             damage_block.prev_time  = null;
             damage_block.mesh       = this.createDamageBuffer(damage_block.pos, BLOCK.calcTexture([damage_block.frame, 15]));
-        }
-    }
-
-    // Сбросить текущий прогресс разрушения
-    resetProgress() {
-        let damage_block = this.damage_block;
-        if(damage_block) {
-            damage_block.times = 0;
         }
     }
 
@@ -342,9 +324,18 @@ export class PickAt {
         }));
     }
 
-    // resetTargetPos...
-    resetTargetPos() {
+    // Сбросить текущий прогресс разрушения/установки
+    resetProgress() {
+        const damage_block = this.damage_block;
         this.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
+        if(damage_block) {
+            damage_block.times = 0;
+            damage_block.event = null;
+            if(damage_block.mesh) {
+                damage_block.mesh.destroy();
+                damage_block.mesh = null;
+            }
+        }
     }
 
 }
