@@ -28,6 +28,11 @@ export class Particles_Base {
         const chCoord  = this.chunk.coord;
         const pos      = this.pos;
 
+        // correction for light
+        const corrX = pos.x - chCoord.x;
+        const corrY = pos.y - chCoord.y;
+        const corrZ = pos.z - chCoord.z;
+
         // really we should compute look at to each particle
         // but we can hack when looks to center of it
 
@@ -41,13 +46,9 @@ export class Particles_Base {
         let dataView;
         let startDataView;
 
-        // correction for light
-        const corrX = pos.x - chCoord.x;
-        const corrY = pos.y - chCoord.y;
-        const corrZ = pos.z - chCoord.z;
-        
-        for (let i = 0; i < this.particles.length; i++) {
-            const p = this.particles[i];
+        for (let j = 0; j < this.particles.length; j++) {
+            const p = this.particles[j];
+
             for(let i = 0; i < p.vertices_count; i++) {
                 dataView      = GeometryTerrain.decomposite(data, (idx + i) * GeometryTerrain.strideFloats, dataView);
                 startDataView = GeometryTerrain.decomposite(vertices, (idx + i) * GeometryTerrain.strideFloats, startDataView);
@@ -55,9 +56,9 @@ export class Particles_Base {
                 // pos
                 // we can use vector notation
                 // but again need flip axis
-                dataView.position[0] = (p.x - p.sx) + startDataView.position[0] + corrX;
-                dataView.position[1] = (p.z - p.sz) + startDataView.position[1] + corrZ;
-                dataView.position[2] = (p.y - p.sy) + startDataView.position[2] + corrY;
+                dataView.position[0] = p.x + startDataView.position[0] + corrX;
+                dataView.position[1] = p.z + startDataView.position[1] + corrZ;
+                dataView.position[2] = p.y + startDataView.position[2] + corrY;
 
                 // lol
                 // neeed flip

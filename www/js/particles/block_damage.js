@@ -9,7 +9,7 @@ import { Particles_Base } from './particles_base.js';
 const push_plane = push_plane_style.getRegInfo().func;
 
 const Cd = 0.47; // dimensionless
-const rho = 1.22; // kg / m^3 (коэфицент трения, вязкость)
+const rho = 1.22; // kg / m^3 (коэфицент трения, вязкость, плотность)
 const ag = 9.81;  // m / s^2
 
 export default class Particles_Block_Damage extends Particles_Base {
@@ -100,23 +100,20 @@ export default class Particles_Block_Damage extends Particles_Base {
             const y = (Math.random() - Math.random()) * (.5 * scale);
             const z = (Math.random() - Math.random()) * (.5 * scale);
 
-            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz * scale, sz * scale, sz * scale, flags);
+            push_plane(this.vertices, 0, 0, 0, c_half, lm, true, false, sz * scale, sz * scale, sz * scale, flags);
 
             const p = {
                 x:              x,
                 y:              y,
                 z:              z,
                 //
-                sx:             x,
-                sy:             y,
-                sz:             z,
-                //
                 vertices_count: 1,
                 //
                 velocity:       new Vector(0, 0, 0),
                 mass:           0.05 * scale, // kg
                 // const
-                radius:         10 * scale // 1 = 1cm
+                radius:         0.00, // 1 = 1m
+                restitution:    -0.7
             };
 
             this.particles.push(p);
@@ -141,15 +138,15 @@ export default class Particles_Block_Damage extends Particles_Base {
     // isolate draw and update
     // we can use external emitter or any animatin lib
     // because isolate view and math
-    update (delta) {
+    update(delta) {
 
         delta /= 1000;
-        // this.life -= delta / 100000;
+        this.life -= delta * 0.1;
 
         for (let i = 0; i < this.particles.length; i++) {
 
             const p = this.particles[i];
-            const A = Math.PI * p.radius * p.radius / (10000); // m^2
+            const A = Math.PI * p.radius * p.radius / (100); // m^2
 
             // Drag force: Fd = -1/2 * Cd * A * rho * v * v
             const Fx = -0.5 * Cd * A * rho * p.velocity.x * p.velocity.x * p.velocity.x / Math.abs(p.velocity.x);
@@ -170,6 +167,16 @@ export default class Particles_Block_Damage extends Particles_Base {
             p.x += p.velocity.x * delta;
             p.y += p.velocity.y * delta;
             p.z += p.velocity.z * delta;
+
+            // Handle collisions
+            const floor = 1;
+            const abs_y = this.pos.y + p.y;
+            if(abs_y - p.radius < floor) {
+                p.velocity.x *= Math.abs(p.restitution);
+                p.velocity.y *= p.restitution;
+                p.velocity.z *= Math.abs(p.restitution);
+                p.y = (floor + p.radius) - this.pos.y;
+            }
 
         }
 
