@@ -12,6 +12,7 @@ import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
+import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -35,10 +36,6 @@ export class Player {
             sneak:              false,
             ping:               0
         };
-    }
-
-    isUsingItem() {
-        return this.inItemUseProcess;
     }
 
     JoinToWorld(world, cb) {
@@ -911,6 +908,30 @@ export class Player {
             clearInterval(this._eating_sound);
             this._eating_sound = false;
         }
+    }
+
+// compatibility methods
+
+    isUsingItem() {
+        return this.inItemUseProcess;
+    }
+
+    isScoping() {
+        // return this.isUsingItem() && this.getUseItem().is(Items.SPYGLASS);
+        return false;
+    }
+
+    isInvisible() {
+        return false;
+    }
+
+    getMainArm() {
+        return HumanoidArm.RIGHT; // InteractionHand.MAIN_HAND;
+    }
+
+    isAutoSpinAttack() {
+        // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
+        return false;
     }
 
 }
