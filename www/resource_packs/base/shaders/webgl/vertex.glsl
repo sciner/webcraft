@@ -93,10 +93,10 @@ void main() {
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
-    if(v_Triangle >= .5 && gl_VertexID > 2) {
-        gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
-    }
 
     #include<ao_light_pass_vertex>
 
+    if(v_Triangle >= .5 && gl_VertexID > 2) {
+        gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+    }
 }

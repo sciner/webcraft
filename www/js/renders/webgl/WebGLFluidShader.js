@@ -11,8 +11,8 @@ export class WebGLFluidShader extends WebGLTerrainShader {
     }
 
     locateAttribs() {
-        const { gl } = context;
         const { program } = this;
+        const { gl } = this.context;
 
         this.a_chunkId       = gl.getAttribLocation(program, 'a_chunkId');
         this.a_fluidId       = gl.getAttribLocation(program, 'a_fluidId');
@@ -26,8 +26,8 @@ export class WebGLFluidShader extends WebGLTerrainShader {
     }
 
     locateUniforms() {
-        const { program, context } = this;
-        const { gl } = context;
+        const { program } = this;
+        const { gl } = this.context;
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');

@@ -4,15 +4,16 @@
 #include<global_uniforms>
 #include<global_uniforms_frag>
 
+uniform vec4 u_fluidUV[4];
+
 in vec3 v_position;
 in vec2 v_texcoord0;
-in vec2 v_texcoord1_diff;
+in vec4 v_fluidAnim;
 in vec4 v_color;
 in vec3 v_normal;
 in float v_fogDepth;
 in vec3 v_world_pos;
 in vec3 v_chunk_pos;
-in float v_animInterp;
 in float v_lightMode;
 in float v_useFog;
 in float v_lightId;
@@ -21,6 +22,8 @@ in vec4 v_lightOffset;
 in float v_noCanTakeAO;
 in float v_noCanTakeLight;
 in float v_flagMultiplyColor;
+
+out vec4 outColor;
 
 #include<crosshair_define_func>
 
@@ -47,9 +50,9 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 }
 
 void main() {
-
     vec2 size = vec2(textureSize(u_texture, 0));
-    vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
+    int fluidId = int(round(v_fluidAnim.x));
+    vec2 texClamped = clamp(v_texcoord0 - floor(v_texcoord0), 0.001, 0.999) * u_fluidUV[fluidId].xy + u_fluidUV[fluidId].zw;
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);
@@ -62,13 +65,12 @@ void main() {
 
         mipData = manual_mip(v_texcoord0, size);
         biome = ivec2(round(v_color.rg));
-        color = sampleAtlassTexture (mipData, texClamped, biome);
-
-        if (v_animInterp > 0.0) {
+        color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
+        if (v_fluidAnim.w > 0.0) {
             color = mix(
                 color,
-                sampleAtlassTexture (mipData, texClamped + v_texcoord1_diff, biome),
-                v_animInterp
+                sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.z), biome),
+                v_fluidAnim.w
             );
         }
 

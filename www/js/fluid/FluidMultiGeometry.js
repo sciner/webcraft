@@ -32,7 +32,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
 
         this.buffer.bind();
 
-        gl.vertexAttribIPointer(attribs.a_chunkId, 1, gl.UNSIGNED_INT, stride, 0 * 4);
+        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 0 * 4);
         gl.vertexAttribIPointer(attribs.a_fluidId, 1, gl.UNSIGNED_INT, stride, 1 * 4);
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 2 * 4);
         gl.vertexAttribPointer(attribs.a_uv, 2, gl.FLOAT, false, stride, 5 * 4);

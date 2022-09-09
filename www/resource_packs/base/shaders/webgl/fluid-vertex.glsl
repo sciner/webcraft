@@ -5,11 +5,11 @@
 #include<global_uniforms_vert>
 
 // 4 liquids max
-uniform ivec4 u_fluidUV[4];
 uniform int u_fluidFlags[4];
+uniform vec4 u_fluidUV[4];
 uniform int u_fluidFrames[4];
 
-in uint a_chunkId;
+in float a_chunkId;
 in uint a_fluidId;
 in vec3 a_position;
 in vec2 a_uv;
@@ -21,10 +21,9 @@ out vec3 v_world_pos;
 out vec3 v_chunk_pos;
 out vec3 v_position;
 out vec2 v_texcoord0;
-out vec2 v_texcoord1_diff;
+out vec4 v_fluidAnim;
 out vec3 v_normal;
 out vec4 v_color;
-out float v_animInterp;
 out float v_lightMode;
 out float v_useFog;
 out float v_lightId;
@@ -56,45 +55,30 @@ void main() {
         float((a_color >> 10) & uint(0x3ff)),
         a_color >> 20, 1.0);
 
-    vec2 uv0 = a_uv;
-    vec2 uv1 = a_uv;
-    v_animInterp = 0.0;
-
-    // Animated textures
+    v_fluidAnim.x = float(a_fluidId);
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
         int frames = u_fluidFrames[a_fluidId];
         float t = ((u_time * float(frames) / 3.) / 1000.);
         int i = int(t);
-        uvCenter0.y += float(i % frames) / 32.;
-        uvCenter1.y += float((i + 1) % frames) / 32.;
-        v_animInterp = fract(t);
+        v_fluidAnim.y = float(i % frames) * u_fluidUV[a_fluidId].y;
+        v_fluidAnim.z = float((i + 1) % frames) * u_fluidUV[a_fluidId].y;
+        v_fluidAnim.w = fract(t);
     }
 
     v_normal = vec3(0.0, 1.0, 0.0);
-    v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
 
-    vec3 pos = a_position;
 
+    v_texcoord0 = a_uv;
     // Scrolled textures
     if (flagScroll > 0) {
-        float shift = (u_time / 1000.0) % 1.0;
-        uv0.y += shift;
-        uv1.y += shift;
+        v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
-    //
-    v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
-    v_axisU *= sign(a_uvSize.x);
-    v_axisV *= sign(a_uvSize.y);
-
-    v_texcoord1_diff = uv1 - uv0;
-
-    v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
+    v_chunk_pos = a_position;
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 
     #include<ao_light_pass_vertex>
-
 }
