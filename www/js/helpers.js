@@ -458,6 +458,13 @@ export class Color {
         return this;
     }
 
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
+
     /**
      * @return {Color}
      */
@@ -485,6 +492,10 @@ export class Color {
 
     toArray() {
         return [this.r, this.g, this.b, this.a];
+    }
+
+    equals(color) {
+        return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
 }

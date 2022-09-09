@@ -15,6 +15,8 @@ export class BaseResourcePack {
 
         this.manager = null;
         this.shader = null;
+        this.fluidShader = null;
+
         this.styles_stat = new Map();
     }
 
@@ -34,37 +36,44 @@ export class BaseResourcePack {
         })
     }
 
-    async initShaders(renderBackend, shared = false) {
-        if (this.shader) {
-            this.shader.shared = shared;
-            return this.shader;
+    async initSingleShader(renderBackend, shared = false, shaderName = 'shader') {
+        if (this[shaderName]) {
+            this[shaderName].shared = shared;
+            return
         }
 
         let shader_options = null;
 
-        if (!this.conf.shader || this.conf.shader.extends) {
+        const conf = this.conf[shaderName];
+        if (!conf || conf.extends) {
             const pack = this.manager.list.get(this.conf.shader?.extends || 'base');
 
             if (pack) {
-                return this.shader = await pack.initShaders(renderBackend, true);
+                pack.initShaders(renderBackend, true);
+                this.shader = pack.shader;
+                return;
             }
         }
-
-        if('gl' in renderBackend) {
-            shader_options = this.conf.shader.webgl;
+        if ('gl' in renderBackend) {
+            shader_options = conf.webgl;
             shader_options = {
-                vertex : this.dir + shader_options.vertex,
-                fragment : this.dir + shader_options.fragment
+                vertex: this.dir + shader_options.vertex,
+                fragment: this.dir + shader_options.fragment,
+                shaderName,
             }
         } else {
-            shader_options = this.dir + this.conf.shader.webgpu;
+            shader_options = this.dir + conf.webgpu;
         }
+        const shader = this[shaderName] = await renderBackend.createResourcePackShader(shader_options);
+        shader.resource_pack_id = this.id;
+        shader.shared = shared;
+    }
 
-        this.shader = await renderBackend.createResourcePackShader(shader_options);
-        this.shader.resource_pack_id = this.id;
-        this.shader.shared = shared;
-
-        return this.shader;
+    async initShaders(renderBackend, shared = false) {
+        await this.initSingleShader(renderBackend, shared, 'shader');
+        if (this.conf.fluidShader) {
+            await this.initSingleShader(renderBackend, shared, 'fluidShader');
+        }
     }
 
     async _loadTexture (url, settings, renderBackend, textureInfo) {

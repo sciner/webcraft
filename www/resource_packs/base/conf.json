@@ -7,6 +7,12 @@
         },
         "webgpu": "/shaders/webgpu/shader.wgsl"
     },
+    "fluidShader": {
+        "webgl": {
+            "vertex": "/shaders/webgl/fluid-vertex.glsl",
+            "fragment": "/shaders/webgl/fluid-fragment.glsl"
+        }
+    },
     "textures": {
         "default": {
             "image": "/textures/default.png",

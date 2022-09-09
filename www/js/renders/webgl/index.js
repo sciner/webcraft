@@ -12,6 +12,7 @@ import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
+import {WebGLFluidShader} from "./WebGLFluidShader.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -422,6 +423,9 @@ export default class WebGLRenderer extends BaseRenderer {
 
     async createResourcePackShader(options) {
         let shaderCode = await Resources.loadWebGLShaders(options.vertex, options.fragment);
+        if (options.shaderName === 'fluidShader') {
+            return new WebGLFluidShader(this, shaderCode);
+        }
         return this.createShader(shaderCode);
     }
 

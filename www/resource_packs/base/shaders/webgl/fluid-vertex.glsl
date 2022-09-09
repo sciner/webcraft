@@ -6,8 +6,8 @@
 
 // 4 liquids max
 uniform ivec4 u_fluidUV[4];
-uniform uint u_fluidFlags[4];
-uniform uint u_fluidFrames[4];
+uniform int u_fluidFlags[4];
+uniform int u_fluidFrames[4];
 
 in uint a_chunkId;
 in uint a_fluidId;
@@ -43,9 +43,8 @@ void main() {
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
     int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;
-    int flagFlagOpacity = (flags >> QUAD_FLAG_OPACITY) & 1;
-    int flagQuadSDF = (flags >> QUAD_FLAG_SDF) & 1;
     int flagNoCanTakeLight = (flags >> NO_CAN_TAKE_LIGHT) & 1;
+    int flagMultiplyColor = (flags >> FLAG_MULTIPLY_COLOR) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
@@ -64,7 +63,7 @@ void main() {
     // Animated textures
     if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
-        int frames = int(u_fluidFrames[a_fluidId]);
+        int frames = u_fluidFrames[a_fluidId];
         float t = ((u_time * float(frames) / 3.) / 1000.);
         int i = int(t);
         uvCenter0.y += float(i % frames) / 32.;
