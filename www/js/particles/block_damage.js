@@ -1,16 +1,47 @@
 import {  DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
-import { default as push_plane_style } from '../block_style/plane.js';
 import { BLOCK } from "../blocks.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { Particles_Base } from './particles_base.js';
-
-const push_plane = push_plane_style.getRegInfo().func;
+import { AABB } from '../core/AABB.js';
+import {impl as alea} from "../../vendors/alea.js";
+import { axisx_offset, axisy_offset } from './effects.js';
 
 const Cd = 0.47; // dimensionless
 const rho = 1.22; // kg / m^3 (коэфицент трения, вязкость, плотность)
 const ag = 9.81;  // m / s^2
+
+// randoms
+let random_count = 8191;
+let randoms = new Float32Array(random_count);
+let random_index = 0;
+let a = new alea('particle_randoms');
+for(let i = 0; i < random_count; i++) {
+    randoms[i] = a.double();
+}
+
+function randomFloat() {
+    random_index = (random_index + 1) % random_count;
+    return randoms[random_index];
+}
+
+//
+const aabb = new AABB();
+const _ppos = new Vector(0, 0, 0);
+const _next_pos = new Vector(0, 0, 0);
+const _block_pos = new Vector(0, 0, 0);
+
+function push_plane(vertices, x, y, z, c, pp, xs, ys, zs, flags) {
+    vertices.push(
+        x, y, z,
+        -xs, 0, 0,
+        0, 0, -zs,
+        c[0], c[1], c[2], c[3],
+        pp,
+        flags
+    );
+}
 
 export default class Particles_Block_Damage extends Particles_Base {
 
@@ -18,6 +49,8 @@ export default class Particles_Block_Damage extends Particles_Base {
     constructor(render, block, pos, small, scale = 1, force = 1) {
 
         super();
+
+        random_index += (Math.random() * random_count) | 0;
 
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
@@ -31,7 +64,7 @@ export default class Particles_Block_Damage extends Particles_Base {
         block = BLOCK.fromId(block.id);
 
         this.chunk      = chunk;
-        this.life       = .5;
+        this.life       = 1.5;
         this.texture    = block.texture;
         this.vertices   = [];
         this.particles  = [];
@@ -59,11 +92,16 @@ export default class Particles_Block_Damage extends Particles_Base {
             const pos_floored = pos.clone().flooredSelf();
             const index = ((pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (pos_floored.x - chunk.coord.x)) * 2;
             lm          = new IndexedColor(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
-            flags       = flags | QUAD_FLAGS.MASK_BIOME;
+            flags       |= QUAD_FLAGS.MASK_BIOME;
         } else if(BLOCK.MASK_COLOR_BLOCKS.includes(block.id)) {
             lm          = block.mask_color;
-            flags       = flags | QUAD_FLAGS.MASK_BIOME;
+            flags       |= QUAD_FLAGS.MASK_BIOME;
+        } else if(block.tags.includes('multiply_color')) {
+            lm          = new IndexedColor(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
+            flags       |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
         }
+
+        const pp = lm.pack();
 
         // Texture params
         let texture_id = 'default';
@@ -73,61 +111,63 @@ export default class Particles_Block_Damage extends Particles_Base {
 
         const tex = this.resource_pack.textures.get(texture_id);
         const c = BLOCK.calcTexture(this.texture, DIRECTION.DOWN, tex.tx_cnt); // полная текстура
-        const count = (small ? 5 : 30) * 2; // particles count
-        const max_sz = small ? (.25 / 16) : (3 / 16);
+        const count = (small ? 5 : 30); // particles count
+        const max_sz = (small ? (.25 / 16) : (3 / 16));
 
         force *= 3;
 
         for(let i = 0; i < count; i++) {
 
-            const sz        = Math.random() * max_sz + 1 / 16; // случайный размер текстуры
-            const half      = sz / block.tx_cnt;
-
+            // случайный размер текстуры
+            const sz = randomFloat() * max_sz + 1/16;
+            const tex_sz = sz / block.tx_cnt;
             // random tex coord (случайная позиция в текстуре)
-            const cx        = c[0] + Math.random() * ((1 - half) / block.tx_cnt);
-            const cy        = c[1] + Math.random() * ((1 - half) / block.tx_cnt);
-
-            const c_half    = [
-                cx - c[2] / 2 + half / 2,
-                cy - c[3] / 2 + half / 2,
-                half,
-                half
-            ];
+            const cx = c[0] - c[2]/2 + tex_sz/2 + randomFloat() * (c[2] - tex_sz);
+            const cy = c[1] - c[3]/2 + tex_sz/2 + randomFloat() * (c[3] - tex_sz);
+            // пересчет координат и размеров текстуры в атласе
+            const tex = [cx, cy, tex_sz, tex_sz];
 
             // случайная позиция частицы (в границах блока)
-            const x = (Math.random() - Math.random()) * (.5 * scale);
-            const y = (Math.random() - Math.random()) * (.5 * scale);
-            const z = (Math.random() - Math.random()) * (.5 * scale);
+            const x = (randomFloat() - randomFloat()) * (.5 * scale);
+            const y = (randomFloat() - randomFloat()) * (.5 * scale);
+            const z = (randomFloat() - randomFloat()) * (.5 * scale);
 
-            push_plane(this.vertices, 0, 0, 0, c_half, lm, true, false, sz * scale, sz * scale, sz * scale, flags);
+            push_plane(this.vertices, 0, 0, 0, tex, pp, sz * scale, sz * scale, sz * scale, flags);
+
+            const block_pos = this.pos.clone().addScalarSelf(x, y, z).flooredSelf();
 
             const p = {
-                vertices_count: 1,
                 pos:            new Vector(x, y, z),
                 velocity:       new Vector(0, 0, 0),
                 mass:           0.05 * scale, // kg
-                radius:         0.00, // 1 = 1m
-                restitution:    -0.07,
-                life:           1 + Math.random(),
-                visible:        true
+                radius:         0.0, // 1 = 1m
+                restitution:    -0.17,
+                life:           1 + randomFloat(),
+                block_pos:      block_pos,
+                block_pos_o:    block_pos.clone(),
+                has_physics:    true,
+                visible:        true,
+                shapes:         []
             };
 
             this.particles.push(p);
 
             // random direction * force
             p.velocity.set(
-                Math.random() - Math.random(),
+                randomFloat() - randomFloat(),
                 1,
-                Math.random() - Math.random()
+                randomFloat() - randomFloat()
             );
-            p.velocity.normSelf().multiplyScalar(force)
+            p.velocity.normSelf().multiplyScalar(force);
+
+            Particles_Base.current_count++;
 
         }
 
         // we should save start values
         this.buffer = new GeometryTerrain(this.vertices);
         // geom terrain converts vertices array to float32/uint32data combo, now we can take it
-        this.vertices = this.buffer.data.slice();
+        // this.vertices = this.buffer.data.slice();
 
     }
 
@@ -139,17 +179,24 @@ export default class Particles_Block_Damage extends Particles_Base {
         delta /= 1000;
         let alive_particles = 0;
 
+        globalThis.er35624 = globalThis.er35624 ?? 0;
+
         for (let i = 0; i < this.particles.length; i++) {
 
             const p = this.particles[i];
+            const buffer_offset = i * GeometryTerrain.strideFloats;
 
             // particle life
             if(p.life <= 0) {
                 continue;
             }
             p.life -= delta;
-            if(p.life < 0) {
+            if(p.life <= 0 && p.visible) {
+                p.life = 0;
                 p.visible = false;
+                this.buffer.data[buffer_offset + axisx_offset + 0] = 0; 
+                this.buffer.data[buffer_offset + axisy_offset + 2] = 0; 
+                Particles_Base.current_count--;
             }
             alive_particles++;
 
@@ -169,21 +216,59 @@ export default class Particles_Block_Damage extends Particles_Base {
             p.velocity.x += ax * delta;
             p.velocity.y += ay * delta;
             p.velocity.z += az * delta;
-            
-            // Integrate to get position
-            p.pos.x += p.velocity.x * delta;
-            p.pos.y += p.velocity.y * delta;
-            p.pos.z += p.velocity.z * delta;
 
-            // Handle collisions
-            const floor = 1;
-            const abs_y = this.pos.y + p.pos.y;
-            if(abs_y - p.radius < floor) {
-                p.velocity.x *= Math.abs(p.restitution);
-                p.velocity.y *= p.restitution;
-                p.velocity.z *= Math.abs(p.restitution);
-                p.pos.y = (floor + p.radius) - this.pos.y;
+            // Integrate to get position
+            if(!p.has_physics) {
+                p.pos.x += p.velocity.x * delta;
+                p.pos.y += p.velocity.y * delta;
+                p.pos.z += p.velocity.z * delta;
+
+            } else {
+
+                _next_pos.set(
+                    p.pos.x += p.velocity.x * delta,
+                    p.pos.y += p.velocity.y * delta,
+                    p.pos.z += p.velocity.z * delta
+                )
+
+                _block_pos.copyFrom(this.pos).addSelf(_next_pos).flooredSelf();
+                if(!p.block_pos_o.equal(_block_pos)) {
+                    p.block_pos_o.copyFrom(p.block_pos);
+                    p.block_pos.copyFrom(_block_pos);
+                    globalThis.er35624++;
+                    const tblock = Qubatch.world.getBlock(p.block_pos);
+                    if(tblock && tblock.id > 0) {
+                        p.shapes = BLOCK.getShapes(p.block_pos, tblock, Qubatch.world, true, false);
+                    } else {
+                        p.shapes = [];
+                    }
+                }
+
+                _ppos.copyFrom(this.pos).addSelf(_next_pos);
+
+                for(let shape of p.shapes) {
+                    aabb.fromArray(shape).translate(p.block_pos.x, p.block_pos.y, p.block_pos.z);
+                    if(aabb.contains(_ppos.x, _ppos.y, _ppos.z)) {
+                        const floor = aabb.y_max;
+                        if(_ppos.y < floor) {
+                            p.velocity.x *= Math.abs(p.restitution);
+                            p.velocity.y *= p.restitution;
+                            p.velocity.z *= Math.abs(p.restitution);
+                            // если закомментить следующую строку, то частицы будут вести себя как жидкость
+                            // прилепая к боковым сторонам
+                            // а также будут стекать
+                            _next_pos.y = floor - this.pos.y;
+                        }
+                    }
+                }
+
+                p.pos.copyFrom(_next_pos);
+
             }
+
+            this.buffer.data[buffer_offset + 0] = p.pos.x + this.pos.x - this.chunk.coord.x;
+            this.buffer.data[buffer_offset + 2] = p.pos.y + this.pos.y - this.chunk.coord.y;
+            this.buffer.data[buffer_offset + 1] = p.pos.z + this.pos.z - this.chunk.coord.z;
 
         }
 

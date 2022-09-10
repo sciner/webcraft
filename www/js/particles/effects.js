@@ -5,8 +5,8 @@ import { ChunkManager } from '../chunk_manager.js';
 import { Particles_Base } from './particles_base.js';
 
 const pos_offset        = 0;
-const axisx_offset      = 3;
-const axisy_offset      = 6;
+export const axisx_offset      = 3;
+export const axisy_offset      = 6;
 const uv_size_offset    = 11;
 const lm_offset         = 13;
 const params_offset     = 4;
@@ -18,8 +18,6 @@ const MIN_PERCENT       = .25;
 const DEFAULT_LM        = new IndexedColor(0, 0, 0);
 
 export class Particles_Effects extends Particles_Base {
-
-    static current_count = 0;
 
     // Constructor
     constructor(render, chunk_addr, material_key) {
@@ -76,7 +74,7 @@ export class Particles_Effects extends Particles_Base {
         //
         const vindex = this.add_index * STRIDE_FLOATS;
         if(this.vertices[vindex + params_offset]) {
-            Particles_Effects.current_count--;
+            Particles_Base.current_count--;
             this.p_count--;
         }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
@@ -89,7 +87,7 @@ export class Particles_Effects extends Particles_Base {
         params.started = performance.now();
         params.pend = params.started + 1000 * params.life;
         this.vertices[vindex + params_offset] = params;
-        Particles_Effects.current_count++;
+        Particles_Base.current_count++;
         this.p_count++;
 
         if(this.p_count >= this.max_count) {
@@ -123,7 +121,7 @@ export class Particles_Effects extends Particles_Base {
                 }
                 // ignore this particle
                 if(params.pend < pn) {
-                    Particles_Effects.current_count--;
+                    Particles_Base.current_count--;
                     this.p_count--;
                     for(let j = 0; j < STRIDE_FLOATS; j++) {
                         this.vertices[i + j] = 0;
