@@ -3,7 +3,7 @@ import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT, PLAYER_ZOOM
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
-import Particles_Block_Drop from "./particles/block_drop.js";
+import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
 const { quat, mat4 } = glMatrix;
@@ -198,7 +198,7 @@ export class PlayerModel extends MobModel {
         let item;
         
         try {
-            item = new Particles_Block_Drop(null, null, [block], Vector.ZERO);
+            item = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO);
         } catch(e) {
             console.log(e);
             //

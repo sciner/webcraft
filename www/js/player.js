@@ -894,7 +894,7 @@ export class Player {
             }
             case 'instrument': {
                 // sword, axe, pickaxe, etc...
-                return true;
+                return false;
             }
             case 'tool': {
                 // like flint_and_steel

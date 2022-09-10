@@ -892,7 +892,7 @@ export class Vector {
      * @param {number} [z]
      */
     set(x, y = x, z = x) {
-        if (typeof x == "object" && x) {
+        if (x && typeof x == 'object') {
             return this.copy(x);
         }
 

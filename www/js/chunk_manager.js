@@ -8,7 +8,7 @@ import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
-import { Particles_BeaconRay } from "./particles/bn_ray.js";
+import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -106,7 +106,7 @@ export class ChunkManager {
                     if(Math.random() < .23) {
                         if(player_pos.distance(item.block_pos) < type_distance[item.type]) {
                             for(let pos_index = 0; pos_index < item.pos.length; pos_index++) {
-                                meshes.addEffectParticle(item.type, item.pos[pos_index]);
+                                meshes.effects.add(item.type, item.pos[pos_index]);
                             }
                         }
                     }
@@ -222,7 +222,7 @@ export class ChunkManager {
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
-                    meshes.addForChunk(getChunkAddr(args.pos), new Particles_BeaconRay(args), 'beacon/' + args.pos.toHash());
+                    meshes.addForChunk(getChunkAddr(args.pos), new Mesh_Object_BeaconRay(args), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'del_beacon_ray': {

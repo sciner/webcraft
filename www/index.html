@@ -326,11 +326,11 @@
                         <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
                     </div>
                     <div class="switcher-container">
-                        <input type="checkbox" id="test1" value="" ng-model="settings.form.forced_joystick_control" />
+                        <input type="checkbox" id="chk-forced_joystick_control" value="" ng-model="settings.form.forced_joystick_control" />
                         <div class="switcher">
                             <small></small>
                         </div>
-                        <label for="test1">{{Lang.forced_joystick_control}}</label>
+                        <label for="chk-forced_joystick_control">{{Lang.forced_joystick_control}}</label>
                     </div>
                 </div>
                 <div class="video">
@@ -352,18 +352,18 @@
                     <div class="input-group">
                         <p>{{Lang.render_options}}</p>
                         <div class="switcher-container">
-                            <input type="checkbox" id="test1" value="" ng-model="settings.form.mipmap" />
+                            <input type="checkbox" id="chk-generate_mipmap" value="" ng-model="settings.form.mipmap" />
                             <div class="switcher">
                                 <small></small>
                             </div>
-                            <label for="test1">{{Lang.generate_mipmap}}</label>
+                            <label for="chk-generate_mipmap">{{Lang.generate_mipmap}}</label>
                         </div>
                         <div class="switcher-container" style="margin: 1em 0;">
-                            <input type="checkbox" id="test2" value="" ng-model="settings.form.beautiful_leaves" />
+                            <input type="checkbox" id="chk-beautiful_leaves" value="" ng-model="settings.form.beautiful_leaves" />
                             <div class="switcher">
                                 <small></small>
                             </div>
-                            <label for="test1">{{Lang.beautiful_leaves}}</label>
+                            <label for="chk-beautiful_leaves">{{Lang.beautiful_leaves}}</label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -411,9 +411,9 @@
             <div class="modal-wrapper" id="modal-change-pass">
                 <div class="modal">
                     <h3 class="header">Password change</h3>
-                    <input type="password" name="" id="" placeholder="Current password">
-                    <input type="password" name="" id="" placeholder="New password">
-                    <input type="password" name="" id="" placeholder="Repeat new password">
+                    <input type="password" placeholder="Current password">
+                    <input type="password" placeholder="New password">
+                    <input type="password" placeholder="Repeat new password">
                     <div class="buttons">
                         <button class="secondary" ng-click="modalWindow.hide('modal-change-pass')">Cancel</button>
                         <button class="primary" ng-click="">Apply</button>
@@ -516,11 +516,11 @@
                             <!-- Options -->
                             <div ng-repeat="(key, option) in newgame.generators.current.options">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
-                                    <input type="checkbox" id="test1" value="" ng-model="newgame.form.generator.options[key]" />
+                                    <input type="checkbox" id="chk-generator-option-{{key}}" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">
                                         <small></small>
                                     </div>
-                                    <label for="test1">{{option.title}}</label>
+                                    <label for="chk-generator-option-{{key}}">{{option.title}}</label>
                                 </div>
                                 <div ng-if="option.type == 'select'">
                                     <p>{{option.title}}</p>

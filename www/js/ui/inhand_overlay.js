@@ -3,7 +3,7 @@ import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
 import { Mth, Vector } from "../helpers.js";
-import Particles_Block_Drop from "../particles/block_drop.js";
+import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
 class ItemUseAnimation {
     static NONE = 0;
@@ -49,7 +49,7 @@ export class InHandOverlay {
         });
 
         /**
-         * @type {Particles_Block_Drop}
+         * @type {Mesh_Object_Block_Drop}
          */
         this.inHandItemMesh = null;
         this.inHandItemBroken = false;
@@ -89,7 +89,7 @@ export class InHandOverlay {
             if(block.inventory?.scale) {
                 mat4.scale(m, m, [block.inventory?.scale, block.inventory?.scale, block.inventory?.scale]);
             }
-            this.inHandItemMesh = new Particles_Block_Drop(null, null, [block], Vector.ZERO, m);
+            this.inHandItemMesh = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO, m);
         } catch(e) {
             console.log(e);
             //

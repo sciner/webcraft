@@ -4,9 +4,9 @@ import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
 import { isMobileBrowser } from "./helpers.js";
 import {Resources} from "./resources.js";
-import { Particles_Base } from "./particles/particles_base.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
+import { Mesh_Particle_Base } from "./mesh/particle.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -345,7 +345,7 @@ export class HUD {
             if(draw_tech_info) {
                 this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
                 if(render) {
-                    this.text += '\nParticles: ' + Particles_Base.current_count;
+                    this.text += '\nParticles: ' + Mesh_Particle_Base.current_count;
                     this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
                     if (render.renderBackend.stat.multidrawcalls) {
                         this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';

@@ -1,12 +1,12 @@
-import {  DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from '../helpers.js';
-import { CHUNK_SIZE_X } from "../chunk_const.js";
-import GeometryTerrain from "../geometry_terrain.js";
-import { BLOCK } from "../blocks.js";
-import { ChunkManager } from '../chunk_manager.js';
-import { Particles_Base } from './particles_base.js';
-import { AABB } from '../core/AABB.js';
-import {impl as alea} from "../../vendors/alea.js";
-import { axisx_offset, axisy_offset } from './effects.js';
+import {  DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
+import { CHUNK_SIZE_X } from "../../chunk_const.js";
+import GeometryTerrain from "../../geometry_terrain.js";
+import { BLOCK } from "../../blocks.js";
+import { ChunkManager } from '../../chunk_manager.js';
+import { Mesh_Particle_Base } from '../particle.js';
+import { AABB } from '../../core/AABB.js';
+import {impl as alea} from "../../../vendors/alea.js";
+import { axisx_offset, axisy_offset } from '../effect.js';
 
 const Cd = 0.47; // dimensionless
 const rho = 1.22; // kg / m^3 (коэфицент трения, вязкость, плотность)
@@ -43,7 +43,7 @@ function push_plane(vertices, x, y, z, c, pp, xs, ys, zs, flags) {
     );
 }
 
-export default class Particles_Block_Damage extends Particles_Base {
+export default class Mesh_Particle_Block_Damage extends Mesh_Particle_Base {
 
     // Constructor
     constructor(render, block, pos, small, scale = 1, force = 1) {
@@ -160,7 +160,7 @@ export default class Particles_Block_Damage extends Particles_Base {
             );
             p.velocity.normSelf().multiplyScalar(force);
 
-            Particles_Base.current_count++;
+            Mesh_Particle_Base.current_count++;
 
         }
 
@@ -194,7 +194,7 @@ export default class Particles_Block_Damage extends Particles_Base {
                 p.visible = false;
                 this.buffer.data[buffer_offset + axisx_offset + 0] = 0; 
                 this.buffer.data[buffer_offset + axisy_offset + 2] = 0; 
-                Particles_Base.current_count--;
+                Mesh_Particle_Base.current_count--;
             }
             alive_particles++;
 

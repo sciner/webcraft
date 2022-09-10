@@ -1,13 +1,14 @@
-import {Vector} from '../helpers.js';
-import { NetworkPhysicObject } from '../network_physic_object.js';
-import { MeshGroup, FakeTBlock } from '../mesh/group.js';
+import { FakeTBlock } from '../../blocks.js';
+import {Vector} from '../../helpers.js';
+import { NetworkPhysicObject } from '../../network_physic_object.js';
+import { MeshGroup } from '../group.js';
 
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
 
-// Particles_Block_Drop
-export default class Particles_Block_Drop extends NetworkPhysicObject {
+// Mesh_Object_Block_Drop
+export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
     static neighbours = null;
 
@@ -41,7 +42,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         }
 
         // Get from cache
-        this.mesh_group = use_cache ? Particles_Block_Drop.mesh_groups_cache.get(block.id) : null;
+        this.mesh_group = use_cache ? Mesh_Object_Block_Drop.mesh_groups_cache.get(block.id) : null;
 
         if(this.mesh_group) {
             // do nothing
@@ -97,7 +98,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot);
 
             // 7.
-            Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
+            Mesh_Object_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
         }
 
         this.modelMatrix = mat4.create();

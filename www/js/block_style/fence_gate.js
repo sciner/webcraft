@@ -70,8 +70,8 @@ export default class style {
             push_part(vertices, texture, x + SIZE, y + 4 * SIZE, z + 8 * SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
             push_part(vertices, texture, x + 15 * SIZE, y + 4 * SIZE, z + 8 * SIZE, 2 * SIZE, 2 * SIZE, 12 * SIZE);
             // Створки
-            if (block.extra_data.opened) {
-                if (['east', 'north'].indexOf(block.extra_data.facing) >= 0) {
+            if (block.extra_data?.opened) {
+                if (['east', 'north'].includes(block.extra_data?.facing)) {
                     push_half_gate(DIRECTION.RIGHT, x + SIZE, y,  z + 8 * SIZE, vertices, texture);
                     push_half_gate(DIRECTION.RIGHT, x + 15 * SIZE, y,  z + 8 * SIZE, vertices, texture);
                 } else {

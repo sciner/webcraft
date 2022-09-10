@@ -1,11 +1,10 @@
-import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
-import GeometryTerrain from "../geometry_terrain.js";
-import { BLEND_MODES } from '../renders/BaseRenderer.js';
-import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
-import { Resources } from '../resources.js';
-
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../chunk_const.js';
+import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../../helpers.js';
+import GeometryTerrain from "../../geometry_terrain.js";
+import { BLEND_MODES } from '../../renders/BaseRenderer.js';
+import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
+import { Resources } from '../../resources.js';
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 
 const {mat4} = glMatrix;
 
@@ -46,11 +45,11 @@ class RainColumn {
 
 /**
  * Draw rain over player
- * @class Particles_Raindrop
+ * @class Mesh_Object_Raindrop
  * @param {Renderer} gl Renderer
  * @param {Vector} pos Player position
  */
-export default class Particles_Rain {
+export default class Mesh_Object_Rain {
 
     #_enabled           = false;
     #_map               = new VectorCollector();
@@ -89,7 +88,7 @@ export default class Particles_Rain {
      * Draw particles
      * @param {Renderer} render Renderer
      * @param {float} delta Delta time from previous call
-     * @memberOf Particles_Raindrop
+     * @memberOf Mesh_Object_Raindrop
      */
     draw(render, delta) {
 
@@ -236,7 +235,7 @@ export default class Particles_Rain {
 
     /**
      * Destructor
-     * @memberOf Particles_Raindrop
+     * @memberOf Mesh_Object_Raindrop
      */
     destroy(render) {
         this.buffer.destroy();
@@ -245,7 +244,7 @@ export default class Particles_Rain {
     /**
      * Check particle status
      * @return {boolean}
-     * @memberOf Particles_Raindrop
+     * @memberOf Mesh_Object_Raindrop
      */
     isAlive() {
         return true;

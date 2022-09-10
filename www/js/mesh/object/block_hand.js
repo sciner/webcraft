@@ -1,8 +1,7 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-import { decodeCubes, fillCube } from "../bedrockJsonParser.js";
-import GeometryTerrain from "../geometry_terrain.js";
-import { Vector } from "../helpers.js";
-import { Resources } from "../resources.js";
+import glMatrix from "../../../vendors/gl-matrix-3.3.min.js";
+import { decodeCubes, fillCube } from "../../bedrockJsonParser.js";
+import { Vector } from "../../helpers.js";
+import { Resources } from "../../resources.js";
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();

@@ -88,7 +88,7 @@ export class GameClass {
             // Add jukebox animations
             for(let pos of TrackerPlayer.vc.keys()) {
                 if(Math.random() < .1) {
-                    Qubatch.render.meshes.addEffectParticle('music_note', pos);
+                    Qubatch.render.meshes.effects.add('music_note', pos);
                 }
             }
         }, 50);
