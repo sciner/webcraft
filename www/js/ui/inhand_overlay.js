@@ -4,7 +4,6 @@ import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
 import { Mth, Vector } from "../helpers.js";
 import Particles_Block_Drop from "../particles/block_drop.js";
-// import { Particle_Hand } from "../particles/block_hand.js";
 
 class ItemUseAnimation {
     static NONE = 0;
