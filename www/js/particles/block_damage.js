@@ -64,7 +64,7 @@ export default class Particles_Block_Damage extends Particles_Base {
         block = BLOCK.fromId(block.id);
 
         this.chunk      = chunk;
-        this.life       = 1.5;
+        this.life       = 0.5;
         this.texture    = block.texture;
         this.vertices   = [];
         this.particles  = [];
@@ -179,8 +179,6 @@ export default class Particles_Block_Damage extends Particles_Base {
         delta /= 1000;
         let alive_particles = 0;
 
-        globalThis.er35624 = globalThis.er35624 ?? 0;
-
         for (let i = 0; i < this.particles.length; i++) {
 
             const p = this.particles[i];
@@ -235,7 +233,6 @@ export default class Particles_Block_Damage extends Particles_Base {
                 if(!p.block_pos_o.equal(_block_pos)) {
                     p.block_pos_o.copyFrom(p.block_pos);
                     p.block_pos.copyFrom(_block_pos);
-                    globalThis.er35624++;
                     const tblock = Qubatch.world.getBlock(p.block_pos);
                     if(tblock && tblock.id > 0) {
                         p.shapes = BLOCK.getShapes(p.block_pos, tblock, Qubatch.world, true, false);
