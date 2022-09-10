@@ -1,4 +1,5 @@
 import { WebGLTerrainShader } from './WebGLTerrainShader.js';
+import { QUAD_FLAGS } from '../../helpers.js';
 
 export class WebGLFluidShader extends WebGLTerrainShader {
     /**
@@ -8,6 +9,21 @@ export class WebGLFluidShader extends WebGLTerrainShader {
      */
     constructor(context, options) {
         super(context, options);
+
+        //uniform int u_fluidFlags[4];
+        // uniform vec4 u_fluidUV[4];
+        // uniform int u_fluidFrames[4];
+
+        //TODO: make this specific to resourcepack (material)
+        this.fluidFlags = new Int32Array([
+            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR,
+            QUAD_FLAGS.FLAG_ANIMATED,
+        ]);
+        this.fluidUV = new Float32Array([
+            0.0 / 1024.0, 0.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0,
+            32.0 / 1024.0, 0.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0
+        ]);
+        this.fluidFrames = new Int32Array([32, 32]);
     }
 
     locateAttribs() {
@@ -34,11 +50,14 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
         this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
-        this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
         this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
         this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
         this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
         this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
+
+        this.u_fluidFlags       = gl.getUniformLocation(program, 'u_fluidFlags');
+        this.u_fluidUV          = gl.getUniformLocation(program, 'u_fluidUV');
+        this.u_fluidFrames      = gl.getUniformLocation(program, 'u_fluidFrames');
     }
 
     setStaticUniforms() {
@@ -50,5 +69,9 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         gl.uniform1i(this.u_blockDayLightSampler, 2);
 
         gl.uniform1i(this.u_blockDayLightSampler, 2);
+
+        gl.uniform1iv(this.u_fluidFlags, this.fluidFlags);
+        gl.uniform4fv(this.u_fluidUV, this.fluidUV);
+        gl.uniform1iv(this.u_fluidFrames, this.fluidFrames);
     }
 }

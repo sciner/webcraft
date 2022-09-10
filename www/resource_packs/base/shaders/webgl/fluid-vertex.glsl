@@ -5,9 +5,9 @@
 #include<global_uniforms_vert>
 
 // 4 liquids max
-uniform int u_fluidFlags[4];
-uniform vec4 u_fluidUV[4];
-uniform int u_fluidFrames[4];
+uniform int u_fluidFlags[2];
+uniform vec4 u_fluidUV[2];
+uniform int u_fluidFrames[2];
 
 in float a_chunkId;
 in uint a_fluidId;

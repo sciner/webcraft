@@ -4,7 +4,7 @@
 #include<global_uniforms>
 #include<global_uniforms_frag>
 
-uniform vec4 u_fluidUV[4];
+uniform vec4 u_fluidUV[2];
 
 in vec3 v_position;
 in vec2 v_texcoord0;
