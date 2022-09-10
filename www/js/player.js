@@ -504,7 +504,7 @@ export class Player {
         pc.player_state.pos.copyFrom(vec);
         pc.player_state.onGround = false;
         //
-        this.clearEvents();
+        this.stopAllActivity();
         //
         this.onGround = false;
         this.lastBlockPos = null;

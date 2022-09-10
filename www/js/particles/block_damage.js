@@ -94,7 +94,7 @@ export default class Particles_Block_Damage extends Particles_Base {
             lm          = new IndexedColor(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
             flags       |= QUAD_FLAGS.MASK_BIOME;
         } else if(BLOCK.MASK_COLOR_BLOCKS.includes(block.id)) {
-            lm          = block.mask_color;
+            lm          = new IndexedColor(block.mask_color.r, block.mask_color.g, block.mask_color.b);
             flags       |= QUAD_FLAGS.MASK_BIOME;
         } else if(block.tags.includes('multiply_color')) {
             lm          = new IndexedColor(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
