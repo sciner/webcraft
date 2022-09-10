@@ -57,10 +57,12 @@ export class Mesh_Effect_Manager {
         this.effects.set('explosion', Mesh_Effect_Explosion);
         this.effects.set('destroy_block', Mesh_Effect_Block_Damage);
 
-        for(const [k, arr] of this.effects.entries()) {
-            for(let i in arr) {
-                arr[i][0] += .5;
-                arr[i][1] += .5;
+        for(const [k, c] of this.effects.entries()) {
+            if(c.textures) {
+                for(let i in c.textures) {
+                    c.textures[i][0] += .5;
+                    c.textures[i][1] += .5;
+                }
             }
         }
 
@@ -91,6 +93,7 @@ export class Mesh_Effect_Manager {
 
 }
 
+// Mesh effect
 export class Mesh_Effect extends Mesh_Particle_Base {
 
     // Constructor

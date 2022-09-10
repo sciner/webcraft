@@ -4,14 +4,13 @@ import { Mesh_Effect_Base } from "./base.js";
 
 export default class effect extends Mesh_Effect_Base {
 
-    static sdfsdf44444 = [
+    static textures = [
         [0, 1], [1, 1], [2, 1], [3, 1]
     ];
 
     constructor(pos, params) {
         super(pos, params);
-        console.log(effect.sdfsdf44444);
-        const {texture, texture_index} = this.getTexture([[0, 1], [1, 1], [2, 1], [3, 1]]);
+        const {texture, texture_index} = this.getTexture(effect.textures);
         pos.addScalarSelf(
             (Math.random() - Math.random()) * 0.01,
             .2,
