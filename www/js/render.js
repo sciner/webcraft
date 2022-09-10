@@ -16,8 +16,8 @@ import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
-// import { InHandOverlay } from "./ui/inhand_overlay.js";
-import { InHandOverlay } from "./ui/inhand_overlay_old.js";
+import { InHandOverlay } from "./ui/inhand_overlay.js";
+// import { InHandOverlay } from "./ui/inhand_overlay_old.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
@@ -38,7 +38,7 @@ export const ZOOM_FACTOR        = 0.25;
 const BACKEND                   = 'webgl'; // disable webgpu temporary because require update to follow webgl
 const FOV_CHANGE_SPEED          = 75;
 const FOV_FLYING_CHANGE_SPEED   = 35;
-const FOV_NORMAL                = 65;
+const FOV_NORMAL                = 70;
 const FOV_FLYING                = FOV_NORMAL * 1.075;
 const FOV_WIDE                  = FOV_NORMAL * 1.15;
 const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;

@@ -1,4 +1,4 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
@@ -30,7 +30,7 @@ export class HumanoidArm {
     }
  }
 
-const {mat4} = glMatrix;
+const {mat3, mat4, quat} = glMatrix;
 const tmpMatrix = mat4.create();
 
 export class InHandOverlay {
@@ -140,7 +140,7 @@ export class InHandOverlay {
             this.mineTime = 0;
         }
         
-        if (player.inMiningProcess || player.inItemUseProcess || this.mineTime > (delta * 10) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+        if (player.inMiningProcess || player.inItemUseProcess || this.mineTime > (delta * 2) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
             this.mineTime += delta / player.inhand_animation_duration;
             if (this.mineTime >= 1) {
                 this.mineTime = 0;
@@ -187,7 +187,13 @@ export class InHandOverlay {
 
         const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
 
-        camera.pos.set(0, 0.5, -1.5 * animFrame);
+        camera.pos.set(
+            -157.48671900056806/100,
+            218.10827698032705/100
+            -57.69201067788088/100,
+        );
+
+        // camera.pos.set(0, 0.5, -1.5 * animFrame);
         camera.set(camera.pos, Vector.ZERO, camera.bobPrependMatrix);
 
         // change GU for valid in hand block drawings
@@ -269,6 +275,7 @@ export class InHandOverlay {
      */
     renderArmWithItem(player, pPartialTicks, pPitch, hand, pSwingProgress, matInHand, pEquippedProgress, modelMatrix, p_109380_, pCombinedLight) {
 
+        /*
         let animation_name = 'hit';
         if (matInHand?.item?.name == 'food' && player.inItemUseProcess) {
             animation_name = 'food';
@@ -302,6 +309,7 @@ export class InHandOverlay {
         }
 
         return;
+        */
 
         // не смотрит в подзорную трубу
         if (!player.isScoping()) {
@@ -482,7 +490,7 @@ export class InHandOverlay {
                     mat4.translate(modelMatrix, modelMatrix, [l * f5, f10, f6]);
   
                     this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
-                    // this.applyItemArmAttackTransform(modelMatrix, humanoidarm, pSwingProgress);
+                    this.applyItemArmAttackTransform(modelMatrix, humanoidarm, pSwingProgress);
 
                 }
     
@@ -502,13 +510,13 @@ export class InHandOverlay {
     applyItemArmTransform(modelMatrix, hand, pEquippedProgress) {
 
         // let i = p_109384_ == HumanoidArm.RIGHT ? 1 : -1;
-        // modelMatrix.translate(i * 0.56, -0.52 + p_109385_ * -0.6, -0.72);
+        // modelMatrix.translate(i * 0.56, -0.52 + pEquippedProgress * -0.6, -0.72);
 
         let i = hand == HumanoidArm.RIGHT ? 1 : -1;
         const x = i * 0.56;
         const y = -0.52 + pEquippedProgress * -0.6;
         const z = -0.72
-        mat4.translate(modelMatrix, modelMatrix, [x, y, z]);
+        mat4.translate(modelMatrix, modelMatrix, [x, z, y]);
 
     }
 
@@ -519,6 +527,7 @@ export class InHandOverlay {
     */
     applyItemArmAttackTransform(modelMatrix, hand, pSwingProgress) {
 
+        // Java
         // let i = hand == HumanoidArm.RIGHT ? 1 : -1;
         // let f = Math.sin(p_109338_ * p_109338_ * Math.PI);
         // modelMatrix.mulPose(Vector.YP.rotationDegrees(i * (45.0 + f * -20.0)));
@@ -530,27 +539,19 @@ export class InHandOverlay {
 
         const i = hand == HumanoidArm.RIGHT ? 1 : -1;
         const f = Math.sin(pSwingProgress * pSwingProgress * Math.PI);
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, Vector.YP.rotationDegrees(i * (45.0 + f * -20.0))));
+
+        const m = mat4.create();
+        const q = quat.create();
+        const deg2Rad = (i) => {
+            return i;// (Math.PI / 180) * i;
+        }
+
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * (45.0 + f * -20.0)))));
 
         const f1 = Math.sin(Math.sqrt(pSwingProgress) * Math.PI);
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(mat4.create(), Vector.ZP.rotationDegrees(i * f1 * -20.0)));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(mat4.create(), Vector.XP.rotationDegrees(f1 * -80.0)));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(mat4.create(), Vector.YP.rotationDegrees(i * -45.0)));
-
-        // modelMatrix.mulPose(Vector.YP.rotationDegrees(i * (45.0 + f * -20.0)));
-        // modelMatrix.mulPose(Vector.ZP.rotationDegrees(i * f1 * -20.0));
-        // modelMatrix.mulPose(Vector.XP.rotationDegrees(f1 * -80.0));
-        // modelMatrix.mulPose(Vector.YP.rotationDegrees(i * -45.0));
-
-        // mat4.multiply(modelMatrix, modelMatrix, Vector.YP.rotationDegrees(i * (45.0 + f * -20.0)));
-        // mat4.multiply(modelMatrix, modelMatrix, Vector.ZP.rotationDegrees(i * f1 * -20.0));
-        // mat4.multiply(modelMatrix, modelMatrix, Vector.XP.rotationDegrees(f1 * -80.0));
-        // mat4.multiply(modelMatrix, modelMatrix, Vector.YP.rotationDegrees(i * -45.0));
-
-        // mat4.mul(modelMatrix, modelMatrix, mat4.fromRotation(modelMatrix, i * (45.0 + f * -20.0), Vector.YP));
-        // mat4.mul(modelMatrix, modelMatrix, mat4.fromRotation(modelMatrix, i * f1 * -20.0, Vector.ZP));
-        // mat4.mul(modelMatrix, modelMatrix, mat4.fromRotation(modelMatrix, f1 * -80.0, Vector.XP));
-        // mat4.mul(modelMatrix, modelMatrix, mat4.fromRotation(modelMatrix, i * -45.0, Vector.YP));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * f1 * -20.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.XP, deg2Rad(f1 * -80.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * -45.0))));
 
     }
     
