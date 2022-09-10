@@ -1056,7 +1056,7 @@ export class WindowManager extends Window {
             case 'mousemove': {
                 let evt = {
                     shiftKey:   e.shiftKey,
-                    button:     e.button,
+                    button_id:  e.button_id,
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
                 };
@@ -1077,7 +1077,7 @@ export class WindowManager extends Window {
             case 'mousedown': {
                 let evt = {
                     shiftKey:   e.shiftKey,
-                    button:     e.button,
+                    button_id:  e.button_id,
                     drag:       this.drag,
                     x:          e.offsetX - this.x,
                     y:          e.offsetY - this.y
@@ -1094,7 +1094,7 @@ export class WindowManager extends Window {
                 if(!this.drag.getItem()) {
                     let evt = {
                         shiftKey:       e.shiftKey,
-                        button:         e.button,
+                        button_id:      e.button_id,
                         original_event: e.original_event,
                         x:              e.offsetX - this.x,
                         y:              e.offsetY - this.y

@@ -1,3 +1,4 @@
+import { MOUSE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 
@@ -133,10 +134,9 @@ export class Mob {
     }
 
     async punch(server_player, params) {
-        if(params.button_id == 3) {
+        if(params.button_id == MOUSE.BUTTON_RIGHT) {
             this.#brain.onUse(server_player, server_player.state.hands.right.id);
-        } else if(params.button_id == 1) {
-
+        } else if(params.button_id == MOUSE.BUTTON_LEFT) {
             if(this.indicators.live.value > 0) {
                 await this.changeLive(-5, server_player);
                 this.#brain.onDamage(server_player, 5);

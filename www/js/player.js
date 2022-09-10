@@ -10,8 +10,9 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
+import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -26,6 +27,7 @@ export class Player {
 
     constructor(options) {
         this.inMiningProcess = false;
+        this.inItemUseProcess = false;
         this.options = options;
         this.scale = PLAYER_ZOOM;
         this.current_state = {
@@ -180,6 +182,13 @@ export class Player {
             }
             return false;
         });
+
+        //setInterval(() => {
+        //    const pos = Qubatch.player.lerpPos.clone();
+        //    pos.set(-118.5, 10.5, -4.5);
+        //    Qubatch.render.damageBlock({id: 202}, pos, false);
+        //}, 10);
+
         return true;
     }
 
@@ -282,7 +291,7 @@ export class Player {
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale);
+                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale, this.scale);
                     }
                 }
             }
@@ -298,22 +307,49 @@ export class Player {
         }
     }
 
+    // Stop all player activity
+    stopAllActivity() {
+        // clear all keyboard inputs
+        Qubatch.kb.clearStates();
+        // stop player movement states
+        this.controls.reset();
+        // reset mouse actions
+        this.resetMouseActivity();
+    }
+
+    // Stop all mouse actions, eating, mining, punching, etc...
+    resetMouseActivity() {
+        this.inMiningProcess = false;
+        this.inItemUseProcess = false;
+        if(this.pickAt) {
+            this.pickAt.resetProgress();
+        }
+        this.stopItemUse();
+    }
+
     // Hook for mouse input
     onMouseEvent(e) {
-        let {type, button_id, shiftKey} = e;
-        // Mouse actions
-        if (type == MOUSE.DOWN) {
-            // console.log(e.button_id, this.state.sitting, this.state.lies)
-            //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
-            //    this.standUp();
-            //} else {
+        const {type, button_id, shiftKey} = e;
+        if(button_id == MOUSE.BUTTON_RIGHT) {
+            if(type == MOUSE.DOWN) {
+                const cur_mat_id = this.inventory.current_item?.id;
+                if(cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id);
+                    if(this.startItemUse(cur_mat)) {
+                        return false;
+                    }
+                }
+            } else {
+                this.stopItemUse();
+            }
+        }
+        if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
-            if(e.button_id == 1) {
+            if(e.button_id == MOUSE.BUTTON_LEFT) {
                 this.startArmSwingProgress();
             }
-            //}
         } else if (type == MOUSE.UP) {
-            this.pickAt.clearEvent();
+            this.resetMouseActivity();
         }
     }
 
@@ -338,6 +374,7 @@ export class Player {
     async onPickAtTarget(e, times, number) {
 
         this.inMiningProcess = true;
+        this.inhand_animation_duration = 5 * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
         // createBlock
@@ -417,13 +454,6 @@ export class Player {
             this._prevActionTime = performance.now();
         }
         return resp;
-    }
-
-    clearEvents() {
-        Qubatch.kb.clearStates()
-        this.pickAt.clearEvent();
-        this.inMiningProcess = false;
-        this.controls.reset();
     }
 
     //
@@ -803,14 +833,6 @@ export class Player {
         }
     }
 
-    //
-    clearStates() {
-        this.controls.reset();
-        this.pickAt.clearEvent();
-        this.pickAt.resetTargetPos();
-        this.inMiningProcess = false;
-    }
-
     // Отправка информации о позиции и ориентации игрока на сервер
     sendState() {
         const cs = this.current_state;
@@ -843,6 +865,80 @@ export class Player {
                 data: compressPlayerStateC(cs)
             });
         }
+    }
+
+    // Start use of item
+    startItemUse(material) {
+        const item_name = material?.item?.name;
+        switch(item_name) {
+            case 'food': {
+                this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
+                this._eating_sound_tick = 0;
+                if(this._eating_sound) {
+                    clearInterval(this._eating_sound);
+                }
+                // timer
+                this._eating_sound = setInterval(() => {
+                    this._eating_sound_tick++
+                    const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
+                    Qubatch.sounds.play('madcraft:block.player', action, null, false);
+                    if(action != 'burp') {
+                        // сдвиг точки, откуда происходит вылет частиц
+                        const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
+                        const pos = this.getEyePos().add(this.forward.mul(dist));
+                        pos.y -= .65 * this.scale;
+                        Qubatch.render.damageBlock(material, pos, true, this.scale, this.scale);
+                    }
+                }, 200);
+                break;
+            }
+            case 'instrument': {
+                // sword, axe, pickaxe, etc...
+                return true;
+            }
+            case 'tool': {
+                // like flint_and_steel
+                return false;
+            }
+            default: {
+                // console.log(item_name);
+                return false;
+            }
+        }
+        return this.inItemUseProcess = true;
+    }
+
+    // Stop use of item
+    stopItemUse() {
+        this.inItemUseProcess = false;
+        if(this._eating_sound) {
+            clearInterval(this._eating_sound);
+            this._eating_sound = false;
+        }
+    }
+
+// compatibility methods
+
+    isUsingItem() {
+        return this.inItemUseProcess;
+    }
+
+    isScoping() {
+        // return this.isUsingItem() && this.getUseItem().is(Items.SPYGLASS);
+        return false;
+    }
+
+    isInvisible() {
+        return false;
+    }
+
+    getMainArm() {
+        return HumanoidArm.RIGHT; // InteractionHand.MAIN_HAND;
+    }
+
+    isAutoSpinAttack() {
+        // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
+        return false;
     }
 
 }

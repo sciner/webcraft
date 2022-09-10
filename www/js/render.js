@@ -17,7 +17,8 @@ import { Particles_Stars } from "./particles/stars.js";
 
 import { MeshManager } from "./mesh_manager.js";
 import { Camera } from "./camera.js";
-import { InHandOverlay } from "./ui/inhand_overlay.js";
+// import { InHandOverlay } from "./ui/inhand_overlay.js";
+import { InHandOverlay } from "./ui/inhand_overlay_old.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
@@ -744,9 +745,9 @@ export class Renderer {
         this.camera.use(this.globalUniforms);
     }
 
-    // damageBlock
-    damageBlock(block, pos, small, scale) {
-        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale));
+    // Damage block particles
+    damageBlock(block, pos, small, scale = 1, force = 1) {
+        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale, force));
     }
 
     // addExplosionParticles

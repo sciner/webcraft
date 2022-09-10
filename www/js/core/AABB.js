@@ -234,6 +234,18 @@ export class AABB {
         return target;
     }
 
+    fromArray(source = []) {
+        this.x_min = source[0];
+        this.y_min = source[1];
+        this.z_min = source[2];
+
+        this.x_max = source[3];
+        this.y_max = source[4];
+        this.z_max = source[5];
+
+        return this;
+    }
+
     translate(x, y, z) {
         this.x_min += x;
         this.x_max += x;

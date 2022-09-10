@@ -1057,6 +1057,25 @@ export class Vector {
         return this;
     }
 
+    /**
+     * Return quaternion
+     * @param {float} angle 
+     * @param {boolean} hz 
+     * @returns 
+     */
+    rotationDegrees(angle, hz = true) {
+        if(hz) {
+            angle *= (Math.PI / 180);
+        }
+        const f = Math.sin(angle / 2.0);
+        return [
+            this.x * f,
+            this.y * f,
+            this.z * f,
+            Math.cos(angle / 2.0),
+        ];
+    }
+
 }
 
 export class Vec3 extends Vector {}

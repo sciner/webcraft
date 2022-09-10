@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
+import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT, MOUSE } from "../constant.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
@@ -271,7 +271,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
             let dragItem = targetItem;
             // right button (divide to 2)
-            if(e.button == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
+            if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
                 let split_count = Math.ceil(targetItem.count / 2);
                 dragItem = {...targetItem};
                 dragItem.count = split_count;
@@ -324,7 +324,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             that.dragItem = dragItem;
             this.getInventory().setDragItem(this, dragItem, e.drag, that.width, that.height);
             this.prev_mousedown_time = performance.now();
-            this.prev_mousedown_button = e.button;
+            this.prev_mousedown_button = e.button_id;
         }
 
         // if slot is readonly
@@ -346,7 +346,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     max_stack_count = 1;
                 }
                 // check if double click by left mouse button
-                const potential_double_click = this.prev_mousedown_time && (e.button === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey;
+                const potential_double_click = this.prev_mousedown_time && (e.button_id === MOUSE.BUTTON_LEFT) && (this.prev_mousedown_button == MOUSE.BUTTON_LEFT) && !e.shiftKey;
                 const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < 200.0) && (max_stack_count > 1);
                 if(doubleClick) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
@@ -410,7 +410,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     // @todo
                     if(targetItem.id == dropData.item.id && (!targetItem.entity_id && !dropData.item.entity_id)) {
                         if(targetItem.count < max_stack_count) {
-                            if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                            if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                                 targetItem.count++;
                                 dropData.item.count--;
                             } else {
@@ -435,7 +435,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     }
                 } else {
                     // Перетаскивание в пустую ячейку
-                    if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                    if(e.button_id == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                         let newItem = {...dropData.item};
                         newItem.count = 1;
                         that.setItem(newItem, e);

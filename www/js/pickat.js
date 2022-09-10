@@ -4,6 +4,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
+import { MOUSE } from "./constant.js";
 
 const {mat4} = glMatrix;
 
@@ -59,9 +60,9 @@ export class PickAt {
     // setEvent...
     setEvent(player, e) {
         e.start_time        = performance.now();
-        e.destroyBlock      = e.button_id == 1;
-        e.cloneBlock        = e.button_id == 2;
-        e.createBlock       = e.button_id == 3;
+        e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
+        e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
+        e.createBlock       = e.button_id == MOUSE.BUTTON_RIGHT;
         e.interractMobID    = null;
         e.number            = 0;
         const damage_block  = this.damage_block;
@@ -72,16 +73,6 @@ export class PickAt {
         /*if (player.pickAt && Qubatch.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
         }*/
-    }
-
-    // clearEvent...
-    clearEvent() {
-        const damage_block = this.damage_block;
-        damage_block.event = null;
-        if(damage_block.mesh) {
-            damage_block.mesh.destroy();
-            damage_block.mesh = null;
-        }
     }
 
     // setDamagePercent...
@@ -111,14 +102,6 @@ export class PickAt {
             damage_block.times      = 0;
             damage_block.prev_time  = null;
             damage_block.mesh       = this.createDamageBuffer(damage_block.pos, BLOCK.calcTexture([damage_block.frame, 15]));
-        }
-    }
-
-    // Сбросить текущий прогресс разрушения
-    resetProgress() {
-        let damage_block = this.damage_block;
-        if(damage_block) {
-            damage_block.times = 0;
         }
     }
 
@@ -341,9 +324,18 @@ export class PickAt {
         }));
     }
 
-    // resetTargetPos...
-    resetTargetPos() {
+    // Сбросить текущий прогресс разрушения/установки
+    resetProgress() {
+        const damage_block = this.damage_block;
         this.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
+        if(damage_block) {
+            damage_block.times = 0;
+            damage_block.event = null;
+            if(damage_block.mesh) {
+                damage_block.mesh.destroy();
+                damage_block.mesh = null;
+            }
+        }
     }
 
 }
