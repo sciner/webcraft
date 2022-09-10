@@ -4,11 +4,11 @@ import {
     FLUID_BLOCK_RESTRICT,
     FLUID_LAVA_ID,
     FLUID_STRIDE,
-    FLUID_TYPE_MASK,
+    FLUID_TYPE_MASK, FLUID_TYPE_SHIFT,
     FLUID_WATER_ID,
     OFFSET_FLUID
 } from "./FluidConst.js";
-import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
+import {FluidSubGeometry} from "./FluidSubGeometry.js";
 
 const fluidMaterials = [];
 
@@ -110,7 +110,7 @@ export function buildFluidVertices(fluidChunk) {
             }
     if (hasWater !== !!fluidChunk.waterGeom) {
         if (!hasWater) {
-            fluidChunk.waterGeom = new Worker05SubGeometry({
+            fluidChunk.waterGeom = new FluidSubGeometry({
                 pool: fluidChunk.world.geometryPool,
                 chunkDataId: fluidChunk.dataId,
             });
@@ -121,7 +121,7 @@ export function buildFluidVertices(fluidChunk) {
     }
     if (hasLava !== !!fluidChunk.lavaGeom) {
         if (!hasLava) {
-            fluidChunk.lavaGeom = new Worker05SubGeometry({
+            fluidChunk.lavaGeom = new FluidSubGeometry({
                 pool: fluidChunk.world.geometryPool,
                 chunkDataId: fluidChunk.dataId,
             });
@@ -174,33 +174,19 @@ export function buildFluidVertices(fluidChunk) {
                     clr = IndexedColor.WATER.packed;
                 }
 
-                // height depends on power
-                let height = 0.9;
-                for (let dir = 0; dir < 6; dir++) {
-                    if (!hasNeib[dir]) {
-                        continue;
-                    }
-                    //check up
-                    let tex = mat.upTex;
-                    let texHeight = dir < 2 ? 1 : height;
+                let fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
 
-                    const { axes, offset } = PLANES[SIMPLE_DIRECTION.UP];
-                    geom.push(
-                        // center
-                        x + offset[0], z + offset[1], y + offset[2] * height,
-                        // axisx
-                        axes[0][0],
-                        axes[0][1],
-                        axes[0][2] * height,
-                        // axisY
-                        axes[1][0],
-                        axes[1][1],
-                        axes[1][2] * height,
-                        // UV center
-                        tex[0], tex[1], tex[2], tex[3] * texHeight,
-                        clr,
-                        // flags
-                        flags);
+                let x0 = 0, z0 = 0, x1 = 1, z1 = 0, x2 = 1, z2 = 1, x3 = 0, z3 = 1;
+                let h0 = 0.9, h1 = 0.9, h2 = 0.0, h3 = 0.9;
+
+                if (hasNeib[SIMPLE_DIRECTION.UP]) {
+                    geom.push(fluidId, clr,
+                        x, z, y,
+                        x0, z0, h0, x0, z0,
+                        x1, z1, h1, x1, z1,
+                        x2, z2, h2, x2, z2,
+                        x3, z3, h3, x3, z3,
+                    );
                 }
             }
 }

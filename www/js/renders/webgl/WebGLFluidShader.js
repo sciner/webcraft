@@ -20,8 +20,8 @@ export class WebGLFluidShader extends WebGLTerrainShader {
             QUAD_FLAGS.FLAG_ANIMATED,
         ]);
         this.fluidUV = new Float32Array([
-            0.0 / 1024.0, 0.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0,
-            32.0 / 1024.0, 0.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0
+            32.0 / 1024.0, 32.0 / 1024.0, 0.0 / 1024.0, 0.0 / 1024.0,
+            32.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0, 0.0 / 1024.0,
         ]);
         this.fluidFrames = new Int32Array([32, 32]);
     }
@@ -66,8 +66,6 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         gl.uniform1i(this.u_chunkDataSampler, 3);
         gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         gl.uniform1i(this.u_maskColorSampler, 1);
-        gl.uniform1i(this.u_blockDayLightSampler, 2);
-
         gl.uniform1i(this.u_blockDayLightSampler, 2);
 
         gl.uniform1iv(this.u_fluidFlags, this.fluidFlags);

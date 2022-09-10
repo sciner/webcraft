@@ -14,7 +14,6 @@ in uint a_fluidId;
 in vec3 a_position;
 in vec2 a_uv;
 in uint a_color;
-in uint a_flags;
 
 // please, replace all out with v_
 out vec3 v_world_pos;
