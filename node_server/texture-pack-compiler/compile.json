@@ -3994,7 +3994,11 @@
             "material": {
                 "id": "food"
             },
-            "texture": "item/carrot.png"
+            "texture": "item/carrot.png",
+            "food": {
+                "amount": 3, 
+                "saturation": 0.6
+            }
         },
         {
             "id": 613,
@@ -4004,6 +4008,10 @@
             "diagonal": true,
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.3
             },
             "texture": "item/apple.png"
         },
@@ -4337,6 +4345,10 @@
             "diagonal": true,
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             },
             "texture": "item/bread.png"
         },
@@ -5075,6 +5087,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.1
             }
         },
         {
@@ -5086,6 +5102,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.1
             }
         },
         {
@@ -5208,6 +5228,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.3
             }
         },
         {
@@ -5230,6 +5254,10 @@
             "coocked_item": {"name": "COOKED_CHICKEN", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.1
             }
         },
         {
@@ -5241,6 +5269,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 6, 
+                "saturation": 0.6
             }
         },
         {
@@ -5253,6 +5285,10 @@
             "coocked_item": {"name": "COOKED_MUTTON", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.3
             }
         },
         {
@@ -5264,6 +5300,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 6, 
+                "saturation": 0.8
             }
         },
         {
@@ -5276,6 +5316,10 @@
             "coocked_item": {"name": "COOKED_RABBIT", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5287,6 +5331,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             }
         },
         {
@@ -5299,6 +5347,10 @@
             "coocked_item": {"name": "COOKED_BEEF", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5310,6 +5362,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.8
             }
         },
         {
@@ -5322,6 +5378,10 @@
             "coocked_item": {"name": "COOKED_PORKCHOP", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5333,6 +5393,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.8
             }
         },
         {
@@ -5383,6 +5447,10 @@
             "texture": "item/melon_slice.png",
             "material": {
                 "id": "plant"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.3
             }
         },
         {
@@ -6818,6 +6886,10 @@
             "coocked_item": {"name": "BAKED_POTATO", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 1, 
+                "saturation": 0.3
             }
         },
         {
@@ -6829,6 +6901,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             }
         },
         {
@@ -7158,6 +7234,27 @@
                 "rotate_x16",
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 507,
+            "name": "GOLDEN_APPLE",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.3
+            },
+            "effects":[
+                {"id":7, "time": 5, "level": 2},
+                {"id":14, "time": 300, "level": 1},
+                {"id":15, "time": 300, "level": 1},
+                {"id":18, "time": 120, "level": 1}
+            ],
+            "texture": "item/golden_apple.png"
         }
     ]
 }

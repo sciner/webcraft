@@ -36,6 +36,7 @@ export class Player {
             sneak:              false,
             ping:               0
         };
+        this.effects = [];
     }
 
     JoinToWorld(world, cb) {
@@ -144,6 +145,10 @@ export class Player {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
             this.indicators = cmd.data.indicators;
+            Qubatch.hud.refresh();
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
+            this.effects = cmd.data.effects;
             Qubatch.hud.refresh();
         });
         // pickAt
@@ -872,6 +877,7 @@ export class Player {
         const item_name = material?.item?.name;
         switch(item_name) {
             case 'food': {
+                this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
                 this._eating_sound_tick = 0;
                 if(this._eating_sound) {
@@ -879,6 +885,7 @@ export class Player {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
+                    console.log("sound");
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
@@ -888,6 +895,8 @@ export class Player {
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
                         Qubatch.render.damageBlock(material, pos, true, this.scale, this.scale);
+                    } else {
+                        this.stopItemUse();
                     }
                 }, 200);
                 break;
@@ -914,6 +923,7 @@ export class Player {
         if(this._eating_sound) {
             clearInterval(this._eating_sound);
             this._eating_sound = false;
+            this.world.server.Send({name: ServerClient.CMD_USE_ITEM, data: {cancel: true}});
         }
     }
 

@@ -85,9 +85,10 @@ export default class packet_reader {
             }
             world.actions_queue.add(player, actions);
         }
-		if(packet.data.destroyBlock == true) {
-			player.state.stats.pickat++;
-		}
+        if(packet.data.destroyBlock == true) {
+            player.state.stats.pickat++;
+            player.addExhaustion(0.005);
+        }
         return true;
     }
 
