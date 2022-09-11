@@ -36,6 +36,15 @@
         ]
     },
     {
+        "type": "madcraft:axe",
+        "strip": [
+            "Axe_strip1",
+            "Axe_strip2",
+            "Axe_strip3",
+            "Axe_strip4"
+        ]
+    },
+    {
         "type": "madcraft:block.player",
         "hit": [
             "hit3"

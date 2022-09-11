@@ -715,7 +715,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(mat_block.item) {
             
             // Use intruments
-            for(let func of [useShovel, useHoe, useBoneMeal]) {
+            for(let func of [useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -1822,7 +1822,25 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
     return false;
 }
 
-//
+// Use axe for make stripped logs
+async function useAxe(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!world_material || mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'axe') {
+        return false;
+    }
+    if(world_material.tags.includes('log') && world_material.stripped_log) {
+        const stripped_block = BLOCK.fromName(world_material.stripped_log);
+        if(stripped_block) {
+            actions.addBlocks([{pos: new Vector(pos), item: {id: stripped_block.id, rotate: world_block.rotate, extra_data: world_block.extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+            if(mat_block.sound) {
+                actions.addPlaySound({tag: mat_block.sound, action: 'strip', pos: new Vector(pos), except_players: [player.session.user_id]});
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// Use bone meal
 async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;

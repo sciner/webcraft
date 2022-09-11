@@ -608,6 +608,7 @@
             "id": 132,
             "name": "WOODEN_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -624,6 +625,7 @@
             "id": 557,
             "name": "STONE_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -641,6 +643,7 @@
             "id": 551,
             "name": "IRON_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -658,6 +661,7 @@
             "id": 558,
             "name": "GOLD_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -675,6 +679,7 @@
             "id": 559,
             "name": "DIAMOND_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -692,6 +697,7 @@
             "id": 560,
             "name": "NETHERITE_AXE",
             "style": "extruder",
+            "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "axe"},
@@ -2751,6 +2757,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_BIRCH_LOG",
             "material": {
                 "id": "wood"
             },
@@ -2771,6 +2778,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_OAK_LOG",
             "material": {
                 "id": "wood"
             },
@@ -2791,6 +2799,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_ACACIA_LOG",
             "material": {
                 "id": "wood"
             },
@@ -2811,6 +2820,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_SPRUCE_LOG",
             "material": {
                 "id": "wood"
             },
@@ -2831,6 +2841,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_DARK_OAK_LOG",
             "material": {
                 "id": "wood"
             },
@@ -2851,6 +2862,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "can_rotate": true,
+            "stripped_log": "STRIPPED_JUNGLE_LOG",
             "material": {
                 "id": "wood"
             },
