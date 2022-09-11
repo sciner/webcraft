@@ -95,6 +95,8 @@ export class Player {
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
+        this.xBob                   = this.getXRot();
+        this.yBob                   = this.getYRot();
         // State
         this.falling                = false; // падает
         this.running                = false; // бежит
@@ -119,6 +121,7 @@ export class Player {
         this.body_rotate            = 0;
         this.body_rotate_o          = 0;
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
+        this.mineTime               = 0;
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
@@ -560,6 +563,13 @@ export class Player {
         this.inMiningProcess = false;
         // View
         if(this.lastUpdate) {
+
+            // for compatibility with renderHandsWithItems
+            this.yBobO = this.yBob;
+            this.xBobO = this.xBob;
+            this.xBob += (this.getXRot() - this.xBob) * 0.5;
+            this.yBob += (this.getYRot() - this.yBob) * 0.5;
+
             if(!this.overChunk) {
                 this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
             }
@@ -963,6 +973,52 @@ export class Player {
     isAutoSpinAttack() {
         // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
         return false;
+    }
+
+    getXRot() {
+        return this.rotateDegree.z;
+    }
+
+    getYRot() {
+        return this.rotateDegree.x;
+    }
+
+    getViewXRot(pPartialTicks) {
+        return this.getXRot();
+    }
+
+    getViewYRot(pPartialTicks) {
+        return this.getYRot();
+    }
+
+    getAttackAnim(pPartialTicks, delta) {
+
+        // const itsme = Qubatch.player.getModel()
+        // this.mineTime = itsme.swingProgress;
+        if (!this.inMiningProcess && !this.inItemUseProcess) {
+            this.mineTime = 0;
+        }
+        if (this.inMiningProcess || this.inItemUseProcess || this.mineTime > (delta * 2) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
+            this.mineTime += delta / this.inhand_animation_duration;
+            if (this.mineTime >= 1) {
+                this.mineTime = 0;
+            }
+        } else {
+            this.mineTime = 0;
+        }
+
+        return this.mineTime;
+
+        // const pSwingProgress = this.mineTime;
+        let pSwingProgress = performance.now() / 1000;
+        const even = Math.floor(pSwingProgress) % 2 == 1;
+        pSwingProgress %= 1
+        if(even) {
+            pSwingProgress = 1 - pSwingProgress
+        }
+
+        return pSwingProgress;
+
     }
 
 }

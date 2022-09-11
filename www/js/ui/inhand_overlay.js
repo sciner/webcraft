@@ -2,7 +2,7 @@ import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
-import {Mth, Vector} from "../helpers.js";
+import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
 class ItemUseAnimation {
@@ -72,8 +72,6 @@ export class InHandOverlay {
         this.changeAnimation = true;
         this.changAnimationTime = 0;
 
-        this.minePeriod = 0;
-        this.mineTime = 0;
     }
 
     reconstructInHandItem(targetId) {
@@ -148,21 +146,6 @@ export class InHandOverlay {
         this.camera.width = camera.width;
         this.camera.height = camera.height;
 
-        // const itsme = Qubatch.player.getModel()
-        // this.mineTime = itsme.swingProgress;
-        if (!player.inMiningProcess && !player.inItemUseProcess) {
-            this.mineTime = 0;
-        }
-
-        if (player.inMiningProcess || player.inItemUseProcess || this.mineTime > (delta * 2) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
-            this.mineTime += delta / player.inhand_animation_duration;
-            if (this.mineTime >= 1) {
-                this.mineTime = 0;
-            }
-        } else {
-            this.mineTime = 0;
-        }
-
         const id = player.currentInventoryItem ? player.currentInventoryItem.id : -1;
 
         if (id !== this.inHandItemId && !this.changeAnimation) {
@@ -186,6 +169,7 @@ export class InHandOverlay {
 
     //
     draw(render, delta) {
+
         const {
             player, globalUniforms, renderBackend
         } = render;
@@ -199,14 +183,13 @@ export class InHandOverlay {
         mat4.identity(camera.bobPrependMatrix);
         // this.bobViewItem(player, camera.bobPrependMatrix);
 
-        const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
-
         camera.pos.set(
             -157.48671900056806/100,
             210.10827698032705/100
             -57.69201067788088/100,
         );
 
+        // const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
         // camera.pos.set(0, 0.5, -1.5 * animFrame);
         camera.set(camera.pos, Vector.ZERO, camera.bobPrependMatrix);
 
@@ -217,18 +200,6 @@ export class InHandOverlay {
 
         renderBackend.beginPass({clearDepth: true, clearColor: false});
 
-        // const pSwingProgress = this.mineTime;
-        let pSwingProgress = performance.now() / 1000;
-        const even = Math.floor(pSwingProgress) % 2 == 1;
-        pSwingProgress %= 1
-        if(even) {
-            pSwingProgress = 1 - pSwingProgress
-        }
-
-        // @param {float}
-        // this.mainHandHeight = Math.clamp(this.mainHandHeight - 0.4, 0.0, 1.0);
-        let pEquippedProgress = -1; // 1.0 - Mth.lerp(pPartialTicks, this.oMainHandHeight, this.mainHandHeight);
-
         if(inHandItemMesh) {
 
             const {
@@ -238,47 +209,88 @@ export class InHandOverlay {
             mat4.identity(modelMatrix);
             pos.set(0, 0, 0);
 
-            // @param {float}
-            let pPartialTicks;
-            // @param {float}
-            let pPitch; // = Mth.lerp(pPartialTicks, pPlayerEntity.xRotO, pPlayerEntity.getXRot());
-            // @param {InteractionHand}
-            let hand = InteractionHand.MAIN_HAND;
-            // @param {float}
-            // p_109376_ ... pSwingProgress
-            // @param {MultiBufferSource}
-            let pBuffer;
-            // @param {int}
-            let pCombinedLight;
-
             //
-            let matInHandExt = {...matInHand};
-            matInHandExt.isEmpty = function() {
+            let mainHandItem = {...matInHand};
+            mainHandItem.isEmpty = function() {
                 return this.id == 0;
             };
-            matInHandExt.is = function(block) {
+            mainHandItem.is = function(block) {
                 return this.id == block.id;
             };
-            matInHandExt.getUseAnimation = function() {
+            mainHandItem.getUseAnimation = function() {
                 return ItemUseAnimation.NONE;
             };
 
-            this.renderArmWithItem(
-                player,
-                pPartialTicks,
-                pPitch,
-                hand,
-                pSwingProgress,
-                matInHandExt,
-                pEquippedProgress,
-                modelMatrix,
-                pBuffer,
-                pCombinedLight
-            );
+            // @param {float}
+            let pPartialTicks = 0.0000014305115;
+            // @param {MultiBufferSource}
+            let pBuffer;
+            // @param {int}
+            let pCombinedLight = 0;
+
+            // недостающие переменные
+            this.mainHandItem = mainHandItem;
+            this.offHandItem = mainHandItem;
+            this.oMainHandHeight = 1;
+            this.mainHandHeight = 1;
+            this.oOffHandHeight = 1;
+            this.offHandHeight = 1;
+
+            this.renderHandsWithItems(pPartialTicks, modelMatrix, pBuffer, player, pCombinedLight, delta);
 
             inHandItemMesh.drawDirectly(render, modelMatrix);
+ 
         }
         renderBackend.endPass();
+    }
+
+    /**
+     * @param {float} pPartialTicks 
+     * @param {PoseStack} modelMatrix 
+     * @param {MultiBufferSource.BufferSource} p_109317_ 
+     * @param {Player} player 
+     * @param {int} pCombinedLight 
+     */
+    renderHandsWithItems(pPartialTicks, modelMatrix, p_109317_, player, pCombinedLight, delta) {
+
+        let f = player.getAttackAnim(pPartialTicks, delta);
+        // InteractionHand interactionhand = MoreObjects.firstNonNull(player.swingingArm, InteractionHand.MAIN_HAND);
+        const interactionhand = InteractionHand.MAIN_HAND
+        let pPitch = Mth.lerp(pPartialTicks, player.xRotO, player.getXRot());
+
+        // похоже, что этот метод определяет рисовать обе руки или только главную
+        // HandRenderSelection handrenderselection = evaluateWhichHandsToRender(player);
+        
+        // xBob - текущий угол поворота тела по горизонтали
+        // xBobO - предыдущий угол поворота тела по горизонтали
+        // yBob - текущий угол поворота тела по вертикали
+        // yBobO - предыдущий угол поворота тела по вертикали
+        const f2 = Mth.lerp(pPartialTicks, player.xBobO, player.xBob);
+        const f3 = Mth.lerp(pPartialTicks, player.yBobO, player.yBob);
+
+        // Java: Запаздывание руки в след вращению игрока
+        // NOTE: Отключил, потому что переход через 0 блок в руке резко перескакивает
+        // modelMatrix.mulPose(Vector.XP.rotationDegrees((player.getViewXRot(pPartialTicks) - f2) * 0.1));
+        // modelMatrix.mulPose(Vector.YP.rotationDegrees((player.getViewYRot(pPartialTicks) - f3) * 0.1));
+        // const m = mat4.create();
+        // const q = quat.create();
+        // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Helpers.deg2rad((player.getViewXRot(pPartialTicks) - f2) * 0.1))));
+        // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Helpers.deg2rad((player.getViewYRot(pPartialTicks) - f3) * 0.1))));
+
+        //if (handrenderselection.renderMainHand) {
+            const pSwingProgress = interactionhand == InteractionHand.MAIN_HAND ? f : 0.0;
+            const pEquippedProgress = 1.0 - Mth.lerp(pPartialTicks, this.oMainHandHeight, this.mainHandHeight);
+            this.renderArmWithItem(player, pPartialTicks, pPitch, InteractionHand.MAIN_HAND, pSwingProgress, this.mainHandItem, pEquippedProgress, modelMatrix, p_109317_, pCombinedLight);
+        //}
+        //if (handrenderselection.renderOffHand) {
+        //    const pSwingProgress = interactionhand == InteractionHand.OFF_HAND ? f : 0.0;
+        //    const pEquippedProgress = 1.0 - Mth.lerp(pPartialTicks, this.oOffHandHeight, this.offHandHeight);
+        //    this.renderArmWithItem(player, pPartialTicks, pPitch, InteractionHand.OFF_HAND, pSwingProgress, this.offHandItem, pEquippedProgress, modelMatrix, p_109317_, pCombinedLight);
+        //}
+        // p_109317_.endBatch();
+
+        swapMatrixYZ(modelMatrix);
+
     }
 
     /**
@@ -517,7 +529,6 @@ export class InHandOverlay {
                 // this.renderItem(player, matInHand, flag3 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag3, modelMatrix, p_109380_, pCombinedLight);
             }
             // this was MC code, so, lets rotate axis in the end
-            swapMatrixYZ(modelMatrix);
 
             // TODO: у нас нет стека матриц =(
             // modelMatrix.popPose();
@@ -564,16 +575,13 @@ export class InHandOverlay {
 
         const m = mat4.create();
         const q = quat.create();
-        const deg2Rad = (i) => {
-            return (Math.PI / 180) * i;
-        }
 
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * (45.0 + f * -20.0)))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Helpers.deg2rad(i * (45.0 + f * -20.0)))));
 
         const f1 = Math.sin(Math.sqrt(pSwingProgress) * Math.PI);
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * f1 * -20.0))));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, deg2Rad(f1 * -80.0))));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * -45.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(i * f1 * -20.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Helpers.deg2rad(f1 * -80.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Helpers.deg2rad(i * -45.0))));
     }
 
     /**
