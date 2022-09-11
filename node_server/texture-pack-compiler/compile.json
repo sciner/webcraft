@@ -15,7 +15,8 @@
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
-        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/glass_bottle.png"}
     ],
     "blocks" : [
         {
@@ -7267,6 +7268,27 @@
                 {"id":18, "time": 120, "level": 1}
             ],
             "texture": "item/golden_apple.png"
+        },
+        {
+            "id": 234,
+            "name": "BOTTLE1",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle", "effect": "random"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            }
         }
     ]
 }
