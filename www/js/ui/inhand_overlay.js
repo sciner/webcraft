@@ -1,7 +1,6 @@
 import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
-import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
@@ -235,6 +234,12 @@ export class InHandOverlay {
             this.mainHandHeight = 1;
             this.oOffHandHeight = 1;
             this.offHandHeight = 1;
+
+            // ещё какое-то вращение =(
+            // const m = mat4.create();
+            // const q = quat.create();
+            // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Qubatch.render.camera.rotate.x)));
+            // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Qubatch.render.camera.rotate.y + Math.PI)));
 
             this.renderHandsWithItems(pPartialTicks, modelMatrix, pBuffer, player, pCombinedLight, delta);
 
