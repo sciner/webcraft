@@ -7274,7 +7274,7 @@
             "name": "BOTTLE1",
             "style": "extruder",
             "max_in_stack": 1,
-            "item": {"name": "bottle", "effect": "random"},
+            "item": {"name": "bottle"},
             "material": {
                 "id": "glass"
             },
@@ -7288,7 +7288,10 @@
             "inventory": {
                 "style": "extruder",
                 "texture": "24|31"
-            }
+            },
+            "effects":[
+                {"id":16, "time": 180, "level": 10}
+            ]
         }
     ]
 }

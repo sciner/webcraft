@@ -73,7 +73,7 @@ export class ServerPlayerDamage {
                 this.oxygen_lost_timer = 0;
                 // эффект подводное дыхание
                 const level = effects.getEffectLevel(Effect.RESPIRATION);
-                const rnd = Math.random * (level + 1) | 0;
+                const rnd = (Math.random() * (level + 1)) | 0;
                 if (level == 0 || rnd == 0) {
                     player.oxygen_level =  Math.max(player.oxygen_level - 1, 0);
                 }

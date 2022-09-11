@@ -876,6 +876,7 @@ export class Player {
     startItemUse(material) {
         const item_name = material?.item?.name;
         switch(item_name) {
+            case 'bottle':
             case 'food': {
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
