@@ -35,15 +35,18 @@ const tmpMatrix = mat4.create();
 export function swapMatrixYZ(matrix) {
     for (let i = 0; i < 4; i++) {
         let t = matrix[4 + i];
-        matrix[4 + i] = -matrix[8 + i];
+        matrix[4 + i] = matrix[8 + i];
         matrix[8 + i] = -t;
     }
 
     for (let i = 0; i < 4; i++) {
         let t = matrix[i * 4 + 1];
         matrix[i * 4 + 1] = -matrix[i * 4 + 2];
-        matrix[i * 4 + 2] = -t;
+        matrix[i * 4 + 2] = t;
     }
+
+    // madcraft Z = mc Y
+    // madcraft Y = mc -Z
 }
 
 export class InHandOverlay {
@@ -182,10 +185,17 @@ export class InHandOverlay {
         mat4.identity(camera.bobPrependMatrix);
         // this.bobViewItem(player, camera.bobPrependMatrix);
 
+        // SCINER temp position of cam
+        // camera.pos.set(
+        //     -157.48671900056806/100,
+        //     210.10827698032705/100
+        //     -57.69201067788088/100,
+        // );
+
         camera.pos.set(
-            -157.48671900056806/100,
-            210.10827698032705/100
-            -57.69201067788088/100,
+            0,
+            1,
+                -1,
         );
 
         // const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
@@ -206,6 +216,9 @@ export class InHandOverlay {
             } = inHandItemMesh;
 
             mat4.identity(modelMatrix);
+
+            this.preModelMatrix(modelMatrix, false);
+
             pos.set(0, 0, 0);
 
             //
@@ -242,6 +255,8 @@ export class InHandOverlay {
             // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Qubatch.render.camera.rotate.y + Math.PI)));
 
             this.renderHandsWithItems(pPartialTicks, modelMatrix, pBuffer, player, pCombinedLight, delta);
+
+            this.postModelMatrix(modelMatrix, false);
 
             inHandItemMesh.drawDirectly(render, modelMatrix);
  
@@ -293,9 +308,33 @@ export class InHandOverlay {
         //    this.renderArmWithItem(player, pPartialTicks, pPitch, InteractionHand.OFF_HAND, pSwingProgress, this.offHandItem, pEquippedProgress, modelMatrix, p_109317_, pCombinedLight);
         //}
         // p_109317_.endBatch();
+    }
+
+    preModelMatrix(modelMatrix, isLeftHand) {
+        let q = quat.create();
+        let m = mat4.create();
+
+        let translation = new Vector(0.5, 0, -0);
+        let scale = new Vector(0.4, 0.4, 0.4);
+
+        if (isLeftHand) translation.x = -translation.x;
+
+        mat4.translate(modelMatrix, modelMatrix, translation.toArray());
+    }
+
+    postModelMatrix(modelMatrix) {
+        //mat4.scale(modelMatrix, modelMatrix, scale.toArray());
+
+        let q = quat.create();
+        let m = mat4.create();
+
+        let translation = new Vector(-0.5, 0, 0);
+        let rotate = new Vector(0, 45, 0);
+        mat4.multiply(modelMatrix, modelMatrix,
+            mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z)));
+        mat4.translate(modelMatrix, modelMatrix, translation.toArray());
 
         swapMatrixYZ(modelMatrix);
-
     }
 
     /**
