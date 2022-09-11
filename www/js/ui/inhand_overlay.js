@@ -230,9 +230,9 @@ export class InHandOverlay {
             // недостающие переменные
             this.mainHandItem = mainHandItem;
             this.offHandItem = mainHandItem;
-            this.oMainHandHeight = 1;
+            this.oMainHandHeight = 1; // число между 0 и 1 для основной руки
             this.mainHandHeight = 1;
-            this.oOffHandHeight = 1;
+            this.oOffHandHeight = 1; // число между 0 и 1
             this.offHandHeight = 1;
 
             // ещё какое-то вращение =(
