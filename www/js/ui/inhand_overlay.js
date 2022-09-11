@@ -197,13 +197,13 @@ export class InHandOverlay {
         this.update(render, delta);
 
         mat4.identity(camera.bobPrependMatrix);
-        this.bobViewItem(player, camera.bobPrependMatrix);
+        // this.bobViewItem(player, camera.bobPrependMatrix);
 
         const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
 
         camera.pos.set(
             -157.48671900056806/100,
-            218.10827698032705/100
+            210.10827698032705/100
             -57.69201067788088/100,
         );
 
@@ -217,7 +217,17 @@ export class InHandOverlay {
 
         renderBackend.beginPass({clearDepth: true, clearColor: false});
 
-        const pSwingProgress = this.mineTime;
+        // const pSwingProgress = this.mineTime;
+        let pSwingProgress = performance.now() / 1000;
+        const even = Math.floor(pSwingProgress) % 2 == 1;
+        pSwingProgress %= 1
+        if(even) {
+            pSwingProgress = 1 - pSwingProgress
+        }
+
+        // @param {float}
+        // this.mainHandHeight = Math.clamp(this.mainHandHeight - 0.4, 0.0, 1.0);
+        let pEquippedProgress = -1; // 1.0 - Mth.lerp(pPartialTicks, this.oMainHandHeight, this.mainHandHeight);
 
         if(inHandItemMesh) {
 
@@ -240,10 +250,6 @@ export class InHandOverlay {
             let pBuffer;
             // @param {int}
             let pCombinedLight;
-
-            // @param {float}
-            // this.mainHandHeight = Math.clamp(this.mainHandHeight - 0.4, 0.0, 1.0);
-            let pEquippedProgress = 0; // 1.0 - Mth.lerp(pPartialTicks, this.oMainHandHeight, this.mainHandHeight);
 
             //
             let matInHandExt = {...matInHand};
