@@ -335,7 +335,8 @@ export default class WebGLRenderer extends BaseRenderer {
         for (let i = 6; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
-        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw');
+        this.multidrawBaseExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
         return Promise.resolve(this);
     }
 
