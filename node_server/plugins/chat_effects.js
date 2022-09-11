@@ -1,9 +1,7 @@
 import {ServerClient} from "../../www/js/server_client.js";
 import {Vector} from "../../www/js/helpers.js";
 
-const reg = /[^a-z0-9\s]/gi;
-
-export default class TeleportPlugin {
+export default class EffectsPlugin {
     
     static targets = ['chat'];
     
@@ -22,10 +20,6 @@ export default class TeleportPlugin {
             }
         ];
         player.sendPackets(packets, [player], []);
-    }
-    
-    chTitle(title){
-        return (!title.match(reg) && title.length < 50);
     }
 
     onChat(chat) {
