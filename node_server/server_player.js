@@ -14,7 +14,7 @@ import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
-import { Effect } from "./player/effects.js";
+import { ServerPlayerEffects, Effect } from "./player/effects.js";
 
 export class NetworkMessage {
     constructor({
@@ -53,7 +53,8 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-        this.damage                 = new ServerPlayerDamage(this);
+        
+        
         /**
          * @type {ServerWorld}
          */
@@ -74,23 +75,8 @@ export class ServerPlayer extends Player {
             id: 0,
             time: 0
         };
-        this.food_tick_timer = 0;
-        this.live_level = 0;
-        this.food_level = 0;
-        this.oxygen_level = 0;
-        this.oxygen_tick_timer = 0;
-        this.food_saturation_level = 0;
-        this.food_exhaustion_level = 0;
-        
-        // огонь/лава
-        this.lava_tick_timer = 0;
-        this.fire_tick_timer = 0;
-        
-        // регенерация
-        this.regen_tick_timer = 0;
-        
-        // еффекты
-        this.effects = [];
+        this.effects                = new ServerPlayerEffects(this);
+        this.damage                 = new ServerPlayerDamage(this);
     }
 
     init(init_info) {
@@ -345,7 +331,7 @@ export class ServerPlayer extends Player {
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
         // 7.
-        this.checkEffects();
+        this.effects.checkEffects();
     }
 
     async checkWaitPortal() {
@@ -468,80 +454,9 @@ export class ServerPlayer extends Player {
         if(this.is_dead || !this.game_mode.mayGetDamaged()) {
             return false;
         }
-        // food из вики
-        if (this.food_exhaustion_level > 4) {
-            this.food_exhaustion_level -= 4;
-            if (this.food_saturation_level > 0) {
-                this.food_saturation_level = Math.max(this.food_saturation_level - 1, 0);
-            } else {
-                this.food_level = Math.max(this.food_level - 1, 0);
-            }
-        }
-        if (this.food_level >= 18) {
-            if (this.food_tick_timer >= 80 * CORRECT_TIME) {
-                this.food_tick_timer = 0;
-                this.live_level = Math.min(this.live_level + 1, 20);
-                this.addExhaustion(3);
-            }
-        } else if (this.food_level <= 0) {
-            this.food_tick_timer++;
-            if (this.food_tick_timer >= 80 * CORRECT_TIME) {
-                this.food_tick_timer = 0;
-                this.live_level = Math.max(this.live_level - 1, 0);
-            }
-        } else {
-            this.food_tick_timer = 0;
-        }
         
-        // кислород
-        const head = this.world.getBlock(this.getEyePos().floored());
-        if (!head.material.has_oxygen) {
-            this.oxygen_tick_timer++;
-            if (this.oxygen_tick_timer >= 10 * CORRECT_TIME) {
-                this.oxygen_tick_timer = 0;
-                // эффект подводное дыхание
-                const level = this.getEffectLevel(Effect.RESPIRATION);
-                const rnd = Math.random * (level + 1) | 0;
-                if (level == 0 || rnd == 0) {
-                    this.oxygen_level =  Math.max(this.oxygen_level - 1, 0);
-                }
-                if (this.oxygen_level == 0) {
-                    this.live_level = Math.max(this.live_level - 1, 0);
-                }
-            }
-        } else {
-            this.oxygen_tick_timer = 0;
-            this.oxygen_level = 20;
-        }
-        
-        // огонь
-        const fire_res_lvl = this.getEffectLevel(Effect.FIRE_RESISTANCE);
-        const legs = this.world.getBlock(this.state.pos.floored());
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || legs.material.material.id == 'lava') {
-            this.lava_tick_timer++;
-            if (this.lava_tick_timer >= 0.5 * CORRECT_TIME) {
-                this.lava_tick_timer = 0;
-                if (fire_res_lvl == 0) {
-                    this.live_level = Math.max(this.live_level - 1, 0);
-                }
-            }
-        } else {
-            this.lava_tick_timer = 0;
-        }
-        
-        // регенерация
-        const reg_lvl = this.getEffectLevel(Effect.REGENERATION);
-        if (reg_lvl > 0) {
-            this.regen_tick_timer++;
-            if (this.regen_tick_timer >= (2.5 * CORRECT_TIME / (2**(reg_lvl - 1)))) {
-                this.regen_tick_timer = 0;
-                this.live_level = Math.min(this.live_level + 1, 20);
-            }
-        } else {
-            this.regen_tick_timer = 0;
-        }
-        
-        
+        this.damage.getDamage(tick);
+       
         if (this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live.value > this.live_level) {
@@ -718,7 +633,7 @@ export class ServerPlayer extends Player {
                     }
                     // если у предмета есть еффекты
                     if (block.effects) {
-                        this.addEffects(block.effects);
+                        this.effects.addEffects(block.effects);
                     }
                     this.inventory.decrement();
                 }
@@ -731,7 +646,7 @@ export class ServerPlayer extends Player {
     * exhaustion - уровень истощения
     */
     addExhaustion(exhaustion) {
-        this.food_exhaustion_level = Math.min(this.food_exhaustion_level + exhaustion, 40);
+        this.damage.addExhaustion(exhaustion);
     }
     
     /*
@@ -740,64 +655,7 @@ export class ServerPlayer extends Player {
     * saturation - уровень насыщения
     */
     setFoodLevel(food, saturation) {
-        this.food_level = Math.min(food + this.food_level, 20);
-        this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, this.food_level);
-    }
-    
-    /*
-    * Добавляет новый еффект на игрока
-    * effects - массив эффектов
-    */
-    addEffects(effects) {
-        for (const effect of effects) {
-            let add = true;
-            for (const eff of this.effects) {
-                if (eff.id == effect.id) {
-                    eff.time = Math.max(eff.time, effect.time);
-                    eff.level = Math.max(eff.level, effect.level);
-                    add = false;
-                    break;
-                }
-            }
-            if (add) {
-                this.effects.push({
-                    id: effect.id,
-                    time: effect.time * CORRECT_TIME,
-                    level: effect.level
-                });
-            }
-        }
-        this.world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], [this.session.user_id]);
-    }
-    
-    /*
-    * Проверям наличие эффекта
-    * val - сам эффект
-    */
-    getEffectLevel(val) {
-        for (const effect of this.effects) {
-            if (effect.id == val) {
-                return effect.level;
-            }
-        }
-        return 0;
-    }
-    
-    // проверка наложенных эффектов
-    checkEffects() {
-        let update = false;
-        for (let i = 0; i < this.effects.length; i++) {
-            if (this.effects[i].time > 0) {
-                this.effects[i].time--;
-            } else {
-                this.effects.splice(i, 1);
-                update = true;
-            }
-        }
-        if (update) {
-            // @todo пока тут проверям конец, потом перикунуть на клиент
-           this.world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], [this.session.user_id]);
-        }
+        this.damage.setFoodLevel(food, saturation);
     }
     
 }
