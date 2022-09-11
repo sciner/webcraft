@@ -2,7 +2,7 @@ import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "../constant.js";
-import { Mth, Vector } from "../helpers.js";
+import {Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
 class ItemUseAnimation {
@@ -32,6 +32,20 @@ export class HumanoidArm {
 
 const {mat3, mat4, quat} = glMatrix;
 const tmpMatrix = mat4.create();
+
+export function swapMatrixYZ(matrix) {
+    for (let i = 0; i < 4; i++) {
+        let t = matrix[4 + i];
+        matrix[4 + i] = -matrix[8 + i];
+        matrix[8 + i] = -t;
+    }
+
+    for (let i = 0; i < 4; i++) {
+        let t = matrix[i * 4 + 1];
+        matrix[i * 4 + 1] = -matrix[i * 4 + 2];
+        matrix[i * 4 + 2] = -t;
+    }
+}
 
 export class InHandOverlay {
 
@@ -139,7 +153,7 @@ export class InHandOverlay {
         if (!player.inMiningProcess && !player.inItemUseProcess) {
             this.mineTime = 0;
         }
-        
+
         if (player.inMiningProcess || player.inItemUseProcess || this.mineTime > (delta * 2) / RENDER_DEFAULT_ARM_HIT_PERIOD) {
             this.mineTime += delta / player.inhand_animation_duration;
             if (this.mineTime >= 1) {
@@ -202,9 +216,9 @@ export class InHandOverlay {
         globalUniforms.update();
 
         renderBackend.beginPass({clearDepth: true, clearColor: false});
-        
+
         const pSwingProgress = this.mineTime;
-        
+
         if(inHandItemMesh) {
 
             const {
@@ -282,7 +296,7 @@ export class InHandOverlay {
         } else if(matInHand.diagonal) {
             animation_name = 'diagonal';
         }
-        
+
         switch(animation_name) {
             case 'hit': {
                 const fast = Math.abs(Math.sin(pSwingProgress * Math.PI * 4));
@@ -349,14 +363,14 @@ export class InHandOverlay {
                     if (f13 > 1.0) {
                         f13 = 1.0;
                     }
-    
+
                     if (f13 > 0.1) {
                         let f16 = Math.sin((f9 - 0.1) * 1.3);
                         let f3 = f13 - 0.1;
                         let f4 = f16 * f3;
                         modelMatrix.translate((f4 * 0.0), (f4 * 0.004), (f4 * 0.0));
                     }
-    
+
                     modelMatrix.translate((f13 * 0.0), (f13 * 0.0), (f13 * 0.04));
                     modelMatrix.scale(1.0, 1.0, 1.0 + f13 * 0.2);
                     modelMatrix.mulPose(Vector.YN.rotationDegrees(i * 45.0));
@@ -372,7 +386,7 @@ export class InHandOverlay {
                         modelMatrix.mulPose(Vector.YP.rotationDegrees(i * 10.0));
                     }
                 }
-    
+
                 this.renderItem(player, matInHand, flag2 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag2, modelMatrix, p_109380_, pCombinedLight);
             */
             } else {
@@ -407,14 +421,14 @@ export class InHandOverlay {
                             if (f12 > 1.0) {
                                 f12 = 1.0;
                             }
-    
+
                             if (f12 > 0.1) {
                                 let f15 = Math.sin((f8 - 0.1) * 1.3);
                                 let f18 = f12 - 0.1;
                                 let f20 = f15 * f18;
                                 modelMatrix.translate((f20 * 0.0), (f20 * 0.004), (f20 * 0.0));
                             }
-    
+
                             modelMatrix.translate((f12 * 0.0), (f12 * 0.0), (f12 * 0.04));
                             modelMatrix.scale(1.0, 1.0, 1.0 + f12 * 0.2);
                             modelMatrix.mulPose(Vector.YN.rotationDegrees(k * 45.0));
@@ -432,14 +446,14 @@ export class InHandOverlay {
                             if (f11 > 1.0) {
                                 f11 = 1.0;
                             }
-    
+
                             if (f11 > 0.1) {
                                 let f14 = Math.sin((f7 - 0.1) * 1.3);
                                 let f17 = f11 - 0.1;
                                 let f19 = f14 * f17;
                                 modelMatrix.translate((f19 * 0.0), (f19 * 0.004), (f19 * 0.0));
                             }
-    
+
                             modelMatrix.translate(0.0, 0.0, (f11 * 0.2));
                             modelMatrix.scale(1.0, 1.0, 1.0 + f11 * 0.2);
                             modelMatrix.mulPose(Vector.YN.rotationDegrees(k * 45.0));
@@ -487,16 +501,18 @@ export class InHandOverlay {
                     let f10 = -0.2 * Math.sin(pSwingProgress * Math.PI);
                     let l = flag3 ? 1 : -1;
                     // modelMatrix.translate((l * f5), f6, f10);
-                    mat4.translate(modelMatrix, modelMatrix, [l * f5, f10, f6]);
-  
+                    mat4.translate(modelMatrix, modelMatrix, [l * f5, f6, f10]);
+
                     this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
                     this.applyItemArmAttackTransform(modelMatrix, humanoidarm, pSwingProgress);
 
                 }
-    
+
                 // this.renderItem(player, matInHand, flag3 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag3, modelMatrix, p_109380_, pCombinedLight);
             }
-    
+            // this was MC code, so, lets rotate axis in the end
+            swapMatrixYZ(modelMatrix);
+
             // TODO: у нас нет стека матриц =(
             // modelMatrix.popPose();
         }
@@ -516,7 +532,7 @@ export class InHandOverlay {
         const x = i * 0.56;
         const y = -0.52 + pEquippedProgress * -0.6;
         const z = -0.72
-        mat4.translate(modelMatrix, modelMatrix, [x, z, y]);
+        mat4.translate(modelMatrix, modelMatrix, [x, y, z]);
 
     }
 
@@ -543,18 +559,17 @@ export class InHandOverlay {
         const m = mat4.create();
         const q = quat.create();
         const deg2Rad = (i) => {
-            return i;// (Math.PI / 180) * i;
+            return (Math.PI / 180) * i;
         }
 
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * (45.0 + f * -20.0)))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * (45.0 + f * -20.0)))));
 
         const f1 = Math.sin(Math.sqrt(pSwingProgress) * Math.PI);
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * f1 * -20.0))));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.XP, deg2Rad(f1 * -80.0))));
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(modelMatrix, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * -45.0))));
-
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, deg2Rad(i * f1 * -20.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, deg2Rad(f1 * -80.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, deg2Rad(i * -45.0))));
     }
-    
+
     /**
     * @param {PoseStack} modelMatrix
     * @param {float} pPartialTicks
@@ -568,7 +583,7 @@ export class InHandOverlay {
             let f2 = Math.abs(Math.cos(f / 4.0 * Math.PI) * 0.1);
             modelMatrix.translate(0.0, f2, 0.0);
         }
-    
+
         let f3 = 1.0 - Math.pow(f1, 27.0);
         let i = hand == HumanoidArm.RIGHT ? 1 : -1;
         modelMatrix.translate((f3 * 0.6 * i), (f3 * -0.5), (f3 * 0.0));
@@ -576,7 +591,7 @@ export class InHandOverlay {
         modelMatrix.mulPose(Vector.XP.rotationDegrees(f3 * 10.0));
         modelMatrix.mulPose(Vector.ZP.rotationDegrees(i * f3 * 30.0));
     }
-    
+
     /**
     * @param {LivingEntity} player
     * @param {ItemStack} matInHand
@@ -591,7 +606,7 @@ export class InHandOverlay {
             this.itemRenderer.renderStatic(player, matInHand, p_109325_, p_109326_, modelMatrix, p_109328_, player.level, p_109329_, OverlayTexture.NO_OVERLAY, player.getId() + p_109325_.ordinal());
         }
     }
-    
+
     /**
     * @param {PoseStack} modelMatrix
     * @param {MultiBufferSource} p_109348_
