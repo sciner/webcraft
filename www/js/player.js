@@ -395,7 +395,6 @@ export class Player {
     async onPickAtTarget(e, times, number) {
 
         this.inMiningProcess = true;
-        this.mineTime = 0;
         this.inhand_animation_duration = 2.5 * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
@@ -445,6 +444,7 @@ export class Player {
                 console.log('Stand up first');
                 return false;
             }
+            this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
             const player = {
                 radius: 0.7,
