@@ -22,6 +22,7 @@ export class FluidChunk {
         this.waterGeom = null; // transparent geom
         this.lavaGeom = null; // non-transparent glowy geom
         this.world = world;
+        this.dirty = true;
     }
 
     setValue(x, y, z, value) {
@@ -83,5 +84,17 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
+        this.dirty = true;
+    }
+
+    dispose() {
+        if (this.waterGeom) {
+            this.waterGeom.clear();
+            this.waterGeom = null;
+        }
+        if (this.lavaGeom) {
+            this.lavaGeom.clear();
+            this.lavaGeom = null;
+        }
     }
 }

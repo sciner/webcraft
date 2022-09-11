@@ -15,14 +15,14 @@ const fluidMaterials = [];
 class FluidMaterial {
     constructor(block) {
         this.block = block;
-        this.upTex = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
-        this.sideTex = BLOCK.calcTexture(block.material.texture, DIRECTION.WEST);
+        this.upTex = BLOCK.calcTexture(block.texture, DIRECTION.UP);
+        this.sideTex = BLOCK.calcTexture(block.texture, DIRECTION.WEST);
 
         this.flags = 0;
         if (block.texture_animations) {
             this.flags |= QUAD_FLAGS.FLAG_ANIMATED;
         }
-        if(block.hasTag('multiply_color')) {
+        if(block.tags.includes('multiply_color')) {
             this.flags |= QUAD_FLAGS.MASK_BIOME;
         }
     }

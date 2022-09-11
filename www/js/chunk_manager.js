@@ -303,7 +303,7 @@ export class ChunkManager {
      */
     prepareRenderList(render) {
         if (!this.bufferPool) {
-            if (render.renderBackend.multidrawExt) {
+            if (render.renderBackend.multidrawBaseExt) {
                  this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
             } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
@@ -586,6 +586,8 @@ export class ChunkManager {
                 }
             }
         }
+
+        this.fluidWorld.buildDirtyChunks();
     }
 
     // Возвращает блок по абслютным координатам

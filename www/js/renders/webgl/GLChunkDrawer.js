@@ -100,6 +100,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                     offsets, 0,
                     sz,
                 );
+                context.stat.multidrawcalls++;
             } else {
                 // manual vertexAttribPointer
             }
@@ -116,12 +117,13 @@ export class GLChunkDrawer extends ChunkDrawer {
                     counts, 0,
                     sz,
                 );
+                context.stat.multidrawcalls++;
             } else {
                 for (let i = 0; i < sz; i++) {
                     gl.drawArrays(gl.TRIANGLES, offsets[i], counts[i]);
                 }
+                context.stat.drawcalls++;
             }
         }
-        context.stat.multidrawcalls++;
     }
 }
