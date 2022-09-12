@@ -308,10 +308,6 @@ export class Chunk {
             const pos = block.pos;
 
             for(let material_key in block.vertice_groups) {
-
-                const tmp = material_key.split('/');
-                const material_group = tmp[1];
-
                 // material.group, material_key
                 if (!materialToId.has(material_key)) {
                     materialToId.set(material_key, materialToId.size);
@@ -321,7 +317,6 @@ export class Chunk {
                 let buf = vertexBuffers.get(matId);
                 if (!buf) {
                     vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
-                        material_group: material_group,
                         material_key: material_key,
                         geometryPool: verticesPool,
                         chunkDataId: dataId
@@ -359,7 +354,6 @@ export class Chunk {
             let buf = vertexBuffers.get(matId);
             if (!buf) {
                 vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
-                    material_group: material.group,
                     material_key: material.material_key,
                     geometryPool: verticesPool,
                     chunkDataId: dataId

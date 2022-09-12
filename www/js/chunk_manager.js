@@ -339,7 +339,9 @@ export class ChunkManager {
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
-                v2.clear();
+                for (let [key2, v3] of v2) {
+                    v3.clear();
+                }
             }
         }
 
@@ -370,6 +372,7 @@ export class ChunkManager {
                 if (!rpl) {
                     let key1 = v.resource_pack_id;
                     let key2 = v.material_group;
+                    let key3 = v.material_shader;
                     if (!v.buffer) {
                         continue;
                     }
@@ -377,10 +380,14 @@ export class ChunkManager {
                     if (!rpList) {
                         renderList.set(key1, rpList = new Map());
                     }
-                    if (!rpList.get(key2)) {
-                        rpList.set(key2, new IvanArray());
+                    let groupList = rpList.get(key2);
+                    if (!groupList) {
+                        rpList.set(key2, groupList = new Map());
                     }
-                    rpl = v.rpl = rpList.get(key2);
+                    if (!groupList.get(key3)) {
+                        groupList.set(key3, new IvanArray());
+                    }
+                    rpl = v.rpl = groupList.get(key3);
                 }
                 rpl.push(chunk);
                 rpl.push(v);
@@ -400,20 +407,23 @@ export class ChunkManager {
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
         for(let group of groups) {
-            const list = rpList.get(group);
-            if (!list) {
+            const groupList = rpList.get(group);
+            if (!groupList) {
                 continue;
             }
-            const { arr, count } = list;
-            const mat = resource_pack.shader.materials[group];
-            for (let i = 0; i < count; i += 2) {
-                const chunk = arr[i];
-                const vertices = arr[i + 1];
-                chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                if (!chunk.rendered) {
-                    this.rendered_chunks.fact++;
+            for (let [mat_shader, list] of groupList.entries()) {
+                const {arr, count} = list;
+                const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
+                const mat = resource_pack[shaderName].materials[group];
+                for (let i = 0; i < count; i += 2) {
+                    const chunk = arr[i];
+                    const vertices = arr[i + 1];
+                    chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                    if (!chunk.rendered) {
+                        this.rendered_chunks.fact++;
+                    }
+                    chunk.rendered++;
                 }
-                chunk.rendered++;
             }
         }
         return true;

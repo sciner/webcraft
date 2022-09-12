@@ -25,6 +25,14 @@ class FluidMaterial {
         if(block.tags.includes('multiply_color')) {
             this.flags |= QUAD_FLAGS.MASK_BIOME;
         }
+
+        let texture_id = 'default';
+        if(typeof block.texture == 'object' && 'id' in block.texture) {
+            texture_id = block.texture.id;
+        }
+
+        this.material_key = block.resource_pack.id + '/fluid/' +
+            (block.transparent ? 'doubleface_transparent': 'doubleface') + '/' + texture_id;
     }
 }
 

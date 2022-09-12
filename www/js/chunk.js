@@ -265,7 +265,8 @@ export class Chunk {
                 if (lastBuffer) { lastBuffer = lastBuffer.buffer }
                 v.resource_pack_id    = temp[0];
                 v.material_group      = temp[1];
-                v.texture_id          = temp[2];
+                v.material_shader     = temp[2];
+                v.texture_id          = temp[3];
                 v.key                 = key;
                 v.buffer              = chunkManager.bufferPool.alloc({
                     lastBuffer,

@@ -9,9 +9,21 @@ export class FluidWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
 
-        this.geometryPool = new Worker05GeometryPool(null, {});
+        this.geometryPool = new Worker05GeometryPool(null, {
+            instanceSize: 48,
+            pageSize: 85,
+        });
         this.dirtyChunks = [];
         this.renderPool = null;
+    }
+
+    initRenderPool(context) {
+        if (this.renderPool) {
+            return;
+        }
+        this.renderPool = new FluidGeometryPool(context, {
+            pageSize: 85,
+        });
     }
 
     addChunk(chunk) {
@@ -32,13 +44,6 @@ export class FluidWorld {
         }
         chunk.fluid.dispose();
         chunk.fluid = null;
-    }
-
-    initRenderPool(context) {
-        if (this.renderPool) {
-            return;
-        }
-        this.renderPool = new FluidGeometryPool(context, {});
     }
 
     buildDirtyChunks() {

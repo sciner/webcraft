@@ -1,7 +1,7 @@
 import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
 
 export class FluidMultiGeometry extends BaseMultiGeometry {
-    static strideFloats = 8;
+    static strideFloats = 48;
     static vertexPerInstance = 6;
     static sortAss = (a, b) => {
         return a - b;
@@ -11,7 +11,7 @@ export class FluidMultiGeometry extends BaseMultiGeometry {
         super({
             context, size, strideFloats: FluidMultiGeometry.strideFloats});
         this.vertexPerInstance = FluidMultiGeometry.vertexPerInstance;
-        this.stride *= this.vertexPerInstance;
+        this.stride /= this.vertexPerInstance;
         this.hasInstance = false;
     }
 

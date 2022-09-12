@@ -28,7 +28,7 @@ export class Particles_Stars {
         const material      = BLOCK.fromName('CLOUD');
 
         this.c              = BLOCK.calcTexture(material.texture, DIRECTION.EAST);
-        this.gl_material    = material.resource_pack.getMaterial('base/doubleface/default');
+        this.gl_material    = material.resource_pack.getMaterial('base/doubleface/terrain/default');
         this.bo             = 0; // old stars brightness
         this.life           = 1.0;
         this.matrix         = mat4.create();

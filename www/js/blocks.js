@@ -741,10 +741,11 @@ export class BLOCK {
     static makeBlockMaterialKey(resource_pack, material) {
         let mat_group = material.group;
         let texture_id = 'default';
+        let mat_shader = 'terrain';
         if(typeof material.texture == 'object' && 'id' in material.texture) {
             texture_id = material.texture.id;
         }
-        return `${resource_pack.id}/${mat_group}/${texture_id}`;
+        return `${resource_pack.id}/${mat_group}/${mat_shader}/${texture_id}`;
     }
 
     //

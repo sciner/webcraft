@@ -242,8 +242,9 @@ export class BaseResourcePack {
         }
         let key_arr = key.split('/');
         let group = key_arr[1];
-        let texture_id = key_arr[2];
-        let mat = this.shader.materials[group];
+        let shaderName = key_arr[2] === 'fluid' ? 'fluidShader' : 'shader';
+        let texture_id = key_arr[3];
+        let mat = this[shaderName].materials[group];
         texMat = mat.getSubMat(this.getTexture(texture_id).texture);
         this.materials.set(key, texMat);
         return texMat;

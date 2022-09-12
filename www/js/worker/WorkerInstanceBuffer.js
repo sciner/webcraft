@@ -1,32 +1,11 @@
 import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
 
-let group_templates = {
-    regular: {
-        list: [],
-        is_transparent: false
-    },
-    transparent: {
-        list: [],
-        is_transparent: true
-    },
-    doubleface_transparent: {
-        list: [],
-        is_transparent: true
-    },
-    doubleface: {
-        list: [],
-        is_transparent: true
-    },
-};
-
 export class WorkerInstanceBuffer {
     constructor({
-                    material_group,
                     material_key,
                     geometryPool,
                     chunkDataId,
                 }) {
-        this.material_group = material_group;
         this.material_key = material_key;
         this.geometryPool = geometryPool;
         this.chunkDataId = chunkDataId;
@@ -66,7 +45,9 @@ export class WorkerInstanceBuffer {
             pool: this.geometryPool,
             chunkDataId: this.chunkDataId
         });
-        this.serialized = JSON.parse(JSON.stringify(group_templates[this.material_group]));
+        this.serialized = {
+            list: []
+        };
         return this.vertices;
     }
 
