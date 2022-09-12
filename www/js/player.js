@@ -282,9 +282,9 @@ export class Player {
                 const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
                 if(!block_over || !block_over.material.is_fluid) {
                     const default_sound   = 'madcraft:block.stone';
-                    const action          = 'hit';
+                    const action          = 'step';
                     let sound             = world_block.getSound();
-                    const sound_list      = Qubatch.sounds.getList(sound, action);
+                    const sound_list      = Qubatch.sounds.getList(sound, action) ?? Qubatch.sounds.getList(sound, 'hit');
                     if(!sound_list) {
                         sound = default_sound;
                     }
