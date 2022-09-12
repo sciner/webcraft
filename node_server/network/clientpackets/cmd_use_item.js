@@ -1,6 +1,6 @@
 import { ServerClient } from "../../../www/js/server_client.js";
 
-const TIME_CAST = 17;
+const TIME_CAST = 28;
 
 export default class packet_reader {
 

@@ -29,13 +29,17 @@ export class ServerPlayerDamage {
     *
     */
     getDamage(tick) {
-        //const effects = this.effects;
         const player = this.player;
         const world = player.world;
         const effects = player.effects;
         const head = world.getBlock(player.getEyePos().floored());
         const legs = world.getBlock(player.state.pos.floored());
         const ind_def = world.getDefaultPlayerIndicators();
+        
+        let max_live = ind_def.live.value;
+        // эффект прилив здоровья
+        const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
+        max_live += 2 * health_boost_lvl;
         
         let damage = 0;
         // поставил сюда, так как она тоже дает демаг
@@ -51,7 +55,7 @@ export class ServerPlayerDamage {
             this.food_timer++;
             if (this.food_timer >= FOOD_LOST_TICKS) {
                 this.food_timer = 0;
-                player.live_level = Math.min(player.live_level + 1, 20);
+                player.live_level = Math.min(player.live_level + 1, max_live);
                 this.addExhaustion(3);
             }
         } else if (player.food_level <= 0) {
@@ -90,7 +94,7 @@ export class ServerPlayerDamage {
             }
         }
         
-        // огонь
+        // огонь с эффектом защиты от огня
         const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
         if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id) {
             this.fire_lost_timer++;
@@ -130,19 +134,19 @@ export class ServerPlayerDamage {
             this.wither_timer = 0;
         }
         
-        // регенерация
+        // регенерация жизней
         const reg_lvl = effects.getEffectLevel(Effect.REGENERATION);
         if (reg_lvl > 0) {
             this.live_regen_timer++;
             if (this.live_regen_timer >= (LIVE_REGENERATIN_TICKS / (2**(reg_lvl - 1)))) {
                 this.live_regen_timer = 0;
-                player.live_level = Math.min(player.live_level + 1, ind_def.live.value);
+                player.live_level = Math.min(player.live_level + 1, max_live);
             }
         } else {
             this.live_regen_timer = 0;
         }
         
-        // сопротивление
+        // сопротивление магическому и физическому урону
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE);
         damage = Math.round(damage - damage * res_lvl * 0.2);
         if (damage > 0) {
@@ -152,7 +156,7 @@ export class ServerPlayerDamage {
     }
     
     /*
-    * установка истощения
+    * добавления истощения
     * exhaustion - уровень истощения
     */
     addExhaustion(exhaustion) {

@@ -29,7 +29,7 @@ export default class EffectsPlugin {
                 const id = args[1];
                 const level = args[2];
                 const time = args[3];
-                player.addEffects([{id: id, level: level, time: time}]);
+                player.effects.addEffects([{id: id, level: level, time: time}]);
                 return true;
             }
             return false;

@@ -7271,7 +7271,7 @@
         },
         {
             "id": 234,
-            "name": "BOTTLE1",
+            "name": "SPEED",
             "style": "extruder",
             "max_in_stack": 1,
             "item": {"name": "bottle"},
@@ -7281,7 +7281,7 @@
             "tags": [
                 "mask_color"
             ],
-            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "mask_color": {"r": 4, "g": 539, "b": 0},
             "texture": {
                 "side": "24|31"
             },
@@ -7290,7 +7290,55 @@
                 "texture": "24|31"
             },
             "effects":[
-                {"id":16, "time": 180, "level": 10}
+                {"id":0, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 235,
+            "name": "SPEED_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 539, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":0, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 236,
+            "name": "SPEED_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 539, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":1, "time": 90, "level": 2}
             ]
         }
     ]
