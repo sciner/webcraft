@@ -62,7 +62,13 @@ export class Compiler {
         for(let texture of this.compile_data.predefined_textures) {
             const spritesheet = this.getSpritesheet(texture.spritesheet_id);
             const tex = await spritesheet.loadTex(texture.image);
-            spritesheet.drawTexture(tex.texture, texture.x, texture.y, texture.has_mask);
+            const {sx, sy} = await spritesheet.drawTexture(tex.texture, texture.x, texture.y, texture.has_mask);
+            // отрисовать картинку в маске с переводом всех непрозрачных пикселей в черный цвет
+            if(texture.diff_to_mask || texture.diff_to_source) {
+                const shift = sx * (texture.diff_to_mask ? 1 : -1);
+                spritesheet.drawTexture(tex.texture, texture.x + shift, texture.y, texture.has_mask);
+                spritesheet.drawTexture(tex.texture, texture.x + shift, texture.y, texture.has_mask, 'difference');
+            }
             spritesheet.drawTexture(tex.n || this.default_n, texture.x, texture.y, false, null, null, this.options.n_texture_id);
         }
         try {

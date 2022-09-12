@@ -16,7 +16,10 @@
         {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
         {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
         {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"},
-        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/glass_bottle.png"}
+        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "item/potion.png", "diff_to_mask": true},
+        {"spritesheet_id": "default", "x": 25, "y": 31, "image": "item/potion_overlay.png", "diff_to_source": true},
+        {"spritesheet_id": "default", "x": 26, "y": 31, "image": "item/splash_potion.png", "diff_to_mask": true},
+        {"spritesheet_id": "default", "x": 27, "y": 31, "image": "item/potion_overlay.png", "diff_to_source": true}
     ],
     "blocks" : [
         {
