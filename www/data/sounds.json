@@ -286,6 +286,35 @@
         ]
     },
     {
+        "type": "madcraft:block.ender_chest",
+        "dig": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "place": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "open": [
+            "Ender_Chest_open"
+        ],
+        "close": [
+            "Ender_Chest_close"
+        ],
+        "hit": [
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
+        ]
+    },
+    {
         "type": "madcraft:block.barrel",
         "dig": [
             "wood1",

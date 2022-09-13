@@ -108,7 +108,6 @@ export class Sounds {
                     break;
                 }
                 case 'pitch': {
-                    console.log('pitch');
                     this.sound_sprite_main.rate(value, track_id);
                     break;
                 }

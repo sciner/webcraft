@@ -289,10 +289,23 @@ export default class WorldEdit {
             affected_count++;
         }
         //
+        let cnt = 0;
+        const notify = {
+            user_id: player.session.user_id,
+            total_actions_count: actions_list.size,
+            message: 'WorldEdit paste completed!'
+        };
         for(const [_, actions] of actions_list.entries()) {
+            if(player) {
+                if(cnt == 0 || cnt == actions_list.size - 1) {
+                    actions.notify = notify;
+                }
+                cnt++
+            }
             chat.world.actions_queue.add(null, actions);
         }
-        const msg = `${affected_count} block(s) affected`;
+        const affected_count_formatted = affected_count.toLocaleString('us');
+        const msg = `${affected_count_formatted} block(s) affected`;
         const pn = Math.round((performance.now() - pn_set) * 10) / 10;
         const blocks_per_sec = Math.round(affected_count / (pn / 1000));
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);

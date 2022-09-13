@@ -3012,16 +3012,31 @@
             "is_entity": true,
             "is_chest": true,
             "transparent": true,
+            "style": "chest",
             "sound": "madcraft:block.chest",
             "can_rotate": true,
             "material": {
                 "id": "wood"
             },
             "texture": {
-                "up": "./textures/chest_top.png",
-                "down": "./textures/chest_top.png",
-                "north": "./textures/chest_front.png",
-                "side": "./textures/chest_side.png"
+                "side": "entity/chest/normal.png"
+            }
+        },
+        {
+            "id": 488,
+            "name": "ENDER_CHEST",
+            "window": "frmEnderChest",
+            "is_entity": true,
+            "is_chest": true,
+            "style": "chest",
+            "transparent": true,
+            "sound": "madcraft:block.ender_chest",
+            "can_rotate": true,
+            "material": {
+                "id": "obsidian"
+            },
+            "texture": {
+                "side": "entity/chest/ender.png"
             }
         },
         {

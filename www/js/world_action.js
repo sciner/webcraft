@@ -400,7 +400,7 @@ export class WorldAction {
 
     #world;
 
-    constructor(id, world, ignore_check_air = false, on_block_set = true) {
+    constructor(id, world, ignore_check_air = false, on_block_set = true, notify = null) {
         this.#world = world;
         //
         Object.assign(this, {
@@ -418,6 +418,7 @@ export class WorldAction {
             decrement_instrument:       false,
             ignore_creative_game_mode:  false,
             sitting:                    false,
+            notify:                     notify,
             blocks: {
                 list: [],
                 options: {

@@ -4,6 +4,7 @@ export { CraftTable } from "./craft_table.js";
 export { CreativeInventoryWindow } from "./creative_inventory.js";
 export { DieWindow } from "./die.js";
 export { EditSignWindow } from "./edit_sign.js";
+export { EnderChestWindow } from "./ender_chest.js";
 export { FurnaceWindow } from "./furnace.js";
 export { InventoryWindow } from "./inventory.js";
 export { MainMenu } from "./main_menu.js";
