@@ -7341,7 +7341,271 @@
                 "texture": "24|31"
             },
             "effects":[
-                {"id":1, "time": 90, "level": 2}
+                {"id":0, "time": 90, "level": 2}
+            ]
+        },
+        {
+            "id": 237,
+            "name": "REGENERATION",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":7, "time": 1, "level": 1}
+            ]
+        },
+        {
+            "id": 238,
+            "name": "REGENERATION_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":7, "time": 1, "level": 2}
+            ]
+        },
+        {
+            "id": 239,
+            "name": "SLOWNESS",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":1, "time": 90, "level": 1}
+            ]
+        },
+        {
+            "id": 240,
+            "name": "SLOWNESS_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":1, "time": 240, "level": 1}
+            ]
+        },
+        {
+            "id": 241,
+            "name": "SLOWNESS_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":1, "time": 20, "level": 4}
+            ]
+        },
+        {
+            "id": 242,
+            "name": "JUMP_BOOST",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":19, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 243,
+            "name": "JUMP_BOOST_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":10, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 244,
+            "name": "JUMP_BOOST_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":10, "time": 90, "level": 2}
+            ]
+        },
+        {
+            "id": 245,
+            "name": "STRENGTH",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":4, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 246,
+            "name": "STRENGTH_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":4, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 247,
+            "name": "STRENGTH_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":4, "time": 90, "level": 2}
             ]
         }
     ]
