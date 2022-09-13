@@ -46,7 +46,8 @@
         "gamerule",
         "view_distance",
         "chat_ping",
-        "chat_weather"
+        "chat_weather",
+        "chat_setworldspawn"
     ],
     "clientpackets": [
         "cmd_block_clone",
