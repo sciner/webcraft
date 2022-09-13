@@ -834,9 +834,10 @@ export class ServerWorld {
     }
 
     //
-    async setWorldSpawn(pos) {
+    async setWorldSpawn(pos_spawn) {
         // Save to DB and send to players
-        await this.db.setWorldSpawn(this.info.guid, pos);
+        this.info.pos_spawn = pos_spawn;
+        await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
     }
 
