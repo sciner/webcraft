@@ -7,6 +7,8 @@
     "JSONRPCEndpoint": "/api/",
     "ApiKey": "eeb5694b9bb20fc43ff234438ad26e34",
     "APIDomain": "http://api.madcraft.loc/",
+    "DomainURL": "https://madcraft.io",
+    "ProjectName": "Madcraft",
     "UseSecureProtocol": false,
     "SSLCertFile": "/var/ssl/auth/fullchain.pem",
     "SSLKeyFile": "/var/ssl/auth/privkey.pem",
