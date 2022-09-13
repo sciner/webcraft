@@ -236,6 +236,66 @@ export class Chunk {
         return true;
     }
 
+    applyVertices(inputId, bufferPool, argsVertices) {
+        let chunkManager = this.getChunkManager();
+        chunkManager.vertices_length_total      -= this.vertices_length;
+        this.vertices_length = 0;
+        this.verticesList.length = 0;
+
+        for(let [key, v] of this.vertices) {
+            if (v.inputId === inputId) {
+                v.customFlag = true;
+            }
+        }
+
+        for(let [key, v] of Object.entries(argsVertices)) {
+            if(v.list.length > 1) {
+                let temp = key.split('/');
+                let lastBuffer = this.vertices.get(key);
+                if (lastBuffer) { lastBuffer = lastBuffer.buffer }
+                v.instanceCount       = v.list[0];
+                v.resource_pack_id    = temp[0];
+                v.material_group      = temp[1];
+                v.material_shader     = temp[2];
+                v.texture_id          = temp[3];
+                v.key                 = key;
+                v.buffer              = chunkManager.bufferPool.alloc({
+                    lastBuffer,
+                    vertices: v.list,
+                    chunkId: chunkLightId
+                });
+                if (lastBuffer && v.buffer !== lastBuffer) {
+                    lastBuffer.destroy();
+                }
+                v.inputId = inputId;
+                v.customFlag = false;
+                v.rpl = null;
+                this.vertices.set(key, v);
+                this.verticesList.push(v);
+                delete(v.list);
+            }
+        }
+        let oldKeys = [];
+        for (let [key, v] of this.vertices) {
+            if (v.inputId === inputId) {
+                if (v.customFlag) {
+                    v.destroy();
+                    oldKeys.push(key);
+                } else {
+                    this.vertices_length += v.instanceCount;
+                }
+            } else {
+                this.vertices_length += v.instanceCount;
+                this.vertices.push(v);
+            }
+        }
+        for (let i = 0; i< oldKeys.length; i++) {
+            this.vertices.delete(oldKeys);
+        }
+        chunkManager.vertices_length_total += this.vertices_length;
+        this.dirty = false;
+    }
+
     // Apply vertices
     applyVertices() {
         let chunkManager = this.getChunkManager();
