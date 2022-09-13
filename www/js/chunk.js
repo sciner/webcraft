@@ -247,7 +247,7 @@ export class Chunk {
                 v.customFlag = true;
             }
         }
-
+        const chunkLightId = this.getDataTextureOffset();
         for(let [key, v] of Object.entries(argsVertices)) {
             if(v.list.length > 1) {
                 let temp = key.split('/');
@@ -297,7 +297,7 @@ export class Chunk {
     }
 
     // Apply vertices
-    applyVertices() {
+    applyChunkWorkerVertices() {
         let chunkManager = this.getChunkManager();
         const args = this.vertices_args;
         delete(this['vertices_args']);
@@ -305,58 +305,7 @@ export class Chunk {
         this.buildVerticesInProgress            = false;
         this.timers                             = args.timers;
         this.gravity_blocks                     = args.gravity_blocks;
-        this.fluid_blocks                       = args.fluid_blocks;
-        chunkManager.vertices_length_total      -= this.vertices_length;
-        this.vertices_length                    = 0;
-        // Delete old WebGL buffers
-        for(let [key, v] of this.vertices) {
-            v.buffer.customFlag = true;
-        }
-
-        const chunkLightId = this.getDataTextureOffset();
-        // Add chunk to renderer
-        this.verticesList.length = 0;
-        for(let [key, v] of Object.entries(args.vertices)) {
-            if(v.list.length > 1) {
-                let temp = key.split('/');
-
-                this.vertices_length += v.list[0];
-                let lastBuffer = this.vertices.get(key);
-                if (lastBuffer) { lastBuffer = lastBuffer.buffer }
-                v.resource_pack_id    = temp[0];
-                v.material_group      = temp[1];
-                v.material_shader     = temp[2];
-                v.texture_id          = temp[3];
-                v.key                 = key;
-                v.buffer              = chunkManager.bufferPool.alloc({
-                    lastBuffer,
-                    vertices: v.list,
-                    chunkId: chunkLightId
-                });
-                if (lastBuffer && v.buffer !== lastBuffer) {
-                    lastBuffer.destroy();
-                }
-                v.buffer.customFlag = false;
-                v.rpl = null;
-                this.vertices.set(key, v);
-                this.verticesList.push(v);
-                delete(v.list);
-            }
-        }
-        let oldKeys = [];
-        for (let [key, v] of this.vertices) {
-            if (v.customFlag) {
-                v.destroy();
-                oldKeys.push(key);
-            }
-        }
-        for (let i = 0; i< oldKeys.length; i++) {
-            this.vertices.delete(oldKeys);
-        }
-        if(this.vertices_length == 0) {
-            // @todo
-        }
-        chunkManager.vertices_length_total += this.vertices_length;
+        this.applyVertices('worker', chunkManager.bufferPool, args.vertices);
         this.dirty = false;
     }
 

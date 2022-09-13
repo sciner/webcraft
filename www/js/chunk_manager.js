@@ -358,7 +358,7 @@ export class ChunkManager {
             }
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {
-                    chunk.applyVertices();
+                    chunk.applyChunkWorkerVertices();
                 }
             }
             // actualize light
