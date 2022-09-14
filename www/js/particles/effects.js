@@ -32,7 +32,7 @@ export class Particles_Effects extends Particles_Base {
         const m             = material_key.split('/');
         this.resource_pack  = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material       = this.resource_pack.getMaterial(material_key);
-        this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
+        this.tx_cnt         = this.resource_pack.conf.textures[m[3]].tx_cnt;
 
         this.pos            = Vector.ZERO.clone();
         this.chunk_addr     = chunk_addr.clone();
