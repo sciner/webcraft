@@ -7,6 +7,7 @@ import {
     OFFSET_FLUID
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
+import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 
 export class FluidChunk {
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
@@ -19,8 +20,8 @@ export class FluidChunk {
         this.uint16View = parentChunk.tblocks.fluid = new Uint16Array(this.uint8View.buffer);
         // depends on client/server/worker it should be different
 
-        this.waterGeom = null; // transparent geom
-        this.lavaGeom = null; // non-transparent glowy geom
+        this.instanceBuffers = new Map();
+
         this.world = world;
         this.dirty = true;
     }
@@ -87,14 +88,52 @@ export class FluidChunk {
         this.dirty = true;
     }
 
+    // build the vertices!
+    clearInstanceBuffers() {
+        for (let entry of this.instanceBuffers) {
+            entry[1].clear();
+        }
+    }
+
+    getInstanceBuffer(material_key) {
+        let ib = this.instanceBuffers.contains(material_key);
+        if (!ib) {
+            this.instanceBuffers.add(material_key, ib = new FluidInstanceBuffer({
+                material_key,
+                geometryPool: this.world.geometryPool,
+                chunkDataId: this.dataId
+            }));
+        }
+        return ib;
+    }
+
+    serializeInstanceBuffers() {
+        let serializedVertices = {};
+        for (let entry of this.instanceBuffers) {
+            const vb = entry[1];
+            if (vb.touched && vb.vertices.filled > 0) {
+                serializedVertices[vb.material_key] = vb.getSerialized();
+                vb.markClear();
+            } else {
+                this.instanceBuffers.delete(entry[0]);
+            }
+        }
+        return serializedVertices;
+    }
+
+    markDirty() {
+        if (this.dirty || !this.world) {
+            return;
+        }
+        this.dirty = true;
+        this.world.dirtyChunks.push(this);
+    }
+
     dispose() {
-        if (this.waterGeom) {
-            this.waterGeom.clear();
-            this.waterGeom = null;
+        for (let buf of this.instanceBuffers.values()) {
+            buf.clear();
         }
-        if (this.lavaGeom) {
-            this.lavaGeom.clear();
-            this.lavaGeom = null;
-        }
+        this.instanceBuffers.clear();
+        this.world = null;
     }
 }

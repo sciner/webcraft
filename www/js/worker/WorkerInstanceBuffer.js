@@ -9,15 +9,20 @@ export class WorkerInstanceBuffer {
         this.material_key = material_key;
         this.geometryPool = geometryPool;
         this.chunkDataId = chunkDataId;
-        this.vertices = new Worker05SubGeometry({
-            pool: geometryPool,
-            chunkDataId
-        })
+        this.vertices = null;
         this.cacheVertices = null;
         this.cachePos = 0;
         this.cacheCopy = 0;
         this.touched = false;
         this.serialized = null;
+    }
+
+    initGeom() {
+        this.cacheVertices = this.vertices;
+        this.vertices = new Worker05SubGeometry({
+            pool: this.geometryPool,
+            chunkDataId: this.chunkDataId
+        })
     }
 
     markClear() {
@@ -40,11 +45,7 @@ export class WorkerInstanceBuffer {
             return this.vertices;
         }
         this.touched = true;
-        this.cacheVertices = this.vertices;
-        this.vertices = new Worker05SubGeometry({
-            pool: this.geometryPool,
-            chunkDataId: this.chunkDataId
-        });
+        this.initGeom();
         this.serialized = {
             list: []
         };

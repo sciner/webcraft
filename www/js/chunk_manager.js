@@ -308,6 +308,7 @@ export class ChunkManager {
             } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
             }
+            this.fluidWorld.initRenderPool(render.renderBackend);
         }
 
         const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
@@ -394,6 +395,7 @@ export class ChunkManager {
                 chunk.rendered = 0;
             }
         }
+        this.fluidWorld.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
     }
 
     // Draw level chunks

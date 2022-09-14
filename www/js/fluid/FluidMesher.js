@@ -39,15 +39,7 @@ class FluidMaterial {
 function initFluidMaterials() {
     const waterMat = new FluidMaterial(BLOCK.BLOCK_BY_ID[200]);
     const lavaMat = new FluidMaterial(BLOCK.BLOCK_BY_ID[170]);
-    for (let i = 0; i < 16; i++) {
-        fluidMaterials.push(null);
-    }
-    for (let i = 0; i < 16; i++) {
-        fluidMaterials.push(waterMat);
-    }
-    for (let i = 0; i < 16; i++) {
-        fluidMaterials.push(lavaMat);
-    }
+    fluidMaterials.push(waterMat, lavaMat);
 }
 
 export const SIMPLE_DIRECTION = {
@@ -102,46 +94,7 @@ export function buildFluidVertices(fluidChunk) {
         initFluidMaterials();
     }
 
-    //check non-zero first
-    let hasWater = false, hasLava = false;
-    for (let y = 0; y < size.y; y++)
-        for (let z = 0; z < size.z; z++)
-            for (let x = 0; x < size.x; x++) {
-                let index = (x * cx + y * cy + z * cz + cw) * FLUID_STRIDE;
-                const fluidType = uint8View[index + OFFSET_FLUID] & FLUID_TYPE_MASK;
-                if (fluidType === FLUID_WATER_ID) {
-                    hasWater = true;
-                }
-                if (fluidType === FLUID_LAVA_ID) {
-                    hasLava = true;
-                }
-            }
-    if (hasWater !== !!fluidChunk.waterGeom) {
-        if (!hasWater) {
-            fluidChunk.waterGeom = new FluidSubGeometry({
-                pool: fluidChunk.world.geometryPool,
-                chunkDataId: fluidChunk.dataId,
-            });
-        } else {
-            fluidChunk.waterGeom.clear();
-            fluidChunk.waterGeom = null;
-        }
-    }
-    if (hasLava !== !!fluidChunk.lavaGeom) {
-        if (!hasLava) {
-            fluidChunk.lavaGeom = new FluidSubGeometry({
-                pool: fluidChunk.world.geometryPool,
-                chunkDataId: fluidChunk.dataId,
-            });
-        } else {
-            fluidChunk.lavaGeom.clear();
-            fluidChunk.lavaGeom = null;
-        }
-    }
-
-    if (!hasLava && !hasWater) {
-        return;
-    }
+    let buffers = [null, null];
 
     // we have fluids in chunk!
     const restrict16 = FLUID_BLOCK_RESTRICT << 8;
@@ -152,10 +105,11 @@ export function buildFluidVertices(fluidChunk) {
         for (let z = 0; z < size.z; z++)
             for (let x = 0; x < size.x; x++) {
                 let index = (x * cx + y * cy + z * cz + cw);
-                const fluidType = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK;
-                if (fluidType === 0) {
+                const fluidId = ((uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK) >> FLUID_TYPE_SHIFT) - 1;
+                if (fluidId < 0) {
                     continue;
                 }
+
                 neib[0] = uint16View[index + cy];
                 neib[1] = uint16View[index - cy];
                 neib[2] = uint16View[index - cz];
@@ -170,19 +124,20 @@ export function buildFluidVertices(fluidChunk) {
                 if (!foundNeib) {
                     continue;
                 }
-                const mat = fluidMaterials[fluidType];
-                const geom = fluidType === FLUID_WATER_ID ? this.waterGeom : this.lavaGeom;
+                const mat = fluidMaterials[fluidId];
+                if (!buffers[fluidId]) {
+                    buffers[fluidId] = fluidChunk.getInstanceBuffer(mat.material_key);
+                }
+                let geom = buffers[fluidId].vertices;
 
                 let clr = 0;
                 let flags = mat.flags;
-                if (fluidType === FLUID_WATER_ID) {
+                if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
                     //const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
                     /*const resp = processBlock(block, neighbours,
                         cell.biome, cell.dirt_color,*/
                     clr = IndexedColor.WATER.packed;
                 }
-
-                let fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
 
                 let x0 = 0, z0 = 0, x1 = 1, z1 = 0, x2 = 1, z2 = 1, x3 = 0, z3 = 1;
                 let h0 = 0.9, h1 = 0.9, h2 = 0.0, h3 = 0.9;
@@ -197,4 +152,7 @@ export function buildFluidVertices(fluidChunk) {
                     );
                 }
             }
+    return {
+
+    }
 }

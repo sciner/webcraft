@@ -46,12 +46,19 @@ export class FluidWorld {
         chunk.fluid = null;
     }
 
-    buildDirtyChunks() {
+    buildDirtyChunks(maxApplyVertexCount = 10) {
         const {dirtyChunks} = this;
-        for (let i = 0; i < dirtyChunks.length; i++) {
-            const fluidChunk = dirtyChunks[i];
+        let limit = maxApplyVertexCount;
+        while (dirtyChunks.length > 0 && limit > 0) {
+            const fluidChunk = dirtyChunks.shift();
             fluidChunk.dirty = false;
+            fluidChunk.clearInstanceBuffers();
             buildFluidVertices(fluidChunk);
+            const serialized = fluidChunk.serializeInstanceBuffers();
+            if (serialized[0] > 0) {
+                limit--;
+            }
+            fluidChunk.parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }
         dirtyChunks.length = 0;
     }
