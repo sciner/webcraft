@@ -783,6 +783,14 @@ export class TBlock {
         return this.tb.metadata.get(this.vec);
     }
 
+    get fluid() {
+        return this.tb.fluid.getValueByInd(this.index);
+    }
+
+    set fluid(value) {
+        this.tb.fluid.setValue(this.vec.x, this.vec.y, this.vec.z, value);
+    }
+
     getSound() {
         let sound = null;
         if(this.id) {

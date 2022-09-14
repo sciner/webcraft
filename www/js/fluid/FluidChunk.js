@@ -50,6 +50,10 @@ export class FluidChunk {
         return pcnt;
     }
 
+    getValueByInd(ind) {
+        return this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+    }
+
     saveState() {
         return this.uint8View;
     }
