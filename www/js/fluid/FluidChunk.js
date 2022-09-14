@@ -15,7 +15,7 @@ export class FluidChunk {
         this.dataId = dataId;
 
         this.parentChunk = parentChunk;
-        this.stride = 2;
+        this.stride = FLUID_STRIDE;
         this.uint8View = parentChunk.tblocks.fluid = new Uint8Array(this.stride * this.dataChunk.outerLen);
         this.uint16View = parentChunk.tblocks.fluid = new Uint16Array(this.uint8View.buffer);
         // depends on client/server/worker it should be different

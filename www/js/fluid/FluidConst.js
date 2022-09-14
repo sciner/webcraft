@@ -11,8 +11,8 @@ export const FLUID_GENERATED_FLAG = 128;
 export const FLUID_BLOCK_RESTRICT = 128;
 export const FLUID_BLOCK_INTERACT = 64;
 
-export const OFFSET_BLOCK_PROPS = 0;
-export const OFFSET_FLUID = 1;
+export const OFFSET_FLUID = 0;
+export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
 export function isFluidId(id) {

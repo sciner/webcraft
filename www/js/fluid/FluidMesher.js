@@ -120,8 +120,9 @@ export function buildFluidVertices(fluidChunk) {
                 neib[3] = uint16View[index + cz];
                 neib[4] = uint16View[index + cx];
                 neib[5] = uint16View[index - cx];
-                let foundNeib = false;
-                for (let i = 0; i < 6; i++) {
+                hasNeib[0] = (neib[0] & FLUID_TYPE_MASK) !== fluidType;
+                let foundNeib = hasNeib[0];
+                for (let i = 1; i < 6; i++) {
                     hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < restrict16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
@@ -146,9 +147,10 @@ export function buildFluidVertices(fluidChunk) {
 
                 let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
-                let h0 = 0.9, h1 = 0.9, h2 = 0.9, h3 = 0.9;
+                let h0 = 1.0, h1 = 1.0, h2 = 1.0, h3 = 1.0;
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
+                    h0 = h1 = h2 = h3 = 0.9;
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, clr,
