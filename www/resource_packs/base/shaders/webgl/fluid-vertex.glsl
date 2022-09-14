@@ -52,11 +52,10 @@ void main() {
 
     v_color = vec4(float(a_color & uint(0x3ff)),
         float((a_color >> 10) & uint(0x3ff)),
-        a_color >> 20, 1.0);
+        a_color >> 20, 0.0);
 
     v_fluidAnim.x = float(a_fluidId);
     if(flagAnimated > 0) {
-        // v_color.b contain number of animation frames
         int frames = u_fluidFrames[a_fluidId];
         float t = ((u_time * float(frames) / 3.) / 1000.);
         int i = int(t);
@@ -65,7 +64,7 @@ void main() {
         v_fluidAnim.w = fract(t);
     }
 
-    v_normal = vec3(0.0, 1.0, 0.0);
+    v_normal = vec3(0.0, 0.0, 1.0);
 
 
     v_texcoord0 = a_uv;

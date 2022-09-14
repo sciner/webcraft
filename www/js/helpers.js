@@ -1120,7 +1120,7 @@ export class IndexedColor {
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
 IndexedColor.GRASS = new IndexedColor(132, 485, 0);
-IndexedColor.WATER = new IndexedColor(132, 129, 0);
+IndexedColor.WATER = new IndexedColor(132, 194, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;
