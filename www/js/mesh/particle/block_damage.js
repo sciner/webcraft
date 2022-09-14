@@ -138,6 +138,7 @@ export default class Mesh_Particle_Block_Damage extends Mesh_Particle_Base {
 
             const p = {
                 pos:            new Vector(x, y, z),
+                pos_o:          new Vector(x, y, z),
                 velocity:       new Vector(0, 0, 0),
                 mass:           0.05 * scale, // kg
                 radius:         0.0, // 1 = 1m
@@ -198,6 +199,10 @@ export default class Mesh_Particle_Block_Damage extends Mesh_Particle_Base {
             }
             alive_particles++;
 
+            if(p.freezed) {
+                continue;
+            }
+
             const A = Math.PI * p.radius * p.radius / (100); // m^2
 
             // Drag force: Fd = -1/2 * Cd * A * rho * v * v
@@ -224,41 +229,66 @@ export default class Mesh_Particle_Block_Damage extends Mesh_Particle_Base {
             } else {
 
                 _next_pos.set(
-                    p.pos.x += p.velocity.x * delta,
-                    p.pos.y += p.velocity.y * delta,
-                    p.pos.z += p.velocity.z * delta
+                    p.pos.x + p.velocity.x * delta,
+                    p.pos.y + p.velocity.y * delta,
+                    p.pos.z + p.velocity.z * delta
                 )
 
                 _block_pos.copyFrom(this.pos).addSelf(_next_pos).flooredSelf();
                 if(!p.block_pos_o.equal(_block_pos)) {
                     p.block_pos_o.copyFrom(p.block_pos);
                     p.block_pos.copyFrom(_block_pos);
+                    p.shapes = [];
                     const tblock = Qubatch.world.getBlock(p.block_pos);
                     if(tblock && tblock.id > 0) {
-                        p.shapes = BLOCK.getShapes(p.block_pos, tblock, Qubatch.world, true, false);
-                    } else {
-                        p.shapes = [];
-                    }
-                }
-
-                _ppos.copyFrom(this.pos).addSelf(_next_pos);
-
-                for(let shape of p.shapes) {
-                    aabb.fromArray(shape).translate(p.block_pos.x, p.block_pos.y, p.block_pos.z);
-                    if(aabb.contains(_ppos.x, _ppos.y, _ppos.z)) {
-                        const floor = aabb.y_max;
-                        if(_ppos.y < floor) {
-                            p.velocity.x *= Math.abs(p.restitution);
-                            p.velocity.y *= p.restitution;
-                            p.velocity.z *= Math.abs(p.restitution);
-                            // если закомментить следующую строку, то частицы будут вести себя как жидкость
-                            // прилепая к боковым сторонам
-                            // а также будут стекать
-                            _next_pos.y = floor - this.pos.y;
+                        const shapes = BLOCK.getShapes(p.block_pos, tblock, Qubatch.world, true, false);
+                        for(let j = 0 ; j < shapes.length; j++) {
+                            aabb.fromArray(shapes[j]).translate(p.block_pos.x, p.block_pos.y, p.block_pos.z);
+                            aabb.toArray(shapes[j]);
                         }
+                        p.shapes.push(...shapes);
                     }
                 }
 
+                // absolute new pos
+                _ppos.copyFrom(_next_pos).addSelf(this.pos);
+
+                for(let j = 0 ; j < p.shapes.length; j++) {
+                    const shape = p.shapes[j];
+                    aabb.fromArray(shape);
+                    if(aabb.contains(_ppos.x, _ppos.y, _ppos.z)) {
+
+                        let x = p.pos.x + this.pos.x;
+                        let y = p.pos.y + this.pos.y;
+                        let z = p.pos.z + this.pos.z;
+                        
+                        if(x > aabb.x_max) {
+                            _next_pos.x = aabb.x_max - this.pos.x;
+                            p.velocity.x *= p.restitution;
+                        } else if(x < aabb.x_min) {
+                            _next_pos.x = aabb.x_min - this.pos.x;
+                            p.velocity.x *= p.restitution;
+                        } else if(z > aabb.z_max) {
+                            _next_pos.z = aabb.z_max - this.pos.z;
+                            p.velocity.z *= p.restitution;
+                        } else if(z < aabb.z_min) {
+                            _next_pos.z = aabb.z_min - this.pos.z;
+                            p.velocity.z *= p.restitution;
+                        } else {
+                            const ground = aabb.y_max;
+                            if(_ppos.y < ground && (p.pos_o.y + this.pos.y > ground)) {
+                                //p.velocity.x *= Math.abs(p.restitution);
+                                //p.velocity.y *= p.restitution;
+                                //p.velocity.z *= Math.abs(p.restitution);
+                                _next_pos.y = ground - this.pos.y + 1/500;
+                                p.freezed = true;
+                            }
+                        }
+
+                    }
+                }
+
+                p.pos_o.copyFrom(p.pos);
                 p.pos.copyFrom(_next_pos);
 
             }
