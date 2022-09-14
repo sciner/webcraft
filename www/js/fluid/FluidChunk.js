@@ -63,6 +63,33 @@ export class FluidChunk {
         this.uint16View = new Uint16Array(something.buffer);
     }
 
+    saveDbBuffer() {
+        const { cx, cy, cz, cw, size, insideLen } = this.parentChunk.tblocks.dataChunk;
+        const { uint8View } = this;
+        const arr = new Uint8Array(insideLen);
+        let k = 0;
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    let index = x * cx + y * cy + z * cz + cw;
+                    arr[k++] = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+                }
+        return arr.buffer;
+    }
+
+    loadDbBuffer(stateArr) {
+        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
+        const { uint8View } = this;
+        const arr = new Uint8Array(stateArr);
+        let k = 0;
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    let index = x * cx + y * cy + z * cz + cw;
+                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = arr[k++];
+                }
+    }
+
     setFluidIndirect(x, y, z, block_id) {
         const { cx, cy, cz, cw } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
