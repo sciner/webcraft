@@ -747,6 +747,16 @@ export class DBWorldMigration {
             `ALTER TABLE world_modify_chunks ADD COLUMN "data_blob" BLOB`,
         ]});
 
+        migrations.push({version: 81, queries: [
+            `CREATE TABLE "world_chunks_fluid" (
+                "x" integer NOT NULL,
+                "y" integer NOT NULL,
+                "z" integer NOT NULL,
+                "data" blob,
+                PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE
+              );`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

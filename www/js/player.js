@@ -10,7 +10,9 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD } from "./constant.js";
+import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
+import { compressPlayerStateC } from "./packet_compressor.js";
+import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -25,8 +27,15 @@ export class Player {
 
     constructor(options) {
         this.inMiningProcess = false;
+        this.inItemUseProcess = false;
         this.options = options;
         this.scale = PLAYER_ZOOM;
+        this.current_state = {
+            rotate:             new Vector(),
+            pos:                new Vector(),
+            sneak:              false,
+            ping:               0
+        };
     }
 
     JoinToWorld(world, cb) {
@@ -110,7 +119,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            let dist = this.pos.distance(new Vector(cmd.data.pos));
+            let dist = cmd.data.pos ? this.pos.distance(new Vector(cmd.data.pos)) : null;
             Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
@@ -173,6 +182,13 @@ export class Player {
             }
             return false;
         });
+
+        //setInterval(() => {
+        //    const pos = Qubatch.player.lerpPos.clone();
+        //    pos.set(24.5, 4.5, 24.5);
+        //    Qubatch.render.damageBlock({id: 202}, pos, false);
+        //}, 10);
+
         return true;
     }
 
@@ -266,16 +282,16 @@ export class Player {
                 const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
                 if(!block_over || !block_over.material.is_fluid) {
                     const default_sound   = 'madcraft:block.stone';
-                    const action          = 'hit';
+                    const action          = 'step';
                     let sound             = world_block.getSound();
-                    const sound_list      = Qubatch.sounds.getList(sound, action);
+                    const sound_list      = Qubatch.sounds.getList(sound, action) ?? Qubatch.sounds.getList(sound, 'hit');
                     if(!sound_list) {
                         sound = default_sound;
                     }
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale);
+                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale, this.scale);
                     }
                 }
             }
@@ -291,22 +307,49 @@ export class Player {
         }
     }
 
+    // Stop all player activity
+    stopAllActivity() {
+        // clear all keyboard inputs
+        Qubatch.kb.clearStates();
+        // stop player movement states
+        this.controls.reset();
+        // reset mouse actions
+        this.resetMouseActivity();
+    }
+
+    // Stop all mouse actions, eating, mining, punching, etc...
+    resetMouseActivity() {
+        this.inMiningProcess = false;
+        this.inItemUseProcess = false;
+        if(this.pickAt) {
+            this.pickAt.resetProgress();
+        }
+        this.stopItemUse();
+    }
+
     // Hook for mouse input
     onMouseEvent(e) {
-        let {type, button_id, shiftKey} = e;
-        // Mouse actions
-        if (type == MOUSE.DOWN) {
-            // console.log(e.button_id, this.state.sitting, this.state.lies)
-            //if(e.button_id == 3 && (this.state.sitting || this.state.lies)) {
-            //    this.standUp();
-            //} else {
+        const {type, button_id, shiftKey} = e;
+        if(button_id == MOUSE.BUTTON_RIGHT) {
+            if(type == MOUSE.DOWN) {
+                const cur_mat_id = this.inventory.current_item?.id;
+                if(cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id);
+                    if(this.startItemUse(cur_mat)) {
+                        return false;
+                    }
+                }
+            } else {
+                this.stopItemUse();
+            }
+        }
+        if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
-            if(e.button_id == 1) {
+            if(e.button_id == MOUSE.BUTTON_LEFT) {
                 this.startArmSwingProgress();
             }
-            //}
         } else if (type == MOUSE.UP) {
-            this.pickAt.clearEvent();
+            this.resetMouseActivity();
         }
     }
 
@@ -331,6 +374,7 @@ export class Player {
     async onPickAtTarget(e, times, number) {
 
         this.inMiningProcess = true;
+        this.inhand_animation_duration = 5 * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
         // createBlock
@@ -347,7 +391,8 @@ export class Player {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
+            const mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
@@ -411,13 +456,6 @@ export class Player {
         return resp;
     }
 
-    clearEvents() {
-        Qubatch.kb.clearStates()
-        this.pickAt.clearEvent();
-        this.inMiningProcess = false;
-        this.controls.reset();
-    }
-
     //
     get currentInventoryItem() {
         return this.inventory.current_item;
@@ -466,7 +504,7 @@ export class Player {
         pc.player_state.pos.copyFrom(vec);
         pc.player_state.onGround = false;
         //
-        this.clearEvents();
+        this.stopAllActivity();
         //
         this.onGround = false;
         this.lastBlockPos = null;
@@ -795,12 +833,112 @@ export class Player {
         }
     }
 
-    //
-    clearStates() {
-        this.controls.reset();
-        this.pickAt.clearEvent();
-        this.pickAt.resetTargetPos();
-        this.inMiningProcess = false;
+    // Отправка информации о позиции и ориентации игрока на сервер
+    sendState() {
+        const cs = this.current_state;
+        const ps = this.previous_state;
+        cs.rotate.copyFrom(this.rotate).roundSelf(4);
+        cs.pos.copyFrom(this.lerpPos).roundSelf(4);
+        cs.sneak = this.isSneak;
+        this.ping = Math.round(this.world.server.ping_value);
+        const not_equal = !ps ||
+            (
+                ps.rotate.x != cs.rotate.x || ps.rotate.y != cs.rotate.y || ps.rotate.z != cs.rotate.z ||
+                ps.pos.x != cs.pos.x || ps.pos.y != cs.pos.y || ps.pos.z != cs.pos.z ||
+                ps.sneak != cs.sneak ||
+                ps.ping != cs.ping
+            );
+        if(not_equal) {
+            if(!ps) {
+                this.previous_state = JSON.parse(JSON.stringify(cs));
+                this.previous_state.rotate = new Vector(cs.rotate);
+                this.previous_state.pos = new Vector(cs.pos);
+            } else {
+                // copy current state to previous state
+                this.previous_state.rotate.copyFrom(cs.rotate);
+                this.previous_state.pos.copyFrom(cs.pos);
+                this.previous_state.sneak = cs.sneak;
+                this.previous_state.ping = cs.ping;
+            }
+            this.world.server.Send({
+                name: ServerClient.CMD_PLAYER_STATE,
+                data: compressPlayerStateC(cs)
+            });
+        }
+    }
+
+    // Start use of item
+    startItemUse(material) {
+        const item_name = material?.item?.name;
+        switch(item_name) {
+            case 'food': {
+                this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
+                this._eating_sound_tick = 0;
+                if(this._eating_sound) {
+                    clearInterval(this._eating_sound);
+                }
+                // timer
+                this._eating_sound = setInterval(() => {
+                    this._eating_sound_tick++
+                    const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
+                    Qubatch.sounds.play('madcraft:block.player', action, null, false);
+                    if(action != 'burp') {
+                        // сдвиг точки, откуда происходит вылет частиц
+                        const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
+                        const pos = this.getEyePos().add(this.forward.mul(dist));
+                        pos.y -= .65 * this.scale;
+                        Qubatch.render.damageBlock(material, pos, true, this.scale, this.scale);
+                    }
+                }, 200);
+                break;
+            }
+            case 'instrument': {
+                // sword, axe, pickaxe, etc...
+                return false;
+            }
+            case 'tool': {
+                // like flint_and_steel
+                return false;
+            }
+            default: {
+                // console.log(item_name);
+                return false;
+            }
+        }
+        return this.inItemUseProcess = true;
+    }
+
+    // Stop use of item
+    stopItemUse() {
+        this.inItemUseProcess = false;
+        if(this._eating_sound) {
+            clearInterval(this._eating_sound);
+            this._eating_sound = false;
+        }
+    }
+
+// compatibility methods
+
+    isUsingItem() {
+        return this.inItemUseProcess;
+    }
+
+    isScoping() {
+        // return this.isUsingItem() && this.getUseItem().is(Items.SPYGLASS);
+        return false;
+    }
+
+    isInvisible() {
+        return false;
+    }
+
+    getMainArm() {
+        return HumanoidArm.RIGHT; // InteractionHand.MAIN_HAND;
+    }
+
+    isAutoSpinAttack() {
+        // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
+        return false;
     }
 
 }

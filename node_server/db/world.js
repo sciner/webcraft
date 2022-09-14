@@ -637,4 +637,12 @@ export class DBWorld {
         });
     }
 
+    //
+    async setWorldSpawn(world_guid, pos_spawn) {
+        await this.conn.run('UPDATE world SET pos_spawn = :pos_spawn WHERE guid = :world_guid', {
+            ':world_guid':  world_guid,
+            ':pos_spawn':   JSON.stringify(pos_spawn)
+        });
+    }
+
 }

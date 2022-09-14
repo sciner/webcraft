@@ -25,12 +25,28 @@ export class WorldActionQueue {
             }
             // Apply actions
             let pn = performance.now();
+            let pn_apply = performance.now();
             await this.world.applyActions(item.actor, item.actions);
             const blocks_count = item.actions?.blocks?.list?.length ?? 0;
-            if(blocks_count > 27) {
+            if(blocks_count > 27 || this.list.length == 0) {
                 pn = Math.round((performance.now() - pn) * 10) / 10;
                 const time_from_start = new String(Math.round(performance.now() / 1000)).padStart(8, ' ');
                 console.log(`${time_from_start}: WorldActionsQueue: ${blocks_count} block per ${pn}ms; Queue length: ${this.list.length}`)
+            }
+            if(item.actions.notify) {
+                const notify = item.actions.notify;
+                if(('user_id' in notify) && ('user_id' in notify)) {
+                    if(notify.total_actions_count == 1) {
+                        notify.pn = pn_apply;
+                    }
+                    if('pn' in notify) {
+                        const elapsed = Math.round(performance.now() - notify.pn) / 1000;
+                        const message = `${notify.message} for ... ${elapsed} sec`;
+                        this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [notify.user_id]);
+                    } else {
+                        notify.pn = performance.now();
+                    }
+                }
             }
             if(performance.now() - pn_start >= MAX_ACTIONS_TIME_MS) {
                 break;

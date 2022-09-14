@@ -2,7 +2,7 @@
 <html ng-app="gameApp" lang="en">
 <head>
     <meta charset="UTF-8">
-	<title>MadCraft</title>
+	<title><%= page.title %></title>
     <base href="/" target="_blank">
     <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
@@ -10,16 +10,24 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="description" content="Minecraft game clone on JS">
     <meta name="keywords" content="MadCraft, WebCraft, Minecraft, WebGL, WebGPU, Javascript">
-    <meta property="og:title" content="MadCraft - JS game in browser">
-    <meta property="og:description" content="Minecraft game clone on JS">
-    <meta property="og:image" content="https://madcraft.io/media/card.webp">
+    <!-- social card -->
     <meta property="og:site_name" content="MadCraft">
+    <meta property="og:description" content="Minecraft game clone on JS">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://madcraft.io">
+    <% if( typeof(world) != 'undefined') {%>
+    <meta property="og:title" content="<%= page.title %>" />
+    <meta property="og:url" content="<%= page.domain %>/worlds/<%= world.guid %>" />
+    <meta property="og:image" content="<%= page.domain %>/worldcover/<%= world.guid %>/screenshot/<%= world.cover %>" />
+    <% } else { %>
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:url" content="<%= page.domain %>">
+    <meta property="og:image" content="<%= page.domain %>/media/card.webp">
+    <% } %>
+    <!-- twitter card -->
     <meta property="twitter:card" content="summary">
     <meta property="twitter:title" content="MadCraft - JS game in browser">
-    <meta property="twitter:url" content="https://madcraft.io">
-    <meta property="twitter:image" content="https://madcraft.io/media/card.webp">
+    <meta property="twitter:url" content="<%= page.domain %>">
+    <meta property="twitter:image" content="<%= page.domain %>/media/card.webp">
 	<!-- Design3 -->
     <script type="text/javascript" src="style/js/slim-select.js"></script>
     <link rel="stylesheet" href="style/less/style.css">
@@ -326,11 +334,11 @@
                         <select class="slim-select lang-dropdown" id="start-page-select" ng-options="item as item.short_title for item in Lang.list" ng-model="current_lang" ng-change="changeLang(current_lang)"></select>
                     </div>
                     <div class="switcher-container">
-                        <input type="checkbox" id="test1" value="" ng-model="settings.form.forced_joystick_control" />
+                        <input type="checkbox" id="chk-forced_joystick_control" value="" ng-model="settings.form.forced_joystick_control" />
                         <div class="switcher">
                             <small></small>
                         </div>
-                        <label for="test1">{{Lang.forced_joystick_control}}</label>
+                        <label for="chk-forced_joystick_control">{{Lang.forced_joystick_control}}</label>
                     </div>
                 </div>
                 <div class="video">
@@ -352,18 +360,18 @@
                     <div class="input-group">
                         <p>{{Lang.render_options}}</p>
                         <div class="switcher-container">
-                            <input type="checkbox" id="test1" value="" ng-model="settings.form.mipmap" />
+                            <input type="checkbox" id="chk-generate_mipmap" value="" ng-model="settings.form.mipmap" />
                             <div class="switcher">
                                 <small></small>
                             </div>
-                            <label for="test1">{{Lang.generate_mipmap}}</label>
+                            <label for="chk-generate_mipmap">{{Lang.generate_mipmap}}</label>
                         </div>
                         <div class="switcher-container" style="margin: 1em 0;">
-                            <input type="checkbox" id="test2" value="" ng-model="settings.form.beautiful_leaves" />
+                            <input type="checkbox" id="chk-beautiful_leaves" value="" ng-model="settings.form.beautiful_leaves" />
                             <div class="switcher">
                                 <small></small>
                             </div>
-                            <label for="test1">{{Lang.beautiful_leaves}}</label>
+                            <label for="chk-beautiful_leaves">{{Lang.beautiful_leaves}}</label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -411,9 +419,9 @@
             <div class="modal-wrapper" id="modal-change-pass">
                 <div class="modal">
                     <h3 class="header">Password change</h3>
-                    <input type="password" name="" id="" placeholder="Current password">
-                    <input type="password" name="" id="" placeholder="New password">
-                    <input type="password" name="" id="" placeholder="Repeat new password">
+                    <input type="password" placeholder="Current password">
+                    <input type="password" placeholder="New password">
+                    <input type="password" placeholder="Repeat new password">
                     <div class="buttons">
                         <button class="secondary" ng-click="modalWindow.hide('modal-change-pass')">Cancel</button>
                         <button class="primary" ng-click="">Apply</button>
@@ -516,11 +524,11 @@
                             <!-- Options -->
                             <div ng-repeat="(key, option) in newgame.generators.current.options">
                                 <div class="switcher-container" ng-if="option.type == 'checkbox'">
-                                    <input type="checkbox" id="test1" value="" ng-model="newgame.form.generator.options[key]" />
+                                    <input type="checkbox" id="chk-generator-option-{{key}}" value="" ng-model="newgame.form.generator.options[key]" />
                                     <div class="switcher">
                                         <small></small>
                                     </div>
-                                    <label for="test1">{{option.title}}</label>
+                                    <label for="chk-generator-option-{{key}}">{{option.title}}</label>
                                 </div>
                                 <div ng-if="option.type == 'select'">
                                     <p>{{option.title}}</p>

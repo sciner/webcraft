@@ -1,6 +1,6 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import { BLOCK, LEAVES_TYPE } from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
@@ -18,6 +18,7 @@ const leaves_planes = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
 ];
+const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
 const matrix_leaves = mat4.create();
@@ -247,17 +248,21 @@ export default class style {
         // Beautiful leaves
         if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL) {
             const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
-            const lm_leaves = dirt_color.clone();
-            lm_leaves.b = leaves_tex[3] * TX_CNT;
-            for(let i = 0; i < leaves_planes.length; i++) {
-                const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
-                const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
+            _lm_leaves.copyFrom(dirt_color);
+            // _lm_leaves.r += (Math.random() - Math.random()) * 24;
+            // _lm_leaves.g += (Math.random() - Math.random()) * 24;
+            _lm_leaves.b = leaves_tex[3] * TX_CNT;
+            const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
+            const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
+            // let count = leaves_planes.length
+            let count = 2 + Math.floor(Math.random() * 2);
+            for(let i = 0; i < count; i++) {
                 const plane = leaves_planes[i];
                 // fill object
                 _pl.size     = plane.size;
                 _pl.uv       = plane.uv;
                 _pl.rot      = [Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]];
-                _pl.lm       = lm_leaves;
+                _pl.lm       = _lm_leaves;
                 _pl.pos      = _vec.set(
                     x + (plane.move?.x || 0),
                     y + (plane.move?.y || 0),

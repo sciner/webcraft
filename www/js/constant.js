@@ -17,12 +17,14 @@ export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
 export const INVENTORY_DRAG_SLOT_INDEX      = 41;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const MAGIC_ROTATE_DIV               = 900;
+export const DRAW_SLOT_INDEX                = false;
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
+export const RENDER_EAT_FOOD_DURATION       = 1800;
 
 // player
 export const PLAYER_ZOOM                    = 1;
@@ -45,9 +47,9 @@ export const MOUSE = {
     MOVE: 3,
     CLICK: 4,
     WHEEL: 5,
-    BUTTON_LEFT: 0,
-    BUTTON_WHEEL: 1,
-    BUTTON_RIGHT: 2
+    BUTTON_LEFT: 1,
+    BUTTON_WHEEL: 2,
+    BUTTON_RIGHT: 3
 };
 
 export const KEY = {

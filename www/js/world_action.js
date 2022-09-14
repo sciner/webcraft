@@ -400,7 +400,7 @@ export class WorldAction {
 
     #world;
 
-    constructor(id, world, ignore_check_air = false, on_block_set = true) {
+    constructor(id, world, ignore_check_air = false, on_block_set = true, notify = null) {
         this.#world = world;
         //
         Object.assign(this, {
@@ -412,13 +412,13 @@ export class WorldAction {
             open_window:                null,
             put_in_backet:              null,
             clone_block:                false,
-            reset_target_pos:           false,
-            reset_target_event:         false,
+            reset_mouse_actions:        false,
             decrement:                  false,
             decrement_extended:         null,
             decrement_instrument:       false,
             ignore_creative_game_mode:  false,
             sitting:                    false,
+            notify:                     notify,
             blocks: {
                 list: [],
                 options: {
@@ -716,7 +716,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(mat_block.item) {
             
             // Use intruments
-            for(let func of [useShovel, useHoe, useBoneMeal]) {
+            for(let func of [useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -999,7 +999,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
             }
         }
     }
-    actions.reset_target_event = true;
+    actions.reset_mouse_actions = true;
     return true;
 }
 
@@ -1147,7 +1147,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
         pos = new Vector(pos);
         actions.addBlocks([{pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.reset_target_pos = true;
+        actions.reset_mouse_actions = true;
         return true;
     }
     return false;
@@ -1172,7 +1172,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         }
         const dist = player.pos.distance(obj_pos);
         if(dist < 3.0) {
-            actions.reset_target_pos = true;
+            actions.reset_mouse_actions = true;
             actions.setSitting(
                 obj_pos.addScalarSelf(0, .5, 0),
                 new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
@@ -1240,7 +1240,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos), except_players: [player.session.user_id]});
         } else {
             actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
-            actions.reset_target_pos = true;
+            actions.reset_mouse_actions = true;
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
     }
@@ -1329,6 +1329,8 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
     const position = new Vector(pos.x, pos.y, pos.z);
     position.addSelf(pos.n);
+    
+    actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]});
 
     // Если материл используется для портала и игрок в биоме
     const portal_type = WorldPortal.getPortalTypeForFrame(world_material);
@@ -1616,7 +1618,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
     if(world_material.sound) {
         actions.addPlaySound({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
     }
-    actions.reset_target_pos = true;
+    actions.reset_mouse_actions = true;
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     // Если блок имеет пару (двери)
     if(world_material.has_head) {
@@ -1821,7 +1823,25 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
     return false;
 }
 
-//
+// Use axe for make stripped logs
+async function useAxe(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!world_material || mat_block.item.name != 'instrument' || mat_block.item.instrument_id != 'axe') {
+        return false;
+    }
+    if(world_material.tags.includes('log') && world_material.stripped_log) {
+        const stripped_block = BLOCK.fromName(world_material.stripped_log);
+        if(stripped_block) {
+            actions.addBlocks([{pos: new Vector(pos), item: {id: stripped_block.id, rotate: world_block.rotate, extra_data: world_block.extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+            if(mat_block.sound) {
+                actions.addPlaySound({tag: mat_block.sound, action: 'strip', pos: new Vector(pos), except_players: [player.session.user_id]});
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// Use bone meal
 async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;
@@ -1956,7 +1976,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
             actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});    
         }
     }
-    actions.reset_target_pos = true;
+    actions.reset_mouse_actions = true;
     actions.decrement = true;
     return true;
 }
@@ -1976,7 +1996,7 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
         extra_data.candles++;
         actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.reset_target_pos = true;
+        actions.reset_mouse_actions = true;
         actions.decrement = true;
     }
     return true;

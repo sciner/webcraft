@@ -7,9 +7,6 @@ export default class Ticker {
 
     //
     static func(world, chunk, v, check_pos, ignore_coords) {
-        if(v.ticks % 40 != 0) {
-            return;
-        }
         const tblock = v.tblock;
         const ticking = v.ticking;
         const extra_data = tblock.extra_data;
@@ -20,8 +17,8 @@ export default class Ticker {
             return;
         }
         if(extra_data && extra_data.stage < ticking.max_stage) {
-            //
-            if(v.ticks % (ticking.times_per_stage * this.chunk.options.STAGE_TIME_MUL) == 0) {
+            const mul = 4 * world.getGeneratorOptions('sapling_speed_multipliyer', 1);
+            if(v.ticks % (ticking.times_per_stage * mul) == 0) {
                 //
                 function addNextBamboo(pos, block, stage) {
                     const next_pos = pos.clone();

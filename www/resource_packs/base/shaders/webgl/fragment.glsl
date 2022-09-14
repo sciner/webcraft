@@ -12,9 +12,9 @@
 
 #include<manual_mip_define_func>
 
-vec3 gamma(vec3 color){
-    return pow(color, vec3(1.0/2.0));
-}
+//vec3 gamma(vec3 color){
+//    return pow(color, vec3(1.0/2.0));
+//}
 
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -40,6 +40,30 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 
 float median(vec4 p) {
     return max(min(p.r, p.g), min(max(p.r, p.g), p.b));
+}
+
+////////////////////////
+//float GAMMA = 1.2;
+//vec3 gamma(vec3 color, float g) {
+//    return pow(color, vec3(g));
+//}
+//vec3 encodeSRGB(vec3 linearRGB) {
+//    vec3 a = 12.92 * linearRGB;
+//    vec3 b = 1.055 * pow(linearRGB, vec3(1.0 / 2.4)) - 0.055;
+//    vec3 c = step(vec3(0.0031308), linearRGB);
+//    return mix(a, b, c);
+//}
+//vec3 linearToScreen(vec3 linearRGB) {
+//    return gamma(linearRGB, 1.0 / GAMMA);
+//    // return (iMouse.z < 0.5) ? encodeSRGB(linearRGB) : gamma(linearRGB, 1.0 / GAMMA);
+//}
+//vec3 screenToLinear(vec3 screenRGB) {
+//    return gamma(screenRGB, GAMMA);
+//    // return (iMouse.z < 0.5) ? decodeSRGB(screenRGB) : gamma(screenRGB, GAMMA);
+//}
+vec3 colorCorrection(vec3 color) {
+    // color = linearToScreen(color);
+    return color;
 }
 
 void main() {
@@ -136,6 +160,7 @@ void main() {
         }
 
         outColor = color;
+        outColor.rgb = colorCorrection(outColor.rgb);
 
         #include<fog_frag>
         if(u_crosshairOn) {

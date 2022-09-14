@@ -1,25 +1,100 @@
-import { IndexedColor, QUAD_FLAGS, Vector } from '../helpers.js';
+import { getChunkAddr, IndexedColor, makeChunkEffectID, QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
-import { Particles_Base } from './particles_base.js';
+import { Mesh_Particle_Base } from './particle.js';
 
-const pos_offset        = 0;
-const axisx_offset      = 3;
-const axisy_offset      = 6;
-const uv_size_offset    = 11;
-const lm_offset         = 13;
-const params_offset     = 4;
-const scale_offset      = 15;
-const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
-const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-const MIN_PERCENT       = .25;
+import { default as Mesh_Effect_Block_Damage } from "./effect/block_damage.js";
+import { default as Mesh_Effect_Campfire } from "./effect/campfire.js";
+import { default as Mesh_Effect_Explosion } from "./effect/explosion.js";
+import { default as Mesh_Effect_Music_Note } from "./effect/music_note.js";
+import { default as Mesh_Effect_Torch_Flame } from "./effect/torch_flame.js";
 
-const DEFAULT_LM        = new IndexedColor(0, 0, 0);
+const pos_offset                = 0;
+export const axisx_offset       = 3;
+export const axisy_offset       = 6;
+const uv_size_offset            = 11;
+const lm_offset                 = 13;
+const params_offset             = 4;
+const scale_offset              = 15;
+const STRIDE_FLOATS             = GeometryTerrain.strideFloats;
+const chunk_size                = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+const MIN_PERCENT               = .25;
 
-export class Particles_Effects extends Particles_Base {
+const DEFAULT_LM                = new IndexedColor(0, 0, 0);
 
-    static current_count = 0;
+export class Mesh_Effect_Particle {
+
+    constructor(material_key, pos, texture, life, invert_percent, min_percent, gravity, speed, flags, lm) {
+        this.material_key       = material_key;
+        this.pos                = pos;
+        this.texture            = texture;
+        this.life               = life;
+        // zoom
+        this.invert_percent     = invert_percent;
+        this.min_percent        = min_percent;
+        //
+        this.gravity            = gravity;
+        this.speed              = speed;
+        this.flags              = flags;
+        this.lm                 = lm;
+    }
+
+}
+
+export class Mesh_Effect_Manager {
+
+    // Init effects
+    constructor(mesh_manager) {
+
+        this.mesh_manager = mesh_manager;
+
+        this.effects = new Map();
+
+        this.effects.set('music_note', Mesh_Effect_Music_Note);
+        this.effects.set('campfire_flame', Mesh_Effect_Campfire);
+        this.effects.set('torch_flame', Mesh_Effect_Torch_Flame);
+        this.effects.set('explosion', Mesh_Effect_Explosion);
+        this.effects.set('destroy_block', Mesh_Effect_Block_Damage);
+
+        for(const [k, c] of this.effects.entries()) {
+            if(c.textures) {
+                for(let i in c.textures) {
+                    c.textures[i][0] += .5;
+                    c.textures[i][1] += .5;
+                }
+            }
+        }
+
+    }
+
+    //
+    add(name, pos, params) {
+
+        const effect = this.effects.get(name);
+        if(!effect) {
+            throw 'error_invalid_particle';
+        }
+
+        const particle = new effect(new Vector(pos), params);
+
+        //
+        const material_key = particle.material_key ?? 'extend/transparent/terrain/effects';
+        this._chunk_addr = getChunkAddr(particle.pos.x, particle.pos.y, particle.pos.z, this._chunk_addr);
+        const PARTICLE_EFFECTS_ID = makeChunkEffectID(this._chunk_addr, material_key);
+        let effects = this.mesh_manager.get(PARTICLE_EFFECTS_ID);
+        if(!effects) {
+            effects = new Mesh_Effect(this, this._chunk_addr, material_key);
+            this.mesh_manager.add(effects, PARTICLE_EFFECTS_ID);
+        }
+        effects.add(particle);
+
+    }
+
+}
+
+// Mesh effect
+export class Mesh_Effect extends Mesh_Particle_Base {
 
     // Constructor
     constructor(render, chunk_addr, material_key) {
@@ -47,22 +122,22 @@ export class Particles_Effects extends Particles_Base {
     }
 
     // Add particle
-    add(pos, params) {
+    add(particle) {
 
-        const flags = /*QUAD_FLAGS.NO_AO |*/ QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (params.flags || 0);
-        const {x, y, z} = pos;
+        const flags = /*QUAD_FLAGS.NO_AO |*/ QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (particle.flags || 0);
+        const {x, y, z} = particle.pos;
 
-        const lm = params.lm || DEFAULT_LM;
+        const lm = particle.lm || DEFAULT_LM;
 
         const c = [
-            params.texture[0] / this.tx_cnt,
-            params.texture[1] / this.tx_cnt,
-            (params.texture[2] || 1) / this.tx_cnt,
-            (params.texture[3] || 1) / this.tx_cnt
+            particle.texture[0] / this.tx_cnt,
+            particle.texture[1] / this.tx_cnt,
+            (particle.texture[2] || 1) / this.tx_cnt,
+            (particle.texture[3] || 1) / this.tx_cnt
         ];
 
-        const size_x = params.texture[2] || 1;
-        const size_z = params.texture[3] || 1;
+        const size_x = particle.texture[2] || 1;
+        const size_z = particle.texture[3] || 1;
 
         const vertices = [
             x+.5 - this.chunk_coord.x, z+.5 - this.chunk_coord.z, y+.5 - this.chunk_coord.y,
@@ -76,7 +151,7 @@ export class Particles_Effects extends Particles_Base {
         //
         const vindex = this.add_index * STRIDE_FLOATS;
         if(this.vertices[vindex + params_offset]) {
-            Particles_Effects.current_count--;
+            Mesh_Particle_Base.current_count--;
             this.p_count--;
         }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
@@ -85,11 +160,11 @@ export class Particles_Effects extends Particles_Base {
             this.vertices[vindex + i] = vertices[i];
         }
         //
-        params.min_percent = ('min_percent' in params) ? params.min_percent : MIN_PERCENT;
-        params.started = performance.now();
-        params.pend = params.started + 1000 * params.life;
-        this.vertices[vindex + params_offset] = params;
-        Particles_Effects.current_count++;
+        particle.min_percent = ('min_percent' in particle) ? particle.min_percent : MIN_PERCENT;
+        particle.started = performance.now();
+        particle.pend = particle.started + 1000 * particle.life;
+        this.vertices[vindex + params_offset] = particle;
+        Mesh_Particle_Base.current_count++;
         this.p_count++;
 
         if(this.p_count >= this.max_count) {
@@ -123,7 +198,7 @@ export class Particles_Effects extends Particles_Base {
                 }
                 // ignore this particle
                 if(params.pend < pn) {
-                    Particles_Effects.current_count--;
+                    Mesh_Particle_Base.current_count--;
                     this.p_count--;
                     for(let j = 0; j < STRIDE_FLOATS; j++) {
                         this.vertices[i + j] = 0;

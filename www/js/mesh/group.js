@@ -1,6 +1,6 @@
 import {IndexedColor, QUAD_FLAGS, Vector, VectorCollector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
-import {BLOCK} from "../blocks.js";
+import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 
 // World
@@ -11,35 +11,6 @@ export const FakeWorld = {
             return new FakeTBlock(BLOCK.AIR.id);
         }
     }
-}
-
-export class FakeTBlock {
-
-    constructor(id) {
-        this.id = id;
-    }
-
-    get material() {
-        return BLOCK.BLOCK_BY_ID[this.id];
-    }
-
-    get properties() {
-        return this.material;
-    }
-
-    get extra_data() {
-        return this.material.extra_data;
-    }
-
-    hasTag(tag) {
-        let mat = this.material;
-        return mat.tags && mat.tags.includes(tag);
-    }
-
-    getCardinalDirection() {
-        return 0;
-    }
-
 }
 
 let neighbours_map = [

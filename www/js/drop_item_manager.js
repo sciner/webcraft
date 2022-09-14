@@ -1,5 +1,5 @@
 import {ServerClient} from "./server_client.js";
-import Particles_Block_Drop from "./particles/block_drop.js";
+import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
 
 export class DropItemManager {
@@ -46,7 +46,7 @@ export class DropItemManager {
     // add
     add(data, time) {
         if(data.items[0].id < 1) return;
-        const drop_item = new Particles_Block_Drop(null, data.entity_id, data.items, data.pos);
+        const drop_item = new Mesh_Object_Block_Drop(null, data.entity_id, data.items, data.pos);
         drop_item.world = this.world;
         drop_item.dt = data.dt;
         drop_item.deathTime = data.dt + DROP_LIFE_TIME_SECONDS;

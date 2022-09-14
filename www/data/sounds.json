@@ -21,6 +21,30 @@
         ]
     },
     {
+        "type": "madcraft:fire",
+        "extinguished": [
+            "Fizz"
+        ],
+        "crackles": [
+            "Fire"
+        ],
+        "fireball_whooshes": [
+            "Ghast_fireball4"
+        ],
+        "flint_and_steel_click": [
+            "Flint_and_steel_click"
+        ]
+    },
+    {
+        "type": "madcraft:axe",
+        "strip": [
+            "Axe_strip1",
+            "Axe_strip2",
+            "Axe_strip3",
+            "Axe_strip4"
+        ]
+    },
+    {
         "type": "madcraft:block.player",
         "hit": [
             "hit3"
@@ -262,6 +286,65 @@
         ]
     },
     {
+        "type": "madcraft:block.ender_chest",
+        "dig": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "place": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "open": [
+            "Ender_Chest_open"
+        ],
+        "close": [
+            "Ender_Chest_close"
+        ],
+        "hit": [
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
+        ]
+    },
+    {
+        "type": "madcraft:block.barrel",
+        "dig": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "place": [
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
+        ],
+        "open": [
+            "Barrel_open1",
+            "Barrel_open2"
+        ],
+        "close": [
+            "Barrel_close"
+        ],
+        "hit": [
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
+        ]
+    },
+    {
         "type": "madcraft:block.charging_station",
         "dig": [
             "stone1",
@@ -293,24 +376,32 @@
     {
         "type": "madcraft:block.wood",
         "dig": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood1|volume=1;pitch=.8",
+            "wood2|volume=1;pitch=.8",
+            "wood3|volume=1;pitch=.8",
+            "wood4|volume=1;pitch=.8"
         ],
         "place": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood1|volume=1;pitch=.8",
+            "wood2|volume=1;pitch=.8",
+            "wood3|volume=1;pitch=.8",
+            "wood4|volume=1;pitch=.8"
         ],
         "hit": [
-            "Wood_hit1",
-            "Wood_hit2",
-            "Wood_hit3",
-            "Wood_hit4",
-            "Wood_hit5",
-            "Wood_hit6"
+            "Wood_hit1|volume=.25;pitch=.5",
+            "Wood_hit2|volume=.25;pitch=.5",
+            "Wood_hit3|volume=.25;pitch=.5",
+            "Wood_hit4|volume=.25;pitch=.5",
+            "Wood_hit5|volume=.25;pitch=.5",
+            "Wood_hit6|volume=.25;pitch=.5"
+        ],
+        "step": [
+            "Wood_hit1|volume=.15;pitch=1",
+            "Wood_hit2|volume=.15;pitch=1",
+            "Wood_hit3|volume=.15;pitch=1",
+            "Wood_hit4|volume=.15;pitch=1",
+            "Wood_hit5|volume=.15;pitch=1",
+            "Wood_hit6|volume=.15;pitch=1"
         ]
     },
     {
@@ -391,47 +482,63 @@
     {
         "type": "madcraft:block.grass",
         "dig": [
-            "grass1",
-            "grass2",
-            "grass3",
-            "grass4"
+            "grass1|pitch=.8",
+            "grass2|pitch=.8",
+            "grass3|pitch=.8",
+            "grass4|pitch=.8"
         ],
         "place": [
-            "grass1",
-            "grass2",
-            "grass3",
-            "grass4"
+            "grass1|pitch=.8",
+            "grass2|pitch=.8",
+            "grass3|pitch=.8",
+            "grass4|pitch=.8"
         ],
         "hit": [
-            "Grass_hit1",
-            "Grass_hit2",
-            "Grass_hit3",
-            "Grass_hit4",
-            "Grass_hit5",
-            "Grass_hit6"
+            "Grass_hit1|volume=.25;pitch=.5",
+            "Grass_hit2|volume=.25;pitch=.5",
+            "Grass_hit3|volume=.25;pitch=.5",
+            "Grass_hit4|volume=.25;pitch=.5",
+            "Grass_hit5|volume=.25;pitch=.5",
+            "Grass_hit6|volume=.25;pitch=.5"
+        ],
+        "step": [
+            "Grass_hit1|volume=.15;pitch=1",
+            "Grass_hit2|volume=.15;pitch=1",
+            "Grass_hit3|volume=.15;pitch=1",
+            "Grass_hit4|volume=.15;pitch=1",
+            "Grass_hit5|volume=.15;pitch=1",
+            "Grass_hit6|volume=.15;pitch=1"
         ]
     },
     {
         "type": "madcraft:block.stone",
         "dig": [
-            "stone1",
-            "stone2",
-            "stone3",
-            "stone4"
+            "stone1|volume=1;pitch=.8",
+            "stone2|volume=1;pitch=.8",
+            "stone3|volume=1;pitch=.8",
+            "stone4|volume=1;pitch=.8"
         ],
         "place": [
-            "stone1",
-            "stone2",
-            "stone3",
-            "stone4"
+            "stone1|volume=1;pitch=.8",
+            "stone2|volume=1;pitch=.8",
+            "stone3|volume=1;pitch=.8",
+            "stone4|volume=1;pitch=.8"
         ],
         "hit": [
-            "Stone_hit1",
-            "Stone_hit2",
-            "Stone_hit3",
-            "Stone_hit4",
-            "Stone_hit5",
-            "Stone_hit6"
+            "Stone_hit1|volume=.25;pitch=.5",
+            "Stone_hit2|volume=.25;pitch=.5",
+            "Stone_hit3|volume=.25;pitch=.5",
+            "Stone_hit4|volume=.25;pitch=.5",
+            "Stone_hit5|volume=.25;pitch=.5",
+            "Stone_hit6|volume=.25;pitch=.5"
+        ],
+        "step": [
+            "Stone_hit1|volume=.15;pitch=1",
+            "Stone_hit2|volume=.15;pitch=1",
+            "Stone_hit3|volume=.15;pitch=1",
+            "Stone_hit4|volume=.15;pitch=1",
+            "Stone_hit5|volume=.25;pitch=1",
+            "Stone_hit6|volume=.15;pitch=1"
         ]
     },
     {

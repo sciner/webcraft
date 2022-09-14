@@ -493,6 +493,13 @@ export class Color {
     toArray() {
         return [this.r, this.g, this.b, this.a];
     }
+    
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
 
     equals(color) {
         return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
@@ -896,7 +903,7 @@ export class Vector {
      * @param {number} [z]
      */
     set(x, y = x, z = x) {
-        if (typeof x == "object" && x) {
+        if (x && typeof x == 'object') {
             return this.copy(x);
         }
 
@@ -1059,6 +1066,25 @@ export class Vector {
         this.y = temp[1] | 0;
         this.z = temp[2] | 0;
         return this;
+    }
+
+    /**
+     * Return quaternion
+     * @param {float} angle 
+     * @param {boolean} hz 
+     * @returns 
+     */
+    rotationDegrees(angle, hz = true) {
+        if(hz) {
+            angle *= (Math.PI / 180);
+        }
+        const f = Math.sin(angle / 2.0);
+        return [
+            this.x * f,
+            this.y * f,
+            this.z * f,
+            Math.cos(angle / 2.0),
+        ];
     }
 
 }

@@ -1,8 +1,8 @@
-import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../helpers.js';
-import { BLOCK } from '../blocks.js';
-import GeometryTerrain from '../geometry_terrain.js';
-import { GAME_DAY_SECONDS } from '../constant.js';
-import {impl as alea} from "../../vendors/alea.js";
+import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../../helpers.js';
+import { BLOCK } from '../../blocks.js';
+import GeometryTerrain from '../../geometry_terrain.js';
+import { GAME_DAY_SECONDS } from '../../constant.js';
+import {impl as alea} from "../../../vendors/alea.js";
 
 const {mat4} = glMatrix;
 
@@ -20,7 +20,7 @@ for(let i = 0; i < STARS_COUNT; i++) {
 }
 
 // Stars
-export class Particles_Stars {
+export class Mesh_Object_Stars {
 
     // Constructor
     constructor() {

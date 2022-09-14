@@ -9,6 +9,7 @@ import sqlite3 from 'sqlite3'
 import semver from 'semver';
 import bodyParser from 'body-parser';
 import fileUpload from "express-fileupload";
+import { renderFile } from "ejs";
 
 // Check version of modules
 const required_versions = {
@@ -74,9 +75,18 @@ Resources.physics = {features}; // (await import("../../vendors/prismarine-physi
 // http://expressjs.com/en/api.html#req.originalUrl
 const app = express();
 
+const page = {
+    domain: config.DomainURL,
+    title: config.ProjectName
+};
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
+app.engine('html', renderFile);
+app.set('view engine', 'html');
+
+const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
 
 // Prehook
 app.use(async function(req, _res, next) {
@@ -87,7 +97,11 @@ app.use(async function(req, _res, next) {
     }
     // Rewrite
     if(req.url.indexOf('/www') === 0) req.url = req.url.substring(4);
-    next();
+    if(req.url == '/') {
+        _res.render(pathToIndex, {page});
+    } else {
+        next();
+    }
 });
 
 // Compress all HTTP responses
@@ -148,9 +162,11 @@ app.use('/worldcover/', async(req, res) => {
 });
 
 // "SPA" yet for just one type of ulrs only
-const pathToIndex = path.resolve(__dirname, '..', 'www', 'index.html')
 app.use('/worlds', async(req, res) => {
-    res.sendFile(pathToIndex);
+    const world_guid = req.url.split('/')[1];
+    const world = await Qubatch.db.getWorld(world_guid);
+    page.title = `${config.ProjectName} - ${world.title}`;
+    res.render(pathToIndex, {page, world});
 });
 
 Qubatch.start();

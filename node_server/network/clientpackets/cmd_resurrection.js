@@ -15,7 +15,9 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-        player.state.indicators.live.value = 20;
+        for(let code of ['live', 'food', 'oxygen']) {
+            player.state.indicators[code].value = player.world.getDefaultPlayerIndicators()[code].value;
+        }
         player.is_dead = false;
         new CMD_ENTITY_INDICATORS(player);
         player.teleport({

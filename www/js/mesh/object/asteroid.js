@@ -1,12 +1,12 @@
-import {Vector} from '../helpers.js';
-import { BLOCK } from '../blocks.js';
-import { NetworkPhysicObject } from '../network_physic_object.js';
-import { MeshGroup, FakeTBlock } from '../mesh/group.js';
+import {Vector} from '../../helpers.js';
+import { BLOCK, FakeTBlock } from '../../blocks.js';
+import { NetworkPhysicObject } from '../../network_physic_object.js';
+import { MeshGroup } from '../group.js';
 
 const {mat4} = glMatrix;
 
-// Particles_Asteroid
-export class Particles_Asteroid extends NetworkPhysicObject {
+// Mesh_Object_Asteroid
+export class Mesh_Object_Asteroid extends NetworkPhysicObject {
 
     static neighbours = null;
 

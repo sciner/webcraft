@@ -8,10 +8,13 @@
     "debug": "node --experimental-json-modules --no-warnings ./index.js --Debug=1",
     "compile-texture-pack": "cd ./texture-pack-compiler && node --experimental-json-modules --no-warnings ./index.js",
     "rollup": "(cd ../ff-worker && npm run start)",
-    "start-rebuild": "npm run rollup && npm run start"
+    "start-rebuild": "npm run rollup && npm run start",
+    "test": "mocha"
   },
   "dependencies": {
+    "body-parser": "^1.20.0",
     "compression": "^1.7.4",
+    "ejs": "^3.1.8",
     "express": "^4.17.1",
     "express-fileupload": "^1.4.0",
     "express-less": "^0.1.0",

@@ -465,10 +465,15 @@ export class CompileData {
                 "transparent": true,
                 "style": "pane",
                 "sound": "madcraft:block.glass",
+                "group": "transparent",
                 "inventory_style": "extruder",
                 "can_rotate": true,
-                "tags": ["alpha"],
-                "texture": `block/${color}_stained_glass.png`
+                // "tags": ["alpha"],
+                "texture": {
+                    "side": `block/${color}_stained_glass.png`,
+                    "up": `block/${color}_stained_glass_pane_top.png`,
+                    "up_rot": `block/${color}_stained_glass_pane_top.png;rc1`
+                }
             };
             this.blocks.push(b);
             i++;

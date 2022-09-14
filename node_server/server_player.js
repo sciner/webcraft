@@ -12,6 +12,7 @@ import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "../www/js/chunk_const.js";
 import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL } from "../www/js/constant.js";
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
+import { ServerPlayerDamage } from "./player/damage.js";
 
 export class NetworkMessage {
     constructor({
@@ -49,12 +50,7 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-        this.game_mode              = new GameMode(null, this);
-        this.game_mode.onSelect     = async (mode) => {
-            await this.world.db.changeGameMode(this, mode.id);
-            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
-            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
-        };
+        this.damage                 = new ServerPlayerDamage(this);
         /**
          * @type {ServerWorld}
          */
@@ -76,7 +72,13 @@ export class ServerPlayer extends Player {
         this.state.lies = this.state?.lies || false;
         this.state.sitting = this.state?.sitting || false;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
-        this.game_mode.applyMode(init_info.state.game_mode, false);
+        // GameMode
+        this.game_mode = new GameMode(this, init_info.state.game_mode);
+        this.game_mode.onSelect = async (mode) => {
+            await this.world.db.changeGameMode(this, mode.id);
+            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
+            this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
+        };
     }
 
     // On crafted listener
@@ -164,16 +166,16 @@ export class ServerPlayer extends Player {
         delete(this.conn);
     }
 
-    // Change live value
+    // Change indicator value
     // Die checked in tick()
-    changeLive(value) {
+    changeIndicator(code, value) {
         if(this.is_dead) {
             return false;
         }
-        const ind = this.state.indicators.live;
+        const ind = this.state.indicators[code];
         const prev_value = ind.value;
         ind.value = Math.max(prev_value + value, 0);
-        console.log(`Player live ${prev_value} -> ${ind.value}`);
+        console.log(`Player indicator changed '${code}' ${prev_value} -> ${ind.value}`);
         this.indicators_changed = true;
         return true;
     }
@@ -298,7 +300,7 @@ export class ServerPlayer extends Player {
         };
     }
 
-    async tick(delta) {
+    async tick(delta, tick_number) {
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2.
@@ -306,9 +308,11 @@ export class ServerPlayer extends Player {
         // 3.
         this.checkIndicators();
         // 4.
-        if(Math.random() < .5) this.checkInPortal();
+        if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
+        // 6.
+        this.damage.tick(delta, tick_number);
     }
 
     async checkWaitPortal() {

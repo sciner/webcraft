@@ -8,16 +8,17 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 
 // Particles
-import Particles_Block_Damage from "./particles/block_damage.js";
-import Particles_Block_Drop from "./particles/block_drop.js";
-import { Particles_Asteroid } from "./particles/asteroid.js";
-import Particles_Clouds from "./particles/clouds.js";
-import Particles_Rain from "./particles/rain.js";
-import { Particles_Stars } from "./particles/stars.js";
+import Mesh_Particle_Block_Damage from "./mesh/particle/block_damage.js";
+import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
+import { Mesh_Object_Asteroid } from "./mesh/object/asteroid.js";
+import Mesh_Object_Clouds from "./mesh/object/clouds.js";
+import Mesh_Object_Rain from "./mesh/object/rain.js";
+import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 
-import { MeshManager } from "./mesh_manager.js";
+import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
-import { InHandOverlay } from "./ui/inhand_overlay.js";
+// import { InHandOverlay } from "./ui/inhand_overlay.js";
+import { InHandOverlay } from "./ui/inhand_overlay_old.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
@@ -253,10 +254,10 @@ export class Renderer {
 
         // Clouds
         // @todo Переделать в связи с появлением TBlock
-        this.clouds = this.meshes.add(new Particles_Clouds(this, DEFAULT_CLOUD_HEIGHT));
+        this.clouds = this.meshes.add(new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT));
 
         // Stars
-        this.stars = this.meshes.add(new Particles_Stars(this));
+        this.stars = this.meshes.add(new Mesh_Object_Stars(this));
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
@@ -289,7 +290,7 @@ export class Renderer {
             let mx4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
             mat3.fromMat4(mx, mx4);
             //
-            const drop = new Particles_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
+            const drop = new Mesh_Object_Block_Drop(null, null, [b], Vector.ZERO, frame_matrix, null);
             drop.mesh_group.meshes.forEach((mesh, _, map) => {
                 this.addDropItemMesh(drop.block.id, _, mesh.vertices);
             });
@@ -332,7 +333,7 @@ export class Renderer {
                 if(!block.spawnable) {
                     return null;
                 }
-                let drop = new Particles_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                let drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
@@ -587,13 +588,6 @@ export class Renderer {
 
         this.frame++;
 
-        // Add jukebox animations
-        for(let [pos, disc] of TrackerPlayer.vc.entries()) {
-            if(Math.random() < .1) {
-                Qubatch.render.meshes.addEffectParticle('music_note', pos);
-            }
-        }
-
         // this.env.computeFogRelativeSun();
         // todo - refact this
         // viewport is context-dependent
@@ -761,22 +755,22 @@ export class Renderer {
         this.camera.use(this.globalUniforms);
     }
 
-    // damageBlock
-    damageBlock(block, pos, small, scale) {
-        this.meshes.add(new Particles_Block_Damage(this, block, pos, small, scale));
+    // Damage block particles
+    damageBlock(block, pos, small, scale = 1, force = 1) {
+        this.meshes.add(new Mesh_Particle_Block_Damage(this, block, pos, small, scale, force));
     }
 
     // addExplosionParticles
     addExplosionParticles(data) {
         let pos = data.pos;
         for(let i = 0; i < 100; i++) {
-            Qubatch.render.meshes.addEffectParticle('explosion',  pos);
+            this.meshes.effects.add('explosion',  pos);
         }
     }
 
     // addAsteroid
     addAsteroid(pos, rad) {
-        this.meshes.add(new Particles_Asteroid(this, pos, rad));
+        this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
     /**
@@ -789,7 +783,7 @@ export class Renderer {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Particles_Rain(this, weather.name);
+            rain = new Mesh_Object_Rain(this, weather.name);
             this.meshes.add(rain, 'weather');
         }
         rain.enabled = weather.name != 'clear';
