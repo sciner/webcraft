@@ -68,13 +68,16 @@ export class FluidChunk {
         const { uint8View } = this;
         const arr = new Uint8Array(insideLen);
         let k = 0;
+        let found = 0;
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
-                    arr[k++] = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+                    let val = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+                    found = found | val;
+                    arr[k++] = val;
                 }
-        return arr;
+        return found > 0 ? arr: null;
     }
 
     loadDbBuffer(stateArr) {

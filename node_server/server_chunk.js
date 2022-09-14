@@ -436,7 +436,7 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(chunkFluid);
         } else {
             const buf = this.tblocks.fluid.saveDbBuffer();
-            if(buf) {
+            if (buf) {
                 await this.world.db.saveChunkFluid(this.addr, buf);
             }
         }
