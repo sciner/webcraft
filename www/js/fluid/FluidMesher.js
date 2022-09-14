@@ -31,8 +31,9 @@ class FluidMaterial {
             texture_id = block.texture.id;
         }
 
-        this.material_key = block.resource_pack.id + '/fluid/' +
-            (block.transparent ? 'doubleface_transparent': 'doubleface') + '/' + texture_id;
+        this.material_key = block.resource_pack.id + '/'
+            + (block.transparent ? 'doubleface_transparent': 'doubleface') + '/fluid/'
+            + texture_id;
     }
 }
 

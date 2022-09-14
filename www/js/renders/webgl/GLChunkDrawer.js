@@ -107,8 +107,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         } else {
             // multi draw arrays
             for (let j = 0; j < sz; j++) {
-                counts[sz] = counts[j] * baseGeom.vertexPerInstance;
-                sz++;
+                counts[j] *= baseGeom.vertexPerInstance;
             }
             if (md) {
                 md.multiDrawArraysWEBGL(
