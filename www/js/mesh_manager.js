@@ -125,7 +125,7 @@ export class MeshManager {
     //
     addEffectParticle(name, pos, params) {
 
-        let material_key = 'extend/transparent/effects';
+        let material_key = 'extend/transparent/terrain/effects';
 
         //
         const addParticle = (particle_pos, particle) => {
