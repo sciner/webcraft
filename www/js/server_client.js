@@ -80,6 +80,9 @@ export class ServerClient {
 	static CMD_DROP_ITEM                = 86;
 	static CMD_DROP_ITEM_PICKUP         = 99;
 
+    // Fluid
+	static CMD_FLUID_UPDATE             = 102;
+
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
     static BLOCK_ACTION_DESTROY         = 2;

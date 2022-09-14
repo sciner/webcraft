@@ -29,6 +29,9 @@ export class Chunk {
         this.lightData                  = null;
         this.lightMats                  = new Map();
 
+        // Fluid
+        this.fluid_buf                  = null;
+
         // Objects & variables
         this.inited                     = false;
         this.dirty                      = true;
@@ -78,6 +81,12 @@ export class Chunk {
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
+            // захлест на соседние чанки
+            chunkManager.dataWorld.syncOuter(this);
+        }
+        // init fluid
+        if(this.fluid_buf) {
+            this.fluid.loadDbBuffer(this.fluid_buf);
             chunkManager.dataWorld.syncOuter(this);
         }
         //
@@ -560,6 +569,14 @@ export class Chunk {
                 }
             }
             this.fluid.syncBlockProps(tblock.index, type.id);
+        }
+    }
+
+    setFluid(buf) {
+        if(this.inited) {
+            this.fluid.loadDbBuffer(buf);
+        } else {
+            this.fluid_buf = buf;
         }
     }
 

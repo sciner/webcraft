@@ -172,6 +172,12 @@ export class ChunkManager {
             let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
             this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
         });
+        this.world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
+            const chunk = this.getChunk(cmd.data.addr);
+            if(chunk) {
+                chunk.setFluid(Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)))
+            }
+        });
         //
         this.DUMMY = {
             id: BLOCK.DUMMY.id,

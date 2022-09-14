@@ -393,6 +393,17 @@ export class ServerChunk {
         this.world.sendSelected(packets_mobs, player_user_ids, []);
     }
 
+    sendFluid(buf) {
+        const packets = [{
+            name: ServerClient.CMD_FLUID_UPDATE,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }];
+        this.sendAll(packets, []);
+    }
+
     sendDropItems(player_user_ids) {
         // Send all drop items in this chunk
         if (this.drop_items.size < 1) {
@@ -430,14 +441,17 @@ export class ServerChunk {
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         // fluid
-        const chunkFluid = await this.world.db.loadChunkFluid(this.addr);
-        if(chunkFluid) {
-            this.fluid.loadDbBuffer(chunkFluid);
+        let buf = await this.world.db.loadChunkFluid(this.addr);
+        if(buf) {
+            this.fluid.loadDbBuffer(buf);
         } else {
-            const buf = this.tblocks.fluid.saveDbBuffer();
+            buf = this.tblocks.fluid.saveDbBuffer();
             if (buf) {
                 await this.world.db.saveChunkFluid(this.addr, buf);
             }
+        }
+        if(buf) {
+            this.sendFluid(buf)
         }
         //
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
