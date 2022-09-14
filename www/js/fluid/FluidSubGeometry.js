@@ -18,7 +18,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         const chunkId = this.chunkDataId;
 
         const data = this.lastPage.data, uint32Data = this.lastPage.uint32Data;
-        let ind = (this.lastPage.filled++) * 16;
+        let ind = (this.lastPage.filled++) * 48;
         this.filled++;
 
         // gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 0 * 4);

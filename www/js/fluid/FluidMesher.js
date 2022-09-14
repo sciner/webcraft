@@ -95,6 +95,7 @@ export function buildFluidVertices(fluidChunk) {
     }
 
     let buffers = [null, null];
+    let quads = 0;
 
     // we have fluids in chunk!
     const restrict16 = FLUID_BLOCK_RESTRICT << 8;
@@ -145,6 +146,7 @@ export function buildFluidVertices(fluidChunk) {
                 let h0 = 0.9, h1 = 0.9, h2 = 0.0, h3 = 0.9;
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
+                    quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
                         x0, z0, h0, x0, z0,
@@ -154,7 +156,5 @@ export function buildFluidVertices(fluidChunk) {
                     );
                 }
             }
-    return {
-
-    }
+    return quads;
 }

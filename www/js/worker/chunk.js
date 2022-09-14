@@ -91,10 +91,6 @@ export class Chunk {
         }
     }
 
-    getDataTextureOffset() {
-        return this.dataId;
-    }
-
     init() {
         // Variables
         this.vertices_length    = 0;

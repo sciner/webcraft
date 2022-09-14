@@ -29,7 +29,7 @@ export class FluidWorld {
     addChunk(chunk) {
         chunk.fluid = new FluidChunk({
             dataChunk: chunk.dataChunk,
-            dataId: chunk.getDataTextureOffset(),
+            dataId: (chunk.dataId !== undefined)? chunk.dataId : chunk.getDataTextureOffset(),
             parentChunk: chunk,
             world: this
         });
@@ -53,10 +53,10 @@ export class FluidWorld {
             const fluidChunk = dirtyChunks.shift();
             fluidChunk.dirty = false;
             fluidChunk.clearInstanceBuffers();
-            buildFluidVertices(fluidChunk);
-            const serialized = fluidChunk.serializeInstanceBuffers();
-            if (serialized[0] > 0) {
+            let serialized = {};
+            if (buildFluidVertices(fluidChunk) > 0) {
                 limit--;
+                serialized = fluidChunk.serializeInstanceBuffers();
             }
             fluidChunk.parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }

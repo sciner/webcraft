@@ -260,7 +260,7 @@ export class Chunk {
                 v.material_shader     = temp[2];
                 v.texture_id          = temp[3];
                 v.key                 = key;
-                v.buffer              = chunkManager.bufferPool.alloc({
+                v.buffer              = bufferPool.alloc({
                     lastBuffer,
                     vertices: v.list,
                     chunkId: chunkLightId
@@ -294,7 +294,6 @@ export class Chunk {
             this.vertices.delete(oldKeys);
         }
         chunkManager.vertices_length_total += this.vertices_length;
-        this.dirty = false;
     }
 
     // Apply vertices
