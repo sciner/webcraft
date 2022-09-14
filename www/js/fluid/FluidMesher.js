@@ -145,7 +145,7 @@ export function buildFluidVertices(fluidChunk) {
                 }
 
                 let x0 = 0, z0 = 0, x1 = 1, z1 = 0, x2 = 1, z2 = 1, x3 = 0, z3 = 1;
-                let h0 = 0.9, h1 = 0.9, h2 = 0.0, h3 = 0.9;
+                let h0 = 0.9, h1 = 0.9, h2 = 0.9, h3 = 0.9;
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
                     quads++;

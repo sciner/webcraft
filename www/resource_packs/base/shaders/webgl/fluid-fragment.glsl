@@ -52,7 +52,8 @@ vec4 sampleAtlassTexture (vec4 mipData, vec2 texClamped, ivec2 biomPos) {
 void main() {
     vec2 size = vec2(textureSize(u_texture, 0));
     int fluidId = int(round(v_fluidAnim.x));
-    vec2 texClamped = clamp(v_texcoord0 - floor(v_texcoord0), 0.001, 0.999) * u_fluidUV[fluidId].xy + u_fluidUV[fluidId].zw;
+    vec2 fluidSubTexSize = u_fluidUV[fluidId].xy;
+    vec2 texClamped = clamp(v_texcoord0 - floor(v_texcoord0), 0.001, 0.999) * fluidSubTexSize + u_fluidUV[fluidId].zw;
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);
@@ -63,7 +64,7 @@ void main() {
     if(u_fogOn) {
         // default texture fetch pipeline
 
-        mipData = manual_mip(v_texcoord0, size);
+        mipData = manual_mip(v_texcoord0 * fluidSubTexSize, size);
         biome = ivec2(round(v_color.rg));
         color = sampleAtlassTexture (mipData, texClamped + vec2(0.0, v_fluidAnim.y), biome);
         if (v_fluidAnim.w > 0.0) {
