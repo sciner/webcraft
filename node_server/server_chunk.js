@@ -430,6 +430,17 @@ export class ServerChunk {
         //
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // fluid
+        const chunkFluid = await this.world.db.loadChunkFluid(this.addr);
+        if(chunkFluid) {
+            this.fluid.loadDbBuffer(chunkFluid);
+        } else {
+            const buf = this.tblocks.fluid.saveDbBuffer();
+            if(buf) {
+                await this.world.db.saveChunkFluid(this.addr, buf);
+            }
+        }
+        //
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);

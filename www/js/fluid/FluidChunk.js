@@ -74,13 +74,13 @@ export class FluidChunk {
                     let index = x * cx + y * cy + z * cz + cw;
                     arr[k++] = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
                 }
-        return arr.buffer;
+        return arr;
     }
 
     loadDbBuffer(stateArr) {
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
-        const arr = new Uint8Array(stateArr);
+        const arr = stateArr;
         let k = 0;
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)

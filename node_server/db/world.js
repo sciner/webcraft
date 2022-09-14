@@ -519,6 +519,26 @@ export class DBWorld {
             });
     }
 
+    //
+    async loadChunkFluid(chunk_addr) {
+        const row = this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
+            ':x': chunk_addr.x,
+            ':y': chunk_addr.y,
+            ':z': chunk_addr.z
+        });
+        return row ? row['data'] : null;
+    }
+
+    //
+    async saveChunkFluid(chunk_addr, data) {
+        await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
+            ':x': chunk_addr.x,
+            ':y': chunk_addr.y,
+            ':z': chunk_addr.z,
+            ':data': data
+        });
+    }
+
     // Change player game mode
     async changeGameMode(player, game_mode) {
         const result = await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
