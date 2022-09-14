@@ -9,6 +9,7 @@ import {
     OFFSET_FLUID
 } from "./FluidConst.js";
 import {FluidSubGeometry} from "./FluidSubGeometry.js";
+import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
 
 const fluidMaterials = [];
 
@@ -23,7 +24,7 @@ class FluidMaterial {
             this.flags |= QUAD_FLAGS.FLAG_ANIMATED;
         }
         if(block.tags.includes('multiply_color')) {
-            this.flags |= QUAD_FLAGS.MASK_BIOME;
+            this.flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
         }
 
         let texture_id = 'default';
@@ -121,7 +122,7 @@ export function buildFluidVertices(fluidChunk) {
                 neib[5] = uint16View[index - cx];
                 let foundNeib = false;
                 for (let i = 0; i < 6; i++) {
-                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType  && neib[i] < restrict16;
+                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < restrict16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
                 if (!foundNeib) {

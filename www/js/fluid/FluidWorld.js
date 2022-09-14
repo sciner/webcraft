@@ -51,6 +51,10 @@ export class FluidWorld {
         let limit = maxApplyVertexCount;
         while (dirtyChunks.length > 0 && limit > 0) {
             const fluidChunk = dirtyChunks.shift();
+            const { parentChunk } = fluidChunk;
+            if (!parentChunk.getChunkManager()) {
+                continue;
+            }
             fluidChunk.dirty = false;
             fluidChunk.clearInstanceBuffers();
             let serialized = {};
@@ -58,8 +62,7 @@ export class FluidWorld {
                 limit--;
                 serialized = fluidChunk.serializeInstanceBuffers();
             }
-            fluidChunk.parentChunk.applyVertices('fluid', this.renderPool, serialized);
+            parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }
-        dirtyChunks.length = 0;
     }
 }
