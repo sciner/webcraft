@@ -69,7 +69,7 @@ void main() {
 
     v_texcoord0 = a_uv;
     // Scrolled textures
-    if (flagScroll > 0) {
+    if (flagScroll > 0 || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 

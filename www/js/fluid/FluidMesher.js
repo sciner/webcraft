@@ -173,6 +173,7 @@ export function buildFluidVertices(fluidChunk) {
                         x0, z1, y0, x0, z1,
                     );
                 }
+                clr += (1 << 20); // flowing liquid, scroll
                 if (hasNeib[SIMPLE_DIRECTION.WEST]) {
                     //U=Z, V=Y
                     quads++;
