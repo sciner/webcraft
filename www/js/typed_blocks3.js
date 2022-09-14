@@ -212,9 +212,10 @@ export class TypedBlocks3 {
     refreshNonZero() {
         this.non_zero = 0;
         const id = this.dataChunk.uint16View;
+        const fluid = this.fluid.uint16View;
         const len = id.length;
         for(let i = 0; i < len; i++) {
-            if(id[i] !== 0) {
+            if(id[i] !== 0 || fluid[i] !== 0) {
                 this.non_zero++;
             }
         }
