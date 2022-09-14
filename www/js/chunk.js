@@ -280,7 +280,7 @@ export class Chunk {
         for (let [key, v] of this.vertices) {
             if (v.inputId === inputId) {
                 if (v.customFlag) {
-                    v.destroy();
+                    v.buffer.destroy();
                     oldKeys.push(key);
                 } else {
                     this.vertices_length += v.instanceCount;
@@ -398,6 +398,7 @@ export class Chunk {
         }
         let update_vertices = true;
         let chunkManager = this.getChunkManager();
+
         //
         if(!is_modify) {
             let oldLight = 0;
@@ -430,6 +431,7 @@ export class Chunk {
                         light_source: light}]);
                 }
             }
+            this.fluid.syncBlockProps(tblock.index, item.id);
         }
         // Run webworker method
         if(update_vertices) {
@@ -557,6 +559,7 @@ export class Chunk {
                     }]);
                 }
             }
+            this.fluid.syncBlockProps(tblock.index, type.id);
         }
     }
 

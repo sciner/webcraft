@@ -29,7 +29,7 @@ export class FluidChunk {
     setValue(x, y, z, value) {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
-        this.uint8View[index] = value;
+        this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = value;
         //TODO: check in liquid queue here
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -73,8 +73,16 @@ export class FluidChunk {
     }
 
     syncBlockProps(index, blockId) {
-        this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS]
-            = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
+        const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
+        const old = this.uint8View[ind];
+        const props = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
+        if (props === old) {
+            return;
+        }
+        this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
+        if (!this.dirty) {
+            this.markDirty();
+        }
     }
 
     syncAllProps() {
@@ -131,7 +139,7 @@ export class FluidChunk {
     }
 
     markDirty() {
-        if (this.dirty || !this.world) {
+        if (this.dirty || !this.world || !this.world.trackDirty) {
             return;
         }
         this.dirty = true;

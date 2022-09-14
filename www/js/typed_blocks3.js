@@ -462,8 +462,10 @@ export class TypedBlocks3 {
         for (let i = 0; i < portals.length; i++) {
             if (portals[i].aabb.contains(wx, wy, wz)) {
                 const other = portals[i].toRegion;
-                other.uint16View[other.indexByWorld(wx, wy, wz)] = id;
-                other.rev.fluid.syncBlockProps(index, id);
+                const ind2 = other.indexByWorld(wx, wy, wz);
+                other.uint16View[ind2] = id;
+                // TODO: set calculated props
+                other.rev.fluid.syncBlockProps(ind2, id);
                 pcnt++;
             }
         }
@@ -577,6 +579,8 @@ export class DataWorld {
         const { portals, aabb, uint16View, cx, cy, cz } = chunk.dataChunk;
         const cw = chunk.dataChunk.shiftCoord;
         const tempAABB = new AABB();
+
+        chunk.fluid.syncAllProps();
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];
             const other = portals[i].toRegion;
@@ -588,6 +592,8 @@ export class DataWorld {
             const cz2 = other.cz;
             const cw2 = other.shiftCoord;
 
+            let otherDirtyFluid = false;
+
             tempAABB.setIntersect(aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
                 for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
@@ -595,7 +601,10 @@ export class DataWorld {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
                         otherView[ind2] = uint16View[ind];
-                        otherFluid[ind2] = fluid[ind];
+                        if (otherFluid[ind2] !== fluid[ind]) {
+                            otherFluid[ind2] = fluid[ind];
+                            otherDirtyFluid = true;
+                        }
                     }
             tempAABB.setIntersect(other.aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
@@ -606,9 +615,10 @@ export class DataWorld {
                         uint16View[ind] = otherView[ind2];
                         fluid[ind] = otherFluid[ind2];
                     }
+            if (otherDirtyFluid) {
+                other.rev.fluid.markDirty();
+            }
         }
-
-        chunk.fluid.syncAllProps();
     }
 
     /**

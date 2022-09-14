@@ -13,6 +13,7 @@ export class FluidWorld {
             instanceSize: 48,
             pageSize: 85,
         });
+        this.trackDirty = false;
         this.dirtyChunks = [];
         this.renderPool = null;
     }
@@ -33,8 +34,11 @@ export class FluidWorld {
             parentChunk: chunk,
             world: this
         });
+
         chunk.tblocks.fluid = chunk.fluid;
-        this.dirtyChunks.push(chunk.fluid);
+        if (this.trackDirty) {
+            this.dirtyChunks.push(chunk.fluid);
+        }
         // fillOuter for water here!!!
     }
 

@@ -64,6 +64,7 @@ export class ChunkManager {
         this.timer60fps             = 0;
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
+        this.fluidWorld.trackDirty  = true;
 
         this.chunk_modifiers        = new VectorCollector();
 
