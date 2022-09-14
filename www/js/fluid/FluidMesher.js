@@ -105,7 +105,8 @@ export function buildFluidVertices(fluidChunk) {
         for (let z = 0; z < size.z; z++)
             for (let x = 0; x < size.x; x++) {
                 let index = (x * cx + y * cy + z * cz + cw);
-                const fluidId = ((uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK) >> FLUID_TYPE_SHIFT) - 1;
+                const fluidType = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK;
+                const fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
                 if (fluidId < 0) {
                     continue;
                 }
@@ -118,7 +119,7 @@ export function buildFluidVertices(fluidChunk) {
                 neib[5] = uint16View[index - cx];
                 let foundNeib = false;
                 for (let i = 0; i < 6; i++) {
-                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) && neib[i] < restrict16;
+                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType  && neib[i] < restrict16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
                 if (!foundNeib) {
@@ -127,6 +128,7 @@ export function buildFluidVertices(fluidChunk) {
                 const mat = fluidMaterials[fluidId];
                 if (!buffers[fluidId]) {
                     buffers[fluidId] = fluidChunk.getInstanceBuffer(mat.material_key);
+                    buffers[fluidId].touch();
                 }
                 let geom = buffers[fluidId].vertices;
 

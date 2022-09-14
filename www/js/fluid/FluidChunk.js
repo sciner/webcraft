@@ -50,6 +50,15 @@ export class FluidChunk {
         return pcnt;
     }
 
+    saveState() {
+        return this.uint8View;
+    }
+
+    restoreState(something) {
+        this.uint8View = something;
+        this.uint16View = new Uint16Array(something.buffer);
+    }
+
     setFluidIndirect(x, y, z, block_id) {
         const { cx, cy, cz, cw } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
@@ -96,9 +105,9 @@ export class FluidChunk {
     }
 
     getInstanceBuffer(material_key) {
-        let ib = this.instanceBuffers.contains(material_key);
+        let ib = this.instanceBuffers.get(material_key);
         if (!ib) {
-            this.instanceBuffers.add(material_key, ib = new FluidInstanceBuffer({
+            this.instanceBuffers.set(material_key, ib = new FluidInstanceBuffer({
                 material_key,
                 geometryPool: this.world.geometryPool,
                 chunkDataId: this.dataId

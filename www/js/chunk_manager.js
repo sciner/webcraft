@@ -598,8 +598,6 @@ export class ChunkManager {
                 }
             }
         }
-
-        this.fluidWorld.buildDirtyChunks();
     }
 
     // Возвращает блок по абслютным координатам

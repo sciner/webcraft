@@ -189,6 +189,9 @@ export class TypedBlocks3 {
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
+        if (state.fluid) {
+            this.fluid.restoreState(state.fluid);
+        }
     }
 
     saveState() {
@@ -201,6 +204,7 @@ export class TypedBlocks3 {
             extra_data: this.extra_data.list,
             shapes: this.shapes.list,
             falling: this.falling.list,
+            fluid: this.fluid.saveState(),
         }
     }
 

@@ -29,7 +29,7 @@ export class FluidWorld {
     addChunk(chunk) {
         chunk.fluid = new FluidChunk({
             dataChunk: chunk.dataChunk,
-            dataId: chunk.dataId,
+            dataId: chunk.getDataTextureOffset(),
             parentChunk: chunk,
             world: this
         });

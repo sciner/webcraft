@@ -78,6 +78,7 @@ export class Chunk {
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
+            chunkManager.dataWorld.syncOuter(this);
         }
         //
         const mods_arr = chunkManager.chunk_modifiers.get(this.addr);
@@ -286,7 +287,7 @@ export class Chunk {
                 }
             } else {
                 this.vertices_length += v.instanceCount;
-                this.vertices.push(v);
+                this.verticesList.push(v);
             }
         }
         for (let i = 0; i< oldKeys.length; i++) {
