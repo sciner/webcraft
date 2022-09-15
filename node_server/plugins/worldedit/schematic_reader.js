@@ -3,6 +3,8 @@ import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
 import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { RailShape } from "../../../www/js/block_type/rail_shape.js";
+import * as FLUID from '../../../www/js/fluid/FluidConst.js';
+import {FLUID_LAVA_ID} from "../../../www/js/fluid/FluidConst.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -24,6 +26,7 @@ export class SchematicReader {
 
     constructor() {
         this.blocks = new VectorCollector();
+        this.fluids = [];
         this.replaced_names = {
             BARRIER:    'AIR',
             CAVE_AIR:   'AIR',
@@ -75,8 +78,14 @@ export class SchematicReader {
 
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
+        const AIR_BLOCK = {id: 0};
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
+
+        const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
+        const FLOWING_WATER_BLOCK = {id: BLOCK.fromName('FLOWING_WATER').id};
+        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('TEST').id};
+        const FLOWING_LAVA_BLOCK = {id: BLOCK.fromName('TEST').id};
         // each all blocks
         const ep = new Vector(0, 0, 0);
         let min_y = Infinity;
@@ -148,7 +157,7 @@ export class SchematicReader {
                     }
                 }
             }
-            // If not implemented block 
+            // If not implemented block
             if(!new_block) {
                 not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
                 // replace with TEST block and store original to his extra_data
@@ -164,7 +173,28 @@ export class SchematicReader {
                     }
                 }
             }
+            let fluidValue = 0;
+            if (new_block.is_fluid) {
+                const lvl = new_block.extra_data && new_block.extra_data.level !== undefined
+                    ? new_block.extra_data.level : 0;
+                if (new_block.id === STILL_WATER_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_WATER_ID + FLUID.FLUID_SOURCE_MASK;
+                }
+                if (new_block.id === FLOWING_WATER_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_WATER_ID + lvl;
+                }
+                if (new_block.id === STILL_LAVA_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_LAVA_ID + FLUID.FLUID_SOURCE_MASK;
+                }
+                if (new_block.id === FLOWING_LAVA_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_LAVA_ID + lvl;
+                }
+                new_block = AIR_BLOCK;
+            }
             this.blocks.set(bpos, new_block);
+            if (fluidValue) {
+                this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
+            }
         });
         //
         const not_found_blocks_arr = [];

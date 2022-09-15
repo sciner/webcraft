@@ -63,6 +63,22 @@ export class FluidChunk {
         this.uint16View = new Uint16Array(something.buffer);
     }
 
+    isNotEmpty() {
+        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
+        const { uint8View } = this;
+        let res = false;
+        cycle:for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    let index = x * cx + y * cy + z * cz + cw;
+                    if (uint8View[index * FLUID_STRIDE + OFFSET_FLUID] > 0) {
+                        res = true;
+                        break cycle;
+                    }
+                }
+        return true;
+    }
+
     saveDbBuffer() {
         const { cx, cy, cz, cw, size, insideLen } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
@@ -73,11 +89,9 @@ export class FluidChunk {
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
-                    let val = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
-                    found = found | val;
-                    arr[k++] = val;
+                    arr[k++] = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
                 }
-        return found > 0 ? arr: null;
+        return arr;
     }
 
     loadDbBuffer(stateArr) {

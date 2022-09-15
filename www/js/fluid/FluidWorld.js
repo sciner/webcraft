@@ -1,4 +1,4 @@
-import {VectorCollector} from "../helpers.js";
+import {getChunkAddr, Vector, VectorCollector} from "../helpers.js";
 import {FluidChunk} from "./FluidChunk.js";
 import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 import {Basic05GeometryPool} from "../light/Basic05GeometryPool.js";
@@ -68,5 +68,29 @@ export class FluidWorld {
             }
             parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }
+    }
+
+    applyWorldFluidsList(fluids) {
+        if (!fluids || fluids.length === 0) {
+            return;
+        }
+        let chunks = new VectorCollector();
+        let chunk_addr = new Vector();
+        for (let i = 0; i < fluids.length; i += 4) {
+            let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
+            getChunkAddr(x, y, z, chunk_addr);
+
+            let chunk = chunks.get(chunk_addr);
+            if (!chunk) {
+                chunk = this.chunkManager.getChunk(chunk_addr);
+                chunks.add(chunk_addr, chunk);
+                if (!chunk) {
+                    continue;
+                }
+            }
+            chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
+        }
+        //chunks
+        return chunks;
     }
 }

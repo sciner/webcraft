@@ -445,8 +445,8 @@ export class ServerChunk {
         if(buf) {
             this.fluid.loadDbBuffer(buf);
         } else {
-            buf = this.tblocks.fluid.saveDbBuffer();
-            if (buf) {
+            if (this.fluid.isNotEmpty()) {
+                buf = this.fluid.saveDbBuffer();
                 await this.world.db.saveChunkFluid(this.addr, buf);
             }
         }

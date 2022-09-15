@@ -84,6 +84,7 @@ export class Chunk {
 
         this.vertexBuffers = new Map();
         this.serializedVertices = null;
+        this.inited = true;
 
         this.fluid = null;
         if (world.fluid) {

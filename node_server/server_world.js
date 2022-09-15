@@ -108,7 +108,7 @@ export class ServerWorld {
             this.info.calendar = {
                 age: null,
                 day_time: null,
-            };    
+            };
         }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
@@ -563,6 +563,14 @@ export class ServerWorld {
                 throw e;
             }
         }
+        if (actions.fluids.length > 0) {
+            let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+            for (let chunk of chunks) {
+                let buf = chunk.fluid.saveDbBuffer();
+                await this.db.saveChunkFluid(chunk.addr, buf);
+                chunk.sendFluid(buf);
+            }
+        }
         // Play sound
         if (actions.play_sound) {
             for(let params of actions.play_sound) {
@@ -822,7 +830,7 @@ export class ServerWorld {
 
     /**
      * Set world global weather
-     * @param {Weather} weather 
+     * @param {Weather} weather
      */
     setWeather(weather) {
         this.weather = weather;
