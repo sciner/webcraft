@@ -1,4 +1,4 @@
-export const FLUID_LEVEL_MASK = 7;
+export const FLUID_LEVEL_MASK = 15;
 export const FLUID_SOURCE_MASK = 8;
 export const FLUID_WATER_ID = 16;
 export const FLUID_LAVA_ID = 32;

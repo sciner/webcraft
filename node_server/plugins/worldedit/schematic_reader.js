@@ -177,16 +177,10 @@ export class SchematicReader {
             if (new_block.is_fluid) {
                 const lvl = new_block.extra_data && new_block.extra_data.level !== undefined
                     ? new_block.extra_data.level : 0;
-                if (new_block.id === STILL_WATER_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_WATER_ID + FLUID.FLUID_SOURCE_MASK;
-                }
-                if (new_block.id === FLOWING_WATER_BLOCK.id) {
+                if (new_block.id === STILL_WATER_BLOCK.id || new_block.id === FLOWING_WATER_BLOCK.id) {
                     fluidValue = FLUID.FLUID_WATER_ID + lvl;
                 }
-                if (new_block.id === STILL_LAVA_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_LAVA_ID + FLUID.FLUID_SOURCE_MASK;
-                }
-                if (new_block.id === FLOWING_LAVA_BLOCK.id) {
+                if (new_block.id === STILL_LAVA_BLOCK.id || new_block.id === FLOWING_LAVA_BLOCK.id) {
                     fluidValue = FLUID.FLUID_LAVA_ID + lvl;
                 }
                 new_block = AIR_BLOCK;

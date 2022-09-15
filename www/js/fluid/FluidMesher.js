@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
 import {
-    FLUID_BLOCK_RESTRICT, FLUID_LEVEL_MASK, FLUID_SOURCE_MASK,
+    FLUID_BLOCK_RESTRICT, FLUID_LEVEL_MASK,
     FLUID_STRIDE,
     FLUID_TYPE_MASK, FLUID_TYPE_SHIFT,
     OFFSET_FLUID
@@ -109,9 +109,12 @@ export function buildFluidVertices(fluidChunk) {
                 if (fluidId < 0) {
                     continue;
                 }
-                let lvl = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & 15;
+                let lvl = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_LEVEL_MASK;
                 if (lvl > 0) {
                     console.log(lvl);
+                }
+                if (lvl === 8) {
+                    lvl = 0;
                 }
 
                 neib[0] = uint16View[index + cy];
