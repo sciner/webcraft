@@ -347,6 +347,9 @@ export class Hotbar {
     }
     
     drawEffectsIcon(hud, icon, pos) {
+        if (icon > 23) {
+            return;
+        }
         const icons = [
             {x: 2, y: 397},
             {x: 39, y: 397},
@@ -374,7 +377,7 @@ export class Hotbar {
             {x: 255, y: 472},
         ];
         hud.ctx.drawImage(this.inventory_image, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
-        hud.ctx.drawImage(this.inventory_image, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * 50 * (pos + 1) - 20) - 10, 26, this.zoom * 34, this.zoom * 34);
+        hud.ctx.drawImage(this.inventory_image, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
     }
 
 }

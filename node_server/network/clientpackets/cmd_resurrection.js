@@ -15,11 +15,11 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-        for(let code of ['live', 'food', 'oxygen']) {
-            player.state.indicators[code].value = player.world.getDefaultPlayerIndicators()[code].value;
-        }
+        const ind_def = player.world.getDefaultPlayerIndicators();
+        player.live_level = ind_def.live.value;
+        player.oxygen_level = ind_def.oxygen.value;
+        player.food_level = ind_def.food.value;
         player.is_dead = false;
-        new CMD_ENTITY_INDICATORS(player);
         player.teleport({
             place_id: 'spawn',
         });

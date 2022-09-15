@@ -7607,6 +7607,102 @@
             "effects":[
                 {"id":4, "time": 90, "level": 2}
             ]
+        },
+        {
+            "id": 248,
+            "name": "INSTANT_HEALTH",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 12, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":24, "time": 0, "level": 1}
+            ]
+        },
+        {
+            "id": 249,
+            "name": "INSTANT_HEALTH_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 12, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":24, "time": 0, "level": 2}
+            ]
+        },
+        {
+            "id": 250,
+            "name": "INSTANT_DAMAGE",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 28, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":25, "time": 0, "level": 1}
+            ]
+        },
+        {
+            "id": 251,
+            "name": "INSTANT_DAMAGE_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 28, "g": 515, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":25, "time": 0, "level": 2}
+            ]
         }
     ]
 }

@@ -38,6 +38,16 @@ export class Player {
         };
         this.effects = [];
     }
+    
+    // возвращает уровень эффекта
+    getEffectLevel(val) {
+        for (const effect of this.effects) {
+            if (effect.id == val) {
+                return effect.level;
+            }
+        }
+        return 0;
+    }
 
     JoinToWorld(world, cb) {
         this.world = world;
@@ -396,7 +406,9 @@ export class Player {
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
-            const mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            let mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
+            mul += mul * 0.2 * this.getEffectLevel(2); //Усеоренная разбивка блоков
+            mul -= mul * 0.2 * this.getEffectLevel(3); //усталость
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {

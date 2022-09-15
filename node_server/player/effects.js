@@ -28,7 +28,9 @@ export class Effect {
     static LUCK = 21;
     static BAD_LUCK = 22;
     static HEALTH_BOOST = 23;
-    
+    static INSTANT_HEALTH = 24;
+    static INSTANT_DAMAGE = 25;
+
     static get(id) {
         return [
             {id:0, title: "Скорость"},
@@ -54,7 +56,9 @@ export class Effect {
             {id:20, title: "Свечение"},
             {id:21, title: "Удача"},
             {id:22, title: "Неудача"},
-            {id:23, title: "Прилив здоровья"}
+            {id:23, title: "Прилив здоровья"},
+            {id:24, title: "Исцеление"},
+            {id:25, title: "Моментальный урон"},
         ];
     }
     
@@ -110,7 +114,7 @@ export class ServerPlayerEffects {
         const world = player.world;
         let send = false;
         for (let i = 0; i < this.effects.length; i++) {
-            if (this.effects[i].time > 0) {
+            if (this.effects[i].time >= 0) {
                 this.effects[i].time--;
             } else {
                 this.effects.splice(i, 1);

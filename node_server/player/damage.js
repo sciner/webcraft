@@ -1,6 +1,9 @@
 import { Effect } from "./effects.js";
 import { BLOCK } from "../../www/js/blocks.js";
+import { Vector } from "../../www/js/helpers.js";
 
+const INSTANT_DAMAGE_TICKS = 10;
+const INSTANT_HEALTH_TICKS = 10;
 const LIVE_REGENERATIN_TICKS = 50;
 const FIRE_LOST_TICKS = 10;
 const OXYGEN_LOST_TICKS = 10;
@@ -8,6 +11,8 @@ const OXYGEN_GOT_TICKS = 5;
 const POISON_TICKS = 25;
 const WITHER_TICKS = 40;
 const FOOD_LOST_TICKS = 80;
+const CACTUS_LOST_TICKS = 10;
+const CACTUS_PADDING_DAMAGE = 0.3;
 
 export class ServerPlayerDamage {
     
@@ -22,6 +27,9 @@ export class ServerPlayerDamage {
         this.food_timer = 0;
         this.food_saturation_level = 0;
         this.food_exhaustion_level = 0;
+        this.cactus_lost_timer = 0;
+        this.instant_health_timer = 0;
+        this.instant_damage_timer = 0;
     }
     
     /*
@@ -32,8 +40,9 @@ export class ServerPlayerDamage {
         const player = this.player;
         const world = player.world;
         const effects = player.effects;
+        const position = player.state.pos.floored();
         const head = world.getBlock(player.getEyePos().floored());
-        const legs = world.getBlock(player.state.pos.floored());
+        const legs = world.getBlock(position);
         const ind_def = world.getDefaultPlayerIndicators();
         
         let max_live = ind_def.live.value;
@@ -42,7 +51,7 @@ export class ServerPlayerDamage {
         max_live += 2 * health_boost_lvl;
         
         let damage = 0;
-        // поставил сюда, так как она тоже дает демаг
+        // Урон от голода
         if (this.food_exhaustion_level > 4) {
             this.food_exhaustion_level -= 4;
             if (this.food_saturation_level > 0) {
@@ -68,6 +77,11 @@ export class ServerPlayerDamage {
             this.food_timer = 0;
         }
         
+         // голод, дполнителное уменьшения насыщения от эффекта
+        const hunger_lvl = effects.getEffectLevel(Effect.HUNGER);
+        if (hunger_lvl > 0) {
+            this.addExhaustion(0.025 * hunger_lvl);
+        }
         
         // урон он воды и удушения
         if (!head.material.has_oxygen) {
@@ -132,6 +146,46 @@ export class ServerPlayerDamage {
             }
         } else {
             this.wither_timer = 0;
+        }
+        
+        // урон от кактуса
+        const east = world.getBlock(position.add(Vector.XN));
+        const west = world.getBlock(position.add(Vector.XP));
+        const north = world.getBlock(position.add(Vector.ZP));
+        const south = world.getBlock(position.add(Vector.ZN));
+        const sub = player.state.pos.sub(position);
+        if  ((east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
+            this.cactus_lost_timer++;
+            if (this.cactus_lost_timer >= CACTUS_LOST_TICKS) {
+                this.cactus_lost_timer = 0;
+                damage++;
+            }
+        } else {
+            this.cactus_lost_timer = CACTUS_LOST_TICKS;
+        }
+        
+        // моментальный урон
+        const instant_damage_lvl = effects.getEffectLevel(Effect.INSTANT_DAMAGE);
+        if (instant_damage_lvl > 0) {
+            this.instant_damage_timer++;
+            if (this.instant_damage_timer >= INSTANT_DAMAGE_TICKS) {
+                this.instant_damage_timer = 0;
+                damage += 3 * (2**(instant_damage_lvl - 1));
+            }
+        } else {
+            this.instant_damage_timer = INSTANT_DAMAGE_TICKS;
+        }
+        
+        // исцеление
+        const instant_health_lvl = effects.getEffectLevel(Effect.INSTANT_HEALTH);
+        if (instant_health_lvl > 0) {
+            this.instant_health_timer++;
+            if (this.instant_health_timer >= INSTANT_HEALTH_TICKS) {
+                this.instant_health_timer = 0;
+                player.live_level = Math.min(player.live_level + 2**instant_health_lvl, max_live);
+            }
+        } else {
+            this.instant_health_timer = INSTANT_HEALTH_TICKS;
         }
         
         // регенерация жизней
