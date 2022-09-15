@@ -150,10 +150,12 @@ export function buildFluidVertices(fluidChunk) {
 
                 let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
-                let h0 = 1.0, h1 = 1.0, h2 = 1.0, h3 = 1.0;
+                let h0 = 1.0 - lvl / 8.0, h1 = h0, h2 = h0, h3 = h0;
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
-                    h0 = h1 = h2 = h3 = 0.9;
+                    if (h0 === 1.0) {
+                        h0 = h1 = h2 = h3 = 0.9;
+                    }
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, clr,
