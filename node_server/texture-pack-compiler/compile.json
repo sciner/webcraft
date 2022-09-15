@@ -7703,6 +7703,174 @@
             "effects":[
                 {"id":25, "time": 0, "level": 2}
             ]
+        },
+        {
+            "id": 252,
+            "name": "POISON",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":6, "time": 45, "level": 1}
+            ]
+        },
+        {
+            "id": 253,
+            "name": "POISON_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":6, "time": 90, "level": 1}
+            ]
+        },
+        {
+            "id": 254,
+            "name": "POISON_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":6, "time": 22, "level": 2}
+            ]
+        },
+        {
+            "id": 255,
+            "name": "FIRE_RESISTANCE",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":15, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 256,
+            "name": "FIRE_RESISTANCE_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 524, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":15, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 257,
+            "name": "RESPIRATION",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":16, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 258,
+            "name": "RESPIRATION_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "24|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "24|31"
+            },
+            "effects":[
+                {"id":16, "time": 480, "level": 1}
+            ]
         }
     ]
 }

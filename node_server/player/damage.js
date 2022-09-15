@@ -126,7 +126,7 @@ export class ServerPlayerDamage {
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
         if (poison_lvl > 0) {
             this.poison_timer++;
-            if (this.posion_timer >= (POISON_TICKS / (2**(poison_lvl - 1)))) {
+            if (this.poison_timer >= (POISON_TICKS / (2**(poison_lvl - 1)))) {
                 this.poison_timer = 0;
                 if (player.live_level > 1) {
                     damage++;
