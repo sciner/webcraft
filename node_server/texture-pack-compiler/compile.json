@@ -3086,6 +3086,7 @@
             "id": 81,
             "name": "CACTUS",
             "planting": false,
+            "style": "cactus",
             "width": 0.875,
             "transparent": true,
             "sound": "madcraft:block.cloth",
