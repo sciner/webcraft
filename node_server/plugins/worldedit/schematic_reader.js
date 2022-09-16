@@ -81,11 +81,8 @@ export class SchematicReader {
         const AIR_BLOCK = {id: 0};
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
-
         const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
-        const FLOWING_WATER_BLOCK = {id: BLOCK.fromName('FLOWING_WATER').id};
-        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('TEST').id};
-        const FLOWING_LAVA_BLOCK = {id: BLOCK.fromName('TEST').id};
+        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
         // each all blocks
         const ep = new Vector(0, 0, 0);
         let min_y = Infinity;
@@ -177,10 +174,10 @@ export class SchematicReader {
             if (b?.is_fluid) {
                 const lvl = new_block.extra_data && new_block.extra_data.level !== undefined
                     ? new_block.extra_data.level : 0;
-                if (new_block.id === STILL_WATER_BLOCK.id || new_block.id === FLOWING_WATER_BLOCK.id) {
+                if (new_block.id === STILL_WATER_BLOCK.id) {
                     fluidValue = FLUID.FLUID_WATER_ID + lvl;
                 }
-                if (new_block.id === STILL_LAVA_BLOCK.id || new_block.id === FLOWING_LAVA_BLOCK.id) {
+                if (new_block.id === STILL_LAVA_BLOCK.id) {
                     fluidValue = FLUID.FLUID_LAVA_ID + lvl;
                 }
                 new_block = AIR_BLOCK;

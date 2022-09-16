@@ -12,6 +12,7 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+export const CHUNK_STATE_UNLOADED          = 4;
 //
 
 // Ticking block
@@ -442,6 +443,9 @@ export class ServerChunk {
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         // fluid
         let buf = await this.world.db.loadChunkFluid(this.addr);
+        if(this.load_state == CHUNK_STATE_UNLOADED) {
+            return;
+        }
         if(buf) {
             this.fluid.loadDbBuffer(buf);
         } else {
@@ -612,6 +616,7 @@ export class ServerChunk {
             return;
         }
         chunkManager.dataWorld.removeChunk(this);
+        this.setState(CHUNK_STATE_UNLOADED);
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
