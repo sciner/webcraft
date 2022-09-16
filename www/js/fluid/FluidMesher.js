@@ -84,6 +84,44 @@ export const PLANES = [
     },
 ]
 
+const solid16 = FLUID_BLOCK_RESTRICT << 8;
+let ww = [0, 0];
+function mc_addWeightedHeight(f) {
+    if (f >= 0.8) {
+        ww[0] += f * 10.0;
+        ww[1] += 10.0;
+    } else if (f >= 0.0) {
+        ww[0] += f;
+        ww[1] += 1.0;
+    }
+}
+
+function mc_getHeight(fluidType, neib, neibAbove) {
+    if (fluidType === (neib & FLUID_TYPE_MASK)) {
+        return (fluidType === (neibAbove & FLUID_TYPE_MASK)) ? 1.0 : (8.0 - (neib & 7)) / 9.0;
+    }
+    return (neib & solid16) > 0 ? 0.0 : -1.0;
+}
+
+function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib3Above) {
+    if (neib1h >= 1.0 && neib2h >= 1.0) {
+        return 1.0;
+    }
+    ww[0] = ww[1] = 0.0;
+    if (neib1h > 0.0 || neib2h > 0.0) {
+        let f = mc_getHeight(fluidType, neib3, neib3Above);
+        if (f >= 1.0) {
+            return 1.0;
+        }
+
+        mc_addWeightedHeight(f);
+    }
+    mc_addWeightedHeight(cellH);
+    mc_addWeightedHeight(neib1h);
+    mc_addWeightedHeight(neib2h);
+    return ww[0] / ww[1];
+}
+
 export function buildFluidVertices(fluidChunk) {
     const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
     const { uint8View, uint16View } = fluidChunk;
@@ -96,7 +134,6 @@ export function buildFluidVertices(fluidChunk) {
     let quads = 0;
 
     // we have fluids in chunk!
-    const restrict16 = FLUID_BLOCK_RESTRICT << 8;
     const neib = [0, 0, 0, 0, 0, 0];
     const hasNeib = [0, 0, 0, 0, 0, 0];
     const texAlter = [0, 0, 0, 0];
@@ -104,7 +141,8 @@ export function buildFluidVertices(fluidChunk) {
         for (let z = 0; z < size.z; z++)
             for (let x = 0; x < size.x; x++) {
                 let index = (x * cx + y * cy + z * cz + cw);
-                const fluidType = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK;
+                const fluid16 = uint16View[index];
+                const fluidType = fluid16 & FLUID_TYPE_MASK;
                 const fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
                 if (fluidId < 0) {
                     continue;
@@ -126,7 +164,7 @@ export function buildFluidVertices(fluidChunk) {
                 hasNeib[0] = (neib[0] & FLUID_TYPE_MASK) !== fluidType;
                 let foundNeib = hasNeib[0];
                 for (let i = 1; i < 6; i++) {
-                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < restrict16;
+                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < solid16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
                 if (!foundNeib) {
@@ -150,20 +188,38 @@ export function buildFluidVertices(fluidChunk) {
 
                 let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
-                let h0 = 1.0 - lvl / 8.0, h1 = h0, h2 = h0, h3 = h0;
+
+                let h00 = 1, h10 = 1, h11 = 1, h01 = 1;
+
+                let mch0 = mc_getHeight(fluidType, fluid16, neib[0]);
+                if (mch0 < 1.0) {
+                    let mch2 = mc_getHeight(fluidType, neib[2], uint16View[index - cz + cy]);
+                    let mch3 = mc_getHeight(fluidType, neib[3], uint16View[index + cz + cy]);
+                    let mch4 = mc_getHeight(fluidType, neib[4], uint16View[index + cx + cy]);
+                    let mch5 = mc_getHeight(fluidType, neib[5], uint16View[index - cx + cy]);
+
+                    h00 = mc_calculateAverageHeight(fluidType, mch0, mch5, mch2,
+                        uint16View[index - cx - cz], uint16View[index - cx - cz + cy]);
+                    h10 = mc_calculateAverageHeight(fluidType, mch0, mch4, mch2,
+                        uint16View[index + cx - cz], uint16View[index + cx - cz + cy]);
+                    h11 = mc_calculateAverageHeight(fluidType, mch0, mch4, mch3,
+                        uint16View[index + cx + cz], uint16View[index + cx + cz + cy]);
+                    h01 = mc_calculateAverageHeight(fluidType, mch0, mch5, mch3,
+                        uint16View[index - cx + cz], uint16View[index - cx + cz + cy]);
+                }
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
-                    if (h0 === 1.0) {
-                        h0 = h1 = h2 = h3 = 0.9;
+                    if (h00 === 1.0) {
+                        h00 = h10 = h11 = h01 = 0.9;
                     }
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z0, h0, x0, z0,
-                        x1, z0, h1, x1, z0,
-                        x1, z1, h2, x1, z1,
-                        x0, z1, h3, x0, z1,
+                        x0, z0, h00, x0, z0,
+                        x1, z0, h10, x1, z0,
+                        x1, z1, h11, x1, z1,
+                        x0, z1, h01, x0, z1,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
@@ -184,8 +240,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z1, h0, z1, h0,
-                        x0, z0, h3, z0, h3,
+                        x0, z1, h00, z1, h00,
+                        x0, z0, h01, z0, h01,
                         x0, z0, y0, z0, y0,
                         x0, z1, y0, z1, y0,
                     );
@@ -195,8 +251,8 @@ export function buildFluidVertices(fluidChunk) {
                     //U=Z, V=Y
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x1, z0, h2, z0, h2,
-                        x1, z1, h1, z1, h1,
+                        x1, z0, h11, z0, h11,
+                        x1, z1, h10, z1, h10,
                         x1, z1, y0, z1, y0,
                         x1, z0, y0, z0, y0,
                     );
@@ -206,8 +262,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z0, h3, x0, h3,
-                        x1, z0, h2, x1, h2,
+                        x0, z0, h01, x0, h01,
+                        x1, z0, h11, x1, h11,
                         x1, z0, y0, x1, y0,
                         x0, z0, y0, x0, y0,
                     );
@@ -217,8 +273,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x1, z1, h1, x1, h1,
-                        x0, z1, h0, x0, h0,
+                        x1, z1, h10, x1, h10,
+                        x0, z1, h00, x0, h00,
                         x0, z1, y0, x0, y0,
                         x1, z1, y0, x1, y0,
                     );
