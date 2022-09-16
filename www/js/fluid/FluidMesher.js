@@ -104,7 +104,7 @@ function mc_getHeight(fluidType, neib, neibAbove) {
 }
 
 function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib3Above) {
-    if (neib1h >= 1.0 && neib2h >= 1.0) {
+    if (neib1h >= 1.0 || neib2h >= 1.0) {
         return 1.0;
     }
     ww[0] = ww[1] = 0.0;
@@ -124,7 +124,7 @@ function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib
 
 export function buildFluidVertices(fluidChunk) {
     const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
-    const { uint8View, uint16View } = fluidChunk;
+    const { uint16View } = fluidChunk;
 
     if (fluidMaterials.length === 0) {
         initFluidMaterials();
@@ -147,14 +147,6 @@ export function buildFluidVertices(fluidChunk) {
                 if (fluidId < 0) {
                     continue;
                 }
-                let lvl = uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_LEVEL_MASK;
-                if (lvl > 0) {
-                    console.log(lvl);
-                }
-                if (lvl === 8) {
-                    lvl = 0;
-                }
-
                 neib[0] = uint16View[index + cy];
                 neib[1] = uint16View[index - cy];
                 neib[2] = uint16View[index - cz];
@@ -209,17 +201,14 @@ export function buildFluidVertices(fluidChunk) {
                 }
 
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
-                    if (h00 === 1.0) {
-                        h00 = h10 = h11 = h01 = 0.9;
-                    }
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z0, h00, x0, z0,
-                        x1, z0, h10, x1, z0,
-                        x1, z1, h11, x1, z1,
                         x0, z1, h01, x0, z1,
+                        x1, z1, h11, x1, z1,
+                        x1, z0, h10, x1, z0,
+                        x0, z0, h00, x0, z0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
@@ -228,10 +217,10 @@ export function buildFluidVertices(fluidChunk) {
                     //U=X, V=Z
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z0, y0, x0, z0,
-                        x1, z0, y0, x1, z0,
-                        x1, z1, y0, x1, z1,
                         x0, z1, y0, x0, z1,
+                        x1, z1, y0, x1, z1,
+                        x1, z0, y0, x1, z0,
+                        x0, z0, y0, x0, z0,
                     );
                 }
                 clr += (1 << 20); // flowing liquid, scroll
@@ -240,8 +229,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z1, h00, z1, h00,
-                        x0, z0, h01, z0, h01,
+                        x0, z1, h01, z1, h01,
+                        x0, z0, h00, z0, h00,
                         x0, z0, y0, z0, y0,
                         x0, z1, y0, z1, y0,
                     );
@@ -251,8 +240,8 @@ export function buildFluidVertices(fluidChunk) {
                     //U=Z, V=Y
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x1, z0, h11, z0, h11,
-                        x1, z1, h10, z1, h10,
+                        x1, z0, h10, z0, h10,
+                        x1, z1, h11, z1, h11,
                         x1, z1, y0, z1, y0,
                         x1, z0, y0, z0, y0,
                     );
@@ -262,8 +251,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x0, z0, h01, x0, h01,
-                        x1, z0, h11, x1, h11,
+                        x0, z0, h00, x0, h00,
+                        x1, z0, h10, x1, h10,
                         x1, z0, y0, x1, y0,
                         x0, z0, y0, x0, y0,
                     );
@@ -273,8 +262,8 @@ export function buildFluidVertices(fluidChunk) {
                     quads++;
                     geom.push(fluidId, clr,
                         x, z, y,
-                        x1, z1, h10, x1, h10,
-                        x0, z1, h00, x0, h00,
+                        x1, z1, h11, x1, h11,
+                        x0, z1, h01, x0, h01,
                         x0, z1, y0, x0, y0,
                         x1, z1, y0, x1, y0,
                     );
