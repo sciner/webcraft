@@ -454,9 +454,6 @@ export class ServerChunk {
                 await this.world.db.saveChunkFluid(this.addr, buf);
             }
         }
-        if(buf) {
-            this.sendFluid(buf)
-        }
         //
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
@@ -468,6 +465,9 @@ export class ServerChunk {
             }
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
+            }
+            if(buf) {
+                this.sendFluid(buf);
             }
         }
     }

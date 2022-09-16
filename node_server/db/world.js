@@ -521,7 +521,7 @@ export class DBWorld {
 
     //
     async loadChunkFluid(chunk_addr) {
-        const row = this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
+        const row = await this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
             ':x': chunk_addr.x,
             ':y': chunk_addr.y,
             ':z': chunk_addr.z
