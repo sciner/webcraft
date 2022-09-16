@@ -33,7 +33,7 @@ export class ServerPlayerDamage {
     }
     
     /*
-    * Метод выдает колличестов урона
+    * Метод подсчитывает колличество урона
     *
     */
     getDamage(tick) {
@@ -83,16 +83,14 @@ export class ServerPlayerDamage {
             this.addExhaustion(0.025 * hunger_lvl);
         }
         
-        // урон он воды и удушения
+        // урон он воды и удушения эффект подводное дыхание
         if (!head.material.has_oxygen) {
             this.oxygen_got_timer = 0;
             this.oxygen_lost_timer++;
             if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
                 this.oxygen_lost_timer = 0;
-                // эффект подводное дыхание
-                const level = effects.getEffectLevel(Effect.RESPIRATION);
-                const rnd = (Math.random() * (level + 1)) | 0;
-                if (level == 0 || rnd == 0) {
+                const resp_lvl = effects.getEffectLevel(Effect.RESPIRATION);
+                if (resp_lvl == 0) {
                     player.oxygen_level =  Math.max(player.oxygen_level - 1, 0);
                 }
                 if (player.oxygen_level == 0) {
@@ -108,18 +106,18 @@ export class ServerPlayerDamage {
             }
         }
         
-        // огонь с эффектом защиты от огня
-        const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id) {
+        // огонь/лава с эффектом защиты от огня
+        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || legs.material.material.id == 'lava') {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
+                const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
                 if (fire_res_lvl == 0) {
-                    damage++;
+                    damage = (legs.material.material.id == 'lava') ? damage + 4 : damage + 1;
                 }
             }
         } else {
-            this.fire_lost_timer = 0;
+            this.fire_lost_timer = FIRE_LOST_TICKS;
         }
         
         // отравление
@@ -206,7 +204,6 @@ export class ServerPlayerDamage {
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
-
     }
     
     /*

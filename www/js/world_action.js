@@ -1326,7 +1326,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
         return false;
     }
 
-    const position = new Vector(pos.x, pos.y, pos.z);
+    const position = new Vector(pos);
     position.addSelf(pos.n);
     
     actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]});
@@ -1496,7 +1496,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     }
     
     // поджигаем блок
-    if (pos.n.y != -1) {
+    if (pos.n.y != -1 && world.getBlock(position).id == BLOCK.AIR.id) {
         actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: 0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         return true;
     }
