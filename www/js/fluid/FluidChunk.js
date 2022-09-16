@@ -76,7 +76,7 @@ export class FluidChunk {
                         break cycle;
                     }
                 }
-        return true;
+        return res;
     }
 
     saveDbBuffer() {

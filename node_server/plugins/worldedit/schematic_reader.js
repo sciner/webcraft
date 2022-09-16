@@ -174,7 +174,7 @@ export class SchematicReader {
                 }
             }
             let fluidValue = 0;
-            if (new_block.is_fluid) {
+            if (b?.is_fluid) {
                 const lvl = new_block.extra_data && new_block.extra_data.level !== undefined
                     ? new_block.extra_data.level : 0;
                 if (new_block.id === STILL_WATER_BLOCK.id || new_block.id === FLOWING_WATER_BLOCK.id) {

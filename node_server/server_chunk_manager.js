@@ -188,6 +188,10 @@ export class ServerChunkManager {
         return this.all.get(addr) || null;
     }
 
+    getChunk(addr) {
+        return this.get(addr);
+    }
+
     remove(addr) {
         this.chunk_queue_load.delete(addr);
         this.chunk_queue_gen_mobs.delete(addr);
