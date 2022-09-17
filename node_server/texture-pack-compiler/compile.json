@@ -1124,8 +1124,7 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8,
-                "max_stage": 10
+                "times_per_stage": 8
             },
             "extra_data": {
                 "stage": 0,
@@ -1147,13 +1146,15 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8
             },
             "extra_data": {
+                "stage": 0,
                 "style": "birch",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
                 ]
             },
             "texture": "block/birch_sapling.png"
@@ -1168,13 +1169,15 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8
             },
             "extra_data": {
+                "stage": 0,
                 "style": "acacia",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [5, 12]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [100, 500]}
+                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
                 ]
             },
             "texture": "block/acacia_sapling.png"
@@ -1189,13 +1192,15 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8
             },
             "extra_data": {
+                "stage": 0,
                 "style": "spruce",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [6, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [150, 500]}
+                    {"type": "random_int", "name": "max_ticks", "min_max": [15, 50]}
                 ]
             },
             "texture": "block/spruce_sapling.png"
@@ -1212,13 +1217,15 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8
             },
             "extra_data": {
+                "stage": 0,
                 "style": "dark_oak",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [12, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [14, 24]},
+                    {"type": "random_int", "name": "max_ticks", "min_max": [5, 50]}
                 ]
             },
             "texture": "block/dark_oak_sapling.png"
@@ -1233,13 +1240,15 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8
             },
             "extra_data": {
+                "stage": 0,
                 "style": "jungle",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [3, 22]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [100, 750]}
+                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
                 ]
             },
             "texture": "block/jungle_sapling.png"
