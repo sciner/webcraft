@@ -9,6 +9,76 @@ export default class Ticker {
     //
     static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
+        const extra_data = tblock.extra_data;
+        if(!extra_data) {
+            return;
+        }
+        const ticking = v.ticking;
+        const pos = v.pos.clone();
+        const mul = 4 * world.getGeneratorOptions('sapling_speed_multipliyer', 1);
+        if (tblock.id == BLOCK.CARROT_SEEDS.id || tblock.id == BLOCK.WHEAT_SEEDS.id) { // Эти блоки растут как семена в области одного блока. По истечению роста, действий больше нет
+            if (extra_data.stage >= ticking.max_stage) {
+                extra_data.notick = true;
+                this.delete(v.pos); // @todo Надо его удалять из тикера
+                return;
+            }
+            if(tick_number % (ticking.times_per_stage * mul) == 0) {
+                extra_data.stage++;
+                return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+            }
+        }
+        if (tblock.id == BLOCK.MELON_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды
+            // Проверка позиции для установки арбуза
+            const getFreePosition = () => {
+                const sides = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP];
+                const facing = [];
+                for(const side of sides) {
+                    const position = pos.add(side);
+                    const body = world.getBlock(position);
+                    const under = world.getBlock(position.add(Vector.YN));
+                    if (body.id == BLOCK.AIR.id && under.id != BLOCK.AIR.id) {
+                        facing.push(side);
+                    }
+                    if (body.id == BLOCK.MELON.id) {
+                        return;
+                    }
+                }
+                if (facing.length > 0) {
+                    const rnd_facing = Math.random() * (facing.length - 1) | 0;
+                    return facing[rnd_facing];
+                }
+                return;
+            };
+            if (extra_data.stage >= ticking.max_stage) {
+                const updated_blocks = [];
+                if(tick_number % (ticking.times_per_stage * mul) == 0) {
+                    const side = getFreePosition();
+                    if (side) {
+                        if (side.equal(Vector.XN)) {
+                            extra_data.facing = DIRECTION.WEST;
+                        } else if(side.equal(Vector.XP)) {
+                            extra_data.facing = DIRECTION.EAST;
+                        } else if(side.equal(Vector.ZN)) {
+                            extra_data.facing = DIRECTION.SOUTH;
+                        } else {
+                            extra_data.facing = DIRECTION.NORTH;
+                        }
+                        updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                        updated_blocks.push({pos: pos.add(side), item: {id: BLOCK.MELON.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    }
+                }
+                return updated_blocks;
+            }
+            if(tick_number % (ticking.times_per_stage * mul) == 0) {
+                extra_data.stage++;
+                return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+            }
+        }
+        if (tblock.id == BLOCK.MELON_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды
+        
+        
+        
+        /*const tblock = v.tblock;
         const ticking = v.ticking;
         const pos = v.pos.clone();
         const extra_data = tblock.extra_data;
@@ -100,6 +170,7 @@ export default class Ticker {
             this.delete(v.pos);
         }
         return updated_blocks;
+        */
     }
 
 }

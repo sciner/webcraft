@@ -1894,6 +1894,12 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         return true;
+    } else if (world_block?.material?.ticking?.type) {
+        if (world_block.material.ticking.type == 'stage') {
+            const max_stage = world_block.material.ticking.max_stage;
+            const stage = Math.random() < 0.5 ? extra_data.stage + 1 : extra_data.stage + 2;
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: { stage: Math.min(stage, max_stage)}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        }
     }
     return false;
 }

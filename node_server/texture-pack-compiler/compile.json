@@ -5433,11 +5433,12 @@
                 "down": "block/attached_melon_stem.png"
             },
             "extra_data": {
+                "facing": -1,
                 "stage": 0
             },
             "ticking": {
                 "type": "stage",
-                "max_stage": 5,
+                "max_stage": 4,
                 "times_per_stage": 8
             },
             "material": {

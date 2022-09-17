@@ -167,23 +167,22 @@ export default class style {
 
         // Melon seeds
         if (material.name == "MELON_SEEDS") {
-            if (block.extra_data.complete) {
+            const is_west = block.extra_data.facing == DIRECTION.WEST && neighbours.WEST.id == BLOCK.MELON.id;
+            const is_east = block.extra_data.facing == DIRECTION.EAST && neighbours.EAST.id == BLOCK.MELON.id;
+            const is_north = block.extra_data.facing == DIRECTION.NORTH && neighbours.NORTH.id == BLOCK.MELON.id;
+            const is_south = block.extra_data.facing == DIRECTION.SOUTH && neighbours.SOUTH.id == BLOCK.MELON.id;
+            if (is_west || is_east || is_north || is_south) {
                 dy = -0.2;
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
                 planes = MELON_ATTACHED_PLANES;
-                switch (block.rotate.y) {
-                    case DIRECTION.NORTH:
-                        planes[0].rot[1] = Math.PI;
-                    break;
-                    case DIRECTION.WEST:
-                        planes[0].rot[1] = Math.PI * 3 / 2;
-                    break;
-                    case DIRECTION.EAST:
-                        planes[0].rot[1] = Math.PI / 2;
-                    break;
-                    default:
-                        planes[0].rot[1] = 0;
-                    break;
+                if (is_north) {
+                    planes[0].rot[1] = Math.PI;
+                } else if (is_west) {
+                    planes[0].rot[1] = Math.PI * 3 / 2;
+                } else if (is_east) {
+                    planes[0].rot[1] = Math.PI / 2;
+                } else {
+                    planes[0].rot[1] = 0;
                 }
             } else {
                 dy = 0.2 * block.extra_data.stage - 0.9;
