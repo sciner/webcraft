@@ -100,7 +100,7 @@ function mc_getHeight(fluidType, neib, neibAbove) {
     if (fluidType === (neib & FLUID_TYPE_MASK)) {
         return (fluidType === (neibAbove & FLUID_TYPE_MASK)) ? 1.0 : (8.0 - (neib & 7)) / 9.0;
     }
-    return (neib & solid16) > 0 ? 0.0 : -1.0;
+    return (neib & solid16) > 0 ? -1.0 : 0.0;
 }
 
 function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib3Above) {
@@ -123,7 +123,7 @@ function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib
 }
 
 export function buildFluidVertices(fluidChunk) {
-    const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
     const { uint16View } = fluidChunk;
 
     if (fluidMaterials.length === 0) {

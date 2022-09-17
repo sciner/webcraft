@@ -218,6 +218,7 @@ export class FluidChunk {
             return;
         }
         this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
+        //TODO: check that there's no water in 3x3 out of this block props
         if (!this.dirty) {
             this.markDirty();
         }
