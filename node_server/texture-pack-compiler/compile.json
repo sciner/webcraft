@@ -1123,13 +1123,16 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "times_per_stage": 8,
+                "max_stage": 10
             },
             "extra_data": {
+                "stage": 0,
                 "style": "oak",
                 "calculated": [
                     {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
                 ]
             },
             "texture": "block/oak_sapling.png"
@@ -5433,7 +5436,6 @@
                 "down": "block/attached_melon_stem.png"
             },
             "extra_data": {
-                "facing": -1,
                 "stage": 0
             },
             "ticking": {
@@ -6882,7 +6884,7 @@
             },
             "ticking": {
                 "type": "stage",
-                "max_stage": 7,
+                "max_stage": 3,
                 "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
@@ -7187,6 +7189,37 @@
                 "rotate_x16",
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 215,
+            "name": "PUMPKIN_SEEDS",
+            "passable": 1,
+            "style": "planting",
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/pumpkin_seeds.png"
+            },
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": {
+                "side": "item/pumpkin_seeds.png",
+                "up": "block/pumpkin_stem.png",
+                "down": "block/attached_pumpkin_stem.png"
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 4,
+                "times_per_stage": 8
+            },
+            "material": {
+                "id": "plant"
+            }
         }
     ]
 }

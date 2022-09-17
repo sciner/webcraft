@@ -166,11 +166,11 @@ export default class style {
         }
 
         // Melon seeds
-        if (material.name == "MELON_SEEDS") {
-            const is_west = block.extra_data.facing == DIRECTION.WEST && neighbours.WEST.id == BLOCK.MELON.id;
-            const is_east = block.extra_data.facing == DIRECTION.EAST && neighbours.EAST.id == BLOCK.MELON.id;
-            const is_north = block.extra_data.facing == DIRECTION.NORTH && neighbours.NORTH.id == BLOCK.MELON.id;
-            const is_south = block.extra_data.facing == DIRECTION.SOUTH && neighbours.SOUTH.id == BLOCK.MELON.id;
+        if (material.name == 'MELON_SEEDS' || material.name == 'PUMPKIN_SEEDS') {
+            const is_west = (material.name == 'MELON_SEEDS') ? neighbours.WEST.id == BLOCK.MELON.id : neighbours.WEST.id == BLOCK.PUMPKIN.id;
+            const is_east = (material.name == 'MELON_SEEDS') ? neighbours.EAST.id == BLOCK.MELON.id : neighbours.EAST.id == BLOCK.PUMPKIN.id;
+            const is_north = (material.name == 'MELON_SEEDS') ? neighbours.NORTH.id == BLOCK.MELON.id : neighbours.NORTH.id == BLOCK.PUMPKIN.id;
+            const is_south = (material.name == 'MELON_SEEDS') ? neighbours.SOUTH.id == BLOCK.MELON.id : neighbours.SOUTH.id == BLOCK.PUMPKIN.id;
             if (is_west || is_east || is_north || is_south) {
                 dy = -0.2;
                 texture = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN, null, null, block);
