@@ -2,11 +2,11 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
-import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
-import {impl as alea} from '../www/vendors/alea.js';
-import {WorldAction} from "../www/js/world_action.js";
+import { newTypedBlocks } from "../www/js/typed_blocks3.js";
+import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { MobGenerator } from "./mob/generator.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -17,18 +17,34 @@ export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 // Ticking block
 class TickingBlock {
 
-    #manager;
+    #chunk;
 
-    constructor(manager, id, pos, ticking) {
-        this.id         = id;
-        this.pos        = pos.clone();
-        this.ticking    = ticking;
-        this.#manager   = manager;
-        this.ticks      = 0;
+    constructor(chunk) {
+        this.#chunk     = chunk;
+        this.pos        = new Vector(0, 0, 0);
+        // this.tblock     = null;
+        this.ticking    = null;
+        this.ticker     = null;
+    }
+
+    setState(pos_index) {
+        this.pos.fromFlatChunkIndex(pos_index).addSelf(this.#chunk.coord);
+        // this.tblock = this.#chunk.getBlock(this.pos);
+        const tblock = this.tblock;
+        if(!tblock || !tblock.material.ticking || !tblock.extra_data || ('notick' in tblock.extra_data)) {
+            return false;
+        }
+        this.ticking = tblock.material.ticking;
+        this.ticker = this.#chunk.world.tickers.get(this.ticking.type);
+        if(!this.ticker) {
+            console.error(`Invalid ticking type: ${this.ticking.type}`);
+            return false;
+        }
+        return true;
     }
 
     get tblock() {
-        return this.#manager.chunk.getBlock(this.pos);
+        return this.#chunk.getBlock(this.pos);
     }
 
 }
@@ -37,10 +53,12 @@ class TickingBlock {
 class TickingBlockManager {
 
     #chunk;
+    #pos = new Vector(0, 0, 0);
 
     constructor(chunk) {
         this.#chunk = chunk;
-        this.blocks = new Map();
+        this.v = new TickingBlock(chunk);
+        this.blocks = new Set();
     }
 
     get chunk() {
@@ -48,158 +66,49 @@ class TickingBlockManager {
     }
 
     // addTickingBlock
-    add(id, pos, ticking) {
-        const block = new TickingBlock(this, id, pos, ticking);
-        const ex_block = this.blocks.get(block.pos.toHash());
-        if(ex_block) {
-            block.ticks = ex_block.ticks;
-        }
-        this.blocks.set(block.pos.toHash(), block);
+    add(pos_world) {
+        const pos_index = pos_world.getFlatIndexInChunk();
+        this.blocks.add(pos_index);
         this.#chunk.world.chunks.addTickingChunk(this.#chunk.addr);
     }
 
     // deleteTickingBlock
-    delete(pos) {
-        const k = pos.toHash();
-        this.blocks.delete(k);
+    delete(pos_world) {
+        const pos_index = pos_world.getFlatIndexInChunk();
+        this.blocks.delete(pos_index);
         if(this.blocks.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
         }
     }
 
     // tick
-    tick() {
+    tick(tick_number) {
+
         const world             = this.#chunk.world;
         const updated_blocks    = [];
         const ignore_coords     = new VectorCollector();
         const check_pos         = new Vector(0, 0, 0);
+        const v                 = this.v;
+
         //
-        for(let [k, v] of this.blocks.entries()) {
-            if(Math.random() <= .33) {
-                continue;
-            }
-            const tblock = v.tblock;
-            const ticking = v.ticking;
-            const extra_data = tblock.extra_data;
-            const current_block = this.chunk.getBlock(v.pos);
-            if(!extra_data || !current_block || current_block.id != tblock.id || ('notick' in extra_data)) {
+        for(const pos_index of this.blocks) {
+            if(!v.setState(pos_index)) {
                 this.delete(v.pos);
                 continue;
             }
-            //
-            v.ticks++;
-            if(!NO_TICK_BLOCKS) {
-                const ticker = world.tickers.get(ticking.type);
-                if(ticker) {
-                    const upd_blocks = ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
-                    if(Array.isArray(upd_blocks)) {
-                        updated_blocks.push(...upd_blocks);
-                    }
-                } else {
-                    console.log(`Invalid ticking type: ${ticking.type}`);
-                }
+            const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
+            if(Array.isArray(upd_blocks)) {
+                updated_blocks.push(...upd_blocks);
             }
         }
+
         //
         if(updated_blocks.length > 0) {
             const actions = new WorldAction(null, this.#chunk.world, false, false);
             actions.addBlocks(updated_blocks);
             world.actions_queue.add(null, actions);
         }
-    }
 
-}
-
-// Mob generator
-class MobGenerator {
-
-    constructor(chunk) {
-        this.chunk = chunk;
-        this.types = [];
-        this.types.push({type: 'chicken', skin: 'base', count: 4});
-        this.types.push({type: 'chicken', skin: 'base', count: 4});
-        this.types.push({type: 'sheep', skin: 'base', count: 4});
-        this.types.push({type: 'cow', skin: 'base', count: 4});
-        this.types.push({type: 'horse', skin: 'creamy', count: 2});
-        this.types.push({type: 'pig', skin: 'base', count: 4});
-        this.types.push({type: 'fox', skin: 'base', count: 1});
-    }
-
-    async generate() {
-        // Auto generate mobs
-        const auto_generate_mobs = this.chunk.world.getGeneratorOptions('auto_generate_mobs', true);
-        if(auto_generate_mobs) {
-            // probability 1/10
-            const chunk_addr_hash = this.chunk.addr.toHash();
-            this.random = new alea('chunk' + chunk_addr_hash);
-            this.can_generate = this.random.double() < .05;
-            if(!this.can_generate) {
-                return false;
-            }
-            // if generating early
-            if(await this.chunk.world.chunks.chunkMobsIsGenerated(chunk_addr_hash)) {
-                return false;
-            }
-            // check chunk is good place for mobs
-            if(this.chunk.tblocks) {
-                let material = null;
-                let pos2d = new Vector(0, 0, 0);
-                const blockIter = this.chunk.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0, 0, 0)));
-                let vc = new VectorCollector();
-                // Обход всех блоков данного чанка
-                for(let block of blockIter) {
-                    material = block.material;
-                    if(material && material.id == BLOCK.GRASS_BLOCK.id) {
-                        pos2d.x = block.vec.x;
-                        pos2d.z = block.vec.z;
-                        vc.set(pos2d, block.vec.y);
-                    }
-                }
-                //
-                if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
-                    let cnt = 0;
-                    const poses = [];
-                    const pos_up = new Vector(0, 0, 0);
-                    for(let [vec, y] of vc.entries()) {
-                        if(cnt++ % 2 == 0) {
-                            pos_up.copyFrom(vec);
-                            pos_up.y = y;
-                            //
-                            pos_up.y++;
-                            let up1 = this.chunk.tblocks.get(pos_up);
-                            let up1_id = up1.id;
-                            pos_up.y++;
-                            let up2 = this.chunk.tblocks.get(pos_up);
-                            let up2_id = up2.id;
-                            //
-                            if((up1_id == 0 || up1_id == 31) && (up2_id == 0 || up2_id == 31)) {
-                                const pos = new Vector(.5, y + 1, .5);
-                                pos.addSelf(vec).addSelf(this.chunk.coord);
-                                poses.push(pos);
-                            }
-                        }
-                    }
-                    if(poses.length > 0) {
-                        poses.sort(() => .5 - Math.random());
-                        const index = Math.floor(this.random.double() * this.types.length);
-                        const t = this.types[index];
-                        if(poses.length >= t.count) {
-                            for(let i = 0; i < t.count; i++) {
-                                const params = {
-                                    pos: poses.shift(),
-                                    rotate: new Vector(0, 0, this.random.double() * Math.PI * 2),
-                                    ...t
-                                };
-                                // Spawn mob
-                                await this.chunk.world.mobs.create(params);
-                            }
-                        }
-                    }
-                }
-            }
-            // mark as generated
-            await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1);
-        }
     }
 
 }
@@ -443,41 +352,39 @@ export class ServerChunk {
         }
     }
 
-
     //
     scanTickingBlocks(ticking_blocks) {
         if(NO_TICK_BLOCKS) {
             return false;
         }
         let block = null;
-        let pos = new Vector(0, 0, 0);
-        const ml = this.modify_list.obj;
-        if(!ml) {
-            return false;
-        }
+        const _pos = new Vector(0, 0, 0);
         // 1. Check modified blocks
-        for(let index in ml) {
-            const current_block_on_pos = ml[index];
-            if(!current_block_on_pos) {
-                continue;
-            }
-            pos.fromFlatChunkIndex(index);
-            // @todo if chest
-            if(!block || block.id != current_block_on_pos.id) {
-                block = BLOCK.fromId(current_block_on_pos.id);
-            }
-            if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
-                this.ticking_blocks.add(block.id, pos.add(this.coord), block.ticking);
+        const ml = this.modify_list.obj;
+        if(ml) {
+            for(let index in ml) {
+                const current_block_on_pos = ml[index];
+                if(!current_block_on_pos) {
+                    continue;
+                }
+                _pos.fromFlatChunkIndex(index);
+                // @todo if chest
+                if(!block || block.id != current_block_on_pos.id) {
+                    block = BLOCK.fromId(current_block_on_pos.id);
+                }
+                if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
+                    this.ticking_blocks.add(_pos.add(this.coord));
+                }
             }
         }
         // 2. Check generated blocks
         if(ticking_blocks.length > 0) {
             for(let k of ticking_blocks) {
-                pos.fromHash(k);
-                if(!ml[pos.getFlatIndexInChunk()]) {
-                    const block = this.getBlock(pos);
+                _pos.fromHash(k);
+                if(!ml || !ml[_pos.getFlatIndexInChunk()]) {
+                    const block = this.getBlock(_pos);
                     if(block.material.ticking && block.extra_data && !('notick' in block.extra_data)) {
-                        this.ticking_blocks.add(block.id, pos, block.material.ticking);
+                        this.ticking_blocks.add(_pos);
                     }
                 }
             }
@@ -570,14 +477,14 @@ export class ServerChunk {
         if(item && item.id) {
             const block = BLOCK.fromId(item.id);
             if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                this.ticking_blocks.add(block.id, pos, block.ticking);
+                this.ticking_blocks.add(pos);
             }
         }
     }
 
     // On world tick
-    tick() {
-        this.ticking_blocks.tick();
+    tick(tick_number) {
+        this.ticking_blocks.tick(tick_number);
     }
 
     // Before unload chunk

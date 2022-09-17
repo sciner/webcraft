@@ -138,7 +138,7 @@ export class ServerWorld {
             this.ticks_stat.number++;
             this.ticks_stat.start();
             // 1.
-            await this.chunks.tick(delta);
+            await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks');
             // 2.
             await this.mobs.tick(delta);

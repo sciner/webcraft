@@ -5,14 +5,13 @@ export default class Ticker {
     static type = 'sapling'
 
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
-        const ticking = v.ticking;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
-        if(v.ticks % extra_data.max_ticks == 0) {
+        if(tick_number % extra_data.max_ticks == 0) {
             const params = {
-                pos: v.pos,
+                pos: v.pos.clone(),
                 block: tblock.convertToDBItem()
             };
             const actions = new WorldAction(null, world, false, false);
