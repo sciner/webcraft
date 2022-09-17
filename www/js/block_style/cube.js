@@ -400,9 +400,21 @@ export default class style {
             }
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
+            let replace_side_tex = false;
             if(material.is_dirt) {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == BLOCK.DIRT_PATH.id))) {
+                    replace_side_tex = true;
+                }
+            }
+            if(material.name == 'SANDSTONE') {
+                const up_mat = neighbours.UP?.material;
+                if(up_mat && up_mat.name == 'SANDSTONE') {
+                    replace_side_tex = true;
+                }
+            }
+            if(replace_side_tex) {
+                if(replace_side_tex) {
                     DIRECTION_UP        = DIRECTION.DOWN;
                     DIRECTION_BACK      = DIRECTION.DOWN;
                     DIRECTION_RIGHT     = DIRECTION.DOWN;
