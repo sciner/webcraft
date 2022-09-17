@@ -8,6 +8,7 @@ import {
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
+import {AABB} from "../core/AABB.js";
 
 export class FluidChunk {
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
@@ -24,6 +25,14 @@ export class FluidChunk {
 
         this.world = world;
         this.dirty = true;
+        this.boundsDirty = false;
+
+        /**
+         * local bounds INCLUDE
+         * @type {AABB}
+         * @private
+         */
+        this._localBounds = new AABB();
     }
 
     setValue(x, y, z, value) {
@@ -34,6 +43,7 @@ export class FluidChunk {
         const wx = x + pos.x;
         const wy = y + pos.y;
         const wz = z + pos.z;
+        this.boundsDirty = true;
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -63,48 +73,126 @@ export class FluidChunk {
         this.uint16View = new Uint16Array(something.buffer);
     }
 
-    isNotEmpty() {
+    calcBounds() {
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
         let res = false;
+        this._localBounds.set(size.x, size.y, size.z, 0, 0, 0);
         cycle:for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
                     if (uint8View[index * FLUID_STRIDE + OFFSET_FLUID] > 0) {
-                        res = true;
-                        break cycle;
+                        this._localBounds.addPoint(x, y, z);
                     }
                 }
         return res;
     }
 
+    /**
+     * local bounds INCLUDE
+     * @returns {AABB}
+     */
+    getLocalBounds() {
+        if (this.boundsDirty) {
+            this.calcBounds();
+            this.boundsDirty = false;
+        }
+        return this._localBounds;
+    }
+
+    isNotEmpty() {
+        const bounds = this.getLocalBounds();
+        return bounds.x_min > bounds.x_max && bounds.y_min > bounds.y_max && bounds.z_min > bounds.z_max;
+    }
+
     saveDbBuffer() {
-        const { cx, cy, cz, cw, size, insideLen } = this.parentChunk.tblocks.dataChunk;
+        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
-        const arr = new Uint8Array(insideLen);
-        let k = 0;
-        let found = 0;
-        for (let y = 0; y < size.y; y++)
-            for (let z = 0; z < size.z; z++)
-                for (let x = 0; x < size.x; x++) {
+        const bounds = this.getLocalBounds();
+        const arr = [];
+
+        let encodeType = 1;
+        arr.push(encodeType);
+        arr.push(bounds.y_min, bounds.y_max);
+        for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+            let x_min = size.x, x_max = 0, z_min = size.z, z_max = 0;
+            for (let z = bounds.z_min; z <= bounds.z_max; z++)
+                for (let x = bounds.x_min; x <= bounds.x_max; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
-                    arr[k++] = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+                    const val = uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+                    if (val > 0) {
+                        x_min = Math.min(x_min, x);
+                        x_max = Math.max(x_max, x);
+                        z_min = Math.min(z_min, z);
+                        z_max = Math.max(z_max, z);
+                    }
                 }
-        return arr;
+            //TODO: encode 0 +1 -1 here
+            arr.push(x_min, x_max, z_min, z_max);
+            for (let z = z_min; z <= z_max; z++)
+                for (let x = x_min; x <= x_max; x++) {
+                    let index = x * cx + y * cy + z * cz + cw;
+                    arr.push(uint8View[index * FLUID_STRIDE + OFFSET_FLUID]);
+                }
+
+        }
+        return new Uint8Array(arr);
     }
 
     loadDbBuffer(stateArr) {
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
         const arr = stateArr;
+        const bounds = this._localBounds;
         let k = 0;
-        for (let y = 0; y < size.y; y++)
+        let encodeType = arr[k++];
+
+        if (encodeType === 0 || encodeType >= 16) {
+            // just full array
+            k = 0;
+            for (let y = 0; y < size.y; y++)
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        let index = x * cx + y * cy + z * cz + cw;
+                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = arr[k++];
+                    }
+            this.boundsDirty = true;
+            return;
+        }
+
+        bounds.set(size.x, arr[k++], size.z, 0, arr[k++], 0);
+        for (let y = 0; y < size.y; y++) {
+            if (y >= bounds.y_min && y <= bounds.y_max) {
+                continue;
+            }
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
+                    //TODO: calc changed bounds here
                     let index = x * cx + y * cy + z * cz + cw;
-                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = arr[k++];
+                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
                 }
+        }
+        for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+            let x_min = arr[k++], x_max = arr[k++], z_min = arr[k++], z_max = arr[k++];
+            bounds.x_min = Math.min(bounds.x_min, x_min);
+            bounds.x_max = Math.max(bounds.x_max, x_max);
+            bounds.z_min = Math.min(bounds.z_min, z_min);
+            bounds.z_max = Math.max(bounds.z_max, z_max);
+
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    let val = 0;
+                    if (x >= x_min && x <= x_max
+                        && z >= z_min && z<= z_max) {
+                        val = arr[k++];
+                    }
+                    let index = x * cx + y * cy + z * cz + cw;
+                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+                }
+        }
+
+        this.boundsDirty = false;
     }
 
     setFluidIndirect(x, y, z, block_id) {
@@ -118,6 +206,8 @@ export class FluidChunk {
         if (block_id === 170 || block_id === 171) {
             uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = FLUID_LAVA_ID | FLUID_GENERATED_FLAG;
         }
+
+        this.boundsDirty = true;
     }
 
     syncBlockProps(index, blockId) {

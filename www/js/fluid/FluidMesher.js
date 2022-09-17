@@ -132,14 +132,15 @@ export function buildFluidVertices(fluidChunk) {
 
     let buffers = [null, null];
     let quads = 0;
+    const bounds = fluidChunk.getLocalBounds();
 
     // we have fluids in chunk!
     const neib = [0, 0, 0, 0, 0, 0];
     const hasNeib = [0, 0, 0, 0, 0, 0];
     const texAlter = [0, 0, 0, 0];
-    for (let y = 0; y < size.y; y++)
-        for (let z = 0; z < size.z; z++)
-            for (let x = 0; x < size.x; x++) {
+    for (let y = bounds.y_min; y <= bounds.y_max; y++)
+        for (let z = bounds.z_min; z <= bounds.z_max; z++)
+            for (let x = bounds.x_min; x <= bounds.x_max; x++) {
                 let index = (x * cx + y * cy + z * cz + cw);
                 const fluid16 = uint16View[index];
                 const fluidType = fluid16 & FLUID_TYPE_MASK;
