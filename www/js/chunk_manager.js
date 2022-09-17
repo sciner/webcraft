@@ -173,10 +173,7 @@ export class ChunkManager {
             this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
-            const chunk = this.getChunk(cmd.data.addr);
-            if(chunk) {
-                chunk.setFluid(Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)))
-            }
+            this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
         //
         this.DUMMY = {
@@ -286,6 +283,40 @@ export class ChunkManager {
         }]);
         this.postLightWorkerMessage(['init', null]);
 
+    }
+
+    // С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+    setChunkFluid(addr, fluid) {
+        const chunk = this.getChunkForSetData(addr);
+        if(chunk instanceof Chunk) {
+            chunk.setFluid(fluid);
+        } else if(chunk) {
+            if(!chunk._preload_data) {
+                chunk._preload_data = {};
+            }
+            chunk._preload_data.fluid = fluid;
+        } else {
+            console.error('no_chunk');
+        }
+    }
+
+    getChunkForSetData(addr) {
+        const chunk = this.getChunk(addr);
+        if(chunk) {
+            return chunk;
+        } else if(this.chunks_prepare.has(addr)) {
+            return this.chunks_prepare.get(addr);
+        } else if(this.nearby) {
+            for(let i = 0; i < this.nearby.added.length; i++) {
+                const item = this.nearby.added[i];
+                if(addr.equal(item.addr)) {
+                    if (!this.nearby.deleted.has(addr)) {
+                        return this.nearby.added[i];
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     //
@@ -454,7 +485,8 @@ export class ChunkManager {
             return false;
         }
         this.chunks_prepare.add(item.addr, {
-            start_time: performance.now()
+            start_time: performance.now(),
+            _preload_data: item._preload_data ?? null
         });
         if(item.has_modifiers) {
             this.world.server.loadChunk(item.addr);
@@ -476,6 +508,17 @@ export class ChunkManager {
             this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
+            //
+            if(prepare._preload_data) {
+                for(let k in prepare._preload_data) {
+                    switch(k) {
+                        case 'fluid': {
+                            chunk.setFluid(prepare._preload_data[k]);
+                            break;
+                        }
+                    }
+                }
+            }
             this.poses_need_update = true;
             return true;
         }
