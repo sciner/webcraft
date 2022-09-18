@@ -151,8 +151,9 @@ export class ServerPlayerDamage {
         const west = world.getBlock(position.add(Vector.XP));
         const north = world.getBlock(position.add(Vector.ZP));
         const south = world.getBlock(position.add(Vector.ZN));
+        const down = world.getBlock(position.add(Vector.YN));
         const sub = player.state.pos.sub(position);
-        if  ((east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
+        if  ((down.id == BLOCK.CACTUS.id) || (east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
             this.cactus_lost_timer++;
             if (this.cactus_lost_timer >= CACTUS_LOST_TICKS) {
                 this.cactus_lost_timer = 0;
