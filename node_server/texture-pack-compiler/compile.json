@@ -1,7 +1,6 @@
 {
     "predefined_textures": [
-        {"spritesheet_id": "default", "x": 14, "y": 30, "image": "./textures/bed_item.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 14, "y": 31, "image": "block/destroy_stage_0.png"},
         {"spritesheet_id": "default", "x": 15, "y": 31, "image": "block/destroy_stage_1.png"},
         {"spritesheet_id": "default", "x": 16, "y": 31, "image": "block/destroy_stage_2.png"},
@@ -12,10 +11,13 @@
         {"spritesheet_id": "default", "x": 21, "y": 31, "image": "block/destroy_stage_7.png"},
         {"spritesheet_id": "default", "x": 22, "y": 31, "image": "block/destroy_stage_8.png"},
         {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
-        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"},
+
+        {"spritesheet_id": "entity", "x": 16, "y": 28, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "entity", "x": 20, "y": 28, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "entity", "x": 16, "y": 28, "image": "./textures/banner_mask.png"},
+
+        {"spritesheet_id": "entity", "x": 24, "y": 28, "image": "./textures/oak_bed.png"}
     ],
     "blocks" : [
         {
@@ -33,7 +35,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -58,7 +59,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -94,7 +94,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -125,7 +124,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -391,7 +389,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_shovel.png"
             },
             "light": null
@@ -410,7 +407,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_shovel.png"
             },
             "light": null
@@ -429,7 +425,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_shovel.png"
             },
             "light": null
@@ -448,7 +443,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_shovel.png"
             },
             "light": null
@@ -467,7 +461,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_shovel.png"
             },
             "light": null
@@ -486,7 +479,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_shovel.png"
             },
             "light": null
@@ -504,7 +496,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_hoe.png"
             },
             "light": null
@@ -523,7 +514,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_hoe.png"
             },
             "light": null
@@ -542,7 +532,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_hoe.png"
             },
             "light": null
@@ -561,7 +550,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_hoe.png"
             },
             "light": null
@@ -580,7 +568,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_hoe.png"
             },
             "light": null
@@ -599,7 +586,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_hoe.png"
             },
             "light": null
@@ -617,7 +603,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_axe.png"
             }
         },
@@ -635,7 +620,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_axe.png"
             }
         },
@@ -653,7 +637,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_axe.png"
             }
         },
@@ -671,7 +654,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_axe.png"
             }
         },
@@ -689,7 +671,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_axe.png"
             }
         },
@@ -707,7 +688,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_axe.png"
             }
         },
@@ -724,7 +704,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_pickaxe.png"
             }
         },
@@ -741,7 +720,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_pickaxe.png"
             }
         },
@@ -758,7 +736,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_pickaxe.png"
             }
         },
@@ -775,7 +752,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_pickaxe.png"
             }
         },
@@ -792,7 +768,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_pickaxe.png"
             }
         },
@@ -809,7 +784,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_pickaxe.png"
             }
         },
@@ -1123,13 +1097,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "oak",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [4, 8]}
                 ]
             },
             "texture": "block/oak_sapling.png"
@@ -1144,13 +1119,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "birch",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [4, 8]}
                 ]
             },
             "texture": "block/birch_sapling.png"
@@ -1165,13 +1141,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "acacia",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [5, 12]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [100, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [5, 12]}
                 ]
             },
             "texture": "block/acacia_sapling.png"
@@ -1186,13 +1163,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "spruce",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [6, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [150, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [6, 24]}
                 ]
             },
             "texture": "block/spruce_sapling.png"
@@ -1209,13 +1187,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "dark_oak",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [12, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+                    {"type": "random_int", "name": "height", "min_max": [14, 24]}
                 ]
             },
             "texture": "block/dark_oak_sapling.png"
@@ -1230,13 +1209,14 @@
             "material": {"id": "plant"},
             "tags": ["sapling"],
             "ticking": {
-                "type": "sapling"
+                "type": "stage",
+                "max_stage": 20
             },
             "extra_data": {
+                "stage": 0,
                 "style": "jungle",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [3, 22]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [100, 750]}
+                    {"type": "random_int", "name": "height", "min_max": [3, 22]}
                 ]
             },
             "texture": "block/jungle_sapling.png"
@@ -1315,7 +1295,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/shears.png"
             }
         },
@@ -1403,7 +1382,6 @@
             "item": {"name": "stick"},
             "diagonal": true,
             "texture": {
-                "id": "default",
                 "side": "item/stick.png"
             },
             "material": {
@@ -3019,6 +2997,7 @@
                 "id": "wood"
             },
             "texture": {
+                "id": "entity",
                 "side": "entity/chest/normal.png"
             }
         },
@@ -3036,6 +3015,7 @@
                 "id": "obsidian"
             },
             "texture": {
+                "id": "entity",
                 "side": "entity/chest/ender.png"
             }
         },
@@ -3085,13 +3065,24 @@
         {
             "id": 81,
             "name": "CACTUS",
-            "planting": false,
             "style": "cactus",
             "width": 0.875,
             "transparent": true,
+            "planting": false,
             "sound": "madcraft:block.cloth",
             "material": {
                 "id": "plant"
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 4
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "previous_part": {
+                "offset_pos": {"x": 0, "y": 1, "z": 0},
+                "id": 81
             },
             "texture": {
                 "up": "block/cactus_top.png",
@@ -3327,7 +3318,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/bucket.png"
             }
         },
@@ -3341,7 +3331,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/lava_bucket.png"
             }
         },
@@ -3355,7 +3344,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/water_bucket.png"
             }
         },
@@ -3369,7 +3357,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "./textures/powder_snow_bucket.png"
             }
         },
@@ -3383,7 +3370,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/milk_bucket.png"
             }
         },
@@ -3918,7 +3904,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_sword.png"
             },
             "light": null
@@ -3936,7 +3921,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_sword.png"
             },
             "light": null
@@ -3954,7 +3938,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_sword.png"
             },
             "light": null
@@ -3972,7 +3955,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_sword.png"
             },
             "light": null
@@ -3990,7 +3972,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_sword.png"
             },
             "light": null
@@ -4008,7 +3989,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_sword.png"
             },
             "light": null
@@ -5437,7 +5417,7 @@
             },
             "ticking": {
                 "type": "stage",
-                "max_stage": 5,
+                "max_stage": 4,
                 "times_per_stage": 8
             },
             "material": {
@@ -6871,18 +6851,19 @@
                 "style": "extruder",
                 "texture": "item/sugar_cane.png"
             },
-            "extra_data": {"stage": 0, "calculated": [
+            "extra_data": {
+                "stage": 0, 
+                "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
             ]},
+            "ticking": {
+                "type": "stage",
+                "max_stage": 10
+            },
             "previous_part": {
                 "offset_pos": {"x": 0, "y": 1, "z": 0},
                 "id": 486
-            },
-            "ticking": {
-                "type": "stage",
-                "max_stage": 7,
-                "times_per_stage": 8
             },
             "texture": "block/sugar_cane.png"
         },
@@ -6964,7 +6945,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/flint_and_steel.png"
             }
         },
@@ -7186,6 +7166,85 @@
                 "rotate_x16",
                 "no_drop_ao"
             ]
+        },
+        {
+            "id": 215,
+            "name": "PUMPKIN_SEEDS",
+            "passable": 1,
+            "style": "planting",
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/pumpkin_seeds.png"
+            },
+            "transparent": true,
+            "can_rotate": true,
+            "tags": [
+                "mask_biome"
+            ],
+            "texture": {
+                "side": "item/pumpkin_seeds.png",
+                "up": "block/pumpkin_stem.png",
+                "down": "block/attached_pumpkin_stem.png"
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 4,
+                "times_per_stage": 8
+            },
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 216,
+            "name": "BEETROOT_SEEDS",
+            "passable": 1,
+            "style": "planting",
+            "inventory_style": "extruder",
+            "transparent": true,
+            "seeds": {
+                "result": {
+                    "incomplete": [
+                        {"name": "BEETROOT_SEEDS", "count": {"min": 1, "max": 1}}
+                    ],
+                    "complete": [
+                        {"name": "BEETROOT_SEEDS", "count": {"min": 0, "max": 3}},
+                        {"name": "BEETROOT", "count": {"min": 1, "max": 2}}
+                    ]
+                }
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 3
+            },
+            "tags": ["agriculture"],
+            "texture": "item/beetroot_seeds.png",
+            "stage_textures": [
+                "block/beetroots_stage0.png",
+                "block/beetroots_stage1.png",
+                "block/beetroots_stage2.png",
+                "block/beetroots_stage3.png"
+            ],
+            "material": {
+                "id": "plant"
+            }
+        },
+        {
+            "id": 217,
+            "name": "BEETROOT",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "texture": "item/beetroot.png"
         }
     ]
 }

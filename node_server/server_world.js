@@ -772,11 +772,16 @@ export class ServerWorld {
                 return this.info.rules[rule_code] || true;
                 break;
             }
+            case 'randomTickSpeed': {
+                return this.info.rules[rule_code] || 3;
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
         }
     }
+    
 
     // Set world game rule value
     async setGameRule(rule_code, value) {
