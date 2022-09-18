@@ -88,6 +88,7 @@ export class Hotbar {
         let that                = this;
         this.hud                = hud;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
+        
         //
         this.image.onload = function() {
             that.hud.add(that, 0);
@@ -96,6 +97,9 @@ export class Hotbar {
         this.last_damage_time = null;
         //
         this.strings = new Strings();
+        
+        this.inventory_image = new Image();
+        this.inventory_image.src = './media/gui/inventory2.png';
     }
 
     get zoom() {
@@ -329,6 +333,51 @@ export class Hotbar {
         if(this.inventory) {
             this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom);
         }
+        
+        this.drawEffects(hud);
+    }
+    
+    
+    drawEffects(hud) {
+        const player = this.inventory.player;
+        let pos = 0;
+        for (const effect of player.effects) {
+            this.drawEffectsIcon(hud, effect.id, pos++);
+        }
+    }
+    
+    drawEffectsIcon(hud, icon, pos) {
+        if (icon > 23) {
+            return;
+        }
+        const icons = [
+            {x: 2, y: 397},
+            {x: 39, y: 397},
+            {x: 73, y: 397},
+            {x: 112, y: 397},
+            {x: 145, y: 397},
+            {x: 181, y: 397},
+            {x: 219, y: 397},
+            {x: 255, y: 397},
+            {x: 2, y: 435},
+            {x: 39, y: 435},
+            {x: 73, y: 435},
+            {x: 112, y: 435},
+            {x: 145, y: 435},
+            {x: 181, y: 435},
+            {x: 219, y: 435},
+            {x: 255, y: 435},
+            {x: 2, y: 472},
+            {x: 39, y: 472},
+            {x: 73, y: 472},
+            {x: 112, y: 472},
+            {x: 145, y: 472},
+            {x: 181, y: 472},
+            {x: 219, y: 472},
+            {x: 255, y: 472},
+        ];
+        hud.ctx.drawImage(this.inventory_image, 280, 333, 50, 50, hud.width - this.zoom * 50 * ( pos + 1) - 10, 10, this.zoom * 50, this.zoom * 50);
+        hud.ctx.drawImage(this.inventory_image, icons[icon].x, icons[icon].y, 34, 34, hud.width - (this.zoom * (50 * (pos + 1) - 11)) - 10, this.zoom * 14, this.zoom * 34, this.zoom * 34);
     }
 
 }

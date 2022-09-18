@@ -13,6 +13,8 @@ import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL }
 import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
+import { BLOCK } from "../www/js/blocks.js";
+import { ServerPlayerEffects, Effect } from "./player/effects.js";
 
 export class NetworkMessage {
     constructor({
@@ -29,6 +31,7 @@ export class NetworkMessage {
 const EMULATED_PING             = config.Debug ? Math.random() * 100 : 0;
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
+const CORRECT_TIME              = 16;
 
 async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
@@ -50,7 +53,8 @@ export class ServerPlayer extends Player {
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
         this.#forward               = new Vector(0, 1, 0);
-        this.damage                 = new ServerPlayerDamage(this);
+        
+        
         /**
          * @type {ServerWorld}
          */
@@ -65,12 +69,23 @@ export class ServerPlayer extends Player {
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
         this.prev_near_players      = new Map();
+        
+        // для проверки времени дейстия
+        this.cast = {
+            id: 0,
+            time: 0
+        };
+        this.effects                = new ServerPlayerEffects(this);
+        this.damage                 = new ServerPlayerDamage(this);
     }
 
     init(init_info) {
         this.state = init_info.state;
         this.state.lies = this.state?.lies || false;
         this.state.sitting = this.state?.sitting || false;
+        this.live_level = this.state.indicators.live.value;
+        this.food_level = this.state.indicators.food.value;
+        this.oxygen_level = this.state.indicators.oxygen.value;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
@@ -172,11 +187,12 @@ export class ServerPlayer extends Player {
         if(this.is_dead) {
             return false;
         }
-        const ind = this.state.indicators[code];
-        const prev_value = ind.value;
-        ind.value = Math.max(prev_value + value, 0);
-        console.log(`Player indicator changed '${code}' ${prev_value} -> ${ind.value}`);
-        this.indicators_changed = true;
+        this.live_level = Math.min(value + this.live_level, 20);
+        //const ind = this.state.indicators[code];
+        //const prev_value = ind.value;
+        //ind.value = Math.max(prev_value + value, 0);
+        //console.log(`Player indicator changed '${code}' ${prev_value} -> ${ind.value}`);
+        //this.indicators_changed = true;
         return true;
     }
 
@@ -306,13 +322,16 @@ export class ServerPlayer extends Player {
         // 2.
         this.sendNearPlayers();
         // 3.
-        this.checkIndicators();
+        this.checkIndicators(tick_number);
         // 4.
         if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
         // 6.
-        this.damage.tick(delta, tick_number);
+        //this.damage.tick(delta, tick_number);
+        this.checkCastTime();
+        // 7.
+        this.effects.checkEffects();
     }
 
     async checkWaitPortal() {
@@ -430,32 +449,46 @@ export class ServerPlayer extends Player {
         }
     }
 
-    //
-    checkIndicators() {
-        if(!this.indicators_changed || this.is_dead) {
+    // check indicators
+    checkIndicators(tick) {
+        if(this.is_dead || !this.game_mode.mayGetDamaged()) {
             return false;
         }
-        this.indicators_changed = false;
-        // notify player about his new indicators
-        const packets = [{
-            name: ServerClient.CMD_ENTITY_INDICATORS,
-            data: {
-                indicators: this.state.indicators
+        
+        this.damage.getDamage(tick);
+       
+        if (this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
+            const packets = [];
+            if (this.state.indicators.live.value > this.live_level) {
+                // @todo добавить дергание
+                packets.push({
+                    name: ServerClient.CMD_PLAY_SOUND,
+                    data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
+                });
             }
-        }];
-        // check if died
-        if(this.state.indicators.live.value <= 0) {
-            this.is_dead = true;
-            this.state.stats.death++;
-            // TODO: check and drop inventory items if need
-            // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
+            if(this.live_level <= 0) {
+                this.is_dead = true;
+                this.state.stats.death++;
+                // @todo check and drop inventory items if need
+                // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
+                packets.push({
+                    name: ServerClient.CMD_DIE,
+                    data: {}
+                });
+            }
+            this.state.indicators.live.value = this.live_level;
+            this.state.indicators.food.value = this.food_level;
+            this.state.indicators.oxygen.value = this.oxygen_level;
             packets.push({
-                name: ServerClient.CMD_DIE,
-                data: {}
+                name: ServerClient.CMD_ENTITY_INDICATORS,
+                data: {
+                    indicators: this.state.indicators
+                }
             });
+            
+            this.world.sendSelected(packets, [this.session.user_id], []);
+            // @todo notify all about change?
         }
-        this.world.sendSelected(packets, [this.session.user_id], []);
-        // @todo notify all about change?
     }
 
     // Teleport player if in portal
@@ -585,5 +618,44 @@ export class ServerPlayer extends Player {
             world.chunks.checkPlayerVisibleChunks(teleported_player, true);
         }
     }
-
+    
+    // проверка использования item
+    checkCastTime() {
+        if (this.cast.time > 0) {
+            this.cast.time--;
+            if (this.cast.time == 0) {
+                const item = this.inventory.items[this.inventory.current.index];
+                if (item.id == this.cast.id) {
+                    // если предмет это еда
+                    const block = BLOCK.fromId(this.cast.id);
+                    if (block.food) {
+                        this.setFoodLevel(block.food.amount, block.food.saturation);
+                    }
+                    // если у предмета есть еффекты
+                    if (block.effects) {
+                        this.effects.addEffects(block.effects);
+                    }
+                    this.inventory.decrement();
+                }
+            }
+        }
+    }
+    
+    /*
+    * установка истощения
+    * exhaustion - уровень истощения
+    */
+    addExhaustion(exhaustion) {
+        this.damage.addExhaustion(exhaustion);
+    }
+    
+    /*
+    * установка сытости и насыщения
+    * food - уровень еды
+    * saturation - уровень насыщения
+    */
+    setFoodLevel(food, saturation) {
+        this.damage.setFoodLevel(food, saturation);
+    }
+    
 }

@@ -79,6 +79,12 @@ export class ServerClient {
 	static CMD_DROP_ITEM_UPDATE         = 78;
 	static CMD_DROP_ITEM                = 86;
 	static CMD_DROP_ITEM_PICKUP         = 99;
+    
+    // Use items
+    static CMD_USE_ITEM                 = 100;
+    
+    // Use effects
+    static CMD_EFFECTS_STATE            = 101;
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

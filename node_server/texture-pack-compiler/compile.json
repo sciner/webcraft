@@ -17,7 +17,12 @@
         {"spritesheet_id": "entity", "x": 20, "y": 28, "image": "entity/banner_base.png"},
         {"spritesheet_id": "entity", "x": 16, "y": 28, "image": "./textures/banner_mask.png"},
 
-        {"spritesheet_id": "entity", "x": 24, "y": 28, "image": "./textures/oak_bed.png"}
+        {"spritesheet_id": "entity", "x": 24, "y": 28, "image": "./textures/oak_bed.png"},
+
+        {"spritesheet_id": "default", "x": 26, "y": 31, "image": "item/potion.png", "diff_to_mask": true},
+        {"spritesheet_id": "default", "x": 27, "y": 31, "image": "item/potion_overlay.png", "diff_to_source": true},
+        {"spritesheet_id": "default", "x": 28, "y": 31, "image": "item/splash_potion.png", "diff_to_mask": true},
+        {"spritesheet_id": "default", "x": 29, "y": 31, "image": "item/potion_overlay.png", "diff_to_source": true}
     ],
     "blocks" : [
         {
@@ -4002,7 +4007,11 @@
             "material": {
                 "id": "food"
             },
-            "texture": "item/carrot.png"
+            "texture": "item/carrot.png",
+            "food": {
+                "amount": 3, 
+                "saturation": 0.6
+            }
         },
         {
             "id": 613,
@@ -4012,6 +4021,10 @@
             "diagonal": true,
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.3
             },
             "texture": "item/apple.png"
         },
@@ -4345,6 +4358,10 @@
             "diagonal": true,
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             },
             "texture": "item/bread.png"
         },
@@ -5083,6 +5100,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.1
             }
         },
         {
@@ -5094,6 +5115,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.1
             }
         },
         {
@@ -5216,6 +5241,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.3
             }
         },
         {
@@ -5238,6 +5267,10 @@
             "coocked_item": {"name": "COOKED_CHICKEN", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.1
             }
         },
         {
@@ -5249,6 +5282,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 6, 
+                "saturation": 0.6
             }
         },
         {
@@ -5261,6 +5298,10 @@
             "coocked_item": {"name": "COOKED_MUTTON", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.3
             }
         },
         {
@@ -5272,6 +5313,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 6, 
+                "saturation": 0.8
             }
         },
         {
@@ -5284,6 +5329,10 @@
             "coocked_item": {"name": "COOKED_RABBIT", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5295,6 +5344,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             }
         },
         {
@@ -5307,6 +5360,10 @@
             "coocked_item": {"name": "COOKED_BEEF", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5318,6 +5375,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.8
             }
         },
         {
@@ -5330,6 +5391,10 @@
             "coocked_item": {"name": "COOKED_PORKCHOP", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 3, 
+                "saturation": 0.3
             }
         },
         {
@@ -5341,6 +5406,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 8, 
+                "saturation": 0.8
             }
         },
         {
@@ -5391,6 +5460,10 @@
             "texture": "item/melon_slice.png",
             "material": {
                 "id": "plant"
+            },
+            "food": {
+                "amount": 2, 
+                "saturation": 0.3
             }
         },
         {
@@ -6826,6 +6899,10 @@
             "coocked_item": {"name": "BAKED_POTATO", "count": 1},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 1, 
+                "saturation": 0.3
             }
         },
         {
@@ -6837,6 +6914,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
+            },
+            "food": {
+                "amount": 5, 
+                "saturation": 0.6
             }
         },
         {
@@ -7245,6 +7326,627 @@
                 "id": "food"
             },
             "texture": "item/beetroot.png"
+        },
+        {
+            "id": 507,
+            "name": "GOLDEN_APPLE",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 4, 
+                "saturation": 0.3
+            },
+            "effects":[
+                {"id":7, "time": 5, "level": 2},
+                {"id":14, "time": 300, "level": 1},
+                {"id":15, "time": 300, "level": 1},
+                {"id":18, "time": 120, "level": 1}
+            ],
+            "texture": "item/golden_apple.png"
+        },
+        {
+            "id": 234,
+            "name": "SPEED",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 539, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":0, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 235,
+            "name": "SPEED_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 539, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":0, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 236,
+            "name": "SPEED_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 539, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":0, "time": 90, "level": 2}
+            ]
+        },
+        {
+            "id": 237,
+            "name": "REGENERATION",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":7, "time": 1, "level": 1}
+            ]
+        },
+        {
+            "id": 238,
+            "name": "REGENERATION_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":7, "time": 1, "level": 2}
+            ]
+        },
+        {
+            "id": 239,
+            "name": "SLOWNESS",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":1, "time": 90, "level": 1}
+            ]
+        },
+        {
+            "id": 240,
+            "name": "SLOWNESS_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":1, "time": 240, "level": 1}
+            ]
+        },
+        {
+            "id": 241,
+            "name": "SLOWNESS_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 20, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":1, "time": 20, "level": 4}
+            ]
+        },
+        {
+            "id": 242,
+            "name": "JUMP_BOOST",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":19, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 243,
+            "name": "JUMP_BOOST_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":10, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 244,
+            "name": "JUMP_BOOST_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 4, "g": 532, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":10, "time": 90, "level": 2}
+            ]
+        },
+        {
+            "id": 245,
+            "name": "STRENGTH",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":4, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 246,
+            "name": "STRENGTH_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":4, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 247,
+            "name": "STRENGTH_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":4, "time": 90, "level": 2}
+            ]
+        },
+        {
+            "id": 248,
+            "name": "INSTANT_HEALTH",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 12, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":24, "time": 0, "level": 1}
+            ]
+        },
+        {
+            "id": 249,
+            "name": "INSTANT_HEALTH_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 12, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":24, "time": 0, "level": 2}
+            ]
+        },
+        {
+            "id": 250,
+            "name": "INSTANT_DAMAGE",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 28, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":25, "time": 0, "level": 1}
+            ]
+        },
+        {
+            "id": 251,
+            "name": "INSTANT_DAMAGE_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 28, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":25, "time": 0, "level": 2}
+            ]
+        },
+        {
+            "id": 252,
+            "name": "POISON",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":6, "time": 45, "level": 1}
+            ]
+        },
+        {
+            "id": 253,
+            "name": "POISON_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":6, "time": 90, "level": 1}
+            ]
+        },
+        {
+            "id": 254,
+            "name": "POISON_2",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 207, "g": 275, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":6, "time": 22, "level": 2}
+            ]
+        },
+        {
+            "id": 255,
+            "name": "FIRE_RESISTANCE",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":15, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 256,
+            "name": "FIRE_RESISTANCE_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 524, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":15, "time": 480, "level": 1}
+            ]
+        },
+        {
+            "id": 257,
+            "name": "RESPIRATION",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":16, "time": 180, "level": 1}
+            ]
+        },
+        {
+            "id": 258,
+            "name": "RESPIRATION_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":16, "time": 480, "level": 1}
+            ]
         }
     ]
 }

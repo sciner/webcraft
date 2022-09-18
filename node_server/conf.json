@@ -48,6 +48,7 @@
         "view_distance",
         "chat_ping",
         "chat_weather",
+        "chat_effects",
         "chat_setworldspawn"
     ],
     "clientpackets": [
@@ -74,6 +75,7 @@
         "cmd_stats",
         "cmd_sync_time",
         "cmd_teleport_request",
-        "cmd_modify_indicator_request"
+        "cmd_modify_indicator_request",
+        "cmd_use_item"
     ]
 }
