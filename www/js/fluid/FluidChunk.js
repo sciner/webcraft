@@ -25,7 +25,7 @@ export class FluidChunk {
 
         this.world = world;
         this.dirty = true;
-        this.boundsDirty = false;
+        this.boundsDirty = true;
 
         /**
          * local bounds INCLUDE

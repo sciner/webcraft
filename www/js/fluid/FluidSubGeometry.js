@@ -5,7 +5,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         super(params);
     }
 
-    push(fluidId, color,
+    push(fluidId, side, color,
          cx, cy, cz,
          x0, y0, z0, u0, v0,
          x1, y1, z1, u1, v1,
@@ -14,6 +14,8 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         if (!this.lastPage || this.lastPage.filled === this.lastPage.sizeQuads) {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }
+
+        fluidId = fluidId | (side << 2);
 
         const chunkId = this.chunkDataId;
 

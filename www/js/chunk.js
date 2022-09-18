@@ -5,6 +5,7 @@ import {BLOCK, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
+import {fluidLightPower} from "./fluid/FluidConst.js";
 
 // Creates a new chunk
 export class Chunk {
@@ -153,6 +154,7 @@ export class Chunk {
                         } else {
                             console.error(`Block not found ${block_id}`);
                         }
+
                         prev_block_id = block_id;
                     }
                     light_source[ind++] = light_power_number;
@@ -516,6 +518,18 @@ export class Chunk {
         return frustum_geometry;
     }
 
+    calcLightPropsTBlock(tblock) {
+        let res = 0;
+        if (!tblock.material) {
+            res = tblock.material.light_power_number;
+        }
+        const fluidVal = tblock.fluid;
+        if (fluidVal > 0) {
+            res |= fluidLightPower(fluidVal);
+        }
+        return res;
+    }
+
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
@@ -538,7 +552,7 @@ export class Chunk {
                 if(!tblock.material) {
                     debugger
                 }
-                oldLight = tblock.material.light_power_number;
+                oldLight = this.calcLightPropsTBlock(tblock);
             }
             this.tblocks.delete(tblock_pos);
             // fill properties
@@ -556,7 +570,7 @@ export class Chunk {
             chunkManager.animated_blocks.delete(pos);
             // light
             if(chunkManager.use_light) {
-                const light = material.light_power_number;
+                const light = this.calcLightPropsTBlock(tblock);
                 if(oldLight !== light) {
                     // updating light here
                     chunkManager.postLightWorkerMessage(['setBlock', {

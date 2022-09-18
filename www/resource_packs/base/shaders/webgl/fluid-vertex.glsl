@@ -35,7 +35,10 @@ out float v_noCanTakeLight;
 out float v_flagMultiplyColor;
 
 void main() {
-    int flags = u_fluidFlags[a_fluidId];
+    uint fluidId = a_fluidId & uint(3);
+    int fluidSide = int(a_fluidId >> 2);
+
+    int flags = u_fluidFlags[fluidId];
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
@@ -54,18 +57,25 @@ void main() {
         float((a_color >> 10) & uint(0x3ff)),
         a_color >> 20, 0.0);
 
-    v_fluidAnim.x = float(a_fluidId);
+    v_fluidAnim.x = float(fluidId);
     if(flagAnimated > 0) {
-        int frames = u_fluidFrames[a_fluidId];
+        int frames = u_fluidFrames[fluidId];
         float t = ((u_time * float(frames) / 3.) / 1000.);
         int i = int(t);
-        v_fluidAnim.y = float(i % frames) * u_fluidUV[a_fluidId].y;
-        v_fluidAnim.z = float((i + 1) % frames) * u_fluidUV[a_fluidId].y;
+        v_fluidAnim.y = float(i % frames) * u_fluidUV[fluidId].y;
+        v_fluidAnim.z = float((i + 1) % frames) * u_fluidUV[fluidId].y;
         v_fluidAnim.w = fract(t);
     }
 
-    v_normal = vec3(0.0, 0.0, 1.0);
-
+    if (fluidSide == 2 || fluidSide == 3) {
+        v_normal = vec3(0.0, 1.0, 0.0);
+    } else if (fluidSide == 4 || fluidSide == 5) {
+        v_normal = vec3(1.0, 0.0, 0.0);
+    } else if (fluidSide == 1) {
+        v_normal = vec3(0.0, 0.0, -1.0);
+    } else {
+        v_normal = vec3(0.0, 0.0, 1.0);
+    }
 
     v_texcoord0 = a_uv;
     // Scrolled textures

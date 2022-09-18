@@ -15,8 +15,20 @@ export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
-export function isFluidId(id) {
-    return id == 200 || id == 202 || id == 170 || id == 171;
+export function isFluidId(blockId) {
+    return blockId == 200 || blockId == 202 || blockId == 170 || blockId == 171;
+}
+
+export function fluidLightPower(fluidVal) {
+    const fluidId = ((fluidVal & FLUID_TYPE_MASK) >> FLUID_TYPE_SHIFT) - 1;
+    if (fluidId < 0) {
+        return 0;
+    }
+    if (fluidId === 1) {
+        // lava
+        return 15;
+    }
+    return 64;
 }
 
 /**
