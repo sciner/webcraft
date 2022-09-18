@@ -1,7 +1,6 @@
 {
     "predefined_textures": [
-        {"spritesheet_id": "default", "x": 14, "y": 30, "image": "./textures/bed_item.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 28, "image": "./textures/oak_bed.png"},
+        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 14, "y": 31, "image": "block/destroy_stage_0.png"},
         {"spritesheet_id": "default", "x": 15, "y": 31, "image": "block/destroy_stage_1.png"},
         {"spritesheet_id": "default", "x": 16, "y": 31, "image": "block/destroy_stage_2.png"},
@@ -12,10 +11,13 @@
         {"spritesheet_id": "default", "x": 21, "y": 31, "image": "block/destroy_stage_7.png"},
         {"spritesheet_id": "default", "x": 22, "y": 31, "image": "block/destroy_stage_8.png"},
         {"spritesheet_id": "default", "x": 23, "y": 31, "image": "block/destroy_stage_9.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 20, "y": 24, "image": "entity/banner_base.png"},
-        {"spritesheet_id": "default", "x": 16, "y": 24, "image": "./textures/banner_mask.png"},
-        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"}
+        {"spritesheet_id": "default", "x": 24, "y": 24, "image": "./textures/enchanting_table_book.png"},
+
+        {"spritesheet_id": "entity", "x": 16, "y": 28, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "entity", "x": 20, "y": 28, "image": "entity/banner_base.png"},
+        {"spritesheet_id": "entity", "x": 16, "y": 28, "image": "./textures/banner_mask.png"},
+
+        {"spritesheet_id": "entity", "x": 24, "y": 28, "image": "./textures/oak_bed.png"}
     ],
     "blocks" : [
         {
@@ -33,7 +35,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -58,7 +59,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/water_still.png",
                 "side": "block/water_still.png"
             },
@@ -94,7 +94,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -125,7 +124,6 @@
                 "side": 0
             },
             "texture": {
-                "id": "default",
                 "up": "block/lava_still.png",
                 "side": "block/lava_still.png"
             },
@@ -391,7 +389,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_shovel.png"
             },
             "light": null
@@ -410,7 +407,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_shovel.png"
             },
             "light": null
@@ -429,7 +425,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_shovel.png"
             },
             "light": null
@@ -448,7 +443,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_shovel.png"
             },
             "light": null
@@ -467,7 +461,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_shovel.png"
             },
             "light": null
@@ -486,7 +479,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_shovel.png"
             },
             "light": null
@@ -504,7 +496,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_hoe.png"
             },
             "light": null
@@ -523,7 +514,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_hoe.png"
             },
             "light": null
@@ -542,7 +532,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_hoe.png"
             },
             "light": null
@@ -561,7 +550,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_hoe.png"
             },
             "light": null
@@ -580,7 +568,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_hoe.png"
             },
             "light": null
@@ -599,7 +586,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_hoe.png"
             },
             "light": null
@@ -617,7 +603,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_axe.png"
             }
         },
@@ -635,7 +620,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_axe.png"
             }
         },
@@ -653,7 +637,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_axe.png"
             }
         },
@@ -671,7 +654,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_axe.png"
             }
         },
@@ -689,7 +671,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_axe.png"
             }
         },
@@ -707,7 +688,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_axe.png"
             }
         },
@@ -724,7 +704,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_pickaxe.png"
             }
         },
@@ -741,7 +720,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_pickaxe.png"
             }
         },
@@ -758,7 +736,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_pickaxe.png"
             }
         },
@@ -775,7 +752,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_pickaxe.png"
             }
         },
@@ -792,7 +768,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_pickaxe.png"
             }
         },
@@ -809,7 +784,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_pickaxe.png"
             }
         },
@@ -1321,7 +1295,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/shears.png"
             }
         },
@@ -1409,7 +1382,6 @@
             "item": {"name": "stick"},
             "diagonal": true,
             "texture": {
-                "id": "default",
                 "side": "item/stick.png"
             },
             "material": {
@@ -3025,6 +2997,7 @@
                 "id": "wood"
             },
             "texture": {
+                "id": "entity",
                 "side": "entity/chest/normal.png"
             }
         },
@@ -3042,6 +3015,7 @@
                 "id": "obsidian"
             },
             "texture": {
+                "id": "entity",
                 "side": "entity/chest/ender.png"
             }
         },
@@ -3344,7 +3318,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/bucket.png"
             }
         },
@@ -3358,7 +3331,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/lava_bucket.png"
             }
         },
@@ -3372,7 +3344,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/water_bucket.png"
             }
         },
@@ -3386,7 +3357,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "./textures/powder_snow_bucket.png"
             }
         },
@@ -3400,7 +3370,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/milk_bucket.png"
             }
         },
@@ -3935,7 +3904,6 @@
                 "id": "wood"
             },
             "texture": {
-                "id": "default",
                 "side": "item/wooden_sword.png"
             },
             "light": null
@@ -3953,7 +3921,6 @@
                 "id": "stone"
             },
             "texture": {
-                "id": "default",
                 "side": "item/stone_sword.png"
             },
             "light": null
@@ -3971,7 +3938,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/iron_sword.png"
             },
             "light": null
@@ -3989,7 +3955,6 @@
                 "id": "gold"
             },
             "texture": {
-                "id": "default",
                 "side": "item/golden_sword.png"
             },
             "light": null
@@ -4007,7 +3972,6 @@
                 "id": "diamond"
             },
             "texture": {
-                "id": "default",
                 "side": "item/diamond_sword.png"
             },
             "light": null
@@ -4025,7 +3989,6 @@
                 "id": "netherite"
             },
             "texture": {
-                "id": "default",
                 "side": "item/netherite_sword.png"
             },
             "light": null
@@ -6982,7 +6945,6 @@
                 "id": "iron"
             },
             "texture": {
-                "id": "default",
                 "side": "item/flint_and_steel.png"
             }
         },
