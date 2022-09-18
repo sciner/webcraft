@@ -39,7 +39,8 @@ export default class Ticker {
         if (!extra_data?.bone) {
             extra_data.bone = 0;
         }
-        const is_tick = Math.random() < 3 / 4096;
+        const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
+        const is_tick = Math.random() < random_tick_speed;
         const is_bone = extra_data.bone > 0;
         if (!is_tick && !is_bone) {
             return;
