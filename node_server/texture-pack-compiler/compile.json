@@ -1124,14 +1124,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "oak",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [4, 8]}
                 ]
             },
             "texture": "block/oak_sapling.png"
@@ -1147,14 +1146,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "birch",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [4, 8]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [4, 8]}
                 ]
             },
             "texture": "block/birch_sapling.png"
@@ -1170,14 +1168,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "acacia",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [5, 12]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [5, 12]}
                 ]
             },
             "texture": "block/acacia_sapling.png"
@@ -1193,14 +1190,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "spruce",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [6, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [15, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [6, 24]}
                 ]
             },
             "texture": "block/spruce_sapling.png"
@@ -1218,14 +1214,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "dark_oak",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [14, 24]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [5, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [14, 24]}
                 ]
             },
             "texture": "block/dark_oak_sapling.png"
@@ -1241,14 +1236,13 @@
             "tags": ["sapling"],
             "ticking": {
                 "type": "stage",
-                "times_per_stage": 8
+                "max_stage": 20
             },
             "extra_data": {
                 "stage": 0,
                 "style": "jungle",
                 "calculated": [
-                    {"type": "random_int", "name": "height", "min_max": [3, 22]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [10, 50]}
+                    {"type": "random_int", "name": "height", "min_max": [3, 22]}
                 ]
             },
             "texture": "block/jungle_sapling.png"
@@ -3097,13 +3091,17 @@
         {
             "id": 81,
             "name": "CACTUS",
-            "planting": false,
             "style": "cactus",
             "width": 0.875,
             "transparent": true,
+            "planting": false,
             "sound": "madcraft:block.cloth",
             "material": {
                 "id": "plant"
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 5
             },
             "texture": {
                 "up": "block/cactus_top.png",
@@ -6883,18 +6881,15 @@
                 "style": "extruder",
                 "texture": "item/sugar_cane.png"
             },
-            "extra_data": {"stage": 0, "calculated": [
+            "extra_data": {
+                "stage": 0, 
+                "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
             ]},
-            "previous_part": {
-                "offset_pos": {"x": 0, "y": 1, "z": 0},
-                "id": 486
-            },
             "ticking": {
                 "type": "stage",
-                "max_stage": 3,
-                "times_per_stage": 8
+                "max_stage": 10
             },
             "texture": "block/sugar_cane.png"
         },
