@@ -713,7 +713,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useFlintAndSteel, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -723,7 +723,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(mat_block.item) {
 
             // Use intruments
-            for(let func of [useShovel, useHoe, useAxe, useBoneMeal]) {
+            for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -1030,7 +1030,6 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
-                            [BLOCK.CACTUS.id].includes(mat_block.id) ||
                             mat_block.tags.includes('can_put_info_pot')
                         );
     if(!putIntoPot) {
@@ -1334,7 +1333,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
         return false;
     }
 
-    const position = new Vector(pos.x, pos.y, pos.z);
+    const position = new Vector(pos);
     position.addSelf(pos.n);
 
     actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]});
@@ -1504,7 +1503,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     }
 
     // поджигаем блок
-    if (pos.n.y != -1) {
+    if (pos.n.y != -1 && world.getBlock(position).id == BLOCK.AIR.id) {
         actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: 0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         return true;
     }
@@ -1901,6 +1900,14 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         return true;
+    } else if (world_block?.material?.ticking?.type) {
+        if (world_block.material.ticking.type == 'stage') {
+            extra_data.bone = Math.random() < 0.5 ? 1 : 2;
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.decrement = true;
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            return true;
+        }
     }
     return false;
 }

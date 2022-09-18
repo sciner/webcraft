@@ -22,6 +22,9 @@ export default class style {
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
+        if(!for_physic) {
+            aabb.pad(1/500);
+        }
         return [aabb];
     }
     

@@ -6,7 +6,7 @@ export default class Ticker {
     static type = 'bamboo'
 
     //
-    static func(world, chunk, v, check_pos, ignore_coords) {
+    static func(tick_number, world, chunk, v, check_pos, ignore_coords) {
         const tblock = v.tblock;
         const ticking = v.ticking;
         const extra_data = tblock.extra_data;
@@ -18,7 +18,7 @@ export default class Ticker {
         }
         if(extra_data && extra_data.stage < ticking.max_stage) {
             const mul = 4 * world.getGeneratorOptions('sapling_speed_multipliyer', 1);
-            if(v.ticks % (ticking.times_per_stage * mul) == 0) {
+            if(tick_number % (ticking.times_per_stage * mul) == 0) {
                 //
                 function addNextBamboo(pos, block, stage) {
                     const next_pos = pos.clone();
@@ -29,7 +29,7 @@ export default class Ticker {
                     };
                     new_item.extra_data.stage = stage;
                     const b = world.getBlock(next_pos);
-                    if(!b || b.id == 0 || b.material.material.id == 'leaves') {
+                    if(!b || b.id == 0 || b.material.material.is_leaves) {
                         updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
                         check_pos.copyFrom(next_pos);
@@ -45,8 +45,8 @@ export default class Ticker {
                     tblock.extra_data = null; // .stage = 3;
                     updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 } else {
-                    let over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
-                    let under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
+                    const over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
+                    const under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
                     if(extra_data.stage == 1) {
                         if(!over1 || over1.id == 0 || over1.material.material.id == 'leaves') {
                             if(under1.id == tblock.id && (!under1.extra_data || under1.extra_data.stage == 3)) {
@@ -70,6 +70,10 @@ export default class Ticker {
                     } else {
                         if(extra_data.stage == 2 && extra_data.pos) {
                             if(over1.id == tblock.id && under1.id == tblock.id) {
+                                if(!over1.extra_data || !under1.extra_data) {
+                                    console.log('TODO: Errorrrr... 2');
+                                    return
+                                }
                                 if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
                                     if(over1.posworld.distance(extra_data.pos) < extra_data.max_height - 1) {
                                         if(addNextBamboo(over1.posworld, tblock, 2)) {
@@ -77,7 +81,7 @@ export default class Ticker {
                                             const new_current = {...tblock.convertToDBItem()};
                                             new_current.extra_data = {...extra_data};
                                             new_current.extra_data.stage = 1;
-                                            updated_blocks.push({pos: v.pos, item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                            updated_blocks.push({pos: v.pos.clone(), item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                                             // set under to 3
                                             const new_under = {...tblock.convertToDBItem()};
                                             new_under.extra_data = {...new_under.extra_data};

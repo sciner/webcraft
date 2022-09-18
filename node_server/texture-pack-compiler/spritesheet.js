@@ -195,6 +195,7 @@ export class Spritesheet {
                 }                        
             }
         }
+        return {sx, sy};
     }
 
     // findPlace

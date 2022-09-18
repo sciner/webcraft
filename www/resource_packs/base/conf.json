@@ -19,6 +19,11 @@
             "image_n": "/textures/default_n.png",
             "tx_cnt": 32
         },
+        "entity": {
+            "image": "/textures/entity.png",
+            "image_n": "/textures/entity.png",
+            "tx_cnt": 32
+        },
         "painting": {
             "image": "/textures/painting.png",
             "tx_cnt": 16

@@ -6,10 +6,9 @@ export default class Ticker {
     static type = 'furnace'
 
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
         const max_ticks = 50;
         const tblock = v.tblock;
-        // const ticking = v.ticking;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
         if(!extra_data || !extra_data.slots) {

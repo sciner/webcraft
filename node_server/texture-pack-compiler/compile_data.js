@@ -163,12 +163,14 @@ export class CompileData {
                 "sound": "madcraft:block.wood",
                 "transparent": true,
                 "texture": {
-                    "side": "16|28"
+                    "id": "entity",
+                    "side": "24|28"
                 },
                 "can_rotate": true,
                 "inventory": {
+                    "id": "default",
                     "style": "extruder",
-                    "texture": "14|30"
+                    "texture": "24|31"
                 },
                 "mask_color": mask_color,
                 "has_head": {"pos": {"x": 0, "y": 0, "z": 1}},
@@ -417,7 +419,6 @@ export class CompileData {
                     ]
                 },
                 "texture": {
-                    "id": "default",
                     "side": `item/spawn_egg.png;type=${egg.type}` // disable cache for every egg
                 }
             };
@@ -656,7 +657,8 @@ export class CompileData {
                 "can_rotate": true,
                 "mask_color": mask_color,
                 "texture": {
-                    "side": "16|24"
+                    "id": "entity",
+                    "side": "16|28"
                 },
                 "inventory": {
                     "scale": .75,

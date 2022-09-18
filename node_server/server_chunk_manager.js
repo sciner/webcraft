@@ -101,7 +101,7 @@ export class ServerChunkManager {
         }
     }
 
-    async tick(delta) {
+    async tick(tick_number) {
         this.unloadInvalidChunks();
 
         let pn = performance.now();
@@ -137,7 +137,7 @@ export class ServerChunkManager {
                     this.ticking_chunks.delete(addr);
                     continue;
                 }
-                chunk.tick(delta);
+                chunk.tick(tick_number);
             }
         }
         // 4.

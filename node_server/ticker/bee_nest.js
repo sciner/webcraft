@@ -7,11 +7,11 @@ export default class Ticker {
     static type = 'bee_nest'
 
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
-        if(v.ticks % extra_data.max_ticks == 0) {
+        if(tick_number % extra_data.max_ticks == 0) {
             if(extra_data.bees.length > 0) {
                 const day_time = world.info.calendar.day_time;
                 if (day_time > 6000 && day_time < 18000) {

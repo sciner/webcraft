@@ -5,13 +5,13 @@ export default class Ticker {
     static type = 'tnt';
     
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const pos = v.pos.clone();
 
         // only every ~0.5 sec
-        if(v.ticks % 5 != 0) {
+        if(tick_number % 10 != 0) {
             return;
         }
         

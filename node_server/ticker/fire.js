@@ -9,14 +9,13 @@ export default class Ticker {
     static type = 'fire';
     
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
+
         const tblock = v.tblock;
-        const ticking = v.ticking;
-        const extra_data = tblock.extra_data;
         const pos = v.pos.clone();
 
         // only every ~1 sec
-        if(v.ticks % 10 != 0) {
+        if(tick_number % 20 != 0) {
             return;
         }
         const updated_blocks = [];

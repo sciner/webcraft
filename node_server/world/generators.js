@@ -1,3 +1,5 @@
+import { Vector } from "../../www/js/helpers.js";
+
 export class WorldGenerators {
 
     //
@@ -29,9 +31,18 @@ export class WorldGenerators {
         }
         const resp = {
             id: generator.id,
+            pos_spawn: null,
             options: {},
             rules: {}
         };
+        // pos spawn
+        if('pos_spawn' in params) {
+            resp.pos_spawn = params.pos_spawn ?? generator.pos_spawn;
+        }
+        if(!resp.pos_spawn || !('x' in resp.pos_spawn) || !('y' in resp.pos_spawn) || !('z' in resp.pos_spawn)) {
+            resp.pos_spawn = generator.pos_spawn;
+        }
+        resp.pos_spawn = new Vector(resp.pos_spawn);
         // rules
         for(let name in generator.rules) {
             resp.rules[name] = generator.rules[name];
@@ -99,6 +110,7 @@ export class WorldGenerators {
         {
             "id": "biome2",
             "title": "Стандартный",
+            "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": true
             },
@@ -187,6 +199,7 @@ export class WorldGenerators {
         {
             "id": "flat",
             "title": "Плоский мир",
+            "pos_spawn": {"x": 0, "y": 1, "z": 0},
             "rules": {
                 "portals": false
             }
@@ -194,6 +207,7 @@ export class WorldGenerators {
         {
             "id": "city",
             "title": "Город 1",
+            "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": false
             }
@@ -201,6 +215,7 @@ export class WorldGenerators {
         {
             "id": "city2",
             "title": "Город 2",
+            "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": false
             }
@@ -208,6 +223,7 @@ export class WorldGenerators {
         {
             "id": "bottom_caves",
             "title": "Пещеры нижнего мира",
+            "pos_spawn": {"x": 0, "y": 32, "z": 0},
             "rules": {
                 "portals": false
             }
