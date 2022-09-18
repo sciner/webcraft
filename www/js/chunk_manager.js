@@ -99,6 +99,7 @@ export class ChunkManager {
                 const meshes = Qubatch.render.meshes;
                 const type_distance = {
                     torch_flame: 12,
+                    bubble_column: 24,
                     campfire_flame: 96
                 };
                 // Play animations if need

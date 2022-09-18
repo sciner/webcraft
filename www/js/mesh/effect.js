@@ -9,6 +9,7 @@ import { default as Mesh_Effect_Campfire } from "./effect/campfire.js";
 import { default as Mesh_Effect_Explosion } from "./effect/explosion.js";
 import { default as Mesh_Effect_Music_Note } from "./effect/music_note.js";
 import { default as Mesh_Effect_Torch_Flame } from "./effect/torch_flame.js";
+import { default as Mesh_Effect_Bubble_Column } from "./effect/bubble_column.js";
 
 const pos_offset                = 0;
 export const axisx_offset       = 3;
@@ -56,6 +57,7 @@ export class Mesh_Effect_Manager {
         this.effects.set('torch_flame', Mesh_Effect_Torch_Flame);
         this.effects.set('explosion', Mesh_Effect_Explosion);
         this.effects.set('destroy_block', Mesh_Effect_Block_Damage);
+        this.effects.set('bubble_column', Mesh_Effect_Bubble_Column);
 
         for(const [k, c] of this.effects.entries()) {
             if(c.textures) {
