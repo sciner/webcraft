@@ -93,7 +93,7 @@ export default class Ticker {
             if (extra_data.stage == ticking.max_stage) {
                 delete(extra_data.ticking);
                 this.delete(v.pos);
-                return;
+                tblock.extra_data.complete = true;
             }
             return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
         }
