@@ -9,15 +9,14 @@ export default class Ticker {
     static type = 'beacon'
     
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
 
         const tblock = v.tblock;
-        const ticking = v.ticking;
         const extra_data = tblock.extra_data;
         const pos = v.pos.clone();
 
         // only every ~4 sec
-        if(v.ticks % 40 != 0) {
+        if(tick_number % 80 != 0) {
             return;
         }
         

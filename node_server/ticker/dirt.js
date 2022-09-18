@@ -7,14 +7,14 @@ export default class Ticker {
     static type = 'dirt'
 
     //
-    static func(world, chunk, v) {
+    static func(tick_number, world, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         if(!extra_data || isNaN(extra_data.max_ticks)) {
             return this.delete(v.pos);
         }
         const updated_blocks = [];
-        if(v.ticks % extra_data.max_ticks == 0) {
+        if(tick_number % extra_data.max_ticks == 0) {
             const over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
             if(over1 && over1.id == BLOCK.AIR.id) {
                 updated_blocks.push({pos: v.pos.clone(), item: {id: BLOCK.GRASS_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});

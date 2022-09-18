@@ -138,7 +138,7 @@ export class ServerWorld {
             this.ticks_stat.number++;
             this.ticks_stat.start();
             // 1.
-            await this.chunks.tick(delta);
+            await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks');
             // 2.
             await this.mobs.tick(delta);
@@ -772,11 +772,16 @@ export class ServerWorld {
                 return this.info.rules[rule_code] || true;
                 break;
             }
+            case 'randomTickSpeed': {
+                return this.info.rules[rule_code] || 3;
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
         }
     }
+    
 
     // Set world game rule value
     async setGameRule(rule_code, value) {
@@ -831,6 +836,14 @@ export class ServerWorld {
             name: ServerClient.CMD_SET_WEATHER,
             data: weather
         }], []);
+    }
+
+    //
+    async setWorldSpawn(pos_spawn) {
+        // Save to DB and send to players
+        this.info.pos_spawn = pos_spawn;
+        await this.db.setWorldSpawn(this.info.guid, pos_spawn);
+        this.sendUpdatedInfo();
     }
 
 }

@@ -200,7 +200,7 @@ export class Player {
 
         //setInterval(() => {
         //    const pos = Qubatch.player.lerpPos.clone();
-        //    pos.set(-118.5, 10.5, -4.5);
+        //    pos.set(24.5, 4.5, 24.5);
         //    Qubatch.render.damageBlock({id: 202}, pos, false);
         //}, 10);
 

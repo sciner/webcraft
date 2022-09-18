@@ -202,7 +202,6 @@ export class ServerChat {
                 break;
             }
             case '/tps2': {
-                console.log(this.world.ticks_stat);
                 const table = {};
                 for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
                     let temp = [];

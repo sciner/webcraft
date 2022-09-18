@@ -258,7 +258,7 @@ export class DBGame {
             throw 'error_world_with_same_title_already_exist';
         }
         const guid = randomUUID();
-        let default_pos_spawn = new Vector(2895.7, 120, 2783.06);
+        let default_pos_spawn = generator.pos_spawn;
         switch(generator?.id) {
             case 'city':
             case 'flat': {

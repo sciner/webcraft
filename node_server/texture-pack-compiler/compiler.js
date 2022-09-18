@@ -136,14 +136,15 @@ export class Compiler {
             if('texture' in block) {
                 console.log(++num_blocks, block.name);
                 block.flammable = this.flammable_blocks.get(block.name) ?? false;
-                let spritesheet_id = 'default';
                 if(Array.isArray(block.texture)) {
                     throw 'error_invalid_texture_declaration1';
                 }
+                const spritesheet_id = block.texture?.id ?? 'default';
+                const spritesheet = this.getSpritesheet(spritesheet_id);
                 if(typeof block.texture === 'string' || block.texture instanceof String) {
                     block.texture = {side: block.texture};
                 }
-                // Tags
+                // Auto add tags
                 const tags = block.tags = block.tags || [];
                 if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
                     block.tags.push('no_drop_ao');
@@ -158,11 +159,8 @@ export class Compiler {
                         throw 'error_invalid_texture_declaration2';
                     }
                     if(tid == 'id') {
-                        spritesheet_id = value;
                         continue
                     }
-                    const spritesheet = this.getSpritesheet(spritesheet_id);
-
                     if(!tmpContext) {
                         tmpCnv = new skiaCanvas.Canvas(spritesheet.tx_sz, spritesheet.tx_sz);
                         tmpContext = tmpCnv.getContext('2d');

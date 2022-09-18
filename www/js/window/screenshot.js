@@ -35,11 +35,14 @@ export class ScreenshotWindow extends Window {
                     lblDesc: {
                         type: 'Label',
                         word_wrap: true,
+                        width: 300 * this.zoom,
+                        height: 20 * this.zoom,
                         title: null,
-                        text: 'You have taken a screenshot. Farther?',
+                        autosize: false,
+                        text: 'You have taken a screenshot. Farther??',
                         style: {
                             font: {size: 17 * this.zoom},
-                            background: {color: '#00000000'}
+                            background: {color: '#ffffff00'}
                         }
                     },
                     lblPreview: {
@@ -47,7 +50,7 @@ export class ScreenshotWindow extends Window {
                         word_wrap: true,
                         height: 200 * this.zoom,
                         title: Lang.loading,
-                        autosize: false,
+                        // autosize: false,
                         style: {
                             padding: 0,
                             font: {size: 17 * this.zoom},
@@ -66,7 +69,7 @@ export class ScreenshotWindow extends Window {
                         type: 'Button',
                         title: 'Download screenshot',
                         height: 40 * this.zoom,
-                        autosize: false,
+                        // autosize: false,
                         onMouseDown: () => {
                             Qubatch.hud.wm.closeAll();
                             Helpers.downloadBlobPNG(this.screenshot_blob, 'screenshot.webp');
@@ -76,7 +79,7 @@ export class ScreenshotWindow extends Window {
                         type: 'Button',
                         title: 'Set as world cover',
                         height: 40 * this.zoom,
-                        autosize: false,
+                        //autosize: false,
                         onMouseDown: () => {
                             Qubatch.hud.wm.closeAll();
                             this.send(true);
@@ -86,7 +89,7 @@ export class ScreenshotWindow extends Window {
                         type: 'Button',
                         title: 'Upload to gallery',
                         height: 40 * this.zoom,
-                        autosize: false,
+                        //autosize: false,
                         onMouseDown: () => {
                             Qubatch.hud.wm.closeAll();
                             this.send(false);

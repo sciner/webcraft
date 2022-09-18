@@ -201,6 +201,7 @@ export class Spritesheet {
     // findPlace
     findPlace(block, sx, sy) {
         let good_place = false;
+        this.index = 0;
         while(!good_place) {
             good_place = true;
             const {x, y} = this.indexToXY(this.index);
@@ -231,7 +232,7 @@ export class Spritesheet {
                 this.index++;
             }
             //
-            if(x == this.tx_cnt - 1 && y == this.tx_cnt - 1) {
+            if(x == this.tx_cnt - 1 && y == this.tx_cnt - 1 || this.index >= 1024) {
                 throw 'error_no_place';
             }
         }

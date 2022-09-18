@@ -2,7 +2,7 @@
 <html ng-app="gameApp" lang="en">
 <head>
     <meta charset="UTF-8">
-	<title>MadCraft</title>
+	<title><%= page.title %></title>
     <base href="/" target="_blank">
     <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
@@ -10,16 +10,24 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="description" content="Minecraft game clone on JS">
     <meta name="keywords" content="MadCraft, WebCraft, Minecraft, WebGL, WebGPU, Javascript">
-    <meta property="og:title" content="MadCraft - JS game in browser">
-    <meta property="og:description" content="Minecraft game clone on JS">
-    <meta property="og:image" content="https://madcraft.io/media/card.webp">
+    <!-- social card -->
     <meta property="og:site_name" content="MadCraft">
+    <meta property="og:description" content="Minecraft game clone on JS">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://madcraft.io">
+    <% if( typeof(world) != 'undefined') {%>
+    <meta property="og:title" content="<%= page.title %>" />
+    <meta property="og:url" content="<%= page.domain %>/worlds/<%= world.guid %>" />
+    <meta property="og:image" content="<%= page.domain %>/worldcover/<%= world.guid %>/screenshot/<%= world.cover %>" />
+    <% } else { %>
+    <meta property="og:title" content="<%= page.title %>">
+    <meta property="og:url" content="<%= page.domain %>">
+    <meta property="og:image" content="<%= page.domain %>/media/card.webp">
+    <% } %>
+    <!-- twitter card -->
     <meta property="twitter:card" content="summary">
     <meta property="twitter:title" content="MadCraft - JS game in browser">
-    <meta property="twitter:url" content="https://madcraft.io">
-    <meta property="twitter:image" content="https://madcraft.io/media/card.webp">
+    <meta property="twitter:url" content="<%= page.domain %>">
+    <meta property="twitter:image" content="<%= page.domain %>/media/card.webp">
 	<!-- Design3 -->
     <script type="text/javascript" src="style/js/slim-select.js"></script>
     <link rel="stylesheet" href="style/less/style.css">

@@ -400,7 +400,7 @@ export class WorldAction {
 
     #world;
 
-    constructor(id, world, ignore_check_air = false, on_block_set = true) {
+    constructor(id, world, ignore_check_air = false, on_block_set = true, notify = null) {
         this.#world = world;
         //
         Object.assign(this, {
@@ -418,6 +418,7 @@ export class WorldAction {
             decrement_instrument:       false,
             ignore_creative_game_mode:  false,
             sitting:                    false,
+            notify:                     notify,
             blocks: {
                 list: [],
                 options: {
@@ -705,7 +706,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useFlintAndSteel, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -715,7 +716,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         if(mat_block.item) {
             
             // Use intruments
-            for(let func of [useShovel, useHoe, useAxe, useBoneMeal]) {
+            for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -1022,7 +1023,6 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
-                            [BLOCK.CACTUS.id].includes(mat_block.id) ||
                             mat_block.tags.includes('can_put_info_pot')
                         );
     if(!putIntoPot) {
@@ -1893,6 +1893,14 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
         return true;
+    } else if (world_block?.material?.ticking?.type) {
+        if (world_block.material.ticking.type == 'stage') {
+            extra_data.bone = Math.random() < 0.5 ? 1 : 2;
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.decrement = true;
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            return true;
+        }
     }
     return false;
 }

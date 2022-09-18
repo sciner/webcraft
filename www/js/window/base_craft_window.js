@@ -292,6 +292,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                         case 'frmBarrel':
                         case 'frmChest':
+                        case 'frmEnderChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
