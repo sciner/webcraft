@@ -1,5 +1,5 @@
 import { BLOCK } from '../../www/js/blocks.js';
-import { Vector, DIRECTION } from '../../www/js/helpers.js';
+import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
 import { WorldAction } from '../../www/js/world_action.js';
 
@@ -79,7 +79,7 @@ export default class Ticker {
             if (extra_data.stage == ticking.max_stage) {
                 delete(extra_data.ticking);
                 const params = {
-                    pos: v.pos.clone(),
+                    pos: pos,
                     block: tblock.convertToDBItem()
                 };
                 const actions = new WorldAction(null, world, false, false);
