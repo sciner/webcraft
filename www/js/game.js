@@ -103,6 +103,8 @@ export class GameClass {
         const player = this.player;
         const add_mouse_rotate = new Vector();
         const controls = that.player.controls;
+        let F3Key = false;
+        let F3KeyTime = 0;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || window.clipboardData;
@@ -219,7 +221,14 @@ export class GameClass {
                     // [F3] Toggle info
                     case KEY.F3: {
                         if(!e.down) {
-                            hud.toggleInfo();
+                            if (F3Key == false) {
+                                hud.toggleInfo();
+                            }
+                            hud.wm.getWindow('frmMode').hide();
+                            F3Key = false;
+                            F3KeyTime = performance.now();
+                        } else  {
+                            F3Key = true;
                         }
                         return true;
                     }
@@ -296,6 +305,8 @@ export class GameClass {
                             if(e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
                                 Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
+                            } else if (F3Key) {
+                                hud.wm.getWindow('frmMode').show();
                             } else {
                                 player.changeSpawnpoint();
                             }
