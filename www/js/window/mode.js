@@ -2,8 +2,7 @@ import { Window, Label, Button } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 
-// кнопки эффектов
-class ModeButton extends Window {
+class ModeLabel extends Window {
     
     constructor(x, y, size, id, icon, ct) {
         
@@ -17,26 +16,50 @@ class ModeButton extends Window {
             'mode': 'stretch',
             'width': 48,
             'height': 48,
-            'x': 97,
-            'y': 192
+            'x': 47,
+            'y': 193
         };
         this.setBackground(this.style.background.image, 'sprite');
         this.style.icon.image = './media/icons.png';
         this.style.icon.sprite = {
-            'mode': 'stretch',
+            'mode': 'none',
             'width': 32,
             'height': 32,
             'x': 272,
             'y': 74
         };
         this.setIconImage(this.style.icon.image, 'sprite');
+        
+        this.setIcon(icon);
     }
     
-    setEnable(val) {
-        this.style.background.sprite.x = val ? 46 : 97;
+    setSelect(val) {
+        this.style.background.sprite.x = val ? 97 : 47;
     }
     
-    setIcon() {
+    setIcon(val) {
+        switch (val) {
+            case 'survival': {
+                this.style.icon.sprite.x = 204;
+                this.style.icon.sprite.y = 74;
+                break;
+            }
+            case 'spectator': {
+                this.style.icon.sprite.x = 68;
+                this.style.icon.sprite.y = 74;
+                break;
+            }
+            case 'creative': {
+                this.style.icon.sprite.x = 268;
+                this.style.icon.sprite.y = 40;
+                break;
+            }
+            case 'adventure': {
+                this.style.icon.sprite.x = 272;
+                this.style.icon.sprite.y = 74;
+                break;
+            }
+        }
         //32 32 204 74
         // 68 74
         // 268 40
@@ -47,7 +70,9 @@ export class ModeWindow extends Window {
 
     constructor(player) {
 
-        super(10, 10, 352, 332, 'frmMode', null, null);
+        super(10, 10, 217, 100, 'frmMode', null, null);
+        
+        this.mode = 'survival';
 
         this.player = player;
         this.width *= this.zoom;
@@ -56,41 +81,61 @@ export class ModeWindow extends Window {
         // Get window by ID
         const ct = this;
         ct.style.background.color = '#00000000';
-        ct.style.border.hidden = true;
+        ct.style.border.hidden = false;
         ct.style.color = '#000000';
         ct.hide();
         
-        this.cell_size = 45 * this.zoom;
-        this.btn_speed = new ModeButton(50 * this.zoom, 50 * this.zoom, this.cell_size, 'btnSpeed', 'speed', this);
-        this.btn_speed.setEnable(true);
-        this.add(this.btn_speed);
+        this.lbl_survival = new ModeLabel(5 * this.zoom, 5 * this.zoom, 48 * this.zoom, 'lblSurvival', 'survival', this);
+        this.lbl_creative = new ModeLabel(58 * this.zoom, 5 * this.zoom, 48 * this.zoom, 'lblCreative', 'creative', this);
+        this.lbl_adventure = new ModeLabel(111 * this.zoom, 5 * this.zoom, 48 * this.zoom, 'lblAdventure', 'adventure', this);
+        this.lbl_spectator = new ModeLabel(164 * this.zoom, 5 * this.zoom, 48 * this.zoom, 'lblSpectator', 'spectator', this);
+        this.add(this.lbl_survival);
+        this.add(this.lbl_creative);
+        this.add(this.lbl_adventure);
+        this.add(this.lbl_spectator);
 
         // onShow
         this.onShow = function() {
             this.parent.center(this);
             Qubatch.releaseMousePointer();
-            console.log(this.player.game_mode)
+            this.mode = this.player.game_mode.current.id;
+            this.updateMode();
         }
         
         // Hook for keyboard input
         this.onKeyEvent = (e) => {
             const {keyCode, down, first} = e;
-            console.log(e)
             switch(keyCode) {
-                case KEY.E:
-                case KEY.ESC: {
+                case KEY.F4: {
                     if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
+                        if (this.mode == 'survival') {
+                            this.mode = 'creative';
+                        } else if (this.mode == 'creative') {
+                            this.mode = 'adventure';
+                        } else if (this.mode == 'adventure') {
+                            this.mode = 'spectator';
+                        } else if (this.mode == 'spectator') { 
+                            this.mode = 'survival';
                         }
+                        this.updateMode();
                     }
                     return true;
                 }
             }
             return false;
+        }
+    }
+    
+    updateMode() {
+        this.lbl_survival.setSelect(false);
+        this.lbl_creative.setSelect(false);
+        this.lbl_adventure.setSelect(false);
+        this.lbl_spectator.setSelect(false);
+        switch(this.mode) {
+            case 'survival': this.lbl_survival.setSelect(true); break;
+            case 'creative': this.lbl_creative.setSelect(true); break;
+            case 'adventure': this.lbl_adventure.setSelect(true); break;
+            case 'spectator': this.lbl_spectator.setSelect(true); break;
         }
     }
 
