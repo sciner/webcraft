@@ -4,6 +4,7 @@ import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
 import {Basic05GeometryPool} from "../light/Basic05GeometryPool.js";
 import {FluidGeometryPool} from "./FluidGeometryPool.js";
 import {buildFluidVertices} from "./FluidMesher.js";
+import {FLUID_SOURCE_MASK, FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_WATER_ID, OFFSET_FLUID} from "./FluidConst.js";
 
 export class FluidWorld {
     constructor(chunkManager) {
@@ -55,7 +56,7 @@ export class FluidWorld {
         let limit = maxApplyVertexCount;
         while (dirtyChunks.length > 0 && limit > 0) {
             const fluidChunk = dirtyChunks.shift();
-            const { parentChunk } = fluidChunk;
+            const {parentChunk} = fluidChunk;
             if (!parentChunk.getChunkManager()) {
                 continue;
             }
@@ -92,5 +93,22 @@ export class FluidWorld {
         }
         //chunks
         return chunks;
+    }
+
+
+    /**
+     * utility functions
+     */
+    getValue(x, y, z) {
+        let chunk_addr = getChunkAddr(x, y, z);
+        let chunk = this.chunkManager.getChunk(chunk_addr);
+        if (!chunk) {
+            return 0;
+        }
+        return chunk.fluid.uint8View[FLUID_STRIDE * chunk.dataChunk.indexByWorld(x, y, z) + OFFSET_FLUID];
+    }
+
+    isWater(x, y, z) {
+        return (this.getValue(x, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
     }
 }

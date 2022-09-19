@@ -1,10 +1,8 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
 import {
-    FLUID_BLOCK_RESTRICT, FLUID_LEVEL_MASK,
-    FLUID_STRIDE,
+    FLUID_BLOCK_RESTRICT,
     FLUID_TYPE_MASK, FLUID_TYPE_SHIFT,
-    OFFSET_FLUID
 } from "./FluidConst.js";
 
 const fluidMaterials = [];
@@ -120,6 +118,64 @@ function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib
     mc_addWeightedHeight(neib1h);
     mc_addWeightedHeight(neib2h);
     return ww[0] / ww[1];
+}
+
+/**
+ * can be used for physics
+ * @param fluidChunk
+ * @param index
+ * @param relX
+ * @param relZ
+ * @returns {number}
+ */
+export function calcFluidLevel(fluidChunk, index, relX, relZ) {
+    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { uint16View } = fluidChunk;
+    const fluid16 = uint16View[index];
+    const fluidType = fluid16 & FLUID_TYPE_MASK;
+    const fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
+    if (fluidId < 0) {
+        return 0;
+    }
+    const neib = [0, 0, 0, 0, 0, 0];
+    neib[0] = uint16View[index + cy];
+    neib[1] = uint16View[index - cy];
+    neib[2] = uint16View[index - cz];
+    neib[3] = uint16View[index + cz];
+    neib[4] = uint16View[index + cx];
+    neib[5] = uint16View[index - cx];
+    let h00 = 1, h10 = 1, h11 = 1, h01 = 1;
+    //TODO: optimize repeating code
+    let mch0 = mc_getHeight(fluidType, fluid16, neib[0]);
+    if (mch0 < 1.0) {
+        let mch2 = mc_getHeight(fluidType, neib[2], uint16View[index - cz + cy]);
+        let mch3 = mc_getHeight(fluidType, neib[3], uint16View[index + cz + cy]);
+        let mch4 = mc_getHeight(fluidType, neib[4], uint16View[index + cx + cy]);
+        let mch5 = mc_getHeight(fluidType, neib[5], uint16View[index - cx + cy]);
+
+        h00 = mc_calculateAverageHeight(fluidType, mch0, mch5, mch2,
+            uint16View[index - cx - cz], uint16View[index - cx - cz + cy]);
+        h10 = mc_calculateAverageHeight(fluidType, mch0, mch4, mch2,
+            uint16View[index + cx - cz], uint16View[index + cx - cz + cy]);
+        h11 = mc_calculateAverageHeight(fluidType, mch0, mch4, mch3,
+            uint16View[index + cx + cz], uint16View[index + cx + cz + cy]);
+        h01 = mc_calculateAverageHeight(fluidType, mch0, mch5, mch3,
+            uint16View[index - cx + cz], uint16View[index - cx + cz + cy]);
+    }
+
+    const val = h00 * (1 - relX) * (1 - relZ) + h01 * (1 - relX) * relZ
+        + h10 * relX * (1 - relZ) + h11 * relX * relZ;
+
+    return val;
+}
+
+export function getBlockByFluidVal(fluidVal) {
+    if (fluidMaterials.length === 0) {
+        initFluidMaterials();
+    }
+    const fluidType = fluidVal & FLUID_TYPE_MASK;
+    const fluidId = (fluidType >> FLUID_TYPE_SHIFT) - 1;
+    return fluidMaterials[fluidId] ? fluidMaterials[fluidId].block : null;
 }
 
 export function buildFluidVertices(fluidChunk) {
