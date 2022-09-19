@@ -496,13 +496,11 @@ export default class style {
 
         // Add animations
         if(typeof worker != 'undefined' && block.id == BLOCK.BUBBLE_COLUMN.id || (block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id)) {
-            /*
             worker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: [block.posworld.add(new Vector(.5, .5, .5))],
                 type: 'bubble_column'
             }]);
-            */
         }
 
         if(typeof worker != 'undefined' && block.id == BLOCK.JUKEBOX.id) {

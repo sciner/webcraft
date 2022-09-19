@@ -20,7 +20,7 @@ export default class effect {
 
     emit() {
 
-        if(Math.random() > .03) {
+        if(Math.random() > .01) {
             return [];
         }
 

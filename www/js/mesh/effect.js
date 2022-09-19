@@ -358,7 +358,7 @@ export class Mesh_Effect {
             data[ap + 2] = particle.pos.y - this.chunk_coord.y;
             data[ap + 1] = particle.pos.z - this.chunk_coord.z;
 
-            let scale = 1;
+            let scale = .6;
 
             // scale
             // data[i + 3] = this.vertices[i + 3];
