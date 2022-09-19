@@ -81,40 +81,6 @@ export class ChunkManager {
 
         const that = this;
 
-        // Animated blocks
-        this.animated_blocks = {
-            list: new VectorCollectorFlat(),
-            add: function(args) {
-                this.list.set(args.block_pos, args);
-            },
-            delete(pos) {
-                this.list.delete(pos);
-            },
-            destroyAllInAABB(aabb) {
-                for(let [pos, _] of this.list.entries(aabb)) {
-                    this.list.delete(pos);
-                }
-            },
-            update(player_pos) {
-                const meshes = Qubatch.render.meshes;
-                const type_distance = {
-                    torch_flame: 12,
-                    bubble_column: 24,
-                    campfire_flame: 96
-                };
-                // Play animations if need
-                for(let item of this.list) {
-                    if(Math.random() < .23) {
-                        if(player_pos.distance(item.block_pos) < type_distance[item.type]) {
-                            for(let pos_index = 0; pos_index < item.pos.length; pos_index++) {
-                                meshes.effects.add(item.type, item.pos[pos_index]);
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
         // Destruct chunks queue
         this.destruct_chunks_queue = {
             list: [],
@@ -217,7 +183,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_animated_block': {
-                    that.animated_blocks.add(args);
+                    Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
                 case 'add_beacon_ray': {
@@ -480,8 +446,8 @@ export class ChunkManager {
         let chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
-            // 1. Delete torch emmiters
-            this.animated_blocks.destroyAllInAABB(chunk.aabb);
+            // 1. Delete emitters
+            Qubatch.render.meshes.effects.destroyAllInAABB(chunk.aabb);
             // 2. Destroy playing discs
             TrackerPlayer.destroyAllInAABB(chunk.aabb);
             // 3. Call chunk destructor
@@ -539,6 +505,7 @@ export class ChunkManager {
         this.prepareRenderList(Qubatch.render);
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
+        /*
         // Update animated blocks
         this.timer60fps += delta;
         if(this.timer60fps >= 16.666) {
@@ -546,6 +513,7 @@ export class ChunkManager {
             this.animated_blocks.update(player_pos);
         }
         // stat['Update animated blocks'] = (performance.now() - p); p = performance.now();
+        */
 
         // Result
         //p2 = performance.now() - p2;

@@ -65,7 +65,7 @@ export default class style {
         if(active && typeof worker != 'undefined') {
             worker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
-                pos: [block.posworld],
+                pos: [block.posworld.add(new Vector(.5, .5, .5))],
                 type: 'campfire_flame'
             }]);
         }

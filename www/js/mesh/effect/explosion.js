@@ -1,8 +1,7 @@
 import { Vector } from "../../helpers.js";
-import { Mesh_Effect_Particle } from "../effect.js";
-import { Mesh_Effect_Base } from "./base.js";
+import { getEffectTexture, Mesh_Effect_Particle } from "../effect.js";
 
-export default class effect extends Mesh_Effect_Base {
+export default class effect {
 
     static textures = [
         [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3],
@@ -10,8 +9,7 @@ export default class effect extends Mesh_Effect_Base {
     ];
 
     constructor(pos, params) {
-        super(pos, params);
-        const {texture, texture_index} = this.getTexture(effect.textures);
+        const {texture, texture_index} = getEffectTexture(effect.textures);
         const speed = new Vector(
             (Math.random() - .5) * 2,
             (Math.random() - .5) * 2,

@@ -68,7 +68,8 @@ export class MeshManager {
         return true;
     }
 
-    draw(render, delta) {
+    draw(render, delta, player_pos) {
+        this.effects.tick(delta, player_pos);
         for(let [key, mesh] of this.list.entries()) {
             if(mesh.isAlive()) {
                 mesh.draw(render, delta);
@@ -77,4 +78,5 @@ export class MeshManager {
             }
         }
     }
+
 }
