@@ -1,7 +1,8 @@
 import icons from '../../media/icons.json' assert {type: 'json'};
+import { Window } from "../../tools/gui/wm.js";
 
 // Base window
-export class Component {
+export class Component extends Window {
 
     #_visible = true;
     #_tooltip = null;
@@ -9,6 +10,7 @@ export class Component {
     zoom = UI_ZOOM;
     
     constructor(x, y, w, h, id, title, parent) {
+        super(x, y, w, h, id, null, null);
         this.list           = new Map();
         this.x              = x * this.zoom;
         this.y              = y * this.zoom;
