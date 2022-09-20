@@ -1,5 +1,6 @@
-import { Vector } from "../../helpers.js";
-import { getEffectTexture, Mesh_Effect_Particle } from "../effect.js";
+import { getChunkAddr, IndexedColor, Vector } from "../../helpers.js";
+import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../effect.js";
+import { Mesh_Particle } from "../particle.js";
 
 export default class effect {
 
@@ -9,13 +10,60 @@ export default class effect {
     ];
 
     constructor(pos, params) {
-        const {texture, texture_index} = getEffectTexture(effect.textures);
-        const speed = new Vector(
-            (Math.random() - .5) * 2,
-            (Math.random() - .5) * 2,
-            (Math.random() - .5) * 2
-        ).normalize().multiplyScalar(700);
-        return new Mesh_Effect_Particle(null, pos, texture, .5, false, 0, 0.0075 + (0.0075 * Math.random()), speed);
+        this.max_distance   = 64;
+        this.pp             = IndexedColor.WHITE.clone().pack();
+        this.pos            = pos;
+        this.chunk_addr     = getChunkAddr(this.pos);
+        this.material_key   = DEFAULT_EFFECT_MATERIAL_KEY;
+        const m             = this.material_key.split('/');
+        const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
+        this.material       = resource_pack.getMaterial(this.material_key);
+        this.ticks          = 0;
+    }
+
+    emit() {
+
+        if(this.ticks++ > 1) {
+            return [];
+        }
+
+        const count = 10;
+        const resp = [];
+
+        for(let i = 0; i < count; i++) {
+
+            const {texture, texture_index} = getEffectTexture(effect.textures);
+
+            // новая частица
+            const particle = new Mesh_Particle({
+                life:           1 + Math.random() * .5,
+                texture:        texture,
+                size:           1/8,
+                scale:          1,
+                smart_scale:    {0: 1, 1: 0},
+                has_physics:    false,
+                ag:             new Vector(0, 0, 0),
+                pp:             this.pp,
+                material_key:   this.material_key,
+                material:       this.material,
+                velocity:       new Vector(
+                    Math.random() - Math.random(),
+                    Math.random() - Math.random(),
+                    Math.random() - Math.random()
+                ).multiplyScalar(50),
+                pos:            this.pos.clone().addScalarSelf(
+                    (Math.random() - Math.random()) * .3,
+                    .35 + .25 * Math.random(),
+                    (Math.random() - Math.random()) * .3
+                )
+            });
+
+            resp.push(particle);
+
+        }
+
+        return resp;
+
     }
 
 }

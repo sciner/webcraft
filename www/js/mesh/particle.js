@@ -3,9 +3,10 @@ import { AABB } from '../core/AABB.js';
 import { Vector } from "../helpers.js";
 
 // physics
-const Cd            = 0.47; // dimensionless
-const rho           = 1.22; // kg / m^3 (коэфицент трения, вязкость, плотность)
-const ag            = new Vector(0, -9.81, 0);  // m / s^2
+const Cd                = 0.47; // dimensionless
+const rho               = 1.22; // kg / m^3 (коэфицент трения, вязкость, плотность)
+const ag                = new Vector(0, -9.81, 0);  // m / s^2
+const DEF_SMART_SCALE   = {0: 1, 1: 0};
 
 //
 const aabb          = new AABB();
@@ -30,9 +31,13 @@ export class Mesh_Particle {
         this.size           = args.size,
         this.mass           = args.mass ?? (0.05 * args.scale); // kg
         this.life           = args.life ?? (1 + Math.random());
+        this.start_life     = this.life;
+        this.life_precent   = 1;
         this.pos            = args.pos;
         this.pos_o          = args.pos.clone();
         this.velocity       = args.velocity;
+        this.smart_scale    = args.smart_scale ?? DEF_SMART_SCALE;
+        this.living_blocks  = args.living_blocks ?? null;
 
         // render
         this.pp             = args.pp ?? 0;
@@ -45,11 +50,19 @@ export class Mesh_Particle {
 
     }
 
+    getCurrentSmartScale() {
+        const min = Math.max(this.smart_scale[0], 0);
+        const max = Math.min(this.smart_scale[1], 1);
+        const diff = max - min;
+        return min + this.life_precent * diff;
+    }
+
     tick(delta) {
 
         delta /= 1000;
 
         this.life -= delta;
+        this.life_precent = 1. - Math.max(this.life / this.start_life, 0);
 
         if(this.freezed || !this.visible) {
             return;
@@ -129,12 +142,18 @@ export class Mesh_Particle {
                         this.velocity.z *= this.restitution;
                     } else {
                         const ground = aabb.y_max;
-                        if(_ppos.y < ground && (this.pos_o.y > ground)) {
+                        if(_ppos.y < ground && this.pos_o.y > ground) {
                             // p.velocity.x *= Math.abs(p.restitution);
                             // p.velocity.y *= p.restitution;
                             // p.velocity.z *= Math.abs(p.restitution);
                             _next_pos.y = ground + 1/500;
                             this.freezed = true;
+                        }
+                        if(_ppos.y > aabb.y_min && this.pos_o.y < aabb.y_min) {
+                            _next_pos.y = aabb.y_min - 1/500;
+                            if(this.ag.x == 0 && this.ag.z == 0) {
+                                this.freezed = true;
+                            }
                         }
                     }
 

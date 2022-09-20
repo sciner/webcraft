@@ -753,9 +753,7 @@ export class Renderer {
     // addExplosionParticles
     addExplosionParticles(data) {
         let pos = data.pos;
-        for(let i = 0; i < 100; i++) {
-            this.meshes.effects.add('explosion',  pos);
-        }
+        this.meshes.effects.createEmitter('explosion',  pos, data);
     }
 
     // addAsteroid

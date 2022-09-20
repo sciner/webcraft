@@ -16,14 +16,10 @@ export const axisx_offset       = 3;
 export const axisy_offset       = 6;
 const uv_size_offset            = 11;
 const lm_offset                 = 13;
-const params_offset             = 4;
-const scale_offset              = 15;
+const particle_offset           = 4;
 const STRIDE_FLOATS             = GeometryTerrain.strideFloats;
 const chunk_size                = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-const MIN_PERCENT               = .25;
-const MAX_PERCENT               = 1.;
 
-const DEFAULT_LM                = new IndexedColor(0, 0, 0);
 export const DEFAULT_EFFECT_MATERIAL_KEY = 'extend/transparent/effects';
 
 export function getEffectTexture(textures) {
@@ -33,27 +29,6 @@ export function getEffectTexture(textures) {
         texture,
         texture_index
     };
-}
-
-export class Mesh_Effect_Particle {
-
-    constructor(material_key, pos, texture, life, invert_percent, min_percent, gravity, speed, flags, lm, living_blocks, max_percent) {
-        this.material_key       = material_key;
-        this.pos                = pos;
-        this.texture            = texture;
-        this.life               = life;
-        // zoom
-        this.invert_percent     = invert_percent;
-        this.min_percent        = min_percent;
-        this.max_percent        = max_percent;
-        //
-        this.gravity            = gravity;
-        this.speed              = speed;
-        this.flags              = flags;
-        this.lm                 = lm;
-        this.living_blocks      = living_blocks;
-    }
-
 }
 
 export class Mesh_Effect_Manager {
@@ -165,15 +140,8 @@ export class Mesh_Effect_Manager {
             }
         }
 
-        //
-        const type_distance = {
-            torch_flame: 12,
-            bubble_column: 24,
-            campfire_flame: 96
-        };
-        const max_distance = 24; // type_distance[item.type]
         for(let emitter of this.block_emitters) {
-            if(player_pos.distance(emitter.pos) < max_distance) {
+            if(player_pos.distance(emitter.pos) < emitter.max_distance) {
                 const particles = emitter.emit();
                 for(let particle of particles) {
                     const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
@@ -234,13 +202,13 @@ export class Mesh_Effect {
         //
         let vindex = 0;
         for(let i = 0; i < this.vertices.length; i += STRIDE_FLOATS) {
-            if(!this.vertices[i + params_offset]) {
+            if(!this.vertices[i + particle_offset]) {
                 vindex = i;
                 break;
             }
         }
 
-        if(this.vertices[vindex + params_offset]) {
+        if(this.vertices[vindex + particle_offset]) {
             Mesh_Effect.current_count--;
             this.p_count--;
         }
@@ -260,22 +228,10 @@ export class Mesh_Effect {
         ];
 
         this.buffer.changeQuad(vindex, vertices);
-        vertices[params_offset] = particle;
+        vertices[particle_offset] = particle;
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
         Mesh_Effect.current_count++;
         this.p_count++;
-
-        //for (let i = 0; i < STRIDE_FLOATS; i++) {
-        //    this.vertices[vindex + i] = vertices[i];
-        //}
-
-        /*
-        //
-        particle.min_percent = particle.min_percent ?? MIN_PERCENT;
-        particle.max_percent = particle.max_percent ?? MAX_PERCENT;
-        particle.started = performance.now();
-        particle.pend = particle.started + 1000 * particle.life;
-        */
 
         /*
         if(this.p_count >= this.max_count) {
@@ -299,35 +255,33 @@ export class Mesh_Effect {
         const data = this.buffer.data;
         const vertices = this.vertices;
 
-        // const pn = performance.now();
-        // const blocks = new VectorCollector();
-        // const _block_pos = new Vector(0, 0, 0);
+        const blocks = new VectorCollector();
+        const _block_pos = new Vector(0, 0, 0);
 
         // Reset inactive particles
         //if(!this.last_reset || (performance.now() - this.last_reset > 200)) {
             for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
-                const particle = vertices[i + params_offset];
+                const particle = vertices[i + particle_offset];
                 if(!particle) {
                     continue;
                 }
                 let need_to_delete = particle.life <= 0;
-                // let need_to_delete = params.pend < pn;
-                // // delete if particle not in living block
-                // if(params.living_blocks && !need_to_delete) {
-                //     const ap = i + pos_offset;
-                //     _block_pos
-                //         .copyFrom(this.chunk_coord)
-                //         .addScalarSelf(data[ap + 0], data[ap + 2], data[ap + 1])
-                //         .flooredSelf();
-                //     let block = blocks.get(_block_pos);
-                //     if(!block) {
-                //         block = Qubatch.world.getBlock(_block_pos);
-                //         blocks.set(_block_pos, block);
-                //     }
-                //     if(block && !params.living_blocks.includes(block.id)) {
-                //         need_to_delete = true;
-                //     }
-                // }
+                // delete if particle not in living block
+                if(particle.living_blocks && !need_to_delete) {
+                    const ap = i + pos_offset;
+                    _block_pos
+                        .copyFrom(this.chunk_coord)
+                        .addScalarSelf(data[ap + 0], data[ap + 2], data[ap + 1])
+                        .flooredSelf();
+                    let block = blocks.get(_block_pos);
+                    if(!block) {
+                        block = Qubatch.world.getBlock(_block_pos);
+                        blocks.set(_block_pos, block);
+                    }
+                    if(block && !particle.living_blocks.includes(block.id)) {
+                        need_to_delete = true;
+                    }
+                }
                 // delete this particle
                 if(need_to_delete) {
                     Mesh_Effect.current_count--;
@@ -344,7 +298,7 @@ export class Mesh_Effect {
         //
         for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
 
-            const particle = vertices[i + params_offset];
+            const particle = vertices[i + particle_offset];
             if(!particle) {
                 continue;
             }
@@ -358,7 +312,7 @@ export class Mesh_Effect {
             data[ap + 2] = particle.pos.y - this.chunk_coord.y;
             data[ap + 1] = particle.pos.z - this.chunk_coord.z;
 
-            let scale = .6;
+            let scale = particle.getCurrentSmartScale();
 
             // scale
             // data[i + 3] = this.vertices[i + 3];

@@ -10,13 +10,10 @@ export default class effect {
     ];
 
     constructor(pos, args) {
-        this.pp = IndexedColor.WHITE.clone().pack();
-        this.pos = pos.addScalarSelf(
-            (Math.random() - Math.random()) * .3,
-            .35 + .25 * Math.random(),
-            (Math.random() - Math.random()) * .3
-        );
-        this.chunk_addr = getChunkAddr(this.pos);
+        this.max_distance   = 128;
+        this.pp             = IndexedColor.WHITE.clone().pack();
+        this.pos            = pos;
+        this.chunk_addr     = getChunkAddr(this.pos);
         this.material_key   = DEFAULT_EFFECT_MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
@@ -37,11 +34,16 @@ export default class effect {
             texture:        texture,
             size:           1/8,
             scale:          1,
+            smart_scale:    {0: .3, 1: 1},
             velocity:       new Vector(0, 1, 0),
             ag:             new Vector(0, 0, 0),
             pp:             this.pp,
             material_key:   this.material_key,
-            pos:            this.pos.clone(),
+            pos:            this.pos.clone().addScalarSelf(
+                (Math.random() - Math.random()) * .3,
+                .35 + .25 * Math.random(),
+                (Math.random() - Math.random()) * .3
+            ),
             material:       this.material
         });
 

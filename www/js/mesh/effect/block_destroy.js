@@ -9,9 +9,10 @@ export default class emitter {
 
     constructor(pos, args) {
 
-        this.args = args;
-        this.pos = pos;
-        this.block_manager = args.block_manager;
+        this.args           = args;
+        this.pos            = pos;
+        this.block_manager  = args.block_manager;
+        this.max_distance   = 32;
 
         // get chunk
         this.chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
