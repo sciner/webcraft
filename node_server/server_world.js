@@ -78,6 +78,7 @@ export class ServerWorld {
         await this.quests.init();
         await this.admins.load();
         await this.restoreModifiedChunks();
+        await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
         //
         this.saveWorldTimer = setInterval(() => {
@@ -567,7 +568,7 @@ export class ServerWorld {
             let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
             for (let chunk of chunks) {
                 let buf = chunk.fluid.saveDbBuffer();
-                await this.db.saveChunkFluid(chunk.addr, buf);
+                await this.db.fluid.saveChunkFluid(chunk.addr, buf);
                 chunk.sendFluid(buf);
             }
         }
@@ -789,7 +790,7 @@ export class ServerWorld {
             }
         }
     }
-    
+
 
     // Set world game rule value
     async setGameRule(rule_code, value) {

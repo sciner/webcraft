@@ -76,9 +76,8 @@ export class FluidChunk {
     calcBounds() {
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
-        let res = false;
         this._localBounds.set(size.x, size.y, size.z, 0, 0, 0);
-        cycle:for (let y = 0; y < size.y; y++)
+        for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
@@ -86,7 +85,6 @@ export class FluidChunk {
                         this._localBounds.addPoint(x, y, z);
                     }
                 }
-        return res;
     }
 
     /**
@@ -103,7 +101,7 @@ export class FluidChunk {
 
     isNotEmpty() {
         const bounds = this.getLocalBounds();
-        return bounds.x_min > bounds.x_max && bounds.y_min > bounds.y_max && bounds.z_min > bounds.z_max;
+        return bounds.x_min <= bounds.x_max && bounds.y_min <= bounds.y_max && bounds.z_min <= bounds.z_max;
     }
 
     saveDbBuffer() {
@@ -208,6 +206,7 @@ export class FluidChunk {
         }
 
         this.boundsDirty = true;
+        this.dirty = true;
     }
 
     syncBlockProps(index, blockId) {
@@ -278,10 +277,13 @@ export class FluidChunk {
     }
 
     markDirty() {
-        if (this.dirty || !this.world || !this.world.trackDirty) {
+        if (this.dirty) {
             return;
         }
         this.dirty = true;
+        if (!this.world || !this.world.trackDirty) {
+            return;
+        }
         this.world.dirtyChunks.push(this);
     }
 

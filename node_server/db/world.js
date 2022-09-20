@@ -11,6 +11,7 @@ import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
 import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
+import { DBWorldFluid } from "./world/fluid.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 
@@ -29,6 +30,7 @@ export class DBWorld {
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
         this.portal = new DBWorldPortal(this.conn, this.world);
+        this.fluid = new DBWorldFluid(this.conn, this.world);
         return this;
     }
 
@@ -517,26 +519,6 @@ export class DBWorld {
             FROM json_each(:data)`, {
                 ':data': JSON.stringify(data)
             });
-    }
-
-    //
-    async loadChunkFluid(chunk_addr) {
-        const row = await this.conn.get('SELECT data FROM world_chunks_fluid WHERE x = :x AND y = :y AND z = :z', {
-            ':x': chunk_addr.x,
-            ':y': chunk_addr.y,
-            ':z': chunk_addr.z
-        });
-        return row ? row['data'] : null;
-    }
-
-    //
-    async saveChunkFluid(chunk_addr, data) {
-        await this.conn.run('INSERT INTO world_chunks_fluid(x, y, z, data) VALUES (:x, :y, :z, :data)', {
-            ':x': chunk_addr.x,
-            ':y': chunk_addr.y,
-            ':z': chunk_addr.z,
-            ':data': data
-        });
     }
 
     // Change player game mode

@@ -26,6 +26,7 @@ class TickingBlock {
         // this.tblock     = null;
         this.ticking    = null;
         this.ticker     = null;
+        this.fluidBuf   = null;
     }
 
     setState(pos_index) {
@@ -163,7 +164,7 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADING);
         //
-        const afterLoad = (ml) => {
+        const afterLoad = ([ml, fluid]) => {
             if(!ml.obj && ml.compressed) {
                 ml.obj = decompressWorldModifyChunk(ml.compressed)
             }
@@ -185,15 +186,19 @@ export class ServerChunk {
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
+
+            this.fluidBuf = fluid;
         };
-        //
-        if(this.world.chunkHasModifiers(this.addr)) {
-            this.world.db.loadChunkModifiers(this.addr).then((result) => {
-                afterLoad(result);
-            });
-        } else {
-            afterLoad({});
-        }
+
+        const loadCMPromise = new Promise((resolve, reject) => {
+            if(this.world.chunkHasModifiers(this.addr)) {
+                resolve(this.world.db.loadChunkModifiers(this.addr))
+            } else {
+                resolve({})
+            }
+        });
+
+        Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
     }
 
     // Add player connection
@@ -351,19 +356,23 @@ export class ServerChunk {
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         // fluid
-        let buf = await this.world.db.loadChunkFluid(this.addr);
-        if(this.load_state == CHUNK_STATE_UNLOADED) {
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
         }
-        if(buf) {
-            this.fluid.loadDbBuffer(buf);
+        let fluidBuf = this.fluidBuf;
+        this.fluidBuf = null;
+        if(fluidBuf) {
+            this.fluid.loadDbBuffer(fluidBuf);
         } else {
             if (this.fluid.isNotEmpty()) {
-                buf = this.fluid.saveDbBuffer();
-                await this.world.db.saveChunkFluid(this.addr, buf);
+                fluidBuf = this.fluid.saveDbBuffer();
+                await this.world.db.fluid.saveChunkFluid(this.addr, fluidBuf);
             }
         }
         //
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
+            return;
+        }
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
@@ -375,8 +384,8 @@ export class ServerChunk {
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
             }
-            if(buf) {
-                this.sendFluid(buf);
+            if(fluidBuf) {
+                this.sendFluid(fluidBuf);
             }
         }
     }
