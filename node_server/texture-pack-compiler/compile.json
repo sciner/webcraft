@@ -7465,10 +7465,32 @@
                 "texture": "26|31"
             },
             "effects":[
-                {"id":7, "time": 1, "level": 1}
+                {"id":7, "time": 45, "level": 1}
             ]
-        },
-        {
+        },{
+            "id": 259,
+            "name": "REGENERATION_+",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 76, "g": 515, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {"id":7, "time": 90, "level": 1}
+            ]
+        },{
             "id": 238,
             "name": "REGENERATION_2",
             "style": "extruder",
@@ -7489,7 +7511,7 @@
                 "texture": "26|31"
             },
             "effects":[
-                {"id":7, "time": 1, "level": 2}
+                {"id":7, "time": 22, "level": 2}
             ]
         },
         {

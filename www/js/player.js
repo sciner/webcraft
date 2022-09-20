@@ -36,12 +36,12 @@ export class Player {
             sneak:              false,
             ping:               0
         };
-        this.effects = [];
+        this.effects = {effects:[]}
     }
     
     // возвращает уровень эффекта
     getEffectLevel(val) {
-        for (const effect of this.effects) {
+        for (const effect of this.effects.effects) {
             if (effect.id == val) {
                 return effect.level;
             }
@@ -118,7 +118,7 @@ export class Player {
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         this.chat                   = new Chat(this);
         this.controls               = new PlayerControl(this.options);
@@ -158,7 +158,7 @@ export class Player {
             Qubatch.hud.refresh();
         });
         this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
-            this.effects = cmd.data.effects;
+            this.effects.effects = cmd.data.effects;
             Qubatch.hud.refresh();
         });
         // pickAt
@@ -898,7 +898,6 @@ export class Player {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
-                    console.log("sound");
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
