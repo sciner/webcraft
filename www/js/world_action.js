@@ -364,7 +364,7 @@ class DestroyBlocks {
             const connected_pos = new Vector(pos);
             if(tblock.rotate && head_pos.z) {
                 let rot = tblock.rotate.x;
-                if(!tblock.extra_data.is_head) {
+                if(!tblock.extra_data?.is_head) {
                     rot += 2;
                 }
                 connected_pos.addByCardinalDirectionSelf(head_pos, rot);

@@ -898,7 +898,6 @@ export class Player {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
-                    console.log("sound");
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
