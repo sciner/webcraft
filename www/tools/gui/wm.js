@@ -776,7 +776,7 @@ export class Window {
                     if(opts.mode == 'stretch') {
                         this.ctx.drawImage(val.image, opts.x, opts.y, opts.width, opts.height, x, y, w, h);
                     } else if(opts.mode == 'none') {
-                        const offset = 40;
+                        const offset = 30;
                         this.ctx.drawImage(val.image, opts.x, opts.y, opts.width, opts.height, x + offset / 2, y + offset / 2, w - offset, h - offset);
                     }
                     break;

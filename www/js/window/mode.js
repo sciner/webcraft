@@ -7,7 +7,6 @@ class ModeLabel extends Window {
     constructor(x, y, size, id, icon, ct) {
         
         super(x, y, size, size, id, null, null);
-        this.icon = 'speed';
         this.ct = ct;
         this.style.background.image = './media/icons.png';
         this.style.border.hidden = true;
@@ -60,9 +59,6 @@ class ModeLabel extends Window {
                 break;
             }
         }
-        //32 32 204 74
-        // 68 74
-        // 268 40
     }
 }
 
@@ -73,7 +69,6 @@ export class ModeWindow extends Window {
         super(10, 10, 217, 100, 'frmMode', null, null);
         
         this.mode = 'survival';
-
         this.player = player;
         this.width *= this.zoom;
         this.height *= this.zoom;
@@ -102,6 +97,16 @@ export class ModeWindow extends Window {
             this.updateMode();
         }
         
+        // Обработчик закрытия формы
+        this.onHide = function() {
+            player.world.server.Send({
+                name: ServerClient.CMD_GAMEMODE_SET, 
+                data: {
+                    id: this.mode
+                }
+            });
+        }
+        
         // Hook for keyboard input
         this.onKeyEvent = (e) => {
             const {keyCode, down, first} = e;
@@ -114,7 +119,7 @@ export class ModeWindow extends Window {
                             this.mode = 'adventure';
                         } else if (this.mode == 'adventure') {
                             this.mode = 'spectator';
-                        } else if (this.mode == 'spectator') { 
+                        } else { 
                             this.mode = 'survival';
                         }
                         this.updateMode();
