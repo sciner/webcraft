@@ -103,7 +103,7 @@ export class GameClass {
         const player = this.player;
         const add_mouse_rotate = new Vector();
         const controls = that.player.controls;
-        let F3Key = false;
+        let freezeF4Up = false;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || window.clipboardData;
@@ -220,15 +220,17 @@ export class GameClass {
                     // [F3] Toggle info
                     case KEY.F3: {
                         if(!e.down) {
-                            if (F3Key == false) {
-                                hud.toggleInfo();
-                            }
                             if (hud.wm.getWindow('frmMode').visible) {
                                 hud.wm.getWindow('frmMode').hide();
+                                this.setupMousePointer(false);
+                            } else {
+                                hud.toggleInfo();
                             }
-                            F3Key = false;
+                            kb.keys[KEY.F3] = false;
+                            kb.keys[KEY.F4] = false;
+                            freezeF4Up = true;
                         } else  {
-                            F3Key = true;
+                            kb.keys[KEY.F3] = performance.now();
                         }
                         return true;
                     }
@@ -301,17 +303,25 @@ export class GameClass {
                     }
                     // [F4] set spawnpoint
                     case KEY.F4: {
-                        if(!e.down) {
-                            if(e.shiftKey) {
-                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
-                                Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
-                            } else if (F3Key) {
-                                hud.wm.getWindow('frmMode').show();
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                if(!hud.wm.getWindow('frmMode').visible) {
+                                    hud.wm.getWindow('frmMode').show();
+                                }
+                            }
+                        } else {
+                            if(freezeF4Up) {
+                                freezeF4Up = false;
                             } else {
-                                player.changeSpawnpoint();
+                                if(e.shiftKey) {
+                                    this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
+                                    Qubatch.render.addAsteroid(player.pos.add({x: 0, y: 16, z: 0}), 5);
+                                } else if(kb.keys[e.keyCode]) {
+                                    player.changeSpawnpoint();
+                                }
                             }
                         }
-                        return true;
+                        break;
                     }
                     // [F7]
                     case KEY.F7: {

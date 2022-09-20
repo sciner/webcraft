@@ -87,7 +87,7 @@ export class GameMode {
     }
 
     // Переключить на следующий игровой режим
-    next() {
+    next(return_only = false) {
         let index = 0;
         for(let mode of this.modes) {
             index++;
@@ -95,7 +95,11 @@ export class GameMode {
                 break;
             }
         }
-        let id = this.modes[index % this.modes.length].id;
+        const mode = this.modes[index % this.modes.length];
+        if(return_only) {
+            return mode;
+        }
+        let id = mode.id;
         this.applyMode(id, true);
     }
 

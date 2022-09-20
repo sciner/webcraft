@@ -1,6 +1,7 @@
 import { Component } from "./wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
+import { KEY } from "../constant.js";
 
 export class ModeWindow extends Component {
 
@@ -36,28 +37,31 @@ export class ModeWindow extends Component {
         this.lbl_spectator.setBackground('inventory-0.png');
         this.lbl_spectator.setIcon('ender_eye.png', 20);
         this.add(this.lbl_spectator);
-        
+
         this.onShow = function() {
             Qubatch.releaseMousePointer();
-            this.mode = this.player.game_mode.current.id;
+            this.mode = this.prev_mode ?? this.player.game_mode.next(true).id;
             this.updateMode();
         };
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
-            player.world.server.Send({
-                name: ServerClient.CMD_GAMEMODE_SET, 
-                data: {
-                    id: this.mode
-                }
-            });
+            this.prev_mode = this.player.game_mode.current.id;
+            if(this.prev_mode != this.mode) {
+                player.world.server.Send({
+                    name: ServerClient.CMD_GAMEMODE_SET, 
+                    data: {
+                        id: this.mode
+                    }
+                });
+            }
         };
         
         this.onKeyEvent = (e) => {
             const {keyCode, down, first} = e;
             switch(keyCode) {
                 case KEY.F4: {
-                    if(!down) {
+                    if(down) {
                         if (this.mode == 'survival') {
                             this.mode = 'creative';
                         } else if (this.mode == 'creative') {
