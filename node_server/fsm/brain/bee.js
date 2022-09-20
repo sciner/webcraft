@@ -204,7 +204,7 @@ export class Brain extends FSMBrain {
         if (this.ticks_anger <= this.anger_time) {
             if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.ticks_attack > this.interval_attack && distance < this.distance_attack) {
                 this.ticks_attack = 0;
-                player.changeLive(-this.damage);
+                player.setDamage(this.damage);
                 const world = mob.getWorld();
                 const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона

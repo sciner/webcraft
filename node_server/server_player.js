@@ -180,20 +180,13 @@ export class ServerPlayer extends Player {
         this.conn.close(1000, 'error_multiconnection');
         delete(this.conn);
     }
-
-    // Change indicator value
-    // Die checked in tick()
-    changeIndicator(code, value) {
-        if(this.is_dead) {
+    
+    // Нанесение урона игроку
+    setDamage(val, src) {
+        if(this.is_dead || !this.game_mode.mayGetDamaged()) {
             return false;
         }
-        this.live_level = Math.min(value + this.live_level, 20);
-        //const ind = this.state.indicators[code];
-        //const prev_value = ind.value;
-        //ind.value = Math.max(prev_value + value, 0);
-        //console.log(`Player indicator changed '${code}' ${prev_value} -> ${ind.value}`);
-        //this.indicators_changed = true;
-        return true;
+        this.live_level = Math.max(this.live_level - val, 0);
     }
 
     /**

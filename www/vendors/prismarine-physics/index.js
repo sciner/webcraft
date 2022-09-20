@@ -697,6 +697,9 @@ function getStatusEffectNamesForVersion(supportFeature) {
 
 // возвращает уровень эффекта
 function getEffectLevel(val, effects) {
+    if (!effects?.effects) {
+        return 0;
+    }
     for (const effect of effects.effects) {
         if (effect.id == val) {
             return effect.level;
