@@ -1,4 +1,18 @@
-import { Window, Label, Button } from "../../tools/gui/wm.js";
+import { Component } from "./wm.js";
+
+
+
+export class ModeWindow extends Component {
+
+    constructor(player) {
+        super(0, 0, 217, 100, 'frmMode');
+        
+    }
+    
+
+}
+
+/*import { Window, Label, Button } from "../../tools/gui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 
@@ -144,4 +158,4 @@ export class ModeWindow extends Window {
         }
     }
 
-}
+}*/

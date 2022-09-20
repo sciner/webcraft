@@ -224,10 +224,11 @@ export class GameClass {
                             if (F3Key == false) {
                                 hud.toggleInfo();
                             }
-                            hud.wm.getWindow('frmMode').hide();
+                            hud.wm.getWindow('frmMode').show();
                             F3Key = false;
                             F3KeyTime = performance.now();
                         } else  {
+                            hud.wm.getWindow('frmMode').hide();
                             F3Key = true;
                         }
                         return true;
