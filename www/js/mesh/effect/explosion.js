@@ -27,7 +27,7 @@ export default class effect {
             return [];
         }
 
-        const count = 10;
+        const count = 20;
         const resp = [];
 
         for(let i = 0; i < count; i++) {

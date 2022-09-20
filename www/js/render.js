@@ -752,7 +752,7 @@ export class Renderer {
 
     // addExplosionParticles
     addExplosionParticles(data) {
-        let pos = data.pos;
+        let pos = new Vector(data.pos);
         this.meshes.effects.createEmitter('explosion',  pos, data);
     }
 
