@@ -104,7 +104,6 @@ export class GameClass {
         const add_mouse_rotate = new Vector();
         const controls = that.player.controls;
         let F3Key = false;
-        let F3KeyTime = 0;
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || window.clipboardData;
@@ -224,11 +223,11 @@ export class GameClass {
                             if (F3Key == false) {
                                 hud.toggleInfo();
                             }
-                            hud.wm.getWindow('frmMode').show();
+                            if (hud.wm.getWindow('frmMode').visible) {
+                                hud.wm.getWindow('frmMode').hide();
+                            }
                             F3Key = false;
-                            F3KeyTime = performance.now();
                         } else  {
-                            hud.wm.getWindow('frmMode').hide();
                             F3Key = true;
                         }
                         return true;
