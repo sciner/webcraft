@@ -151,8 +151,9 @@ export class ServerPlayerDamage {
         const west = world.getBlock(position.add(Vector.XP));
         const north = world.getBlock(position.add(Vector.ZP));
         const south = world.getBlock(position.add(Vector.ZN));
+        const down = world.getBlock(position.add(Vector.YN));
         const sub = player.state.pos.sub(position);
-        if  ((east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
+        if  ((down.id == BLOCK.CACTUS.id) || (east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
             this.cactus_lost_timer++;
             if (this.cactus_lost_timer >= CACTUS_LOST_TICKS) {
                 this.cactus_lost_timer = 0;
@@ -226,61 +227,4 @@ export class ServerPlayerDamage {
         this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, ind_def.food.value);
     }
     
-   /* tick(delta, tick_number) {
-        const player = this.player;
-        const world = player.world;
-        const params = {
-            tick_number,
-            tblocks: {
-                head: world.getBlock(player.getEyePos().floored()),
-                legs: world.getBlock(player.state.pos.floored())
-            }
-        }
-        // Утопление + удушение
-        this.checkLackOfOxygenAndAsphyxiation(params);
-    }
-
-    // Check lack of oxygen and asphyxiation
-    checkLackOfOxygenAndAsphyxiation(params) {
-        const player = this.player;
-        const world = player.world;
-        if(player.is_dead || !player.game_mode.getCurrent().asphyxiation) {
-            return false;
-        }
-        const LOST_TICKS = 10;
-        const GOT_TICKS = 5;
-        if(((params.tick_number % LOST_TICKS) != 0) && (params.tick_number % GOT_TICKS) != 0) {
-            return false;
-        }
-        const ind_def = world.getDefaultPlayerIndicators().oxygen;
-        const ind_player = player.state.indicators[ind_def.name];
-        const mat = params.tblocks.head.material;
-        if(mat.has_oxygen) {
-            if((params.tick_number % GOT_TICKS) == 0) {
-                if(ind_player.value < ind_def.value) {
-                    player.changeIndicator(ind_def.name, 1)
-                }
-            }
-        } else {
-            if((params.tick_number % LOST_TICKS) == 0) {
-                if(ind_player.value > 0) {
-                    player.changeIndicator(ind_def.name, -1);
-                } else {
-                    player.changeIndicator('live', -1);
-                    if(player.state.indicators.live.value % 2 == 1) {
-                        this.sendDamageSound('hit');
-                    }
-                }
-            }
-        }
-    }
-
-    sendDamageSound(action) {
-        const packets = [{
-            name: ServerClient.CMD_PLAY_SOUND,
-            data: { tag: 'madcraft:block.player', action: action, pos: null}
-        }];
-        this.player.world.sendSelected(packets, [this.player.session.user_id]);
-    }*/
-
 }
