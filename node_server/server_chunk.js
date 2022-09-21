@@ -26,7 +26,7 @@ class TickingBlock {
         // this.tblock     = null;
         this.ticking    = null;
         this.ticker     = null;
-        this.fluidBuf   = null;
+        this._preloadFluidBuf   = null;
     }
 
     setState(pos_index) {
@@ -187,7 +187,7 @@ export class ServerChunk {
                 this.preq.clear();
             }
 
-            this.fluidBuf = fluid;
+            this._preloadFluidBuf = fluid;
         };
 
         const loadCMPromise = new Promise((resolve, reject) => {
@@ -271,7 +271,13 @@ export class ServerChunk {
     sendToPlayers(player_ids) {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
-        const data = {addr: this.addr, modify_list: {}};
+
+        const fluidBuf = this.fluid ? this.fluid.saveDbBuffer() : this._preloadFluidBuf;
+        const data = {addr: this.addr,
+            modify_list: {},
+            // TODO: proper compression for fluid
+            fluid: fluidBuf ? Buffer.from(fluidBuf).toString('base64') : null
+        };
         const ml = this.modify_list;
         if(!ml.compressed && ml.obj) {
             this.compressModifyList();
@@ -359,18 +365,12 @@ export class ServerChunk {
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
         }
-        let fluidBuf = this.fluidBuf;
-        this.fluidBuf = null;
-        if(fluidBuf) {
-            this.fluid.loadDbBuffer(fluidBuf, true);
-        } else {
-            if (this.fluid.isNotEmpty()) {
-                fluidBuf = this.fluid.saveDbBuffer();
-                //TODO: do we have to wait for this? make sure there's no double-save
-                await this.world.db.fluid.saveChunkFluid(this.addr, fluidBuf);
-            }
+        let _preloadFluidBuf = this._preloadFluidBuf;
+        if(this._preloadFluidBuf) {
+            // now its stored in fluid facet
+            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
+            this._preloadFluidBuf = null;
         }
-        //
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
         }
@@ -384,9 +384,6 @@ export class ServerChunk {
             }
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
-            }
-            if(fluidBuf) {
-                this.sendFluid(fluidBuf);
             }
         }
     }

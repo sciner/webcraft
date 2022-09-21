@@ -163,6 +163,9 @@ export class ChunkManager {
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
             // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
+            if (cmd.data.fluid) {
+                cmd.data.fluid = Uint8Array.from(atob(cmd.data.fluid), c => c.charCodeAt(0));
+            }
             this.setChunkState(cmd.data);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
@@ -290,11 +293,6 @@ export class ChunkManager {
         const chunk = this.getChunkForSetData(addr);
         if(chunk instanceof Chunk) {
             chunk.setFluid(fluid);
-        } else if(chunk) {
-            if(!chunk._preload_data) {
-                chunk._preload_data = {};
-            }
-            chunk._preload_data.fluid = fluid;
         } else {
             console.error('no_chunk');
         }
@@ -486,7 +484,6 @@ export class ChunkManager {
         }
         this.chunks_prepare.add(item.addr, {
             start_time: performance.now(),
-            _preload_data: item._preload_data ?? null
         });
         if(item.has_modifiers) {
             this.world.server.loadChunk(item.addr);
@@ -508,16 +505,8 @@ export class ChunkManager {
             this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
-            //
-            if(prepare._preload_data) {
-                for(let k in prepare._preload_data) {
-                    switch(k) {
-                        case 'fluid': {
-                            chunk.setFluid(prepare._preload_data[k]);
-                            break;
-                        }
-                    }
-                }
+            if (state.fluid) {
+                chunk.setFluid(state.fluid);
             }
             this.poses_need_update = true;
             return true;
