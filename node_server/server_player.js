@@ -450,7 +450,7 @@ export class ServerPlayer extends Player {
         
         this.damage.getDamage(tick);
        
-        if (this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
+        if (this.live_level == 0 || this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live.value > this.live_level) {
                 // @todo добавить дергание
@@ -459,7 +459,7 @@ export class ServerPlayer extends Player {
                     data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
                 });
             }
-            if(this.live_level <= 0) {
+            if(this.live_level == 0) {
                 this.is_dead = true;
                 this.state.stats.death++;
                 // @todo check and drop inventory items if need

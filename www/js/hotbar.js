@@ -113,7 +113,6 @@ export class Hotbar {
 
     //
     damage(damage_value, reason_text) {
-        Qubatch.sounds.play('madcraft:block.player', 'hit');
         this.last_damage_time = performance.now();
         console.error('error_not_implemented', damage_value, reason_text);
         this.inventory.player.world.server.ModifyIndicator('live', -damage_value, reason_text);

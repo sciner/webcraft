@@ -804,7 +804,6 @@ export class Player {
             let height = (bp.y - this.lastBlockPos.y) / this.scale;
             if(height < 0) {
                 const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(10);
-                console.log(height + " " + MAX_UNDAMAGED_HEIGHT);
                 if(damage > 0) {
                     Qubatch.hotbar.damage(damage, 'falling');
                 }
