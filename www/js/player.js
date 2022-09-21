@@ -201,7 +201,7 @@ export class Player {
         //setInterval(() => {
         //    const pos = Qubatch.player.lerpPos.clone();
         //    pos.set(24.5, 4.5, 24.5);
-        //    Qubatch.render.damageBlock({id: 202}, pos, false);
+        //    Qubatch.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
         return true;
@@ -306,7 +306,7 @@ export class Player {
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale, this.scale);
+                        Qubatch.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
                     }
                 }
             }
@@ -414,7 +414,7 @@ export class Player {
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Qubatch.render.damageBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
+                    Qubatch.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
@@ -906,7 +906,7 @@ export class Player {
                         const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
-                        Qubatch.render.damageBlock(material, pos, true, this.scale, this.scale);
+                        Qubatch.render.destroyBlock(material, pos, true, this.scale, this.scale);
                     } else {
                         this.stopItemUse();
                     }

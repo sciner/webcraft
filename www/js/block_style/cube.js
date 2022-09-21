@@ -69,6 +69,10 @@ export default class style {
         let height = material.height ? material.height : 1;
         let depth = material.depth ? material.depth : width;
 
+        if(for_physic && block.id == BLOCK.SOUL_SAND.id) {
+            height = 14/16;
+        }
+
         // Button
         if(material.is_button) {
             if(block.extra_data?.pressed) {
@@ -489,6 +493,25 @@ export default class style {
         );
 
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
+
+        // Add animations
+        if(typeof worker != 'undefined' && block.id == BLOCK.BUBBLE_COLUMN.id || (block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id)) {
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: [block.posworld.add(new Vector(.5, .5, .5))],
+                type: 'bubble_column'
+            }]);
+        }
+
+        if(typeof worker != 'undefined' && block.id == BLOCK.JUKEBOX.id) {
+            if(block.extra_data?.disc) {
+                worker.postMessage(['add_animated_block', {
+                    block_pos: block.posworld,
+                    pos: [block.posworld.add(new Vector(.5, .5, .5))],
+                    type: 'music_note'
+                }]);
+            }
+        }
 
     }
 
