@@ -14,7 +14,7 @@ import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
-import { ServerPlayerEffects, Effect } from "./player/effects.js";
+import { ServerPlayerEffects } from "./player/effects.js";
 
 export class NetworkMessage {
     constructor({

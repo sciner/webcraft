@@ -13,6 +13,7 @@ import {doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
+import { Effect } from "./block_type/effect.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -407,8 +408,8 @@ export class Player {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             let mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
-            mul += mul * 0.2 * this.getEffectLevel(2); //Усеоренная разбивка блоков
-            mul -= mul * 0.2 * this.getEffectLevel(3); //усталость
+            mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+            mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
@@ -803,7 +804,7 @@ export class Player {
             let bp = this.getBlockPos();
             let height = (bp.y - this.lastBlockPos.y) / this.scale;
             if(height < 0) {
-                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(10);
+                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(Effect.JUMP_BOOST);
                 if(damage > 0) {
                     Qubatch.hotbar.damage(damage, 'falling');
                 }

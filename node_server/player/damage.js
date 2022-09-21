@@ -1,4 +1,4 @@
-import { Effect } from "./effects.js";
+import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
 

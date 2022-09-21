@@ -1,4 +1,5 @@
 import { Vec3 } from "../../js/helpers.js";
+import { Effect } from "../../js/block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
@@ -410,11 +411,11 @@ export function Physics(mcData, fake_world, options) {
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
             if (entity.control.sprint) acceleration *= physics.sprintSpeed
-            const speed = getEffectLevel(0, entity.effects);
+            const speed = getEffectLevel(Effect.SPEED, entity.effects);
             if (speed > 0) {
                 acceleration *= physics.speedEffect * speed;
             }
-            const slowness = getEffectLevel(1, entity.effects);
+            const slowness = getEffectLevel(Effect.SLOWNESS, entity.effects);
             if (slowness > 0) {
                 acceleration *= physics.slowEffect / slowness;
             }
@@ -435,7 +436,7 @@ export function Physics(mcData, fake_world, options) {
             }
 
             // Apply friction and gravity
-            const levitation = getEffectLevel(19, entity.effects);
+            const levitation = getEffectLevel(Effect.LEVITIATION, entity.effects);
             if (levitation > 0) {
                 vel.y += (0.05 * levitation - vel.y) * 0.2;
             } else {
@@ -609,7 +610,7 @@ export function Physics(mcData, fake_world, options) {
                     const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                     vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
                 }
-                const jumpBoost = getEffectLevel(10, entity.effects);
+                const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.effects);
                 if (jumpBoost > 0) {
                     vel.y += 0.1 * jumpBoost
                 }
