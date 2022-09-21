@@ -344,9 +344,6 @@
             "material": {
                 "id": "dirt"
             },
-            "ticking": {
-                "type": "dirt"
-            },
             "extra_data": {"calculated": [
                 {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
             ]},
@@ -365,6 +362,11 @@
             ],
             "material": {
                 "id": "dirt"
+            },
+            "ticking": {
+                "type": "grass"
+            },
+            "extra_data": {
             },
             "texture": {
                 "up": "block/grass_block_top.png",

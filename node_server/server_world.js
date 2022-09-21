@@ -786,12 +786,20 @@ export class ServerWorld {
     // Set world game rule value
     async setGameRule(rule_code, value) {
         //
-        function parseFloatValue(value) {
+        function parseBoolValue(value) {
             value = value.toLowerCase().trim();
             if(['true', 'false'].indexOf(value) < 0) {
                 throw 'error_invalid_value_type';
             }
             return value == 'true';
+        }
+        // 
+        function parseIntValue(value) {
+            value = parseInt(value);
+            if (isNaN(value) || !isFinite(value)) {
+                throw 'error_invalid_value_type';
+            }
+            return value;
         }
         //
         const rules = this.info.rules;
@@ -799,7 +807,7 @@ export class ServerWorld {
         switch(rule_code) {
             case 'doDaylightCycle': {
                 // /gamerule doDaylightCycle false|true
-                value = parseFloatValue(value);
+                value = parseBoolValue(value);
                 if(value) {
                     delete(rules.doDaylightCycleTime);
                 } else {
@@ -807,6 +815,10 @@ export class ServerWorld {
                     this.updateWorldCalendar();
                     rules.doDaylightCycleTime = this.info.calendar.day_time;
                 }
+                break;
+            }
+            case 'randomTickSpeed': {
+                value = parseIntValue(value);
                 break;
             }
             default: {
