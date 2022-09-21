@@ -144,7 +144,7 @@ export class Brain extends FSMBrain {
         const players = this.getPlayersNear(mobPos, this.players_damage_distance, true);
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
-            player.getDamage(this.explosion_damage);
+            player.setDamage(this.explosion_damage, 'creeper');
             // play hit sound for this player
             custom_packets.user_ids.push(player.session.user_id);
         }

@@ -1,4 +1,4 @@
-import {VectorCollector} from "./helpers.js";
+import {Vector, VectorCollector} from "./helpers.js";
 import {XMPlayer} from "./../vendors/xm.js";
 
 const MAX_AUDIBILITY_DIST = 64;
@@ -48,6 +48,7 @@ export class Tracker_Player {
         if(jukebox) {
             jukebox.stop();
             this.vc.delete(pos);
+            Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
         }
     }
 

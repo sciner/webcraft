@@ -25,7 +25,6 @@ export class MainMenu extends Window {
         this.onShow = function() {
             this.parent.center(this);
             Qubatch.releaseMousePointer();
-            console.log("show")
         }
 
         // Add buttons

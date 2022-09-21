@@ -532,7 +532,7 @@ export class Chunk {
             if(power) tblock.power = power;
             //
             set_block_list.push({pos, type, power, rotate, extra_data, is_modify});
-            chunkManager.animated_blocks.delete(pos);
+            Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
             // light
             if(chunkManager.use_light) {
                 const light = material.light_power_number;
