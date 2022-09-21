@@ -6,7 +6,7 @@ import { isMobileBrowser } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
-import { Mesh_Particle_Base } from "./mesh/particle.js";
+import { Mesh_Effect } from "./mesh/effect.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -345,7 +345,7 @@ export class HUD {
             if(draw_tech_info) {
                 this.text += '\nPackets: ' + Qubatch.world.server.stat.out_packets.total + '/' + Qubatch.world.server.stat.in_packets.total; // + '(' + Qubatch.world.server.stat.in_packets.physical + ')';
                 if(render) {
-                    this.text += '\nParticles: ' + Mesh_Particle_Base.current_count;
+                    this.text += '\nParticles: ' + Mesh_Effect.current_count;
                     this.text += '\nDrawcalls: ' + render.renderBackend.stat.drawcalls;
                     if (render.renderBackend.stat.multidrawcalls) {
                         this.text += ' + ' + render.renderBackend.stat.multidrawcalls + '(multi)';

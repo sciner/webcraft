@@ -52,7 +52,7 @@ export class PacketReader {
     // Read packet
     async read(player, packet) {
 
-        if (player.is_dead && [ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].indexOf(packet.name) < 0) {
+        if (player.is_dead && ![ServerClient.CMD_RESURRECTION, ServerClient.CMD_CHUNK_LOAD].includes(packet.name)) {
             return;
         }
 

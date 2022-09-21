@@ -86,11 +86,11 @@ export class GameClass {
             // TrackerPlayer change volumes
             TrackerPlayer.changePos(this.player.lerpPos);
             // Add jukebox animations
-            for(let pos of TrackerPlayer.vc.keys()) {
+            /*for(let pos of TrackerPlayer.vc.keys()) {
                 if(Math.random() < .1) {
-                    Qubatch.render.meshes.effects.add('music_note', pos);
+                    Qubatch.render.meshes.effects.createBlockEmitter({type: 'music_note', pos: [pos.add(new V)]});
                 }
-            }
+            }*/
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);

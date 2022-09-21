@@ -335,7 +335,8 @@ export function Physics(mcData, fake_world, options) {
                             entity.isInWeb = true
                             entity.passable = cobwebLike.get(block.type)
                         } else if (block.type === bubblecolumnId) {
-                            const down = !block.metadata
+                            // TODO: fast fix
+                            const down = false; // !block.metadata
                             const aboveBlock = world.getBlock(cursor.offset(0, 1, 0))
                             const bubbleDrag = (aboveBlock && aboveBlock.type === 0 /* air */) ? physics.bubbleColumnSurfaceDrag : physics.bubbleColumnDrag
                             if (down) {

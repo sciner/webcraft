@@ -38,7 +38,7 @@ class FakeWorld {
                 honey_block:    null,
                 seagrass:       null,
                 kelp:           null,
-                bubble_column:  null
+                bubble_column:  BLOCK.BUBBLE_COLUMN
             }
         };
         return this.mcData;

@@ -50,6 +50,30 @@
             "spawnable": false
         },
         {
+            "id": 415,
+            "name": "BUBBLE_COLUMN",
+            "transparent": true,
+            "passable": 0.4,
+            "selflit": true,
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture_animations": {
+                "up": null,
+                "side": 0
+            },
+            "texture": {
+                "up": "block/water_still.png",
+                "side": "block/water_still.png"
+            },
+            "tags": [
+                "multiply_color"
+            ],
+            "multiply_color": {"r": 129, "g": 194, "b": 0},
+            "spawnable": false
+        },
+        {
             "id": 200,
             "name": "FLOWING_WATER",
             "passable": 0.4,
