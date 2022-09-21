@@ -3043,6 +3043,12 @@
             "material": {
                 "id": "obsidian"
             },
+            "light_power": {
+                "r": 241,
+                "g": 128,
+                "b": 253,
+                "a": 128
+            },
             "texture": {
                 "id": "entity",
                 "side": "entity/chest/ender.png"
