@@ -145,3 +145,23 @@ You can made 3 type of portals:
 - ### Portal to routine world (main level)
     - You must build a frame from PRISMARINE (minimum size 4x5) and must activate the portal by applying FLINT_AND_STEEL to the inside of the frame;
     - You cannot activate the portal if the bottom border is between 0 - 500 blocks.
+
+## Generate particles from server
+```JS
+const actions = new WorldAction();
+// Where type can be one from [campfire_flame|explosion|music_note|torch_flame|...]
+actions.addParticles([{type: 'explosion', pos: vec_center}]);
+```
+
+1. It is necessary to create an emitter, for example, as an explosion, it is disposable. The emitters are located in the `mesh/effect/emitter` folder
+
+2. Next, the emitter must be registered in `mesh/effect/manager.js` after line 32
+
+3. While the emitter method `canDelete()` returns true, it will exist and on each frame it will call the `emit()` method, which should return an array of generated particles, the answer may be an empty array, it will not affect anything, just this time no particles will be generated and the next frame will be called again the `emit()` method
+
+4. The emitter has a static variable `textures`, there you need to register an array of texture addresses from the file `./www/resource_packs/extend/textures/effects.png`
+
+5. For an example of creating a new emitter, see the `addExplosionParticles()` method in `./www/js/render.js`
+
+### Important:
+The explosion emitter is an example of a one-time emitter, it counts how many times the `emit()` method was called, and does not allow it to be done more than once, and its `canDelete()` method returns true if `emit()` was called at least once
