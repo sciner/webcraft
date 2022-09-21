@@ -97,8 +97,8 @@ export class World {
                 Qubatch.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
-                Qubatch.render.addExplosionParticles(cmd.data);
+            this.server.AddCmdListener([ServerClient.CMD_GENERATE_PARTICLE], (cmd) => {
+                Qubatch.render.addParticles(cmd.data);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));

@@ -429,7 +429,7 @@ export class WorldAction {
             play_sound:                 [],
             stop_disc:                  [],
             drop_items:                 [],
-            explosion_particles:        [],
+            generate_particles:         [],
             mobs:                       {spawn: [], activate: []},
             generate_tree:              [],
         });
@@ -464,8 +464,8 @@ export class WorldAction {
     }
 
     //
-    addExplosionParticles(items) {
-        this.explosion_particles.push(...items);
+    addParticles(items) {
+        this.generate_particles.push(...items);
     }
 
     //
@@ -572,7 +572,7 @@ export class WorldAction {
         }
         //
         if(add_particles) {
-            this.addExplosionParticles([{pos: vec_center.clone()}]);
+            this.addParticles([{type: 'explosion', pos: vec_center.clone()}]);
         }
     }
 

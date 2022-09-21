@@ -2,7 +2,7 @@ import { makeChunkEffectID, Vector, VectorCollectorFlat } from '../../helpers.js
 import { Mesh_Effect } from '../effect.js';
 
 import { default as Mesh_Effect_Emitter_Block_Destroy } from "./emitter/block_destroy.js";
-import { default as Mesh_Effect_Emitter_Campfire } from "./emitter/campfire.js";
+import { default as Mesh_Effect_Emitter_Campfire_Flame } from "./emitter/campfire_flame.js";
 import { default as Mesh_Effect_Emitter_Explosion } from "./emitter/explosion.js";
 import { default as Mesh_Effect_Music_Emitter_Note } from "./emitter/music_note.js";
 import { default as Mesh_Effect_Torch_Emitter_Flame } from "./emitter/torch_flame.js";
@@ -26,7 +26,7 @@ export class Mesh_Effect_Manager {
         this.effects = new Map();
         this.effects.set('destroy_block', Mesh_Effect_Emitter_Block_Destroy);
         this.effects.set('music_note', Mesh_Effect_Music_Emitter_Note);
-        this.effects.set('campfire_flame', Mesh_Effect_Emitter_Campfire);
+        this.effects.set('campfire_flame', Mesh_Effect_Emitter_Campfire_Flame);
         this.effects.set('torch_flame', Mesh_Effect_Torch_Emitter_Flame);
         this.effects.set('explosion', Mesh_Effect_Emitter_Explosion);
         this.effects.set('bubble_column', Mesh_Effect_Bubble_Emitter_Column);

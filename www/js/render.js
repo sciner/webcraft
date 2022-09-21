@@ -750,10 +750,10 @@ export class Renderer {
         this.meshes.effects.createEmitter('destroy_block',  pos, {block, small, scale, force, block_manager});
     }
 
-    // addExplosionParticles
-    addExplosionParticles(data) {
+    // Add particles
+    addParticles(data) {
         let pos = new Vector(data.pos);
-        this.meshes.effects.createEmitter('explosion',  pos, data);
+        this.meshes.effects.createEmitter(data.type,  pos, data);
     }
 
     // addAsteroid
