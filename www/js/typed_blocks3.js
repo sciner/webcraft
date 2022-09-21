@@ -617,7 +617,7 @@ export class DataWorld {
                         fluid[ind] = otherFluid[ind2];
                     }
             if (otherDirtyFluid) {
-                other.rev.fluid.markDirty();
+                other.rev.fluid.markDirtyMesh();
             }
         }
     }

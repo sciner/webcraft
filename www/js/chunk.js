@@ -588,7 +588,7 @@ export class Chunk {
 
     setFluid(buf) {
         if(this.inited) {
-            this.fluid.markDirty();
+            this.fluid.markDirtyMesh();
             this.fluid.loadDbBuffer(buf);
             this.chunkManager.dataWorld.syncOuter(this);
         } else {

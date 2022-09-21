@@ -362,10 +362,11 @@ export class ServerChunk {
         let fluidBuf = this.fluidBuf;
         this.fluidBuf = null;
         if(fluidBuf) {
-            this.fluid.loadDbBuffer(fluidBuf);
+            this.fluid.loadDbBuffer(fluidBuf, true);
         } else {
             if (this.fluid.isNotEmpty()) {
                 fluidBuf = this.fluid.saveDbBuffer();
+                //TODO: do we have to wait for this? make sure there's no double-save
                 await this.world.db.fluid.saveChunkFluid(this.addr, fluidBuf);
             }
         }

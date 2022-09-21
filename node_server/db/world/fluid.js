@@ -13,7 +13,6 @@ export class DBWorldFluid {
         const rows = await this.conn.all(`SELECT DISTINCT x chunk_x, y chunk_y, z chunk_z FROM world_chunks_fluid`);
         for(let row of rows) {
             let addr = new Vector(row.chunk_x, row.chunk_y, row.chunk_z);
-            console.log(`db found fluid ${addr}`)
             this.knownFluidChunks.add(addr, 1);
         }
     }

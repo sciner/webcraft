@@ -60,7 +60,7 @@ export class FluidWorld {
             if (!parentChunk.getChunkManager()) {
                 continue;
             }
-            fluidChunk.dirty = false;
+            fluidChunk.meshID = fluidChunk.updateID;
             fluidChunk.clearInstanceBuffers();
             let serialized = {};
             if (buildFluidVertices(fluidChunk) > 0) {

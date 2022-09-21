@@ -24,8 +24,9 @@ export class FluidChunk {
         this.instanceBuffers = new Map();
 
         this.world = world;
-        this.dirty = true;
-        this.boundsDirty = true;
+        this.updateID = 0;
+        this.boundsID = -1;
+        this.meshID = -1;
 
         /**
          * local bounds INCLUDE
@@ -33,6 +34,12 @@ export class FluidChunk {
          * @private
          */
         this._localBounds = new AABB();
+
+        /**
+         * this is for server
+         */
+        this.savedBuffer = null;
+        this.savedID = -1;
     }
 
     setValue(x, y, z, value) {
@@ -43,7 +50,7 @@ export class FluidChunk {
         const wx = x + pos.x;
         const wy = y + pos.y;
         const wz = z + pos.z;
-        this.boundsDirty = true;
+        this.updateID++;
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -92,9 +99,9 @@ export class FluidChunk {
      * @returns {AABB}
      */
     getLocalBounds() {
-        if (this.boundsDirty) {
+        if (this.boundsID !== this.updateID) {
             this.calcBounds();
-            this.boundsDirty = false;
+            this.boundsID = this.updateID;
         }
         return this._localBounds;
     }
@@ -105,12 +112,16 @@ export class FluidChunk {
     }
 
     saveDbBuffer() {
+        if (this.savedID === this.updateID) {
+            return this.savedBuffer;
+        }
+
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
         const bounds = this.getLocalBounds();
         const arr = [];
 
-        let encodeType = 1;
+        let encodeType = 1; // version number
         arr.push(encodeType);
         arr.push(bounds.y_min, bounds.y_max);
         for (let y = bounds.y_min; y <= bounds.y_max; y++) {
@@ -135,29 +146,17 @@ export class FluidChunk {
                 }
 
         }
-        return new Uint8Array(arr);
+        this.savedID = this.updateID;
+        return this.savedBuffer = new Uint8Array(arr);
     }
 
-    loadDbBuffer(stateArr) {
+    loadDbBuffer(stateArr, doSave) {
         const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
         const { uint8View } = this;
         const arr = stateArr;
         const bounds = this._localBounds;
         let k = 0;
-        let encodeType = arr[k++];
-
-        if (encodeType === 0 || encodeType >= 16) {
-            // just full array
-            k = 0;
-            for (let y = 0; y < size.y; y++)
-                for (let z = 0; z < size.z; z++)
-                    for (let x = 0; x < size.x; x++) {
-                        let index = x * cx + y * cy + z * cz + cw;
-                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = arr[k++];
-                    }
-            this.boundsDirty = true;
-            return;
-        }
+        let encodeType = arr[k++]; // version number
 
         bounds.set(size.x, arr[k++], size.z, 0, arr[k++], 0);
         for (let y = 0; y < size.y; y++) {
@@ -190,7 +189,12 @@ export class FluidChunk {
                 }
         }
 
-        this.boundsDirty = false;
+        this.updateID++;
+        this.boundsID = this.updateID;
+        if (doSave) {
+            this.savedID = this.updateID;
+            this.savedBuffer = stateArr;
+        }
     }
 
     setFluidIndirect(x, y, z, block_id) {
@@ -205,8 +209,7 @@ export class FluidChunk {
             uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = FLUID_LAVA_ID | FLUID_GENERATED_FLAG;
         }
 
-        this.boundsDirty = true;
-        this.dirty = true;
+        this.updateID++;
     }
 
     syncBlockProps(index, blockId) {
@@ -218,9 +221,10 @@ export class FluidChunk {
         }
         this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
         //TODO: check that there's no water in 3x3 out of this block props
-        if (!this.dirty) {
-            this.markDirty();
+        if (this.meshID >= 0) {
+            this.markDirtyMesh();
         }
+        this.updateID++;
     }
 
     syncAllProps() {
@@ -240,7 +244,7 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
-        this.dirty = true;
+        this.updateID++;
     }
 
     // build the vertices!
@@ -276,11 +280,11 @@ export class FluidChunk {
         return serializedVertices;
     }
 
-    markDirty() {
-        if (this.dirty) {
+    markDirtyMesh() {
+        if (this.meshID < 0) {
             return;
         }
-        this.dirty = true;
+        this.meshID = -1;
         if (!this.world || !this.world.trackDirty) {
             return;
         }
