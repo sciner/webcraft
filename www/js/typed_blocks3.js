@@ -4,7 +4,7 @@ import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
-import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidMesher.js";
+import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 
 export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);

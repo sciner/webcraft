@@ -10,6 +10,7 @@ import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
+import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -64,7 +65,7 @@ export class ChunkManager {
         this.timer60fps             = 0;
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
-        this.fluidWorld.trackDirty  = true;
+        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
 
         this.chunk_modifiers        = new VectorCollector();
 
@@ -345,7 +346,7 @@ export class ChunkManager {
             } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
             }
-            this.fluidWorld.initRenderPool(render.renderBackend);
+            this.fluidWorld.mesher.initRenderPool(render.renderBackend);
         }
 
         const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
@@ -432,7 +433,7 @@ export class ChunkManager {
                 chunk.rendered = 0;
             }
         }
-        this.fluidWorld.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
+        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
     }
 
     // Draw level chunks

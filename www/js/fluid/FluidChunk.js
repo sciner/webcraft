@@ -2,12 +2,10 @@ import {
     FLUID_GENERATED_FLAG,
     FLUID_LAVA_ID,
     FLUID_STRIDE,
-    FLUID_TYPE_MASK,
     FLUID_WATER_ID, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
-import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 import {AABB} from "../core/AABB.js";
 
 export class FluidChunk {
@@ -21,7 +19,7 @@ export class FluidChunk {
         this.uint16View = parentChunk.tblocks.fluid = new Uint16Array(this.uint8View.buffer);
         // depends on client/server/worker it should be different
 
-        this.instanceBuffers = new Map();
+        this.instanceBuffers = null;
 
         this.world = world;
         this.updateID = 0;
@@ -247,55 +245,27 @@ export class FluidChunk {
         this.updateID++;
     }
 
-    // build the vertices!
-    clearInstanceBuffers() {
-        for (let entry of this.instanceBuffers) {
-            entry[1].clear();
-        }
-    }
-
-    getInstanceBuffer(material_key) {
-        let ib = this.instanceBuffers.get(material_key);
-        if (!ib) {
-            this.instanceBuffers.set(material_key, ib = new FluidInstanceBuffer({
-                material_key,
-                geometryPool: this.world.geometryPool,
-                chunkDataId: this.dataId
-            }));
-        }
-        return ib;
-    }
-
-    serializeInstanceBuffers() {
-        let serializedVertices = {};
-        for (let entry of this.instanceBuffers) {
-            const vb = entry[1];
-            if (vb.touched && vb.vertices.filled > 0) {
-                serializedVertices[vb.material_key] = vb.getSerialized();
-                vb.markClear();
-            } else {
-                this.instanceBuffers.delete(entry[0]);
-            }
-        }
-        return serializedVertices;
-    }
-
     markDirtyMesh() {
         if (this.meshID < 0) {
             return;
         }
         this.meshID = -1;
-        if (!this.world || !this.world.trackDirty) {
+        if (!this.world) {
             return;
         }
-        this.world.dirtyChunks.push(this);
+        if (this.world.mesher) {
+            this.world.mesher.dirtyChunks.push(this);
+        }
     }
 
     dispose() {
-        for (let buf of this.instanceBuffers.values()) {
-            buf.clear();
-        }
-        this.instanceBuffers.clear();
         this.world = null;
+        if (this.instanceBuffers) {
+            for (let buf of this.instanceBuffers.values()) {
+                buf.clear();
+            }
+            this.instanceBuffers.clear();
+            this.instanceBuffers = null;
+        }
     }
 }
