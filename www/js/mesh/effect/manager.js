@@ -94,7 +94,7 @@ export class Mesh_Effect_Manager {
     }
 
     /**
-     * 
+     * Return or create mesh for separate chunk and material
      * @param {Vector} chunk_addr 
      * @param {string} material_key 
      * @returns {Mesh_Effect}
@@ -110,6 +110,11 @@ export class Mesh_Effect_Manager {
         return effect_mesh;
     }
 
+    /**
+     * 
+     * @param {float} delta in ms
+     * @param {Vector} player_pos 
+     */
     tick(delta, player_pos) {
 
         //

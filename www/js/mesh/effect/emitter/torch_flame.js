@@ -19,10 +19,18 @@ export default class emitter {
         this.material       = resource_pack.getMaterial(this.material_key);
     }
 
+    /**
+     * Return true if this emitter can be deleted
+     * @returns {bool}
+     */
     canDelete() {
         return false;
     }
 
+    /**
+     * Method return array of generated particles
+     * @returns {Mesh_Effect_Particle[]}
+     */
     emit() {
 
         if(Math.random() > .03) {

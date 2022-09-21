@@ -21,10 +21,18 @@ export default class emitter {
         this.ticks          = 0;
     }
 
+    /**
+     * Return true if this emitter can be deleted
+     * @returns {bool}
+     */
     canDelete() {
         return this.ticks > 0;
     }
 
+    /**
+     * Method return array of generated particles
+     * @returns {Mesh_Effect_Particle[]}
+     */
     emit() {
 
         if(this.ticks++ > 1) {

@@ -53,6 +53,10 @@ export class Mesh_Effect_Particle {
 
     }
 
+    /**
+     * Return scale from 0 to 1
+     * @returns {float}
+     */
     getCurrentSmartScale() {
         const min = Math.max(this.smart_scale[0], 0);
         const max = Math.min(this.smart_scale[1], 1);
@@ -60,6 +64,11 @@ export class Mesh_Effect_Particle {
         return min + this.life_precent * diff;
     }
 
+    /**
+     * Calculate new particle position, scale and others
+     * @param {float} delta delta in ms
+     * @returns 
+     */
     tick(delta) {
 
         delta /= 1000;
