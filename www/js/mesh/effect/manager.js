@@ -1,7 +1,7 @@
 import { makeChunkEffectID, Vector, VectorCollectorFlat } from '../../helpers.js';
 import { Mesh_Effect } from '../effect.js';
 
-import emitter, { default as Mesh_Effect_Emitter_Block_Destroy } from "./emitter/block_destroy.js";
+import { default as Mesh_Effect_Emitter_Block_Destroy } from "./emitter/block_destroy.js";
 import { default as Mesh_Effect_Emitter_Campfire } from "./emitter/campfire.js";
 import { default as Mesh_Effect_Emitter_Explosion } from "./emitter/explosion.js";
 import { default as Mesh_Effect_Music_Emitter_Note } from "./emitter/music_note.js";
