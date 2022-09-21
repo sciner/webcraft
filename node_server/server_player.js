@@ -14,7 +14,7 @@ import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
-import { ServerPlayerEffects, Effect } from "./player/effects.js";
+import { ServerPlayerEffects } from "./player/effects.js";
 
 export class NetworkMessage {
     constructor({
@@ -450,7 +450,7 @@ export class ServerPlayer extends Player {
         
         this.damage.getDamage(tick);
        
-        if (this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
+        if (this.live_level == 0 || this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live.value > this.live_level) {
                 // @todo добавить дергание
@@ -459,7 +459,7 @@ export class ServerPlayer extends Player {
                     data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
                 });
             }
-            if(this.live_level <= 0) {
+            if(this.live_level == 0) {
                 this.is_dead = true;
                 this.state.stats.death++;
                 // @todo check and drop inventory items if need

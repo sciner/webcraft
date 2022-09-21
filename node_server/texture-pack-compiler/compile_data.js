@@ -195,12 +195,14 @@ export class CompileData {
             const TX_CNT = 32 / 1024.0;
             mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            // обычная 1300
             const b = {
                 "id": id++,
                 "name": color.toUpperCase() + '_TERRACOTTA',
                 "material": {"id": "stone"},
                 "sound": "madcraft:block.stone",
                 "texture": {"side": "block/white_terracotta.png"},
+                "coocked_item": {"name": color.toUpperCase() + '_GLAZED_TERRACOTTA', "count": 1},
                 "mask_color": mask_color,
                 "tags": [
                     "can_put_info_pot",

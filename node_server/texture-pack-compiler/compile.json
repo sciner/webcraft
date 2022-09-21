@@ -1962,6 +1962,7 @@
             "material": {
                 "id": "clay"
             },
+            "coocked_item": {"name": "TERRACOTTA", "count": 1},
             "drop_item": {"name": "CLAY_BALL", "count": 4, "chance": 1},
             "texture": "block/clay.png"
         },
