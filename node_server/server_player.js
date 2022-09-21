@@ -347,7 +347,7 @@ export class ServerPlayer extends Player {
             this.wait_portal = null;
             // add teleport particles
             // const actions = new WorldAction(randomUUID());
-            // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
+            // actions.addParticles([{type: 'explosion', pos: wait_info.old_pos}]);
             // world.actions_queue.add(null, actions);
         };
         if(wait_info.params?.found_or_generate_portal) {
