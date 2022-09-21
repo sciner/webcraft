@@ -94,7 +94,7 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
-                Qubatch.render.damageBlock(cmd.data.item, cmd.data.pos, false);
+                Qubatch.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_EXPLOSION], (cmd) => {
@@ -250,7 +250,7 @@ export class World {
                         pos: mod.pos,
                         item: {id: tblock.id}
                     };
-                    Qubatch.render.damageBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
+                    Qubatch.render.destroyBlock(destroy_data.item, destroy_data.pos.add(new Vector(.5, .5, .5)), false);
                     this.onBlockDestroy(destroy_data.pos, destroy_data.item);
                 }
                 //
@@ -259,7 +259,7 @@ export class World {
                     case ServerClient.BLOCK_ACTION_REPLACE:
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.chunkManager.animated_blocks.delete(mod.pos);
+                        Qubatch.render.meshes.effects.deleteBlockEmitter(mod.pos);
                         this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }

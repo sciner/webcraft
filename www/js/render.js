@@ -8,7 +8,6 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 
 // Particles
-import Mesh_Particle_Block_Damage, { Mesh_Particle_Block_Base } from "./mesh/particle/block_damage.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Asteroid } from "./mesh/object/asteroid.js";
 import Mesh_Object_Clouds from "./mesh/object/clouds.js";
@@ -706,7 +705,7 @@ export class Renderer {
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
-                    this.meshes.draw(this, delta);
+                    this.meshes.draw(this, delta, player.lerpPos);
                     // 7. Draw shadows
                     this.drawShadows();
                 }
@@ -745,70 +744,16 @@ export class Renderer {
         this.camera.use(this.globalUniforms);
     }
 
-    // Damage block particles
-    damageBlock(block, pos, small, scale = 1, force = 1) {
-        const count = small ? 5 : 30;
-        const paticles = [];
-        for(let i = 0; i < count; i++) {
-            // случайная позиция частицы (в границах блока)
-            const x = (Math.random() - Math.random()) * (.5 * scale);
-            const y = (Math.random() - Math.random()) * (.5 * scale);
-            const z = (Math.random() - Math.random()) * (.5 * scale);
-            // случайный размер текстуры
-            const size = (Math.random() * (small ? .25/16 : 3/16) + 1/16) * scale;
-            // ускорение в случайнуюю сторону
-            const velocity = new Vector(
-                Math.random() - Math.random(),
-                1,
-                Math.random() - Math.random()
-            ).normSelf().multiplyScalar(force * 3);
-            // новая частица
-            const p = new Mesh_Particle_Block_Base({
-                pos:            new Vector(x, y, z),
-                size:           size,
-                scale:          scale,
-                velocity:       velocity
-            });
-            paticles.push(p);
-        }
-        /*
-        //
-        for(let i = 0; i < count; i++) {
-            // случайная позиция частицы (в границах блока)
-            const x = (Math.random() - Math.random()) * (2 * scale);
-            const y = (Math.random() - Math.random()) * (2 * scale);
-            const z = (Math.random() - Math.random()) * (2 * scale);
-            // случайный размер текстуры
-            const size = (Math.random() * (small ? .25/16 : 3/16) + 1/16) * scale;
-            // ускорение в случайнуюю сторону
-            const velocity = new Vector(
-                Math.random() - Math.random(),
-                .1,
-                Math.random() - Math.random()
-            ).normSelf().multiplyScalar(force / 2);
-            // новая частица
-            const p = new Mesh_Particle_Block_Base({
-                pos:            new Vector(x, y, z),
-                size:           size,
-                life:           5,
-                ag:             new Vector(0, 9.81, 0),
-                scale:          scale,
-                has_physics:    false,
-                velocity:       velocity
-            });
-            paticles.push(p);
-        }*/
-        //
-        this.meshes.add(new Mesh_Particle_Block_Damage(block, pos.clone(), paticles));
-
+    // Destroy block particles
+    destroyBlock(block, pos, small, scale = 1, force = 1) {
+        const block_manager = Qubatch.world.block_manager;
+        this.meshes.effects.createEmitter('destroy_block',  pos, {block, small, scale, force, block_manager});
     }
 
     // addExplosionParticles
     addExplosionParticles(data) {
-        let pos = data.pos;
-        for(let i = 0; i < 100; i++) {
-            this.meshes.effects.add('explosion',  pos);
-        }
+        let pos = new Vector(data.pos);
+        this.meshes.effects.createEmitter('explosion',  pos, data);
     }
 
     // addAsteroid
