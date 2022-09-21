@@ -1,27 +1,19 @@
-import { getChunkAddr, IndexedColor, makeChunkEffectID, QUAD_FLAGS, Vector, VectorCollector, VectorCollectorFlat } from '../helpers.js';
+import { QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
+import { Mesh_Effect_Particle } from './effect/particle.js';
 
-import { default as Mesh_Effect_Block_Destroy } from "./effect/block_destroy.js";
-import { default as Mesh_Effect_Campfire } from "./effect/campfire.js";
-import { default as Mesh_Effect_Explosion } from "./effect/explosion.js";
-import { default as Mesh_Effect_Music_Note } from "./effect/music_note.js";
-import { default as Mesh_Effect_Torch_Flame } from "./effect/torch_flame.js";
-import { default as Mesh_Effect_Bubble_Column } from "./effect/bubble_column.js";
-import { Mesh_Particle } from './particle.js';
+const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
+const chunk_size                            = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
-const pos_offset                = 0;
-export const axisx_offset       = 3;
-export const axisy_offset       = 6;
-const uv_size_offset            = 11;
-const lm_offset                 = 13;
-const particle_offset           = 4;
-const STRIDE_FLOATS             = GeometryTerrain.strideFloats;
-const chunk_size                = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+export const pos_offset                     = 0;
+export const axisx_offset                   = 3;
+export const axisy_offset                   = 6;
+export const particle_offset                = 4;
+export const DEFAULT_EFFECT_MATERIAL_KEY    = 'extend/transparent/effects';
 
-export const DEFAULT_EFFECT_MATERIAL_KEY = 'extend/transparent/effects';
-
+//
 export function getEffectTexture(textures) {
     const texture_index = Math.floor(textures.length * Math.random());
     const texture = textures[texture_index];
@@ -31,130 +23,10 @@ export function getEffectTexture(textures) {
     };
 }
 
-export class Mesh_Effect_Manager {
-
-    // Init effects
-    constructor(mesh_manager) {
-
-        this.mesh_manager = mesh_manager;
-
-        this.emitters = [];
-        this.block_emitters = new VectorCollectorFlat();
-
-        // Effect types
-        this.effects = new Map();
-        this.effects.set('destroy_block', Mesh_Effect_Block_Destroy);
-        this.effects.set('music_note', Mesh_Effect_Music_Note);
-        this.effects.set('campfire_flame', Mesh_Effect_Campfire);
-        this.effects.set('torch_flame', Mesh_Effect_Torch_Flame);
-        this.effects.set('explosion', Mesh_Effect_Explosion);
-        this.effects.set('bubble_column', Mesh_Effect_Bubble_Column);
-        for(const [k, c] of this.effects.entries()) {
-            if(c.textures) {
-                for(let i in c.textures) {
-                    c.textures[i][0] = (c.textures[i][0] + .5) / 8;
-                    c.textures[i][1] = (c.textures[i][1] + .5) / 8;
-                    c.textures[i][2] = 1 / 8;
-                    c.textures[i][3] = 1 / 8;
-                }
-            }
-        }
-
-    }
-
-    /**
-     * 
-     */
-    createBlockEmitter(args) {
-        for(let i = 0; i < args.pos.length; i++) {
-            const em = this.effects.get(args.type);
-            if(!em) {
-                throw 'error_invalid_particle';
-            }
-            const pos = new Vector(args.pos[i]);
-            const emitter = new em(pos, args);
-            this.block_emitters.set(args.block_pos, emitter);
-        }
-    }
-
-    /**
-     * 
-     * @param {Vector} block_pos 
-     */
-    deleteBlockEmitter(block_pos) {
-        this.block_emitters.delete(block_pos);
-    }
-
-    /**
-     * 
-     * @param {*} aabb 
-     */
-    destroyAllInAABB(aabb) {
-        for(let [pos, _] of this.block_emitters.entries(aabb)) {
-            this.block_emitters.delete(pos);
-        }
-    }
-
-    /**
-     * Create particle emitter
-     * @param {string} name 
-     * @param {Vector} pos 
-     * @param {*} params 
-     * @returns 
-     */
-    createEmitter(name, pos, params) {
-        const em = this.effects.get(name);
-        if(!em) {
-            throw 'error_invalid_particle';
-        }
-        const emitter = new em(pos.clone(), params);
-        this.emitters.push(emitter);
-        return emitter;
-    }
-
-    /**
-     * 
-     * @param {Vector} chunk_addr 
-     * @param {string} material_key 
-     * @returns {Mesh_Effect}
-     */
-    getChunkEffectMesh(chunk_addr, material_key) {
-        // const material_key = particle.material_key ?? 'extend/transparent/effects';
-        const PARTICLE_EFFECTS_ID = makeChunkEffectID(chunk_addr, material_key);
-        let effect_mesh = this.mesh_manager.get(PARTICLE_EFFECTS_ID);
-        if(!effect_mesh) {
-            effect_mesh = new Mesh_Effect(this, chunk_addr, material_key);
-            this.mesh_manager.add(effect_mesh, PARTICLE_EFFECTS_ID);
-        }
-        return effect_mesh;
-    }
-
-    tick(delta, player_pos) {
-
-        //
-        for(let emitter of this.emitters) {
-            const particles = emitter.emit();
-            for(let particle of particles) {
-                const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
-                mesh.add(particle);
-            }
-        }
-
-        for(let emitter of this.block_emitters) {
-            if(player_pos.distance(emitter.pos) < emitter.max_distance) {
-                const particles = emitter.emit();
-                for(let particle of particles) {
-                    const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
-                    mesh.add(particle);
-                }
-            }
-        }
-
-    }
-
-}
-
-// Mesh effect
+/**
+ * A mesh that consists of particles generated by emitters
+ * Меш, который состоит из сгенерированных эмиттерами частиц
+ */
 export class Mesh_Effect {
 
     static current_count = 0;
@@ -186,7 +58,7 @@ export class Mesh_Effect {
 
     /**
      * Add particle
-     * @param {Mesh_Particle} particle 
+     * @param {Mesh_Effect_Particle} particle 
      */
     add(particle) {
 

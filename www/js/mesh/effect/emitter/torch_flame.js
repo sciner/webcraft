@@ -1,8 +1,8 @@
-import { getChunkAddr, IndexedColor, Vector } from "../../helpers.js";
-import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../effect.js";
-import { Mesh_Particle } from "../particle.js";
+import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
+import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
+import { Mesh_Effect_Particle } from "../particle.js";
 
-export default class effect {
+export default class emitter {
 
     static textures = [
         [0, 1], [1, 1], [2, 1], [3, 1]
@@ -19,16 +19,20 @@ export default class effect {
         this.material       = resource_pack.getMaterial(this.material_key);
     }
 
+    canDelete() {
+        return false;
+    }
+
     emit() {
 
         if(Math.random() > .03) {
             return [];
         }
 
-        const {texture, texture_index} = getEffectTexture(effect.textures);
+        const {texture, texture_index} = getEffectTexture(emitter.textures);
 
         // новая частица
-        const particle = new Mesh_Particle({
+        const particle = new Mesh_Effect_Particle({
             life:           1 + Math.random(),
             texture:        texture,
             has_physics:    false,

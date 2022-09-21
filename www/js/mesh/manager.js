@@ -1,5 +1,5 @@
 import { Helpers } from "../helpers.js";
-import { Mesh_Effect_Manager } from "./effect.js";
+import { Mesh_Effect_Manager } from "./effect/manager.js";
 
 // MeshManager
 export class MeshManager {

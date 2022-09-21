@@ -1,7 +1,7 @@
-import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import { ChunkManager } from "../../chunk_manager.js";
-import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../helpers.js";
-import { Mesh_Particle } from "../particle.js";
+import { CHUNK_SIZE_X } from "../../../chunk_const.js";
+import { ChunkManager } from "../../../chunk_manager.js";
+import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
+import { Mesh_Effect_Particle } from "../particle.js";
 
 const _pos_floored = new Vector(0, 0, 0);
 
@@ -35,6 +35,10 @@ export default class emitter {
         this.flags          = flags;
         this.ticks          = 0;
 
+    }
+
+    canDelete() {
+        return this.ticks > 0;
     }
 
     emit() {
@@ -76,7 +80,7 @@ export default class emitter {
             const texture = [cx, cy, tex_sz, tex_sz];
 
             // новая частица
-            const p = new Mesh_Particle({
+            const p = new Mesh_Effect_Particle({
                 texture:        texture,
                 size:           tex_sz * this.tx_cnt,
                 scale:          scale,

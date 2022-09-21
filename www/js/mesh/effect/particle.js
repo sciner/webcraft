@@ -1,6 +1,6 @@
-import { BLOCK } from "../blocks.js";
-import { AABB } from '../core/AABB.js';
-import { Vector } from "../helpers.js";
+import { BLOCK } from "../../blocks.js";
+import { AABB } from '../../core/AABB.js';
+import { Vector } from "../../helpers.js";
 
 // physics
 const Cd                = 0.47; // dimensionless
@@ -14,8 +14,11 @@ const _ppos         = new Vector(0, 0, 0);
 const _next_pos     = new Vector(0, 0, 0);
 const _block_pos    = new Vector(0, 0, 0);
 
-//
-export class Mesh_Particle {
+/**
+ * The basic particle of the effect with the implementation of physics
+ * Базовая частица эффекта с реализацией физики
+ */
+export class Mesh_Effect_Particle {
 
     constructor(args) {
 
