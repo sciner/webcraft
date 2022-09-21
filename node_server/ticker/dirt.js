@@ -1,6 +1,6 @@
-import {BLOCK} from "../../www/js/blocks.js";
-import { Vector } from "../../www/js/helpers.js";
-import {ServerClient} from "../../www/js/server_client.js";
+import { BLOCK } from "../../www/js/blocks.js";
+import { Vector, Helpers } from "../../www/js/helpers.js";
+import { ServerClient } from "../../www/js/server_client.js";
 
 export default class Ticker {
 
@@ -8,6 +8,16 @@ export default class Ticker {
 
     //
     static func(tick_number, world, chunk, v) {
+        const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
+        const is_tick = Math.random() < random_tick_speed;
+        if (!is_tick) {
+            return;
+        }
+        
+        // трава зачахла
+        
+        // возможность распространеия 3х3х5
+        
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         if(!extra_data || isNaN(extra_data.max_ticks)) {

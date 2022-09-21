@@ -845,5 +845,22 @@ export class ServerWorld {
         await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
     }
+    
+    // Возвращает идет ли дождь или снег
+    isRaining() {
+        return this.weather != 'clear';
+    }
+    
+    // Возвращает уровень освещности в мире
+    getLight() {
+        const time = this.info.calendar.day_time;
+        if (this.isRaining()) {
+            return 12;
+        }
+        if (time < 6000 || time > 18000) {
+            return 4;
+        }
+        return 15;
+    }
 
 }
