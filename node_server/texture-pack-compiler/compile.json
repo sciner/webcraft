@@ -384,6 +384,7 @@
                 "mask_biome",
                 "dirt"
             ],
+            "random_tick": true,
             "material": {
                 "id": "dirt"
             },

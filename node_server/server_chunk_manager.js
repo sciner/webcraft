@@ -148,9 +148,13 @@ export class ServerChunkManager {
     randomTick(tick_number) {
         // random chunk tick
         const world_light = this.world.getLight();
+        let rtc = 0;
         for(const [_, chunk] of this.all.entries()) {
-            chunk.randomTick(tick_number, world_light);
+            if(chunk.randomTick(tick_number, world_light)) {
+                rtc++;
+            }
         }
+        console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
     }
 
     addTickingChunk(addr) {

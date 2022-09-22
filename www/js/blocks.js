@@ -525,6 +525,11 @@ export class BLOCK {
     }
 
     //
+    static isRandomTickingBlock(block_id) {
+        return !!BLOCK.fromId(block_id).random_tick;
+    }
+
+    //
     static getBlockStyleGroup(block) {
         let group = 'regular';
         if('group' in block) return block.group;

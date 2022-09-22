@@ -15,8 +15,8 @@ export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 
 const LIGHT_OPACITY_BLOCKS = [];
 
-function isLightOpacity(block) {
-    if(LIGHT_OPACITY_BLOCKS.length == 0) {
+function isLightOpacity(tblock) {
+    /*if(LIGHT_OPACITY_BLOCKS.length == 0) {
         LIGHT_OPACITY_BLOCKS.push(...[
             BLOCK.AIR.id,
             BLOCK.GLASS_PANE.id,
@@ -24,8 +24,8 @@ function isLightOpacity(block) {
             BLOCK.IRON_BARS.id,
             BLOCK.COBWEB.id
         ]);
-    }
-    return LIGHT_OPACITY_BLOCKS.includes(block.id)
+    }*/
+    return tblock?.material?.transparent; // || LIGHT_OPACITY_BLOCKS.includes(tblock.id)
 }
 
 // Ticking block
@@ -142,6 +142,7 @@ export class ServerChunk {
         this.drop_items     = new Map();
         this.tblocks        = null;
         this.ticking_blocks = new TickingBlockManager(this);
+        this.randomTickingBlockCount = 0;
         this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
@@ -351,6 +352,14 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         //
+        this.randomTickingBlockCount = 0;
+        for(let i = 0; i < this.tblocks.id.length; i++) {
+            const block_id = this.tblocks.id[i];
+            if(BLOCK.isRandomTickingBlock(block_id)) {
+                this.randomTickingBlockCount++;
+            }
+        }
+        //
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
@@ -489,10 +498,20 @@ export class ServerChunk {
         if(!ml.obj) ml.obj = {};
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
-        if(item && item.id) {
-            const block = BLOCK.fromId(item.id);
-            if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                this.ticking_blocks.add(pos);
+        if(item) {
+            // calculate random ticked blocks
+            if(this.getBlock(pos)?.material?.random_tick) {
+                this.randomTickingBlockCount--;
+            }
+            //
+            if(item.id) {
+                const block = BLOCK.fromId(item.id);
+                if(block.random_tick) {
+                    this.randomTickingBlockCount++;
+                }
+                if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
+                    this.ticking_blocks.add(pos);
+                }
             }
         }
     }
@@ -504,7 +523,7 @@ export class ServerChunk {
 
     randomTick(tick_number, world_light) {
 
-        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks) {
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
         }
 
@@ -519,10 +538,11 @@ export class ServerChunk {
         function tickGrassBlock(tblock) {
             // трава зачахла
             const over_src_block = world.getBlock(rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
-            if (world.getLight() < 4 || !isLightOpacity(over_src_block)) {
+            if (world_light < 4 || !isLightOpacity(over_src_block)) {
                 if(!actions) {
                     actions = new WorldAction(null, world, false, false);
                 }
+                console.log('--')
                 actions.addBlocks([
                     {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                 ]);                
@@ -542,6 +562,7 @@ export class ServerChunk {
                         if(!actions) {
                             actions = new WorldAction(null, world, false, false);
                         }
+                        console.log('++')
                         actions.addBlocks([
                             {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                         ]);
@@ -551,7 +572,8 @@ export class ServerChunk {
         }
 
         let tblock;
-        for (let i = 0; i < 10; i++) {
+        let check_count = Math.floor(world.getGameRule('randomTickSpeed') * 2.5);
+        for (let i = 0; i < check_count; i++) {
             pos.set(
                 Math.floor(Math.random() * CHUNK_SIZE_X),
                 Math.floor(Math.random() * CHUNK_SIZE_Y),
@@ -570,8 +592,11 @@ export class ServerChunk {
 
         //
         if(actions && actions.blocks.list.length > 0) {
+            globalThis.modByRandomTickingBlocks = (globalThis.modByRandomTickingBlocks | 0) + actions.blocks.list.length;
             world.actions_queue.add(null, actions);
         }
+
+        return true;
 
     }
 
