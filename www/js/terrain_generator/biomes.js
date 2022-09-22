@@ -157,7 +157,7 @@ export class  BIOMES {
                     {percent: .327, blocks: [{id: BLOCK.GRASS.id}]},
                     {percent: .053, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                     {percent: .010, blocks: [{id: BLOCK.RED_TULIP.id}]},
-                    {percent: .005, blocks: [{id: BLOCK.MELON.id}]},
+                    {percent: .005, blocks: [{id: BLOCK.MELON.id, not_transparent: true}]},
                     {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
