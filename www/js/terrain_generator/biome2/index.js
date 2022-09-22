@@ -237,6 +237,9 @@ export default class Terrain_Generator extends Demo_Map {
                 for(let i = 0; i < blocks.length; i++) {
                     const block = blocks[i];
                     chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i, pos.z, block.id, null, block.extra_data || null);
+                    if(block.not_transparent) {
+                        chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
+                    }
                 }
             }
         }
@@ -259,6 +262,15 @@ export default class Terrain_Generator extends Demo_Map {
                 //    continue;
                 //}
                 // globalThis.ggg++;
+
+                const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
+                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y - 1;
+                const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
+
+                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
+                    chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null);
+                }
+
                 this.plantTree(
                     tree,
                     chunk,

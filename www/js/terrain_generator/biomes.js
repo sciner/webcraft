@@ -350,7 +350,7 @@ export class  BIOMES {
                     {percent: .025, blocks: [{id: BLOCK.LILY_OF_THE_VALLEY.id}]},
                     {percent: .025, blocks: [{id: BLOCK.CORNFLOWER.id}]},
                     {percent: .025, blocks: [{id: BLOCK.DANDELION.id}]},
-                    {percent: .015, blocks: [{id: BLOCK.PUMPKIN.id}]},
+                    {percent: .015, blocks: [{id: BLOCK.PUMPKIN.id, not_transparent: true}]},
                     {percent: .011, blocks: [{id: BLOCK.PEONY.id}, {id: BLOCK.PEONY.id, extra_data: {is_head: true}}]},
                     {percent: .014, blocks: [{id: BLOCK.LILAC.id}, {id: BLOCK.LILAC.id, extra_data: {is_head: true}}]}
                 ]

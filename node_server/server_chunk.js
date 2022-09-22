@@ -542,7 +542,7 @@ export class ServerChunk {
                 if(!actions) {
                     actions = new WorldAction(null, world, false, false);
                 }
-                console.log('--')
+                console.log('--');
                 actions.addBlocks([
                     {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                 ]);                
@@ -562,7 +562,7 @@ export class ServerChunk {
                         if(!actions) {
                             actions = new WorldAction(null, world, false, false);
                         }
-                        console.log('++')
+                        console.log('++');
                         actions.addBlocks([
                             {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                         ]);
