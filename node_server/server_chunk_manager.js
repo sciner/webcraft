@@ -154,7 +154,10 @@ export class ServerChunkManager {
                 rtc++;
             }
         }
-        console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
+        if(globalThis.modByRandomTickingBlocks != globalThis.modByRandomTickingBlocks_o) {
+            globalThis.modByRandomTickingBlocks_o = globalThis.modByRandomTickingBlocks;
+            console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
+        }
     }
 
     addTickingChunk(addr) {
