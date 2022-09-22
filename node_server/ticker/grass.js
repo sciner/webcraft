@@ -15,6 +15,9 @@ export default class Ticker {
 
     //
     static func(tick_number, world, chunk, v) {
+
+        throw 'deprecated';
+
         const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
         const is_tick = Math.random() < random_tick_speed;
         if (!is_tick) {

@@ -387,11 +387,6 @@
             "material": {
                 "id": "dirt"
             },
-            "ticking": {
-                "type": "grass"
-            },
-            "extra_data": {
-            },
             "texture": {
                 "up": "block/grass_block_top.png",
                 "down": "block/dirt.png",

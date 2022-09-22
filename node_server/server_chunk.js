@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
 import {ServerClient} from "../www/js/server_client.js";
-import {Vector, VectorCollector} from "../www/js/helpers.js";
+import {Helpers, Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { newTypedBlocks } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
@@ -12,7 +12,21 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
-//
+
+const LIGHT_OPACITY_BLOCKS = [];
+
+function isLightOpacity(block) {
+    if(LIGHT_OPACITY_BLOCKS.length == 0) {
+        LIGHT_OPACITY_BLOCKS.push(...[
+            BLOCK.AIR.id,
+            BLOCK.GLASS_PANE.id,
+            BLOCK.GLASS.id,
+            BLOCK.IRON_BARS.id,
+            BLOCK.COBWEB.id
+        ]);
+    }
+    return LIGHT_OPACITY_BLOCKS.includes(block.id)
+}
 
 // Ticking block
 class TickingBlock {
@@ -126,6 +140,7 @@ export class ServerChunk {
         this.modify_list    = {};
         this.mobs           = new Map();
         this.drop_items     = new Map();
+        this.tblocks        = null;
         this.ticking_blocks = new TickingBlockManager(this);
         this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
@@ -485,6 +500,79 @@ export class ServerChunk {
     // On world tick
     tick(tick_number) {
         this.ticking_blocks.tick(tick_number);
+    }
+
+    randomTick(tick_number, world_light) {
+
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks) {
+            return false;
+        }
+
+        const world = this.world;
+        const pos = new Vector(0, 0, 0);
+        const rnd_pos = new Vector(0, 0, 0);
+        const rnd_pos_up = new Vector(0, 0, 0);
+
+        let actions = null;
+
+        //
+        function tickGrassBlock(tblock) {
+            // трава зачахла
+            const over_src_block = world.getBlock(rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
+            if (world.getLight() < 4 || !isLightOpacity(over_src_block)) {
+                if(!actions) {
+                    actions = new WorldAction(null, world, false, false);
+                }
+                actions.addBlocks([
+                    {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                ]);                
+            } else if (world_light >= 9) {
+                // возможность распространеия 3х5х3
+                rnd_pos
+                    .copyFrom(tblock.posworld)
+                    .addScalarSelf(
+                        Helpers.getRandomInt(-1, 2),
+                        Helpers.getRandomInt(-2, 3),
+                        Helpers.getRandomInt(-1, 2)
+                    );
+                const rnd_block = world.getBlock(rnd_pos);
+                if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {
+                    const over_block = world.getBlock(rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
+                    if(over_block && isLightOpacity(over_block)) {
+                        if(!actions) {
+                            actions = new WorldAction(null, world, false, false);
+                        }
+                        actions.addBlocks([
+                            {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                        ]);
+                    }
+                }
+            }
+        }
+
+        let tblock;
+        for (let i = 0; i < 10; i++) {
+            pos.set(
+                Math.floor(Math.random() * CHUNK_SIZE_X),
+                Math.floor(Math.random() * CHUNK_SIZE_Y),
+                Math.floor(Math.random() * CHUNK_SIZE_Z)
+            );
+            if(this.tblocks.has(pos)) {
+                tblock = this.tblocks.get(pos, tblock);
+                switch(tblock.id) {
+                    case BLOCK.GRASS_BLOCK.id: {
+                        tickGrassBlock(tblock);
+                        break;
+                    }
+                }
+            }
+        }
+
+        //
+        if(actions && actions.blocks.list.length > 0) {
+            world.actions_queue.add(null, actions);
+        }
+
     }
 
     // Before unload chunk

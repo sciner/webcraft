@@ -145,6 +145,14 @@ export class ServerChunkManager {
         }
     }
 
+    randomTick(tick_number) {
+        // random chunk tick
+        const world_light = this.world.getLight();
+        for(const [_, chunk] of this.all.entries()) {
+            chunk.randomTick(tick_number, world_light);
+        }
+    }
+
     addTickingChunk(addr) {
         this.ticking_chunks.set(addr, addr);
     }

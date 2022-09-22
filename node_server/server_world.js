@@ -140,6 +140,9 @@ export class ServerWorld {
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks');
+            // 1.
+            this.chunks.randomTick(this.ticks_stat.number);
+            this.ticks_stat.add('chunks_random_tick');
             // 2.
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
@@ -860,7 +863,7 @@ export class ServerWorld {
     
     // Возвращает идет ли дождь или снег
     isRaining() {
-        return this.weather != 'clear';
+        return this.weather?.name != 'clear';
     }
     
     // Возвращает уровень освещности в мире
