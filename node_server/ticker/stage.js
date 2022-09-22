@@ -64,7 +64,7 @@ export default class Ticker {
             }
             const block = world.getBlock(pos.offset(0, stage, 0));
             if (block.id == BLOCK.AIR.id) {
-                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
+                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
             }
         } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды 
             if (extra_data.stage == ticking.max_stage) {
@@ -78,7 +78,6 @@ export default class Ticker {
             }
         } else if (tblock.material.tags.includes('sapling')) { // Это саженцы, по окончанию роста они превращются в деревья 
             if (extra_data.stage == ticking.max_stage) {
-                delete(extra_data.ticking);
                 const params = {
                     pos: pos,
                     block: tblock.convertToDBItem()
@@ -91,8 +90,7 @@ export default class Ticker {
             return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
         } else { // Эти блоки растут как семена в области одного блока. По истечению роста, действий больше нет
             if (extra_data.stage == ticking.max_stage) {
-                delete(extra_data.ticking);
-                this.delete(v.pos);
+                extra_data.notick = true;
                 tblock.extra_data.complete = true;
             }
             return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
