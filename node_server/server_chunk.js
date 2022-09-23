@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
+import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Helpers, Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -14,6 +14,10 @@ export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 
 const LIGHT_OPACITY_BLOCKS = [];
+
+const _rnd_check_pos = new Vector(0, 0, 0);
+const _rnd_pos = new Vector(0, 0, 0);
+const _rnd_pos_up = new Vector(0, 0, 0);
 
 function isLightOpacity(tblock) {
     /*if(LIGHT_OPACITY_BLOCKS.length == 0) {
@@ -521,43 +525,40 @@ export class ServerChunk {
         this.ticking_blocks.tick(tick_number);
     }
 
-    randomTick(tick_number, world_light) {
+    randomTick(tick_number, world_light, check_count) {
 
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
         }
 
         const world = this.world;
-        const pos = new Vector(0, 0, 0);
-        const rnd_pos = new Vector(0, 0, 0);
-        const rnd_pos_up = new Vector(0, 0, 0);
-
         let actions = null;
 
         //
         function tickGrassBlock(tblock) {
             // трава зачахла
-            const over_src_block = world.getBlock(rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
+            const over_src_block = world.getBlock(_rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
             if (world_light < 4 || !isLightOpacity(over_src_block)) {
                 if(!actions) {
                     actions = new WorldAction(null, world, false, false);
                 }
-                console.log('--');
+                // console.log('--', tblock.posworld.toHash());
+                // throw 'e';
                 actions.addBlocks([
                     {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                 ]);                
             } else if (world_light >= 9) {
                 // возможность распространеия 3х5х3
-                rnd_pos
+                _rnd_pos
                     .copyFrom(tblock.posworld)
                     .addScalarSelf(
                         Helpers.getRandomInt(-1, 2),
                         Helpers.getRandomInt(-2, 3),
                         Helpers.getRandomInt(-1, 2)
                     );
-                const rnd_block = world.getBlock(rnd_pos);
+                const rnd_block = world.getBlock(_rnd_pos);
                 if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {
-                    const over_block = world.getBlock(rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
+                    const over_block = world.getBlock(_rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
                     if(over_block && isLightOpacity(over_block)) {
                         if(!actions) {
                             actions = new WorldAction(null, world, false, false);
@@ -572,17 +573,13 @@ export class ServerChunk {
         }
 
         let tblock;
-        let check_count = Math.floor(world.getGameRule('randomTickSpeed') * 2.5);
-        for (let i = 0; i < check_count; i++) {
-            pos.set(
-                Math.floor(Math.random() * CHUNK_SIZE_X),
-                Math.floor(Math.random() * CHUNK_SIZE_Y),
-                Math.floor(Math.random() * CHUNK_SIZE_Z)
-            );
-            if(this.tblocks.has(pos)) {
-                tblock = this.tblocks.get(pos, tblock);
-                switch(tblock.id) {
+        for(let i = 0; i < check_count; i++) {
+            const block_index = Math.floor(Math.random() * CHUNK_SIZE);
+            const block_id = this.tblocks.id[block_index];
+            if(block_id) {
+                switch(block_id) {
                     case BLOCK.GRASS_BLOCK.id: {
+                        tblock = this.tblocks.get(_rnd_check_pos.fromFlatChunkIndex(block_index), tblock);
                         tickGrassBlock(tblock);
                         break;
                     }

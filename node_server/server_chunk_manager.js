@@ -148,9 +148,13 @@ export class ServerChunkManager {
     randomTick(tick_number) {
         // random chunk tick
         const world_light = this.world.getLight();
+        const check_count = Math.floor(this.world.getGameRule('randomTickSpeed') * 2.5);
         let rtc = 0;
-        for(const [_, chunk] of this.all.entries()) {
-            if(chunk.randomTick(tick_number, world_light)) {
+        for(let chunk of this.all) {
+            if(chunk.load_state != CHUNK_STATE_BLOCKS_GENERATED || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
+                continue;
+            }
+            if(chunk.randomTick(tick_number, world_light, check_count)) {
                 rtc++;
             }
         }
