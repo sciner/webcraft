@@ -31,7 +31,7 @@ export default class Chat_Weather {
                         const name = args[1].trim().toLowerCase();
                         for(let weather of LEGAL_WEATHERS) {
                             if(weather.name == name) {
-                                world.setWeather(weather);
+                                world.setWeather(weather.name);
                                 world.chat.sendSystemChatMessageToSelectedPlayers(weather.message, [player.session.user_id]);    
                             }
                         }
