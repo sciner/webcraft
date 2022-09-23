@@ -70,6 +70,8 @@ export class ServerWorld {
         this.ticks_stat     = new WorldTickStat();
         this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
         this.start_time     = performance.now();
+        this.weather_update_time = 0;
+        this.info.calendar = {age: 0, day_time: 0};
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
@@ -101,13 +103,34 @@ export class ServerWorld {
     getInfo() {
         return this.info;
     }
+    
+    // Update world wather
+    updateWorldWeather() {
+        const MIN_TIME_RAIN = 30;
+        const MAX_TIME_RAIN = 12 * 60;
+        const MIN_TIME_WITHOUT_RAIN = 1 * 60;
+        const MAX_TIME_WITHOUT_RAIN = 1 * 2 * 60;
+        const time = (Date.now() * GAME_ONE_SECOND / 60000);
+        if (!this.getGameRule('doWeatherCycle') || time < this.weather_update_time) {
+            return;
+        }
+        if (this.weather == 'clear') {
+            this.weather_update_time = (Math.random() * MAX_TIME_RAIN) | 0 + MIN_TIME_RAIN + time;
+            if (Math.random() < 0.2) {
+                this.setWeather('rain');
+            }
+        } else {
+            this.weather_update_time = (Math.random() * MAX_TIME_WITHOUT_RAIN) | 0 + MIN_TIME_WITHOUT_RAIN + time;
+            this.setWeather('clear');
+        }
+    }
 
     // Update world calendar
     updateWorldCalendar() {
         if(!this.info.calendar) {
             this.info.calendar = {
                 age: null,
-                day_time: null,
+                day_time: null
             };    
         }
         const currentTime = ((+new Date()) / 1000) | 0;
@@ -125,7 +148,7 @@ export class ServerWorld {
     }
 
     // World tick
-    async tick() {
+    async tick() {this.updateWorldWeather();
         const started = performance.now();
         let delta = 0;
         if (this.pn) {
@@ -772,6 +795,10 @@ export class ServerWorld {
                 return this.info.rules[rule_code] || true;
                 break;
             }
+            case 'doWeatherCycle': {
+                return this.info.rules[rule_code] || true;
+                break;
+            }
             case 'randomTickSpeed': {
                 return this.info.rules[rule_code] || 3;
                 break;
@@ -786,12 +813,20 @@ export class ServerWorld {
     // Set world game rule value
     async setGameRule(rule_code, value) {
         //
-        function parseFloatValue(value) {
+        function parseBoolValue(value) {
             value = value.toLowerCase().trim();
             if(['true', 'false'].indexOf(value) < 0) {
                 throw 'error_invalid_value_type';
             }
             return value == 'true';
+        }
+        // 
+        function parseIntValue(value) {
+            value = parseInt(value);
+            if (isNaN(value) || !isFinite(value)) {
+                throw 'error_invalid_value_type';
+            }
+            return value;
         }
         //
         const rules = this.info.rules;
@@ -799,7 +834,7 @@ export class ServerWorld {
         switch(rule_code) {
             case 'doDaylightCycle': {
                 // /gamerule doDaylightCycle false|true
-                value = parseFloatValue(value);
+                value = parseBoolValue(value);
                 if(value) {
                     delete(rules.doDaylightCycleTime);
                 } else {
@@ -807,6 +842,14 @@ export class ServerWorld {
                     this.updateWorldCalendar();
                     rules.doDaylightCycleTime = this.info.calendar.day_time;
                 }
+                break;
+            }
+            case 'doWeatherCycle': {
+                value = parseBoolValue(value);
+                break;
+            }
+            case 'randomTickSpeed': {
+                value = parseIntValue(value);
                 break;
             }
             default: {

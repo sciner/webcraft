@@ -767,11 +767,11 @@ export class Renderer {
      */
     setWeather(weather) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != weather.name) {
+        if(!rain || rain.type != weather) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, weather.name);
+            rain = new Mesh_Object_Rain(this, weather);
             this.meshes.add(rain, 'weather');
         }
         rain.enabled = weather.name != 'clear';
