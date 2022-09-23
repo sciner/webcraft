@@ -6,6 +6,8 @@ export class DBWorldFluid {
         this.world = world;
 
         this.knownFluidChunks = new VectorCollector();
+
+        this.dirtyChunks = [];
     }
 
     async restoreFluidChunks() {
@@ -20,7 +22,6 @@ export class DBWorldFluid {
     //
     async loadChunkFluid(chunk_addr) {
         if (!this.knownFluidChunks.has(chunk_addr)) {
-            console.log(`no fluid ${chunk_addr}`)
             return null;
         }
 
@@ -43,5 +44,17 @@ export class DBWorldFluid {
             ':data': data
         });
         // console.log(`saving fluid ${chunk_addr}`)
+    }
+
+    async saveFluids(maxSaveChunks= 10) {
+        while (this.dirtyChunks.length > 0 && maxSaveChunks !== 0) {
+            const elem = this.dirtyChunks.shift();
+            if (!elem.world) {
+                continue;
+            }
+            await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
+            elem.databaseID = elem.updateID;
+            maxSaveChunks--;
+        }
     }
 }

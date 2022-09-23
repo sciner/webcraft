@@ -582,7 +582,6 @@ export class Chunk {
                     }]);
                 }
             }
-            this.fluid.syncBlockProps(tblock.index, type.id);
         }
     }
 

@@ -450,7 +450,7 @@ export class TypedBlocks3 {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.id[index] = id;
-        this.fluid.syncBlockProps(index, id);
+        this.fluid.syncBlockProps(index, id, false);
 
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -466,7 +466,7 @@ export class TypedBlocks3 {
                 const ind2 = other.indexByWorld(wx, wy, wz);
                 other.uint16View[ind2] = id;
                 // TODO: set calculated props
-                other.rev.fluid.syncBlockProps(ind2, id);
+                other.rev.fluid.syncBlockProps(ind2, id, true);
                 pcnt++;
             }
         }
@@ -667,11 +667,7 @@ export class TBlock {
     set id(value) {
         // let cu = this.tb.id[this.index];
         // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
-        if (this.tb.dataChunk.portals) {
-            this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
-        } else {
-            this.tb.id[this.index] = value;
-        }
+        this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
     }
 
     //

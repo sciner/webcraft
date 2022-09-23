@@ -169,6 +169,8 @@ export class ServerWorld {
                 this.ticks_stat.add('maps_clear');
             }
             //
+            this.ticks_stat.add('db_fluid_save');
+            await this.db.fluid.saveFluids();
             this.ticks_stat.end();
         }
         //
@@ -567,9 +569,8 @@ export class ServerWorld {
         if (actions.fluids.length > 0) {
             let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
             for (let chunk of chunks) {
-                let buf = chunk.fluid.saveDbBuffer();
-                await this.db.fluid.saveChunkFluid(chunk.addr, buf);
-                chunk.sendFluid(buf);
+                chunk.sendFluid(chunk.fluid.saveDbBuffer());
+                chunk.fluid.markDirtyDatabase();
             }
         }
         // Play sound

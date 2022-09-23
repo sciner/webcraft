@@ -6,6 +6,7 @@ export class FluidWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.mesher = null;
+        this.database = null;
     }
 
     addChunk(chunk) {

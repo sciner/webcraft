@@ -34,6 +34,7 @@ export class ServerChunkManager {
         };
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
+        this.fluidWorld.database = world.db.fluid;
     }
 
     // Init worker

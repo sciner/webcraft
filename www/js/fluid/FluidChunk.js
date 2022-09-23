@@ -1,7 +1,8 @@
 import {
+    FLUID_BLOCK_RESTRICT,
     FLUID_GENERATED_FLAG,
     FLUID_LAVA_ID,
-    FLUID_STRIDE,
+    FLUID_STRIDE, FLUID_TYPE_MASK,
     FLUID_WATER_ID, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID
 } from "./FluidConst.js";
@@ -22,6 +23,7 @@ export class FluidChunk {
         this.instanceBuffers = null;
 
         this.world = world;
+
         this.updateID = 0;
         this.boundsID = -1;
         this.meshID = -1;
@@ -37,11 +39,12 @@ export class FluidChunk {
          * this is for server
          */
         this.savedBuffer = null;
-        this.savedID = -1;
+        this.databaseID = 0;
+        this.inSaveQueue = false;
     }
 
     setValue(x, y, z, value) {
-        const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
+        const {cx, cy, cz, cw, portals, pos, safeAABB} = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = value;
         //TODO: check in liquid queue here
@@ -79,8 +82,8 @@ export class FluidChunk {
     }
 
     calcBounds() {
-        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
-        const { uint8View } = this;
+        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {uint8View} = this;
         this._localBounds.set(size.x, size.y, size.z, 0, 0, 0);
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
@@ -109,13 +112,17 @@ export class FluidChunk {
         return bounds.x_min <= bounds.x_max && bounds.y_min <= bounds.y_max && bounds.z_min <= bounds.z_max;
     }
 
+    incUpdate() {
+
+    }
+
     saveDbBuffer() {
         if (this.savedID === this.updateID) {
             return this.savedBuffer;
         }
 
-        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
-        const { uint8View } = this;
+        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {uint8View} = this;
         const bounds = this.getLocalBounds();
         const arr = [];
 
@@ -148,9 +155,9 @@ export class FluidChunk {
         return this.savedBuffer = new Uint8Array(arr);
     }
 
-    loadDbBuffer(stateArr, doSave) {
-        const { cx, cy, cz, cw, size } = this.parentChunk.tblocks.dataChunk;
-        const { uint8View } = this;
+    loadDbBuffer(stateArr, fromDb) {
+        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {uint8View} = this;
         const arr = stateArr;
         const bounds = this._localBounds;
         let k = 0;
@@ -179,7 +186,7 @@ export class FluidChunk {
                 for (let x = 0; x < size.x; x++) {
                     let val = 0;
                     if (x >= x_min && x <= x_max
-                        && z >= z_min && z<= z_max) {
+                        && z >= z_min && z <= z_max) {
                         val = arr[k++];
                     }
                     let index = x * cx + y * cy + z * cz + cw;
@@ -189,15 +196,16 @@ export class FluidChunk {
 
         this.updateID++;
         this.boundsID = this.updateID;
-        if (doSave) {
+        if (fromDb) {
             this.savedID = this.updateID;
+            this.databaseID = this.updateID;
             this.savedBuffer = stateArr;
         }
     }
 
     setFluidIndirect(x, y, z, block_id) {
-        const { cx, cy, cz, cw } = this.parentChunk.tblocks.dataChunk;
-        const { uint8View } = this;
+        const {cx, cy, cz, cw} = this.parentChunk.tblocks.dataChunk;
+        const {uint8View} = this;
         const index = cx * x + cy * y + cz * z + cw;
 
         if (block_id === 200 || block_id === 202) {
@@ -210,7 +218,7 @@ export class FluidChunk {
         this.updateID++;
     }
 
-    syncBlockProps(index, blockId) {
+    syncBlockProps(index, blockId, isPortal) {
         const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
         const old = this.uint8View[ind];
         const props = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
@@ -218,18 +226,52 @@ export class FluidChunk {
             return;
         }
         this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
-        //TODO: check that there's no water in 3x3 out of this block props
-        if (this.meshID >= 0) {
-            this.markDirtyMesh();
+
+        // things to check
+        // 1. mesh solid block status near fluids
+        const isSolid = props & FLUID_BLOCK_RESTRICT;
+        if (this.meshID >= 0 && isSolid !== (old & FLUID_BLOCK_RESTRICT) > 0) {
+            const {uint16View} = this;
+            const {cx, cy, cz, cw, size, outerSize} = this.dataChunk;
+
+            //TODO: move this into a method? restricted directions
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+
+            //TODO: dont check in case bounds are empty
+            if (y + 1 < size.y && (this.uint16View[index + cy] & FLUID_TYPE_MASK) > 0
+                || y - 1 >= 0 && (this.uint16View[index - cy] & FLUID_TYPE_MASK) > 0
+                || z + 1 < size.z && (this.uint16View[index + cz] & FLUID_TYPE_MASK) > 0
+                || z - 1 >= 0 && (this.uint16View[index - cz] & FLUID_TYPE_MASK) > 0
+                || x + 1 < size.x && (this.uint16View[index + cx] & FLUID_TYPE_MASK) > 0
+                || x - 1 >= 0 && (this.uint16View[index - cx] & FLUID_TYPE_MASK) > 0) {
+                this.markDirtyMesh();
+            }
         }
-        this.updateID++;
+        // 2. solid block on top of fluid
+        if ((this.uint16View[index] & FLUID_TYPE_MASK) > 0) {
+            if (isSolid) {
+                this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+                if (!isPortal) {
+                    this.updateID++;
+                    this.markDirtyMesh();
+                    this.markDirtyDatabase();
+                }
+            }
+        }
     }
 
     syncAllProps() {
-        const { cx, cy, cz, outerSize } = this.dataChunk;
-        const { id } = this.parentChunk.tblocks;
-        const { uint8View } = this;
-        const { BLOCK_BY_ID } = BLOCK;
+        const {cx, cy, cz, outerSize} = this.dataChunk;
+        const {id} = this.parentChunk.tblocks;
+        const {uint8View} = this;
+        const {BLOCK_BY_ID} = BLOCK;
 
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
@@ -242,7 +284,7 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
-        this.updateID++;
+        this.propsID++;
     }
 
     markDirtyMesh() {
@@ -255,6 +297,19 @@ export class FluidChunk {
         }
         if (this.world.mesher) {
             this.world.mesher.dirtyChunks.push(this);
+        }
+    }
+
+    markDirtyDatabase() {
+        if (this.databaseID < 0) {
+            return;
+        }
+        this.databaseID = -1;
+        if (!this.world) {
+            return;
+        }
+        if (this.world.database) {
+            this.world.database.dirtyChunks.push(this);
         }
     }
 

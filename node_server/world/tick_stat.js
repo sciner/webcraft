@@ -21,6 +21,7 @@ export class WorldTickStat {
             maps_clear: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             actions_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
+            db_fluid_save: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
         };
     }
 
