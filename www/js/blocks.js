@@ -526,7 +526,7 @@ export class BLOCK {
 
     //
     static isRandomTickingBlock(block_id) {
-        return !!BLOCK.fromId(block_id).random_tick;
+        return !!BLOCK.fromId(block_id).random_ticker;
     }
 
     //

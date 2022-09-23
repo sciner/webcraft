@@ -5,6 +5,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
+import { tickerRandomGrassBlock } from "./ticker/random/grass_block.js";
 
 async function waitABit() {
     return true;
@@ -32,6 +33,7 @@ export class ServerChunkManager {
             }
         };
         this.dataWorld = new DataWorld();
+        this.initRandomTickers();
     }
 
     // Init worker
@@ -145,8 +147,8 @@ export class ServerChunkManager {
         }
     }
 
+    // random chunk tick
     randomTick(tick_number) {
-        // random chunk tick
         const world_light = this.world.getLight();
         const check_count = Math.floor(this.world.getGameRule('randomTickSpeed') * 2.5);
         let rtc = 0;
@@ -358,6 +360,12 @@ export class ServerChunkManager {
                 }
             }
         })()
+    }
+
+    //
+    initRandomTickers() {
+        this.random_tickers = new Map();
+        this.random_tickers.set('grass_block', tickerRandomGrassBlock);
     }
 
 }

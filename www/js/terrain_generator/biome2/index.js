@@ -264,21 +264,18 @@ export default class Terrain_Generator extends Demo_Map {
                 // globalThis.ggg++;
 
                 const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
-                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y - 1;
+                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
                 const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
 
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-                    chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null);
+                if(!tree.type.transparent_trunk) {
+                    const yu = y - 1;
+                    if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && (yu >= 0) && (yu < chunk.size.y)) {
+                        chunk.setBlockIndirect(x, yu, z, dirt_block_id, null, null);
+                    }
                 }
 
-                this.plantTree(
-                    tree,
-                    chunk,
-                    m.chunk.coord.x + tree.pos.x - chunk.coord.x,
-                    m.chunk.coord.y + tree.pos.y - chunk.coord.y,
-                    m.chunk.coord.z + tree.pos.z - chunk.coord.z,
-                    true
-                );
+                this.plantTree(tree, chunk, x, y, z, true);
+
             }
         }
 

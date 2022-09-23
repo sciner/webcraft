@@ -1,7 +1,7 @@
-import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {Helpers, Vector, VectorCollector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
+import { ServerClient } from "../www/js/server_client.js";
+import { Vector, VectorCollector} from "../www/js/helpers.js";
+import { BLOCK } from "../www/js/blocks.js";
 import { newTypedBlocks } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
@@ -13,24 +13,7 @@ export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 
-const LIGHT_OPACITY_BLOCKS = [];
-
 const _rnd_check_pos = new Vector(0, 0, 0);
-const _rnd_pos = new Vector(0, 0, 0);
-const _rnd_pos_up = new Vector(0, 0, 0);
-
-function isLightOpacity(tblock) {
-    /*if(LIGHT_OPACITY_BLOCKS.length == 0) {
-        LIGHT_OPACITY_BLOCKS.push(...[
-            BLOCK.AIR.id,
-            BLOCK.GLASS_PANE.id,
-            BLOCK.GLASS.id,
-            BLOCK.IRON_BARS.id,
-            BLOCK.COBWEB.id
-        ]);
-    }*/
-    return tblock?.material?.transparent; // || LIGHT_OPACITY_BLOCKS.includes(tblock.id)
-}
 
 // Ticking block
 class TickingBlock {
@@ -504,13 +487,13 @@ export class ServerChunk {
         ml.compressed = null;
         if(item) {
             // calculate random ticked blocks
-            if(this.getBlock(pos)?.material?.random_tick) {
+            if(this.getBlock(pos)?.material?.random_ticker) {
                 this.randomTickingBlockCount--;
             }
             //
             if(item.id) {
                 const block = BLOCK.fromId(item.id);
-                if(block.random_tick) {
+                if(block.random_ticker) {
                     this.randomTickingBlockCount++;
                 }
                 if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
@@ -525,6 +508,7 @@ export class ServerChunk {
         this.ticking_blocks.tick(tick_number);
     }
 
+    // Random tick
     randomTick(tick_number, world_light, check_count) {
 
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
@@ -532,65 +516,31 @@ export class ServerChunk {
         }
 
         const world = this.world;
-        let actions = null;
-
-        //
-        function tickGrassBlock(tblock) {
-            // трава зачахла
-            const over_src_block = world.getBlock(_rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
-            if (world_light < 4 || !isLightOpacity(over_src_block)) {
-                if(!actions) {
-                    actions = new WorldAction(null, world, false, false);
-                }
-                // console.log('--', tblock.posworld.toHash());
-                // throw 'e';
-                actions.addBlocks([
-                    {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
-                ]);                
-            } else if (world_light >= 9) {
-                // возможность распространеия 3х5х3
-                _rnd_pos
-                    .copyFrom(tblock.posworld)
-                    .addScalarSelf(
-                        Helpers.getRandomInt(-1, 2),
-                        Helpers.getRandomInt(-2, 3),
-                        Helpers.getRandomInt(-1, 2)
-                    );
-                const rnd_block = world.getBlock(_rnd_pos);
-                if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {
-                    const over_block = world.getBlock(_rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
-                    if(over_block && isLightOpacity(over_block)) {
-                        if(!actions) {
-                            actions = new WorldAction(null, world, false, false);
-                        }
-                        console.log('++');
-                        actions.addBlocks([
-                            {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
-                        ]);
-                    }
-                }
-            }
+        if(!this._random_tick_actions) {
+            this._random_tick_actions = new WorldAction(null, world, false, false);
         }
+        const actions = this._random_tick_actions;
+        const random_tickers = this.getChunkManager().random_tickers;
 
         let tblock;
-        for(let i = 0; i < check_count; i++) {
-            const block_index = Math.floor(Math.random() * CHUNK_SIZE);
-            const block_id = this.tblocks.id[block_index];
-            if(block_id) {
-                switch(block_id) {
-                    case BLOCK.GRASS_BLOCK.id: {
-                        tblock = this.tblocks.get(_rnd_check_pos.fromFlatChunkIndex(block_index), tblock);
-                        tickGrassBlock(tblock);
-                        break;
+        for (let i = 0; i < check_count; i++) {
+            _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));
+            if(this.tblocks.has(_rnd_check_pos)) {
+                tblock = this.tblocks.get(_rnd_check_pos, tblock);
+                if(tblock.material.random_ticker) {
+                    const ticker = random_tickers.get(tblock.material.random_ticker);
+                    if(ticker) {
+                        ticker.call(this, world, actions, world_light, tblock);
                     }
                 }
             }
         }
 
         //
-        if(actions && actions.blocks.list.length > 0) {
+        if(actions.blocks.list.length > 0) {
             globalThis.modByRandomTickingBlocks = (globalThis.modByRandomTickingBlocks | 0) + actions.blocks.list.length;
             world.actions_queue.add(null, actions);
+            this._random_tick_actions = null;
         }
 
         return true;

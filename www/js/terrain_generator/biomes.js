@@ -137,7 +137,7 @@ export class  BIOMES {
             water_color: new IndexedColor(12, 36, 0),
             title:      'ДЖУНГЛИ',
             max_height: 48,
-            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 4,
@@ -171,7 +171,7 @@ export class  BIOMES {
             water_color: new IndexedColor(0, 255, 0),
             title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
             max_height: 6,
-            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id, BLOCK.PODZOL.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
@@ -225,7 +225,10 @@ export class  BIOMES {
             max_height: 64,
             dirt_block: [BLOCK.STONE.id],
             no_smooth:  false,
-            trees:      {},
+            trees:      {
+                frequency: 0,
+                list: []
+            },
             plants:     {frequency: 0}
         };
 
@@ -318,7 +321,10 @@ export class  BIOMES {
             dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             max_height: 8,
-            trees:      {frequency: 0},
+            trees:      {
+                frequency: 0,
+                list: []
+            },
             plants: {
                 frequency: .3,
                 list: [
@@ -472,6 +478,14 @@ export class  BIOMES {
             const biome = BIOMES[k];
             biome.code = k;
             biome.color_rgba = Color.hexToColor(biome.color);
+            if(!Array.isArray(biome.trees.list)) {
+                console.error(`biome '${k}' has undefined trees.list`);
+            }
+            for(let tree of biome.trees.list) {
+                const trunk_block = BLOCK.fromId(tree.trunk);
+                if(!trunk_block) throw 'invalid_trunk_block';
+                tree.transparent_trunk = trunk_block.transparent;
+            }
         }
 
         return true;
