@@ -493,7 +493,7 @@ export class Color {
     toArray() {
         return [this.r, this.g, this.b, this.a];
     }
-    
+
     copyFrom(color) {
         this.r = color.r;
         this.g = color.g;
@@ -1070,9 +1070,9 @@ export class Vector {
 
     /**
      * Return quaternion
-     * @param {float} angle 
-     * @param {boolean} hz 
-     * @returns 
+     * @param {float} angle
+     * @param {boolean} hz
+     * @returns
      */
     rotationDegrees(angle, hz = true) {
         if(hz) {
@@ -1089,7 +1089,13 @@ export class Vector {
 
 }
 
-export class Vec3 extends Vector {}
+export class Vec3 extends Vector {
+    add(vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+    }
+}
 
 export class IndexedColor {
     static packLm(lm) {

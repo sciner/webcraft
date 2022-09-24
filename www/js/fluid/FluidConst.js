@@ -9,6 +9,7 @@ export const FLUID_UPDATE_FLAG = 64;
 export const FLUID_GENERATED_FLAG = 128;
 
 export const FLUID_BLOCK_RESTRICT = 128;
+export const FLUID_SOLID16 = FLUID_BLOCK_RESTRICT << 8;
 export const FLUID_BLOCK_INTERACT = 64;
 
 export const OFFSET_FLUID = 0;

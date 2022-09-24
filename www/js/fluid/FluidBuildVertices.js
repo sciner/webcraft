@@ -1,11 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
-import {
-    FLUID_BLOCK_RESTRICT,
-    FLUID_TYPE_MASK, FLUID_TYPE_SHIFT,
-} from "./FluidConst.js";
-import {FluidGeometryPool} from "./FluidGeometryPool.js";
-import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
+import { FLUID_SOLID16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT } from "./FluidConst.js";
 
 const fluidMaterials = [];
 
@@ -84,7 +79,6 @@ export const PLANES = [
     },
 ]
 
-const solid16 = FLUID_BLOCK_RESTRICT << 8;
 let ww = [0, 0];
 function mc_addWeightedHeight(f) {
     if (f >= 0.8) {
@@ -100,7 +94,7 @@ function mc_getHeight(fluidType, neib, neibAbove) {
     if (fluidType === (neib & FLUID_TYPE_MASK)) {
         return (fluidType === (neibAbove & FLUID_TYPE_MASK)) ? 1.0 : (8.0 - (neib & 7)) / 9.0;
     }
-    return (neib & solid16) > 0 ? -1.0 : 0.0;
+    return (neib & FLUID_SOLID16) > 0 ? -1.0 : 0.0;
 }
 
 function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib3Above) {
@@ -215,7 +209,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 hasNeib[0] = (neib[0] & FLUID_TYPE_MASK) !== fluidType;
                 let foundNeib = hasNeib[0];
                 for (let i = 1; i < 6; i++) {
-                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < solid16;
+                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < FLUID_SOLID16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
                 if (!foundNeib) {

@@ -7,6 +7,31 @@ import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
 const FORWARD_DISTANCE = 20;
 
+class BrainFakeChunkManager {
+    constructor(world) {
+        this.world = world
+        this.chunk_addr = new Vector();
+    }
+    getChunk(chunk_addr) {
+        let chunk = this.world.chunks.get(chunk_addr);
+        if (chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+            return chunk;
+        } else {
+            return null;
+        }
+    }
+    getBlock(x, y, z) {
+        let pos = new Vector(x, y, z).floored();
+        this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
+        let chunk = this.getChunk(this.chunk_addr);
+        if (chunk) {
+            return chunk.getBlock(pos);
+        } else {
+            return this.world.chunks.DUMMY;
+        }
+    }
+}
+
 export class FSMBrain {
 
     #pos;
@@ -58,19 +83,7 @@ export class FSMBrain {
         let mob = brain.mob;
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
-            chunkManager: {
-                chunk_addr: new Vector(),
-                getBlock: (x, y, z) => {
-                    let pos = new Vector(x, y, z).floored();
-                    this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
-                    let chunk = world.chunks.get(this.chunk_addr);
-                    if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                        return chunk.getBlock(pos);
-                    } else {
-                        return world.chunks.DUMMY;
-                    }
-                }
-            }
+            chunkManager: new BrainFakeChunkManager(world)
         }, mob.pos, options);
     }
 
@@ -279,7 +292,7 @@ export class FSMBrain {
     */
     onKill(actor, type_damage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
     * actor - игрок
@@ -287,8 +300,8 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-    
-    
+
+
     /**
     * Нанесен урон по мобу
     * actor - игрок или пероснаж
