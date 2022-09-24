@@ -8,7 +8,7 @@ import { AABB } from './core/AABB.js';
 import { default as StyleStairs } from './block_style/stairs.js';
 
 export const TRANS_TEX                      = [4, 12];
-export const WATER_BLOCKS_ID                = [200, 202];
+export const WATER_BLOCKS_ID                = [200, 202, 415];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const POWER_NO                       = 0;
 

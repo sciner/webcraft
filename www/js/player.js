@@ -13,6 +13,7 @@ import {doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
+import { Effect } from "./block_type/effect.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -36,14 +37,14 @@ export class Player {
             sneak:              false,
             ping:               0
         };
-        this.effects = [];
+        this.effects = {effects:[]}
 
         this.headBlock = null;
     }
 
     // возвращает уровень эффекта
     getEffectLevel(val) {
-        for (const effect of this.effects) {
+        for (const effect of this.effects.effects) {
             if (effect.id == val) {
                 return effect.level;
             }
@@ -120,7 +121,7 @@ export class Player {
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {}); // player control
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         this.chat                   = new Chat(this);
         this.controls               = new PlayerControl(this.options);
@@ -160,7 +161,7 @@ export class Player {
             Qubatch.hud.refresh();
         });
         this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
-            this.effects = cmd.data.effects;
+            this.effects.effects = cmd.data.effects;
             Qubatch.hud.refresh();
         });
         // pickAt
@@ -203,7 +204,7 @@ export class Player {
         //setInterval(() => {
         //    const pos = Qubatch.player.lerpPos.clone();
         //    pos.set(24.5, 4.5, 24.5);
-        //    Qubatch.render.damageBlock({id: 202}, pos, false);
+        //    Qubatch.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
         return true;
@@ -308,7 +309,7 @@ export class Player {
                     Qubatch.sounds.play(sound, action);
                     if(player.running) {
                         // play destroy particles
-                        Qubatch.render.damageBlock(world_block.material, player.pos, true, this.scale, this.scale);
+                        Qubatch.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
                     }
                 }
             }
@@ -409,14 +410,14 @@ export class Player {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             let mul           = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
-            mul += mul * 0.2 * this.getEffectLevel(2); //Усеоренная разбивка блоков
-            mul -= mul * 0.2 * this.getEffectLevel(3); //усталость
+            mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+            mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
             const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
-                    Qubatch.render.damageBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
+                    Qubatch.render.destroyBlock(block, new Vector(bPos).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
                     this.startArmSwingProgress();
                 }
@@ -804,7 +805,7 @@ export class Player {
             let bp = this.getBlockPos();
             let height = (bp.y - this.lastBlockPos.y) / this.scale;
             if(height < 0) {
-                let damage = -height - MAX_UNDAMAGED_HEIGHT;
+                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(Effect.JUMP_BOOST);
                 if(damage > 0) {
                     Qubatch.hotbar.damage(damage, 'falling');
                 }
@@ -899,7 +900,6 @@ export class Player {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
-                    console.log("sound");
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
@@ -908,7 +908,7 @@ export class Player {
                         const dist = new Vector(.25, -.25, .25).multiplyScalar(this.scale);
                         const pos = this.getEyePos().add(this.forward.mul(dist));
                         pos.y -= .65 * this.scale;
-                        Qubatch.render.damageBlock(material, pos, true, this.scale, this.scale);
+                        Qubatch.render.destroyBlock(material, pos, true, this.scale, this.scale);
                     } else {
                         this.stopItemUse();
                     }

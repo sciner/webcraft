@@ -14,7 +14,7 @@ import { WorldPortal, WorldPortalWait } from "../www/js/portal.js";
 import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
-import { ServerPlayerEffects, Effect } from "./player/effects.js";
+import { ServerPlayerEffects } from "./player/effects.js";
 
 export class NetworkMessage {
     constructor({
@@ -180,20 +180,13 @@ export class ServerPlayer extends Player {
         this.conn.close(1000, 'error_multiconnection');
         delete(this.conn);
     }
-
-    // Change indicator value
-    // Die checked in tick()
-    changeIndicator(code, value) {
-        if(this.is_dead) {
+    
+    // Нанесение урона игроку
+    setDamage(val, src) {
+        if(this.is_dead || !this.game_mode.mayGetDamaged()) {
             return false;
         }
-        this.live_level = Math.min(value + this.live_level, 20);
-        //const ind = this.state.indicators[code];
-        //const prev_value = ind.value;
-        //ind.value = Math.max(prev_value + value, 0);
-        //console.log(`Player indicator changed '${code}' ${prev_value} -> ${ind.value}`);
-        //this.indicators_changed = true;
-        return true;
+        this.live_level = Math.max(this.live_level - val, 0);
     }
 
     /**
@@ -354,7 +347,7 @@ export class ServerPlayer extends Player {
             this.wait_portal = null;
             // add teleport particles
             // const actions = new WorldAction(randomUUID());
-            // actions.addExplosionParticles([{pos: wait_info.old_pos}]);
+            // actions.addParticles([{type: 'explosion', pos: wait_info.old_pos}]);
             // world.actions_queue.add(null, actions);
         };
         if(wait_info.params?.found_or_generate_portal) {
@@ -457,7 +450,7 @@ export class ServerPlayer extends Player {
         
         this.damage.getDamage(tick);
        
-        if (this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
+        if (this.live_level == 0 || this.state.indicators.live.value != this.live_level || this.state.indicators.food.value != this.food_level || this.state.indicators.oxygen.value != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live.value > this.live_level) {
                 // @todo добавить дергание
@@ -466,7 +459,7 @@ export class ServerPlayer extends Player {
                     data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
                 });
             }
-            if(this.live_level <= 0) {
+            if(this.live_level == 0) {
                 this.is_dead = true;
                 this.state.stats.death++;
                 // @todo check and drop inventory items if need

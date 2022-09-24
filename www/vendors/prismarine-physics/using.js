@@ -38,7 +38,7 @@ class FakeWorld {
                 honey_block:    null,
                 seagrass:       null,
                 kelp:           null,
-                bubble_column:  null
+                bubble_column:  BLOCK.BUBBLE_COLUMN
             }
         };
         return this.mcData;
@@ -64,7 +64,7 @@ class FakeWorld {
 }
 
 // FakePlayer
-function FakePlayer(pos) {
+function FakePlayer(pos, effects) {
     return {
         entity: {
             position: pos,
@@ -75,7 +75,8 @@ function FakePlayer(pos) {
             isInWeb: false,
             isCollidedHorizontally: false,
             isCollidedVertically: false,
-            yaw: 0
+            yaw: 0,
+            effects: effects
         },
         jumpTicks: 0,
         jumpQueued: false
@@ -88,7 +89,7 @@ export class PrismarinePlayerControl {
         const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
         this.physics            = Physics(mcData, this.world, options);
-        this.player             = FakePlayer(pos);
+        this.player             = FakePlayer(pos,options.effects);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
         this.controls = {

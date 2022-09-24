@@ -599,9 +599,9 @@ export class ServerWorld {
                 }
             }
         }
-        // Explosions
-        if(actions.explosion_particles) {
-            for(let params of actions.explosion_particles) {
+        // Generate particles
+        if(actions.generate_particles) {
+            for(let params of actions.generate_particles) {
                 const cps = getChunkPackets(params.pos);
                 if (cps) {
                     if (cps.chunk) {
@@ -611,13 +611,13 @@ export class ServerWorld {
                             cps.custom_packets.push({
                                 except_players,
                                 packets: [{
-                                    name: ServerClient.CMD_PARTICLE_EXPLOSION,
+                                    name: ServerClient.CMD_GENERATE_PARTICLE,
                                     data: params
                                 }]
                             });
                         } else {
                             cps.packets.push({
-                                name: ServerClient.CMD_PARTICLE_EXPLOSION,
+                                name: ServerClient.CMD_GENERATE_PARTICLE,
                                 data: params
                             });
                         }

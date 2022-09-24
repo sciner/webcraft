@@ -1,4 +1,5 @@
 import { Vec3 } from "../../js/helpers.js";
+import { Effect } from "../../js/block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
@@ -334,7 +335,8 @@ export function Physics(mcData, fake_world, options) {
                             entity.isInWeb = true
                             entity.passable = cobwebLike.get(block.type)
                         } else if (block.type === bubblecolumnId) {
-                            const down = !block.metadata
+                            // TODO: fast fix
+                            const down = false; // !block.metadata
                             const aboveBlock = world.getBlock(cursor.offset(0, 1, 0))
                             const bubbleDrag = (aboveBlock && aboveBlock.type === 0 /* air */) ? physics.bubbleColumnSurfaceDrag : physics.bubbleColumnDrag
                             if (down) {
@@ -410,8 +412,14 @@ export function Physics(mcData, fake_world, options) {
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
             if (entity.control.sprint) acceleration *= physics.sprintSpeed
-            if (entity.speed > 0) acceleration *= physics.speedEffect * entity.speed
-            if (entity.slowness > 0) acceleration *= physics.slowEffect * entity.slowness
+            const speed = getEffectLevel(Effect.SPEED, entity.effects);
+            if (speed > 0) {
+                acceleration *= physics.speedEffect * speed;
+            }
+            const slowness = getEffectLevel(Effect.SLOWNESS, entity.effects);
+            if (slowness > 0) {
+                acceleration *= physics.slowEffect / slowness;
+            }
 
             applyHeading(entity, strafe, forward, acceleration)
 
@@ -429,8 +437,9 @@ export function Physics(mcData, fake_world, options) {
             }
 
             // Apply friction and gravity
-            if (entity.levitation > 0) {
-                vel.y += (0.05 * entity.levitation - vel.y) * 0.2
+            const levitation = getEffectLevel(Effect.LEVITIATION, entity.effects);
+            if (levitation > 0) {
+                vel.y += (0.05 * levitation - vel.y) * 0.2;
             } else {
                 if(entity.flying) {
                     vel.y -= (physics.flyinGravity);
@@ -602,8 +611,9 @@ export function Physics(mcData, fake_world, options) {
                     const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                     vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
                 }
-                if (entity.jumpBoost > 0) {
-                    vel.y += 0.1 * entity.jumpBoost
+                const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.effects);
+                if (jumpBoost > 0) {
+                    vel.y += 0.1 * jumpBoost
                 }
                 if (entity.control.sprint) {
                     // @fixed Без этого фикса игрок притормаживает при беге с прыжками
@@ -647,18 +657,6 @@ export function Physics(mcData, fake_world, options) {
     return physics
 }
 
-function getEffectLevel(mcData, effectName, effects) {
-    const effectDescriptor = mcData.effectsByName[effectName]
-    if (!effectDescriptor) {
-        return 0
-    }
-    const effectInfo = effects[effectDescriptor.id]
-    if (!effectInfo) {
-        return 0
-    }
-    return effectInfo.amplifier + 1
-}
-
 function getEnchantmentLevel(mcData, enchantmentName, enchantments) {
     const enchantmentDescriptor = mcData.enchantmentsByName[enchantmentName]
     if (!enchantmentDescriptor) {
@@ -699,6 +697,19 @@ function getStatusEffectNamesForVersion(supportFeature) {
     }
 }
 
+// возвращает уровень эффекта
+function getEffectLevel(val, effects) {
+    if (!effects?.effects) {
+        return 0;
+    }
+    for (const effect of effects.effects) {
+        if (effect.id == val) {
+            return effect.level;
+        }
+    }
+    return 0;
+}
+
 export class PlayerState {
 
     constructor(bot, control, mcData, features, base_speed) {
@@ -725,19 +736,12 @@ export class PlayerState {
         this.control                = control
 
         // effects
-        const effects               = bot.entity.effects
-        const statusEffectNames     = getStatusEffectNamesForVersion(supportFeature)
-
-        this.jumpBoost              = getEffectLevel(mcData, statusEffectNames.jumpBoostEffectName, effects)
-        this.speed                  = getEffectLevel(mcData, statusEffectNames.speedEffectName, effects)
-        this.slowness               = getEffectLevel(mcData, statusEffectNames.slownessEffectName, effects)
-
+        this.effects               = bot.entity.effects;
         // Базовая скорость (1 для игрока, для мобов меньше или наоборот больше)
         this.base_speed             = typeof base_speed == 'number' ? base_speed : 1;
 
-        this.dolphinsGrace          = getEffectLevel(mcData, statusEffectNames.dolphinsGraceEffectName, effects)
-        this.slowFalling            = getEffectLevel(mcData, statusEffectNames.slowFallingEffectName, effects)
-        this.levitation             = getEffectLevel(mcData, statusEffectNames.levitationEffectName, effects)
+        this.dolphinsGrace          = 0
+        this.slowFalling            = 0
         /*
         // armour enchantments
         const boots = bot.inventory.slots[8]

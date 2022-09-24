@@ -364,7 +364,7 @@ class DestroyBlocks {
             const connected_pos = new Vector(pos);
             if(tblock.rotate && head_pos.z) {
                 let rot = tblock.rotate.x;
-                if(!tblock.extra_data.is_head) {
+                if(!tblock.extra_data?.is_head) {
                     rot += 2;
                 }
                 connected_pos.addByCardinalDirectionSelf(head_pos, rot);
@@ -430,7 +430,7 @@ export class WorldAction {
             play_sound:                 [],
             stop_disc:                  [],
             drop_items:                 [],
-            explosion_particles:        [],
+            generate_particles:         [],
             mobs:                       {spawn: [], activate: []},
             generate_tree:              [],
         });
@@ -471,8 +471,8 @@ export class WorldAction {
     }
 
     //
-    addExplosionParticles(items) {
-        this.explosion_particles.push(...items);
+    addParticles(items) {
+        this.generate_particles.push(...items);
     }
 
     //
@@ -579,7 +579,7 @@ export class WorldAction {
         }
         //
         if(add_particles) {
-            this.addExplosionParticles([{pos: vec_center.clone()}]);
+            this.addParticles([{type: 'explosion', pos: vec_center.clone()}]);
         }
     }
 

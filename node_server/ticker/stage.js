@@ -11,11 +11,11 @@ function getFreePosition(world, pos) {
         const position = pos.add(side);
         const body = world.getBlock(position);
         const under = world.getBlock(position.add(Vector.YN));
+        if (!body || !under || (body.id == BLOCK.MELON.id || body.id == BLOCK.PUMPKIN.id)) {
+            return;
+        }
         if (body.id == BLOCK.AIR.id && (under.material.material.id == 'dirt' || under.material.material.id == 'sand')) { //dirt grass sand
             facing.push(side);
-        }
-        if (body.id == BLOCK.MELON.id || body.id == BLOCK.PUMPKIN.id) {
-            return;
         }
     }
     if (facing.length > 0) {

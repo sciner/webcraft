@@ -1,10 +1,8 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import { BLOCK } from "../blocks.js";
-import {impl as alea} from "../../vendors/alea.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 
 const {mat4} = glMatrix;
 
@@ -110,6 +108,15 @@ export default class style {
                 pos:        pos,
                 matrix:     matrix
             });
+        }
+
+        // Add animations
+        if(block.material.name == 'ENDER_CHEST' && typeof worker != 'undefined') {
+            worker.postMessage(['add_animated_block', {
+                block_pos: block.posworld,
+                pos: [block.posworld.add(new Vector(.5, .5, .5))],
+                type: 'ender_chest'
+            }]);
         }
 
     }

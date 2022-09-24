@@ -24,10 +24,10 @@ export default class packet_reader {
                 if(value >= 0) {
                     throw 'error_invalid_indicator_value';
                 }
-                player.changeIndicator('live', value);
+                const comment = packet.data.comment;
+                player.setDamage(-value, comment);
             }
         }
-        // player.changeLive(-this.explosion_damage);
         return true;
     }
 

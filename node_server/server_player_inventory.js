@@ -79,20 +79,14 @@ export class ServerPlayerInventory extends Inventory {
         if(!this.current_item) {
             return false;
         }
-        const item = {...this.current_item};
-        item.count = 1;
-        const pos = this.player.state.pos.clone();
-        pos.addSelf(this.temp_vec.set(
-            -Math.sin(this.player.state.rotate.z) * .15 + Math.random() * .5,
-            this.player.height * .4,
-            -Math.cos(this.player.state.rotate.z) * .15 + Math.random() * .5,
-        ));
+        const item = {...this.current_item, count: 1};
+        const pos = this.player.state.pos.clone().addScalarSelf(0, this.player.height * .4, 0);
         // Add velocity for drop item
         this.temp_vec.set(
-            Math.sin(this.player.state.rotate.z) *  .5,
+            Math.sin(this.player.state.rotate.z),
             .5,
-            Math.cos(this.player.state.rotate.z) * .5,
-        );
+            Math.cos(this.player.state.rotate.z),
+        ).normSelf();
         this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
