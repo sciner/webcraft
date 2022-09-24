@@ -449,8 +449,9 @@ export class BLOCK {
 
     // Returns a block structure for the given id.
     static fromId(id) {
-        if(this.BLOCK_BY_ID[id]) {
-            return this.BLOCK_BY_ID[id];
+        const resp = this.BLOCK_BY_ID[id];
+        if(resp) {
+            return resp;
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;

@@ -149,14 +149,27 @@ export class ServerChunkManager {
 
     // random chunk tick
     randomTick(tick_number) {
+
         const world_light = this.world.getLight();
         const check_count = Math.floor(this.world.getGameRule('randomTickSpeed') * 2.5);
         let rtc = 0;
-        for(let chunk of this.all) {
-            if(chunk.load_state != CHUNK_STATE_BLOCKS_GENERATED || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
+
+        if(!this.random_chunks || tick_number % 20 == 0)  {
+            this.random_chunks = [];
+            for(let chunk of this.all) {
+                if(chunk.load_state != CHUNK_STATE_BLOCKS_GENERATED || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
+                    continue;
+                }
+                this.random_chunks.push(chunk);
+            }
+        }
+
+        for(let i = 0; i < this.random_chunks.length; i++) {
+            if((tick_number % 2) != (i % 2)) {
                 continue;
             }
-            if(chunk.randomTick(tick_number, world_light, check_count)) {
+            const chunk = this.random_chunks[i];
+            if(chunk.randomTick(tick_number, world_light, check_count * 2)) {
                 rtc++;
             }
         }
@@ -366,6 +379,13 @@ export class ServerChunkManager {
     initRandomTickers() {
         this.random_tickers = new Map();
         this.random_tickers.set('grass_block', tickerRandomGrassBlock);
+        this.block_random_tickers = new Map();
+        for(const [block_id, block] of this.world.block_manager.list) {
+            const ticker = this.random_tickers.get(block.random_ticker ?? '') ?? null;
+            if(ticker) {
+                this.block_random_tickers.set(block_id, ticker);
+            }
+        }
     }
 
 }
