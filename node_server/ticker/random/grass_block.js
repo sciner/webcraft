@@ -7,16 +7,17 @@ const _rnd_pos_up = new Vector(0, 0, 0);
 
 //
 function isLightOpacity(tblock) {
-    return tblock?.material?.transparent;
+    return tblock?.material?.transparent || false;
 }
 
 //
 export function tickerRandomGrassBlock(world, actions, world_light, tblock) {
     // трава зачахла
     const over_src_block = world.getBlock(_rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
+    if(world_light < 4) console.log('-4');
     if (world_light < 4 || !isLightOpacity(over_src_block)) {
         // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
-        // console.log('--', p.toHash().replaceAll(',', ' '));
+        // console.log('--', p.toHash().replaceAll(',', ' '), world_light, isLightOpacity(over_src_block));
         // throw 'e';
         actions.addBlocks([
             {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
