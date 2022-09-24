@@ -488,13 +488,13 @@ export class ServerChunk {
         ml.compressed = null;
         if(item) {
             // calculate random ticked blocks
-            if(this.getBlock(pos)?.material?.random_tick) {
+            if(this.getBlock(pos)?.material?.random_ticker) {
                 this.randomTickingBlockCount--;
             }
             //
             if(item.id) {
                 const block = BLOCK.fromId(item.id);
-                if(block.random_tick) {
+                if(block.random_ticker) {
                     this.randomTickingBlockCount++;
                 }
                 if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
