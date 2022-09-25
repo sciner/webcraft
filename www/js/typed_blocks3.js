@@ -5,6 +5,7 @@ import { AABB } from './core/AABB.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
+import {fluidLightPower} from "./fluid/FluidConst.js";
 
 export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);
@@ -668,6 +669,19 @@ export class TBlock {
         // let cu = this.tb.id[this.index];
         // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
         this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
+    }
+
+    get lightSource() {
+        let res = 0;
+        const mat = BLOCK.BLOCK_BY_ID[this.id]
+        if (mat) {
+            res = mat.light_power_number;
+        }
+        const fluidVal = this.tb.fluid.getValueByInd(this.index);
+        if (fluidVal > 0) {
+            res |= fluidLightPower(fluidVal);
+        }
+        return res;
     }
 
     //

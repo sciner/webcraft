@@ -124,15 +124,10 @@ export class Chunk {
         }
     }
 
-    initLights() {
-        if(!this.chunkManager.use_light) {
-            return false;
-        }
-
+    genLightSourceBuf() {
         const { size } = this;
         const sz = size.x * size.y * size.z;
-        const light_buffer = new ArrayBuffer(sz);
-        const light_source = new Uint8Array(light_buffer);
+        const light_source = new Uint8Array(sz);
 
         let ind = 0;
         let prev_block_id = Infinity, prev_fluid = Infinity;
@@ -165,8 +160,15 @@ export class Chunk {
                     }
                     light_source[ind++] = light_power_number;
                 }
+        return light_source;
+    }
+
+    initLights() {
+        if(!this.chunkManager.use_light) {
+            return false;
+        }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
-            {addr: this.addr, size: this.size, light_buffer, dataId: this.getDataTextureOffset() }]);
+            {addr: this.addr, size: this.size, light_buffer: this.genLightSourceBuf().buffer, dataId: this.getDataTextureOffset() }]);
     }
 
     getLightTexture(render) {
@@ -435,13 +437,10 @@ export class Chunk {
             if (this.chunkManager.use_light) {
                 const light         = material.light_power_number;
                 if (oldLight !== light) {
-                    chunkManager.postLightWorkerMessage(['setBlock', {
+                    chunkManager.postLightWorkerMessage(['setChunkBlock', {
                         addr: this.addr,
                         dataId: this.getDataTextureOffset(),
-                        x:          x + this.coord.x,
-                        y:          y + this.coord.y,
-                        z:          z + this.coord.z,
-                        light_source: light}]);
+                        list: [x, y, z, light]}]);
                 }
             }
             this.fluid.syncBlockProps(tblock.index, item.id);
@@ -520,18 +519,6 @@ export class Chunk {
         return frustum_geometry;
     }
 
-    calcLightPropsTBlock(tblock) {
-        let res = 0;
-        if (!tblock.material) {
-            res = tblock.material.light_power_number;
-        }
-        const fluidVal = tblock.fluid;
-        if (fluidVal > 0) {
-            res |= fluidLightPower(fluidVal);
-        }
-        return res;
-    }
-
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
@@ -539,6 +526,8 @@ export class Chunk {
         let material            = null;
         let tblock              = null;
         const is_modify         = false;
+        const lightList = [];
+
         for(let i = 0; i < mods_arr.length; i++) {
             const pos = mods_arr[i].pos;
             const type = mods_arr[i].item;
@@ -554,7 +543,7 @@ export class Chunk {
                 if(!tblock.material) {
                     debugger
                 }
-                oldLight = this.calcLightPropsTBlock(tblock);
+                oldLight = tblock.lightSource;
             }
             this.tblocks.delete(tblock_pos);
             // fill properties
@@ -572,26 +561,48 @@ export class Chunk {
             Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
             // light
             if(chunkManager.use_light) {
-                const light = this.calcLightPropsTBlock(tblock);
+                const light = tblock.lightSource;
                 if(oldLight !== light) {
+                    lightList.push(tblock_pos.x, tblock_pos.y, tblock_pos.z, light);
                     // updating light here
-                    chunkManager.postLightWorkerMessage(['setBlock', {
-                        addr:           this.addr,
-                        x:              pos.x,
-                        y:              pos.y,
-                        z:              pos.z,
-                        light_source:   light
-                    }]);
                 }
             }
+        }
+        if (lightList.length > 0) {
+            chunkManager.postLightWorkerMessage(['setChunkBlock', {
+                addr: this.addr,
+                dataId: this.getDataTextureOffset(),
+                list: lightList
+            }]);
         }
     }
 
     setFluid(buf) {
         if(this.inited) {
             this.fluid.markDirtyMesh();
-            this.fluid.loadDbBuffer(buf);
+
+            //TODO: make it diff!
+            const oldBuf = this.genLightSourceBuf();
+            this.fluid.loadDbBuffer(buf, false);
+            const newBuf = this.genLightSourceBuf();
+
             this.chunkManager.dataWorld.syncOuter(this);
+
+            const { size } = this;
+            let diff = [];
+            let ind = 0;
+            for (let y = 0; y < size.y; y++)
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        if (oldBuf[ind] !== newBuf[ind]) {
+                            diff.push(x, y, z, newBuf[ind]);
+                        }
+                        ind++;
+                    }
+            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
+                addr: this.addr,
+                dataId: this.getDataTextureOffset(),
+                list: diff}]);
         } else {
             this.fluid_buf = buf;
         }
