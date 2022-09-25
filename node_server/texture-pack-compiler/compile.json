@@ -368,9 +368,6 @@
             "material": {
                 "id": "dirt"
             },
-            "ticking": {
-                "type": "dirt"
-            },
             "extra_data": {"calculated": [
                 {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
             ]},
@@ -387,6 +384,7 @@
                 "mask_biome",
                 "dirt"
             ],
+            "random_ticker": "grass_block",
             "material": {
                 "id": "dirt"
             },

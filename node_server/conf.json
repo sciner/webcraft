@@ -31,7 +31,6 @@
     "tickers": [
         "bamboo",
         "charging_station",
-        "dirt",
         "spawnmob",
         "stage",
         "furnace",
@@ -39,6 +38,9 @@
         "bn",
         "fire",
         "tnt"
+    ],
+    "random_tickers": [
+        "grass_block"
     ],
     "chat_plugins": [
         "chat_teleport",

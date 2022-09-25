@@ -20,6 +20,7 @@ export class WorldTickStat {
             packet_reader_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             maps_clear: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
+            chunks_random_tick: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             actions_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
         };
     }
