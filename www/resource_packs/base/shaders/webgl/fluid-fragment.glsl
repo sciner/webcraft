@@ -75,14 +75,17 @@ void main() {
             );
         }
 
+        vec3 minecraftSun = vec3(0.8, 0.6, 1.0);
+        if (v_normal.z < 0.0) minecraftSun.z = 0.5;
+        float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
+
         if(v_noCanTakeLight < 0.5) {
             #include<local_light_pass>
             #include<ao_light_pass>
-            if(v_noCanTakeAO == .0) {
-                #include<sun_light_pass>
-            }
             // Apply light
             color.rgb *= combinedLight * sunNormalLight;
+        } else {
+            color.rgb *= sunNormalLight;
         }
 
         outColor = color;

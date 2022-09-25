@@ -4,33 +4,9 @@ import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/us
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
+import {PrismarineServerFakeChunkManager} from "../PrismarineServerFakeChunkManager.js";
 
 const FORWARD_DISTANCE = 20;
-
-class BrainFakeChunkManager {
-    constructor(world) {
-        this.world = world
-        this.chunk_addr = new Vector();
-    }
-    getChunk(chunk_addr) {
-        let chunk = this.world.chunks.get(chunk_addr);
-        if (chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
-            return chunk;
-        } else {
-            return null;
-        }
-    }
-    getBlock(x, y, z) {
-        let pos = new Vector(x, y, z).floored();
-        this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
-        let chunk = this.getChunk(this.chunk_addr);
-        if (chunk) {
-            return chunk.getBlock(pos);
-        } else {
-            return this.world.chunks.DUMMY;
-        }
-    }
-}
 
 export class FSMBrain {
 
@@ -83,7 +59,7 @@ export class FSMBrain {
         let mob = brain.mob;
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
-            chunkManager: new BrainFakeChunkManager(world)
+            chunkManager: new PrismarineServerFakeChunkManager(world)
         }, mob.pos, options);
     }
 
