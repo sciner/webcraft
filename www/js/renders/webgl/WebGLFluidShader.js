@@ -17,7 +17,7 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         //TODO: make this specific to resourcepack (material)
         this.fluidFlags = new Int32Array([
             QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR,
-            QUAD_FLAGS.FLAG_ANIMATED,
+            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_CAN_TAKE_LIGHT,
         ]);
         this.fluidUV = new Float32Array([
             32.0 / 1024.0, 32.0 / 1024.0, 0.0 / 1024.0, 0.0 / 1024.0,
