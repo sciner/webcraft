@@ -12,16 +12,15 @@ function isLightOpacity(tblock) {
 
 //
 export function tickerRandomGrassBlock(world, actions, world_light, tblock) {
+    // return false;
     // трава зачахла
     const over_src_block = world.getBlock(_rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
-    if(world_light < 4) console.log('-4');
-    if (world_light < 4 || !isLightOpacity(over_src_block)) {
+    if (world_light < 4 || (over_src_block && !isLightOpacity(over_src_block))) {
         // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
-        // console.log('--', p.toHash().replaceAll(',', ' '), world_light, isLightOpacity(over_src_block));
-        // throw 'e';
+        // console.log('--', p.toHash().replaceAll(',', ' '), `over: ${over_src_block?.material?.name}`, world_light, isLightOpacity(over_src_block));
         actions.addBlocks([
             {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
-        ]);                
+        ]);
     } else if (world_light >= 9) {
         // возможность распространеия 3х5х3
         _rnd_pos
