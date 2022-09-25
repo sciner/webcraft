@@ -44,6 +44,13 @@ export class ServerWorld {
                 this.tickers.set(module.default.type, module.default.func);
             });
         }
+        // Random tickers
+        this.random_tickers = new Map();
+        for(let fn of config.random_tickers) {
+            await import(`./ticker/random/${fn}.js`).then((module) => {
+                this.random_tickers.set(fn, module.default);
+            });
+        }
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -59,7 +66,7 @@ export class ServerWorld {
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.chunks         = new ServerChunkManager(this);
+        this.chunks         = new ServerChunkManager(this, this.random_tickers);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
         this.admins         = new WorldAdminManager(this);

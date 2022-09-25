@@ -10,14 +10,11 @@ function isLightOpacity(tblock) {
     return tblock?.material?.transparent || false;
 }
 
-//
-export function tickerRandomGrassBlock(world, actions, world_light, tblock) {
-    // return false;
-    // трава зачахла
+// tickerRandomGrassBlock
+export default function randomTicker(world, actions, world_light, tblock) {
     const over_src_block = world.getBlock(_rnd_pos_up.copyFrom(tblock.posworld).addScalarSelf(0, 1, 0));
     if (world_light < 4 || (over_src_block && !isLightOpacity(over_src_block))) {
-        // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
-        // console.log('--', p.toHash().replaceAll(',', ' '), `over: ${over_src_block?.material?.name}`, world_light, isLightOpacity(over_src_block));
+        // трава зачахла
         actions.addBlocks([
             {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
         ]);
@@ -34,9 +31,6 @@ export function tickerRandomGrassBlock(world, actions, world_light, tblock) {
         if(rnd_block && rnd_block.id == BLOCK.DIRT.id) {
             const over_block = world.getBlock(_rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
             if(over_block && isLightOpacity(over_block)) {
-                // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
-                // console.log('++', p.toHash().replaceAll(',', ' '));
-                // throw 'e';
                 actions.addBlocks([
                     {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
                 ]);

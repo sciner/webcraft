@@ -5,7 +5,6 @@ import {ServerClient} from "../www/js/server_client.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
-import { tickerRandomGrassBlock } from "./ticker/random/grass_block.js";
 
 async function waitABit() {
     return true;
@@ -13,7 +12,7 @@ async function waitABit() {
 
 export class ServerChunkManager {
 
-    constructor(world) {
+    constructor(world, random_tickers) {
         this.world                  = world;
         this.all                    = new VectorCollector();
         this.chunk_queue_load       = new VectorCollector();
@@ -33,7 +32,7 @@ export class ServerChunkManager {
             }
         };
         this.dataWorld = new DataWorld();
-        this.initRandomTickers();
+        this.initRandomTickers(random_tickers);
     }
 
     // Init worker
@@ -376,9 +375,8 @@ export class ServerChunkManager {
     }
 
     //
-    initRandomTickers() {
-        this.random_tickers = new Map();
-        this.random_tickers.set('grass_block', tickerRandomGrassBlock);
+    async initRandomTickers(random_tickers) {
+        this.random_tickers = random_tickers;
         this.block_random_tickers = new Map();
         for(const [block_id, block] of this.world.block_manager.list) {
             const ticker = this.random_tickers.get(block.random_ticker ?? '') ?? null;
