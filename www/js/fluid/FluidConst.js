@@ -29,6 +29,7 @@ export function fluidLightPower(fluidVal) {
         // lava
         return 15;
     }
+    // water is not transparent for daylight columns
     return 64;
 }
 

@@ -5,7 +5,7 @@ import {BLOCK, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
-import {fluidLightPower} from "./fluid/FluidConst.js";
+import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
 
 // Creates a new chunk
 export class Chunk {
@@ -135,27 +135,33 @@ export class Chunk {
         const light_source = new Uint8Array(light_buffer);
 
         let ind = 0;
-        let prev_block_id = Infinity;
+        let prev_block_id = Infinity, prev_fluid = Infinity;
         let light_power_number = 0;
         let block_material = null;
 
         const {cx, cy, cz, cw } = this.dataChunk;
         const { id } = this.tblocks;
+        const fluid = this.fluid.uint16View;
 
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x = 0; x < size.x; x++) {
                     const index = cx * x + cy * y + cz * z + cw;
                     const block_id = id[index];
-                    if(block_id !== prev_block_id) {
+                    const fluid_type = fluid[index] & FLUID_TYPE_MASK;
+                    if(block_id !== prev_block_id || fluid_type !== prev_fluid) {
                         block_material = BLOCK.BLOCK_BY_ID[block_id]
                         if(block_material) {
                             light_power_number = block_material.light_power_number;
                         } else {
                             console.error(`Block not found ${block_id}`);
                         }
+                        if (fluid_type > 0) {
+                            light_power_number |= fluidLightPower(fluid_type);
+                        }
 
                         prev_block_id = block_id;
+                        prev_fluid = fluid_type;
                     }
                     light_source[ind++] = light_power_number;
                 }
@@ -287,12 +293,11 @@ export class Chunk {
                 delete(v.list);
             }
         }
-        let oldKeys = [];
         for (let [key, v] of this.vertices) {
             if (v.inputId === inputId) {
                 if (v.customFlag) {
                     v.buffer.destroy();
-                    oldKeys.push(key);
+                    this.vertices.delete(key)
                 } else {
                     this.vertices_length += v.instanceCount;
                 }
@@ -300,9 +305,6 @@ export class Chunk {
                 this.vertices_length += v.instanceCount;
                 this.verticesList.push(v);
             }
-        }
-        for (let i = 0; i< oldKeys.length; i++) {
-            this.vertices.delete(oldKeys);
         }
         chunkManager.vertices_length_total += this.vertices_length;
     }

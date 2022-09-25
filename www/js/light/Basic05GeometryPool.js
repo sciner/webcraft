@@ -47,7 +47,7 @@ export class Basic05GeometryPool extends GeometryPool {
         const sizePages = Math.ceil(sizeQuads / pageSize);
         const lastSize = lastBuffer ? lastBuffer.sizePages : 0;
         let sub = lastBuffer;
-        if (!sub) {
+        if (!sub || !sub.pool) {
             sub = new TerrainSubGeometry({
                 pool: this, baseGeometry, sizeQuads, sizePages
             });

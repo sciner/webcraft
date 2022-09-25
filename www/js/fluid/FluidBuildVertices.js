@@ -17,6 +17,9 @@ class FluidMaterial {
         if(block.tags.includes('multiply_color')) {
             this.flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
         }
+        if (block.light_power) {
+            this.flags |= QUAD_FLAGS.NO_AO;
+        }
 
         let texture_id = 'default';
         if(typeof block.texture == 'object' && 'id' in block.texture) {

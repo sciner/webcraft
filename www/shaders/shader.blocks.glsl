@@ -383,7 +383,7 @@
     //TODO: clamp?
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     vec4 centerSample;
-    vec4 aoVector;
+    vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
     if (v_lightId < 0.5) {
