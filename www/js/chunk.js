@@ -282,15 +282,11 @@ export class Chunk {
                 delete(v.list);
             }
         }
-        let oldKeys = [];
         for (let [key, v] of this.vertices) {
             if (v.customFlag) {
                 v.destroy();
-                oldKeys.push(key);
+                this.vertices.delete(key);
             }
-        }
-        for (let i = 0; i< oldKeys.length; i++) {
-            this.vertices.delete(oldKeys);
         }
         if(this.vertices_length == 0) {
             // @todo
