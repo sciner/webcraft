@@ -2059,18 +2059,6 @@
             "texture": "block/soul_sand.png"
         },
         {
-            "id": 95,
-            "name": "STAINED_GLASS",
-            "deprecated": true,
-            "transparent": true,
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/glass.png",
-            "can_rotate": true,
-            "spawnable": false
-        },
-        {
             "id": 98,
             "name": "STONE_BRICKS",
             "sound": "madcraft:block.stone",
@@ -4697,7 +4685,6 @@
         {
             "id": 649,
             "name": "MOB_SPAWN",
-            "style": "cube",
             "transparent": true,
             "can_rotate": true,
             "material": {
