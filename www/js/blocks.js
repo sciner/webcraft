@@ -99,7 +99,7 @@ export class FakeTBlock {
 
 //
 export class DropItemVertices extends FakeTBlock {
-    
+
     constructor(id, extra_data, pos, rotate, matrix, vertice_groups) {
         super(id, extra_data, pos, rotate, null, matrix, null, null, null);
         this.vertice_groups = vertice_groups;
@@ -577,6 +577,7 @@ export class BLOCK {
 
     static isSolid(block) {
         return block.style == 'default' &&
+            !block.is_fluid &&
             !block.is_leaves &&
             !('width' in block) &&
             !('height' in block);

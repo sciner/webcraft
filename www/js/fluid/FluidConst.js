@@ -41,7 +41,7 @@ export function fluidBlockProps(block) {
     let res = 0;
 
     const blockMat = block.material;
-    if (!blockMat.transparent) {
+    if (!blockMat.is_solid) {
         res |= FLUID_BLOCK_RESTRICT;
     }
 
