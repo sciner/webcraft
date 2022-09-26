@@ -2128,7 +2128,6 @@
         {
             "id": 103,
             "name": "CHISELED_STONE_BRICKS",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
@@ -2138,7 +2137,6 @@
         {
             "id": 104,
             "name": "POLISHED_BLACKSTONE",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
@@ -2148,7 +2146,6 @@
         {
             "id": 105,
             "name": "POLISHED_BLACKSTONE_BRICKS",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"

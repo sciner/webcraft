@@ -36,8 +36,8 @@ export default class style {
 
         const texture = block.material.texture;
 
-        //Рисуем блок
-        switch(block.extra_data?.shape) {
+        // Рисуем блок
+        switch(block.extra_data?.shape ?? RailShape.NORTH_SOUTH) {
             case RailShape.NORTH_SOUTH: {
                 plate(vertices, BLOCK.calcTexture(texture, DIRECTION.UP), x, y, z, DIRECTION.NORTH);
                 break;
@@ -82,6 +82,7 @@ export default class style {
                 plate(vertices, BLOCK.calcTexture(texture, DIRECTION.DOWN), x, y, z, DIRECTION.NORTH);
             }
         }
+
     }
 
 }
