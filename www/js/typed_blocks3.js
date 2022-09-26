@@ -5,7 +5,7 @@ import { AABB } from './core/AABB.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
-import {fluidLightPower} from "./fluid/FluidConst.js";
+import {FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 
 export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);
@@ -800,6 +800,10 @@ export class TBlock {
 
     set fluid(value) {
         this.tb.fluid.setValue(this.vec.x, this.vec.y, this.vec.z, value);
+    }
+
+    get isWater() {
+        return (this.tb.fluid.getValueByInd(this.index) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
     }
 
     getFluidLevel(worldX, worldZ) {
