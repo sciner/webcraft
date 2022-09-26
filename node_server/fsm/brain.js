@@ -176,7 +176,7 @@ export class FSMBrain {
             return;
         }
 
-        const is_water = block.body.material.is_fluid || block.head.material.is_fluid;
+        const is_water = block.body.is_fluid || block.head.is_fluid;
         const mob = this.mob;
         if (is_water) {
             this.rotate_angle += Math.PI / 60;
@@ -222,7 +222,7 @@ export class FSMBrain {
         }
 
         const mob = this.mob;
-        const is_water = block.body.material.is_fluid;
+        const is_water = block.body.id == 0 && block.body.fluid > 0;
         this.updateControl({
             yaw: mob.rotate.z,
             jump: is_water,

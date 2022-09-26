@@ -903,4 +903,8 @@ export class TBlock {
         return neighbours;
     }
 
+    get is_fluid() {
+        return this.id == 0 && this.fluid > 0;
+    }
+
 }
