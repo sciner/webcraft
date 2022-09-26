@@ -177,7 +177,7 @@ export class ServerChunkManager {
         }
         if(globalThis.modByRandomTickingBlocks != globalThis.modByRandomTickingBlocks_o) {
             globalThis.modByRandomTickingBlocks_o = globalThis.modByRandomTickingBlocks;
-            console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
+            // console.info(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
         }
     }
 

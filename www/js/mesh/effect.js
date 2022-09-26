@@ -11,7 +11,7 @@ export const pos_offset                     = 0;
 export const axisx_offset                   = 3;
 export const axisy_offset                   = 6;
 export const particle_offset                = 4;
-export const DEFAULT_EFFECT_MATERIAL_KEY    = 'extend/transparent/effects';
+export const DEFAULT_EFFECT_MATERIAL_KEY    = 'extend/transparent/terrain/effects';
 
 //
 export function getEffectTexture(textures) {
