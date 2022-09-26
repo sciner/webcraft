@@ -13,7 +13,7 @@ async function waitABit() {
 
 export class ServerChunkManager {
 
-    constructor(world) {
+    constructor(world, random_tickers) {
         this.world                  = world;
         this.all                    = new VectorCollector();
         this.chunk_queue_load       = new VectorCollector();
@@ -35,6 +35,7 @@ export class ServerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
+        this.initRandomTickers(random_tickers);
     }
 
     // Init worker
@@ -145,6 +146,38 @@ export class ServerChunkManager {
         if(this.unloaded_chunk_addrs.length > 0) {
             this.postWorkerMessage(['destructChunk', this.unloaded_chunk_addrs]);
             this.unloaded_chunk_addrs = [];
+        }
+    }
+
+    // random chunk tick
+    randomTick(tick_number) {
+
+        const world_light = this.world.getLight();
+        const check_count = Math.floor(this.world.getGameRule('randomTickSpeed') * 2.5);
+        let rtc = 0;
+
+        if(!this.random_chunks || tick_number % 20 == 0)  {
+            this.random_chunks = [];
+            for(let chunk of this.all) {
+                if(chunk.load_state != CHUNK_STATE_BLOCKS_GENERATED || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
+                    continue;
+                }
+                this.random_chunks.push(chunk);
+            }
+        }
+
+        for(let i = 0; i < this.random_chunks.length; i++) {
+            if((tick_number % 2) != (i % 2)) {
+                continue;
+            }
+            const chunk = this.random_chunks[i];
+            if(chunk.randomTick(tick_number, world_light, check_count * 2)) {
+                rtc++;
+            }
+        }
+        if(globalThis.modByRandomTickingBlocks != globalThis.modByRandomTickingBlocks_o) {
+            globalThis.modByRandomTickingBlocks_o = globalThis.modByRandomTickingBlocks;
+            console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
         }
     }
 
@@ -346,6 +379,18 @@ export class ServerChunkManager {
                 }
             }
         })()
+    }
+
+    //
+    async initRandomTickers(random_tickers) {
+        this.random_tickers = random_tickers;
+        this.block_random_tickers = new Map();
+        for(const [block_id, block] of this.world.block_manager.list) {
+            const ticker = this.random_tickers.get(block.random_ticker ?? '') ?? null;
+            if(ticker) {
+                this.block_random_tickers.set(block_id, ticker);
+            }
+        }
     }
 
 }

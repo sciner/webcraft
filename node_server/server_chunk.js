@@ -1,7 +1,7 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {Vector, VectorCollector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
+import { ServerClient } from "../www/js/server_client.js";
+import { Helpers, Vector, VectorCollector} from "../www/js/helpers.js";
+import { BLOCK } from "../www/js/blocks.js";
 import { newTypedBlocks } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
@@ -13,7 +13,8 @@ export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 export const CHUNK_STATE_UNLOADED          = 4;
-//
+
+const _rnd_check_pos = new Vector(0, 0, 0);
 
 // Ticking block
 class TickingBlock {
@@ -128,7 +129,10 @@ export class ServerChunk {
         this.modify_list    = {};
         this.mobs           = new Map();
         this.drop_items     = new Map();
+        this.tblocks        = null;
         this.ticking_blocks = new TickingBlockManager(this);
+        this.randomTickingBlockCount = 0;
+        this.block_random_tickers = this.getChunkManager().block_random_tickers;
         this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
@@ -359,6 +363,14 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         //
+        this.randomTickingBlockCount = 0;
+        for(let i = 0; i < this.tblocks.id.length; i++) {
+            const block_id = this.tblocks.id[i];
+            if(BLOCK.isRandomTickingBlock(block_id)) {
+                this.randomTickingBlockCount++;
+            }
+        }
+        //
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         // fluid
@@ -510,10 +522,20 @@ export class ServerChunk {
         if(!ml.obj) ml.obj = {};
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
-        if(item && item.id) {
-            const block = BLOCK.fromId(item.id);
-            if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                this.ticking_blocks.add(pos);
+        if(item) {
+            // calculate random ticked blocks
+            if(this.getBlock(pos)?.material?.random_ticker) {
+                this.randomTickingBlockCount--;
+            }
+            //
+            if(item.id) {
+                const block = BLOCK.fromId(item.id);
+                if(block.random_ticker) {
+                    this.randomTickingBlockCount++;
+                }
+                if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
+                    this.ticking_blocks.add(pos);
+                }
             }
         }
     }
@@ -521,6 +543,46 @@ export class ServerChunk {
     // On world tick
     tick(tick_number) {
         this.ticking_blocks.tick(tick_number);
+    }
+
+    getActions() {
+        if(!this._random_tick_actions) {
+            this._random_tick_actions = new WorldAction(null, this.world, false, false);
+        }
+        return this._random_tick_actions;
+    }
+
+    // Random tick
+    randomTick(tick_number, world_light, check_count) {
+
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
+            return false;
+        }
+
+        let tblock;
+
+        for (let i = 0; i < check_count; i++) {
+            _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));
+            const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
+            if(block_id > 0) {
+                const ticker = this.block_random_tickers.get(block_id);
+                if(ticker) {
+                    tblock = this.tblocks.get(_rnd_check_pos, tblock);
+                    ticker.call(this, this.world, this.getActions(), world_light, tblock);
+                }
+            }
+        }
+
+        //
+        const actions = this._random_tick_actions;
+        if(actions && actions.blocks.list.length > 0) {
+            globalThis.modByRandomTickingBlocks = (globalThis.modByRandomTickingBlocks | 0) + actions.blocks.list.length;
+            this.world.actions_queue.add(null, actions);
+            this._random_tick_actions = null;
+        }
+
+        return true;
+
     }
 
     // Before unload chunk

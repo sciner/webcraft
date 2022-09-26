@@ -51,7 +51,7 @@ export default class emitter {
      */
     emit() {
 
-        if(this.ticks++ > 1) {
+        if(this.ticks++ > 1 || this.life <= 0) {
             return [];
         }
 

@@ -44,6 +44,13 @@ export class ServerWorld {
                 this.tickers.set(module.default.type, module.default.func);
             });
         }
+        // Random tickers
+        this.random_tickers = new Map();
+        for(let fn of config.random_tickers) {
+            await import(`./ticker/random/${fn}.js`).then((module) => {
+                this.random_tickers.set(fn, module.default);
+            });
+        }
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -59,7 +66,7 @@ export class ServerWorld {
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.chunks         = new ServerChunkManager(this);
+        this.chunks         = new ServerChunkManager(this, this.random_tickers);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
         this.admins         = new WorldAdminManager(this);
@@ -141,6 +148,9 @@ export class ServerWorld {
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks');
+            // 1.
+            this.chunks.randomTick(this.ticks_stat.number);
+            this.ticks_stat.add('chunks_random_tick');
             // 2.
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
@@ -796,12 +806,20 @@ export class ServerWorld {
     // Set world game rule value
     async setGameRule(rule_code, value) {
         //
-        function parseFloatValue(value) {
+        function parseBoolValue(value) {
             value = value.toLowerCase().trim();
             if(['true', 'false'].indexOf(value) < 0) {
                 throw 'error_invalid_value_type';
             }
             return value == 'true';
+        }
+        // 
+        function parseIntValue(value) {
+            value = parseInt(value);
+            if (isNaN(value) || !isFinite(value)) {
+                throw 'error_invalid_value_type';
+            }
+            return value;
         }
         //
         const rules = this.info.rules;
@@ -809,7 +827,7 @@ export class ServerWorld {
         switch(rule_code) {
             case 'doDaylightCycle': {
                 // /gamerule doDaylightCycle false|true
-                value = parseFloatValue(value);
+                value = parseBoolValue(value);
                 if(value) {
                     delete(rules.doDaylightCycleTime);
                 } else {
@@ -817,6 +835,10 @@ export class ServerWorld {
                     this.updateWorldCalendar();
                     rules.doDaylightCycleTime = this.info.calendar.day_time;
                 }
+                break;
+            }
+            case 'randomTickSpeed': {
+                value = parseIntValue(value);
                 break;
             }
             default: {
@@ -854,6 +876,23 @@ export class ServerWorld {
         this.info.pos_spawn = pos_spawn;
         await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
+    }
+    
+    // Возвращает идет ли дождь или снег
+    isRaining() {
+        return this.weather?.name != 'clear';
+    }
+    
+    // Возвращает уровень освещности в мире
+    getLight() {
+        const time = this.info.calendar.day_time;
+        if (this.isRaining()) {
+            return 12;
+        }
+        if (time < 6000 || time > 18000) {
+            return 4;
+        }
+        return 15;
     }
 
 }

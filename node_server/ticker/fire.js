@@ -22,9 +22,8 @@ export default class Ticker {
         // Проверяем установку блока
         const block = world.getBlock(pos.add(Vector.YN));
         const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
-        const rain = false; // @todo [rain, burn, fire]
         const age = tblock.extra_data.age || 0; // Время горения
-        if (!infiniburn && rain && Math.random() < 0.2 + age * 0.03) {
+        if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
             updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
             return updated_blocks;
         }

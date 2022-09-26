@@ -17,7 +17,7 @@ export class DBWorldMigration {
         const table_exists = await this.db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='options'`);
         if(table_exists) {
             const row = await this.db.get('SELECT version FROM options');
-            version = row.version;    
+            version = row.version;
         } else {
             await this.db.get('BEGIN TRANSACTION');
             await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
@@ -568,7 +568,7 @@ export class DBWorldMigration {
             `DROP INDEX "main"."world_modify_xyz";`,
 
             `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20220703_2";`,
-            
+
             `CREATE TABLE "main"."world_modify" (
               "id" INTEGER,
               "world_id" INTEGER NOT NULL,
@@ -585,9 +585,9 @@ export class DBWorldMigration {
               "block_id" integer DEFAULT NULL,
               PRIMARY KEY ("id")
             );`,
-            
+
             `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data", "ticks", "block_id" FROM "main"."_world_modify_old_20220703_2";`,
-            
+
             `CREATE INDEX "main"."world_modify_xyz"
             ON "world_modify" (
               "x" ASC,
@@ -755,6 +755,10 @@ export class DBWorldMigration {
                 "data" blob,
                 PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE
               );`,
+        ]});
+        migrations.push({version: 82, queries: [
+            `DELETE from world_modify WHERE block_id = 95;`,
+            `UPDATE world_modify_chunks SET data_blob = NULL WHERE data LIKE '"id":95,' OR data LIKE '"id":95}';`,
         ]});
 
         for(let m of migrations) {
