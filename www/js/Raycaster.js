@@ -48,8 +48,9 @@ export class RaycasterResult {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    setFluid(fluidLeftTop, fluidVal) {
+    setFluid(fluidLeftTop, fluidVal, side) {
         this.fluidLeftTop = fluidLeftTop;
+        this.fluidLeftTop.n = side;
         this.fluidVal = fluidVal;
         return this;
     }
@@ -308,7 +309,7 @@ export class Raycaster {
             if (!res) {
                 res = new RaycasterResult();
             }
-            res.setFluid(fluidLeftTop, fluidVal);
+            res.setFluid(fluidLeftTop, fluidVal, side);
         }
 
         callback && callback(res);

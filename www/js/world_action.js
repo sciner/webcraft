@@ -617,7 +617,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);
-    let world_material      = world_block && world_block.id > 0 ? world_block.material : null;
+    let world_material      = world_block && (world_block.id > 0 || world_block.fluid > 0) ? world_block.material : null;
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
 
