@@ -9,8 +9,10 @@ export const FLUID_UPDATE_FLAG = 64;
 export const FLUID_GENERATED_FLAG = 128;
 
 export const FLUID_BLOCK_RESTRICT = 128;
+export const FLUID_BLOCK_OPAQUE = 196;
 export const FLUID_SOLID16 = FLUID_BLOCK_RESTRICT << 8;
-export const FLUID_BLOCK_INTERACT = 64;
+export const FLUID_OPAQUE16 = FLUID_BLOCK_OPAQUE << 8;
+export const FLUID_BLOCK_INTERACT = 32;
 
 export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
@@ -42,7 +44,11 @@ export function fluidBlockProps(block) {
 
     const blockMat = block.material;
     if (block.is_solid) {
-        res |= FLUID_BLOCK_RESTRICT;
+        if (block.transparent) {
+            res |= FLUID_BLOCK_RESTRICT;
+        } else {
+            res |= FLUID_BLOCK_OPAQUE;
+        }
     }
 
     return res;

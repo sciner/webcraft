@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
-import { FLUID_SOLID16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT } from "./FluidConst.js";
+import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT } from "./FluidConst.js";
 
 const fluidMaterials = [];
 
@@ -212,7 +212,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 hasNeib[0] = (neib[0] & FLUID_TYPE_MASK) !== fluidType;
                 let foundNeib = hasNeib[0];
                 for (let i = 1; i < 6; i++) {
-                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < FLUID_SOLID16;
+                    hasNeib[i] = (neib[i] & FLUID_TYPE_MASK) !== fluidType && neib[i] < FLUID_OPAQUE16;
                     foundNeib = foundNeib || hasNeib[i];
                 }
                 if (!foundNeib) {
