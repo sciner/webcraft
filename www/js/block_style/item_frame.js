@@ -1,4 +1,4 @@
-import {calcRotateMatrix, DIRECTION, Vector} from '../helpers.js';
+import {calcRotateMatrix, DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
 import {BLOCK, DropItemVertices} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
@@ -72,6 +72,7 @@ export default class style {
         }
 
         const material = block.material;
+        const flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.NO_AO;
 
         // Textures
         const c_up = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
@@ -117,12 +118,12 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_up, 0, 1, null, null, true), // flag: 0, anim: 1 implicit
-                down:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                north:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                west:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                east:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                up:     new AABBSideParams(c_up, flags, 1, null, null, true), // flag: 0, anim: 1 implicit
+                down:   new AABBSideParams(c_side, flags, 1, null, null, true),
+                south:  new AABBSideParams(c_side, flags, 1, null, null, true),
+                north:  new AABBSideParams(c_side, flags, 1, null, null, true),
+                west:   new AABBSideParams(c_side, flags, 1, null, null, true),
+                east:   new AABBSideParams(c_side, flags, 1, null, null, true),
             },
             new Vector(x, y, z)
         );
@@ -143,11 +144,11 @@ export default class style {
             pivot,
             matrix,
             {
-                down:   new AABBSideParams(c_inner_down, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                north:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                west:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                east:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                down:   new AABBSideParams(c_inner_down, flags, 1, null, null, true),
+                south:  new AABBSideParams(c_side, flags, 1, null, null, true),
+                north:  new AABBSideParams(c_side, flags, 1, null, null, true),
+                west:   new AABBSideParams(c_side, flags, 1, null, null, true),
+                east:   new AABBSideParams(c_side, flags, 1, null, null, true),
             },
             new Vector(x, y, z)
         );

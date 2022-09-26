@@ -583,6 +583,14 @@ export class BLOCK {
             !('height' in block);
     }
 
+    static isSimpleQube(block) {
+        return block.is_solid &&
+            !block.can_rotate &&
+            block.tags.length == 0 &&
+            block.texture &&
+            Object.keys(block.texture).length == 1;
+    }
+
     // add
     static async add(resource_pack, block) {
         // Check duplicate ID
@@ -681,7 +689,7 @@ export class BLOCK {
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.is_solid          = this.isSolid(block);
-        block.is_simple_qube    = block.is_solid && !block.can_rotate && block.tags.length == 0;
+        block.is_simple_qube    = this.isSimpleQube(block);
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
