@@ -722,7 +722,7 @@ export class Renderer {
             }
         }
 
-        if(!player.game_mode.isSpectator() && Qubatch.hud.active) {
+        if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
             this.drawInhandItem(delta);
         }
 
@@ -1023,7 +1023,7 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(player, pos, rotate) {
+    setCamera(player, pos, rotate, force = false) {
 
         const tmp = mat4.create();
         const hotbar = Qubatch.hotbar;
@@ -1045,42 +1045,46 @@ export class Renderer {
         let cam_pos = pos;
         let cam_rotate = rotate;
 
-        this.bobView(player, tmp);
-        this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
+        if(!force) {
 
-        if(this.camera_mode === CAMERA_MODE.SHOOTER) {
-            // do nothing
-        } else {
-            const cam_pos_new = pos.clone();
-            cam_pos = pos.clone();
-            cam_rotate = rotate.clone();
-            // back
-            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
-                // front
-                cam_rotate.z = rotate.z + Math.PI;
-                cam_rotate.x *= -1;
-            }
-            const view_vector = player.forward.clone();
-            view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
-            //
-            const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
-            cam_pos_new.moveToSelf(cam_rotate, d);
-            if(!player.game_mode.isSpectator()) {
-                // raycast from eyes to cam
-                const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
-                if(bPos) {
-                    this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
-                    this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
-                    let dist1 = pos.distance(cam_pos_new);
-                    let dist2 = pos.distance(this.obstacle_pos);
-                    if(dist2 < dist1) {
-                        cam_pos_new.copyFrom(this.obstacle_pos);
-                    }
+            this.bobView(player, tmp);
+            this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
+
+            if(this.camera_mode === CAMERA_MODE.SHOOTER) {
+                // do nothing
+            } else {
+                const cam_pos_new = pos.clone();
+                cam_pos = pos.clone();
+                cam_rotate = rotate.clone();
+                // back
+                if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
+                    // front
+                    cam_rotate.z = rotate.z + Math.PI;
+                    cam_rotate.x *= -1;
                 }
-                const safe_margin = -.1;
-                cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+                const view_vector = player.forward.clone();
+                view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
+                //
+                const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+                cam_pos_new.moveToSelf(cam_rotate, d);
+                if(!player.game_mode.isSpectator()) {
+                    // raycast from eyes to cam
+                    const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
+                    if(bPos) {
+                        this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
+                        this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
+                        let dist1 = pos.distance(cam_pos_new);
+                        let dist2 = pos.distance(this.obstacle_pos);
+                        if(dist2 < dist1) {
+                            cam_pos_new.copyFrom(this.obstacle_pos);
+                        }
+                    }
+                    const safe_margin = -.1;
+                    cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+                }
+                cam_pos.copyFrom(cam_pos_new);
             }
-            cam_pos.copyFrom(cam_pos_new);
+
         }
 
         this.camera.set(cam_pos, cam_rotate, tmp);

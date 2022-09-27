@@ -46,7 +46,7 @@ export class RailShape {
         const BLOCK_CACHE   = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
         const neighbours    = tblock.tb.getNeighbours(tblock, null, BLOCK_CACHE);
 
-        if(!neighbours.DOWN || neighbours.DOWN.material.transparent) {
+        if(!neighbours.DOWN || !neighbours.DOWN.material.is_solid) {
             return true;
         }
 

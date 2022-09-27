@@ -255,6 +255,9 @@ export class GameClass {
                             e.e_orig.preventDefault();
                             e.e_orig.stopPropagation();
                         }
+                        if(e.down && e.shiftKey) {
+                            this.toggleFreeCam();
+                        }
                         return true;
                     }
                 }
@@ -497,7 +500,9 @@ export class GameClass {
         const delta   = this.hud.FPS.delta;
 
         if(this.player.controls.enabled && !this.hud.splash.loading) {
-            player.update(delta);
+            if(!this.free_cam) {
+                player.update(delta);
+            }
         } else {
             player.lastUpdate = null;
         }
@@ -510,7 +515,7 @@ export class GameClass {
         }
 
         // change camera location
-        this.render.setCamera(player, player.getEyePos(), player.rotate);
+        this.render.setCamera(player, this.free_cam ? this.getFreeCamPos(delta) : player.getEyePos(), player.rotate, !!this.free_cam);
 
         // Update world
         // this is necessary
@@ -664,6 +669,32 @@ export class GameClass {
             tim.cnt = cnt;
         }
         console.table(timers);
+    }
+
+    toggleFreeCam() {
+        if(this.free_cam) {
+            this.free_cam = null;
+        } else {
+            this.free_cam = true;
+            this.player.pr_spectator.player.entity.position.copyFrom(this.player.getEyePos());
+            this.player.controls.sneak = false;
+        }
+        return true;
+    }
+
+    getFreeCamPos(delta) {
+        const player = this.player;
+        const pc = player.pr_spectator;
+        pc.controls.back       = player.controls.back;
+        pc.controls.forward    = player.controls.forward;
+        pc.controls.right      = player.controls.right;
+        pc.controls.left       = player.controls.left;
+        pc.controls.jump       = player.controls.jump;
+        pc.controls.sneak      = player.controls.sneak;
+        pc.controls.sprint     = player.controls.sprint;
+        pc.player_state.yaw    = player.rotate.z;
+        pc.tick(delta / 1000 * 3., player.scale);
+        return pc.player.entity.position;
     }
 
     exit() {
