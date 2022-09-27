@@ -7998,6 +7998,41 @@
             "effects":[
                 {"id":16, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 349,
+            "can_rotate": true,
+            "transparent": true,
+            "name": "OAK_CHAIR",
+            "sound": "madcraft:block.wood",
+            "style": "chair",
+            "fuel_time": 16,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "inventory": {
+                "scale": 0.7
+            },
+            "texture": "block/oak_log_top.png"
+        },
+        {
+            "id": 348,
+            "can_rotate": true,
+            "transparent": true,
+            "name": "OAK_LARGE_CHAIR",
+            "sound": "madcraft:block.wood",
+            "style": "large_chair",
+            "fuel_time": 16,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "texture": "block/oak_planks.png"
         }
     ]
 }
