@@ -8031,7 +8031,7 @@
                 "no_set_on_top"
             ],
             "extra_data": {
-                "upholstery": "red_wool",
+                "upholstery": "white_wool",
                 "frame": "oak_log"
             },
             "texture": "block/oak_log_top.png"

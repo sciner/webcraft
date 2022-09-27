@@ -5,9 +5,8 @@ import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
-const pivot = {x: 0.5, y: 0.5, z: 0.5};
 
-// стул
+// табуретка
 export default class style {
     
     static getRegInfo() {
@@ -19,9 +18,8 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
-        const cd = block.getCardinalDirection();
         const aabbs = [];
-        aabbs.push(new AABB().set(0, 0, 0, 1, 0.7, 1));
+        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, 0.75, 0.875));
         return aabbs;
     }
     
@@ -110,8 +108,8 @@ export default class style {
         if (extra_data?.upholstery) {
             const mat = BLOCK[extra_data.upholstery.toUpperCase()];
             const upholstery = BLOCK.calcTexture(mat.texture, DIRECTION.UP);
-            const color = IndexedColor.packLm(mat.mask_color.r, mat.mask_color.b, 0, 0);
-            const flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.NO_AO;
+            const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0, 0);
+            const flag = QUAD_FLAGS.MASK_BIOME;
             const wools = [];
             wools.push(...[
                 // сиденье обивка

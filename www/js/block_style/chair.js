@@ -160,8 +160,8 @@ export default class style {
         if (extra_data?.upholstery) {
             const mat = BLOCK[extra_data.upholstery.toUpperCase()];
             const upholstery = BLOCK.calcTexture(mat.texture, DIRECTION.UP);
-            const color = IndexedColor.packLm(mat.mask_color.r, mat.mask_color.b, 0, 0);
-            const flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.NO_AO;
+            const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0, 0);
+            const flag = QUAD_FLAGS.MASK_BIOME;
             const wools = [];
             wools.push(...[
                 // сиденье обивка

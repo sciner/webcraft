@@ -1160,8 +1160,9 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     if(!block_for_sittings || mat_block) {
         return false;
     }
+    const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
     // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + 1, pos.z));
+    const overBlock = world.getBlock(new Vector(pos.x, pos.y + n, pos.z));
     if(!overBlock || overBlock.id == 0) {
         const obj_pos = new Vector(pos.x, pos.y, pos.z)
         if(world_block_is_slab) {
