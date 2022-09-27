@@ -7995,10 +7995,12 @@
                 "id": "wood"
             },
             "tags": [
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_set_on_top"
             ],
             "inventory": {
-                "scale": 0.7
+                "scale": 0.8,
+                "move": {"x": -0.2, "y": 0, "z": -0.4}
             },
             "texture": "block/oak_log_top.png"
         },
@@ -8006,17 +8008,18 @@
             "id": 348,
             "can_rotate": true,
             "transparent": true,
-            "name": "OAK_LARGE_CHAIR",
+            "name": "OAK_STOOL",
             "sound": "madcraft:block.wood",
-            "style": "large_chair",
+            "style": "stool",
             "fuel_time": 16,
             "material": {
                 "id": "wood"
             },
             "tags": [
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_set_on_top"
             ],
-            "texture": "block/oak_planks.png"
+            "texture": "block/oak_log_top.png"
         }
     ]
 }

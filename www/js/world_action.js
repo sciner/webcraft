@@ -1155,7 +1155,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const is_chair = world_material.style == 'chair';
+    const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
     const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
     if(!block_for_sittings || mat_block) {
         return false;
