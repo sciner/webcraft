@@ -747,6 +747,11 @@ export class DBWorldMigration {
             `ALTER TABLE world_modify_chunks ADD COLUMN "data_blob" BLOB`,
         ]});
 
+        migrations.push({version: 81, queries: [
+            `DELETE from world_modify WHERE block_id = 95;`,
+            `UPDATE world_modify_chunks SET data_blob = NULL WHERE data LIKE '"id":95,' OR data LIKE '"id":95}';`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

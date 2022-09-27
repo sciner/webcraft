@@ -575,6 +575,21 @@ export class BLOCK {
         return transparent;
     }
 
+    static isSolid(block) {
+        return block.style == 'default' &&
+            !block.is_leaves &&
+            !('width' in block) &&
+            !('height' in block);
+    }
+
+    static isSimpleQube(block) {
+        return block.is_solid &&
+            !block.can_rotate &&
+            block.tags.length == 0 &&
+            block.texture &&
+            Object.keys(block.texture).length == 1;
+    }
+
     // add
     static async add(resource_pack, block) {
         // Check duplicate ID
@@ -648,8 +663,6 @@ export class BLOCK {
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
-        block.is_simple_qube    = [13, 456, 7, 457, 460, 528, 529, 661, 25, 89, 9, 70, 10, 22, 48, 98, 121, 545, 546, 547, 548, 549, 550, 628, 629, 632, 14, 15, 16, 21, 56, 129, 73, 8, 11, 12, 69, 150, 90, 79, 80, 82, 87, 88, 155, 592, 596, 600, 194, 594, 595, 502].includes(block.id);
-        block.is_qube           = block.style == 'default' && !('width' in block) && !('height' in block)
         block.is_grass          = ['GRASS', 'TALL_GRASS'].includes(block.name);
         block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].indexOf(block.name) >= 0;
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
@@ -674,6 +687,8 @@ export class BLOCK {
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
+        block.is_solid          = this.isSolid(block);
+        block.is_simple_qube    = this.isSimpleQube(block);
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
@@ -975,7 +990,18 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.material.transparent || block.material.style == 'fence' || block.material.style == 'fence_gate' || block.material.style == 'wall' || block.material.style == 'pane');
+        return block.id > 0 &&
+            (
+                !block.material.transparent ||
+                block.material.is_simple_qube ||
+                block.material.is_solid ||
+                block.material.style == 'fence' ||
+                block.material.style == 'fence_gate' ||
+                block.material.style == 'wall' ||
+                block.material.style == 'pane'
+            ) && (
+                block.material.material.id != 'leaves'
+            );
     }
 
     static canWallConnect(block) {
@@ -983,7 +1009,7 @@ export class BLOCK {
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
-                block.material.is_qube ||
+                block.material.is_solid ||
                 block.material.style == 'wall' ||
                 block.material.style == 'pane' ||
                 block.material.style == 'fence'
