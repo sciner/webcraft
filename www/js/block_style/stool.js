@@ -1,4 +1,4 @@
-import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
+import { DIRECTION, IndexedColor, Vector, QUAD_FLAGS } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
@@ -29,8 +29,9 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const log = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
-        const flag = 0;
+        const extra_data = block.extra_data;
+        const frame = extra_data?.frame ? extra_data.frame.toUpperCase() : 'OAK_LOG';
+        const log = BLOCK.calcTexture(BLOCK[frame].texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
             // сиденье
@@ -39,56 +40,56 @@ export default class style {
                 "translate": {"x": 0, "y": 2, "z": 0},
                 "rot": [0, Math.PI / 4, 0],
                 "faces": {
-                    "up": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "down": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": log},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": log}
+                    "up": {"uv": [8, 8], "texture": log},
+                    "down": {"uv": [8, 8], "texture": log},
+                    "north": {"uv": [8, 8], "texture": log},
+                    "south": {"uv": [8, 8], "texture": log},
+                    "west":  {"uv": [8, 8], "texture": log},
+                    "east":  {"uv": [8, 8], "texture": log}
                 }
             },{// ножка W
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 0, "y": -5, "z": 3},
                 "rot": [Math.PI / 8, 0, 0],
                 "faces": {
-                    "down": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": log},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": log}
+                    "down": {"uv": [8, 8], "texture": log},
+                    "north": {"uv": [8, 8], "texture": log},
+                    "south": {"uv": [8, 8], "texture": log},
+                    "west":  {"uv": [8, 8], "texture": log},
+                    "east":  {"uv": [8, 8], "texture": log}
                 }
             },{// ножка E
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 0, "y": -5, "z": -3},
                 "rot": [-Math.PI / 8, 0, 0],
                 "faces": {
-                    "down": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": log},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": log}
+                    "down": {"uv": [8, 8], "texture": log},
+                    "north": {"uv": [8, 8], "texture": log},
+                    "south": {"uv": [8, 8], "texture": log},
+                    "west":  {"uv": [8, 8], "texture": log},
+                    "east":  {"uv": [8, 8], "texture": log}
                 }
             },{// ножка S
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": -3, "y": -5, "z": 0},
                 "rot": [0, 0, Math.PI / 8],
                 "faces": {
-                    "down": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": log},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": log}
+                    "down": {"uv": [8, 8], "texture": log},
+                    "north": {"uv": [8, 8], "texture": log},
+                    "south": {"uv": [8, 8], "texture": log},
+                    "west":  {"uv": [8, 8], "texture": log},
+                    "east":  {"uv": [8, 8], "texture": log}
                 }
             },{// ножка N
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 3, "y": -5, "z": 0},
                 "rot": [0, 0, -Math.PI / 8],
                 "faces": {
-                    "down": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "north": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "south": {"uv": [8, 8], "flag": flag, "texture": log},
-                    "west":  {"uv": [8, 8], "flag": flag, "texture": log},
-                    "east":  {"uv": [8, 8], "flag": flag, "texture": log}
+                    "down": {"uv": [8, 8], "texture": log},
+                    "north": {"uv": [8, 8], "texture": log},
+                    "south": {"uv": [8, 8], "texture": log},
+                    "west":  {"uv": [8, 8], "texture": log},
+                    "east":  {"uv": [8, 8], "texture": log}
                 }
             }
         ]);
@@ -104,6 +105,37 @@ export default class style {
                 pos:        pos,
                 matrix:     matrix
             });
+        }
+        
+        if (extra_data?.upholstery) {
+            const mat = BLOCK[extra_data.upholstery.toUpperCase()];
+            const upholstery = BLOCK.calcTexture(mat.texture, DIRECTION.UP);
+            const color = IndexedColor.packLm(mat.mask_color.r, mat.mask_color.b, 0, 0);
+            const flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.NO_AO;
+            const wools = [];
+            wools.push(...[
+                // сиденье обивка
+                {
+                    "size": {"x": 11.6, "y": 0.5, "z": 11.6},
+                    "translate": {"x": 0, "y": 3, "z": 0},
+                    "rot": [0, Math.PI / 4, 0],
+                    "faces": {
+                        "up": {"uv": [8, 8], "flag": flag, "texture": upholstery},
+                        "north": {"uv": [8, 8], "flag": flag, "texture": upholstery},
+                        "south": {"uv": [8, 8], "flag": flag, "texture": upholstery},
+                        "west":  {"uv": [8, 8], "flag": flag, "texture": upholstery},
+                        "east":  {"uv": [8, 8], "flag": flag, "texture": upholstery}
+                    }
+                }
+            ]);
+            for(const wool of wools) {
+                default_style.pushAABB(vertices, {
+                    ...wool,
+                    lm:         color,
+                    pos:        pos,
+                    matrix:     matrix
+                });
+            }
         }
     }
     

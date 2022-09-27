@@ -8002,6 +8002,17 @@
                 "scale": 0.8,
                 "move": {"x": -0.2, "y": 0, "z": -0.4}
             },
+            "extra_data": {
+                "upholstery": "red_wool",
+                "frame": "oak_log"
+            },
+            "has_head": {
+                "pos": {
+                    "x": 0,
+                    "y": 1,
+                    "z": 0
+                }
+            },
             "texture": "block/oak_log_top.png"
         },
         {
@@ -8019,6 +8030,10 @@
                 "no_drop_ao",
                 "no_set_on_top"
             ],
+            "extra_data": {
+                "upholstery": "red_wool",
+                "frame": "oak_log"
+            },
             "texture": "block/oak_log_top.png"
         }
     ]
