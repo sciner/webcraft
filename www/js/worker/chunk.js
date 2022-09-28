@@ -456,6 +456,9 @@ export class Chunk {
                             const vb = vertexBuffers.get(cachedPack);
                             vb.touch();
                             vb.copyCache(cachedQuads);
+                            if (cachedQuads >= 255) {
+                                cachedQuads = vertExtraLen.push(cachedQuads) || 0;
+                            }
                         }
                         continue;
                     }
