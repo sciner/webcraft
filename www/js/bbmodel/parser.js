@@ -1,51 +1,10 @@
 import { BLOCK } from "../blocks.js";
 import { DIRECTION, isScalar, Vector } from "../helpers.js";
-import { default as default_style } from '../block_style/default.js';
+import { BBModel_Box } from "./box.js";
+import { BBModel_Child } from "./child.js";
+import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
-
-//
-class BBModel_Group {
-
-    constructor(name, pivot, rot) {
-        this.name = name;
-        this.children = [];
-        this.pivot = pivot;
-        this.rot = rot;
-    }
-
-    addChild(child) {
-        this.children.push(child);
-    }
-
-    //
-    pushVertices(vertices, pos, lm, matrix) {
-        for(let part of this.children) {
-            if(part instanceof BBModel_Group) {
-                part.pushVertices(vertices, pos, lm, matrix);
-            } else {
-                default_style.pushAABB(vertices, {
-                    ...part,
-                    lm:         lm,
-                    pos:        pos,
-                    matrix:     matrix
-                }, part.pivot);
-            }
-        }
-    }
-
-}
-
-//
-class BBModel_Box {
-
-    constructor(size, translate) {
-        this.size = size;
-        this.translate = translate;
-        this.faces = {};
-    }
-
-}
 
 //
 export class BBModel_Parser {
@@ -62,6 +21,10 @@ export class BBModel_Parser {
         this._group_stack.push(this.root);
     }
 
+    /**
+     * @param {string} key 
+     * @returns 
+     */
     getElement(key) {
         const resp = this.elements.get(key);
         if(!resp) debugger;
@@ -106,7 +69,7 @@ export class BBModel_Parser {
 
     /**
      * Add new group into parent group
-     * @param {*} child 
+     * @param {BBModel_Child} child 
      */
     addChildToCurrentGroup(child) {
         if(this._group_stack.length > 0) {
@@ -116,7 +79,11 @@ export class BBModel_Parser {
         }
     }
 
-    //
+    /**
+     * @param {Vector} pos 
+     * @param {object} group 
+     * @returns 
+     */
     addGroup(pos, group) {
 
         // create new group and add to other groups list
@@ -146,8 +113,12 @@ export class BBModel_Parser {
         return this._group_stack.pop();
 
     }
-
-    //
+    
+    /**
+     * @param {Vector} pos 
+     * @param {object} el 
+     * @returns 
+     */
     addElement(pos, el) {
 
         if(el.children) {
@@ -158,7 +129,7 @@ export class BBModel_Parser {
         const from  = new Vector().copy(el.from);
         const to    = new Vector().copy(el.to);
         const size  = to.subSelf(from);
-        const box  = new BBModel_Box(size, from.addScalarSelf(8, -8, -8).addSelf(size.div(VEC_2)));
+        const box   = new BBModel_Box(size, from.addScalarSelf(8, -8, -8).addSelf(size.div(VEC_2)));
 
         //
         this.addChildToCurrentGroup(box);
@@ -181,9 +152,12 @@ export class BBModel_Parser {
 
     }
 
-    //
-    parsePivot(gr) {
-        const pivot = new Vector().copy(gr.origin);
+    /**
+     * @param {object} obj 
+     * @returns 
+     */
+    parsePivot(obj) {
+        const pivot = new Vector().copy(obj.origin);
         return pivot;
     }
 
