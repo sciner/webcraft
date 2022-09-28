@@ -459,7 +459,7 @@ export class Chunk {
                         }
                         continue;
                     }
-                    if (useCache && cachedQuads > 0) {
+                    if (cachedQuads > 0) {
                         vertexBuffers.get(cachedPack).skipCache(cachedQuads);
                     }
                     if (empty) {
