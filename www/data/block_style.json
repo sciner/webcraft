@@ -3,5 +3,5 @@
   "torch", "thin", "extruder", "door", "wall", "redstone", "sign", "text", "pot",
   "lantern", "azalea", "cake", "bamboo", "campfire", "painting", "cocoa", "item_frame",
   "candle", "end_rod", "banner", "fence_gate", "rails", "slope", "anvil", "anvil",
-  "bn", "cover", "lectern", "armor_stand", "fire", "chest", "cactus", "blockmodel"
+  "bn", "cover", "lectern", "armor_stand", "fire", "chest", "cactus", "bbmodel"
 ]

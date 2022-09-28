@@ -1,19 +1,64 @@
 import { BLOCK } from "../blocks.js";
 import { DIRECTION, isScalar, Vector } from "../helpers.js";
+import { default as default_style } from '../block_style/default.js';
 
 const VEC_2 = new Vector(2, 2, 2);
+
+//
+class BBModel_Group {
+
+    constructor(name, pivot) {
+        this.name = name;
+        this.children = [];
+        this.pivot = pivot;
+    }
+
+    addChild(child) {
+        this.children.push(child);
+    }
+
+    //
+    pushVertices(vertices, pos, lm, matrix) {
+        for(let part of this.children) {
+            if(part instanceof BBModel_Group) {
+                part.pushVertices(vertices, pos, lm, matrix);
+            } else {
+                default_style.pushAABB(vertices, {
+                    ...part,
+                    lm:         lm,
+                    pos:        pos,
+                    matrix:     matrix
+                }, part.pivot);
+            }
+        }
+    }
+
+}
+
+//
+class BBModel_Box {
+
+    constructor(size, translate) {
+        this.size = size;
+        this.translate = translate;
+        this.faces = {};
+    }
+
+}
 
 //
 export class BBModel_Parser {
 
     constructor(model, textures) {
         this.model = model;
-        this.parts = [];
         this.textures = {
             tex_side: BLOCK.calcTexture(textures, DIRECTION.WEST)
         };
-        console.log(model);
         this.elements = new Map();
+        this.groups = new Map();
+        this._group_stack = [];
+        this.root = new BBModel_Group('_main', new Vector(0, 0, 0));
+        this._group_stack.push(this.root);
     }
 
     getElement(key) {
@@ -55,11 +100,34 @@ export class BBModel_Parser {
                 this.addElement(origin, element);
             }
         }
-        return this.parts;
+        return this;
+    }
+
+    /**
+     * Add new group into parent group
+     * @param {*} child 
+     */
+    addChildToCurrentGroup(child) {
+        if(this._group_stack.length > 0) {
+            const parent = this._group_stack[this._group_stack.length - 1];
+            parent.addChild(child);
+            child.parent = parent;
+        }
     }
 
     //
     addGroup(pos, group) {
+
+        // create new group and add to other groups list
+        const bbGroup = new BBModel_Group(group.name, this.parsePivot(group));
+        this.groups.set(group.name, bbGroup);
+
+        // add new group into parent group
+        this.addChildToCurrentGroup(bbGroup);
+
+        // add new group to stack
+        this._group_stack.push(bbGroup);
+
         const group_pos = new Vector().copy(group.origin);
         pos = pos.clone().addSelf(group_pos);
         for(let child of group.children) {
@@ -71,37 +139,50 @@ export class BBModel_Parser {
                 this.addGroup(pos, child);
             }
         }
+
+        // remove current group from stack
+        return this._group_stack.pop();
+
     }
 
     //
     addElement(pos, el) {
+
         if(el.children) {
             return this.addGroup(pos, el);
         }
-        const flag = 0;
-        const from = new Vector().copy(el.from);
-        const to = new Vector().copy(el.to);
-        const size = to.subSelf(from);
-        const part = {
-            size:      size,
-            translate: from.addScalarSelf(8, -8, -8).addSelf(size.div(VEC_2)),
-            faces:     {}
-        };
-        part.translate.x = 16 - part.translate.x;
+
+        const flag  = 0;
+        const from  = new Vector().copy(el.from);
+        const to    = new Vector().copy(el.to);
+        const size  = to.subSelf(from);
+        const box  = new BBModel_Box(size, from.addScalarSelf(8, -8, -8).addSelf(size.div(VEC_2)));
+
+        //
+        this.addChildToCurrentGroup(box);
+
+        box.translate.x = 16 - box.translate.x;
         if('rotation' in el) {
             const {rot, pivot} = this.parseRot(el);
-            part.rot = rot;
-            part.pivot = pivot;
+            box.rot = rot;
+            box.pivot = pivot;
         }
+
         for(let f in el.faces) {
             const face = el.faces[f];
-            part.faces[f] = {
+            box.faces[f] = {
                 uv:         [8, 8],
                 flag:       flag,
                 texture:    this.textures.tex_side
             };
         }
-        this.parts.push(part);
+
+    }
+
+    //
+    parsePivot(gr) {
+        const pivot = new Vector().copy(gr.origin);
+        return pivot;
     }
 
     //

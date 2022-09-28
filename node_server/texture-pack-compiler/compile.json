@@ -7987,7 +7987,7 @@
             "id": 502,
             "name": "BLOCK_MODEL",
             "sound": "madcraft:block.wood",
-            "style": "blockmodel",
+            "style": "bbmodel",
             "transparent": "false",
             "material": {
                 "id": "wood"
