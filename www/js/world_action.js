@@ -7,6 +7,7 @@ import { Resources } from "./resources.js";
 import {impl as alea} from '../vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
 import { WorldPortal } from "./portal.js";
+import {FLUID_LAVA_ID, FLUID_LEVEL_MASK, FLUID_WATER_ID} from "./fluid/FluidConst.js";
 
 const _createBlockAABB = new AABB();
 
@@ -1114,6 +1115,30 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
             actions.putInBucket(item);
             // destroy world block
             actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+            added_to_bucket = true;
+        }
+    } else if (pos.fluidLeftTop) {
+        // const fluidPos = new Vector().copyFrom(pos).add(pos.n);
+        // const fluidVal = world.getBlock(fluidPos).fluidSource;
+        const fluidVal = pos.fluidVal;
+        if (fluidVal === FLUID_WATER_ID) {
+            actions.addFluids([0, 0, 0, 0], pos.fluidLeftTop);
+            const filled_bucket = BLOCK.fromName("WATER_BUCKET");
+            const item = {
+                id: filled_bucket.id,
+                count: 1
+            };
+            actions.putInBucket(item);
+            added_to_bucket = true;
+        }
+        if (fluidVal === FLUID_LAVA_ID) {
+            actions.addFluids([0, 0, 0, 0], e.fluidLeftTop);
+            const filled_bucket = BLOCK.fromName("LAVA_BUCKET");
+            const item = {
+                id: filled_bucket.id,
+                count: 1
+            };
+            actions.putInBucket(item);
             added_to_bucket = true;
         }
     }

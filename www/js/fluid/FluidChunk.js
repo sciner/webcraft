@@ -52,6 +52,7 @@ export class FluidChunk {
         const wy = y + pos.y;
         const wz = z + pos.z;
         this.updateID++;
+        this.markDirtyMesh();
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }

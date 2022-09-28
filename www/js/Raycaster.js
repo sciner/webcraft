@@ -1,6 +1,5 @@
 import { Vector } from "./helpers.js";
 import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
-import {FLUID_LEVEL_MASK} from "./fluid/FluidConst.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -214,9 +213,9 @@ export class Raycaster {
                 hitShape = false;
             }
 
-            if (fluidVal === 0 && b.fluid > 0 && (b.fluid & FLUID_LEVEL_MASK) === 0) {
+            if (fluidVal === 0 && b.fluidSource > 0) {
                 fluidLeftTop = block.floored();
-                fluidVal = b.fluid;
+                fluidVal = b.fluidSource;
             }
 
             if (hitShape) {
