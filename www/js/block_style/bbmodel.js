@@ -1,13 +1,12 @@
 import { IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
-// import model_bookshelf from "../../data/blockmodel/energy_blade.json" assert { type: "json" };
-// import model_bookshelf from "../../data/blockmodel/test.json" assert { type: "json" };
-// import model_bookshelf from "../../data/blockmodel/sword.json" assert { type: "json" };
-// import model_bookshelf from "../../data/blockmodel/black_big_can.json" assert { type: "json" };
-import model_bookshelf from "../../data/blockmodel/garbage_monster.json" assert { type: "json" };
+// import model_bookshelf from "../../data/bbmodel/energy_blade.json" assert { type: "json" };
+// import model_bookshelf from "../../data/bbmodel/test.json" assert { type: "json" };
+// import model_bookshelf from "../../data/bbmodel/sword.json" assert { type: "json" };
+// import model_bookshelf from "../../data/bbmodel/black_big_can.json" assert { type: "json" };
+import model_bookshelf from "../../data/bbmodel/garbage_monster.json" assert { type: "json" };
 import { BBModel_Parser } from '../bbmodel/parser.js';
 
 const {mat4} = glMatrix;
@@ -17,7 +16,7 @@ export default class style {
     
     static getRegInfo() {
         return {
-            styles: ['blockmodel'],
+            styles: ['bbmodel'],
             func: this.func,
             aabb: this.computeAABB
         };
@@ -60,14 +59,8 @@ export default class style {
         //
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
-        for(let part of model.parts) {
-            default_style.pushAABB(vertices, {
-                ...part,
-                lm:         lm,
-                pos:        pos,
-                matrix:     matrix
-            }, part.pivot);
-        }
+
+        model.root.pushVertices(vertices, pos, lm, matrix);
 
     }
     
