@@ -132,12 +132,14 @@ export class TypedBlocks3 {
          * @type {Uint8Array}
          */
         this.vertices  = null;
+        this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
     }
 
     ensureVertices() {
         if (!this.vertices) {
             this.vertices = new Uint8Array(2 * this.dataChunk.outerLen);
+            this.vertExtraLen = [];
             return true;
         }
         return false;
