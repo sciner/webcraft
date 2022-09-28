@@ -1859,6 +1859,11 @@ export function isMobileBrowser() {
     return 'ontouchstart' in document.documentElement;
 }
 
+//
+export function isScalar(v) {
+    return !(typeof v === 'object' && v !== null);
+}
+
 // md5
 export let md5 = (function() {
     var MD5 = function (d) {

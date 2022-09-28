@@ -7982,6 +7982,22 @@
             "effects":[
                 {"id":16, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 502,
+            "name": "BLOCK_MODEL",
+            "sound": "madcraft:block.wood",
+            "style": "blockmodel",
+            "transparent": "false",
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "side": "block/quartz_block_side.png"
+            }
         }
     ]
 }
