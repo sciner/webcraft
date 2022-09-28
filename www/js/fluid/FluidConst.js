@@ -19,7 +19,13 @@ export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
 export function isFluidId(blockId) {
-    return blockId == 200 || blockId == 202 || blockId == 170 || blockId == 171;
+    if (blockId == 200 || blockId == 202) {
+        return FLUID_WATER_ID;
+    }
+    if (blockId == 170 || blockId == 171) {
+        return FLUID_LAVA_ID;
+    }
+    return 0;
 }
 
 export function fluidLightPower(fluidVal) {

@@ -10,7 +10,7 @@ import { WorldPortal } from "./portal.js";
 import {
     FLUID_LAVA_ID,
     FLUID_WATER_ID,
-    FLUID_TYPE_MASK
+    FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
 
 const _createBlockAABB = new AABB();
@@ -733,11 +733,27 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     return actions;
                 }
             }
+        } else if (mat_block.is_fluid) {
+            if (world_material.is_solid) {
+                pos.x += pos.n.x;
+                pos.y += pos.n.y;
+                pos.z += pos.n.z;
+                world_block = world.getBlock(pos);
+            }
+            const origFluidType = (world_block.fluid & FLUID_TYPE_MASK);
+            const myFluidType = (isFluidId(mat_block.id) & FLUID_TYPE_MASK);
+            if (origFluidType > 0 && origFluidType !== myFluidType) {
+                return actions;
+            }
+            actions.addFluids([0, 0, 0, myFluidType], pos);
+            actions.decrement = true;
+            actions.ignore_creative_game_mode = !!current_inventory_item.entity_id;
+            if(mat_block.sound) {
+                actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            }
         } else {
-
             // Calc orientation
             let orientation = calcBlockOrientation(mat_block, player.rotate, pos.n);
-
             // Check if replace
             const replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, current_inventory_item.id);
             if(replaceBlock) {
