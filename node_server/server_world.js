@@ -355,7 +355,7 @@ export class ServerWorld {
 
     // Chunk has modifiers
     chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr);
+        return this.chunkModifieds.has(addr) || this.db.fluid.knownFluidChunks.has(addr);
     }
 
     // Add chunk to modified
@@ -813,7 +813,7 @@ export class ServerWorld {
             }
             return value == 'true';
         }
-        // 
+        //
         function parseIntValue(value) {
             value = parseInt(value);
             if (isNaN(value) || !isFinite(value)) {
@@ -877,12 +877,12 @@ export class ServerWorld {
         await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
     }
-    
+
     // Возвращает идет ли дождь или снег
     isRaining() {
         return this.weather?.name != 'clear';
     }
-    
+
     // Возвращает уровень освещности в мире
     getLight() {
         const time = this.info.calendar.day_time;
