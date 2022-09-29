@@ -36,13 +36,22 @@ export class BBModel_Group extends BBModel_Child {
     pushVertices(vertices, pos, lm, matrix) {
 
         const mx = mat4.create();
+        mat4.multiply(mx, matrix, mx);
 
-        // mat4.multiply(mx, matrix, mx);
+        if(this.name == 'h_jaw') {
 
-        mat4.translate(mx, mx, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16]);
-        mat4.rotateX(mx, mx, this.rot.x);
-        mat4.rotateY(mx, mx, this.rot.y);
-        mat4.rotateZ(mx, mx, this.rot.z);
+            // console.log(this.pivot, this.rot, [-(16-this.pivot.x)/16, -this.pivot.y/16, -this.pivot.z/16])
+
+            //
+            if(this.pivot && this.rot) {
+                mat4.translate(mx, mx, [-(16-this.pivot.x)/16, -this.pivot.y/16, -this.pivot.z/16]);
+                mat4.rotateX(mx, mx, performance.now() / 1000 /* this.rot.x/2 */ );
+                mat4.rotateY(mx, mx, this.rot.z);
+                mat4.rotateZ(mx, mx, this.rot.y);
+                mat4.translate(mx, mx, [(16-this.pivot.x)/16, this.pivot.y/16, this.pivot.z/16]);
+            }
+            
+        }
 
         for(let part of this.children) {
             part.pushVertices(vertices, pos, lm, mx);
