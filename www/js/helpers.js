@@ -458,6 +458,13 @@ export class Color {
         return this;
     }
 
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
+
     /**
      * @return {Color}
      */
@@ -486,12 +493,16 @@ export class Color {
     toArray() {
         return [this.r, this.g, this.b, this.a];
     }
-    
+
     copyFrom(color) {
         this.r = color.r;
         this.g = color.g;
         this.b = color.b;
         this.a = color.a;
+    }
+
+    equals(color) {
+        return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
 }
@@ -1059,9 +1070,9 @@ export class Vector {
 
     /**
      * Return quaternion
-     * @param {float} angle 
-     * @param {boolean} hz 
-     * @returns 
+     * @param {float} angle
+     * @param {boolean} hz
+     * @returns
      */
     rotationDegrees(angle, hz = true) {
         if(hz) {
@@ -1078,7 +1089,13 @@ export class Vector {
 
 }
 
-export class Vec3 extends Vector {}
+export class Vec3 extends Vector {
+    add(vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+    }
+}
 
 export class IndexedColor {
     static packLm(lm) {
@@ -1087,6 +1104,7 @@ export class IndexedColor {
 
     static WHITE = null;
     static GRASS = null;
+    static WATER = null;
 
     static packArg(palU, palV, palMode) {
         palU = Math.round(palU);
@@ -1134,6 +1152,7 @@ export class IndexedColor {
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
 IndexedColor.GRASS = new IndexedColor(132, 485, 0);
+IndexedColor.WATER = new IndexedColor(132, 194, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;

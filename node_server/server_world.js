@@ -85,6 +85,7 @@ export class ServerWorld {
         await this.quests.init();
         await this.admins.load();
         await this.restoreModifiedChunks();
+        await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
         //
         this.saveWorldTimer = setInterval(() => {
@@ -115,7 +116,7 @@ export class ServerWorld {
             this.info.calendar = {
                 age: null,
                 day_time: null,
-            };    
+            };
         }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
@@ -178,6 +179,8 @@ export class ServerWorld {
                 this.ticks_stat.add('maps_clear');
             }
             //
+            this.ticks_stat.add('db_fluid_save');
+            await this.db.fluid.saveFluids();
             this.ticks_stat.end();
         }
         //
@@ -352,7 +355,7 @@ export class ServerWorld {
 
     // Chunk has modifiers
     chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr);
+        return this.chunkModifieds.has(addr) || this.db.fluid.knownFluidChunks.has(addr);
     }
 
     // Add chunk to modified
@@ -573,6 +576,13 @@ export class ServerWorld {
                 throw e;
             }
         }
+        if (actions.fluids.length > 0) {
+            let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+            for (let chunk of chunks) {
+                chunk.sendFluid(chunk.fluid.saveDbBuffer());
+                chunk.fluid.markDirtyDatabase();
+            }
+        }
         // Play sound
         if (actions.play_sound) {
             for(let params of actions.play_sound) {
@@ -791,7 +801,7 @@ export class ServerWorld {
             }
         }
     }
-    
+
 
     // Set world game rule value
     async setGameRule(rule_code, value) {
@@ -803,7 +813,7 @@ export class ServerWorld {
             }
             return value == 'true';
         }
-        // 
+        //
         function parseIntValue(value) {
             value = parseInt(value);
             if (isNaN(value) || !isFinite(value)) {
@@ -849,7 +859,7 @@ export class ServerWorld {
 
     /**
      * Set world global weather
-     * @param {Weather} weather 
+     * @param {Weather} weather
      */
     setWeather(weather) {
         this.weather = weather;
@@ -867,12 +877,12 @@ export class ServerWorld {
         await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
     }
-    
+
     // Возвращает идет ли дождь или снег
     isRaining() {
         return this.weather?.name != 'clear';
     }
-    
+
     // Возвращает уровень освещности в мире
     getLight() {
         const time = this.info.calendar.day_time;

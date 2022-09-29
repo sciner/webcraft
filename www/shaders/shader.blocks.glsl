@@ -346,11 +346,6 @@
         v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
         v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
         gl_Position = uProjMatrix * vec4(v_position, 1.0);
-
-        if(v_Triangle >= .5 && gl_VertexID > 2) {
-            gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
-        }
-
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
@@ -388,7 +383,7 @@
     //TODO: clamp?
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     vec4 centerSample;
-    vec4 aoVector;
+    vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
     if (v_lightId < 0.5) {

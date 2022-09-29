@@ -9,6 +9,8 @@ import {DataWorld} from "./typed_blocks3.js";
 import { ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y } from "./chunk_const.js";
 import { decompressNearby } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
+import { FluidWorld } from "./fluid/FluidWorld.js";
+import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 10;
@@ -61,7 +63,9 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.worker_inited          = false;
         this.timer60fps             = 0;
-        this.dataWorld              = new DataWorld();
+        this.dataWorld              = new DataWorld(this);
+        this.fluidWorld             = new FluidWorld(this);
+        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
 
         this.chunk_modifiers        = new VectorCollector();
 
@@ -127,6 +131,9 @@ export class ChunkManager {
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
             // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
+            if (cmd.data.fluid) {
+                cmd.data.fluid = Uint8Array.from(atob(cmd.data.fluid), c => c.charCodeAt(0));
+            }
             this.setChunkState(cmd.data);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
@@ -135,6 +142,9 @@ export class ChunkManager {
             let block = BLOCK.fromId(item.id);
             let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
             this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
+            this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
         //
         this.DUMMY = {
@@ -246,6 +256,35 @@ export class ChunkManager {
 
     }
 
+    // С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+    setChunkFluid(addr, fluid) {
+        const chunk = this.getChunkForSetData(addr);
+        if(chunk instanceof Chunk) {
+            chunk.setFluid(fluid);
+        } else {
+            console.error('no_chunk');
+        }
+    }
+
+    getChunkForSetData(addr) {
+        const chunk = this.getChunk(addr);
+        if(chunk) {
+            return chunk;
+        } else if(this.chunks_prepare.has(addr)) {
+            return this.chunks_prepare.get(addr);
+        } else if(this.nearby) {
+            for(let i = 0; i < this.nearby.added.length; i++) {
+                const item = this.nearby.added[i];
+                if(addr.equal(item.addr)) {
+                    if (!this.nearby.deleted.has(addr)) {
+                        return this.nearby.added[i];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     //
     setRenderDist(value) {
         this.world.server.setRenderDist(value);
@@ -269,11 +308,12 @@ export class ChunkManager {
     prepareRenderList(render) {
 
         if (!this.bufferPool) {
-            if (render.renderBackend.multidrawExt) {
+            if (render.renderBackend.multidrawBaseExt) {
                  this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
             } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
             }
+            this.fluidWorld.mesher.initRenderPool(render.renderBackend);
         }
 
         const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
@@ -305,7 +345,9 @@ export class ChunkManager {
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
-                v2.clear();
+                for (let [key2, v3] of v2) {
+                    v3.clear();
+                }
             }
         }
 
@@ -322,7 +364,7 @@ export class ChunkManager {
             }
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {
-                    chunk.applyVertices();
+                    chunk.applyChunkWorkerVertices();
                 }
             }
             // actualize light
@@ -336,6 +378,7 @@ export class ChunkManager {
                 if (!rpl) {
                     let key1 = v.resource_pack_id;
                     let key2 = v.material_group;
+                    let key3 = v.material_shader;
                     if (!v.buffer) {
                         continue;
                     }
@@ -343,16 +386,21 @@ export class ChunkManager {
                     if (!rpList) {
                         renderList.set(key1, rpList = new Map());
                     }
-                    if (!rpList.get(key2)) {
-                        rpList.set(key2, new IvanArray());
+                    let groupList = rpList.get(key2);
+                    if (!groupList) {
+                        rpList.set(key2, groupList = new Map());
                     }
-                    rpl = v.rpl = rpList.get(key2);
+                    if (!groupList.get(key3)) {
+                        groupList.set(key3, new IvanArray());
+                    }
+                    rpl = v.rpl = groupList.get(key3);
                 }
                 rpl.push(chunk);
                 rpl.push(v);
                 chunk.rendered = 0;
             }
         }
+        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
     }
 
     // Draw level chunks
@@ -366,20 +414,23 @@ export class ChunkManager {
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
         for(let group of groups) {
-            const list = rpList.get(group);
-            if (!list) {
+            const groupList = rpList.get(group);
+            if (!groupList) {
                 continue;
             }
-            const { arr, count } = list;
-            const mat = resource_pack.shader.materials[group];
-            for (let i = 0; i < count; i += 2) {
-                const chunk = arr[i];
-                const vertices = arr[i + 1];
-                chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                if (!chunk.rendered) {
-                    this.rendered_chunks.fact++;
+            for (let [mat_shader, list] of groupList.entries()) {
+                const {arr, count} = list;
+                const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
+                const mat = resource_pack[shaderName].materials[group];
+                for (let i = 0; i < count; i += 2) {
+                    const chunk = arr[i];
+                    const vertices = arr[i + 1];
+                    chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                    if (!chunk.rendered) {
+                        this.rendered_chunks.fact++;
+                    }
+                    chunk.rendered++;
                 }
-                chunk.rendered++;
             }
         }
         return true;
@@ -400,7 +451,7 @@ export class ChunkManager {
             return false;
         }
         this.chunks_prepare.add(item.addr, {
-            start_time: performance.now()
+            start_time: performance.now(),
         });
         if(item.has_modifiers) {
             this.world.server.loadChunk(item.addr);
@@ -422,6 +473,9 @@ export class ChunkManager {
             this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
+            if (state.fluid) {
+                chunk.setFluid(state.fluid);
+            }
             this.poses_need_update = true;
             return true;
         }

@@ -1,5 +1,5 @@
-import { BaseShader, BaseTexture, GlobalUniformGroup } from "../BaseRenderer.js";
-import WebGLRenderer, { WebGLTexture } from "./index.js";
+import { BaseShader } from "../BaseShader.js";
+import { WebGLTexture } from "./index.js";
 
 const p = WebGLRenderingContext.prototype;
 
@@ -37,17 +37,17 @@ const GL_TYPE_FUNC = {
 
     [p.FLOAT] : {
         type : 'float',
-        func : 'uniform1f' 
+        func : 'uniform1f'
     },
 
     [p.SAMPLER_CUBE]: {
         type : 'int',
-        func : 'uniform1i' 
+        func : 'uniform1i'
     },
 
     [p.SAMPLER_2D] : {
         type : 'int',
-        func : 'uniform1i' 
+        func : 'uniform1i'
     },
 
     [p.FLOAT_VEC2] : {
@@ -73,7 +73,7 @@ const GL_TYPE_FUNC = {
 
 export class UniformBinding {
     /**
-     * @param {WebGLActiveInfo} info 
+     * @param {WebGLActiveInfo} info
      * @param {WebGLUniformLocation} location
      * @param {WebGLUniversalShader} shader
      */
@@ -99,8 +99,8 @@ export class UniformBinding {
 
     /**
      * fill from declaration if makeUniform
-     * @param {} value 
-     * @returns 
+     * @param {} value
+     * @returns
      */
     fill(value) {
         if (value == void 0) {
@@ -156,7 +156,7 @@ export class UniformBinding {
             console.log('Uniform value missing for ', name, this.shader.constructor.name);
             return;
         }
-        
+
         if (typeof this.func === 'function') {
             this.func(gl, this.location, value);
             return;
@@ -185,9 +185,9 @@ export class UniformBinding {
 
 export class WebGLUniversalShader extends BaseShader {
     /**
-     * 
-     * @param {WebGLRenderer} context 
-     * @param {*} options 
+     *
+     * @param {WebGLRenderer} context
+     * @param {*} options
      */
     constructor (context, options) {
         super(context, options);
@@ -286,7 +286,7 @@ export class WebGLUniversalShader extends BaseShader {
     _applyUniforms() {
         for(let u of this._uniformsFlat) {
             u.upload();
-        } 
+        }
     }
 
     getTextureSlot() {
