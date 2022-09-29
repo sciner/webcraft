@@ -755,6 +755,11 @@ export class DBWorldMigration {
                 "data" blob,
                 PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE
               );`,
+            `DELETE from world_modify WHERE block_id = 200 OR block_id = 202 OR block_id = 170 OR block_id = 171;`,
+            `UPDATE world_modify_chunks SET data_blob = NULL WHERE data LIKE '"id":200,' OR data LIKE '"id":200}'
+                 OR data LIKE '"id":202,' OR data LIKE '"id":202}'
+                 OR data LIKE '"id":170,' OR data LIKE '"id":170}'
+                 OR data LIKE '"id":171,' OR data LIKE '"id":171}';`,
         ]});
         migrations.push({version: 82, queries: [
             `DELETE from world_modify WHERE block_id = 95;`,
