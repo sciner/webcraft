@@ -60,7 +60,8 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
 
-        console.log(model)
+        // console.log(model)
+        matrix = mat4.create();
 
         model.root.pushVertices(vertices, pos, lm, matrix);
 
