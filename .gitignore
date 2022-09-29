@@ -21,4 +21,4 @@ www/resource_packs/base/blocks.json
 www/resource_packs/base/textures/*.png
 node_server/texture-pack-compiler/resource-packs/
 node_server/tmp
-www/data/blockmodel
+www/data/bbmodel
