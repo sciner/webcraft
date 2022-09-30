@@ -4,7 +4,8 @@ import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/us
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
-import {PrismarineServerFakeChunkManager} from "../PrismarineServerFakeChunkManager.js";
+import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
+import { BLOCK } from "../../www/js/blocks.js";
 
 const FORWARD_DISTANCE = 20;
 
@@ -164,7 +165,7 @@ export class FSMBrain {
 
     findTarget() {
         return false;
-	}
+    }
 
     doStand(delta) {
         if (this.findTarget()) {
@@ -238,10 +239,8 @@ export class FSMBrain {
         const is_abyss = (block.legs.id == 0 && block.under.id == 0) ? true : false;
         const is_water_legs = (block.legs.material.is_fluid) ? true : false;
         const is_fence = (block.body.material.style == "fence") ? true : false;
-        const is_wall = (block.head.id != 0 && !block.head.material.planting  && block.head.id != 347) ? true : false;
+        const is_wall = (block.head.id != 0 && !block.head.material.planting  && block.head.id != BLOCK.CHICKEN_NEST.id) ? true : false;
         if (is_wall || is_fence || is_abyss || is_water_legs) {
-           // console.log("well: abyss: " + is_abyss + " water:" + is_water_legs + " fence:" + is_fence + " wall:" + is_wall);
-            console.log("head: " + block.head.is + " body:" + block.body.id + " legs:" + block.legs.is);
             this.rotate_angle = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;

@@ -1033,6 +1033,7 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 
 // Получение яиц из гнезда
 async function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    console.log(current_inventory_item);
     if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || current_inventory_item) {
         return false;
     }

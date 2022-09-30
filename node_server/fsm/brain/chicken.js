@@ -68,10 +68,11 @@ export class Brain extends FSMBrain {
                     action_id: ServerClient.BLOCK_ACTION_MODIFY
                 }]);
                 world.actions_queue.add(null, actions); 
+                this.stack.replaceState(this.doStand);
+                return;
             }
         }
-        
-        super.doForward(delta)
+        super.doForward(delta);
     }
 
     doCatch(delta) {
@@ -101,26 +102,13 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
 
-    doLayEgg() {
-        this.egg_timer = performance.now();
-        const mob = this.mob;
-        const world = mob.getWorld();
-
-        const actions = new WorldAction();
-        actions.addDropItem({ pos: mob.pos, items: [{ id: BLOCK.EGG.id, count: 1 }] , force: true});
-        world.actions_queue.add(null, actions);
-
-        this.stack.replaceState(this.doStand);
-    }
-
-
     async onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor != null) {
             const actions = new WorldAction();
 
-            let drop_item = { pos: mob.pos, items: [] };
+            const drop_item = { pos: mob.pos, items: [] };
             drop_item.items.push({ id: BLOCK.CHICKEN.id, count: 1 });
             const rnd_count_feather = (Math.random() * 2) | 0;
             if (rnd_count_feather > 0) {
