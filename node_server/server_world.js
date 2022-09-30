@@ -77,6 +77,7 @@ export class ServerWorld {
         this.ticks_stat     = new WorldTickStat();
         this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
         this.start_time     = performance.now();
+        this.weather        = 'clear';
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
@@ -796,6 +797,14 @@ export class ServerWorld {
                 return this.info.rules[rule_code] || 3;
                 break;
             }
+            case 'doFireTick': {
+                return this.info.rules[rule_code] || true;
+                break;
+            }
+            case 'difficulty': {
+                return this.info.rules[rule_code] || 0;
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
@@ -841,6 +850,14 @@ export class ServerWorld {
                 value = parseIntValue(value);
                 break;
             }
+            case 'doFireTick': {
+                value = parseBoolValue(value);
+                break;
+            }
+            case 'difficulty': {
+                value = parseIntValue(value);
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
@@ -880,7 +897,7 @@ export class ServerWorld {
 
     // Возвращает идет ли дождь или снег
     isRaining() {
-        return this.weather?.name != 'clear';
+        return this.weather != 'clear';
     }
 
     // Возвращает уровень освещности в мире

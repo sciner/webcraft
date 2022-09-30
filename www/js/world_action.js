@@ -619,6 +619,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         console.error('empty e.pos');
         return actions;
     }
+    
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);
@@ -691,7 +692,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 4. Create
     if(e.createBlock) {
-
+        console.log(world_block.id)
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
 

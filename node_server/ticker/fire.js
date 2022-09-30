@@ -10,14 +10,12 @@ export default class Ticker {
     
     //
     static func(tick_number, world, chunk, v) {
-
-        const tblock = v.tblock;
-        const pos = v.pos.clone();
-
-        // only every ~1 sec
-        if(tick_number % 20 != 0) {
+        const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
+        if (Math.random() >= random_tick_speed) {
             return;
         }
+        const tblock = v.tblock;
+        const pos = v.pos.clone();
         const updated_blocks = [];
         // Проверяем установку блока
         const block = world.getBlock(pos.add(Vector.YN));
@@ -34,7 +32,7 @@ export default class Ticker {
         if (!infiniburn) {
             if (!idBurnPosition(world, pos)) {
                 const down = world.getBlock(pos.add(Vector.YN));
-                if (down.id == BLOCK.AIR.id || age > 3) {
+                if (down.id == BLOCK.AIR.id && age > 3) {
                     updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                     return updated_blocks;
                 }
@@ -44,17 +42,18 @@ export default class Ticker {
                 return updated_blocks;
             }
         }
+        const humidity = -50;
         // Поджигаем или уничтожаем соседей
-        setFireOrDes(world, pos.add(Vector.XN), 300, age, updated_blocks);
-        setFireOrDes(world, pos.add(Vector.XP), 300, age, updated_blocks);
-        setFireOrDes(world, pos.add(Vector.ZN), 300, age, updated_blocks);
-        setFireOrDes(world, pos.add(Vector.ZP), 300, age, updated_blocks);
-        setFireOrDes(world, pos.add(Vector.YN), 250, age, updated_blocks);
-        setFireOrDes(world, pos.add(Vector.YP), 250, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.XN), 300 + humidity, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.XP), 300 + humidity, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.ZN), 300 + humidity, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.ZP), 300 + humidity, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.YN), 250 + humidity, age, updated_blocks);
+        setFireOrDes(world, pos.add(Vector.YP), 250 + humidity, age, updated_blocks);
         // Распространие огня
-        for (let x = -1; x <= 1; ++x) {
-            for (let z = -1; z <= 1; ++z) {
-                for (let y = -1; y <= 4; ++y) {
+        for (let x = -1; x <= 1; x++) {
+            for (let z = -1; z <= 1; z++) {
+                for (let y = -1; y <= 4; y++) {
                     if (x != 0 || z != 0 || y != 0) {
                         let chance = 100;
                         if (y > 1) {
@@ -63,8 +62,8 @@ export default class Ticker {
                         const position = pos.offset(x, y, z);
                         const flames = getNeighborFlame(world, position);
                         if (flames > 0) {
-                            const burns = (flames + 3 * 10) / (age + 30); // @todo 7 hard 4 noraml 3 easy
-                            if (burns > 0 && rndInt(chance) < burns) {
+                            const burns = Math.round((flames + 40 + world.getGameRule('difficulty') * 70) / (age + 30));
+                            if (burns > 0 && rndInt(chance) <= burns) {
                                 const mod_age = Math.min((age + rndInt(5) / 4), 15);
                                 updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                             }
@@ -126,10 +125,6 @@ function setFireOrDes(world, pos, chance, age, updated) {
     if (!block || block.id == BLOCK.AIR.id) {
         return;
     }
-    if (block.id == BLOCK.TNT.id) {
-        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-        return;
-    }
     const burn = getBurn(block);
     if (rndInt(chance) < burn) {
         if (rndInt(age + 10) < 5) {
@@ -138,5 +133,8 @@ function setFireOrDes(world, pos, chance, age, updated) {
         } else {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
+    }
+    if (block.id == BLOCK.TNT.id) {
+        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
     }
 }
