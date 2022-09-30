@@ -12,6 +12,7 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+export const CHUNK_STATE_UNLOADED          = 4;
 
 const _rnd_check_pos = new Vector(0, 0, 0);
 
@@ -26,6 +27,7 @@ class TickingBlock {
         // this.tblock     = null;
         this.ticking    = null;
         this.ticker     = null;
+        this._preloadFluidBuf   = null;
     }
 
     setState(pos_index) {
@@ -166,7 +168,7 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADING);
         //
-        const afterLoad = (ml) => {
+        const afterLoad = ([ml, fluid]) => {
             if(!ml.obj && ml.compressed) {
                 ml.obj = decompressWorldModifyChunk(ml.compressed)
             }
@@ -188,15 +190,19 @@ export class ServerChunk {
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
+
+            this._preloadFluidBuf = fluid;
         };
-        //
-        if(this.world.chunkHasModifiers(this.addr)) {
-            this.world.db.loadChunkModifiers(this.addr).then((result) => {
-                afterLoad(result);
-            });
-        } else {
-            afterLoad({});
-        }
+
+        const loadCMPromise = new Promise((resolve, reject) => {
+            if(this.world.chunkHasModifiers(this.addr)) {
+                resolve(this.world.db.loadChunkModifiers(this.addr))
+            } else {
+                resolve({})
+            }
+        });
+
+        Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
     }
 
     // Add player connection
@@ -269,7 +275,13 @@ export class ServerChunk {
     sendToPlayers(player_ids) {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
-        const data = {addr: this.addr, modify_list: {}};
+
+        const fluidBuf = this.fluid ? this.fluid.saveDbBuffer() : this._preloadFluidBuf;
+        const data = {addr: this.addr,
+            modify_list: {},
+            // TODO: proper compression for fluid
+            fluid: fluidBuf ? Buffer.from(fluidBuf).toString('base64') : null
+        };
         const ml = this.modify_list;
         if(!ml.compressed && ml.obj) {
             this.compressModifyList();
@@ -304,6 +316,17 @@ export class ServerChunk {
             packets_mobs[0].data.push(mob);
         }
         this.world.sendSelected(packets_mobs, player_user_ids, []);
+    }
+
+    sendFluid(buf) {
+        const packets = [{
+            name: ServerClient.CMD_FLUID_UPDATE,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }];
+        this.sendAll(packets, []);
     }
 
     sendDropItems(player_user_ids) {
@@ -350,6 +373,19 @@ export class ServerChunk {
         //
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // fluid
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
+            return;
+        }
+        let _preloadFluidBuf = this._preloadFluidBuf;
+        if(this._preloadFluidBuf) {
+            // now its stored in fluid facet
+            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
+            this._preloadFluidBuf = null;
+        }
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
+            return;
+        }
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
@@ -556,6 +592,7 @@ export class ServerChunk {
             return;
         }
         chunkManager.dataWorld.removeChunk(this);
+        this.setState(CHUNK_STATE_UNLOADED);
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {

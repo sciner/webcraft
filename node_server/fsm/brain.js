@@ -4,6 +4,7 @@ import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/us
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
+import {PrismarineServerFakeChunkManager} from "../PrismarineServerFakeChunkManager.js";
 
 const FORWARD_DISTANCE = 20;
 
@@ -58,19 +59,7 @@ export class FSMBrain {
         let mob = brain.mob;
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
-            chunkManager: {
-                chunk_addr: new Vector(),
-                getBlock: (x, y, z) => {
-                    let pos = new Vector(x, y, z).floored();
-                    this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
-                    let chunk = world.chunks.get(this.chunk_addr);
-                    if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                        return chunk.getBlock(pos);
-                    } else {
-                        return world.chunks.DUMMY;
-                    }
-                }
-            }
+            chunkManager: new PrismarineServerFakeChunkManager(world)
         }, mob.pos, options);
     }
 
@@ -187,7 +176,7 @@ export class FSMBrain {
             return;
         }
 
-        const is_water = block.body.material.is_fluid || block.head.material.is_fluid;
+        const is_water = block.body.is_fluid || block.head.is_fluid;
         const mob = this.mob;
         if (is_water) {
             this.rotate_angle += Math.PI / 60;
@@ -233,7 +222,7 @@ export class FSMBrain {
         }
 
         const mob = this.mob;
-        const is_water = block.body.material.is_fluid;
+        const is_water = block.body.id == 0 && block.body.fluid > 0;
         this.updateControl({
             yaw: mob.rotate.z,
             jump: is_water,
@@ -281,7 +270,7 @@ export class FSMBrain {
     */
     onKill(actor, type_damage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
     * actor - игрок
@@ -289,8 +278,8 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-    
-    
+
+
     /**
     * Нанесен урон по мобу
     * actor - игрок или пероснаж

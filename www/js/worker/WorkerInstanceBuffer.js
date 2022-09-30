@@ -1,44 +1,28 @@
 import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
 
-let group_templates = {
-    regular: {
-        list: [],
-        is_transparent: false
-    },
-    transparent: {
-        list: [],
-        is_transparent: true
-    },
-    doubleface_transparent: {
-        list: [],
-        is_transparent: true
-    },
-    doubleface: {
-        list: [],
-        is_transparent: true
-    },
-};
-
 export class WorkerInstanceBuffer {
     constructor({
-                    material_group,
                     material_key,
                     geometryPool,
                     chunkDataId,
                 }) {
-        this.material_group = material_group;
         this.material_key = material_key;
         this.geometryPool = geometryPool;
         this.chunkDataId = chunkDataId;
-        this.vertices = new Worker05SubGeometry({
-            pool: geometryPool,
-            chunkDataId
-        })
+        this.vertices = null;
         this.cacheVertices = null;
         this.cachePos = 0;
         this.cacheCopy = 0;
         this.touched = false;
         this.serialized = null;
+    }
+
+    initGeom() {
+        this.cacheVertices = this.vertices;
+        this.vertices = new Worker05SubGeometry({
+            pool: this.geometryPool,
+            chunkDataId: this.chunkDataId
+        })
     }
 
     markClear() {
@@ -61,12 +45,10 @@ export class WorkerInstanceBuffer {
             return this.vertices;
         }
         this.touched = true;
-        this.cacheVertices = this.vertices;
-        this.vertices = new Worker05SubGeometry({
-            pool: this.geometryPool,
-            chunkDataId: this.chunkDataId
-        });
-        this.serialized = JSON.parse(JSON.stringify(group_templates[this.material_group]));
+        this.initGeom();
+        this.serialized = {
+            list: []
+        };
         return this.vertices;
     }
 
