@@ -489,7 +489,8 @@ export class BLOCK {
         if(block_id == 0) {
             return true;
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id].indexOf(block_id) >= 0) {
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id,
+            BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.FIRE.id].includes(block_id)) {
             return true;
         }
         const mat = BLOCK.BLOCK_BY_ID[block_id];
@@ -497,7 +498,7 @@ export class BLOCK {
             return true;
         }
         if(mat.is_layering) {
-            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
+            const height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
             return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
         }
         return false;
