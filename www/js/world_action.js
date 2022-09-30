@@ -1552,7 +1552,18 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
     // поджигаем блок
     if (pos.n.y != -1 && world.getBlock(position).id == BLOCK.AIR.id) {
-        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: 0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        const data = {age: 0};
+        let block = world.getBlock(position.offset(1, 0, 0));
+        data.east = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(-1, 0, 0));
+        data.west = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, 0, 1));
+        data.north = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, 0, -1));
+        data.south = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, -1, 0));
+        data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
+        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         return true;
     }
 

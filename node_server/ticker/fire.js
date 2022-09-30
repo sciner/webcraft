@@ -14,7 +14,40 @@ export default class Ticker {
         if (Math.random() >= random_tick_speed) {
             return;
         }
-        const tblock = v.tblock;
+        const pos = v.pos.clone();
+        const extra_data = v.tblock.extra_data;
+        const age = extra_data.age;
+        console.log("tick")
+        const updated = [];
+        if (!isBurnPosition(world, pos)) {
+            console.log("not burn")
+            setBlockAir(world, pos, updated);
+            return updated;
+        }
+        const block = world.getBlock(pos.add(Vector.YN));
+        const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
+        if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
+            console.log("rain")
+            setBlockAir(world, pos, updated);
+        } else {
+            if (age < 15) { 
+            console.log("age: " + age)
+                extra_data.age = Math.min(15, age + rndInt(3) / 2);
+                updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            }
+            if (!infiniburn) {
+                const down = world.getBlock(pos.add(Vector.YN));
+                if (!getFlame(down) && age >= 15 && rndInt(4) == 0) {
+                    console.log("age> 15")
+                    setBlockAir(world, pos, updated);
+                    return updated;
+                }
+            }
+        }
+        
+        return updated;
+        
+        /*const tblock = v.tblock;
         const pos = v.pos.clone();
         const updated_blocks = [];
         // Проверяем установку блока
@@ -32,7 +65,7 @@ export default class Ticker {
         if (!infiniburn) {
             if (!idBurnPosition(world, pos)) {
                 const down = world.getBlock(pos.add(Vector.YN));
-                if (down.id == BLOCK.AIR.id && age > 3) {
+                if (down.id == BLOCK.AIR.id || age > 3) {
                     updated_blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                     return updated_blocks;
                 }
@@ -65,7 +98,8 @@ export default class Ticker {
                             const burns = Math.round((flames + 40 + world.getGameRule('difficulty') * 70) / (age + 30));
                             if (burns > 0 && rndInt(chance) <= burns) {
                                 const mod_age = Math.min((age + rndInt(5) / 4), 15);
-                                updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                updateFire(world, position, mod_age, updated_blocks);
+                                //updated_blocks.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: mod_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                             }
                         }
                     }
@@ -73,6 +107,7 @@ export default class Ticker {
             }
         }
         return updated_blocks;
+        */
     }
     
 }
@@ -92,6 +127,16 @@ function getNeighborFlame(world, pos) {
 }
 
 // может ли пламя быть на этой позиции
+//canNeighborCatchFire
+function isBurnPosition(world, pos) {
+    for (const face of FACES) {
+        const block = world.getBlock(pos.add(face));
+        if (getBurn(block) > 0) {
+            return true;
+        }
+    }
+    return false;
+}
 function idBurnPosition(world, pos) {
     for (const face of FACES) {
         const block = world.getBlock(pos.add(face));
@@ -106,6 +151,8 @@ function rndInt(chance) {
     return (Math.random() * chance) | 0;
 }
 
+// catch_chance_modifier encouragements
+//canCatchFire
 function getFlame(block) {
     if (block?.material?.flammable?.catch_chance_modifier) {
         return block.material.flammable.catch_chance_modifier;
@@ -129,7 +176,8 @@ function setFireOrDes(world, pos, chance, age, updated) {
     if (rndInt(chance) < burn) {
         if (rndInt(age + 10) < 5) {
             const def_age = Math.min((age + rndInt(5) / 4), 15);
-            updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data:{age: def_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updateFire(world, pos, def_age, updated);
+            //updated.push({pos: pos, item: {id: BLOCK.FIRE.id, extra_data:{age: def_age}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         } else {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
@@ -137,4 +185,23 @@ function setFireOrDes(world, pos, chance, age, updated) {
     if (block.id == BLOCK.TNT.id) {
         updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
     }
+}
+
+function updateFire(world, position, age, updated) {
+    const data = {age: age};
+    let block = world.getBlock(position.offset(1, 0, 0));
+    data.east = (block?.material?.flammable) ? true : false;
+    block = world.getBlock(position.offset(-1, 0, 0));
+    data.west = (block?.material?.flammable) ? true : false;
+    block = world.getBlock(position.offset(0, 0, 1));
+    data.north = (block?.material?.flammable) ? true : false;
+    block = world.getBlock(position.offset(0, 0, -1));
+    data.south = (block?.material?.flammable) ? true : false;
+    block = world.getBlock(position.offset(0, -1, 0));
+    data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
+    updated.push({pos: position, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+}
+
+function setBlockAir(world, position, updated) {
+    updated.push({pos: position, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
 }
