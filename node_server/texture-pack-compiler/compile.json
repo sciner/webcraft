@@ -7982,6 +7982,19 @@
             "effects":[
                 {"id":16, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 347,
+            "name": "CHICKEN_NEST",
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/hay_block_top.png",
+            "style":"chicken_nest",
+            "extra_data": {
+                "eggs": 0
+            }
         }
     ]
 }

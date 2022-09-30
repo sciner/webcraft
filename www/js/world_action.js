@@ -693,7 +693,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
+        for(let func of [getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1000,6 +1000,15 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
         }
     }
     actions.reset_mouse_actions = true;
+    return true;
+}
+
+// Получение яиц из гнезда
+async function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || current_inventory_item) {
+        return false;
+    }
+    actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.CHICKEN_NEST.id, extra_data: {eggs: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     return true;
 }
 

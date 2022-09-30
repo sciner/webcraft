@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
+import { ServerClient } from "../../../www/js/server_client.js";
 
 export class Brain extends FSMBrain {
 
@@ -15,13 +16,11 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .25
         });
-
-        this.widtn = 0.4;
-        this.height = 0.7;
+        
         this.follow_distance = 6;
 
         this.egg_timer = performance.now();
-        this.lay_interval = 2000000;
+        this.lay_interval = 20000;
         this.stack.pushState(this.doStand);
     }
 
@@ -29,7 +28,7 @@ export class Brain extends FSMBrain {
         if (this.target == null) {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
-            let friends = [];
+            const friends = [];
             for (let player of players) {
                 if (player.state.hands.right.id == BLOCK.WHEAT_SEEDS.id) {
                     friends.push(player);
@@ -46,12 +45,33 @@ export class Brain extends FSMBrain {
         return false;
     }
 
-    doStand(delta) {
-        super.doStand(delta);
-
+    doForward(delta) {
+        
         if ((performance.now() - this.egg_timer) > this.lay_interval) {
-            this.stack.replaceState(this.doLayEgg);
+            const block = this.getBeforeBlocks();
+            if (!block) {
+                return;
+            }
+            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < 7) {
+                const mob = this.mob;
+                const world = mob.getWorld();
+                this.egg_timer = performance.now();
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: block.body.posworld, 
+                    item: {
+                        id : BLOCK.CHICKEN_NEST.id,
+                        extra_data: {
+                            eggs: block.body.extra_data.eggs + 1
+                        }
+                    }, 
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                }]);
+                world.actions_queue.add(null, actions); 
+            }
         }
+        
+        super.doForward(delta)
     }
 
     doCatch(delta) {
@@ -113,5 +133,4 @@ export class Brain extends FSMBrain {
             world.actions_queue.add(actor, actions);
         }
     }
-
 }

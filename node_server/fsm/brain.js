@@ -162,10 +162,10 @@ export class FSMBrain {
         if (!chunk_over) {
             return null;
         }
-        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height + 1, Math.cos(mob.rotate.z)));
-        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height / 2, Math.cos(mob.rotate.z)));
-        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z)));
-        const pos_under = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z)));
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height + 1, Math.cos(mob.rotate.z))).floored();
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height / 2, Math.cos(mob.rotate.z))).floored();
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z))).floored();
+        const pos_under = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z))).floored();
         const head = chunk_over.getBlock(pos_head);
         const body = chunk_over.getBlock(pos_body);
         const legs = chunk_over.getBlock(pos_legs);
@@ -249,8 +249,10 @@ export class FSMBrain {
         const is_abyss = (block.legs.id == 0 && block.under.id == 0) ? true : false;
         const is_water_legs = (block.legs.material.is_fluid) ? true : false;
         const is_fence = (block.body.material.style == "fence") ? true : false;
-        const is_wall = (block.head.id != 0 && !block.head.material.planting) ? true : false;
+        const is_wall = (block.head.id != 0 && !block.head.material.planting  && block.head.id != 347) ? true : false;
         if (is_wall || is_fence || is_abyss || is_water_legs) {
+           // console.log("well: abyss: " + is_abyss + " water:" + is_water_legs + " fence:" + is_fence + " wall:" + is_wall);
+            console.log("head: " + block.head.is + " body:" + block.body.id + " legs:" + block.legs.is);
             this.rotate_angle = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;
