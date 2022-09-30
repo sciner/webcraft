@@ -199,7 +199,7 @@ export class BBModel_Parser {
         if(Array.isArray(rotation)) {
             resp.rot.set(
                 rotation[0],
-                rotation[1],
+                -rotation[1],
                 -rotation[2]
             );
         } else if(rotation && 'angle' in rotation) {
@@ -212,7 +212,7 @@ export class BBModel_Parser {
                     break;
                 }
                 case 'y': {
-                    resp.rot.y = angle;
+                    resp.rot.y = -angle;
                     break;
                 }
                 case 'z': {
