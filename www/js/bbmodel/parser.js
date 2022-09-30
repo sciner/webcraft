@@ -22,8 +22,8 @@ export class BBModel_Parser {
     }
 
     /**
-     * @param {string} key 
-     * @returns 
+     * @param {string} key
+     * @returns
      */
     getElement(key) {
         const resp = this.elements.get(key);
@@ -69,7 +69,7 @@ export class BBModel_Parser {
 
     /**
      * Add new group into parent group
-     * @param {BBModel_Child} child 
+     * @param {BBModel_Child} child
      */
     addChildToCurrentGroup(child) {
         if(this._group_stack.length > 0) {
@@ -80,15 +80,17 @@ export class BBModel_Parser {
     }
 
     /**
-     * @param {Vector} pos 
-     * @param {object} group 
-     * @returns 
+     * @param {Vector} pos
+     * @param {object} group
+     * @returns
      */
     addGroup(pos, group) {
 
         // create new group and add to other groups list
-        const {rot, pivot} = this.parsePivotAndRot(group);
+        const {rot, pivot} = this.parsePivotAndRot(group, true);
+
         const bbGroup = new BBModel_Group(group.name, pivot, rot);
+        bbGroup.updateLocalTransform();
         this.groups.set(group.name, bbGroup);
 
         // add new group into parent group
@@ -113,11 +115,11 @@ export class BBModel_Parser {
         return this._group_stack.pop();
 
     }
-    
+
     /**
-     * @param {Vector} pos 
-     * @param {object} el 
-     * @returns 
+     * @param {Vector} pos
+     * @param {object} el
+     * @returns
      */
     addElement(pos, el) {
 
@@ -150,11 +152,12 @@ export class BBModel_Parser {
             };
         }
 
+        box.updateLocalTransform();
     }
 
     /**
-     * @param {object} obj 
-     * @returns 
+     * @param {object} obj
+     * @returns
      */
     parsePivot(obj) {
         const pivot = new Vector().copy(obj.origin);
@@ -162,7 +165,7 @@ export class BBModel_Parser {
     }
 
     //
-    parsePivotAndRot(el) {
+    parsePivotAndRot(el, isGroup) {
         /*
             rotation: {
                 angle: 0
@@ -184,32 +187,36 @@ export class BBModel_Parser {
         const origin = el.rotation?.origin ?? el.origin;
         if(origin) {
             resp.pivot.copy(origin);
-            resp.pivot.x = 16 - resp.pivot.x;
+            if (isGroup) {
+                resp.pivot.x = 16 - resp.pivot.x;
+            } else {
+                resp.pivot.x = 16 - resp.pivot.x;
+            }
         }
 
         // rotation
         const rotation = el.rotation;
         if(Array.isArray(rotation)) {
             resp.rot.set(
-                -(Math.PI * (rotation[0] / 180)),
-                (Math.PI * (rotation[1] / 180)),
-                -(Math.PI * (rotation[2] / 180))
+                rotation[0],
+                rotation[1],
+                -rotation[2]
             );
         } else if(rotation && 'angle' in rotation) {
 
-            const angle = Math.PI * (rotation.angle / 180);
+            const angle = rotation.angle;
             resp.rot
             switch(rotation.axis) {
                 case 'x': {
-                    resp.rot.x = [-angle, 0, 0];
+                    resp.rot.x = angle;
                     break;
                 }
                 case 'y': {
-                    resp.rot.y = [0, angle, 0];
+                    resp.rot.y = angle;
                     break;
                 }
                 case 'z': {
-                    resp.rot.z = [0, 0, angle];
+                    resp.rot.z = -angle;
                     break;
                 }
             }
