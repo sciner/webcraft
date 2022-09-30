@@ -40,9 +40,9 @@ export default class style {
                 {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
                 {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 7.99, "y": 0, "z": 0}},
                 {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
-                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 2, Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, -Math.PI / 4], "translate": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, Math.PI / 4, -Math.PI / 2], "translate": {"x": 0, "y": 0, "z": 0}},
+                {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [Math.PI / 2, Math.PI / 4, Math.PI / 2], "translate": {"x": 0, "y": 0, "z": 0}},
             ]);
             if(typeof worker != 'undefined') {
                 worker.postMessage(['add_animated_block', {
