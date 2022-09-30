@@ -793,6 +793,10 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // If painting
             if(mat_block.id == BLOCK.PAINTING.id) {
                 new_item.extra_data = await createPainting(e, world, pos);
+                if(!new_item.extra_data) {
+                    console.error('error_painting_data_is_empty');
+                    return actions;
+                }
             }
             // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {

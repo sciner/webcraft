@@ -19,7 +19,7 @@ export default class style {
     // computeAABB
     static computeAABB(block, for_physic) {
 
-        if(for_physic || !block || !block.extra_data) {
+        if(for_physic || !block) {
             return [];
         }
 
@@ -42,8 +42,10 @@ export default class style {
             z + .5 + depth/2
         );
 
-        aabb.set(...block.extra_data.aabb)
-            .translate(-block.posworld.x, -block.posworld.y, -block.posworld.z);
+        if(block.extra_data) {
+            aabb.set(...block.extra_data.aabb)
+                .translate(-block.posworld.x, -block.posworld.y, -block.posworld.z);
+        }
 
         //
         if(!for_physic) {
