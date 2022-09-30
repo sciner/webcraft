@@ -421,6 +421,7 @@ export class WorldAction {
             decrement:                  false,
             decrement_extended:         null,
             decrement_instrument:       false,
+            increment:                  null,
             ignore_creative_game_mode:  false,
             sitting:                    false,
             notify:                     notify,
@@ -1033,10 +1034,10 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 
 // Получение яиц из гнезда
 async function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    console.log(current_inventory_item);
     if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || current_inventory_item) {
         return false;
     }
+    actions.increment = {id: BLOCK.EGG.id, count: extra_data.eggs};
     actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.CHICKEN_NEST.id, extra_data: {eggs: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     return true;
 }

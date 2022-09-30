@@ -77,7 +77,6 @@ export default class style {
         // яйца
         const eggs = block?.extra_data?.eggs;
         const egg = BLOCK.calcTexture(BLOCK.SAND.texture, DIRECTION.UP);
-        console.log(eggs);
         for (let i = 0; i < eggs; i++) {
             const col = Math.floor(i / 3) * 3.2 - 3.2;
             const row = (i % 3) * 3.2 - 3.2

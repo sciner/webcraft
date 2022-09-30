@@ -20,7 +20,7 @@ export class Brain extends FSMBrain {
         this.follow_distance = 6;
 
         this.egg_timer = performance.now();
-        this.lay_interval = 20000;
+        this.lay_interval = 200000;
         this.stack.pushState(this.doStand);
     }
 
@@ -46,16 +46,15 @@ export class Brain extends FSMBrain {
     }
 
     doForward(delta) {
-        
         if ((performance.now() - this.egg_timer) > this.lay_interval) {
             const block = this.getBeforeBlocks();
             if (!block) {
                 return;
             }
-            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < 7) {
+            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < 9) {
+                this.egg_timer = performance.now();
                 const mob = this.mob;
                 const world = mob.getWorld();
-                this.egg_timer = performance.now();
                 const actions = new WorldAction();
                 actions.addBlocks([{
                     pos: block.body.posworld, 
