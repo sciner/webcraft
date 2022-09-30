@@ -1097,6 +1097,15 @@ export class Vec3 extends Vector {
     }
 }
 
+export const SIX_VECS = {
+    south: new Vector(7, 0, 0),
+    west: new Vector(22, 0, 0),
+    north: new Vector(18, 0, 0),
+    east: new Vector(13, 0, 0),
+    up: new Vector(0, 1, 0),
+    down: new Vector(0, -1, 0)
+};
+
 export class IndexedColor {
     static packLm(lm) {
         return IndexedColor.packArg(lm.r, lm.g, lm.b);

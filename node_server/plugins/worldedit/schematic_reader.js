@@ -1,7 +1,7 @@
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
-import { Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { RailShape } from "../../../www/js/block_type/rail_shape.js";
 import * as FLUID from '../../../www/js/fluid/FluidConst.js';
 
@@ -10,15 +10,6 @@ const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 
 const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
-
-const SIX_VECS = {
-    south: new Vector(7, 0, 0),
-    west: new Vector(22, 0, 0),
-    north: new Vector(18, 0, 0),
-    east: new Vector(13, 0, 0),
-    up: new Vector(0, 1, 0),
-    down: new Vector(0, -1, 0)
-};
 
 // SchematicReader...
 export class SchematicReader {
