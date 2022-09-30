@@ -102,7 +102,7 @@ export default class style {
                     height: 1,
                     uv: [.5, .5],
                     rot: Math.PI / 4,
-                    translate: [.5, 0, 0],
+                    translate: [0, 0, -.5],
                     texture: textures.stage0
                 });
                 chains.push({
@@ -111,7 +111,7 @@ export default class style {
                     height: 1,
                     uv: [.5, .5],
                     rot: -Math.PI / 4,
-                    translate: [-.5, 0, 0],
+                    translate: [0, 0, -.5],
                     texture: textures.stage0
                 });
                 break;
@@ -133,7 +133,7 @@ export default class style {
                     height: 1,
                     uv: [.5, .5],
                     rot: Math.PI / 2,
-                    translate: [0, 0, .5],
+                    translate: [0, 0, -.5],
                     texture: stage == 1 ? textures.leaves : textures.large_leaves
                 });
                 break;

@@ -81,10 +81,10 @@ export default class style {
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
             case DIRECTION.WEST: 
-                mat4.rotateY(matrix, matrix, -Math.PI / 2);
+                mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
             case DIRECTION.EAST: 
-                mat4.rotateY(matrix, matrix, Math.PI / 2);
+                mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
         }
         const pos = new Vector(x, y, z);
