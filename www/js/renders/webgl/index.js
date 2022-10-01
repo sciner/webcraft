@@ -1,5 +1,6 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import { BaseCubeShader } from "../BaseShader.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
@@ -11,6 +12,7 @@ import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
+import {WebGLFluidShader} from "./WebGLFluidShader.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -247,7 +249,7 @@ export class WebGLTexture extends BaseTexture {
                     null
                 );
             }
-            
+
             if (this.minFilter && this.minFilter.indexOf('mipmap') > -1) {
                 gl.generateMipmap(type);
             }
@@ -333,7 +335,8 @@ export default class WebGLRenderer extends BaseRenderer {
         for (let i = 6; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
-        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw');
+        this.multidrawBaseExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
         return Promise.resolve(this);
     }
 
@@ -421,6 +424,9 @@ export default class WebGLRenderer extends BaseRenderer {
 
     async createResourcePackShader(options) {
         let shaderCode = await Resources.loadWebGLShaders(options.vertex, options.fragment);
+        if (options.shaderName === 'fluidShader') {
+            return new WebGLFluidShader(this, shaderCode);
+        }
         return this.createShader(shaderCode);
     }
 
@@ -551,9 +557,9 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     /**
-     * 
-     * @param {string} format 
-     * @param {Function} callback 
+     *
+     * @param {string} format
+     * @param {Function} callback
      */
     async screenshot(format, callback) {
         const buffer = this.toRawPixels();

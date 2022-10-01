@@ -165,7 +165,7 @@ export default class style {
                 rot.y = ((block.rotate.x - 2) / 4) * (Math.PI * 2);
                 trans.set(0, 0, 14.5)
             } else {
-                rot.y = ((block.rotate.x - 2) / 4) * -(Math.PI * 2);
+                rot.y = ((block.rotate.x - 2) / 4) * (Math.PI * 2);
             }
         }
 

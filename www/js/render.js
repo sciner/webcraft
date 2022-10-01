@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -190,6 +190,16 @@ export class Renderer {
                 transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
                 doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
                 label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
+            }
+            if (rp.fluidShader) {
+                rp.fluidShader.materials = {
+                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, shader: rp.fluidShader}),
+                    doubleface_transparent: renderBackend.createMaterial({
+                        cullFace: false,
+                        opaque: false,
+                        shader: rp.fluidShader
+                    }),
+                }
             }
         }
 

@@ -64,6 +64,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         }
         let {elements, context, offsets, counts} = this;
         let sz = 0;
+        let baseGeom = elements[0].baseGeometry;
         for (let i = 0; i < this.count; i++) {
             const geom = elements[i];
             elements[i] = null;
@@ -86,16 +87,43 @@ export class GLChunkDrawer extends ChunkDrawer {
         this.curBase = null;
         this.curMat = null;
 
-        const md = context.multidrawExt, gl = context.gl;
+        const mdb = context.multidrawBaseExt, md = context.multidrawExt, gl = context.gl;
         const {arrZeros, arrSixes} = this;
-        md.multiDrawArraysInstancedBaseInstanceWEBGL(
-            gl.TRIANGLES,
-            arrZeros, 0,
-            arrSixes, 0,
-            counts, 0,
-            offsets, 0,
-            sz,
-        );
-        context.stat.multidrawcalls++;
+
+        if (baseGeom.hasInstance) {
+            if (mdb) {
+                mdb.multiDrawArraysInstancedBaseInstanceWEBGL(
+                    gl.TRIANGLES,
+                    arrZeros, 0,
+                    arrSixes, 0,
+                    counts, 0,
+                    offsets, 0,
+                    sz,
+                );
+                context.stat.multidrawcalls++;
+            } else {
+                // manual vertexAttribPointer
+            }
+        } else {
+            // multi draw arrays
+            for (let j = 0; j < sz; j++) {
+                offsets[j] *= baseGeom.vertexPerInstance;
+                counts[j] *= baseGeom.vertexPerInstance;
+            }
+            if (md) {
+                md.multiDrawArraysWEBGL(
+                    gl.TRIANGLES,
+                    offsets, 0,
+                    counts, 0,
+                    sz,
+                );
+                context.stat.multidrawcalls++;
+            } else {
+                for (let i = 0; i < sz; i++) {
+                    gl.drawArrays(gl.TRIANGLES, offsets[i], counts[i]);
+                }
+                context.stat.drawcalls++;
+            }
+        }
     }
 }

@@ -51,7 +51,7 @@ export default class style {
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const stage             = block.extra_data.stage;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-        const rot               = [0, ((block.rotate.x - 1) / 4) * (2 * Math.PI), 0];
+        const rot               = [0, ((3 - block.rotate.x) / 4) * (2 * Math.PI), 0];
         const pos               = new Vector(x, y, z);
 
         // 1. Chains
@@ -80,7 +80,7 @@ export default class style {
             case 0: {
                 parts.push({
                     "size": {"x": 4, "y": 5, "z": 4},
-                    "translate": {"x": 5, "y": 1.5, "z": 0},
+                    "translate": {"x": -5, "y": 1.5, "z": 0},
                     "faces": {
                         "down":  {"uv": [2, 2], "flag": flag, "texture": c_up_top},
                         "up":    {"uv": [2, 2], "flag": flag, "texture": c_up_top},
@@ -95,7 +95,7 @@ export default class style {
             case 1: {
                 parts.push({
                     "size": {"x": 6, "y": 7, "z": 6},
-                    "translate": {"x": 4, "y": .5, "z": 0},
+                    "translate": {"x": -4, "y": .5, "z": 0},
                     "faces": {
                         "down":  {"uv": [3, 3], "flag": flag, "texture": c_up_top},
                         "up":    {"uv": [3, 3], "flag": flag, "texture": c_up_top},
@@ -110,7 +110,7 @@ export default class style {
             case 2: {
                 parts.push({
                     "size": {"x": 7, "y": 9, "z": 7},
-                    "translate": {"x": 3.5, "y": -.5, "z": 0},
+                    "translate": {"x": -3.5, "y": -.5, "z": 0},
                     "faces": {
                         "down":  {"uv": [3.5, 3.5], "flag": flag, "texture": c_up_top},
                         "up":    {"uv": [3.5, 3.5], "flag": flag, "texture": c_up_top},

@@ -2,7 +2,7 @@ import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
 import { getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
-const MATERIAL_KEY = 'extend/regular/effects';
+const MATERIAL_KEY = 'extend/regular/terrain/effects';
 const living_blocks = [88, 415]; // [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id]
 
 export default class emitter {

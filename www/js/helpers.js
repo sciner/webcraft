@@ -458,6 +458,13 @@ export class Color {
         return this;
     }
 
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
+
     /**
      * @return {Color}
      */
@@ -486,12 +493,16 @@ export class Color {
     toArray() {
         return [this.r, this.g, this.b, this.a];
     }
-    
+
     copyFrom(color) {
         this.r = color.r;
         this.g = color.g;
         this.b = color.b;
         this.a = color.a;
+    }
+
+    equals(color) {
+        return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
 }
@@ -1059,9 +1070,9 @@ export class Vector {
 
     /**
      * Return quaternion
-     * @param {float} angle 
-     * @param {boolean} hz 
-     * @returns 
+     * @param {float} angle
+     * @param {boolean} hz
+     * @returns
      */
     rotationDegrees(angle, hz = true) {
         if(hz) {
@@ -1078,7 +1089,22 @@ export class Vector {
 
 }
 
-export class Vec3 extends Vector {}
+export class Vec3 extends Vector {
+    add(vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+    }
+}
+
+export const SIX_VECS = {
+    south: new Vector(7, 0, 0),
+    west: new Vector(22, 0, 0),
+    north: new Vector(18, 0, 0),
+    east: new Vector(13, 0, 0),
+    up: new Vector(0, 1, 0),
+    down: new Vector(0, -1, 0)
+};
 
 export class IndexedColor {
     static packLm(lm) {
@@ -1087,6 +1113,7 @@ export class IndexedColor {
 
     static WHITE = null;
     static GRASS = null;
+    static WATER = null;
 
     static packArg(palU, palV, palMode) {
         palU = Math.round(palU);
@@ -1134,6 +1161,7 @@ export class IndexedColor {
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
 IndexedColor.GRASS = new IndexedColor(132, 485, 0);
+IndexedColor.WATER = new IndexedColor(132, 194, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;
@@ -1738,16 +1766,17 @@ export class AlphabetTexture {
 }
 
 export function fromMat3(a, b) {
+    //transponse too!
     a[ 0] = b[ 0];
-    a[ 1] = b[ 1];
-    a[ 2] = b[ 2];
+    a[ 1] = b[ 3];
+    a[ 2] = b[ 6];
 
-    a[ 4] = b[ 3];
+    a[ 4] = b[ 1];
     a[ 5] = b[ 4];
-    a[ 6] = b[ 5];
+    a[ 6] = b[ 7];
 
-    a[ 8] = b[ 6];
-    a[ 9] = b[ 7];
+    a[ 8] = b[ 2];
+    a[ 9] = b[ 5];
     a[10] = b[ 8];
 
     a[ 3] = a[ 7] = a[11] =
@@ -1857,6 +1886,11 @@ export async function digestMessage(message) {
 //
 export function isMobileBrowser() {
     return 'ontouchstart' in document.documentElement;
+}
+
+//
+export function isScalar(v) {
+    return !(typeof v === 'object' && v !== null);
 }
 
 // md5

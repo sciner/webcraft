@@ -8035,6 +8035,23 @@
                 "frame": "oak_log"
             },
             "texture": "block/oak_log_top.png"
+        },
+        {
+            "id": 502,
+            "name": "BLOCK_MODEL",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "transparent": true,
+            "can_rotate": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "side": "block/quartz_block_side.png"
+            }
         }
     ]
 }

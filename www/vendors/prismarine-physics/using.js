@@ -2,10 +2,12 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3, Vector} from "../../js/helpers.js";
+import {Vec3, Vector, getChunkAddr} from "../../js/helpers.js";
 import {BLOCK} from "../../js/blocks.js";
 import {Physics, PlayerState} from "./index.js";
 import {Resources} from "../../js/resources.js";
+import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../../js/fluid/FluidConst.js";
+import {TBlock} from "../../js/typed_blocks3.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
@@ -48,19 +50,61 @@ class FakeWorld {
         this.world = world;
         this.block_pos = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
+        this._localPos = new Vector(0, 0, 0);
+        this.tblock = new TBlock();
+        this.chunkAddr = new Vector(0, 0, 0);
     }
 
     // getBlock...
     getBlock(pos) {
-        this._pos.copyFrom(pos).flooredSelf();
-        let b = this.world.chunkManager.getBlock(this._pos.x, this._pos.y, this._pos.z);
-        if (b.shapes === null) {
-            b.position = this._pos.clone();
-            b.shapes = (b.id > 0) ? BLOCK.getShapes(this._pos, b, this.world, true, false) : [];
+        const { _pos, _localPos, tblock } = this;
+        _pos.copyFrom(pos).flooredSelf();
+        const chunk = this.world.chunkManager.getChunk(getChunkAddr(_pos, this.chunkAddr));
+        if (!chunk) {
+            return new FakeBlock(null, -1, 0, shapesEmpty);
         }
-        return b;
+        _localPos.set(_pos.x - chunk.coord.x, _pos.y - chunk.coord.y, _pos.z - chunk.coord.z);
+        chunk.tblocks.get(_localPos, tblock);
+        const id = tblock.id;
+        const fluid = tblock.fluid;
+        let shapes = tblock.shapes;
+        let clonedPos = null;
+        if (shapes === null) {
+            clonedPos = this._pos.clone();
+            shapes = (id > 0) ? BLOCK.getShapes(this._pos, tblock, this.world, true, false) : shapesEmpty;
+        }
+        return new FakeBlock(clonedPos, id, fluid, shapes);
+    }
+}
+
+const fakeMat = { is_water : false }
+const fakeMatWater = { is_water : true }
+const fakeProps = {};
+const shapesEmpty = [];
+
+class FakeBlock {
+    constructor(pos, id, fluid, shapes) {
+        this.position = pos;
+        this.id = this.type = id;
+        this.material = fakeMat;
+        this.metadata = 0;
+        this.shapes = shapes;
+        if (fluid > 0) {
+            const tp = (fluid & FLUID_TYPE_MASK);
+            if (tp === FLUID_WATER_ID) {
+                this.id = this.type = BLOCK.STILL_WATER.id;
+                this.metadata = fluid & FLUID_LEVEL_MASK;
+                this.material = fakeMatWater;
+            }
+            if (tp === FLUID_LAVA_ID) {
+                this.id = this.type = BLOCK.STILL_LAVA.id;
+            }
+        }
     }
 
+    getProperties() {
+        return fakeProps;
+    }
 }
 
 // FakePlayer

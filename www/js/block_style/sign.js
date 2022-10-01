@@ -103,7 +103,7 @@ export default class style {
 
         if(draw_bottom) {
             matrix = mat4.create();
-            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * -(2 * Math.PI));
+            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI));
         } else {
             aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2);
             matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)];

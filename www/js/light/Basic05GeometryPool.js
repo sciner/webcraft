@@ -10,10 +10,6 @@ export class Basic05GeometryPool extends GeometryPool {
     }) {
         super(context)
 
-        this.baseGeometry = new TerrainMultiGeometry({
-            context, size: pageCount * pageSize
-        })
-
         this.growCoeff = growCoeff;
         this.pageCount = pageCount;
         this.pageSize = pageSize;
@@ -21,6 +17,14 @@ export class Basic05GeometryPool extends GeometryPool {
         for (let i = pageCount - 1; i >= 0; i--) {
             this.freePages.push(i);
         }
+
+        this.initBaseGeometry();
+    }
+
+    initBaseGeometry() {
+        this.baseGeometry = new TerrainMultiGeometry({
+            context: this.context, size: this.pageCount * this.pageSize
+        })
     }
 
     grow() {
@@ -43,7 +47,7 @@ export class Basic05GeometryPool extends GeometryPool {
         const sizePages = Math.ceil(sizeQuads / pageSize);
         const lastSize = lastBuffer ? lastBuffer.sizePages : 0;
         let sub = lastBuffer;
-        if (!sub) {
+        if (!sub || !sub.pool) {
             sub = new TerrainSubGeometry({
                 pool: this, baseGeometry, sizeQuads, sizePages
             });

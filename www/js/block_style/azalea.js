@@ -58,8 +58,8 @@ export default class style {
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
         const chains = [];
-        chains.push({width: w, height: h, uv: [.5, .5], rot: Math.PI / 4, y: 0, translate: [w/2, 0, 0]});
-        chains.push({width: w, height: h, uv: [.5, .5], rot: -Math.PI / 4, y: 0, translate: [-w/2, 0, 0]});
+        chains.push({width: w, height: h, uv: [.5, .5], rot: Math.PI / 4, y: 0, translate: [0, 0, -w/2]});
+        chains.push({width: w, height: h, uv: [.5, .5], rot: -Math.PI / 4, y: 0, translate: [0, 0, -w/2]});
 
         const CHAIN_Y = y;
 
