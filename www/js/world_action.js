@@ -1213,17 +1213,21 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab;
+    const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
     if(!block_for_sittings || mat_block) {
         return false;
     }
+    const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
     // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + 1, pos.z));
+    const overBlock = world.getBlock(new Vector(pos.x, pos.y + n, pos.z));
     if(!overBlock || overBlock.id == 0) {
         const obj_pos = new Vector(pos.x, pos.y, pos.z)
         if(world_block_is_slab) {
             const on_ceil = world_block.extra_data?.point?.y >= .5;
             obj_pos.addScalarSelf(.5, on_ceil ? .5 : 0, .5);
+        } else if(is_chair) {
+            obj_pos.addScalarSelf(.5, .5, .5);
         } else {
             obj_pos.addScalarSelf(.5, 0, .5);
         }
