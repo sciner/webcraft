@@ -115,7 +115,7 @@ export default class style {
                 height: 1,
                 uv: [.5, .5],
                 rot: Math.PI / 4,
-                translate: [.5, 0, 0],
+                translate: [0, 0, -.5],
                 sides: {north: new AABBSideParams(textures.fire, flame_flags, flame_animations, null, null, true)},
                 anim: 8
             });
@@ -125,7 +125,7 @@ export default class style {
                 height: 1,
                 uv: [.5, .5],
                 rot: -Math.PI / 4,
-                translate: [-.5, 0, 0],
+                translate: [0, 0, -.5],
                 sides: {north: new AABBSideParams(textures.fire, flame_flags, flame_animations, null, null, true)},
                 anim: 8
             });

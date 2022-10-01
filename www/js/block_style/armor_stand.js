@@ -39,7 +39,7 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const rot = Math.round((((block.rotate.x - 2) / 4) * -(Math.PI * 2)) / 0.5233) * 0.5233;
+        const rot = Math.round((((block.rotate.x - 2) / 4) * (Math.PI * 2)) / 0.5233) * 0.5233;
         const head_rot_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
         const head_rot = randoms[head_rot_index] * .2 - .1;
         const planks = BLOCK.calcTexture(BLOCK.OAK_LOG.texture, DIRECTION.UP);

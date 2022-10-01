@@ -18,18 +18,26 @@ export class RaycasterResult {
      * @param {Vector} side
      */
     constructor(pos, leftTop, side, aabb, block_id) {
-        this.aabb = aabb;
-        this.x = leftTop.x;
-        this.y = leftTop.y;
-        this.z = leftTop.z;
-        this.n = side;
-        this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop);
-        this.block_id = block_id;
-        if(point_precision != 1) {
-            this.point.x = Math.round(this.point.x * point_precision) / point_precision;
-            this.point.y = Math.round(this.point.y * point_precision) / point_precision;
-            this.point.z = Math.round(this.point.z * point_precision) / point_precision;
+        this.aabb = aabb || null;
+        this.n = side || 0;
+        this.block_id = block_id || 0;
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.point = 0;
+        if (pos) {
+            this.x = leftTop.x;
+            this.y = leftTop.y;
+            this.z = leftTop.z;
+            this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop);
+            if(point_precision != 1) {
+                this.point.x = Math.round(this.point.x * point_precision) / point_precision;
+                this.point.y = Math.round(this.point.y * point_precision) / point_precision;
+                this.point.z = Math.round(this.point.z * point_precision) / point_precision;
+            }
         }
+        this.fluidLeftTop = null;
+        this.fluidVal = 0;
     }
 
     distance(vec) {
@@ -40,6 +48,12 @@ export class RaycasterResult {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
+    setFluid(fluidLeftTop, fluidVal, side) {
+        this.fluidLeftTop = fluidLeftTop;
+        this.fluidLeftTop.n = side;
+        this.fluidVal = fluidVal;
+        return this;
+    }
 }
 
 export class Raycaster {
@@ -150,7 +164,7 @@ export class Raycaster {
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
-    get(origin, dir, pickat_distance, callback, ignore_transparent, return_fluid) {
+    get(origin, dir, pickat_distance, callback, ignore_transparent) {
 
         const origin_block_pos = new Vector(origin).flooredSelf();
 
@@ -165,6 +179,8 @@ export class Raycaster {
         leftTop.zero();
         check.zero();
 
+        let fluidVal = 0;
+        let fluidLeftTop = null;
         let res = null;
         if(!this._block_vec) {
             this._block_vec = new Vector(0, 0, 0);
@@ -193,11 +209,13 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > this.BLOCK.AIR.id; // && !origin_block_pos.equal(leftTop);
-            if(hitShape && !return_fluid) {
-                hitShape = !b.material.is_fluid;
-            }
-            if(ignore_transparent && !return_fluid && b.material.invisible_for_cam) {
+            if(ignore_transparent && b.material.invisible_for_cam) {
                 hitShape = false;
+            }
+
+            if (fluidVal === 0 && b.fluidSource > 0) {
+                fluidLeftTop = block.floored();
+                fluidVal = b.fluidSource;
             }
 
             if (hitShape) {
@@ -286,6 +304,12 @@ export class Raycaster {
                 res = new RaycasterResult(pos, leftTop, side);
                 res.mob = mob;
             }
+        }
+        if (fluidVal > 0) {
+            if (!res) {
+                res = new RaycasterResult();
+            }
+            res.setFluid(fluidLeftTop, fluidVal, side);
         }
 
         callback && callback(res);

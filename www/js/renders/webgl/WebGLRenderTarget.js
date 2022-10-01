@@ -1,5 +1,4 @@
-import { BaseRenderTarget, BaseTerrainShader } from "../BaseRenderer.js";
-import { WebGLTexture } from "./index.js";
+import { BaseRenderTarget } from "../BaseRenderer.js";
 
 export class WebGLRenderTarget extends BaseRenderTarget {
     constructor(context, options) {
@@ -8,7 +7,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         /**
          * @type {WebGLFramebuffer}
          */
-        this.framebuffer = null; 
+        this.framebuffer = null;
 
         this.init();
     }
@@ -53,7 +52,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
             this.texture.texture,
             0
         );
-        
+
         if (this.depthTexture) {
             this.depthTexture.upload();
 

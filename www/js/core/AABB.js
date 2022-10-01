@@ -351,6 +351,7 @@ export function pushTransformed(
     // unroll mat4 matrix to mat3 + tx, ty, tz
     if (mat.length === 16) {
         mat3.fromMat4(tempMatrix, mat);
+        mat3.transpose(tempMatrix, tempMatrix);
 
         tx = mat[12];
         ty = mat[14]; // flip

@@ -1,4 +1,4 @@
-import {BaseCubeShader} from "../BaseRenderer.js";
+import {BaseCubeShader} from "../BaseShader.js";
 
 export class WebGPUCubeShader extends BaseCubeShader {
     constructor(context, options) {
