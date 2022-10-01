@@ -6,7 +6,7 @@ import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
-const SHIFT = new Vector(8, 0, -8);
+const SHIFT = new Vector(8, 0, -8); // 16, 0, 0 - for garbage_monster
 
 //
 export class BBModel_Parser {
