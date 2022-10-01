@@ -2,6 +2,7 @@ import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./serv
 import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.js";
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
+import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
@@ -31,7 +32,9 @@ export class ServerChunkManager {
                 return this.material;
             }
         };
-        this.dataWorld = new DataWorld();
+        this.dataWorld = new DataWorld(this);
+        this.fluidWorld = new FluidWorld(this);
+        this.fluidWorld.database = world.db.fluid;
         this.initRandomTickers(random_tickers);
     }
 
@@ -174,7 +177,7 @@ export class ServerChunkManager {
         }
         if(globalThis.modByRandomTickingBlocks != globalThis.modByRandomTickingBlocks_o) {
             globalThis.modByRandomTickingBlocks_o = globalThis.modByRandomTickingBlocks;
-            console.log(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
+            // console.info(rtc, this.all.size, globalThis.modByRandomTickingBlocks);
         }
     }
 
@@ -217,6 +220,10 @@ export class ServerChunkManager {
 
     get(addr) {
         return this.all.get(addr) || null;
+    }
+
+    getChunk(addr) {
+        return this.get(addr);
     }
 
     remove(addr) {

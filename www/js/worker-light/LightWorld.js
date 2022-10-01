@@ -84,35 +84,41 @@ export class LightWorld {
         }
     }
 
-    setBlock({addr, light_source, x, y, z}) {
+    setChunkBlock({addr, list}) {
         let chunk = this.chunkManager.getChunk(addr);
         if (!chunk) {
             return;
         }
         const {lightChunk} = chunk;
         const {portals, uint8View, strideBytes} = lightChunk;
-        const ind = lightChunk.indexByWorld(x, y, z);
-        const light = uint8View[ind * strideBytes + OFFSET_LIGHT];
-        const src = adjustSrc(light_source);
-        const old_src = uint8View[ind * strideBytes + OFFSET_SOURCE];
-        uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
-        const potential = this.getPotential(x, y, z);
-        this.light.add(chunk, ind, Math.max(light, src), potential);
-        // push ao
-        const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
-        //TODO: move it to adjust func
-        if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
-            this.dayLightSrc.addWithChange(chunk, ind);
-            this.dayLight.add(chunk, ind, this.defDayLight, potential);
-        }
-        for (let i = 0; i < portals.length; i++) {
-            const portal = portals[i];
-            if (portal.aabb.contains(x, y, z)) {
-                const other = portal.toRegion;
-                const ind = other.indexByWorld(x, y, z);
-                other.setUint8ByInd(ind, OFFSET_SOURCE, src)
-                if (setAo) {
-                    other.rev.lastID++;
+        for (let j = 0; j < list.length; j += 4) {
+            const x = list[j] + lightChunk.pos.x;
+            const y = list[j + 1] + lightChunk.pos.y;
+            const z = list[j + 2] + lightChunk.pos.z;
+            const light_source = list[j + 3];
+            const ind = lightChunk.indexByWorld(x, y, z);
+            const light = uint8View[ind * strideBytes + OFFSET_LIGHT];
+            const src = adjustSrc(light_source);
+            const old_src = uint8View[ind * strideBytes + OFFSET_SOURCE];
+            uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
+            const potential = this.getPotential(x, y, z);
+            this.light.add(chunk, ind, Math.max(light, src), potential);
+            // push ao
+            const setAo = ((src & MASK_SRC_AO) !== (old_src & MASK_SRC_AO));
+            //TODO: move it to adjust func
+            if ((src & MASK_SRC_REST) !== (old_src & MASK_SRC_REST)) {
+                this.dayLightSrc.addWithChange(chunk, ind);
+                this.dayLight.add(chunk, ind, this.defDayLight, potential);
+            }
+            for (let i = 0; i < portals.length; i++) {
+                const portal = portals[i];
+                if (portal.aabb.contains(x, y, z)) {
+                    const other = portal.toRegion;
+                    const ind = other.indexByWorld(x, y, z);
+                    other.setUint8ByInd(ind, OFFSET_SOURCE, src)
+                    if (setAo) {
+                        other.rev.lastID++;
+                    }
                 }
             }
         }

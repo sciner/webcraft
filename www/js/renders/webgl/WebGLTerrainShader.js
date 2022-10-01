@@ -1,5 +1,4 @@
-import {BaseTerrainShader} from "../BaseRenderer.js";
-import WebGLRenderer from "./index.js";
+import {BaseTerrainShader} from "../BaseShader.js";
 import { MIN_BRIGHTNESS } from "../../constant.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
@@ -12,7 +11,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         super(context, options);
 
         const { gl } = context;
-        const program  = context.createProgram(options.code, {
+        const program  = this.program = context.createProgram(options.code, {
             // for ex, skip mip block
             ['manual_mip'] : {
                 //skip: true
@@ -42,6 +41,21 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
 
+        this.locateUniforms();
+
+        this.locateAttribs();
+        // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
+
+        this.hasModelMatrix = false;
+
+        this._material = null;
+
+        this.globalID = -1;
+    }
+
+    locateAttribs() {
+        const { program } = this;
+        const { gl } = this.context;
         this.a_chunkId          = gl.getAttribLocation(program, 'a_chunkId');
         this.a_position         = gl.getAttribLocation(program, 'a_position');
         this.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
@@ -51,7 +65,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.a_color            = gl.getAttribLocation(program, 'a_color');
         this.a_flags            = gl.getAttribLocation(program, 'a_flags');
         this.a_quad             = gl.getAttribLocation(program, 'a_quad');
+    }
 
+    locateUniforms() {
+        const { program } = this;
+        const { gl } = this.context;
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
         this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
@@ -64,14 +82,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
         this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
         this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
-        // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
-
-        this.hasModelMatrix = false;
-
-        this._material = null;
-
-        this.globalID = -1;
-        this.program = program;
     }
 
     bind(force = false) {
@@ -99,26 +109,12 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.context._shader = null;
     }
 
-    update() {
+    updateGlobalUniforms() {
         const { gl } = this.context;
         const gu = this.globalUniforms;
-        if (this.globalID === -1) {
-            gl.uniform1i(this.u_texture, 4);
-            gl.uniform1i(this.u_texture_n, 5);
-            gl.uniform1i(this.u_chunkDataSampler, 3);
-            gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
-            gl.uniform1i(this.u_maskColorSampler, 1);
-            gl.uniform1i(this.u_blockDayLightSampler, 2);
-        }
-        if (this.globalID === gu.updateID) {
-            return;
-        }
-        this.globalID = gu.updateID;
 
         gl.uniformMatrix4fv(this.uModelMatrix, false, gu.viewMatrix);
         gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
-        gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
-        this.hasModelMatrix = false;
         // gl.uniform1f(this.u_fogDensity, this.fogDensity);
         gl.uniform4fv(this.u_fogColor, gu.fogColor);
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
@@ -136,14 +132,42 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
         gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
-
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
+    }
 
+    setStaticUniforms() {
+        const { gl } = this.context;
+        gl.uniform1i(this.u_texture, 4);
+        gl.uniform1i(this.u_texture_n, 5);
+        gl.uniform1i(this.u_chunkDataSampler, 3);
+        gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        gl.uniform1i(this.u_maskColorSampler, 1);
+        gl.uniform1i(this.u_blockDayLightSampler, 2);
+    }
+
+    resetMatUniforms() {
+        const { gl } = this.context;
+        gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
+        this.hasModelMatrix = false;
         // Tint color
         gl.uniform4fv(this.u_tintColor, this.tintColor.toArray());
+    }
 
+    update() {
+        const { gl } = this.context;
+        const gu = this.globalUniforms;
+        if (this.globalID === -1) {
+            this.setStaticUniforms();
+        }
+        if (this.globalID === gu.updateID) {
+            return;
+        }
+        this.globalID = gu.updateID;
+        this.updateGlobalUniforms();
+
+        this.resetMatUniforms();
     }
 
     updatePos(pos, modelMatrix) {

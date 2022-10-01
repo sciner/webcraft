@@ -11,6 +11,7 @@ import { DBWorldMigration } from './world/migration.js';
 import { DBWorldQuest } from './world/quest.js';
 import { DROP_LIFE_TIME_SECONDS } from "../../www/js/constant.js";
 import { DBWorldPortal } from "./world/portal.js";
+import { DBWorldFluid } from "./world/fluid.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
 
@@ -29,6 +30,7 @@ export class DBWorld {
         this.mobs = new DBWorldMob(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         this.quests = new DBWorldQuest(this.conn, this.world);
         this.portal = new DBWorldPortal(this.conn, this.world);
+        this.fluid = new DBWorldFluid(this.conn, this.world);
         return this;
     }
 

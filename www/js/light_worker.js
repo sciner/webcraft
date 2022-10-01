@@ -191,8 +191,8 @@ async function onMessageFunc(e) {
             }
             break;
         }
-        case 'setBlock': {
-            world.setBlock(args);
+        case 'setChunkBlock': {
+            world.setChunkBlock(args);
             break;
         }
         case 'setPotentialCenter': {

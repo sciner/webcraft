@@ -120,10 +120,10 @@ export default class WorldEdit {
 
     /**
      * Set first point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_xyz1(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
@@ -143,10 +143,10 @@ export default class WorldEdit {
 
     /**
      * Set second point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_xyz2(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
@@ -240,6 +240,7 @@ export default class WorldEdit {
             quboid: qi,
             blocks: blocks,
             player_pos: player_pos
+            //TODO: fluids
         };
         let msg = `${blocks.size} block(s) copied`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
@@ -287,6 +288,9 @@ export default class WorldEdit {
             }
             actions.addBlocks([{pos, item, action_id}]);
             affected_count++;
+        }
+        if (data.fluids && data.fluids.length > 0) {
+            actions.addFluids(data.fluids, player_pos);
         }
         //
         let cnt = 0;
@@ -586,6 +590,7 @@ export default class WorldEdit {
                     player._world_edit_copy = {
                         quboid: null,
                         blocks: reader.blocks,
+                        fluids: reader.fluids,
                         player_pos: null
                     };
                 }

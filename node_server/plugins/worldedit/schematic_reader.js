@@ -1,8 +1,9 @@
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Schematic } from "prismarine-schematic";
 import { promises as fs } from 'fs';
-import { Vector, VectorCollector } from "../../../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector } from "../../../www/js/helpers.js";
 import { RailShape } from "../../../www/js/block_type/rail_shape.js";
+import * as FLUID from '../../../www/js/fluid/FluidConst.js';
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -10,20 +11,12 @@ const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 
 const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
 
-const SIX_VECS = {
-    south: new Vector(7, 0, 0),
-    west: new Vector(22, 0, 0),
-    north: new Vector(18, 0, 0),
-    east: new Vector(13, 0, 0),
-    up: new Vector(0, 1, 0),
-    down: new Vector(0, -1, 0)
-};
-
 // SchematicReader...
 export class SchematicReader {
 
     constructor() {
         this.blocks = new VectorCollector();
+        this.fluids = [];
         this.replaced_names = {
             BARRIER:    'AIR',
             CAVE_AIR:   'AIR',
@@ -75,8 +68,11 @@ export class SchematicReader {
 
         const not_found_blocks = new Map();
         const bpos = new Vector(0, 0, 0);
+        const AIR_BLOCK = {id: 0};
         const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
         const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
+        const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
+        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
         // each all blocks
         const ep = new Vector(0, 0, 0);
         let min_y = Infinity;
@@ -87,17 +83,17 @@ export class SchematicReader {
             if(bpos.y < min_y) {
                 min_y = bpos.y;
             }
-            let {name, extra_data} = this.parseBlockName(block);
+            const name = this.parseBlockName(block);
             if(NO_IMPORT_BLOCKS.includes(name)) {
                 return;
             }
-            if(name.endsWith('ANVIL')) {
-                name = 'ANVIL';
+            if(name == 'SEAGRASS') {
+                console.log(block);
             }
-            let b = BLOCK[name];
+            const b = BLOCK[name];
             let new_block = null;
             if(b) {
-                // speed optiomization
+                // speed optimization
                 if(b.is_simple_qube) {
                     new_block = cached_blocks.get(b.id);
                 }
@@ -119,7 +115,7 @@ export class SchematicReader {
                         ep.copyFrom(pos).subSelf(schematic.offset);
                         block.entities = BlockEntities.get(ep);
                     }
-                    new_block = this.createBlockFromSchematic(block, b, extra_data);
+                    new_block = this.createBlockFromSchematic(block, b);
                     if(b.is_simple_qube) {
                         cached_blocks.set(b.id, new_block);
                     }
@@ -148,7 +144,7 @@ export class SchematicReader {
                     }
                 }
             }
-            // If not implemented block 
+            // If not implemented block
             if(!new_block) {
                 not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
                 // replace with TEST block and store original to his extra_data
@@ -164,7 +160,23 @@ export class SchematicReader {
                     }
                 }
             }
+            let fluidValue = 0;
+            if (b?.is_fluid || b?.always_waterlogged || new_block.waterlogged) {
+                const lvl = new_block.extra_data?.level ?? 0;
+                if (new_block.id === STILL_WATER_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_WATER_ID + lvl;
+                }
+                if (new_block.id === STILL_LAVA_BLOCK.id) {
+                    fluidValue = FLUID.FLUID_LAVA_ID + lvl;
+                }
+                if(b?.is_fluid) {
+                    new_block = AIR_BLOCK;
+                }
+            }
             this.blocks.set(bpos, new_block);
+            if (fluidValue) {
+                this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
+            }
         });
         //
         const not_found_blocks_arr = [];
@@ -185,7 +197,6 @@ export class SchematicReader {
 
     //
     parseBlockName(block) {
-        let extra_data = null;
         if(block.name == 'wall_sign') {
             block.name = 'oak_wall_sign';
         }
@@ -202,17 +213,19 @@ export class SchematicReader {
             if(block.on_wall) {
                 block.name = block.name.replace('_wall_', '_');
             }
+        } else if(block.name.endsWith('anvil')) {
+            block.name = 'anvil';
         }
         //
         let name = block.name.toUpperCase();
         if(name in this.replaced_names) {
             name = this.replaced_names[name];
         }
-        return {name, extra_data};
+        return name;
     }
 
     //
-    createBlockFromSchematic(block, b, extra_data) {
+    createBlockFromSchematic(block, b) {
         const props = block._properties;
         let new_block = {
             id: b.id
@@ -238,12 +251,6 @@ export class SchematicReader {
             }
             new_block.extra_data[k] = v;
         };
-        //
-        if(extra_data) {
-            for(let k in extra_data) {
-                setExtraData(k, extra_data[k]);
-            }
-        }
         // block entities
         if(block.entities) {
             if(b.is_chest) {
@@ -532,6 +539,9 @@ export class SchematicReader {
                     }
                     setExtraData('stage', index);
                 }
+            }
+            if('waterlogged' in props && props.waterlogged) {
+                new_block.waterlogged = props.waterlogged;
             }
         }
         return new_block;
