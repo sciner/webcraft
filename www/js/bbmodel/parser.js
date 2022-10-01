@@ -21,6 +21,89 @@ export class BBModel_Parser {
         this._group_stack.push(this.root);
     }
 
+    playAnimation(current_animation_name) {
+
+        const animations = this.model.animations;
+
+        for(let ak in animations) {
+            const animation = animations[ak];
+            /**
+             * .length: 1.2
+             * .loop: 'loop'
+             * .loop_delay: ''
+             * .start_delay: ''
+             * .animators
+             */
+            if(animation.name == current_animation_name) {
+                const time = (performance.now() / 1000) % animation.length;
+                for(let k in animation.animators) {
+
+                    const animator = animation.animators[k];
+                    if(animator.name != 'body') {
+                        // continue;
+                    }
+
+                    const group = this.groups.get(animator.name);
+                    if(group) {
+
+                        const channels = new Map();
+                        for(let keyframe of animator.keyframes) {
+                            let channel = channels.get(keyframe.channel);
+                            if(!channel) {
+                                channel = [];
+                                channels.set(keyframe.channel, channel);
+                            }
+                            channel.push(keyframe);
+                            /**
+                             * .channel: "rotation|position"
+                             * .data_points[][0, 0, 0]
+                             * .time: 0 ... 1.2
+                             * interpolation: "linear"
+                             */
+                        }
+
+                        //
+                        for(const [channel_name, keyframes] of channels) {
+
+                            keyframes.sort((a, b) => a.time - b.time);
+                            let begin_keyframe_index = null;
+                            for(let i = 0; i < keyframes.length; i++) {
+                                const keyframe = keyframes[i];
+                                if(time >= keyframe.time) {
+                                    begin_keyframe_index = i;
+                                }
+                            }
+
+                            const current_keyframe = keyframes[begin_keyframe_index];
+                            const next_keyframe = keyframes[begin_keyframe_index + 1];
+                            if(!next_keyframe || !current_keyframe) {
+                                continue;
+                            }
+                            const diff = next_keyframe.time - current_keyframe.time;
+                            let percent = (time - current_keyframe.time) / diff;
+                            
+                            const current_data_points = new Vector(current_keyframe.data_points[0]);
+                            const next_data_points = new Vector(next_keyframe.data_points[0]);
+
+                            const point = new Vector(0, 0, 0)
+                                .lerpFrom(current_data_points, next_data_points, percent)
+                                .divScalar(16);
+
+                            group.animations.push({channel_name, point})
+
+                            /*
+                                console.log(keyframe.channel, keyframe.time, data_points)
+                            */
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }
+
     /**
      * @param {string} key
      * @returns
@@ -205,7 +288,7 @@ export class BBModel_Parser {
         } else if(rotation && 'angle' in rotation) {
 
             const angle = rotation.angle;
-            resp.rot
+
             switch(rotation.axis) {
                 case 'x': {
                     resp.rot.x = angle;

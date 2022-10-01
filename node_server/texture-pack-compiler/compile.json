@@ -7988,7 +7988,8 @@
             "name": "BLOCK_MODEL",
             "sound": "madcraft:block.wood",
             "style": "bbmodel",
-            "transparent": "false",
+            "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },

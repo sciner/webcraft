@@ -94,6 +94,9 @@ export class GameClass {
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
+        setInterval(() => {
+            Qubatch.world.chunkManager.setBlock(2902, 4, 2703, {id: 502}, true);
+        }, 10)
     }
 
     // Set the canvas the renderer uses for some input operations.
