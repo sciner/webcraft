@@ -2,27 +2,20 @@ import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { default as default_style } from '../block_style/default.js';
-
-// import model_bookshelf from "../../data/bbmodel/energy_blade.json" assert { type: "json" };
-// import model_bookshelf from "../../data/bbmodel/test.json" assert { type: "json" };
-import model_test from "../../data/bbmodel/test.json" assert { type: "json" };
-import model_bookshelf from "../../data/bbmodel/bookshelf.json" assert { type: "json" };
-import model_sword from "../../data/bbmodel/sword.json" assert { type: "json" };
-import model_black_big_can from "../../data/bbmodel/black_big_can.json" assert { type: "json" };
-import model_garbage_monster from "../../data/bbmodel/garbage_monster.json" assert { type: "json" };
-
 import { BBModel_Parser } from '../bbmodel/parser.js';
 import { BLOCK } from '../blocks.js';
 
 const {mat4} = glMatrix;
 
-const models = {
-    test:               model_test,
-    bookshelf:          model_bookshelf,
-    sword:              model_sword,
-    black_big_can:      model_black_big_can,
-    garbage_monster:    model_garbage_monster
-};
+// Load models
+const models = {};
+for(let name of ['sword', 'test', 'bookshelf', 'black_big_can', 'garbage_monster']) {
+    fetch(`../../data/bbmodel/${name}.json`)
+        .then(response => response.json())
+        .then(obj => {
+            models[name] = obj;
+        })
+}
 
 // Block model
 export default class style {
@@ -47,42 +40,43 @@ export default class style {
             return;
         }
 
-        const textures = block.material.texture;
+        const textures      = block.material.texture;
+        const pos           = new Vector(x, y, z);
+        const lm            = IndexedColor.WHITE;
 
-        const model_json = models[block.extra_data?.model ?? 'sword'];
-
-        const model = new BBModel_Parser(model_json, textures);
-
-        model.parse();
+        const model_json    = models[block.extra_data?.model ?? 'garbage_monster'];
 
         //
-        const cd = block.getCardinalDirection();
-        matrix = mat4.create();
+        if(model_json) {
 
-        // mat4.rotateX(matrix, matrix, performance.now() / 1000);
-        mat4.rotateY(matrix, matrix, performance.now() / 1000);
-        // mat4.rotateZ(matrix, matrix, performance.now() / 1000);
+            const model = new BBModel_Parser(model_json, textures);
 
-        /*
-        switch(cd) {
-            case DIRECTION.NORTH: 
-                mat4.rotateY(matrix, matrix, Math.PI);
-                break;
-            case DIRECTION.WEST: 
-                mat4.rotateY(matrix, matrix, Math.PI / 2);
-                break;
-            case DIRECTION.EAST: 
-                mat4.rotateY(matrix, matrix, -Math.PI / 2);
-                break;
+            model.parse();
+
+            //
+            const cd = block.getCardinalDirection();
+            matrix = mat4.create();
+
+            // mat4.rotateX(matrix, matrix, performance.now() / 1000);
+            // mat4.rotateY(matrix, matrix, performance.now() / 1000);
+            // mat4.rotateZ(matrix, matrix, performance.now() / 1000);
+
+            switch(cd) {
+                case DIRECTION.NORTH: 
+                    mat4.rotateY(matrix, matrix, Math.PI);
+                    break;
+                case DIRECTION.WEST: 
+                    mat4.rotateY(matrix, matrix, Math.PI / 2);
+                    break;
+                case DIRECTION.EAST: 
+                    mat4.rotateY(matrix, matrix, -Math.PI / 2);
+                    break;
+            }
+
+            model.playAnimation('idle'); // idle, walk, jump, attack1, attack2
+            model.draw(vertices, pos.add(new Vector(.5, 0, .5)), lm, matrix);
+
         }
-        */
-
-        //
-        const pos = new Vector(x, y, z);
-        const lm = IndexedColor.WHITE;
-
-        model.playAnimation('walk'); // idle, walk, jump, attack1, attack2
-        model.draw(vertices, pos.add(new Vector(.5, 0, .5)), lm, matrix);
 
         // Draw stand
         style.drawStand(vertices, pos, lm, null);
