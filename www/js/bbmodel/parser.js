@@ -1,10 +1,13 @@
 import { BLOCK } from "../blocks.js";
+import { FrustumProxy } from "../frustum.js";
 import { DIRECTION, isScalar, Vector } from "../helpers.js";
 import { BBModel_Box } from "./box.js";
 import { BBModel_Child } from "./child.js";
 import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
+const FIX_POS = new Vector(8, -8, -8);
+const SHIFT = new Vector(16, 0, 0);
 
 //
 export class BBModel_Parser {
@@ -21,6 +24,12 @@ export class BBModel_Parser {
         this._group_stack.push(this.root);
     }
 
+    // Draw
+    draw(vertices, pos, lm, matrix) {
+        this.root.pushVertices(vertices, pos, lm, matrix);
+    }
+
+    // Play animations
     playAnimation(current_animation_name) {
 
         const animations = this.model.animations;
@@ -39,9 +48,6 @@ export class BBModel_Parser {
                 for(let k in animation.animators) {
 
                     const animator = animation.animators[k];
-                    if(animator.name != 'body') {
-                        // continue;
-                    }
 
                     const group = this.groups.get(animator.name);
                     if(group) {
@@ -95,6 +101,7 @@ export class BBModel_Parser {
                             group.animations.push({channel_name, point})
 
                         }
+
                     }
 
                 }
@@ -210,10 +217,11 @@ export class BBModel_Parser {
         }
 
         const flag  = 0;
-        const from  = new Vector().copy(el.from);
-        const to    = new Vector().copy(el.to);
+        const from  = new Vector().copy(el.from).addSelf(SHIFT);
+        const to    = new Vector().copy(el.to).addSelf(SHIFT);
+
         const size  = to.subSelf(from);
-        const box   = new BBModel_Box(size, from.addScalarSelf(8, -8, -8).addSelf(size.div(VEC_2)));
+        const box   = new BBModel_Box(size, from.addSelf(FIX_POS).addSelf(size.div(VEC_2)));
 
         //
         this.addChildToCurrentGroup(box);
@@ -235,15 +243,6 @@ export class BBModel_Parser {
         }
 
         box.updateLocalTransform();
-    }
-
-    /**
-     * @param {object} obj
-     * @returns
-     */
-    parsePivot(obj) {
-        const pivot = new Vector().copy(obj.origin);
-        return pivot;
     }
 
     //
@@ -268,7 +267,7 @@ export class BBModel_Parser {
         // pivot
         const origin = el.rotation?.origin ?? el.origin;
         if(origin) {
-            resp.pivot.copy(origin);
+            resp.pivot.copy(origin).addSelf(SHIFT);
             if (isGroup) {
                 resp.pivot.x = 16 - resp.pivot.x;
             } else {

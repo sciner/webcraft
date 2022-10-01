@@ -44,6 +44,7 @@ export default class style {
         //
         const cd = block.getCardinalDirection();
         matrix = mat4.create();
+
         switch(cd) {
             case DIRECTION.NORTH: 
                 mat4.rotateY(matrix, matrix, Math.PI);
@@ -60,14 +61,11 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
 
-        // model.playAnimation('idle');
-        model.playAnimation('walk');
-        // model.playAnimation('attack2');
-
-        model.root.pushVertices(vertices, pos, lm, matrix);
+        model.playAnimation('walk'); // idle, walk, jump, attack1, attack2
+        model.draw(vertices, pos.add(new Vector(.5, 0, .5)), lm, matrix);
 
         // Draw stand
-        style.drawStand(vertices, pos, lm, matrix);
+        style.drawStand(vertices, pos, lm, null);
 
     }
 
