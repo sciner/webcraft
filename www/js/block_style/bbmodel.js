@@ -8,13 +8,19 @@ import { BLOCK } from '../blocks.js';
 const {mat4} = glMatrix;
 
 // Load models
-const models = {};
-for(let name of ['sword', 'test', 'bookshelf', 'black_big_can', 'garbage_monster']) {
-    fetch(`../../data/bbmodel/${name}.json`)
-        .then(response => response.json())
-        .then(obj => {
-            models[name] = obj;
-        })
+const models = new Map();
+
+function initModels() {
+    if(models.size > 0) return;
+    for(let name of ['sword', 'test', 'bookshelf', 'black_big_can', 'garbage_monster']) {
+        fetch(`../../data/bbmodel/${name}.json`)
+            .then(response => response.json())
+            .then(obj => {
+                models.set(name, obj);
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+    }
 }
 
 // Block model
@@ -40,11 +46,13 @@ export default class style {
             return;
         }
 
+        initModels();
+
         const textures      = block.material.texture;
         const pos           = new Vector(x, y, z);
         const lm            = IndexedColor.WHITE;
 
-        const model_json    = models[block.extra_data?.model ?? 'garbage_monster'];
+        const model_json    = models.get(block.extra_data?.model ?? 'garbage_monster');
 
         //
         if(model_json) {
