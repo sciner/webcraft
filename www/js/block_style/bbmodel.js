@@ -5,13 +5,24 @@ import { default as default_style } from '../block_style/default.js';
 
 // import model_bookshelf from "../../data/bbmodel/energy_blade.json" assert { type: "json" };
 // import model_bookshelf from "../../data/bbmodel/test.json" assert { type: "json" };
-// import model_bookshelf from "../../data/bbmodel/sword.json" assert { type: "json" };
-// import model_bookshelf from "../../data/bbmodel/black_big_can.json" assert { type: "json" };
-import model_bookshelf from "../../data/bbmodel/garbage_monster.json" assert { type: "json" };
+import model_test from "../../data/bbmodel/test.json" assert { type: "json" };
+import model_bookshelf from "../../data/bbmodel/bookshelf.json" assert { type: "json" };
+import model_sword from "../../data/bbmodel/sword.json" assert { type: "json" };
+import model_black_big_can from "../../data/bbmodel/black_big_can.json" assert { type: "json" };
+import model_garbage_monster from "../../data/bbmodel/garbage_monster.json" assert { type: "json" };
+
 import { BBModel_Parser } from '../bbmodel/parser.js';
 import { BLOCK } from '../blocks.js';
 
 const {mat4} = glMatrix;
+
+const models = {
+    test:               model_test,
+    bookshelf:          model_bookshelf,
+    sword:              model_sword,
+    black_big_can:      model_black_big_can,
+    garbage_monster:    model_garbage_monster
+};
 
 // Block model
 export default class style {
@@ -37,7 +48,10 @@ export default class style {
         }
 
         const textures = block.material.texture;
-        const model = new BBModel_Parser(model_bookshelf, textures);
+
+        const model_json = models[block.extra_data?.model ?? 'sword'];
+
+        const model = new BBModel_Parser(model_json, textures);
 
         model.parse();
 
@@ -45,6 +59,11 @@ export default class style {
         const cd = block.getCardinalDirection();
         matrix = mat4.create();
 
+        // mat4.rotateX(matrix, matrix, performance.now() / 1000);
+        mat4.rotateY(matrix, matrix, performance.now() / 1000);
+        // mat4.rotateZ(matrix, matrix, performance.now() / 1000);
+
+        /*
         switch(cd) {
             case DIRECTION.NORTH: 
                 mat4.rotateY(matrix, matrix, Math.PI);
@@ -56,6 +75,7 @@ export default class style {
                 mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
         }
+        */
 
         //
         const pos = new Vector(x, y, z);
@@ -77,8 +97,8 @@ export default class style {
         stand.push(...[
             // stand
             {
-                "size": {"x": 12, "y": 1, "z": 12},
-                "translate": {"x":0, "y": -7, "z": 0},
+                "size": {"x": 16, "y": .5, "z": 16},
+                "translate": {"x":0, "y": -7.5, "z": 0},
                 "faces": {
                     "up": {"uv": [8, 8], "flag": flag, "texture": stone},
                     "down": {"uv": [8, 8], "flag": flag, "texture": stone},

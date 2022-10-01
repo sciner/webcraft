@@ -1,5 +1,4 @@
 import { BLOCK } from "../blocks.js";
-import { FrustumProxy } from "../frustum.js";
 import { DIRECTION, isScalar, Vector } from "../helpers.js";
 import { BBModel_Box } from "./box.js";
 import { BBModel_Child } from "./child.js";
@@ -7,7 +6,7 @@ import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
-const SHIFT = new Vector(16, 0, 0);
+const SHIFT = new Vector(8, 0, -8);
 
 //
 export class BBModel_Parser {
