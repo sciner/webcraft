@@ -51,7 +51,7 @@ export default class style {
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const stage             = block.extra_data.stage;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-        const rot               = [0, ((block.rotate.x - 1) / 4) * (2 * Math.PI), 0];
+        const rot               = [0, ((3 - block.rotate.x) / 4) * (2 * Math.PI), 0];
         const pos               = new Vector(x, y, z);
 
         // 1. Chains
