@@ -79,21 +79,20 @@ export class BBModel_Parser {
                             if(!next_keyframe || !current_keyframe) {
                                 continue;
                             }
+
                             const diff = next_keyframe.time - current_keyframe.time;
                             let percent = (time - current_keyframe.time) / diff;
                             
                             const current_data_points = new Vector(current_keyframe.data_points[0]);
                             const next_data_points = new Vector(next_keyframe.data_points[0]);
 
-                            const point = new Vector(0, 0, 0)
-                                .lerpFrom(current_data_points, next_data_points, percent)
-                                .divScalar(16);
+                            const point = new Vector(0, 0, 0).lerpFrom(current_data_points, next_data_points, percent);
+
+                            if(channel_name == 'position') {
+                                point.divScalar(16);
+                            }
 
                             group.animations.push({channel_name, point})
-
-                            /*
-                                console.log(keyframe.channel, keyframe.time, data_points)
-                            */
 
                         }
                     }

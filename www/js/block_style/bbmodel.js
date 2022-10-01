@@ -62,6 +62,7 @@ export default class style {
 
         // model.playAnimation('idle');
         model.playAnimation('walk');
+        // model.playAnimation('attack2');
 
         model.root.pushVertices(vertices, pos, lm, matrix);
 

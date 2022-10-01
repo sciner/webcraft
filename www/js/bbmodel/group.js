@@ -40,48 +40,42 @@ export class BBModel_Group extends BBModel_Child {
         const mx = mat4.create();
         mat4.copy(mx, parentMatrix);
 
-        if(this.name == 'body') {
-            /*
-            this.rot.z = Math.sin(performance.now() / 100);
-            mat4.translate(mx, mx, [
-                0,
-                Math.sin(performance.now() / 1000) / 16,
-                0
-            ]);
-            const scale = 1 + Math.sin(performance.now() / 1000) / 8;
-            mat4.scale(mx, mx, [scale, scale, scale]);
-            this.updateLocalTransform();
-            */
-        }
-
-        // Play animations
-        if(this.animations.length > 0) {
-
-            for(let animation of this.animations) {
-                switch(animation.channel_name) {
-                    case 'position': {
-                        mat4.translate(mx, mx, animation.point);
-                        break;
-                    }
-                    case 'rotation': {
-                        this.rot.copyFrom(this.rot_orig).subSelf(animation.point.multiplyScalar(16));
-                        break;
-                    }
-                }
-            }
-
-            this.updateLocalTransform();
-
-            this.animations = [];
-            this.rot.copyFrom(this.rot_orig);
-
-        }
+        this.playAnimations(mx);
 
         mat4.multiply(mx, mx, this.matrix);
 
         for(let part of this.children) {
             part.pushVertices(vertices, pos, lm, mx);
         }
+    }
+
+    // Play animations
+    playAnimations(mx) {
+
+        if(this.animations.length == 0) {
+            return false;
+        }
+
+        for(let animation of this.animations) {
+            switch(animation.channel_name) {
+                case 'position': {
+                    mat4.translate(mx, mx, animation.point);
+                    break;
+                }
+                case 'rotation': {
+                    this.rot.copyFrom(this.rot_orig).subSelf(animation.point);
+                    break;
+                }
+            }
+        }
+
+        // apply
+        this.updateLocalTransform();
+
+        // reset
+        this.animations = [];
+        this.rot.copyFrom(this.rot_orig);
+
     }
 
 }
