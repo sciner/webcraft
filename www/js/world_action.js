@@ -1903,6 +1903,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;
     }
+    const position = new Vector(pos);
     if(world_material.id == BLOCK.GRASS_BLOCK.id) {
         const tblock_pos = new Vector(0, 0, 0);
         const tblock_pos_over = new Vector(0, 0, 0);
@@ -1946,17 +1947,19 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
                 }
             }
         }
+        actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 1, 0), area: true}]);
         actions.decrement = true;
         if(mat_block.sound) {
-            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
         }
         return true;
-    } else if (world_block?.material?.ticking?.type) {
-        if (world_block.material.ticking.type == 'stage') {
+    } else if (world_block?.material?.ticking?.type && extra_data) {
+        if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {
             extra_data.bone = Math.random() < 0.5 ? 1 : 2;
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: position, item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.decrement = true;
-            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.addParticles([{type: 'villager_happy', pos: position}]);
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', position, except_players: [player.session.user_id]});
             return true;
         }
     }
