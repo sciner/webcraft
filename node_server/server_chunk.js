@@ -532,7 +532,7 @@ export class ServerChunk {
 
     //
     onNeighbourChanged(tblock, neighbour) {
-
+        //return false;
         const world = this.world;
 
         //
@@ -545,7 +545,7 @@ export class ServerChunk {
             actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
             world.actions_queue.add(null, actions);
         }
-
+       
         //
         if(neighbour.id == 0) {
 
@@ -553,8 +553,11 @@ export class ServerChunk {
             const rot = tblock.rotate;
             const rotx = tblock.rotate?.x;
             const roty = tblock.rotate?.y;
-
+            
             switch(tblock.material.style) {
+                case 'fire': {
+                    break;
+                }
                 case 'rails':
                 case 'candle': {
                     // only bottom

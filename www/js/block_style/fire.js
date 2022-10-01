@@ -25,19 +25,19 @@ export default class style {
         const facets = [];
         if(block.extra_data) {
             if (block.extra_data.north) {
-                facets.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
+                facets.push(new AABB().set(0, 0, 0.94, 1, 1, 1));
             }
             if (block.extra_data.south) {
-                facets.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
+                facets.push(new AABB().set(0, 0, 0, 1, 1, 0.06));
             }
             if (block.extra_data.west) {
-                facets.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
+                facets.push(new AABB().set(0, 0, 0, 0.06, 1, 1));
             }
             if (block.extra_data.east) {
-                facets.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
+                facets.push(new AABB().set(0.94, 0, 0, 1, 1, 1));
             }
             if (block.extra_data.up) {
-                facets.push(new AABB().set(0, 0, 0, 1, 0.1, 1));
+                facets.push(new AABB().set(0, 0, 0, 1, 0.06, 1));
             }
         }
         return facets;
