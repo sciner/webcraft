@@ -458,6 +458,13 @@ export class Color {
         return this;
     }
 
+    copyFrom(color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
+
     /**
      * @return {Color}
      */
@@ -492,6 +499,10 @@ export class Color {
         this.g = color.g;
         this.b = color.b;
         this.a = color.a;
+    }
+
+    equals(color) {
+        return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
 }
@@ -1078,7 +1089,22 @@ export class Vector {
 
 }
 
-export class Vec3 extends Vector {}
+export class Vec3 extends Vector {
+    add(vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+    }
+}
+
+export const SIX_VECS = {
+    south: new Vector(7, 0, 0),
+    west: new Vector(22, 0, 0),
+    north: new Vector(18, 0, 0),
+    east: new Vector(13, 0, 0),
+    up: new Vector(0, 1, 0),
+    down: new Vector(0, -1, 0)
+};
 
 export class IndexedColor {
     static packLm(lm) {
@@ -1087,6 +1113,7 @@ export class IndexedColor {
 
     static WHITE = null;
     static GRASS = null;
+    static WATER = null;
 
     static packArg(palU, palV, palMode) {
         palU = Math.round(palU);
@@ -1134,6 +1161,7 @@ export class IndexedColor {
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
 IndexedColor.GRASS = new IndexedColor(132, 485, 0);
+IndexedColor.WATER = new IndexedColor(132, 194, 0);
 
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1 << 0;

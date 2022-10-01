@@ -4,6 +4,8 @@ import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
+import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
+import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 
 export function newTypedBlocks(x, y, z) {
     return new TypedBlocks3(x, y, z);
@@ -26,7 +28,6 @@ export class BlockNeighbours {
 
     constructor() {
         this.pcnt   = 6;
-        this.water_in_water = false;
         this.UP     = null;
         this.DOWN   = null;
         this.SOUTH  = null;
@@ -134,6 +135,7 @@ export class TypedBlocks3 {
         this.vertices  = null;
         this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
+        this.fluid = null;
     }
 
     ensureVertices() {
@@ -191,6 +193,9 @@ export class TypedBlocks3 {
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
+        if (state.fluid) {
+            this.fluid.restoreState(state.fluid);
+        }
     }
 
     saveState() {
@@ -203,6 +208,7 @@ export class TypedBlocks3 {
             extra_data: this.extra_data.list,
             shapes: this.shapes.list,
             falling: this.falling.list,
+            fluid: this.fluid.saveState(),
         }
     }
 
@@ -210,9 +216,10 @@ export class TypedBlocks3 {
     refreshNonZero() {
         this.non_zero = 0;
         const id = this.dataChunk.uint16View;
+        const fluid = this.fluid.uint16View;
         const len = id.length;
         for(let i = 0; i < len; i++) {
-            if(id[i] !== 0) {
+            if(id[i] !== 0 || fluid[i] !== 0) {
                 this.non_zero++;
             }
         }
@@ -259,11 +266,7 @@ export class TypedBlocks3 {
                 if(this.isFilled(id_up) && this.isFilled(id_down) && this.isFilled(id_south) && this.isFilled(id_north) && this.isFilled(id_west) && this.isFilled(id_east)) {
                     return true;
                 }
-            } /*else if(is_water) {
-                if(this.isWater(id_up) && this.isWater(id_down) && this.isWater(id_south) && this.isWater(id_north) && this.isWater(id_west) && this.isWater(id_east)) {
-                    return true;
-                }
-            }*/
+            }
         }
         return false;
     }
@@ -409,7 +412,6 @@ export class TypedBlocks3 {
         }
 
         const neighbours = new BlockNeighbours();
-        let is_water_count = 0;
         for (let dir = 0; dir < CC.length; dir++) {
             const cb = cache[dir];
             neighbours[CC[dir].name] = cb;
@@ -418,12 +420,6 @@ export class TypedBlocks3 {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties && properties.is_water) {
-                is_water_count++;
-            }
-        }
-        if(is_water_count == 6) {
-            neighbours.water_in_water = tblock.material.is_water;
         }
 
         return neighbours;
@@ -457,6 +453,7 @@ export class TypedBlocks3 {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.id[index] = id;
+        this.fluid.syncBlockProps(index, id, false);
 
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -469,7 +466,10 @@ export class TypedBlocks3 {
         for (let i = 0; i < portals.length; i++) {
             if (portals[i].aabb.contains(wx, wy, wz)) {
                 const other = portals[i].toRegion;
-                other.uint16View[other.indexByWorld(wx, wy, wz)] = id;
+                const ind2 = other.indexByWorld(wx, wy, wz);
+                other.uint16View[ind2] = id;
+                // TODO: set calculated props
+                other.rev.fluid.syncBlockProps(ind2, id, true);
                 pcnt++;
             }
         }
@@ -538,8 +538,9 @@ export class TypedBlocks3 {
 }
 
 export class DataWorld {
-    constructor() {
+    constructor(chunkManager) {
         const INF = 1000000000;
+        this.chunkManager = chunkManager;
         this.base = new BaseChunk({size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -554,6 +555,9 @@ export class DataWorld {
         }
         chunk.dataChunk.rev = chunk;
         this.base.addSub(chunk.dataChunk);
+        if (this.chunkManager.fluidWorld) {
+            this.chunkManager.fluidWorld.addChunk(chunk);
+        }
     }
 
     removeChunk(chunk) {
@@ -561,6 +565,9 @@ export class DataWorld {
             return;
         }
         this.base.removeSub(chunk.dataChunk);
+        if (this.chunkManager.fluidWorld) {
+            this.chunkManager.fluidWorld.removeChunk(chunk);
+        }
     }
 
     /**
@@ -571,31 +578,50 @@ export class DataWorld {
             return;
         }
 
+        const fluid = chunk.fluid.uint16View;
+
         const { portals, aabb, uint16View, cx, cy, cz } = chunk.dataChunk;
         const cw = chunk.dataChunk.shiftCoord;
         const tempAABB = new AABB();
+
+        chunk.fluid.syncAllProps();
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];
             const other = portals[i].toRegion;
             const otherView = other.uint16View;
+            const otherFluid = other.rev.fluid.uint16View;
 
             const cx2 = other.cx;
             const cy2 = other.cy;
             const cz2 = other.cz;
             const cw2 = other.shiftCoord;
 
+            let otherDirtyFluid = false;
+
             tempAABB.setIntersect(aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
                 for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
-                        otherView[x * cx2 + y * cy2 + z * cz2 + cw2] = uint16View[x * cx + y * cy + z * cz + cw];
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        otherView[ind2] = uint16View[ind];
+                        if (otherFluid[ind2] !== fluid[ind]) {
+                            otherFluid[ind2] = fluid[ind];
+                            otherDirtyFluid = true;
+                        }
                     }
             tempAABB.setIntersect(other.aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
                 for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
-                        uint16View[x * cx + y * cy + z * cz + cw] = otherView[x * cx2 + y * cy2 + z * cz2 + cw2];
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        uint16View[ind] = otherView[ind2];
+                        fluid[ind] = otherFluid[ind2];
                     }
+            if (otherDirtyFluid) {
+                other.rev.fluid.markDirtyMesh();
+            }
         }
     }
 
@@ -644,11 +670,20 @@ export class TBlock {
     set id(value) {
         // let cu = this.tb.id[this.index];
         // this.tb.non_zero += (!cu && value) ? 1 : ((cu && !value) ? -1 : 0);
-        if (this.tb.dataChunk.portals) {
-            this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
-        } else {
-            this.tb.id[this.index] = value;
+        this.tb.setBlockId(this.vec.x, this.vec.y, this.vec.z, value);
+    }
+
+    get lightSource() {
+        let res = 0;
+        const mat = BLOCK.BLOCK_BY_ID[this.id]
+        if (mat) {
+            res = mat.light_power_number;
         }
+        const fluidVal = this.tb.fluid.getValueByInd(this.index);
+        if (fluidVal > 0) {
+            res |= fluidLightPower(fluidVal);
+        }
+        return res;
     }
 
     //
@@ -761,6 +796,40 @@ export class TBlock {
         return this.tb.metadata.get(this.vec);
     }
 
+    get fluid() {
+        return this.tb.fluid.getValueByInd(this.index);
+    }
+
+    set fluid(value) {
+        this.tb.fluid.setValue(this.vec.x, this.vec.y, this.vec.z, value);
+    }
+
+    get fluidSource() {
+        const fs = this.tb.fluid.getValueByInd(this.index);
+        if (fs > 0 && (fs & FLUID_LEVEL_MASK) === 0) {
+            return fs;
+        }
+        return 0;
+    }
+
+    get isWater() {
+        return (this.tb.fluid.getValueByInd(this.index) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+    }
+
+    getFluidLevel(worldX, worldZ) {
+        let relX = worldX  - this.vec.x - this.tb.coord.x;
+        let relZ = worldZ  - this.vec.z - this.tb.coord.z;
+        if (relX < 0) relX = 0;
+        if (relX > 1) relX = 1;
+        if (relZ < 0) relZ = 0;
+        if (relZ > 1) relZ = 1;
+        return calcFluidLevel(this.tb.fluid, this.index, relX, relZ) + this.vec.y + this.tb.coord.y;
+    }
+
+    getFluidBlockMaterial() {
+        return getBlockByFluidVal(this.fluid);
+    }
+
     getSound() {
         let sound = null;
         if(this.id) {
@@ -840,14 +909,12 @@ export class TBlock {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 neighbours.pcnt--;
             }
-            if(properties.is_water) {
-                is_water_count++;
-            }
-        }
-        if(is_water_count == 6) {
-            neighbours.water_in_water = this.material.is_water;
         }
         return neighbours;
+    }
+
+    get is_fluid() {
+        return this.id == 0 && this.fluid > 0;
     }
 
 }

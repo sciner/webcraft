@@ -99,7 +99,7 @@ export class FakeTBlock {
 
 //
 export class DropItemVertices extends FakeTBlock {
-    
+
     constructor(id, extra_data, pos, rotate, matrix, vertice_groups) {
         super(id, extra_data, pos, rotate, null, matrix, null, null, null);
         this.vertice_groups = vertice_groups;
@@ -489,7 +489,8 @@ export class BLOCK {
         if(block_id == 0) {
             return true;
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id].indexOf(block_id) >= 0) {
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id,
+            BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.FIRE.id].includes(block_id)) {
             return true;
         }
         const mat = BLOCK.BLOCK_BY_ID[block_id];
@@ -497,7 +498,7 @@ export class BLOCK {
             return true;
         }
         if(mat.is_layering) {
-            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
+            const height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
             return !isNaN(height) && height == mat.height && block_id != replace_with_block_id;
         }
         return false;
@@ -577,6 +578,7 @@ export class BLOCK {
 
     static isSolid(block) {
         return block.style == 'default' &&
+            !block.is_fluid &&
             !block.is_leaves &&
             !('width' in block) &&
             !('height' in block);
@@ -764,10 +766,11 @@ export class BLOCK {
     static makeBlockMaterialKey(resource_pack, material) {
         let mat_group = material.group;
         let texture_id = 'default';
+        let mat_shader = 'terrain';
         if(typeof material.texture == 'object' && 'id' in material.texture) {
             texture_id = material.texture.id;
         }
-        return `${resource_pack.id}/${mat_group}/${texture_id}`;
+        return `${resource_pack.id}/${mat_group}/${mat_shader}/${texture_id}`;
     }
 
     //

@@ -22,6 +22,7 @@ export class WorldTickStat {
             packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             chunks_random_tick: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             actions_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
+            db_fluid_save: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
         };
     }
 

@@ -9,6 +9,8 @@ import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
+import {FluidWorld} from "../fluid/FluidWorld.js";
+import {isFluidId} from "../fluid/FluidConst.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -28,7 +30,8 @@ export class ChunkManager {
                 return this.properties;
             }
         };
-        this.dataWorld = new DataWorld();
+        this.dataWorld = new DataWorld(this);
+        this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new Worker05GeometryPool(null, {});
 
         this.materialToId = new Map();
@@ -81,6 +84,12 @@ export class Chunk {
 
         this.vertexBuffers = new Map();
         this.serializedVertices = null;
+        this.inited = true;
+
+        this.fluid = null;
+        if (world.fluid) {
+            world.fluid.addChunk(this);
+        }
     }
 
     init() {
@@ -194,6 +203,7 @@ export class Chunk {
 
     // setBlock
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+        //TODO: take liquid into account
         // fix rotate
         if(rotate && typeof rotate === 'object') {
             rotate = new Vector(rotate).roundSelf(1);
@@ -243,6 +253,11 @@ export class Chunk {
 
     // Set block indirect
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power) {
+        if (isFluidId(block_id)) {
+            this.fluid.setFluidIndirect(x, y, z, block_id);
+            return;
+        }
+
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         uint16View[index] = block_id;
@@ -294,10 +309,6 @@ export class Chunk {
             const pos = block.pos;
 
             for(let material_key in block.vertice_groups) {
-
-                const tmp = material_key.split('/');
-                const material_group = tmp[1];
-
                 // material.group, material_key
                 if (!materialToId.has(material_key)) {
                     materialToId.set(material_key, materialToId.size);
@@ -307,7 +318,6 @@ export class Chunk {
                 let buf = vertexBuffers.get(matId);
                 if (!buf) {
                     vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
-                        material_group: material_group,
                         material_key: material_key,
                         geometryPool: verticesPool,
                         chunkDataId: dataId
@@ -345,7 +355,6 @@ export class Chunk {
             let buf = vertexBuffers.get(matId);
             if (!buf) {
                 vertexBuffers.set(matId, buf = new WorkerInstanceBuffer({
-                    material_group: material.group,
                     material_key: material.material_key,
                     geometryPool: verticesPool,
                     chunkDataId: dataId

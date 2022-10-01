@@ -31,7 +31,7 @@ export class WorldActionQueue {
             if(blocks_count > 27 || this.list.length == 0) {
                 pn = Math.round((performance.now() - pn) * 10) / 10;
                 const time_from_start = new String(Math.round(performance.now() / 1000)).padStart(8, ' ');
-                console.log(`${time_from_start}: WorldActionsQueue: ${blocks_count} block per ${pn}ms; Queue length: ${this.list.length}`)
+                // console.info(`${time_from_start}: WorldActionsQueue: ${blocks_count} block per ${pn}ms; Queue length: ${this.list.length}`)
             }
             if(item.actions.notify) {
                 const notify = item.actions.notify;

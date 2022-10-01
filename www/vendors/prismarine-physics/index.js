@@ -506,7 +506,7 @@ export function Physics(mcData, fake_world, options) {
         if (!block) return -1
         if (waterLike.has(block.type)) return 0
         if (block.getProperties().waterlogged) return 0
-        if (block.material.is_water) return -1
+        if (!block.material.is_water) return -1
         const meta = block.metadata
         return meta >= 8 ? 0 : meta
     }

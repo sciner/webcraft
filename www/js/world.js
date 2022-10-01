@@ -266,6 +266,9 @@ export class World {
                 }
             }
         }
+        if (actions.fluids.length > 0) {
+            this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+        }
         // Sitting
         if(actions.sitting) {
             player.state.sitting = actions.sitting;
