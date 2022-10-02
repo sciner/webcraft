@@ -8,7 +8,7 @@ const {mat4} = glMatrix;
 
 // табуретка
 export default class style {
-    
+
     static getRegInfo() {
         return {
             styles: ['stool'],
@@ -16,13 +16,13 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabbs = [];
         aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, 0.75, 0.875));
         return aabbs;
     }
-    
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         if(!block || typeof block == 'undefined') {
             return;
@@ -48,7 +48,7 @@ export default class style {
             },{// ножка W
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 0, "y": -5, "z": 3},
-                "rot": [Math.PI / 8, 0, 0],
+                "rot": [-Math.PI / 8, 0, 0],
                 "faces": {
                     "down": {"uv": [8, 8], "texture": log},
                     "north": {"uv": [8, 8], "texture": log},
@@ -59,7 +59,7 @@ export default class style {
             },{// ножка E
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 0, "y": -5, "z": -3},
-                "rot": [-Math.PI / 8, 0, 0],
+                "rot": [Math.PI / 8, 0, 0],
                 "faces": {
                     "down": {"uv": [8, 8], "texture": log},
                     "north": {"uv": [8, 8], "texture": log},
@@ -70,7 +70,7 @@ export default class style {
             },{// ножка S
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": -3, "y": -5, "z": 0},
-                "rot": [0, 0, Math.PI / 8],
+                "rot": [0, 0, -Math.PI / 8],
                 "faces": {
                     "down": {"uv": [8, 8], "texture": log},
                     "north": {"uv": [8, 8], "texture": log},
@@ -81,7 +81,7 @@ export default class style {
             },{// ножка N
                 "size": {"x": 2, "y": 10.5, "z": 2},
                 "translate": {"x": 3, "y": -5, "z": 0},
-                "rot": [0, 0, -Math.PI / 8],
+                "rot": [0, 0, Math.PI / 8],
                 "faces": {
                     "down": {"uv": [8, 8], "texture": log},
                     "north": {"uv": [8, 8], "texture": log},
@@ -104,7 +104,7 @@ export default class style {
                 matrix:     matrix
             });
         }
-        
+
         if (extra_data?.upholstery) {
             const mat = BLOCK[extra_data.upholstery.toUpperCase()];
             const upholstery = BLOCK.calcTexture(mat.texture, DIRECTION.UP);
@@ -136,5 +136,5 @@ export default class style {
             }
         }
     }
-    
+
 }
