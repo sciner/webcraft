@@ -6,6 +6,7 @@ export const TX_CNT = 32;
 export const TX_SIZE = 16;
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { Vector } from "../helpers.js";
 
 const {mat4} = glMatrix;
 
@@ -87,9 +88,7 @@ export default class style {
     }
 
     //
-    static pushAABB(vertices, part) {
-
-        const pivot = null;
+    static pushAABB(vertices, part, pivot = null) {
 
         const width = part.size.x / TX_SIZE;
         const height = part.size.y / TX_SIZE;
@@ -147,6 +146,10 @@ export default class style {
             }
 
             faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
+        }
+
+        if(pivot) {
+            pivot = new Vector(pivot).divScalar(TX_SIZE);
         }
 
         // Push vertices

@@ -62,7 +62,7 @@ export default class style {
         matrix = mat4.create();
         if(block.rotate) {
             let rot = block.rotate.x;
-            mat4.rotateY(matrix, matrix, ((rot % 4) / 4) * (2 * Math.PI));
+            mat4.rotateY(matrix, matrix, ((rot % 4) / 4) * -(2 * Math.PI));
         }
 
         // mattress

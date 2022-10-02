@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";

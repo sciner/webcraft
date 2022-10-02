@@ -1551,5 +1551,47 @@
             "item": "madcraft:lectern",
             "count": 1
         }
+    },
+    {
+        "id": "fc0cb759-a9a3-48df-b83f-4427bd690b94",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L  ",
+            "LL ",
+            "SS "
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:oak_log"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+        },
+        "result": {
+            "item": "madcraft:oak_chair",
+            "count": 1
+        }
+    },
+    {
+        "id": "c36be103-91c2-43cb-87f9-c468430b599d",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            " L ",
+            "SS "
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:oak_log"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+        },
+        "result": {
+            "item": "madcraft:oak_stool",
+            "count": 1
+        }
     }
 ]

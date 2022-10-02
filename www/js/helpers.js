@@ -1766,16 +1766,17 @@ export class AlphabetTexture {
 }
 
 export function fromMat3(a, b) {
+    //transponse too!
     a[ 0] = b[ 0];
-    a[ 1] = b[ 1];
-    a[ 2] = b[ 2];
+    a[ 1] = b[ 3];
+    a[ 2] = b[ 6];
 
-    a[ 4] = b[ 3];
+    a[ 4] = b[ 1];
     a[ 5] = b[ 4];
-    a[ 6] = b[ 5];
+    a[ 6] = b[ 7];
 
-    a[ 8] = b[ 6];
-    a[ 9] = b[ 7];
+    a[ 8] = b[ 2];
+    a[ 9] = b[ 5];
     a[10] = b[ 8];
 
     a[ 3] = a[ 7] = a[11] =
@@ -1885,6 +1886,11 @@ export async function digestMessage(message) {
 //
 export function isMobileBrowser() {
     return 'ontouchstart' in document.documentElement;
+}
+
+//
+export function isScalar(v) {
+    return !(typeof v === 'object' && v !== null);
 }
 
 // md5

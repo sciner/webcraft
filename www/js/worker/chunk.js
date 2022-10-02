@@ -295,7 +295,7 @@ export class Chunk {
 
         const {materialToId, verticesPool} = this.chunkManager;
         const {dataId, size, vertexBuffers} = this;
-        const {vertices} = this.tblocks;
+        const {vertices, vertExtraLen} = this.tblocks;
         const {cx, cy, cz, cw, uint16View} = this.tblocks.dataChunk;
         const {BLOCK_BY_ID} = BLOCK;
         const neibMat = Chunk.neibMat;
@@ -384,7 +384,12 @@ export class Chunk {
                     vertices[block.index * 2] = 0;
                     vertices[block.index * 2 + 1] = 0;
                 } else {
-                    vertices[block.index * 2] = buf.vertices.filled - last;
+                    let quads = buf.vertices.filled - last;
+                    if (quads >= 255) {
+                        vertExtraLen.push(quads);
+                        quads = 255;
+                    }
+                    vertices[block.index * 2] = quads;
                     vertices[block.index * 2 + 1] = matId;
                 }
             }
@@ -447,14 +452,22 @@ export class Chunk {
                         }
                     }
 
-                    const cachedQuads = vertices[index * 2];
+                    let cachedQuads = vertices[index * 2];
                     const cachedPack = vertices[index * 2 + 1] & MASK_VERTEX_PACK;
                     const useCache = enableCache && (vertices[index * 2 + 1] & MASK_VERTEX_MOD) === 0;
+
+                    if (cachedQuads === 255) {
+                        cachedQuads = vertExtraLen.shift() || 0;
+                    }
+
                     if (useCache) {
                         if (cachedQuads > 0) {
                             const vb = vertexBuffers.get(cachedPack);
                             vb.touch();
                             vb.copyCache(cachedQuads);
+                            if (cachedQuads >= 255) {
+                                cachedQuads = vertExtraLen.push(cachedQuads) || 0;
+                            }
                         }
                         continue;
                     }
