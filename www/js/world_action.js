@@ -822,6 +822,10 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // If painting
             if(mat_block.id == BLOCK.PAINTING.id) {
                 new_item.extra_data = await createPainting(e, world, pos);
+                if(!new_item.extra_data) {
+                    console.error('error_painting_data_is_empty');
+                    return actions;
+                }
             }
             // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
@@ -1220,17 +1224,21 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
 // Sit down
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab;
+    const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
     if(!block_for_sittings || mat_block) {
         return false;
     }
+    const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
     // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + 1, pos.z));
+    const overBlock = world.getBlock(new Vector(pos.x, pos.y + n, pos.z));
     if(!overBlock || overBlock.id == 0) {
         const obj_pos = new Vector(pos.x, pos.y, pos.z)
         if(world_block_is_slab) {
             const on_ceil = world_block.extra_data?.point?.y >= .5;
             obj_pos.addScalarSelf(.5, on_ceil ? .5 : 0, .5);
+        } else if(is_chair) {
+            obj_pos.addScalarSelf(.5, .5, .5);
         } else {
             obj_pos.addScalarSelf(.5, 0, .5);
         }
@@ -1910,6 +1918,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
     if(mat_block.item.name != 'bone_meal' || !world_material) {
         return false;
     }
+    const position = new Vector(pos);
     if(world_material.id == BLOCK.GRASS_BLOCK.id) {
         const tblock_pos = new Vector(0, 0, 0);
         const tblock_pos_over = new Vector(0, 0, 0);
@@ -1953,17 +1962,19 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
                 }
             }
         }
+        actions.addParticles([{type: 'villager_happy', pos: position.offset(0, 1, 0), area: true}]);
         actions.decrement = true;
         if(mat_block.sound) {
-            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
         }
         return true;
-    } else if (world_block?.material?.ticking?.type) {
-        if (world_block.material.ticking.type == 'stage') {
+    } else if (world_block?.material?.ticking?.type && extra_data) {
+        if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {
             extra_data.bone = Math.random() < 0.5 ? 1 : 2;
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: position, item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.decrement = true;
-            actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.addParticles([{type: 'villager_happy', pos: position}]);
+            actions.addPlaySound({tag: mat_block.sound, action: 'place', position, except_players: [player.session.user_id]});
             return true;
         }
     }
