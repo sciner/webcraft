@@ -1095,6 +1095,9 @@ export class Vec3 extends Vector {
         this.y += vec.y;
         this.z += vec.z;
     }
+    offset(x, y, z) {
+        return new Vec3(this.x + x, this.y + y, this.z + z);
+    }
 }
 
 export const SIX_VECS = {
