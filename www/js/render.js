@@ -23,7 +23,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
-import { Weather } from "./type.js";
+import { Weather } from "./block_type/weather.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -767,14 +767,14 @@ export class Renderer {
      */
     setWeather(weather) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != weather) {
+        if(!rain || rain.type != Weather.get(weather)) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, weather);
+            rain = new Mesh_Object_Rain(this, Weather.get(weather));
             this.meshes.add(rain, 'weather');
         }
-        rain.enabled = weather.name != 'clear';
+        rain.enabled = weather != Weather.CLEAR;
     }
 
     // drawPlayers

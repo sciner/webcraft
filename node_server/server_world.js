@@ -20,7 +20,7 @@ import { ServerClient } from "../www/js/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
-import { Weather } from "../www/js/type.js";
+import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 
 // for debugging client time offset
@@ -71,7 +71,9 @@ export class ServerWorld {
         this.network_stat   = {in: 0, out: 0, in_count: 0, out_count: 0};
         this.start_time     = performance.now();
         this.weather_update_time = 0;
-        this.info.calendar = {age: 0, day_time: 0};
+        this.info.calendar  = {age: 0, day_time: 0};
+        //
+        this.weather        = Weather.CLEAR;
         //
         this.players        = new Map(); // new PlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
@@ -114,14 +116,14 @@ export class ServerWorld {
         if (!this.getGameRule('doWeatherCycle') || time < this.weather_update_time) {
             return;
         }
-        if (this.weather == 'clear') {
+        if (this.weather == Weather.CLEAR) {
             this.weather_update_time = (Math.random() * MAX_TIME_RAIN) | 0 + MIN_TIME_RAIN + time;
             if (Math.random() < 0.2) {
-                this.setWeather('rain');
+                this.setWeather(Weather.RAIN);
             }
         } else {
             this.weather_update_time = (Math.random() * MAX_TIME_WITHOUT_RAIN) | 0 + MIN_TIME_WITHOUT_RAIN + time;
-            this.setWeather('clear');
+            this.setWeather(Weather.CLEAR);
         }
     }
 
