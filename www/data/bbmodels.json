@@ -1,0 +1,9 @@
+{
+    "list": [
+        {"name": "sword", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "test", "shift": {"x": 8, "y": 0, "z": -8}}
+    ]
+}

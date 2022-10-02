@@ -4,24 +4,12 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { default as default_style } from '../block_style/default.js';
 import { BBModel_Parser } from '../bbmodel/parser.js';
 import { BLOCK } from '../blocks.js';
+import { Resources } from '../resources.js';
 
 const {mat4} = glMatrix;
 
 // Load models
-const models = new Map();
-
-function initModels() {
-    if(models.size > 0) return;
-    for(let name of ['sword', 'test', 'bookshelf', 'black_big_can', 'garbage_monster']) {
-        fetch(`../../data/bbmodel/${name}.json`)
-            .then(response => response.json())
-            .then(obj => {
-                models.set(name, obj);
-            }).catch((error) => {
-                console.error('Error:', error);
-            });
-    }
-}
+const models = await Resources.loadBBModels();
 
 // Block model
 export default class style {
@@ -45,8 +33,6 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-
-        initModels();
 
         const textures      = block.material.texture;
         const pos           = new Vector(x, y, z);

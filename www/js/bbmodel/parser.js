@@ -6,7 +6,7 @@ import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
-const SHIFT = new Vector(8, 0, -8); // 16, 0, 0 - for garbage_monster
+// const SHIFT = new Vector(8, 0, -8); // 16, 0, 0 - for garbage_monster
 
 //
 export class BBModel_Parser {
@@ -216,8 +216,8 @@ export class BBModel_Parser {
         }
 
         const flag  = 0;
-        const from  = new Vector().copy(el.from).addSelf(SHIFT);
-        const to    = new Vector().copy(el.to).addSelf(SHIFT);
+        const from  = new Vector().copy(el.from).addSelf(this.model._properties.shift);
+        const to    = new Vector().copy(el.to).addSelf(this.model._properties.shift);
 
         const size  = to.subSelf(from);
         const box   = new BBModel_Box(size, from.addSelf(FIX_POS).addSelf(size.div(VEC_2)));
@@ -266,7 +266,7 @@ export class BBModel_Parser {
         // pivot
         const origin = el.rotation?.origin ?? el.origin;
         if(origin) {
-            resp.pivot.copy(origin).addSelf(SHIFT);
+            resp.pivot.copy(origin).addSelf(this.model._properties.shift);
             if (isGroup) {
                 resp.pivot.x = 16 - resp.pivot.x;
             } else {

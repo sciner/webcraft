@@ -381,6 +381,27 @@ export class Resources {
         return  Helpers.fetchJSON('../data/materials.json', true);
     }
 
+    // Load BBModels
+    static async loadBBModels() {
+        if(Resources._bbmodels) {
+            return Resources._bbmodels;
+        }
+        const resp = new Map();
+        await Helpers.fetchJSON('../data/bbmodels.json').then(async json => {
+            for(let model of json.list) {
+                await Helpers.fetchJSON(`../data/bbmodel/${model.name}.json`).then(obj => {
+                    obj._properties = {
+                        shift: model.shift
+                    }
+                    resp.set(model.name, obj);
+                }).catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+        return Resources._bbmodels = resp;
+    }
+
     // Load painting
     static async loadPainting() {
         if(Resources._painting) {
