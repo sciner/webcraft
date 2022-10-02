@@ -71,7 +71,7 @@ export default class style {
                     "west":  {"uv": [8, 8], "flag": flag, "texture": bottom},
                     "east":  {"uv": [8, 8], "flag": flag, "texture": bottom}
                 },
-                "rot": [Math.PI / 12, 0, 0]
+                "rot": [-Math.PI / 12, 0, 0]
             }
         ]);
         const cd = block.getCardinalDirection();
@@ -117,7 +117,7 @@ function drawBook(vertices, pos, matrix) {
             "faces": {
                 "up": {"uv": [3, 5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, Math.PI / 140, Math.PI / 36]
+            "rot": [-Math.PI / 12, Math.PI / 140, -Math.PI / 36]
         }, 
         {
             "size": {"x": 6, "y": 1, "z": 10},
@@ -125,7 +125,7 @@ function drawBook(vertices, pos, matrix) {
             "faces": {
                 "up": {"uv": [19, 5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, -Math.PI / 140, -Math.PI / 36]
+            "rot": [-Math.PI / 12, -Math.PI / 140, Math.PI / 36]
         },
         {
             "size": {"x": 5, "y": 1, "z": 8},
@@ -137,7 +137,7 @@ function drawBook(vertices, pos, matrix) {
                 "west": {"uv": [5, 10.5], "flag": flag, "texture": book},
                 "east": {"uv": [5, 10.5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, Math.PI / 140, Math.PI / 36]
+            "rot": [-Math.PI / 12, Math.PI / 140, -Math.PI / 36]
         },
         {
             "size": {"x": 5, "y": 1, "z": 8},
@@ -149,7 +149,7 @@ function drawBook(vertices, pos, matrix) {
                 "west": {"uv": [5, 10.5], "flag": flag, "texture": book},
                 "east": {"uv": [5, 10.5], "flag": flag, "texture": book}
             },
-            "rot": [Math.PI / 12, -Math.PI / 140, -Math.PI / 36]
+            "rot": [-Math.PI / 12, -Math.PI / 140, Math.PI / 36]
         }
     ]);
           
