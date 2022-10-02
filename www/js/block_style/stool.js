@@ -36,7 +36,7 @@ export default class style {
             {
                 "size": {"x": 12, "y": 2, "z": 12},
                 "translate": {"x": 0, "y": 2, "z": 0},
-                "rot": [0, Math.PI / 4, 0],
+                "rot": [0, 0, 0],
                 "faces": {
                     "up": {"uv": [8, 8], "texture": log},
                     "down": {"uv": [8, 8], "texture": log},
@@ -93,9 +93,9 @@ export default class style {
         ]);
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
-        const cd = block.getCardinalDirection();
         matrix = mat4.create();
-        mat4.rotateY(matrix, matrix, cd * Math.PI / 2);
+        mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
+
         for(const part of parts) {
             default_style.pushAABB(vertices, {
                 ...part,
@@ -116,7 +116,7 @@ export default class style {
                 {
                     "size": {"x": 11.6, "y": 0.5, "z": 11.6},
                     "translate": {"x": 0, "y": 3, "z": 0},
-                    "rot": [0, Math.PI / 4, 0],
+                    "rot": [0, 0, 0],
                     "faces": {
                         "up": {"uv": [8, 8], "flag": flag, "texture": upholstery},
                         "north": {"uv": [8, 8], "flag": flag, "texture": upholstery},

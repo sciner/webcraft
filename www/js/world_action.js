@@ -833,6 +833,12 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                     return actions;
                 }
             }
+            // Rotate block one of 8 poses
+            if(mat_block.tags.includes('rotate_x8')) {
+                if(new_item.rotate.y != 0) {
+                    new_item.rotate.x = Math.round(player.rotate.z / 45) * 45;
+                }
+            }
             // Rotate block one of 16 poses
             if(mat_block.tags.includes('rotate_x16')) {
                 if(new_item.rotate.y != 0) {
