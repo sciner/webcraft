@@ -7990,6 +7990,9 @@
             "material": {
                 "id": "wood"
             },
+            "tags":[
+                "no_drop_ao"
+            ],
             "texture": "block/hay_block_top.png",
             "style":"chicken_nest",
             "extra_data": {
