@@ -109,13 +109,13 @@ export default class style {
 
         // Matrix
         let matrix = mat4.create();
+        if(part.matrix) {
+            matrix = mat4.multiply(matrix, matrix, part.matrix);
+        }
         if(part.rot && !isNaN(part.rot[0])) {
             if(part.rot[0]) mat4.rotateX(matrix, matrix, part.rot[0]);
             if(part.rot[1]) mat4.rotateY(matrix, matrix, part.rot[1]);
             if(part.rot[2]) mat4.rotateZ(matrix, matrix, part.rot[2]);
-        }
-        if(part.matrix) {
-            matrix = mat4.multiply(matrix, matrix, part.matrix);
         }
         //
         const anim = part?.lm?.b || 1;
