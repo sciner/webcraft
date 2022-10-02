@@ -7984,6 +7984,19 @@
             ]
         },
         {
+            "id": 347,
+            "name": "CHICKEN_NEST",
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/hay_block_top.png",
+            "style":"chicken_nest",
+            "extra_data": {
+                "eggs": 0
+            }
+        },
+        {
             "id": 349,
             "can_rotate": true,
             "transparent": true,

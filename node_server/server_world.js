@@ -425,6 +425,10 @@ export class ServerWorld {
         if (actions.decrement_instrument) {
             server_player.inventory.decrement_instrument(actions.decrement_instrument);
         }
+        // increment item
+        if (actions.increment) {
+            server_player.inventory.increment(actions.increment);
+        }
         // Stop playing discs
         if (Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
             for (let params of actions.stop_disc) {
