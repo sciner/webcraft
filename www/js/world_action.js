@@ -706,7 +706,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, sitDown, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
+        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1044,9 +1044,11 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
 
 // Получение яиц из гнезда
 async function getEggs(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || current_inventory_item) {
+    console.log("test");
+    if(!world_block || world_block.id != BLOCK.CHICKEN_NEST.id || extra_data.eggs == 0) {
         return false;
     }
+    console.log("get");
     actions.increment = {id: BLOCK.EGG.id, count: extra_data.eggs};
     actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.CHICKEN_NEST.id, extra_data: {eggs: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     return true;
@@ -1232,7 +1234,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
     const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
     const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
-    if(!block_for_sittings || mat_block) {
+    if(!block_for_sittings) {
         return false;
     }
     const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
