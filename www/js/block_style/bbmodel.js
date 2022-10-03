@@ -9,7 +9,7 @@ import { Resources } from '../resources.js';
 const {mat4} = glMatrix;
 
 // Load models
-const models = await Resources.loadBBModels();
+// const models = await Resources.loadBBModels();
 
 // Block model
 export default class style {
@@ -29,6 +29,8 @@ export default class style {
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
+
+        return false;
 
         if(!block || typeof block == 'undefined') {
             return;
