@@ -1,4 +1,7 @@
-import { Vector, VectorCollector } from "../../../www/js/helpers.js";
+import {getChunkAddr, Vector, VectorCollector} from "../../../www/js/helpers.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
+import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
+import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
 
 export class DBWorldFluid {
     constructor(conn, world) {
@@ -52,9 +55,61 @@ export class DBWorldFluid {
             if (!elem.world) {
                 continue;
             }
+            if (elem.databaseID === elem.updateID) {
+                continue;
+            }
             await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
             elem.databaseID = elem.updateID;
             maxSaveChunks--;
+        }
+    }
+
+    async flushAll() {
+        await this.saveFluids(-1);
+    }
+
+    async flushChunk(chunk) {
+        await this.saveChunkFluid(chunk.addr, chunk.fluid.saveDbBuffer());
+        chunk.fluid.databaseID = chunk.fluid.updateID;
+    }
+
+    async applyAnyChunk(fluidList) {
+        let chunk_addr = getChunkAddr(fluidList[0], fluidList[1], fluidList[2]);
+        const chunk = this.world.chunks.get(chunk_addr);
+        if (chunk) {
+            this.world.chunkManager.fluidWorld.applyWorldFluidsList(fluidList);
+            await this.flushChunk(chunk);
+            chunk.sendFluid(chunk.fluid.saveDbBuffer());
+        } else {
+            //TODO: GRID!
+            let buf = await this.loadChunkFluid(chunk_addr);
+            const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+            const coord = chunk_addr.mul(sz);
+
+            const fakeChunk = {
+                tblocks: {
+                }
+            }
+            const dataChunk = new BaseChunk({size: sz});
+            const fluidChunk = new FluidChunk({
+                parentChunk: fakeChunk,
+                dataChunk,
+            });
+            if (buf) {
+                fluidChunk.loadDbBuffer(buf);
+            }
+
+            const {cx, cy, cz, cw} = dataChunk;
+            for (let i = 0; i < fluidList.length; i += 4) {
+                const x = fluidList[i] - coord.x;
+                const y = fluidList[i + 1] - coord.y;
+                const z = fluidList[i + 2] - coord.z;
+                const val = fluidList[i + 3];
+                const ind = cx * x + cy * y + cz * z + cw;
+                fluidChunk.uint16View[ind] = val;
+            }
+
+            await this.saveChunkFluid(chunk_addr, fluidChunk.saveDbBuffer());
         }
     }
 }

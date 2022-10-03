@@ -290,9 +290,23 @@ export default class WorldEdit {
             affected_count++;
         }
         if (data.fluids && data.fluids.length > 0) {
-            actions.addFluids(data.fluids, player_pos);
+            const fluids = data.fluids;
+            for (let i = 0; i < fluids.length; i += 4) {
+                let x = fluids[i] + player_pos.x, y = fluids[i + 1] + player_pos.y, z = fluids[i + 2] + player_pos.z, val = fluids[i + 3];
+                chunk_addr = getChunkAddr(x, y, z, chunk_addr);
+                if(!chunk_addr_o.equal(chunk_addr)) {
+                    chunk_addr_o.copyFrom(chunk_addr);
+                    actions = actions_list.get(chunk_addr);
+                    if(!actions) {
+                        actions = createwWorldActions();
+                        actions_list.set(chunk_addr, actions);
+                    }
+                }
+                actions.addFluids([x, y, z, val]);
+                actions.fluidFlush = true;
+            }
+            affected_count++;
         }
-        //
         let cnt = 0;
         const notify = {
             user_id: player.session.user_id,

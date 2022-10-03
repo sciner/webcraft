@@ -40,10 +40,10 @@ export class FluidWorld {
     }
 
     applyWorldFluidsList(fluids) {
-        if (!fluids || fluids.length === 0) {
-            return;
-        }
         let chunks = new VectorCollector();
+        if (!fluids || fluids.length === 0) {
+            return chunks;
+        }
         let chunk_addr = new Vector();
         for (let i = 0; i < fluids.length; i += 4) {
             let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
