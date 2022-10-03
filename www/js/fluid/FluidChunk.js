@@ -39,6 +39,7 @@ export class FluidChunk {
          * this is for server
          */
         this.savedBuffer = null;
+        this.savedID = -1;
         this.databaseID = 0;
         this.inSaveQueue = false;
     }
@@ -83,7 +84,7 @@ export class FluidChunk {
     }
 
     calcBounds() {
-        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {cx, cy, cz, cw, size} = this.dataChunk;
         const {uint8View} = this;
         this._localBounds.set(size.x, size.y, size.z, 0, 0, 0);
         for (let y = 0; y < size.y; y++)
@@ -122,7 +123,7 @@ export class FluidChunk {
             return this.savedBuffer;
         }
 
-        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {cx, cy, cz, cw, size} = this.dataChunk;
         const {uint8View} = this;
         const bounds = this.getLocalBounds();
         const arr = [];
@@ -157,7 +158,7 @@ export class FluidChunk {
     }
 
     loadDbBuffer(stateArr, fromDb) {
-        const {cx, cy, cz, cw, size} = this.parentChunk.tblocks.dataChunk;
+        const {cx, cy, cz, cw, size} = this.dataChunk;
         const {uint8View} = this;
         const arr = stateArr;
         const bounds = this._localBounds;
@@ -205,7 +206,7 @@ export class FluidChunk {
     }
 
     setFluidIndirect(x, y, z, block_id) {
-        const {cx, cy, cz, cw} = this.parentChunk.tblocks.dataChunk;
+        const {cx, cy, cz, cw} = this.dataChunk;
         const {uint8View} = this;
         const index = cx * x + cy * y + cz * z + cw;
 
@@ -246,11 +247,11 @@ export class FluidChunk {
             let y = tmp;
 
             //TODO: dont check in case bounds are empty
-            if (y + 1 < size.y && (this.uint16View[index + cy] & FLUID_TYPE_MASK) > 0
-                || y - 1 >= 0 && (this.uint16View[index - cy] & FLUID_TYPE_MASK) > 0
-                || z + 1 < size.z && (this.uint16View[index + cz] & FLUID_TYPE_MASK) > 0
-                || z - 1 >= 0 && (this.uint16View[index - cz] & FLUID_TYPE_MASK) > 0
-                || x + 1 < size.x && (this.uint16View[index + cx] & FLUID_TYPE_MASK) > 0
+            if (y + 1 < size.y && (uint16View[index + cy] & FLUID_TYPE_MASK) > 0
+                || y - 1 >= 0 && (uint16View[index - cy] & FLUID_TYPE_MASK) > 0
+                || z + 1 < size.z && (uint16View[index + cz] & FLUID_TYPE_MASK) > 0
+                || z - 1 >= 0 && (uint16View[index - cz] & FLUID_TYPE_MASK) > 0
+                || x + 1 < size.x && (uint16View[index + cx] & FLUID_TYPE_MASK) > 0
                 || x - 1 >= 0 && (this.uint16View[index - cx] & FLUID_TYPE_MASK) > 0) {
                 this.markDirtyMesh();
             }

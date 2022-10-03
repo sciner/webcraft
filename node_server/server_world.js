@@ -581,10 +581,15 @@ export class ServerWorld {
             }
         }
         if (actions.fluids.length > 0) {
-            let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
-            for (let chunk of chunks) {
-                chunk.sendFluid(chunk.fluid.saveDbBuffer());
-                chunk.fluid.markDirtyDatabase();
+            if (actions.fluidFlush) {
+                await this.db.fluid.applyAnyChunk(actions.fluids);
+                // assume same chunk for all cells
+            } else {
+                let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+                for (let chunk of chunks) {
+                    chunk.sendFluid(chunk.fluid.saveDbBuffer());
+                    chunk.fluid.markDirtyDatabase();
+                }
             }
         }
         // Play sound
