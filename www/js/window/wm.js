@@ -1,4 +1,4 @@
-import icons from '../../media/icons.json' assert {type: 'json'};
+import { Resources } from "../resources.js";
 import { Window } from "../../tools/gui/wm.js";
 
 // Base window
@@ -140,6 +140,7 @@ export class Component extends Window {
         ctx.fillRect(x, y, w, h);
         
         const atlas = this.parent ? this.parent.atlas : this.atlas;
+        const icons = Resources.icons;
         if (this.background.sprite) {
             const frame = icons[this.background.sprite].frame;
             this.ctx.drawImage(atlas, frame.x, frame.y, frame.w, frame.h, x, y, w, h);

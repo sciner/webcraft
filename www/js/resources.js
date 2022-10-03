@@ -83,6 +83,7 @@ export class Resources {
         all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
+        all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
 
         // Skybox textures
         /*
@@ -380,7 +381,7 @@ export class Resources {
     static async loadMaterials() {
         return  Helpers.fetchJSON('../data/materials.json', true);
     }
-
+    
     // Load BBModels
     static async loadBBModels() {
         if(Resources._bbmodels) {
