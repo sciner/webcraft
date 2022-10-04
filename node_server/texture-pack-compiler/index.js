@@ -25,7 +25,7 @@ compiler.run();
 // bbmodels
 const bbcompiler = new BBModel_Compiler({
     resolution:         32,
-    tx_cnt:             16,
+    tx_cnt:             32,
     model_dir:          "./bbmodel/models",
     output_dir:         "../../www/resource_packs/bbmodel",
     conf:               "./bbmodel/conf.json",

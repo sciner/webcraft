@@ -36,7 +36,6 @@ export class BBModel_Box extends BBModel_Child {
             pos:        pos,
             matrix:     worldMatrix
         }, zeroVec);
-
     }
 
 }

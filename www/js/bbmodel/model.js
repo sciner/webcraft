@@ -1,22 +1,16 @@
-import { BLOCK } from "../blocks.js";
-import { AABBSideParams } from "../core/AABB.js";
-import { DIRECTION, isScalar, Vector } from "../helpers.js";
+import { IndexedColor, isScalar, Vector } from "../helpers.js";
 import { BBModel_Box } from "./box.js";
 import { BBModel_Child } from "./child.js";
 import { BBModel_Group } from "./group.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
-// const SHIFT = new Vector(8, 0, -8); // 16, 0, 0 - for garbage_monster
 
 //
-export class BBModel_Parser {
+export class BBModel_Model {
 
-    constructor(model, textures) {
+    constructor(model) {
         this.model = model;
-        this.textures = {
-            tex_side: BLOCK.calcTexture(textures, DIRECTION.WEST)
-        };
         this.elements = new Map();
         this.groups = new Map();
         this._group_stack = [];
@@ -24,89 +18,76 @@ export class BBModel_Parser {
         this._group_stack.push(this.root);
     }
 
-    // Draw
+    /**
+     * Draw
+     * @param {float[]} vertices 
+     * @param {Vector} pos 
+     * @param {IndexedColor} lm 
+     * @param {float[]} matrix 
+     */
     draw(vertices, pos, lm, matrix) {
         this.root.pushVertices(vertices, pos, lm, matrix);
     }
 
-    // Play animations
-    playAnimation(current_animation_name) {
+    /**
+     * Play animations
+     * 
+     * @param {string} animation_name 
+     * @param {float} dt
+     * 
+     * @return {boolean}
+     */
+    playAnimation(animation_name, dt) {
 
-        const animations = this.model.animations;
+        const animation = this.animations.get(animation_name);
 
-        for(let ak in animations) {
-            const animation = animations[ak];
-            /**
-             * .length: 1.2
-             * .loop: 'loop'
-             * .loop_delay: ''
-             * .start_delay: ''
-             * .animators
-             */
-            if(animation.name == current_animation_name) {
-                const time = (performance.now() / 1000) % animation.length;
-                for(let k in animation.animators) {
+        if(!animation) {
+            return false;
+        }
 
-                    const animator = animation.animators[k];
+        const time = dt % animation.length;
 
-                    const group = this.groups.get(animator.name);
-                    if(group) {
+        for(let k in animation.animators) {
 
-                        const channels = new Map();
-                        for(let keyframe of animator.keyframes) {
-                            let channel = channels.get(keyframe.channel);
-                            if(!channel) {
-                                channel = [];
-                                channels.set(keyframe.channel, channel);
-                            }
-                            channel.push(keyframe);
-                            /**
-                             * .channel: "rotation|position"
-                             * .data_points[][0, 0, 0]
-                             * .time: 0 ... 1.2
-                             * interpolation: "linear"
-                             */
+            const animator = animation.animators[k];
+            const group = this.groups.get(animator.name);
+
+            if(group) {
+
+                const channels = animator.channels;
+
+                //
+                for(const [channel_name, keyframes] of channels) {
+
+                    let begin_keyframe_index = null;
+                    for(let i = 0; i < keyframes.length; i++) {
+                        const keyframe = keyframes[i];
+                        if(time >= keyframe.time) {
+                            begin_keyframe_index = i;
                         }
-
-                        //
-                        for(const [channel_name, keyframes] of channels) {
-
-                            keyframes.sort((a, b) => a.time - b.time);
-                            let begin_keyframe_index = null;
-                            for(let i = 0; i < keyframes.length; i++) {
-                                const keyframe = keyframes[i];
-                                if(time >= keyframe.time) {
-                                    begin_keyframe_index = i;
-                                }
-                            }
-
-                            const current_keyframe = keyframes[begin_keyframe_index];
-                            const next_keyframe = keyframes[begin_keyframe_index + 1];
-                            if(!next_keyframe || !current_keyframe) {
-                                continue;
-                            }
-
-                            const diff = next_keyframe.time - current_keyframe.time;
-                            let percent = (time - current_keyframe.time) / diff;
-                            
-                            const current_data_points = new Vector(current_keyframe.data_points[0]);
-                            const next_data_points = new Vector(next_keyframe.data_points[0]);
-
-                            const point = new Vector(0, 0, 0).lerpFrom(current_data_points, next_data_points, percent);
-
-                            if(channel_name == 'position') {
-                                point.divScalar(16);
-                            }
-
-                            group.animations.push({channel_name, point})
-
-                        }
-
                     }
 
+                    const current_keyframe = keyframes[begin_keyframe_index];
+                    const next_keyframe = keyframes[begin_keyframe_index + 1];
+                    if(!next_keyframe || !current_keyframe) {
+                        continue;
+                    }
+
+                    const diff             = next_keyframe.time - current_keyframe.time;
+                    const percent          = (time - current_keyframe.time) / diff;
+                    const current_point    = current_keyframe.data_points[0];
+                    const next_point       = next_keyframe.data_points[0];
+                    const point            = new Vector(0, 0, 0).lerpFrom(current_point, next_point, percent);
+
+                    group.animations.push({channel_name, point})
+
                 }
+
             }
+
         }
+
+        return true;
 
     }
 
@@ -157,7 +138,73 @@ export class BBModel_Parser {
                 this.addElement(origin, element);
             }
         }
+        // parse animations
+        this.parseAnimations();
         return this;
+    }
+
+    // Parse animations
+    parseAnimations() {
+
+        this.animations = new Map();
+
+        const animations = JSON.parse(JSON.stringify(this.model.animations ?? {}));
+
+        for(let ak in animations) {
+
+            const animation = animations[ak];
+
+            /**
+             * .length: 1.2
+             * .loop: 'loop'
+             * .loop_delay: ''
+             * .start_delay: ''
+             * .animators
+             */
+            
+            for(let k in animation.animators) {
+
+                const animator = animation.animators[k];
+
+                // Prepare channels
+                const channels = new Map();
+                for(let keyframe of animator.keyframes) {
+                    /**
+                     * keyframe:
+                     * ---------
+                     * .channel: "rotation|position"
+                     * .data_points[][0, 0, 0]
+                     * .time: 0 ... 1.2
+                     * interpolation: "linear"
+                     */
+                    let channel = channels.get(keyframe.channel);
+                    if(!channel) {
+                        channel = [];
+                        channels.set(keyframe.channel, channel);
+                    }
+                    // pase data points
+                    for(let i = 0; i < keyframe.data_points.length; i++) {
+                        keyframe.data_points[i] = new Vector(keyframe.data_points[i]);
+                        if(keyframe.channel == 'position') {
+                            keyframe.data_points[i].divScalar(16);
+                        }
+                    }
+                    channel.push(keyframe);
+                }
+
+                //
+                for(const [channel_name, keyframes] of channels) {
+                    keyframes.sort((a, b) => a.time - b.time);
+                }
+
+                animator.channels = channels;
+
+            }
+
+            this.animations.set(animation.name, animation);
+
+        }
+
     }
 
     /**
@@ -179,7 +226,9 @@ export class BBModel_Parser {
      */
     addGroup(pos, group) {
 
-        if(isScalar(group)) debugger;
+        if(group.name == 'hitbox') {
+            return false;
+        }
 
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
@@ -223,6 +272,10 @@ export class BBModel_Parser {
             return this.addGroup(pos, el);
         }
 
+        if('visibility' in el && !el.visibility) {
+            return false;
+        }
+
         const flag  = 0;
         const from  = new Vector().copy(el.from).addSelf(this.model._properties.shift);
         const to    = new Vector().copy(el.to).addSelf(this.model._properties.shift);
@@ -242,23 +295,18 @@ export class BBModel_Parser {
 
         for(let f in el.faces) {
             const face = el.faces[f];
-            switch(f) {
-                case 'south': f = 'north'; break;
-                case 'north': f = 'south'; break;
-                case 'west': f = 'east'; break;
-                case 'east': f = 'west'; break;
-            }
             box.faces[f] = {
                 tx_cnt:     1,
-                tx_size:    512,
+                tx_size:    1024,
                 autoUV:     false,
-                uv:         face.uv, // [face.uv[0], face.uv[1]],
+                uv:         face.uv,
                 flag:       flag,
                 texture:    [.5, .5, 1, 1]
             };
         }
 
         box.updateLocalTransform();
+
     }
 
     //

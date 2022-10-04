@@ -47,10 +47,10 @@ export class BBModel_Compiler {
             console.log(`BBModel ... ${id}`, model.elements.length);
             let els = 0;
             if('textures' in model) {
+
                 // 1. create spritesheet
                 const spritesheet = new Spritesheet(id, this.options.tx_cnt, this.options.resolution, this.options);
                 const textures = new Map();
-
                 const resolution = model.resolution ?? {with: spritesheet.width, height: spritesheet.height};
 
                 // 2. each model textures
@@ -132,6 +132,19 @@ export class BBModel_Compiler {
                                 }
                             }
                         }
+                        // Change face sides for out format
+                        const faces = {};
+                        for(let side in el.faces) {
+                            const face = el.faces[side];
+                            switch(side) {
+                                case 'south': side = 'north'; break;
+                                case 'north': side = 'south'; break;
+                                case 'west': side = 'east'; break;
+                                case 'east': side = 'west'; break;
+                            }
+                            faces[side] = face;
+                        }
+                        el.faces = faces;
                     }
                 }
                 //
@@ -140,23 +153,10 @@ export class BBModel_Compiler {
                     model.texture_id = filenames[0];
                     this.conf.textures[id] = {
                         image: model.texture_id,
-                        tx_cnt: 1 // spritesheet.tx_cnt
+                        tx_cnt: 1
                     };
                 }
-                /*
-                for(let el of model.elements) {
-                    if(el.faces) {
-                        for(let side in el.faces) {
-                            const face = el.faces[side];
-                            if(face.texture != 888 && face.texture !== null) {
-                                console.log(JSON.stringify(el, null, 4))
-                                console.log(Array.from(textures.keys()))
-                                throw 'ewqrtyhy';
-                            }
-                        }
-                    }
-                }
-                */
+
             }
             delete(model.textures);
             fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model));

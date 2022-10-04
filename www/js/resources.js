@@ -1,3 +1,4 @@
+import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 
 export const COLOR_PALETTE = {
@@ -390,9 +391,11 @@ export class Resources {
         const resp = new Map();
         const dir = '../resource_packs/bbmodel';
         await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
-            for(let model of json.list) {
-                await Helpers.fetchJSON(dir + `/${model.name}.json`).then(obj => {
-                    resp.set(model.name, obj);
+            for(let file of json.list) {
+                await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+                    const model = new BBModel_Model(json);
+                    model.parse();
+                    resp.set(file.name, model);
                 }).catch((error) => {
                     console.error('Error:', error);
                 });

@@ -121,10 +121,10 @@ export default class style {
         const anim = part?.lm?.b || 1;
 
         // Faces
-        const faces = part.faces;
-        for(let k in faces) {
+        const faces = {};
+        for(let k in part.faces) {
 
-            const face = faces[k];
+            const face = part.faces[k];
             const orig_tex = face.texture;
             const tx_cnt = face.tx_cnt ?? TX_CNT;
             const tx_size = face.tx_size ?? TX_SIZE;
@@ -147,6 +147,7 @@ export default class style {
                 face.autoUV = true;
             }
 
+            //
             if(!face.autoUV && face.uv.length == 4) {
                 tex[2] = face.uv[2] / tx_size;
                 tex[3] = face.uv[3] / tx_size;

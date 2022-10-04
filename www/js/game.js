@@ -95,10 +95,21 @@ export class GameClass {
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
         setInterval(() => {
-            const models = {416: 'garbage_monster', 417: 'mini_dragon', 418: 'reaper'};
-            let i = 0;
-            for(let id in models) {
-                Qubatch.world.chunkManager.setBlock(2900 + i++ * 2, 4, 2703, {id}, true, null, new Vector(2, 0, 0), null);    
+            if(!Qubatch.hud.splash.loading) {
+                let bbmodels = globalThis._debug_bbmodels;
+                if(!bbmodels) {
+                    bbmodels = [];
+                    for(const [id, b] of Qubatch.world.block_manager.list) {
+                        if(b.style == 'bbmodel') {
+                            bbmodels.push(b.id);
+                        }
+                    }
+                    globalThis._debug_bbmodels = bbmodels;
+                }
+                let i = 0;
+                for(let id of bbmodels) {
+                    Qubatch.world.chunkManager.setBlock(2900 + i++ * 2, 4, 2703, {id}, true, null, new Vector(2, 0, 0), null);    
+                }
             }
         }, 10)
     }
