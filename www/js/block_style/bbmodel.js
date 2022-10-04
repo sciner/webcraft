@@ -53,7 +53,8 @@ export default class style {
                 break;
         }
 
-        model.playAnimation('walk', performance.now() / 1000);
+        const animation_name = 'walk';
+        model.playAnimation(animation_name, performance.now() / 1000);
         model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
 
         // Draw debug stand
@@ -82,7 +83,7 @@ export default class style {
             }
         ]);
         for(const el of stand) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...el,
                 lm:         lm,
                 pos:        pos,
