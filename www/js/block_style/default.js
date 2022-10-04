@@ -147,6 +147,11 @@ export default class style {
                 face.autoUV = true;
             }
 
+            if(!face.autoUV && face.uv.length == 4) {
+                tex[2] = face.uv[2] / tx_size;
+                tex[3] = face.uv[3] / tx_size;
+            }
+
             faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
         }
 

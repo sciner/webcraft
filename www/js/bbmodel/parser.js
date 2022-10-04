@@ -235,11 +235,17 @@ export class BBModel_Parser {
 
         for(let f in el.faces) {
             const face = el.faces[f];
+            switch(f) {
+                case 'south': f = 'north'; break;
+                case 'north': f = 'south'; break;
+                case 'west': f = 'east'; break;
+                case 'east': f = 'west'; break;
+            }
             box.faces[f] = {
                 tx_cnt:     1,
                 tx_size:    512,
                 autoUV:     false,
-                uv:         [face.uv[0], face.uv[1]],
+                uv:         face.uv, // [face.uv[0], face.uv[1]],
                 flag:       flag,
                 texture:    [.5, .5, 1, 1]
             };

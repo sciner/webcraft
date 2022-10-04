@@ -19,9 +19,12 @@ export class BBModel_Compiler {
         })).default;
         //
         for(let item of this.conf.list) {
-            const model = (await import(`${this.options.model_dir}/${item.name}.json`, {
+            const model = JSON.parse(fs.readFileSync(`${this.options.model_dir}/${item.name}.bbmodel`));
+            /*
+            const model = (await import(`${this.options.model_dir}/${item.name}.bbmodel`, {
                 assert: { type: 'json' }
             })).default;
+            */
             model._properties = {
                 shift: item.shift
             }
@@ -112,7 +115,7 @@ export class BBModel_Compiler {
                                             uvh
                                         ];
 
-                                        /*if(el.uuid == '7e87ab92-1864-29b9-db52-ac38d791b415' && side == 'down') {
+                                        if(el.uuid == 'ecacfd18-a959-2a39-dbe4-14795a4be006' && side == 'north') {
                                             console.log(
                                                 texture_item.texture_id,
                                                 uv,
@@ -123,7 +126,7 @@ export class BBModel_Compiler {
                                                 [uvw, uvh]
                                             );
                                             throw '---------------';
-                                        }*/
+                                        }
 
                                     }
                                 }

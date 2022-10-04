@@ -67,7 +67,7 @@ export default class style {
                     break;
             }
 
-            model.playAnimation('idle'); // idle, walk, jump, attack1, attack2
+            model.playAnimation('walk'); // idle, walk, jump, attack1, attack2
             model.draw(vertices, pos.add(new Vector(.5, 0, .5)), lm, matrix);
 
         }
