@@ -469,6 +469,9 @@ export class TypedBlocks3 {
                 const ind2 = other.indexByWorld(wx, wy, wz);
                 other.uint16View[ind2] = id;
                 // TODO: set calculated props
+                if (!other.rev.fluid) {
+                    debugger
+                }
                 other.rev.fluid.syncBlockProps(ind2, id, true);
                 pcnt++;
             }
