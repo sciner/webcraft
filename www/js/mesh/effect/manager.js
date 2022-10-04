@@ -93,7 +93,7 @@ export class Mesh_Effect_Manager {
         if(!em) {
             throw 'error_invalid_particle';
         }
-        const emitter = new em(pos.clone(), params);
+        const emitter = new em(new Vector(pos), params);
         this.emitters.push(emitter);
         return emitter;
     }
