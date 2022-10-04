@@ -22,3 +22,6 @@ www/resource_packs/base/textures/*.png
 node_server/texture-pack-compiler/resource-packs/
 node_server/tmp
 www/data/bbmodel
+node_server/texture-pack-compiler/bbmodel/models/*.*
+www/resource_packs/bbmodel/textures/*.png
+www/resource_packs/bbmodel/*.json

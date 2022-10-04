@@ -765,6 +765,9 @@ export class DBWorldMigration {
             `DELETE from world_modify WHERE block_id = 95;`,
             `UPDATE world_modify_chunks SET data_blob = NULL WHERE data LIKE '"id":95,' OR data LIKE '"id":95}';`,
         ]});
+        migrations.push({version: 83, queries: [
+            `update world set game_mode = 'creative' where guid = '0c8970d7-942b-4208-9743-dbec371558fa'`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
