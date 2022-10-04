@@ -139,14 +139,18 @@ export class BBModel_Parser {
         if(model.groups) {
             for(let group of model.groups) {
                 if(isScalar(group)) {
-                    this.addElement(origin, this.model.elements[group]);
+                    this.addElement(origin, this.getElement(group));
                 } else {
                     this.addGroup(origin, group);
                 }
             }
         } else if(model.outliner) {
             for(let group of model.outliner) {
-                this.addGroup(origin, group);
+                if(isScalar(group)) {
+                    this.addElement(origin, this.getElement(group));
+                } else {
+                    this.addGroup(origin, group);
+                }
             }
         } else if(model.elements) {
             for(let element of model.elements) {
@@ -175,6 +179,8 @@ export class BBModel_Parser {
      */
     addGroup(pos, group) {
 
+        if(isScalar(group)) debugger;
+
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
 
@@ -190,6 +196,7 @@ export class BBModel_Parser {
 
         const group_pos = new Vector().copy(group.origin);
         pos = pos.clone().addSelf(group_pos);
+
         for(let child of group.children) {
             if(isScalar(child)) {
                 const el = this.getElement(child);

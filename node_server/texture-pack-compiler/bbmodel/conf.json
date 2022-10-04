@@ -7,6 +7,8 @@
     "list": [
         {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "reaper", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "mini_dragon", "shift": {"x": 8, "y": 0, "z": -8}},
         {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}}
     ],
     "list_old": [
@@ -15,8 +17,27 @@
     ],
     "blocks": [
         {
-            "id": 502,
+            "id": 416,
             "name": "BB_GARBAGE_MONSTER",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "style_variant": "garbage_monster",
+            "transparent": true,
+            "can_rotate": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "id": "garbage_monster",
+                "side": "block/quartz_block_side.png"
+            }
+        },
+        {
+            "id": 417,
+            "name": "BB_MINI_DRAGON",
             "sound": "madcraft:block.wood",
             "style": "bbmodel",
             "transparent": true,
@@ -28,7 +49,25 @@
                 "no_drop_ao"
             ],
             "texture": {
-                "id": "garbage_monster",
+                "id": "mini_dragon",
+                "side": "block/quartz_block_side.png"
+            }
+        },
+        {
+            "id": 418,
+            "name": "BB_REAPER",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "transparent": true,
+            "can_rotate": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "id": "reaper",
                 "side": "block/quartz_block_side.png"
             }
         }

@@ -34,11 +34,12 @@ export default class style {
             return;
         }
 
-        const textures      = block.material.texture;
+        const textures = block.material.texture;
+
         const pos           = new Vector(x, y, z);
         const lm            = IndexedColor.WHITE;
 
-        const model_json    = models.get(block.extra_data?.model ?? 'garbage_monster');
+        const model_json    = models.get(textures.id);
 
         //
         if(model_json) {

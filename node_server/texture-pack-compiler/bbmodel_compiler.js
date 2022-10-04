@@ -115,7 +115,7 @@ export class BBModel_Compiler {
                                             uvh
                                         ];
 
-                                        if(el.uuid == 'ecacfd18-a959-2a39-dbe4-14795a4be006' && side == 'north') {
+                                        /*if(el.uuid == 'ecacfd18-a959-2a39-dbe4-14795a4be006' && side == 'north') {
                                             console.log(
                                                 texture_item.texture_id,
                                                 uv,
@@ -126,7 +126,7 @@ export class BBModel_Compiler {
                                                 [uvw, uvh]
                                             );
                                             throw '---------------';
-                                        }
+                                        }*/
 
                                     }
                                 }
