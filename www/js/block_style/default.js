@@ -126,20 +126,22 @@ export default class style {
 
             const face = faces[k];
             const orig_tex = face.texture;
+            const tx_cnt = face.tx_cnt ?? TX_CNT;
+            const tx_size = face.tx_size ?? TX_SIZE;
 
             // UV
             const uv = [orig_tex[0], orig_tex[1]];
             const add_uv = [
-                -.5 + face.uv[0]/TX_SIZE,
-                -.5 + face.uv[1]/TX_SIZE
+                -.5 + face.uv[0]/tx_size,
+                -.5 + face.uv[1]/tx_size
             ];
             uv[0] += add_uv[0];
             uv[1] += add_uv[1];
 
             // Texture
             const tex = [...orig_tex];
-            tex[0] += (add_uv[0] / TX_CNT);
-            tex[1] += (add_uv[1] / TX_CNT);
+            tex[0] += (add_uv[0] / tx_cnt);
+            tex[1] += (add_uv[1] / tx_cnt);
 
             if(!('autoUV' in face)) {
                 face.autoUV = true;

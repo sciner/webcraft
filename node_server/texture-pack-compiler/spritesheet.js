@@ -7,6 +7,8 @@ export class Spritesheet {
         this.id                 = id;
         this.tx_cnt             = tx_cnt;
         this.tx_sz              = tx_sz;
+        this.width              = tx_cnt * tx_sz;
+        this.height             = tx_cnt * tx_sz;
         this.options            = options;
         this.index              = 0;
         this.map                = new Array(this.tx_cnt * this.tx_cnt);
@@ -16,13 +18,16 @@ export class Spritesheet {
 
     // Export to PNG
     export() {
+        const resp = [];
         if(this.index == 0) {
-            return false;
+            return resp;
         }
         for(const [subtexture_id, item] of this.canvases) {
-            item.cnv.saveAsSync(`../../www/resource_packs/base/textures/${this.id}${subtexture_id}.png`);
+            const filename = `/textures/${this.id}${subtexture_id}.png`;
+            resp.push(filename);
+            item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);
         }
-        return true;
+        return resp;
     }
 
     get ctx() {
@@ -195,7 +200,7 @@ export class Spritesheet {
                 }                        
             }
         }
-        return {sx, sy};
+        return {x, y, sx, sy};
     }
 
     // findPlace

@@ -1,4 +1,5 @@
 import { BLOCK } from "../blocks.js";
+import { AABBSideParams } from "../core/AABB.js";
 import { DIRECTION, isScalar, Vector } from "../helpers.js";
 import { BBModel_Box } from "./box.js";
 import { BBModel_Child } from "./child.js";
@@ -235,9 +236,12 @@ export class BBModel_Parser {
         for(let f in el.faces) {
             const face = el.faces[f];
             box.faces[f] = {
-                uv:         [8, 8],
+                tx_cnt:     1,
+                tx_size:    512,
+                autoUV:     false,
+                uv:         [face.uv[0], face.uv[1]],
                 flag:       flag,
-                texture:    this.textures.tex_side
+                texture:    [.5, .5, 1, 1]
             };
         }
 

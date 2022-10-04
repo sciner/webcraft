@@ -1,0 +1,34 @@
+{
+    "id": "bbmodel",
+    "shader": {
+        "extends": "base"
+    },
+    "textures": {},
+    "list": [
+        {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "sword", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "test", "shift": {"x": 8, "y": 0, "z": -8}}
+    ],
+    "blocks": [
+        {
+            "id": 502,
+            "name": "BB_GARBAGE_MONSTER",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "transparent": true,
+            "can_rotate": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "id": "garbage_monster",
+                "side": "block/quartz_block_side.png"
+            }
+        }
+    ]
+}

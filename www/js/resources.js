@@ -388,12 +388,10 @@ export class Resources {
             return Resources._bbmodels;
         }
         const resp = new Map();
-        await Helpers.fetchJSON('../data/bbmodels.json').then(async json => {
+        const dir = '../resource_packs/bbmodel';
+        await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
             for(let model of json.list) {
-                await Helpers.fetchJSON(`../data/bbmodel/${model.name}.json`).then(obj => {
-                    obj._properties = {
-                        shift: model.shift
-                    }
+                await Helpers.fetchJSON(dir + `/${model.name}.json`).then(obj => {
                     resp.set(model.name, obj);
                 }).catch((error) => {
                     console.error('Error:', error);

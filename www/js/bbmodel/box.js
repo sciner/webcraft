@@ -28,15 +28,15 @@ export class BBModel_Box extends BBModel_Child {
      */
     pushVertices(vertices, pos, lm, parentMatrix) {
         const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
-
         default_style.pushAABB(vertices, {
-            faces: this.faces,
-            size: this.size,
-            translate: this.translate,
+            faces:      this.faces,
+            size:       this.size,
+            translate:  this.translate,
             lm:         lm,
             pos:        pos,
             matrix:     worldMatrix
         }, zeroVec);
+
     }
 
 }
