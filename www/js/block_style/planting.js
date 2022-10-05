@@ -26,10 +26,10 @@ const AGRICULTURE_PLANES = [
 ];
 
 const SUNFLOWER_PLANES = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}, "material": DIRECTION.UP},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, -Math.PI / 8, 0], "move": {"x": 0.1, "y": 0, "z": 0}, "material": DIRECTION.NORTH},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, -Math.PI / 8, 0], "move": {"x": 0.098, "y": 0, "z": 0}, "material": DIRECTION.SOUTH}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.1, "y": 0, "z": 0}, "material": DIRECTION.NORTH},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.098, "y": 0, "z": 0}, "material": DIRECTION.SOUTH}
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
