@@ -122,6 +122,9 @@ export class Resources {
         // Painting
         all.push[Resources.loadPainting()];
 
+        //
+        all.push(Resources.loadBBModels());
+
         // Physics features
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 

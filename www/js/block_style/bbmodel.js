@@ -53,8 +53,8 @@ export default class style {
                 break;
         }
 
-        const animation_name = 'walk';
-        model.playAnimation(animation_name, performance.now() / 1000);
+        // const animation_name = 'walk';
+        // model.playAnimation(animation_name, performance.now() / 1000);
         model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
 
         // Draw debug stand

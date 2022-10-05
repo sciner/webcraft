@@ -163,7 +163,6 @@ export class Chat extends TextBox {
         }
         const text = this.buffer.join('');
         if(text != '' && text != '/') {
-            this.messages.send(text);
             //
             const render    = Qubatch.render;
             const player    = this.player;
@@ -172,11 +171,27 @@ export class Chat extends TextBox {
             const temp      = text.replace(/  +/g, ' ').split(' ');
             const cmd       = temp.shift();
             switch(cmd.trim().toLowerCase()) {
+                case '/bb': {
+                    let id = 416;
+                    let animation_name = null;
+                    if(temp.length > 0) id = parseInt(temp.shift());
+                    if(temp.length > 0) animation_name = temp.shift();
+                    const block = Qubatch.world.block_manager.fromId(id);
+                    if(block.style == 'bbmodel') {
+                        Qubatch.render.addBBModel(player.lerpPos.clone(), id, Qubatch.player.rotate, animation_name);
+                        this.history.add(this.buffer);
+                        this.buffer = [];
+                        this.resetCarriage();
+                        return false;
+                    }
+                    break;
+                }
                 case '/clear': {
                     this.history.clear();
                     break;
                 }
             }
+            this.messages.send(text);
             this.history.add(this.buffer);
             this.buffer = [];
             this.resetCarriage();

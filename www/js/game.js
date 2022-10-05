@@ -94,6 +94,7 @@ export class GameClass {
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
+        /*
         setInterval(() => {
             if(!Qubatch.hud.splash.loading) {
                 let bbmodels = globalThis._debug_bbmodels;
@@ -112,6 +113,7 @@ export class GameClass {
                 }
             }
         }, 10)
+        */
     }
 
     // Set the canvas the renderer uses for some input operations.
