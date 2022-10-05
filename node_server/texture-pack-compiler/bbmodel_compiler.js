@@ -51,7 +51,7 @@ export class BBModel_Compiler {
                 // 1. create spritesheet
                 const spritesheet = new Spritesheet(id, this.options.tx_cnt, this.options.resolution, this.options);
                 const textures = new Map();
-                const resolution = model.resolution ?? {with: spritesheet.width, height: spritesheet.height};
+                const resolution = model.resolution ?? {width: spritesheet.width, height: spritesheet.height};
 
                 // 2. each model textures
                 for(let i in model.textures) {
