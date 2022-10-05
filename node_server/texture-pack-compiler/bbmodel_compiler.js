@@ -18,17 +18,17 @@ export class BBModel_Compiler {
             assert: { type: 'json' }
         })).default;
         //
-        for(let item of this.conf.list) {
-            const model = JSON.parse(fs.readFileSync(`${this.options.model_dir}/${item.name}.bbmodel`));
+        for(let bb of this.conf.bbmodels) {
+            const model = JSON.parse(fs.readFileSync(`${this.options.model_dir}/${bb.name}.bbmodel`));
             /*
             const model = (await import(`${this.options.model_dir}/${item.name}.bbmodel`, {
                 assert: { type: 'json' }
             })).default;
             */
             model._properties = {
-                shift: item.shift
+                shift: bb.shift
             }
-            this.models.set(item.name, model);
+            this.models.set(bb.name, model);
         }
     }
 

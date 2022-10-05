@@ -773,8 +773,12 @@ export class Renderer {
     }
 
     // addBBModel
-    addBBModel(pos, block_id, rotate, animation_name) {
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, Qubatch.world.block_manager.fromId(block_id), animation_name);
+    addBBModel(pos, bbname, rotate, animation_name) {
+        const model = Resources._bbmodels.get(bbname);
+        if(!model) {
+            return false;
+        }
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
         bbmodel.setAnimation(animation_name);
         this.meshes.add(bbmodel);
     }

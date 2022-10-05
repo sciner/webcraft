@@ -10,10 +10,19 @@ const vecZero   = Vector.ZERO.clone();
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel {
 
-    // Constructor
-    constructor(render, pos, rotate, material, animation_name = null) {
+    /**
+     * 
+     * @param {*} render 
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {BBModel_Model} model 
+     * @param {string} animation_name 
+     * 
+     * @returns 
+     */
+    constructor(render, pos, rotate, model, animation_name = null) {
 
-        this.model = Resources._bbmodels.get(material.texture.id);
+        this.model = model;
         if(!this.model) {
             return;
         }
@@ -27,8 +36,9 @@ export class Mesh_Object_BBModel {
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
+        this.resource_pack  = Qubatch.world.block_manager.resource_pack_manager.get('bbmodel');
 
-        this.gl_material    = material.resource_pack.getMaterial(material.material_key);
+        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/regular/terrain/${model.name}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices);
         this.redraw();

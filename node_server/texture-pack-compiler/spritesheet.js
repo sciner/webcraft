@@ -1,4 +1,5 @@
 import skiaCanvas from 'skia-canvas';
+import fs from 'fs';
 
 // Spritesheet
 export class Spritesheet {
@@ -23,6 +24,10 @@ export class Spritesheet {
             return resp;
         }
         for(const [subtexture_id, item] of this.canvases) {
+            const dir = `${this.options.output_dir}/textures`;
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
             const filename = `/textures/${this.id}${subtexture_id}.png`;
             resp.push(filename);
             item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);

@@ -172,18 +172,15 @@ export class Chat extends TextBox {
             const cmd       = temp.shift();
             switch(cmd.trim().toLowerCase()) {
                 case '/bb': {
-                    let id = 416;
+                    let bbname = null;
                     let animation_name = null;
-                    if(temp.length > 0) id = parseInt(temp.shift());
-                    if(temp.length > 0) animation_name = temp.shift();
-                    const block = Qubatch.world.block_manager.fromId(id);
-                    if(block.style == 'bbmodel') {
-                        Qubatch.render.addBBModel(player.lerpPos.clone(), id, Qubatch.player.rotate, animation_name);
-                        this.history.add(this.buffer);
-                        this.buffer = [];
-                        this.resetCarriage();
-                        return false;
-                    }
+                    if(temp.length > 0) bbname = temp.shift().trim();
+                    if(temp.length > 0) animation_name = temp.shift().trim();
+                    Qubatch.render.addBBModel(player.lerpPos.clone(), bbname, Qubatch.player.rotate, animation_name);
+                    this.history.add(this.buffer);
+                    this.buffer = [];
+                    this.resetCarriage();
+                    return false;
                     break;
                 }
                 case '/clear': {

@@ -394,10 +394,11 @@ export class Resources {
         const resp = new Map();
         const dir = '../resource_packs/bbmodel';
         await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
-            for(let file of json.list) {
+            for(let file of json.bbmodels) {
                 await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
                     const model = new BBModel_Model(json);
                     model.parse();
+                    model.name = file.name;
                     resp.set(file.name, model);
                 }).catch((error) => {
                     console.error('Error:', error);

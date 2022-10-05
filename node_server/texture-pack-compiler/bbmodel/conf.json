@@ -4,24 +4,26 @@
         "extends": "base"
     },
     "textures": {},
-    "list": [
+    "bbmodels": [],
+    "_bbmodels": [
         {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
         {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
         {"name": "reaper", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "babochkabot", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
-    "blocks": [
+    "blocks": [],
+    "_blocks": [
         {
             "id": 416,
-            "name": "BB_GARBAGE_MONSTER",
+            "name": "BB_BABOCHKA",
             "sound": "madcraft:block.wood",
             "style": "bbmodel",
-            "style_variant": "garbage_monster",
             "transparent": true,
             "can_rotate": true,
+            "spawnable": false,
             "material": {
                 "id": "wood"
             },
@@ -29,79 +31,7 @@
                 "no_drop_ao"
             ],
             "texture": {
-                "id": "garbage_monster",
-                "side": "block/quartz_block_side.png"
-            }
-        },
-        {
-            "id": 417,
-            "name": "BB_MINI_DRAGON",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "can_rotate": true,
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "mini_dragon",
-                "side": "block/quartz_block_side.png"
-            }
-        },
-        {
-            "id": 418,
-            "name": "BB_REAPER",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "can_rotate": true,
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "reaper",
-                "side": "block/quartz_block_side.png"
-            }
-        },
-        {
-            "id": 419,
-            "name": "BB_BABOCHKABOT",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "can_rotate": true,
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "babochkabot",
-                "side": "block/quartz_block_side.png"
-            }
-        },
-        {
-            "id": 420,
-            "name": "BB_ESET",
-            "sound": "madcraft:block.wood",
-            "style": "bbmodel",
-            "transparent": true,
-            "can_rotate": true,
-            "material": {
-                "id": "wood"
-            },
-            "tags":[
-                "no_drop_ao"
-            ],
-            "texture": {
-                "id": "eset",
+                "id": "babochka",
                 "side": "block/quartz_block_side.png"
             }
         }
