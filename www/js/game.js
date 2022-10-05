@@ -96,11 +96,22 @@ export class GameClass {
         this.render.requestAnimationFrame(this.loop);
         /*
         setInterval(() => {
-            Qubatch.world.chunkManager.setBlock(2902, 4, 2703, {id: 502}, true, null, null, null, {model: 'sword'});
-            Qubatch.world.chunkManager.setBlock(2905, 4, 2703, {id: 502}, true, null, null, null, {model: 'garbage_monster'});
-            Qubatch.world.chunkManager.setBlock(2908, 4, 2703, {id: 502}, true, null, null, null, {model: 'black_big_can'});
-            Qubatch.world.chunkManager.setBlock(2911, 4, 2703, {id: 502}, true, null, null, null, {model: 'bookshelf'});
-            Qubatch.world.chunkManager.setBlock(2914, 4, 2703, {id: 502}, true, null, null, null, {model: 'test'});
+            if(!Qubatch.hud.splash.loading) {
+                let bbmodels = globalThis._debug_bbmodels;
+                if(!bbmodels) {
+                    bbmodels = [];
+                    for(const [id, b] of Qubatch.world.block_manager.list) {
+                        if(b.style == 'bbmodel') {
+                            bbmodels.push(b.id);
+                        }
+                    }
+                    globalThis._debug_bbmodels = bbmodels;
+                }
+                let i = 0;
+                for(let id of bbmodels) {
+                    Qubatch.world.chunkManager.setBlock(2900 + i++ * 2, 4, 2703, {id}, true, null, new Vector(2, 0, 0), null);    
+                }
+            }
         }, 10)
         */
     }

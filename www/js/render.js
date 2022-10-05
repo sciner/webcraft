@@ -24,6 +24,7 @@ import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./type.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -769,6 +770,17 @@ export class Renderer {
     // addAsteroid
     addAsteroid(pos, rad) {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
+    }
+
+    // addBBModel
+    addBBModel(pos, bbname, rotate, animation_name) {
+        const model = Resources._bbmodels.get(bbname);
+        if(!model) {
+            return false;
+        }
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
+        bbmodel.setAnimation(animation_name);
+        this.meshes.add(bbmodel);
     }
 
     /**
