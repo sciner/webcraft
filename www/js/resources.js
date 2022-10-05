@@ -1,3 +1,4 @@
+import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 
 export const COLOR_PALETTE = {
@@ -120,6 +121,9 @@ export class Resources {
 
         // Painting
         all.push[Resources.loadPainting()];
+
+        //
+        all.push(Resources.loadBBModels());
 
         // Physics features
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
@@ -388,13 +392,14 @@ export class Resources {
             return Resources._bbmodels;
         }
         const resp = new Map();
-        await Helpers.fetchJSON('../data/bbmodels.json').then(async json => {
-            for(let model of json.list) {
-                await Helpers.fetchJSON(`../data/bbmodel/${model.name}.json`).then(obj => {
-                    obj._properties = {
-                        shift: model.shift
-                    }
-                    resp.set(model.name, obj);
+        const dir = '../resource_packs/bbmodel';
+        await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
+            for(let file of json.bbmodels) {
+                await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+                    const model = new BBModel_Model(json);
+                    model.parse();
+                    model.name = file.name;
+                    resp.set(file.name, model);
                 }).catch((error) => {
                     console.error('Error:', error);
                 });

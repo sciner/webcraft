@@ -97,7 +97,7 @@ export default class style {
         mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
 
         for(const part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,
@@ -127,7 +127,7 @@ export default class style {
                 }
             ]);
             for(const wool of wools) {
-                default_style.pushAABB(vertices, {
+                default_style.pushPART(vertices, {
                     ...wool,
                     lm:         color,
                     pos:        pos,

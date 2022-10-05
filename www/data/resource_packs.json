@@ -1,7 +1,8 @@
 {
 	"base": {"id": "base", "name": "Base", "path": "../resource_packs/base"},
 	"extends": [
-		{"id": "extend", "name": "extend", "path": "../resource_packs/extend"}
+		{"id": "extend", "name": "extend", "path": "../resource_packs/extend"},
+		{"id": "bbmodel", "name": "bbmodel", "path": "../resource_packs/bbmodel"}
 	],
 	"variants": [
 		{"id": "kenney", "name": "Kenney", "path": "../resource_packs/kenney"},

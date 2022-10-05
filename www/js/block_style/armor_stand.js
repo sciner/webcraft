@@ -176,7 +176,7 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         for(const el of stand) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...el,
                 lm:         lm,
                 pos:        pos,
@@ -186,7 +186,7 @@ export default class style {
         matrix = mat4.create();
         mat4.rotateY(matrix, matrix, rot);
         for(const part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,

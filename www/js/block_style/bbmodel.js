@@ -1,19 +1,18 @@
 import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { default as default_style } from '../block_style/default.js';
-import { BBModel_Parser } from '../bbmodel/parser.js';
 import { BLOCK } from '../blocks.js';
 import { Resources } from '../resources.js';
 
-const {mat4} = glMatrix;
+import { default as default_style } from '../block_style/default.js';
+import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 
-// Load models
-// const models = await Resources.loadBBModels();
+const {mat4}    = glMatrix;
+const lm        = IndexedColor.WHITE;
+const models    = await Resources.loadBBModels();
 
 // Block model
 export default class style {
-    
+
     static getRegInfo() {
         return {
             styles: ['bbmodel'],
@@ -27,60 +26,44 @@ export default class style {
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];
     }
-    
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
-        return false;
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined') {
             return;
         }
 
-        const textures      = block.material.texture;
-        const pos           = new Vector(x, y, z);
-        const lm            = IndexedColor.WHITE;
+        const model = models.get(block.material.texture.id);
 
-        const model_json    = models.get(block.extra_data?.model ?? 'garbage_monster');
-
-        //
-        if(model_json) {
-
-            const model = new BBModel_Parser(model_json, textures);
-
-            model.parse();
-
-            //
-            const cd = block.getCardinalDirection();
-            matrix = mat4.create();
-
-            // mat4.rotateX(matrix, matrix, performance.now() / 1000);
-            // mat4.rotateY(matrix, matrix, performance.now() / 1000);
-            // mat4.rotateZ(matrix, matrix, performance.now() / 1000);
-
-            switch(cd) {
-                case DIRECTION.NORTH: 
-                    mat4.rotateY(matrix, matrix, Math.PI);
-                    break;
-                case DIRECTION.WEST: 
-                    mat4.rotateY(matrix, matrix, Math.PI / 2);
-                    break;
-                case DIRECTION.EAST: 
-                    mat4.rotateY(matrix, matrix, -Math.PI / 2);
-                    break;
-            }
-
-            model.playAnimation('idle'); // idle, walk, jump, attack1, attack2
-            model.draw(vertices, pos.add(new Vector(.5, 0, .5)), lm, matrix);
-
+        if(!model) {
+            return;
         }
 
-        // Draw stand
-        style.drawStand(vertices, pos, lm, null);
+        matrix = mat4.create();
+
+        switch(block.getCardinalDirection()) {
+            case DIRECTION.NORTH: 
+                mat4.rotateY(matrix, matrix, Math.PI);
+                break;
+            case DIRECTION.WEST: 
+                mat4.rotateY(matrix, matrix, Math.PI / 2);
+                break;
+            case DIRECTION.EAST: 
+                mat4.rotateY(matrix, matrix, -Math.PI / 2);
+                break;
+        }
+
+        // const animation_name = 'walk';
+        // model.playAnimation(animation_name, performance.now() / 1000);
+        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
+
+        // Draw debug stand
+        // style.drawDebugStand(vertices, pos, lm, null);
 
     }
 
     // Stand
-    static drawStand(vertices, pos, lm, matrix) {
+    static drawDebugStand(vertices, pos, lm, matrix) {
         const flag = 0;
         const stone = BLOCK.calcTexture(BLOCK.STONE.texture, DIRECTION.WEST);
         const stand = [];
@@ -100,7 +83,7 @@ export default class style {
             }
         ]);
         for(const el of stand) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...el,
                 lm:         lm,
                 pos:        pos,
@@ -108,5 +91,5 @@ export default class style {
             });
         }
     }
-    
+
 }
