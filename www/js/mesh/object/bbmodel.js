@@ -26,6 +26,7 @@ export class Mesh_Object_BBModel {
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
+        this.start_time     = performance.now();
 
         this.gl_material    = material.resource_pack.getMaterial(material.material_key);
         this.vertices       = [];
@@ -45,7 +46,7 @@ export class Mesh_Object_BBModel {
         this.vertices = [];
         const mx = mat4.create();
         mat4.rotateY(mx, mx, this.rotate.z + Math.PI);
-        this.model.playAnimation(this.animation_name, performance.now() / 1000);
+        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000);
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
     }
