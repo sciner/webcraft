@@ -337,6 +337,9 @@ export class Chunk {
             return;
         }
         this.chunkManager = null;
+        if (this._dataTexture) {
+            this._dataTexture.remove(this);
+        }
         chunkManager.dataWorld.removeChunk(this);
         // destroy buffers
         for(let [_, v] of this.vertices) {
