@@ -19,7 +19,8 @@ export default class style {
 
     static computeAABB(block, for_physic) {
         const aabbs = [];
-        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, 0.75, 0.875));
+        const height = for_physic ? 11/16 : 12/16;
+        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, height, 0.875));
         return aabbs;
     }
 

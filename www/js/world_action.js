@@ -591,6 +591,11 @@ export class WorldAction {
         }
     }
 
+    /**
+     * Set sitting
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     */
     setSitting(pos, rotate) {
         this.sitting = {pos, rotate};
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
@@ -1126,7 +1131,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 
 // Drop egg
 async function dropEgg(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!BLOCK.isEgg(mat_block.id)) {
+    if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
     }
     pos.x += pos.n.x + .5
@@ -1229,36 +1234,56 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
     return false;
 }
 
-// Sit down
+/**
+ * Sit down
+ * @param {*} e 
+ * @param {*} world 
+ * @param {Vector} pos 
+ * @param {*} player 
+ * @param {*} world_block 
+ * @param {*} world_material 
+ * @param {*} mat_block 
+ * @param {*} current_inventory_item 
+ * @param {*} extra_data 
+ * @param {Vector} rotate 
+ * @param {*} replace_block 
+ * @param {WorldAction} actions 
+ * @returns 
+ */
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
-    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
-    if(!block_for_sittings || mat_block) {
+    const is_stool = world_material.style == 'stool';
+    const is_chair = world_material.style == 'chair';
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair || is_stool;
+    if(!block_for_sittings || (mat_block && !is_chair && !is_stool)) {
         return false;
     }
-    const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
+    const is_head = world_material?.has_head && world_block.extra_data.is_head;
     // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + n, pos.z));
-    if(!overBlock || overBlock.id == 0) {
-        const obj_pos = new Vector(pos.x, pos.y, pos.z)
-        if(world_block_is_slab) {
-            const on_ceil = world_block.extra_data?.point?.y >= .5;
-            obj_pos.addScalarSelf(.5, on_ceil ? .5 : 0, .5);
-        } else if(is_chair) {
-            obj_pos.addScalarSelf(.5, .5, .5);
-        } else {
-            obj_pos.addScalarSelf(.5, 0, .5);
-        }
-        const dist = player.pos.distance(obj_pos);
-        if(dist < 3.0) {
-            actions.reset_mouse_actions = true;
-            actions.setSitting(
-                obj_pos.addScalarSelf(0, .5, 0),
-                new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-            )
-            return true;
-        }
+    const overBlock = world.getBlock(new Vector(pos.x, pos.y + (is_head ? 1 : 2), pos.z));
+    if(overBlock && !overBlock.material.transparent) {
+        return false;
+    }
+    //
+    const sit_height = (is_chair || is_stool) ? 11/16 : 1/2;
+    const sit_pos = new Vector(
+        pos.x + .5,
+        pos.y + sit_height - (is_head ? 1 : 0),
+        pos.z + .5
+    )
+    // if slab on ceil
+    if(world_block_is_slab) {
+        const on_ceil = world_block.extra_data?.point?.y >= .5;
+        if(on_ceil) sit_pos.y += .5;
+    }
+    //
+    if(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0) {
+        actions.reset_mouse_actions = true;
+        actions.setSitting(
+            sit_pos,
+            new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
+        )
+        return true;
     }
     return false;
 }

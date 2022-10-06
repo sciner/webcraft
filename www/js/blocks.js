@@ -811,8 +811,8 @@ export class BLOCK {
         return this.list_arr;
     }
 
-    static isEgg(block_id) {
-        return BLOCK.spawn_eggs.indexOf(block_id) >= 0;
+    static isSpawnEgg(block_id) {
+        return BLOCK.spawn_eggs.includes(block_id);
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака

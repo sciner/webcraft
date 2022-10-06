@@ -8012,7 +8012,8 @@
             },
             "tags": [
                 "no_drop_ao",
-                "no_set_on_top"
+                "no_set_on_top",
+                "rotate_x8"
             ],
             "inventory": {
                 "scale": 0.8,

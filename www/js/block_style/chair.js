@@ -19,6 +19,15 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
+        let aabb = new AABB().set(2/16, 0, 2/16, 14/16, 26/16, 14/16);
+        if(for_physic) {
+            aabb.y_max = 11/16;
+        }
+        if (block?.extra_data?.is_head) {
+            aabb.translate(0, -1, 0);
+        }
+        return [aabb];
+        /*
         const cd = block.getCardinalDirection();
         const aabbs = [];
         if (!block?.extra_data?.is_head) {
@@ -28,6 +37,7 @@ export default class style {
             aabbs.push(new AABB().set(0.120, 0, 0.0625, 0.88, 0.64, 0.19).rotate(cd, pivot));
         }
         return aabbs;
+        */
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
@@ -73,7 +83,7 @@ export default class style {
                     "west":  {"uv": [8, 8], "texture": log},
                     "east":  {"uv": [8, 8], "texture": log}
                 }
-            },{ // разделитель спинки и седенья
+            },{ // разделитель спинки и сиденья
                 "size": {"x": 12, "y": 3, "z": 2},
                 "translate": {"x": 0, "y": 1.5, "z": -6},
                 "faces": {
@@ -144,10 +154,11 @@ export default class style {
         ]);
         
         const pos = new Vector(x, y, z);
-        const cd = block.getCardinalDirection();
         const lm = IndexedColor.WHITE;
         matrix = mat4.create();
-        mat4.rotateY(matrix, matrix, cd * Math.PI / 2);
+        // mat4.rotateY(matrix, matrix, block.getCardinalDirection() * -Math.PI / 2);
+        mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
+
         for(const part of parts) {
             default_style.pushPART(vertices, {
                 ...part,
