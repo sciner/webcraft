@@ -18,7 +18,7 @@ export class Chunk {
     constructor(addr, modify_list, chunkManager) {
 
         this.addr                       = new Vector(addr); // относительные координаты чанка
-        this.seed                       = chunkManager.world.info.seed;
+        this.seed                       = chunkManager.getWorld().info.seed;
         this.uniqId                     = ++global_uniqId;
 
         //

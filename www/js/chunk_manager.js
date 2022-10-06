@@ -34,11 +34,13 @@ export class ChunkManager {
      */
     static instance;
 
+    #world;
+
     constructor(world) {
 
         ChunkManager.instance = this;
 
-        this.world                  = world;
+        this.#world                 = world;
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
@@ -124,26 +126,26 @@ export class ChunkManager {
 
     init() {
 
-        const world                   = this.world;
+        const world                   = this.#world;
         const that                    = this;
 
         // Add listeners for server commands
-        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
-        this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
+        world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
+        world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
             // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
             if (cmd.data.fluid) {
                 cmd.data.fluid = Uint8Array.from(atob(cmd.data.fluid), c => c.charCodeAt(0));
             }
             this.setChunkState(cmd.data);
         });
-        this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
+        world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
             let pos = cmd.data.pos;
             let item = cmd.data.item;
             let block = BLOCK.fromId(item.id);
             let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
             this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
         });
-        this.world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
+        world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
             this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
         //
@@ -287,7 +289,7 @@ export class ChunkManager {
 
     //
     setRenderDist(value) {
-        this.world.server.setRenderDist(value);
+        this.#world.server.setRenderDist(value);
     }
 
     // toggleUpdateChunks
@@ -445,6 +447,10 @@ export class ChunkManager {
         return this.chunks.get(addr);
     }
 
+    getWorld() {
+        return this.#world;
+    }
+
     // Add
     loadChunk(item) {
         if(this.chunks.has(item.addr) || this.chunks_prepare.has(item.addr)) {
@@ -454,7 +460,7 @@ export class ChunkManager {
             start_time: performance.now(),
         });
         if(item.has_modifiers) {
-            this.world.server.loadChunk(item.addr);
+            this.#world.server.loadChunk(item.addr);
         } else {
            if(!this.setChunkState({addr: item.addr, modify_list: null})) {
                return false;

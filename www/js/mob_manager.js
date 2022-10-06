@@ -4,9 +4,11 @@ import {MobModel} from "./mob_model.js";
 import {ServerClient} from "./server_client.js";
 
 export class MobManager {
+
+    #world;
 	
     constructor(world) {
-        this.world = world;
+        this.#world = world;
         this.list = new Map();
         // Interval functions
         this.sendStateInterval = setInterval(() => {
@@ -17,7 +19,7 @@ export class MobManager {
     // Client side method
     init() {
         // On server message
-        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
+        this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_MOB_ADD: {
                     for(let mob of cmd.data) {
@@ -83,7 +85,7 @@ export class MobManager {
             extra_data:     data.extra_data || null
         });
 
-        mob.world = this.world;
+        mob.world = this.#world;
         mob.pos.y += 1/200;
 
         this.list.set(data.id, mob);

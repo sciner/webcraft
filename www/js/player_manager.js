@@ -2,15 +2,17 @@ import {PlayerModel} from "./player_model.js";
 import {ServerClient} from "./server_client.js";
 
 export class PlayerManager {
+
+    #world;
 	
     constructor(world) {
-        this.world = world;
+        this.#world = world;
         this.list = new Map();
     }
 
     init() {
         // On server message
-        this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
+        this.#world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_PLAYER_JOIN: {
                     this.add(cmd);
@@ -41,7 +43,7 @@ export class PlayerManager {
             type:           data.type || 'player',
         });
 
-        player.world = this.world;
+        player.world = this.#world;
 
         this.list.set(data.id, player);
         this.setState(cmd);
