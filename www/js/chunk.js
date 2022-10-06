@@ -7,6 +7,7 @@ import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
 
+let global_uniqId = 0;
 // Creates a new chunk
 export class Chunk {
 
@@ -18,6 +19,7 @@ export class Chunk {
 
         this.addr                       = new Vector(addr); // относительные координаты чанка
         this.seed                       = chunkManager.world.info.seed;
+        this.uniqId                     = ++global_uniqId;
 
         //
         this.tblocks                    = null;
@@ -66,6 +68,7 @@ export class Chunk {
             {
                 addr:           this.addr,
                 seed:           this.seed,
+                uniqId:         this.uniqId,
                 modify_list:    modify_list || null,
                 dataId: this.getDataTextureOffset()
             }
@@ -76,6 +79,9 @@ export class Chunk {
     onBlocksGenerated(args) {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
+            return;
+        }
+        if (args.uniqId !== this.uniqId) {
             return;
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);

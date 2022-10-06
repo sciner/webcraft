@@ -141,6 +141,7 @@ async function onMessageFunc(e) {
                     worker.postMessage(['blocks_generated', {
                         key:            chunk.key,
                         addr:           chunk.addr,
+                        uniqId:         item.uniqId,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
                         map:            chunk.map
@@ -150,6 +151,7 @@ async function onMessageFunc(e) {
                     const non_zero = ci.tblocks.refreshNonZero();
                     const ci2 = {
                         addr: ci.addr,
+                        uniqId: item.uniqId,
                         // key: ci.key,
                         tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
                         ticking_blocks: ci.ticking_blocks

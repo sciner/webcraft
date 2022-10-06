@@ -116,6 +116,8 @@ class TickingBlockManager {
 
 }
 
+let global_uniqId = 0;
+
 // Server chunk
 export class ServerChunk {
 
@@ -124,6 +126,7 @@ export class ServerChunk {
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
+        this.uniqId         = ++global_uniqId;
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = {};
@@ -181,6 +184,7 @@ export class ServerChunk {
                     {
                         update:         true,
                         addr:           this.addr,
+                        uniqId:         this.uniqId,
                         modify_list:    ml
                     }
                 ]
@@ -348,6 +352,10 @@ export class ServerChunk {
     async onBlocksGenerated(args) {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
+            return;
+        }
+        if (args.uniqId !== this.uniqId) {
+            //TODO cover it with a test
             return;
         }
         if(this.addr.equal(new Vector(-10,0,-1))) {

@@ -469,9 +469,6 @@ export class TypedBlocks3 {
                 const ind2 = other.indexByWorld(wx, wy, wz);
                 other.uint16View[ind2] = id;
                 // TODO: set calculated props
-                if (!other.rev.fluid) {
-                    debugger
-                }
                 other.rev.fluid.syncBlockProps(ind2, id, true);
                 pcnt++;
             }
@@ -552,10 +549,12 @@ export class DataWorld {
         if (!chunk) {
             return;
         }
-        chunk.dataChunk = chunk.tblocks.dataChunk;
-        if (!chunk.dataChunk.portals) {
+        if (chunk.dataChunk) {
+            console.warn('double-adding chunk!');
+            debugger;
             return;
         }
+        chunk.dataChunk = chunk.tblocks.dataChunk;
         chunk.dataChunk.rev = chunk;
         this.base.addSub(chunk.dataChunk);
         if (this.chunkManager.fluidWorld) {
