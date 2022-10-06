@@ -1,6 +1,8 @@
 export class ChunkDataTexture {
     constructor() {
         this.chunks = [];
+        this.keepAlive = [];
+        this.freeChunkTimeMs = 10000;
         this.total = 0;
         this.tex = null;
         this.pixelsPerChunk = 2;
@@ -18,6 +20,7 @@ export class ChunkDataTexture {
         this.data = new Int32Array(newSize * newSize * 4);
         // assume that size always divisible by pixelsPerChunk
         this.chunks.length = newSize * (newSize / this.pixelsPerChunk);
+        this.keepAlive.length = this.chunks.length;
         if (this.tex) {
             this.tex.source = this.data;
             this.tex.width = newSize;
@@ -36,7 +39,7 @@ export class ChunkDataTexture {
         }
         chunk._dataTexture = this;
 
-        const {chunks, pixelsPerChunk} = this;
+        const {chunks, pixelsPerChunk, keepAlive, freeChunkTimeMs} = this;
 
         let cur = this.currentChunkIndex;
 
@@ -45,16 +48,22 @@ export class ChunkDataTexture {
             // resize
             this.resize(Math.ceil(this.size * Math.sqrt(2) / pixelsPerChunk) * pixelsPerChunk);
         } else {
+            const maxTime = performance.now() - freeChunkTimeMs;
             let repeat = 0;
             while (repeat < chunks.length) {
                 if (!chunks[cur]) {
-                    break;
+                    if (!keepAlive[cur] || keepAlive[cur] < maxTime) {
+                        break;
+                    }
                 }
                 cur = (cur + 1) % chunks.length
                 repeat++
             }
-            if (chunks[cur]) {
-                //WTF? total is wrong
+            if (!chunks[cur] && (!keepAlive[cur] || keepAlive[cur] < maxTime)) {
+                // ok
+            } else {
+                cur = chunks.length;
+                this.resize(Math.ceil(this.size * Math.sqrt(2) / pixelsPerChunk) * pixelsPerChunk);
             }
         }
         chunks[cur] = chunk;
@@ -71,6 +80,7 @@ export class ChunkDataTexture {
         }
         chunk._dataTexture = null;
         this.chunks[chunk._dataTextureOffset] = null;
+        this.keepAlive[chunk._dataTextureOffset] = performance.now();
         this.total--;
     }
 
