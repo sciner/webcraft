@@ -178,8 +178,13 @@ export default class style {
                 block.extra_data.rot = 0;
             }
 
+            // old version compatibility
+            if(!('rot' in block.extra_data)) {
+                block.extra_data.rot = 0;
+            }
+
             // Rotate item in frame
-            const angle = Math.PI / 4 * block.extra_data.rot;
+            const angle = Math.PI / 4 * block.extra_data.rot + Math.PI;
             const rot = [0, 0, 0];
             if(rotate.y == 0) {
                 if(rotate.x == CubeSym.ROT_X) rot[2] = 1;
@@ -190,7 +195,7 @@ export default class style {
                 rot[1] = -1 * rotate.y;
             }
             mat4.rotate(matRotate, matRotate, angle, rot);
-
+            mat4.rotate(matRotate, matRotate, Math.PI, [0, 1, 0]);
             const mesh = new DropItemVertices(block.extra_data.item.id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
             return [mesh];
         }

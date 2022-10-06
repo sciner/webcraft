@@ -168,9 +168,11 @@ export class CompileData {
                 },
                 "can_rotate": true,
                 "inventory": {
-                    "id": "default",
                     "style": "extruder",
-                    "texture": "24|31"
+                    "texture": {
+                        "id": "entity",
+                        "side": "24|31"
+                    }
                 },
                 "mask_color": mask_color,
                 "has_head": {"pos": {"x": 0, "y": 0, "z": 1}},

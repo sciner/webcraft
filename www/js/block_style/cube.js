@@ -256,10 +256,11 @@ export default class style {
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
             // _lm_leaves.g += (Math.random() - Math.random()) * 24;
             _lm_leaves.b = leaves_tex[3] * TX_CNT;
-            const r1 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] / 100;
-            const r2 = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] / 100;
+            const r1 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0) / 100;
+            const r2 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] | 0) / 100;
             // let count = leaves_planes.length
-            let count = 2 + Math.floor(Math.random() * 2);
+            const rv = r1;
+            let count = 2 + Math.floor(rv / 50);
             for(let i = 0; i < count; i++) {
                 const plane = leaves_planes[i];
                 // fill object

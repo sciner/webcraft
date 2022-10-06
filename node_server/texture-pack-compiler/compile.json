@@ -1,6 +1,6 @@
 {
     "predefined_textures": [
-        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
+        {"spritesheet_id": "entity", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 14, "y": 31, "image": "block/destroy_stage_0.png"},
         {"spritesheet_id": "default", "x": 15, "y": 31, "image": "block/destroy_stage_1.png"},
         {"spritesheet_id": "default", "x": 16, "y": 31, "image": "block/destroy_stage_2.png"},

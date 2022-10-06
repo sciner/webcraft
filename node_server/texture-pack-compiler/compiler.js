@@ -298,6 +298,11 @@ export class Compiler {
                         value = value.image;
                     }
                     //
+                    if(typeof value == 'object' && 'side' in value && 'id' in value) {
+                        spritesheet_id = value.id;
+                        value = value.side;
+                    }
+                    //
                     const spritesheet = this.getSpritesheet(spritesheet_id);
                     if(value.indexOf('|') >= 0) {
                         const pos_arr = value.split('|');
