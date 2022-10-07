@@ -22,6 +22,7 @@
         "food": {"mining": {"time": -1, "instruments": [], "blast_resistance": 0.2}},
         "glass": {"mining": {"time": 1, "instruments": [], "blast_resistance": 0.3}},
         "gold": {"mining": {"time": 5, "instruments": ["pickaxe"], "instrument_boost": 12, "blast_resistance": 6}},
+        "gravel": {"mining": {"time": 2, "instruments": ["shovel"], "blast_resistance": 2.25}},
         "ice": {"mining": {"time": 5, "instruments": ["pickaxe"], "blast_resistance": 0.5}},
         "iron": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 6, "blast_resistance": 6}},
         "lava": {"mining": {"time": -1, "instruments": [], "blast_resistance": 100}},

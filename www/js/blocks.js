@@ -580,6 +580,7 @@ export class BLOCK {
         return block.style == 'default' &&
             !block.is_fluid &&
             !block.is_leaves &&
+            !['NUM1', 'NUM2'].includes(block.name) &&
             !('width' in block) &&
             !('height' in block);
     }

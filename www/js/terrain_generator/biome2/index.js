@@ -123,6 +123,7 @@ export default class Terrain_Generator extends Demo_Map {
         }
 
         //
+        let dirt_block_mat = null;
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
@@ -138,6 +139,10 @@ export default class Terrain_Generator extends Demo_Map {
                 const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
                 const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const has_modificator   = true; // has_voxel_buildings || has_islands || has_extruders;
+
+                if(!dirt_block_mat || dirt_block_mat.id != dirt_block) {
+                    dirt_block_mat = BLOCK.fromId(dirt_block);
+                }
 
                 cell.can_plant = false;
 
@@ -193,7 +198,7 @@ export default class Terrain_Generator extends Demo_Map {
 
                     // check if herbs planted
                     if(block_id == dirt_block && xyz.y == value - 1) {
-                        cell.can_plant = true;
+                        cell.can_plant = dirt_block_mat.material.id == 'dirt' || dirt_block_mat.material.id == 'sand';
                     }
 
                 }

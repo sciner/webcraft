@@ -242,8 +242,13 @@
                 "id": "plant"
             },
             "texture": {
-                "side": "block/seagrass.png"
+                "side": "block/seagrass.png",
+                "up": "block/tall_seagrass_top.png",
+                "down": "block/tall_seagrass_bottom.png"
             },
+            "tags": [
+                "is_tall_plant"
+            ],
             "texture_animations": {
                 "side": null
             },
@@ -1110,7 +1115,7 @@
             "gravity": true,
             "sound": "madcraft:block.gravel",
             "material": {
-                "id": "sand"
+                "id": "gravel"
             },
             "texture": "block/gravel.png"
         },

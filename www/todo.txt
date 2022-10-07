@@ -15,6 +15,7 @@
 - doubleface:
 - flower:
 - glass:
+- is_tall_planting:       Используется в стиле planting, для того, чтобы рисовать высокую траву из одного и того же блока, но беря текстуры up, down, вместо side
 - item_frame:
 - jukebox:                Это устройство, куда можно поместить пластинку
 - ladder:

@@ -95,9 +95,22 @@ export default class style {
 
         // Get texture
         let texture_dir = DIRECTION.DOWN;
-        if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
-            texture_dir = DIRECTION.UP;
+        if(block.hasTag('is_tall_plant')) {
+            const top_id = neighbours.UP?.id;
+            const bottom_id = neighbours.DOWN?.id;
+            if(top_id != block.id) {
+                if(bottom_id == block.id) {
+                    texture_dir = DIRECTION.UP;
+                } else {
+                    texture_dir = DIRECTION.NORTH;
+                }
+            }
+        } else {
+            if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+                texture_dir = DIRECTION.UP;
+            }
         }
+
         let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block);
 
         let dx = 0, dy = 0, dz = 0;
