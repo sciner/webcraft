@@ -622,6 +622,7 @@ export class ServerChunk {
                     }
                     break;
                 }
+                case 'redstone':
                 case 'cactus': {
                     if(neighbour.posworld.y < pos.y) {
                         return createDrop(tblock);
