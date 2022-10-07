@@ -250,7 +250,8 @@ export default class style {
         const no_anim               = material.is_simple_qube || !material.texture_animations;
 
         // Beautiful leaves
-        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL) {
+        const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
+        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
             const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
             _lm_leaves.copyFrom(dirt_color);
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
