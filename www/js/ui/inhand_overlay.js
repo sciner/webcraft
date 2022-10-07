@@ -35,8 +35,8 @@ const tmpMatrix = mat4.create();
 export function swapMatrixYZ(matrix) {
     for (let i = 0; i < 4; i++) {
         let t = matrix[4 + i];
-        matrix[4 + i] = matrix[8 + i];
-        matrix[8 + i] = -t;
+        matrix[4 + i] = -matrix[8 + i];
+        matrix[8 + i] = t;
     }
 
     for (let i = 0; i < 4; i++) {
@@ -258,18 +258,18 @@ export class InHandOverlay {
 
             this.postModelMatrix(modelMatrix, false);
 
-            inHandItemMesh.drawDirectly(render, modelMatrix);
- 
+            inHandItemMesh.drawDirectly(render);
+
         }
         renderBackend.endPass();
     }
 
     /**
-     * @param {float} pPartialTicks 
-     * @param {PoseStack} modelMatrix 
-     * @param {MultiBufferSource.BufferSource} p_109317_ 
-     * @param {Player} player 
-     * @param {int} pCombinedLight 
+     * @param {float} pPartialTicks
+     * @param {PoseStack} modelMatrix
+     * @param {MultiBufferSource.BufferSource} p_109317_
+     * @param {Player} player
+     * @param {int} pCombinedLight
      */
     renderHandsWithItems(pPartialTicks, modelMatrix, p_109317_, player, pCombinedLight, delta) {
 
@@ -280,7 +280,7 @@ export class InHandOverlay {
 
         // похоже, что этот метод определяет рисовать обе руки или только главную
         // HandRenderSelection handrenderselection = evaluateWhichHandsToRender(player);
-        
+
         // xBob - текущий угол поворота тела по горизонтали
         // xBobO - предыдущий угол поворота тела по горизонтали
         // yBob - текущий угол поворота тела по вертикали
@@ -328,8 +328,8 @@ export class InHandOverlay {
         let q = quat.create();
         let m = mat4.create();
 
-        let translation = new Vector(-0.5, 0, 0);
-        let rotate = new Vector(0, 45, 0);
+        let translation = new Vector(0, 0, 0);
+        let rotate = new Vector(0, -45, 0);
         mat4.multiply(modelMatrix, modelMatrix,
             mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z)));
         mat4.translate(modelMatrix, modelMatrix, translation.toArray());
