@@ -6,6 +6,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -161,6 +162,7 @@ export default class style {
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.set(dirt_color);
+            style.lm.r += GRASS_PALETTE_OFFSET;
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
 

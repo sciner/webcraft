@@ -8,6 +8,7 @@ import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -18,6 +19,8 @@ const leaves_planes = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
 ];
+
+const _lm_grass = new IndexedColor(0, 0, 0);
 const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
@@ -286,7 +289,7 @@ export default class style {
         let depth                   = 1;
         let autoUV                  = true;
         let axes_up                 = null;
-        let lm                      = IndexedColor.WHITE;
+        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE);
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
@@ -348,7 +351,10 @@ export default class style {
 
             // Texture color multiplier
             if(block.hasTag('mask_biome')) {
-                lm = dirt_color; // IndexedColor.GRASS;
+                lm.copyFrom(dirt_color)
+                if(block.id == BLOCK.GRASS_BLOCK.id) {
+                    lm.r += GRASS_PALETTE_OFFSET;
+                }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
             }
