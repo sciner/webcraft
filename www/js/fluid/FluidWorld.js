@@ -41,6 +41,7 @@ export class FluidWorld {
 
     applyWorldFluidsList(fluids) {
         let chunks = new VectorCollector();
+        let {use_light} = this.chunkManager;
         if (!fluids || fluids.length === 0) {
             return chunks;
         }
@@ -57,7 +58,14 @@ export class FluidWorld {
                     continue;
                 }
             }
+            if (use_light) {
+                //TODO: its slow!!!
+                chunk.beginLightChanges();
+            }
             chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
+            if (use_light) {
+                chunk.endLightChanges();
+            }
         }
         //chunks
         return chunks;

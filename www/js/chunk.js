@@ -31,6 +31,7 @@ export class Chunk {
         this.lightTex                   = null;
         this.lightData                  = null;
         this.lightMats                  = new Map();
+        this._tempLightSource           = null;
 
         // Fluid
         this.fluid_buf                  = null;
@@ -586,32 +587,47 @@ export class Chunk {
         }
     }
 
+    beginLightChanges() {
+        if (!this.chunkManager.use_light) {
+            return;
+        }
+        this._tempLightSource = this.genLightSourceBuf();
+    }
+
+    endLightChanges() {
+        if (!this.chunkManager.use_light) {
+            return;
+        }
+        const oldBuf = this._tempLightSource;
+        this._tempLightSource = null;
+        const newBuf = this.genLightSourceBuf();
+
+        this.chunkManager.dataWorld.syncOuter(this);
+
+        const { size } = this;
+        let diff = [];
+        let ind = 0;
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    if (oldBuf[ind] !== newBuf[ind]) {
+                        diff.push(x, y, z, newBuf[ind]);
+                    }
+                    ind++;
+                }
+        this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
+            addr: this.addr,
+            dataId: this.getDataTextureOffset(),
+            list: diff}]);
+    }
+
     setFluid(buf) {
         if(this.inited) {
             this.fluid.markDirtyMesh();
-
+            this.beginLightChanges();
             //TODO: make it diff!
-            const oldBuf = this.genLightSourceBuf();
             this.fluid.loadDbBuffer(buf, false);
-            const newBuf = this.genLightSourceBuf();
-
-            this.chunkManager.dataWorld.syncOuter(this);
-
-            const { size } = this;
-            let diff = [];
-            let ind = 0;
-            for (let y = 0; y < size.y; y++)
-                for (let z = 0; z < size.z; z++)
-                    for (let x = 0; x < size.x; x++) {
-                        if (oldBuf[ind] !== newBuf[ind]) {
-                            diff.push(x, y, z, newBuf[ind]);
-                        }
-                        ind++;
-                    }
-            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
-                addr: this.addr,
-                dataId: this.getDataTextureOffset(),
-                list: diff}]);
+            this.endLightChanges();
         } else {
             this.fluid_buf = buf;
         }
