@@ -717,7 +717,7 @@ export class BLOCK {
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
         if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.includes('no_drop_ao')) {
-            if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
+            if(!this.ao_invisible_blocks.includes(block.id)) {
                 this.ao_invisible_blocks.push(block.id);
             }
         }
@@ -930,7 +930,7 @@ export class BLOCK {
             block_id = block.id;
         }
         if(block_id < 1) return false;
-        if(this.ao_invisible_blocks.indexOf(block_id) >= 0) return false;
+        if(this.ao_invisible_blocks.includes(block_id)) return false;
         return true;
     }
 
