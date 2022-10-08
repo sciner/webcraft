@@ -7228,11 +7228,11 @@
         },
         {
             "id": 212,
-            "name": "GILD_NUGGET",
+            "name": "GOLD_NUGGET",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
-                "id": "iron"
+                "id": "gold"
             },
             "texture": "item/gold_nugget.png"
         },
@@ -7240,7 +7240,7 @@
             "id": 213,
             "name": "GILDED_BLACKSTONE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "GILD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
+            "drop_item": {"name": "GOLD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
             "material": {
                 "id": "stone"
             },
@@ -8058,6 +8058,16 @@
                 "frame": "oak_log"
             },
             "texture": "block/oak_log_top.png"
+        },
+        {
+            "id": 796,
+            "name": "IRON_NUGGET",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "item/iron_nugget.png"
         }
     ]
 }
