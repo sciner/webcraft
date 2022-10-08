@@ -112,12 +112,14 @@ export class XMPlayer {
             // start playing
             this.worker.connect(this.gainNode);
 
+            /*
             // hack to get iOS to play anything
             var temp_osc = this.audioctx.createOscillator();
             temp_osc.connect(this.audioctx.destination);
             !!temp_osc.start ? temp_osc.start(0) : temp_osc.noteOn(0);
             !!temp_osc.stop ? temp_osc.stop(0) : temp_osc.noteOff(0);
             temp_osc.disconnect();
+            */
         }
 
         this.playing = await this.notify('play');

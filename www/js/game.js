@@ -527,6 +527,7 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
+        TrackerPlayer.onPlayerUpdate(this.player);
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target

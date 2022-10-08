@@ -25,6 +25,9 @@ export class Tracker_Player {
         const jukebox = new XMPlayer();
         jukebox.url = url;
 
+        this.stop(pos);
+        this.vc.set(pos, jukebox);
+
         // cache 
         jukebox.init(this.audioContext);
 
@@ -33,20 +36,31 @@ export class Tracker_Player {
         // cache context if not present
         this.audioContext = jukebox.audioctx;
 
-        this.stop(pos);
-        this.vc.set(pos, jukebox);
+        jukebox.panner = new PannerNode(jukebox.audioctx, {
+            maxDistance: 0,
+            maxDistance: MAX_AUDIBILITY_DIST,
+            rolloffFactor: 0.25,
+            positionX: pos.x,
+            positionY: pos.z,
+            positionZ: pos.y,
+        });
 
         fetch(url)
             .then(res => res.arrayBuffer()) // Gets the response and returns it as a blob
             .then(buffer => {
                 jukebox.stop();
-                jukebox.url = url;
-                jukebox.volume = 0;
+                // jukebox.volume = MAX_VOLUME;
                 return jukebox.load(buffer);
             })
-            .then(() => jukebox.play())
-            // for compute valid volume
-            .then(()=> this.changePos(pos))
+            .then(() => {    
+                jukebox.play()
+
+                // reconnect nodes, we shpuld swap gain and panner tree
+                jukebox.gainNode.disconnect(jukebox.audioctx.destination);
+                jukebox.gainNode
+                    .connect(jukebox.panner)
+                    .connect(jukebox.audioctx.destination);        
+            })
     }
 
     stop(pos) {
@@ -64,7 +78,31 @@ export class Tracker_Player {
         }
     }
 
+    onPlayerUpdate(player) {
+        if (!this.audioContext) {
+            return;
+        }
+
+        const { lerpPos, forward } = player;
+
+        const { listener } = this.audioContext;
+
+        listener.positionX.value = lerpPos.x;
+        listener.positionY.value = lerpPos.z; // HAHAH
+        listener.positionZ.value = lerpPos.y;
+
+        listener.upX.value = 0;
+        listener.upZ.value = 1; // because we flip axies
+        listener.upY.value = 0;
+
+        listener.forwardX.value = forward.x;
+        listener.forwardY.value = forward.z;
+        listener.forwardZ.value = forward.y;
+    }
+
     changePos(pos) {
+        return; 
+ 
         if(this.vc.size == 0 || this.pos_changing) {
             return;
         }
