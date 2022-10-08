@@ -660,6 +660,16 @@ export class TBlock {
         return this.vec.add(this.tb.coord);
     }
 
+    get has_oxygen() {
+        if(!this.material.has_oxygen) {
+            return false;
+        }
+        if(this.id == 0 && this.fluid > 0) {
+            return false;
+        }
+        return true;
+    }
+
     //
     get pos() {
         return this.vec;

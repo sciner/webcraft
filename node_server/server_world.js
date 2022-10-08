@@ -375,6 +375,11 @@ export class ServerWorld {
         chunk.addPlayerLoadRequest(player);
     }
 
+    /**
+     * Return block on world pos
+     * @param {Vector} pos 
+     * @returns {object}
+     */
     getBlock(pos) {
         const chunk_addr = getChunkAddr(pos);
         const chunk = this.chunks.get(chunk_addr);
