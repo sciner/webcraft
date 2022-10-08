@@ -726,7 +726,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1873,6 +1873,18 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
         ['default', 'fence', 'wall'].indexOf(world_material.style) < 0 ||
         (['fence', 'wall'].indexOf(world_material.style) >= 0 && pos.n.y != 1)
     );
+}
+
+// use shears
+async function useShears(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(current_inventory_item.id != BLOCK.SHEARS.id) {
+        return false;
+    }
+    const position = new Vector(pos);
+    if (world_material.tags.includes('leaves')) {
+       actions.addBlocks([{pos: position, item: {id: world_material.id, extra_data: { sheared: true }}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    }
+    return false;
 }
 
 //
