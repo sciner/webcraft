@@ -499,7 +499,9 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
-        TrackerPlayer.onPlayerUpdate(this.player);
+        // update a sounds after player update
+        this.sounds.update();
+
         this.world.chunkManager.update(player.pos, delta);
 
         // Picking target

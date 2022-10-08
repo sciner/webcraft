@@ -1,4 +1,5 @@
-import { Vector, VectorCollector } from "./helpers.js";
+import { Sounds } from "./sounds.js";
+import { VectorCollector } from "./helpers.js";
 import { XMPlayer } from "./xmplayer/xmWorklet.js";
 
 const MAX_AUDIBILITY_DIST = 64;
@@ -11,13 +12,13 @@ export class Tracker_Player {
 
     constructor() {
         this.vc = new VectorCollector();
-
-        this.audioContext = null;
     }
 
     loadAndPlay(url, pos, dt) {
+        const sounds = Sounds.instance;
 
         let prev_jukebox = this.vc.get(pos);
+
         if(prev_jukebox && prev_jukebox.url == url) {
             return;
         }
@@ -28,22 +29,27 @@ export class Tracker_Player {
         this.stop(pos);
         this.vc.set(pos, jukebox);
 
-        // cache 
-        jukebox.init(this.audioContext);
+        jukebox.panner = new PannerNode(sounds.context, {
+            ...Sounds.PANNER_ATTR,
 
-        jukebox.volume = Tracker_Player.MASTER_VOLUME;
+            // juckbox listen at 64 blocks
+            maxDistance: 64,
 
-        // cache context if not present
-        this.audioContext = jukebox.audioctx;
-
-        jukebox.panner = new PannerNode(jukebox.audioctx, {
-            maxDistance: 0,
-            maxDistance: MAX_AUDIBILITY_DIST,
-            rolloffFactor: 0.25,
             positionX: pos.x,
+
             positionY: pos.z,
+
             positionZ: pos.y,
         });
+
+        // jukeboxWorker -> jukeboxGain -> panner -> masterGain
+        // attach to sound context in panner
+        jukebox.init(sounds.context, jukebox.panner);
+
+        // that connected to master gain
+        jukebox.panner.connect(sounds.masterGain);
+
+        jukebox.volume = Tracker_Player.MASTER_VOLUME;
 
         fetch(url)
             .then(res => res.arrayBuffer()) // Gets the response and returns it as a blob
@@ -54,12 +60,6 @@ export class Tracker_Player {
             })
             .then(() => {    
                 jukebox.play()
-
-                // reconnect nodes, we shpuld swap gain and panner tree
-                jukebox.gainNode.disconnect(jukebox.audioctx.destination);
-                jukebox.gainNode
-                    .connect(jukebox.panner)
-                    .connect(jukebox.audioctx.destination);        
             })
     }
 
@@ -77,27 +77,4 @@ export class Tracker_Player {
             this.stop(pos);
         }
     }
-
-    onPlayerUpdate(player) {
-        if (!this.audioContext) {
-            return;
-        }
-
-        const { lerpPos, forward } = player;
-
-        const { listener } = this.audioContext;
-
-        listener.positionX.value = lerpPos.x;
-        listener.positionY.value = lerpPos.z; // HAHAH
-        listener.positionZ.value = lerpPos.y;
-
-        listener.upX.value = 0;
-        listener.upZ.value = 1; // because we flip axies
-        listener.upY.value = 0;
-
-        listener.forwardX.value = forward.x;
-        listener.forwardY.value = forward.z;
-        listener.forwardZ.value = forward.y;
-    }
-
 }

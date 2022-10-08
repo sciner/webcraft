@@ -18,6 +18,7 @@ export class XMPlayer {
 
         this.onMessage = this.onMessage.bind(this);
 
+        this._destination = null;
         this._volume = 1;
     }
 
@@ -57,7 +58,7 @@ export class XMPlayer {
         }
     }
 
-    async init(context = null) {
+    async init(context = null, destination) {
         if (!this.audioctx || (context && this.audioctx !== context)) {
             var audioContext = window.AudioContext || window.webkitAudioContext;
             this.audioctx = context || new audioContext();
@@ -86,7 +87,15 @@ export class XMPlayer {
             this.active = true;
         }
 
-        this.gainNode.connect(this.audioctx.destination);
+        destination = this._destination || destination || this.audioctx.destination;
+
+        if (this._destination) {
+            this.gainNode.connect(this._destination);
+        }
+
+        this._destination = destination;
+        this.gainNode.connect(destination);
+    
 
         if (this.buffer) {
             await this.load(this.buffer);
