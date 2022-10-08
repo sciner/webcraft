@@ -37,14 +37,13 @@ export class Tracker_Player {
         this.vc.set(pos, jukebox);
 
         fetch(url)
-            .then(res => res.blob()) // Gets the response and returns it as a blob
-            .then(async blob => {
+            .then(res => res.arrayBuffer()) // Gets the response and returns it as a blob
+            .then(buffer => {
                 jukebox.stop();
                 jukebox.url = url;
                 jukebox.volume = 0;
-                return blob.arrayBuffer();
+                return jukebox.load(buffer);
             })
-            .then((b) => jukebox.load(b))
             .then(() => jukebox.play())
             // for compute valid volume
             .then(()=> this.changePos(pos))
