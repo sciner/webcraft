@@ -7,9 +7,12 @@ const VOLUME_DISCRETE = MAX_AUDIBILITY_DIST;
 const FADEIN_MS = 3000;
 
 export class Tracker_Player {
+    static MASTER_VOLUME = 0.1;
 
     constructor() {
         this.vc = new VectorCollector();
+
+        this.audioContext = null;
     }
 
     loadAndPlay(url, pos, dt) {
@@ -21,7 +24,14 @@ export class Tracker_Player {
 
         const jukebox = new XMPlayer();
         jukebox.url = url;
-        jukebox.init();
+
+        // cache 
+        jukebox.init(this.audioContext);
+
+        jukebox.gainNode.gain.value = Tracker_Player.MASTER_VOLUME;
+
+        // cache context if not present
+        this.audioContext = jukebox.audioctx;
 
         this.stop(pos);
         this.vc.set(pos, jukebox);
@@ -70,14 +80,18 @@ export class Tracker_Player {
             if(jukebox.playing) {
                 const dist = jukebox_pos.distance(pos);
                 let volume = Math.round((dist < MAX_AUDIBILITY_DIST ? (1 - dist / MAX_AUDIBILITY_DIST) : 0) * VOLUME_DISCRETE) / VOLUME_DISCRETE;
-                volume *= MAX_VOLUME;
+                // volume *= MAX_VOLUME;
                 const pn = performance.now() - this.n_started;
                 if(pn < FADEIN_MS) {
                     volume *= (pn / FADEIN_MS);
                 }
+                
+                /*
                 if(jukebox.xm.global_volume != volume) {
                     jukebox.xm.global_volume = volume;
-                }
+                }*/
+
+                jukebox.gainNode.gain.value = volume * Tracker_Player.MASTER_VOLUME;
             }
         }
         this.pos_changing = false;
