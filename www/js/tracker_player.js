@@ -1,5 +1,5 @@
-import {Vector, VectorCollector} from "./helpers.js";
-import {XMPlayer} from "./../vendors/xm.js";
+import { Vector, VectorCollector } from "./helpers.js";
+import { XMPlayer } from "./xmplayer/xmWorklet.js";
 
 const MAX_AUDIBILITY_DIST = 64;
 const MAX_VOLUME = 128;
@@ -28,7 +28,7 @@ export class Tracker_Player {
         // cache 
         jukebox.init(this.audioContext);
 
-        jukebox.gainNode.gain.value = Tracker_Player.MASTER_VOLUME;
+        jukebox.volume = Tracker_Player.MASTER_VOLUME;
 
         // cache context if not present
         this.audioContext = jukebox.audioctx;
@@ -37,20 +37,17 @@ export class Tracker_Player {
         this.vc.set(pos, jukebox);
 
         fetch(url)
-        .then(res => res.blob()) // Gets the response and returns it as a blob
-        .then(async blob => {
-            jukebox.stop();
-            var buffer = await blob.arrayBuffer();
-            jukebox.url = url;
-            // calculate how many seconds between disc started
-            jukebox.load(buffer);
-            jukebox.play();
-            /*if(dt) {
-                const elapsed_sec = Math.round((new Date() - dt) / 1000);
-                console.log(elapsed_sec);
-            }*/
-        });
-
+            .then(res => res.blob()) // Gets the response and returns it as a blob
+            .then(async blob => {
+                jukebox.stop();
+                jukebox.url = url;
+                jukebox.volume = 0;
+                return blob.arrayBuffer();
+            })
+            .then((b) => jukebox.load(b))
+            .then(() => jukebox.play())
+            // for compute valid volume
+            .then(()=> this.changePos(pos))
     }
 
     stop(pos) {
@@ -85,13 +82,8 @@ export class Tracker_Player {
                 if(pn < FADEIN_MS) {
                     volume *= (pn / FADEIN_MS);
                 }
-                
-                /*
-                if(jukebox.xm.global_volume != volume) {
-                    jukebox.xm.global_volume = volume;
-                }*/
 
-                jukebox.gainNode.gain.value = volume * Tracker_Player.MASTER_VOLUME;
+                jukebox.volume = volume * Tracker_Player.MASTER_VOLUME;
             }
         }
         this.pos_changing = false;
