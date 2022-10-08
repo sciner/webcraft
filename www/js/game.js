@@ -70,7 +70,7 @@ export class GameClass {
      */
     Started(player) {
         this.player             = player;
-        this.sounds             = new Sounds();
+        this.sounds             = new Sounds(player);
         this.averageClockTimer  = new AverageClockTimer();
         this.prev_player_state  = null;
         //
@@ -83,37 +83,9 @@ export class GameClass {
         // Interval functions
         this.sendStateInterval = setInterval(() => {
             player.sendState();
-            // TrackerPlayer change volumes
-            TrackerPlayer.changePos(this.player.lerpPos);
-            // Add jukebox animations
-            /*for(let pos of TrackerPlayer.vc.keys()) {
-                if(Math.random() < .1) {
-                    Qubatch.render.meshes.effects.createBlockEmitter({type: 'music_note', pos: [pos.add(new V)]});
-                }
-            }*/
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
-        /*
-        setInterval(() => {
-            if(!Qubatch.hud.splash.loading) {
-                let bbmodels = globalThis._debug_bbmodels;
-                if(!bbmodels) {
-                    bbmodels = [];
-                    for(const [id, b] of Qubatch.world.block_manager.list) {
-                        if(b.style == 'bbmodel') {
-                            bbmodels.push(b.id);
-                        }
-                    }
-                    globalThis._debug_bbmodels = bbmodels;
-                }
-                let i = 0;
-                for(let id of bbmodels) {
-                    Qubatch.world.chunkManager.setBlock(2900 + i++ * 2, 4, 2703, {id}, true, null, new Vector(2, 0, 0), null);    
-                }
-            }
-        }, 10)
-        */
     }
 
     // Set the canvas the renderer uses for some input operations.

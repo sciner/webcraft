@@ -100,30 +100,4 @@ export class Tracker_Player {
         listener.forwardZ.value = forward.y;
     }
 
-    changePos(pos) {
-        return; 
- 
-        if(this.vc.size == 0 || this.pos_changing) {
-            return;
-        }
-        this.pos_changing = true;
-        if(!this.n_started) {
-            this.n_started = performance.now();
-        }
-        for(let [jukebox_pos, jukebox] of this.vc.entries()) {
-            if(jukebox.playing) {
-                const dist = jukebox_pos.distance(pos);
-                let volume = Math.round((dist < MAX_AUDIBILITY_DIST ? (1 - dist / MAX_AUDIBILITY_DIST) : 0) * VOLUME_DISCRETE) / VOLUME_DISCRETE;
-                // volume *= MAX_VOLUME;
-                const pn = performance.now() - this.n_started;
-                if(pn < FADEIN_MS) {
-                    volume *= (pn / FADEIN_MS);
-                }
-
-                jukebox.volume = volume * Tracker_Player.MASTER_VOLUME;
-            }
-        }
-        this.pos_changing = false;
-    }
-
 }

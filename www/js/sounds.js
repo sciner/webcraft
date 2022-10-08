@@ -3,7 +3,10 @@ import { SOUND_MAX_DIST }  from "./constant.js";
 
 export class Sounds {
 
-    constructor() {
+    #player;
+
+    constructor(player) {
+        this.#player = player;
         this.tags = {};
         this.prev_index = new Map();
         this.sound_sprite_main = new Howl(Resources.sound_sprite_main);
@@ -64,7 +67,15 @@ export class Sounds {
         return list ?? null;
     }
 
-    play(tag, action, dist, ignore_repeating = false) {
+    /**
+     * Play sound effect
+     * @param {string} tag 
+     * @param {string} action 
+     * @param {Vector} pos 
+     * @param {boolean} ignore_repeating 
+     * @returns 
+     */
+    play(tag, action, pos, ignore_repeating = false) {
         const list = this.getTagActionList(tag, action)
         if(!list) {
             return;
@@ -87,7 +98,11 @@ export class Sounds {
         if(track) {
             // calculate volume by distance
             let volume = track.props.volume;
-            if(!isNaN(dist)) volume *= this.voice_calculation(dist);
+            if(pos) {
+                const { lerpPos, forward } = this.#player;
+                const dist = lerpPos.distance(pos);
+                volume *= this.voice_calculation(dist);
+            }
             // if volume ok
             if(volume > 0) {
                 track_id = this.sound_sprite_main.play(track.name);
