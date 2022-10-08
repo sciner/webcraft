@@ -32,6 +32,8 @@ export class Tracker_Player {
         jukebox.panner = new PannerNode(sounds.context, {
             ...Sounds.PANNER_ATTR,
 
+            rolloffFactor: 0.25,
+  
             // juckbox listen at 64 blocks
             maxDistance: 64,
 

@@ -22,7 +22,7 @@ export class Sounds {
         maxDistance: SOUND_MAX_DIST,
         panningModel: 'HRTF',
         refDistance: 1,
-        rolloffFactor: 0.25,
+        rolloffFactor: 1,
     };
 
     /**
