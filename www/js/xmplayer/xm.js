@@ -3,6 +3,10 @@
 * https://github.com/a1k0n/jsxm
 */
 
+import { AsyncMessager } from "./asyncMessager.js";
+import { XMEffects, EnvelopeFollower, Envelope } from "./XMEffects.js";
+
+
 // for pretty-printing notes
 const _note_names = [
     "C-", "C#", "D-", "D#", "E-", "F-",
@@ -14,416 +18,9 @@ let f_smp = 44100;  // updated by play callback, default value here
 // and clicks); evaluated every 8 samples
 const popfilter_alpha = 0.9837;
 
-class XMEffects {
+export class XMPlayer {
 
     constructor() {
-
-        this.effects_t0 = [  // effect functions on tick 0
-            this.eff_t1_0,  // 1, arpeggio is processed on all ticks
-            this.eff_t0_1,
-            this.eff_t0_2,
-            this.eff_t0_3,
-            this.eff_t0_4,  // 4
-            this.eff_t0_a,  // 5, same as A on first tick
-            this.eff_t0_a,  // 6, same as A on first tick
-            this.eff_unimplemented_t0,  // 7
-            this.eff_t0_8,  // 8
-            this.eff_t0_9,  // 9
-            this.eff_t0_a,  // a
-            this.eff_t0_b,  // b
-            this.eff_t0_c,  // c
-            this.eff_t0_d,  // d
-            this.eff_t0_e,  // e
-            this.eff_t0_f,  // f
-            this.eff_t0_g,  // g
-            this.eff_t0_h,  // h
-            this.eff_unimplemented_t0,  // i
-            this.eff_unimplemented_t0,  // j
-            this.eff_unimplemented_t0,  // k
-            this.eff_unimplemented_t0,  // l
-            this.eff_unimplemented_t0,  // m
-            this.eff_unimplemented_t0,  // n
-            this.eff_unimplemented_t0,  // o
-            this.eff_unimplemented_t0,  // p
-            this.eff_unimplemented_t0,  // q
-            this.eff_t0_r,  // r
-            this.eff_unimplemented_t0,  // s
-            this.eff_unimplemented_t0,  // t
-            this.eff_unimplemented_t0,  // u
-            this.eff_unimplemented_t0,  // v
-            this.eff_unimplemented_t0,  // w
-            this.eff_unimplemented_t0,  // x
-            this.eff_unimplemented_t0,  // y
-            this.eff_unimplemented_t0,  // z
-        ];
-    
-        this.effects_t1 = [  // effect functions on tick 1+
-            this.eff_t1_0,
-            this.eff_t1_1,
-            this.eff_t1_2,
-            this.eff_t1_3,
-            this.eff_t1_4,
-            this.eff_t1_5,  // 5
-            this.eff_t1_6,  // 6
-            this.eff_unimplemented,  // 7
-            null,   // 8
-            null,   // 9
-            this.eff_t1_a,  // a
-            null,   // b
-            null,   // c
-            null,   // d
-            this.eff_t1_e,  // e
-            null,   // f
-            null,  // g
-            this.eff_t1_h,  // h
-            this.eff_unimplemented,  // i
-            this.eff_unimplemented,  // j
-            this.eff_unimplemented,  // k
-            this.eff_unimplemented,  // l
-            this.eff_unimplemented,  // m
-            this.eff_unimplemented,  // n
-            this.eff_unimplemented,  // o
-            this.eff_unimplemented,  // p
-            this.eff_unimplemented,  // q
-            this.eff_t1_r,  // r
-            this.eff_unimplemented,  // s
-            this.eff_unimplemented,  // t
-            this.eff_unimplemented,  // u
-            this.eff_unimplemented,  // v
-            this.eff_unimplemented,  // w
-            this.eff_unimplemented,  // x
-            this.eff_unimplemented,  // y
-            this.eff_unimplemented   // z
-        ];
-
-    }
-
-    eff_t1_0(ch) {  // arpeggio
-        if (ch.effectdata !== 0 && ch.inst !== undefined) {
-            var arpeggio = [0, ch.effectdata >> 4, ch.effectdata & 15];
-            var note = ch.note + arpeggio[this.cur_tick % 3];
-            ch.period = this.periodForNote(ch, note);
-        }
-    }
-
-    eff_t0_1(ch, data) {  // pitch slide up
-        if (data !== 0) {
-            ch.slideupspeed = data;
-        }
-    }
-
-    eff_t1_1(ch) {  // pitch slide up
-        if (ch.slideupspeed !== undefined) {
-            // is this limited? it appears not
-            ch.period -= ch.slideupspeed;
-        }
-    }
-
-    eff_t0_2(ch, data) {  // pitch slide down
-        if (data !== 0) {
-            ch.slidedownspeed = data;
-        }
-    }
-
-    eff_t1_2(ch) {  // pitch slide down
-        if (ch.slidedownspeed !== undefined) {
-            // 1728 is the period for C-1
-            ch.period = Math.min(1728, ch.period + ch.slidedownspeed);
-        }
-    }
-
-    eff_t0_3(ch, data) {  // portamento
-        if (data !== 0) {
-            ch.portaspeed = data;
-        }
-    }
-
-    eff_t1_3(ch) {  // portamento
-        if (ch.periodtarget !== undefined && ch.portaspeed !== undefined) {
-            if (ch.period > ch.periodtarget) {
-                ch.period = Math.max(ch.periodtarget, ch.period - ch.portaspeed);
-            } else {
-                ch.period = Math.min(ch.periodtarget, ch.period + ch.portaspeed);
-            }
-        }
-    }
-
-    eff_t0_4(ch, data) {  // vibrato
-        if (data & 0x0f) {
-            ch.vibratodepth = (data & 0x0f) * 2;
-        }
-        if (data >> 4) {
-            ch.vibratospeed = data >> 4;
-        }
-        this.eff_t1_4(ch);
-    }
-
-    eff_t1_4(ch) {  // vibrato
-        ch.periodoffset = this.getVibratoDelta(ch.vibratotype, ch.vibratopos) * ch.vibratodepth;
-        if (isNaN(ch.periodoffset)) {
-            console.log("vibrato periodoffset NaN?",
-                ch.vibratopos, ch.vibratospeed, ch.vibratodepth);
-            ch.periodoffset = 0;
-        }
-        // only updates on non-first ticks
-        if (this.cur_tick > 0) {
-            ch.vibratopos += ch.vibratospeed;
-            ch.vibratopos &= 63;
-        }
-    }
-
-    getVibratoDelta(type, x) {
-        var delta = 0;
-        switch (type & 0x03) {
-            case 1: // sawtooth (ramp-down)
-                delta = ((1 + x * 2 / 64) % 2) - 1;
-                break;
-            case 2: // square
-            case 3: // random (in FT2 these two are the same)
-                delta = x < 32 ? 1 : -1;
-                break;
-            case 0:
-            default: // sine
-                delta = Math.sin(x * Math.PI / 32);
-                break;
-        }
-        return delta;
-    }
-
-    eff_t1_5(ch) {  // portamento + volume slide
-        this.eff_t1_a(ch);
-        this.eff_t1_3(ch);
-    }
-
-    eff_t1_6(ch) {  // vibrato + volume slide
-        this.eff_t1_a(ch);
-        this.eff_t1_4(ch);
-    }
-
-    eff_t0_8(ch, data) {  // set panning
-        ch.pan = data;
-    }
-
-    eff_t0_9(ch, data) {  // sample offset
-        ch.off = data * 256;
-    }
-
-    eff_t0_a(ch, data) {  // volume slide
-        if (data) {
-            ch.volumeslide = -(data & 0x0f) + (data >> 4);
-        }
-    }
-
-    eff_t1_a(ch) {  // volume slide
-        if (ch.volumeslide !== undefined) {
-            ch.vol = Math.max(0, Math.min(64, ch.vol + ch.volumeslide));
-        }
-    }
-
-    eff_t0_b(ch, data) {  // song jump (untested)
-        if (data < this.xm.songpats.length) {
-            this.cur_songpos = data;
-            this.cur_pat = this.xm.songpats[this.cur_songpos];
-            this.cur_row = -1;
-        }
-    }
-
-    eff_t0_c(ch, data) {  // set volume
-        ch.vol = Math.min(64, data);
-    }
-
-    eff_t0_d(ch, data) {  // pattern jump
-        this.cur_songpos++;
-        if (this.cur_songpos >= this.xm.songpats.length)
-        this.cur_songpos = this.xm.song_looppos;
-        this.cur_pat = this.xm.songpats[this.cur_songpos];
-        this.cur_row = (data >> 4) * 10 + (data & 0x0f) - 1;
-    }
-
-    eff_t0_e(ch, data) {  // extended effects!
-        var eff = data >> 4;
-        data = data & 0x0f;
-        switch (eff) {
-            case 1:  // fine porta up
-                ch.period -= data;
-                break;
-            case 2:  // fine porta down
-                ch.period += data;
-                break;
-            case 4:  // set vibrato waveform
-                ch.vibratotype = data & 0x07;
-                break;
-            case 5:  // finetune
-                ch.fine = (data << 4) + data - 128;
-                break;
-            case 8:  // panning
-                ch.pan = data * 0x11;
-                break;
-            case 0x0a:  // fine vol slide up (with memory)
-                if (data === 0 && ch.finevolup !== undefined)
-                    data = ch.finevolup;
-                ch.vol = Math.min(64, ch.vol + data);
-                ch.finevolup = data;
-                break;
-            case 0x0b:  // fine vol slide down
-                if (data === 0 && ch.finevoldown !== undefined)
-                    data = ch.finevoldown;
-                ch.vol = Math.max(0, ch.vol - data);
-                ch.finevoldown = data;
-                break;
-            case 0x0c:  // note cut handled in eff_t1_e
-                break;
-            default:
-                console.debug("unimplemented extended effect E", ch.effectdata.toString(16));
-                break;
-        }
-    }
-
-    eff_t1_e(ch) {  // note cut
-        switch (ch.effectdata >> 4) {
-            case 0x0c:
-                if (this.cur_tick == (ch.effectdata & 0x0f)) {
-                    ch.vol = 0;
-                }
-                break;
-        }
-    }
-
-    eff_t0_f(ch, data) {  // set tempo
-        if (data === 0) {
-            console.log("tempo 0?");
-            return;
-        } else if (data < 0x20) {
-            console.log(this);
-            this.xm.tempo = data;
-        } else {
-            this.xm.bpm = data;
-        }
-    }
-
-    eff_t0_g(ch, data) {  // set global volume
-        if (data <= 0x40) {
-            // volume gets multiplied by 2 to match
-            // the initial max global volume of 128
-            this.xm.global_volume = Math.max(0, data * 2);
-        } else {
-            this.xm.global_volume = this.max_global_volume;
-        }
-    }
-
-    eff_t0_h(ch, data) {  // global volume slide
-        if (data) {
-            // same as Axy but multiplied by 2
-            this.xm.global_volumeslide = (-(data & 0x0f) + (data >> 4)) * 2;
-        }
-    }
-
-    eff_t1_h(ch) {  // global volume slide
-        if (this.xm.global_volumeslide !== undefined) {
-            this.xm.global_volume = Math.max(0, Math.min(this.max_global_volume,
-                this.xm.global_volume + this.xm.global_volumeslide));
-        }
-    }
-
-    eff_t0_r(ch, data) {  // retrigger
-        if (data & 0x0f) ch.retrig = (ch.retrig & 0xf0) + (data & 0x0f);
-        if (data & 0xf0) ch.retrig = (ch.retrig & 0x0f) + (data & 0xf0);
-
-        // retrigger volume table
-        switch (ch.retrig >> 4) {
-            case 1: ch.vol -= 1; break;
-            case 2: ch.vol -= 2; break;
-            case 3: ch.vol -= 4; break;
-            case 4: ch.vol -= 8; break;
-            case 5: ch.vol -= 16; break;
-            case 6: ch.vol *= 2; ch.vol /= 3; break;
-            case 7: ch.vol /= 2; break;
-            case 9: ch.vol += 1; break;
-            case 0x0a: ch.vol += 2; break;
-            case 0x0b: ch.vol += 4; break;
-            case 0x0c: ch.vol += 8; break;
-            case 0x0d: ch.vol += 16; break;
-            case 0x0e: ch.vol *= 3; ch.vol /= 2; break;
-            case 0x0f: ch.vol *= 2; break;
-        }
-        ch.vol = Math.min(64, Math.max(0, ch.vol));
-    }
-
-    eff_t1_r(ch) {
-        if (this.cur_tick % (ch.retrig & 0x0f) === 0) {
-            ch.off = 0;
-        }
-    }
-
-    eff_unimplemented() {}
-
-    eff_unimplemented_t0(ch, data) {
-        console.log("unimplemented effect", this.prettify_effect(ch.effect, data));
-    }
-
-}
-
-class Envelope {
-    
-    constructor(points, type, sustain, loopstart, loopend) {
-        this.points = points;
-        this.type = type;
-        this.sustain = sustain;
-        this.loopstart = points[loopstart * 2];
-        this.loopend = points[loopend * 2];
-    }
-
-    Get(ticks) {
-        // TODO: optimize follower with ptr
-        // or even do binary search here
-        var y0;
-        var env = this.points;
-        for (var i = 0; i < env.length; i += 2) {
-            y0 = env[i + 1];
-            if (ticks < env[i]) {
-                var x0 = env[i - 2];
-                y0 = env[i - 1];
-                var dx = env[i] - x0;
-                var dy = env[i + 1] - y0;
-                return y0 + (ticks - x0) * dy / dx;
-            }
-        }
-        return y0;
-    }
-
-}
-
-class EnvelopeFollower {
-
-    constructor(env) {
-        this.env = env;
-        this.tick = 0;
-    }
-
-    Tick(release) {
-        var value = this.env.Get(this.tick);
-    
-        // if we're sustaining a note, stop advancing the tick counter
-        if (!release && this.tick >= this.env.points[this.env.sustain * 2]) {
-            return this.env.points[this.env.sustain * 2 + 1];
-        }
-    
-        this.tick++;
-        if (this.env.type & 4) {  // envelope loop?
-            if (!release &&
-                this.tick >= this.env.loopend) {
-                this.tick -= this.env.loopend - this.env.loopstart;
-            }
-        }
-        return value;
-    }
-
-}
-
-export class XMPlayer extends XMEffects {
-
-    constructor() {
-        super();
         this.playing            = false;
         this.XMView             = {};
         this.cur_songpos        = -1;
@@ -433,6 +30,9 @@ export class XMPlayer extends XMEffects {
         this.cur_tick           = 6;
         this.xm                 = {};  // contains all song data
         this.xm.global_volume   = this.max_global_volume = 128;
+
+        this.messager = new AsyncMessager(null);
+        this.effects = new XMEffects(this);
         // this.Envelope = Envelope;
     }
 
@@ -610,15 +210,15 @@ export class XMPlayer extends XMEffects {
                     ch.vibratospeed = v & 0x0f;
                 } else if (v >= 0xb0 && v < 0xc0) {  // vibrato w/ depth
                     ch.vibratodepth = v & 0x0f;
-                    ch.voleffectfn = (e) => { this.effects_t1[4]};  // use vibrato effect directly
-                    this.effects_t1[4](ch);  // and also call it on tick 0
+                    ch.voleffectfn = (e) => { this.effects.effects_t1[4]};  // use vibrato effect directly
+                    this.effects.effects_t1[4](ch);  // and also call it on tick 0
                 } else if (v >= 0xc0 && v < 0xd0) {  // set panning
                     ch.pan = (v & 0x0f) * 0x11;
                 } else if (v >= 0xf0 && v <= 0xff) {  // portamento
                     if (v & 0x0f) {
                         ch.portaspeed = (v & 0x0f) << 4;
                     }
-                    ch.voleffectfn = (e) => { this.effects_t1[3]};  // just run 3x0
+                    ch.voleffectfn = (e) => { this.effects.effects_t1[3]};  // just run 3x0
                 } else {
                     console.debug("channel", i, "volume effect", v.toString(16));
                 }
@@ -627,8 +227,8 @@ export class XMPlayer extends XMEffects {
             ch.effect = r[i][3];
             ch.effectdata = r[i][4];
             if (ch.effect < 36) {
-                ch.effectfn = (e) => { this.effects_t1[ch.effect]};
-                var eff_t0 = (e) => { this.effects_t0[ch.effect]};
+                ch.effectfn = (e) => { this.effects.effects_t1[ch.effect]};
+                var eff_t0 = (e) => { this.effects.effects_t0[ch.effect]};
                 if (eff_t0 && eff_t0(ch, ch.effectdata)) {
                     triggernote = false;
                 }
@@ -1023,7 +623,9 @@ export class XMPlayer extends XMEffects {
         samp.type = 1;
     }
 
-    load(arrayBuf) {
+    async load(arrayBuf) {
+        this.buffer = arrayBuf;
+
         var dv = new DataView(arrayBuf);
         this.xm = {};
 
@@ -1254,38 +856,52 @@ export class XMPlayer extends XMEffects {
         }
 
         console.debug("loaded \"" + this.xm.songname + "\"");
+        
+        if (this.messager.isActive) {
+            await this.messager.notify('load', { buffer: arrayBuf });
+            this.buffer = null;
+        }
         return true;
     }
 
-    async init(context) {
-        if (!this.audioctx || (context && this.audioctx !== context)) {
+    async init() {
+        if (!this.audioctx) {
             var audioContext = window.AudioContext || window.webkitAudioContext;
-            this.audioctx = context || new audioContext();
-        }
-
-        if (!this.gainNode || this.gainNode.context !== this.audioctx) {
+            this.audioctx = new audioContext();
             this.gainNode = this.audioctx.createGain();
-            this.gainNode.gain.value = 1;  // master volume
+            this.gainNode.gain.value = 0.1;  // master volume
         }
-
         if (this.audioctx.createScriptProcessor === undefined) {
-            this.jsNode = this.audioctx.createJavaScriptNode(16384, 0, 2);
-        } else {
+            //this.jsNode = this.audioctx.createJavaScriptNode(16384, 0, 2);
+        } else if(!this.worker) {
 
-            this.jsNode = this.audioctx.createScriptProcessor(16384, 0, 2);
+            // this.jsNode = this.audioctx.createScriptProcessor(16384, 0, 2);
 
             // await this.audioctx.audioWorklet.addModule('/js/test-processor.js')
             // this.jsNode = new AudioWorkletNode(this.audioctx, 'test-processor')
             // this.jsNode.connect(this.audioctx.destination)
 
+            await this.audioctx.audioWorklet.addModule('/lib/XMProcessor.js');
+
+            this.worker = new AudioWorkletNode(this.audioctx, 'xm-processor');            
+            this.jsNode = this.worker;
         }
+
+        this.messager.init(this.worker.port);
+
         this.jsNode.onaudioprocess = (e) => {
             return this.audio_cb(e);
         };
+   
         this.gainNode.connect(this.audioctx.destination);
+
+        if (this.buffer) {
+            await this.messager.notify('load', { buffer: this.buffer }, [this.buffer]);
+            this.buffer = null;
+        }
     }
 
-    play() {
+    async play() {
         if (!this.playing) {
             // put paused events back into action, if any
             if (this.XMView.resume) {
@@ -1301,17 +917,19 @@ export class XMPlayer extends XMEffects {
             !!temp_osc.stop ? temp_osc.stop(0) : temp_osc.noteOff(0);
             temp_osc.disconnect();
         }
-        this.playing = true;
+
+        this.playing = await this.messager.notify('play');
     }
 
-    pause() {
+    async pause() {
         if (this.playing) {
             this.jsNode.disconnect(this.gainNode);
             if (this.XMView.pause) {
                 this.XMView.pause();
             }
         }
-        this.playing = false;
+
+        this.playing = await this.messager.notify('pause');
     }
 
     stop() {

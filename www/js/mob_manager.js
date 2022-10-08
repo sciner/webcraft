@@ -106,13 +106,10 @@ export class MobManager {
 
     // Play mob idle or step sounds
     playSounds() {
-        const camPos = Qubatch.render.camPos;
         for(const [_, mob] of this.list.entries()) {
-            const dist = mob._pos.distance(camPos);
-            if(dist < SOUND_MAX_DIST) {
-                if(Math.random() < .01) {
-                    const effect = Math.random() > .75 ? 'idle' : 'step';
-                    Qubatch.sounds.play('madcraft:block.' + mob.type, effect, dist);
+            if(Math.random() < .01) {
+                const effect = Math.random() > .75 ? 'idle' : 'step';
+                if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob._pos)) {
                     break;
                 }
             }
