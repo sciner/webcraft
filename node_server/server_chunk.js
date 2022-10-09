@@ -1,8 +1,8 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk_const.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {Vector, VectorCollector} from "../www/js/helpers.js";
-import {BLOCK} from "../www/js/blocks.js";
-import { newTypedBlocks } from "../www/js/typed_blocks3.js";
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
+import { ServerClient } from "../www/js/server_client.js";
+import { SIX_VECS, Vector, VectorCollector} from "../www/js/helpers.js";
+import { BLOCK } from "../www/js/blocks.js";
+import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
@@ -12,7 +12,9 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
-//
+export const CHUNK_STATE_UNLOADED          = 4;
+
+const _rnd_check_pos = new Vector(0, 0, 0);
 
 // Ticking block
 class TickingBlock {
@@ -25,6 +27,7 @@ class TickingBlock {
         // this.tblock     = null;
         this.ticking    = null;
         this.ticker     = null;
+        this._preloadFluidBuf   = null;
     }
 
     setState(pos_index) {
@@ -104,7 +107,7 @@ class TickingBlockManager {
 
         //
         if(updated_blocks.length > 0) {
-            const actions = new WorldAction(null, this.#chunk.world, false, false);
+            const actions = new WorldAction(null, this.#chunk.world, false, true);
             actions.addBlocks(updated_blocks);
             world.actions_queue.add(null, actions);
         }
@@ -112,6 +115,8 @@ class TickingBlockManager {
     }
 
 }
+
+let global_uniqId = 0;
 
 // Server chunk
 export class ServerChunk {
@@ -121,12 +126,16 @@ export class ServerChunk {
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
+        this.uniqId         = ++global_uniqId;
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = {};
         this.mobs           = new Map();
         this.drop_items     = new Map();
+        this.tblocks        = null;
         this.ticking_blocks = new TickingBlockManager(this);
+        this.randomTickingBlockCount = 0;
+        this.block_random_tickers = this.getChunkManager().block_random_tickers;
         this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
@@ -162,7 +171,7 @@ export class ServerChunk {
         }
         this.setState(CHUNK_STATE_LOADING);
         //
-        const afterLoad = (ml) => {
+        const afterLoad = ([ml, fluid]) => {
             if(!ml.obj && ml.compressed) {
                 ml.obj = decompressWorldModifyChunk(ml.compressed)
             }
@@ -175,6 +184,7 @@ export class ServerChunk {
                     {
                         update:         true,
                         addr:           this.addr,
+                        uniqId:         this.uniqId,
                         modify_list:    ml
                     }
                 ]
@@ -184,15 +194,19 @@ export class ServerChunk {
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
+
+            this._preloadFluidBuf = fluid;
         };
-        //
-        if(this.world.chunkHasModifiers(this.addr)) {
-            this.world.db.loadChunkModifiers(this.addr).then((result) => {
-                afterLoad(result);
-            });
-        } else {
-            afterLoad({});
-        }
+
+        const loadCMPromise = new Promise((resolve, reject) => {
+            if(this.world.chunkHasModifiers(this.addr)) {
+                resolve(this.world.db.loadChunkModifiers(this.addr))
+            } else {
+                resolve({})
+            }
+        });
+
+        Promise.all([loadCMPromise, this.world.db.fluid.loadChunkFluid(this.addr)]).then(afterLoad);
     }
 
     // Add player connection
@@ -265,7 +279,13 @@ export class ServerChunk {
     sendToPlayers(player_ids) {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
-        const data = {addr: this.addr, modify_list: {}};
+
+        const fluidBuf = this.fluid ? this.fluid.saveDbBuffer() : this._preloadFluidBuf;
+        const data = {addr: this.addr,
+            modify_list: {},
+            // TODO: proper compression for fluid
+            fluid: fluidBuf ? Buffer.from(fluidBuf).toString('base64') : null
+        };
         const ml = this.modify_list;
         if(!ml.compressed && ml.obj) {
             this.compressModifyList();
@@ -302,6 +322,17 @@ export class ServerChunk {
         this.world.sendSelected(packets_mobs, player_user_ids, []);
     }
 
+    sendFluid(buf) {
+        const packets = [{
+            name: ServerClient.CMD_FLUID_UPDATE,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }];
+        this.sendAll(packets, []);
+    }
+
     sendDropItems(player_user_ids) {
         // Send all drop items in this chunk
         if (this.drop_items.size < 1) {
@@ -323,6 +354,10 @@ export class ServerChunk {
         if (!chunkManager) {
             return;
         }
+        if (args.uniqId !== this.uniqId) {
+            //TODO cover it with a test
+            return;
+        }
         if(this.addr.equal(new Vector(-10,0,-1))) {
             let ids = [];
             for(let i = 0; i < args.tblocks.id.length; i++) {
@@ -336,8 +371,29 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         //
+        this.randomTickingBlockCount = 0;
+        for(let i = 0; i < this.tblocks.id.length; i++) {
+            const block_id = this.tblocks.id[i];
+            if(BLOCK.isRandomTickingBlock(block_id)) {
+                this.randomTickingBlockCount++;
+            }
+        }
+        //
         this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // fluid
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
+            return;
+        }
+        let _preloadFluidBuf = this._preloadFluidBuf;
+        if(this._preloadFluidBuf) {
+            // now its stored in fluid facet
+            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
+            this._preloadFluidBuf = null;
+        }
+        if(this.load_state === CHUNK_STATE_UNLOADED) {
+            return;
+        }
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
@@ -437,6 +493,19 @@ export class ServerChunk {
 
     // onBlockSet
     async onBlockSet(item_pos, item) {
+
+        const tblock = this.world.getBlock(item_pos);
+        if(tblock) {
+            const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+            const neighbours = tblock.getNeighbours(this.world, cache);
+            for(let side in neighbours) {
+                const nb = neighbours[side];
+                if(nb.id > 0) {
+                    this.onNeighbourChanged(nb, tblock);
+                }
+            }
+        }
+
         switch(item.id) {
             // 1. Make snow golem
             case BLOCK.LIT_PUMPKIN.id: {
@@ -466,6 +535,114 @@ export class ServerChunk {
                 break;
             }
         }
+
+    }
+
+    //
+    onNeighbourChanged(tblock, neighbour) {
+
+        const world = this.world;
+
+        //
+        function createDrop(tblock) {
+            const pos = tblock.posworld;
+            const actions = new WorldAction(null, world, false, true);
+            actions.addBlocks([
+                {pos: pos.clone(), item: BLOCK.AIR}
+            ])
+            actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+            world.actions_queue.add(null, actions);
+        }
+
+        const pos = tblock.posworld;
+        const rot = tblock.rotate;
+        const rotx = tblock.rotate?.x;
+        const roty = tblock.rotate?.y;
+
+        //
+        if(neighbour.id == 0) {
+
+            switch(tblock.material.style) {
+                case 'rails':
+                case 'candle': {
+                    // only bottom
+                    if(neighbour.posworld.y < pos.y) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'lantern': {
+                    // top and bottom
+                    if(neighbour.posworld.y < pos.y && roty == 1) {
+                        return createDrop(tblock);
+                    } else if(neighbour.posworld.y > pos.y && roty == -1) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'sign':
+                case 'torch': {
+                    // nesw + bottom
+                    let drop = false;
+                    if(rotx == 0 && neighbour.posworld.z < pos.z) {
+                        drop = true;
+                    } else if(rotx == 1 && neighbour.posworld.x > pos.x) {
+                        drop = true;
+                    } else if(rotx == 2 && neighbour.posworld.z > pos.z) {
+                        drop = true;
+                    } else if(rotx == 3 && neighbour.posworld.x < pos.x) {
+                        drop = true;
+                    } else if(neighbour.posworld.y < pos.y && roty == 1) {
+                        drop = true;
+                    }
+                    if(drop) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'item_frame': {
+                    // 6 sides
+                    let drop = false;
+                    console.log(neighbour.posworld.z > pos.z, SIX_VECS.north, rot);
+                    if(neighbour.posworld.z > pos.z && SIX_VECS.south.equal(rot)) {
+                        drop = true;
+                    } else if(neighbour.posworld.z < pos.z && SIX_VECS.north.equal(rot)) {
+                        drop = true;
+                    } else if(neighbour.posworld.x > pos.x && SIX_VECS.west.equal(rot)) {
+                        drop = true;
+                    } else if(neighbour.posworld.x < pos.x && SIX_VECS.east.equal(rot)) {
+                        drop = true;
+                    } else if(neighbour.posworld.y > pos.y && rot.y == -1) {
+                        drop = true;
+                    } else if(neighbour.posworld.y < pos.y && rot.y == 1) {
+                        drop = true;
+                    }
+                    if(drop) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'redstone':
+                case 'cactus': {
+                    if(neighbour.posworld.y < pos.y) {
+                        return createDrop(tblock);
+                    }
+                }
+            }
+        } else {
+            switch(tblock.material.style) {
+                case 'cactus': {
+                    // nesw only
+                    if(neighbour.posworld.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+            }
+        }
+
+        return false;
+
     }
 
     // Store in modify list
@@ -474,10 +651,20 @@ export class ServerChunk {
         if(!ml.obj) ml.obj = {};
         ml.obj[pos.getFlatIndexInChunk()] = item;
         ml.compressed = null;
-        if(item && item.id) {
-            const block = BLOCK.fromId(item.id);
-            if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                this.ticking_blocks.add(pos);
+        if(item) {
+            // calculate random ticked blocks
+            if(this.getBlock(pos)?.material?.random_ticker) {
+                this.randomTickingBlockCount--;
+            }
+            //
+            if(item.id) {
+                const block = BLOCK.fromId(item.id);
+                if(block.random_ticker) {
+                    this.randomTickingBlockCount++;
+                }
+                if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
+                    this.ticking_blocks.add(pos);
+                }
             }
         }
     }
@@ -487,6 +674,46 @@ export class ServerChunk {
         this.ticking_blocks.tick(tick_number);
     }
 
+    getActions() {
+        if(!this._random_tick_actions) {
+            this._random_tick_actions = new WorldAction(null, this.world, false, false);
+        }
+        return this._random_tick_actions;
+    }
+
+    // Random tick
+    randomTick(tick_number, world_light, check_count) {
+
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED || !this.tblocks || this.randomTickingBlockCount <= 0) {
+            return false;
+        }
+
+        let tblock;
+
+        for (let i = 0; i < check_count; i++) {
+            _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));
+            const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
+            if(block_id > 0) {
+                const ticker = this.block_random_tickers.get(block_id);
+                if(ticker) {
+                    tblock = this.tblocks.get(_rnd_check_pos, tblock);
+                    ticker.call(this, this.world, this.getActions(), world_light, tblock);
+                }
+            }
+        }
+
+        //
+        const actions = this._random_tick_actions;
+        if(actions && actions.blocks.list.length > 0) {
+            globalThis.modByRandomTickingBlocks = (globalThis.modByRandomTickingBlocks | 0) + actions.blocks.list.length;
+            this.world.actions_queue.add(null, actions);
+            this._random_tick_actions = null;
+        }
+
+        return true;
+
+    }
+
     // Before unload chunk
     async onUnload() {
         const chunkManager = this.getChunkManager();
@@ -494,6 +721,7 @@ export class ServerChunk {
             return;
         }
         chunkManager.dataWorld.removeChunk(this);
+        this.setState(CHUNK_STATE_UNLOADED);
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {

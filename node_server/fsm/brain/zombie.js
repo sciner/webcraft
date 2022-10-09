@@ -96,7 +96,7 @@ export class Brain extends FSMBrain {
         mob.rotate.z = this.angleTo(player.state.pos);
 
         const block = this.getBeforeBlocks();
-        const is_water = block.body.material.is_fluid;
+        const is_water = block.body.is_fluid;
         this.updateControl({
             yaw: mob.rotate.z,
             forward: true,

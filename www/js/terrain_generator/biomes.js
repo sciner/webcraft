@@ -58,8 +58,11 @@ export class  BIOMES {
                 list: []
             },
             plants: {
-                frequency: 0,
-                list: []
+                frequency: .5,
+                list: [
+                    {percent: .8, blocks: [{id: BLOCK.SEAGRASS.id}]},
+                    {percent: .2, blocks: [{id: BLOCK.SEAGRASS.id}, {id: BLOCK.SEAGRASS.id}]}
+                ]
             }
         };
 
@@ -137,7 +140,7 @@ export class  BIOMES {
             water_color: new IndexedColor(12, 36, 0),
             title:      'ДЖУНГЛИ',
             max_height: 48,
-            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 4,
@@ -157,7 +160,7 @@ export class  BIOMES {
                     {percent: .327, blocks: [{id: BLOCK.GRASS.id}]},
                     {percent: .053, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                     {percent: .010, blocks: [{id: BLOCK.RED_TULIP.id}]},
-                    {percent: .005, blocks: [{id: BLOCK.MELON.id}]},
+                    {percent: .005, blocks: [{id: BLOCK.MELON.id, not_transparent: true}]},
                     {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
@@ -171,7 +174,7 @@ export class  BIOMES {
             water_color: new IndexedColor(0, 255, 0),
             title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
             max_height: 6,
-            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
+            dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id, BLOCK.PODZOL.id],
             no_smooth:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
@@ -225,7 +228,10 @@ export class  BIOMES {
             max_height: 64,
             dirt_block: [BLOCK.STONE.id],
             no_smooth:  false,
-            trees:      {},
+            trees:      {
+                frequency: 0,
+                list: []
+            },
             plants:     {frequency: 0}
         };
 
@@ -318,7 +324,10 @@ export class  BIOMES {
             dirt_block: [BLOCK.GRASS_BLOCK.id],
             no_smooth:  false,
             max_height: 8,
-            trees:      {frequency: 0},
+            trees:      {
+                frequency: 0,
+                list: []
+            },
             plants: {
                 frequency: .3,
                 list: [
@@ -350,7 +359,7 @@ export class  BIOMES {
                     {percent: .025, blocks: [{id: BLOCK.LILY_OF_THE_VALLEY.id}]},
                     {percent: .025, blocks: [{id: BLOCK.CORNFLOWER.id}]},
                     {percent: .025, blocks: [{id: BLOCK.DANDELION.id}]},
-                    {percent: .015, blocks: [{id: BLOCK.PUMPKIN.id}]},
+                    {percent: .015, blocks: [{id: BLOCK.PUMPKIN.id, not_transparent: true}]},
                     {percent: .011, blocks: [{id: BLOCK.PEONY.id}, {id: BLOCK.PEONY.id, extra_data: {is_head: true}}]},
                     {percent: .014, blocks: [{id: BLOCK.LILAC.id}, {id: BLOCK.LILAC.id, extra_data: {is_head: true}}]}
                 ]
@@ -472,6 +481,14 @@ export class  BIOMES {
             const biome = BIOMES[k];
             biome.code = k;
             biome.color_rgba = Color.hexToColor(biome.color);
+            if(!Array.isArray(biome.trees.list)) {
+                console.error(`biome '${k}' has undefined trees.list`);
+            }
+            for(let tree of biome.trees.list) {
+                const trunk_block = BLOCK.fromId(tree.trunk);
+                if(!trunk_block) throw 'invalid_trunk_block';
+                tree.transparent_trunk = trunk_block.transparent;
+            }
         }
 
         return true;

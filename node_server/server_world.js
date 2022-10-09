@@ -44,6 +44,13 @@ export class ServerWorld {
                 this.tickers.set(module.default.type, module.default.func);
             });
         }
+        // Random tickers
+        this.random_tickers = new Map();
+        for(let fn of config.random_tickers) {
+            await import(`./ticker/random/${fn}.js`).then((module) => {
+                this.random_tickers.set(fn, module.default);
+            });
+        }
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -59,7 +66,7 @@ export class ServerWorld {
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
-        this.chunks         = new ServerChunkManager(this);
+        this.chunks         = new ServerChunkManager(this, this.random_tickers);
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
         this.admins         = new WorldAdminManager(this);
@@ -82,6 +89,7 @@ export class ServerWorld {
         await this.quests.init();
         await this.admins.load();
         await this.restoreModifiedChunks();
+        await this.db.fluid.restoreFluidChunks();
         await this.chunks.initWorker();
         //
         this.saveWorldTimer = setInterval(() => {
@@ -133,7 +141,7 @@ export class ServerWorld {
             this.info.calendar = {
                 age: null,
                 day_time: null
-            };    
+            };
         }
         const currentTime = ((+new Date()) / 1000) | 0;
         // возраст в реальных секундах
@@ -165,6 +173,9 @@ export class ServerWorld {
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks');
+            // 1.
+            this.chunks.randomTick(this.ticks_stat.number);
+            this.ticks_stat.add('chunks_random_tick');
             // 2.
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
@@ -193,6 +204,8 @@ export class ServerWorld {
                 this.ticks_stat.add('maps_clear');
             }
             //
+            this.ticks_stat.add('db_fluid_save');
+            await this.db.fluid.saveFluids();
             this.ticks_stat.end();
         }
         //
@@ -367,7 +380,7 @@ export class ServerWorld {
 
     // Chunk has modifiers
     chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr);
+        return this.chunkModifieds.has(addr) || this.db.fluid.knownFluidChunks.has(addr);
     }
 
     // Add chunk to modified
@@ -387,6 +400,11 @@ export class ServerWorld {
         chunk.addPlayerLoadRequest(player);
     }
 
+    /**
+     * Return block on world pos
+     * @param {Vector} pos 
+     * @returns {object}
+     */
     getBlock(pos) {
         const chunk_addr = getChunkAddr(pos);
         const chunk = this.chunks.get(chunk_addr);
@@ -436,6 +454,10 @@ export class ServerWorld {
         // Decrement instrument
         if (actions.decrement_instrument) {
             server_player.inventory.decrement_instrument(actions.decrement_instrument);
+        }
+        // increment item
+        if (actions.increment) {
+            server_player.inventory.increment(actions.increment);
         }
         // Stop playing discs
         if (Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
@@ -586,6 +608,18 @@ export class ServerWorld {
                     await this.db.TransactionRollback();
                 }
                 throw e;
+            }
+        }
+        if (actions.fluids.length > 0) {
+            if (actions.fluidFlush) {
+                await this.db.fluid.applyAnyChunk(actions.fluids);
+                // assume same chunk for all cells
+            } else {
+                let chunks = this.chunkManager.fluidWorld.applyWorldFluidsList(actions.fluids);
+                for (let chunk of chunks) {
+                    chunk.sendFluid(chunk.fluid.saveDbBuffer());
+                    chunk.fluid.markDirtyDatabase();
+                }
             }
         }
         // Play sound
@@ -810,7 +844,7 @@ export class ServerWorld {
             }
         }
     }
-    
+
 
     // Set world game rule value
     async setGameRule(rule_code, value) {
@@ -823,6 +857,14 @@ export class ServerWorld {
             return value == 'true';
         }
         // 
+        function parseIntValue(value) {
+            value = parseInt(value);
+            if (isNaN(value) || !isFinite(value)) {
+                throw 'error_invalid_value_type';
+            }
+            return value;
+        }
+        //
         function parseIntValue(value) {
             value = parseInt(value);
             if (isNaN(value) || !isFinite(value)) {
@@ -872,7 +914,7 @@ export class ServerWorld {
 
     /**
      * Set world global weather
-     * @param {Weather} weather 
+     * @param {Weather} weather
      */
     setWeather(weather) {
         this.weather = weather;
@@ -889,6 +931,23 @@ export class ServerWorld {
         this.info.pos_spawn = pos_spawn;
         await this.db.setWorldSpawn(this.info.guid, pos_spawn);
         this.sendUpdatedInfo();
+    }
+
+    // Возвращает идет ли дождь или снег
+    isRaining() {
+        return this.weather?.name != 'clear';
+    }
+
+    // Возвращает уровень освещности в мире
+    getLight() {
+        const time = this.info.calendar.day_time;
+        if (this.isRaining()) {
+            return 12;
+        }
+        if (time < 6000 || time > 18000) {
+            return 4;
+        }
+        return 15;
     }
 
 }

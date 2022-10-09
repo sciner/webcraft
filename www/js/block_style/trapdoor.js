@@ -62,7 +62,7 @@ export default class style {
         }
         if(!block.extra_data) {
             block.extra_data = {
-                opened: true,
+                opened: false,
                 point: new Vector(0, 0, 0),
             };
         }

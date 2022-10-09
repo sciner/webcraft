@@ -117,7 +117,7 @@ export class Brain extends FSMBrain {
         
         const forward = (distance > 1.5) ? true : false;
         const block = this.getBeforeBlocks();
-        const is_water = block.body.material.is_fluid;
+        const is_water = block.body.is_fluid;
         this.updateControl({
             yaw: mob.rotate.z,
             forward: forward,

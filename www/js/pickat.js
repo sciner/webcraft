@@ -112,14 +112,10 @@ export class PickAt {
         let bPos = this.get(pos, null, pickat_distance, view_vector, false);
 
         // Detect interact with fluid
-        const bPosFluid = this.get(pos, null, pickat_distance, view_vector, false, true);
-        if(bPosFluid && bPosFluid.block_id) {
-            const fluid_block = this.world.block_manager.fromId(bPosFluid.block_id);
-            if(fluid_block.is_fluid) {
-                if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
-                    if(this.onInteractFluid(bPosFluid)) {
-                        return false;
-                    }
+        if(bPos && bPos.fluidLeftTop) {
+            if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
+                if(this.onInteractFluid(bPos.fluidLeftTop)) {
+                    return false;
                 }
             }
         }
@@ -127,7 +123,7 @@ export class PickAt {
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         target_block.visible = !!bPos && !bPos.mob;
-        if(bPos) {
+        if(bPos && bPos.point) {
             if(bPos.mob) {
                 if(this.onInterractMob instanceof Function) {
                     if(this.damage_block.event) {

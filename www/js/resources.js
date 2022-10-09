@@ -1,3 +1,4 @@
+import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 
 export const COLOR_PALETTE = {
@@ -83,6 +84,7 @@ export class Resources {
         all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
+        all.push(fetch('/data/icons.json').then(response => response.json()).then(json => { this.icons = json;}));
 
         // Skybox textures
         /*
@@ -119,6 +121,9 @@ export class Resources {
 
         // Painting
         all.push[Resources.loadPainting()];
+
+        //
+        all.push(Resources.loadBBModels());
 
         // Physics features
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
@@ -239,7 +244,7 @@ export class Resources {
                 .then(r => r.blob())
                 .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}))
                 .catch((e) => {
-                    vt.error('Error loadImage in resources');
+                    vt.error(`Error loadImage in resources ${url}`);
                     setTimeout(() => {
                         Qubatch.exit();
                     }, 1000);
@@ -379,6 +384,28 @@ export class Resources {
     // Load materials
     static async loadMaterials() {
         return  Helpers.fetchJSON('../data/materials.json', true);
+    }
+    
+    // Load BBModels
+    static async loadBBModels() {
+        if(Resources._bbmodels) {
+            return Resources._bbmodels;
+        }
+        const resp = new Map();
+        const dir = '../resource_packs/bbmodel';
+        await Helpers.fetchJSON(dir + '/conf.json').then(async json => {
+            for(let file of json.bbmodels) {
+                await Helpers.fetchJSON(dir + `/${file.name}.json`).then(json => {
+                    const model = new BBModel_Model(json);
+                    model.parse();
+                    model.name = file.name;
+                    resp.set(file.name, model);
+                }).catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+        return Resources._bbmodels = resp;
     }
 
     // Load painting

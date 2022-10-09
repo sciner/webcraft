@@ -1,4 +1,7 @@
 import commonjs from '@rollup/plugin-commonjs';
+import { importAssertionsPlugin } from 'rollup-plugin-import-assert';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 
 export default [{
     input: './chunk_worker_bundle.js',
@@ -6,9 +9,14 @@ export default [{
     output: {
         inlineDynamicImports: true,
         file: '../www/js-gen/chunk_worker_bundle.js',
-        format: 'cjs'//'es',//'cjs',
+        format: 'es'//'es',//'cjs',
     },
     plugins: [
+        importAssertionsPlugin(),
+        dynamicImportVars({
+            warnOnError: false
+        }),
+        nodeResolve(),
         commonjs()
     ],
    

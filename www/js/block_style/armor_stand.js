@@ -39,7 +39,7 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const rot = Math.round((((block.rotate.x - 2) / 4) * -(Math.PI * 2)) / 0.5233) * 0.5233;
+        const rot = Math.round((((block.rotate.x - 2) / 4) * (Math.PI * 2)) / 0.5233) * 0.5233;
         const head_rot_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
         const head_rot = randoms[head_rot_index] * .2 - .1;
         const planks = BLOCK.calcTexture(BLOCK.OAK_LOG.texture, DIRECTION.UP);
@@ -176,7 +176,7 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         for(const el of stand) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...el,
                 lm:         lm,
                 pos:        pos,
@@ -186,7 +186,7 @@ export default class style {
         matrix = mat4.create();
         mat4.rotateY(matrix, matrix, rot);
         for(const part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,

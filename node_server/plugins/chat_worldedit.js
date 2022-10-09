@@ -3,6 +3,7 @@ import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
 import {WorldAction} from "../../www/js/world_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 
 const MAX_SET_BLOCK         = 250000;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -120,10 +121,10 @@ export default class WorldEdit {
 
     /**
      * Set first point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_xyz1(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
@@ -143,10 +144,10 @@ export default class WorldEdit {
 
     /**
      * Set second point of selecting region
-     * @param {*} chat 
-     * @param {*} player 
-     * @param {*} cmd 
-     * @param {*} args 
+     * @param {*} chat
+     * @param {*} player
+     * @param {*} cmd
+     * @param {*} args
      */
     async cmd_xyz2(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
@@ -240,6 +241,7 @@ export default class WorldEdit {
             quboid: qi,
             blocks: blocks,
             player_pos: player_pos
+            //TODO: fluids
         };
         let msg = `${blocks.size} block(s) copied`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
@@ -288,7 +290,24 @@ export default class WorldEdit {
             actions.addBlocks([{pos, item, action_id}]);
             affected_count++;
         }
-        //
+        if (data.fluids && data.fluids.length > 0) {
+            const fluids = data.fluids;
+            for (let i = 0; i < fluids.length; i += 4) {
+                let x = fluids[i] + player_pos.x, y = fluids[i + 1] + player_pos.y, z = fluids[i + 2] + player_pos.z, val = fluids[i + 3];
+                chunk_addr = getChunkAddr(x, y, z, chunk_addr);
+                if(!chunk_addr_o.equal(chunk_addr)) {
+                    chunk_addr_o.copyFrom(chunk_addr);
+                    actions = actions_list.get(chunk_addr);
+                    if(!actions) {
+                        actions = createwWorldActions();
+                        actions_list.set(chunk_addr, actions);
+                    }
+                }
+                actions.addFluids([x, y, z, val]);
+                actions.fluidFlush = true;
+            }
+            affected_count++;
+        }
         let cnt = 0;
         const notify = {
             user_id: player.session.user_id,
@@ -355,9 +374,29 @@ export default class WorldEdit {
                     if(block.id < 0) {
                         throw 'error_error_get_block';
                     }
-                    for(let b of repl_blocks.blocks) {
-                        if(mat.id == b.block_id) {
-                            actions.blocks.list.push({pos: bpos.clone(), item: palette.nextAsItem()});
+                    for(let rb of repl_blocks.blocks) {
+                        let replace = false;
+                        // TODO: make this automatic (#water)
+                        if(rb.is_fluid) {
+                            const fluidValue = block.fluid;
+                            if(mat.id == 0 && fluidValue > 0) {
+                                if((fluidValue & FLUID_TYPE_MASK) == FLUID_WATER_ID) {
+                                    replace = true;
+                                } else if((fluidValue & FLUID_TYPE_MASK) == FLUID_LAVA_ID) {
+                                    replace = true;
+                                }
+                            }
+                        } else {
+                            replace = mat.id == rb.block_id;
+                        }
+                        if(replace) {
+                            actions.addBlocks([
+                                {
+                                    pos: bpos.clone(), 
+                                    item: palette.nextAsItem(), 
+                                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                                }
+                            ]);
                             affected_count++;
                             break;
                         }
@@ -527,6 +566,10 @@ export default class WorldEdit {
             }
             item.block_id = block_id;
             item.name = b.name;
+            // TODO: make this automatic (#water)
+            item.is_fluid = b.is_fluid;
+            item.is_water = b.is_water;
+            item.is_lava = b.is_fluid && !b.is_water;
         }
         // Random fill
         let max = 0;
@@ -586,6 +629,7 @@ export default class WorldEdit {
                     player._world_edit_copy = {
                         quboid: null,
                         blocks: reader.blocks,
+                        fluids: reader.fluids,
                         player_pos: null
                     };
                 }

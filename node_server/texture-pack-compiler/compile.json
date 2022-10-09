@@ -1,6 +1,6 @@
 {
     "predefined_textures": [
-        {"spritesheet_id": "default", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
+        {"spritesheet_id": "entity", "x": 24, "y": 31, "image": "./textures/bed_item.png"},
         {"spritesheet_id": "default", "x": 14, "y": 31, "image": "block/destroy_stage_0.png"},
         {"spritesheet_id": "default", "x": 15, "y": 31, "image": "block/destroy_stage_1.png"},
         {"spritesheet_id": "default", "x": 16, "y": 31, "image": "block/destroy_stage_2.png"},
@@ -242,8 +242,13 @@
                 "id": "plant"
             },
             "texture": {
-                "side": "block/seagrass.png"
+                "side": "block/seagrass.png",
+                "up": "block/tall_seagrass_top.png",
+                "down": "block/tall_seagrass_bottom.png"
             },
+            "tags": [
+                "is_tall_plant"
+            ],
             "texture_animations": {
                 "side": null
             },
@@ -368,9 +373,6 @@
             "material": {
                 "id": "dirt"
             },
-            "ticking": {
-                "type": "dirt"
-            },
             "extra_data": {"calculated": [
                 {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
             ]},
@@ -387,6 +389,7 @@
                 "mask_biome",
                 "dirt"
             ],
+            "random_ticker": "grass_block",
             "material": {
                 "id": "dirt"
             },
@@ -1112,7 +1115,7 @@
             "gravity": true,
             "sound": "madcraft:block.gravel",
             "material": {
-                "id": "sand"
+                "id": "gravel"
             },
             "texture": "block/gravel.png"
         },
@@ -2061,18 +2064,6 @@
             "texture": "block/soul_sand.png"
         },
         {
-            "id": 95,
-            "name": "STAINED_GLASS",
-            "deprecated": true,
-            "transparent": true,
-            "material": {
-                "id": "glass"
-            },
-            "texture": "block/glass.png",
-            "can_rotate": true,
-            "spawnable": false
-        },
-        {
             "id": 98,
             "name": "STONE_BRICKS",
             "sound": "madcraft:block.stone",
@@ -2130,7 +2121,6 @@
         {
             "id": 103,
             "name": "CHISELED_STONE_BRICKS",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
@@ -2140,7 +2130,6 @@
         {
             "id": 104,
             "name": "POLISHED_BLACKSTONE",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
@@ -2150,7 +2139,6 @@
         {
             "id": 105,
             "name": "POLISHED_BLACKSTONE_BRICKS",
-            "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
@@ -4702,7 +4690,6 @@
         {
             "id": 649,
             "name": "MOB_SPAWN",
-            "style": "cube",
             "transparent": true,
             "can_rotate": true,
             "material": {
@@ -7241,11 +7228,11 @@
         },
         {
             "id": 212,
-            "name": "GILD_NUGGET",
+            "name": "GOLD_NUGGET",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
-                "id": "iron"
+                "id": "gold"
             },
             "texture": "item/gold_nugget.png"
         },
@@ -7253,7 +7240,7 @@
             "id": 213,
             "name": "GILDED_BLACKSTONE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "GILD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
+            "drop_item": {"name": "GOLD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
             "material": {
                 "id": "stone"
             },
@@ -8000,6 +7987,87 @@
             "effects":[
                 {"id":16, "time": 480, "level": 1}
             ]
+        },
+        {
+            "id": 347,
+            "name": "CHICKEN_NEST",
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": "block/hay_block_top.png",
+            "style":"chicken_nest",
+            "extra_data": {
+                "eggs": 0
+            }
+        },
+        {
+            "id": 349,
+            "can_rotate": true,
+            "transparent": true,
+            "name": "OAK_CHAIR",
+            "sound": "madcraft:block.wood",
+            "style": "chair",
+            "fuel_time": 16,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "no_set_on_top",
+                "rotate_x8"
+            ],
+            "inventory": {
+                "scale": 0.8,
+                "move": {"x": -0.2, "y": 0, "z": -0.4}
+            },
+            "extra_data": {
+                "upholstery": "red_wool",
+                "frame": "oak_log"
+            },
+            "has_head": {
+                "pos": {
+                    "x": 0,
+                    "y": 1,
+                    "z": 0
+                }
+            },
+            "texture": "block/oak_log_top.png"
+        },
+        {
+            "id": 348,
+            "can_rotate": true,
+            "transparent": true,
+            "name": "OAK_STOOL",
+            "sound": "madcraft:block.wood",
+            "style": "stool",
+            "fuel_time": 16,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "no_set_on_top",
+                "rotate_x8"
+            ],
+            "extra_data": {
+                "upholstery": "white_wool",
+                "frame": "oak_log"
+            },
+            "texture": "block/oak_log_top.png"
+        },
+        {
+            "id": 796,
+            "name": "IRON_NUGGET",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "iron"
+            },
+            "texture": "item/iron_nugget.png"
         }
     ]
 }

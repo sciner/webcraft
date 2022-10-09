@@ -4,6 +4,8 @@ import { PrismarinePlayerControl } from "../../www/vendors/prismarine-physics/us
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
+import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
+import { BLOCK } from "../../www/js/blocks.js";
 
 const FORWARD_DISTANCE = 20;
 
@@ -58,19 +60,7 @@ export class FSMBrain {
         let mob = brain.mob;
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
-            chunkManager: {
-                chunk_addr: new Vector(),
-                getBlock: (x, y, z) => {
-                    let pos = new Vector(x, y, z).floored();
-                    this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
-                    let chunk = world.chunks.get(this.chunk_addr);
-                    if (chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
-                        return chunk.getBlock(pos);
-                    } else {
-                        return world.chunks.DUMMY;
-                    }
-                }
-            }
+            chunkManager: new PrismarineServerFakeChunkManager(world)
         }, mob.pos, options);
     }
 
@@ -162,10 +152,10 @@ export class FSMBrain {
         if (!chunk_over) {
             return null;
         }
-        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height + 1, Math.cos(mob.rotate.z)));
-        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height / 2, Math.cos(mob.rotate.z)));
-        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z)));
-        const pos_under = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z)));
+        const pos_head = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height + 1, Math.cos(mob.rotate.z))).floored();
+        const pos_body = mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.height / 2, Math.cos(mob.rotate.z))).floored();
+        const pos_legs = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z))).floored();
+        const pos_under = mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z))).floored();
         const head = chunk_over.getBlock(pos_head);
         const body = chunk_over.getBlock(pos_body);
         const legs = chunk_over.getBlock(pos_legs);
@@ -175,7 +165,7 @@ export class FSMBrain {
 
     findTarget() {
         return false;
-	}
+    }
 
     doStand(delta) {
         if (this.findTarget()) {
@@ -187,7 +177,7 @@ export class FSMBrain {
             return;
         }
 
-        const is_water = block.body.material.is_fluid || block.head.material.is_fluid;
+        const is_water = block.body.is_fluid || block.head.is_fluid;
         const mob = this.mob;
         if (is_water) {
             this.rotate_angle += Math.PI / 60;
@@ -233,7 +223,7 @@ export class FSMBrain {
         }
 
         const mob = this.mob;
-        const is_water = block.body.material.is_fluid;
+        const is_water = block.body.id == 0 && block.body.fluid > 0;
         this.updateControl({
             yaw: mob.rotate.z,
             jump: is_water,
@@ -249,7 +239,7 @@ export class FSMBrain {
         const is_abyss = (block.legs.id == 0 && block.under.id == 0) ? true : false;
         const is_water_legs = (block.legs.material.is_fluid) ? true : false;
         const is_fence = (block.body.material.style == "fence") ? true : false;
-        const is_wall = (block.head.id != 0 && !block.head.material.planting) ? true : false;
+        const is_wall = (block.head.id != 0 && !block.head.material.planting  && block.head.id != BLOCK.CHICKEN_NEST.id) ? true : false;
         if (is_wall || is_fence || is_abyss || is_water_legs) {
             this.rotate_angle = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
@@ -279,7 +269,7 @@ export class FSMBrain {
     */
     onKill(actor, type_damage) {
     }
-    
+
     /**
     * Использовать предмет на мобе
     * actor - игрок
@@ -287,8 +277,8 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-    
-    
+
+
     /**
     * Нанесен урон по мобу
     * actor - игрок или пероснаж

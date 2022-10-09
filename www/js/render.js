@@ -1,6 +1,6 @@
 "use strict";
 
-import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, calcRotateMatrix, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
+import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
 import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
@@ -24,6 +24,7 @@ import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -190,6 +191,16 @@ export class Renderer {
                 transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
                 doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
                 label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
+            }
+            if (rp.fluidShader) {
+                rp.fluidShader.materials = {
+                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, shader: rp.fluidShader}),
+                    doubleface_transparent: renderBackend.createMaterial({
+                        cullFace: false,
+                        opaque: false,
+                        shader: rp.fluidShader
+                    }),
+                }
             }
         }
 
@@ -712,7 +723,7 @@ export class Renderer {
             }
         }
 
-        if(!player.game_mode.isSpectator() && Qubatch.hud.active) {
+        if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
             this.drawInhandItem(delta);
         }
 
@@ -759,6 +770,17 @@ export class Renderer {
     // addAsteroid
     addAsteroid(pos, rad) {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
+    }
+
+    // addBBModel
+    addBBModel(pos, bbname, rotate, animation_name) {
+        const model = Resources._bbmodels.get(bbname);
+        if(!model) {
+            return false;
+        }
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
+        bbmodel.setAnimation(animation_name);
+        this.meshes.add(bbmodel);
     }
 
     /**
@@ -1013,7 +1035,7 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(player, pos, rotate) {
+    setCamera(player, pos, rotate, force = false) {
 
         const tmp = mat4.create();
         const hotbar = Qubatch.hotbar;
@@ -1035,42 +1057,46 @@ export class Renderer {
         let cam_pos = pos;
         let cam_rotate = rotate;
 
-        this.bobView(player, tmp);
-        this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
+        if(!force) {
 
-        if(this.camera_mode === CAMERA_MODE.SHOOTER) {
-            // do nothing
-        } else {
-            const cam_pos_new = pos.clone();
-            cam_pos = pos.clone();
-            cam_rotate = rotate.clone();
-            // back
-            if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
-                // front
-                cam_rotate.z = rotate.z + Math.PI;
-                cam_rotate.x *= -1;
-            }
-            const view_vector = player.forward.clone();
-            view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
-            //
-            const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
-            cam_pos_new.moveToSelf(cam_rotate, d);
-            if(!player.game_mode.isSpectator()) {
-                // raycast from eyes to cam
-                const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
-                if(bPos) {
-                    this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
-                    this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
-                    let dist1 = pos.distance(cam_pos_new);
-                    let dist2 = pos.distance(this.obstacle_pos);
-                    if(dist2 < dist1) {
-                        cam_pos_new.copyFrom(this.obstacle_pos);
-                    }
+            this.bobView(player, tmp);
+            this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
+
+            if(this.camera_mode === CAMERA_MODE.SHOOTER) {
+                // do nothing
+            } else {
+                const cam_pos_new = pos.clone();
+                cam_pos = pos.clone();
+                cam_rotate = rotate.clone();
+                // back
+                if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
+                    // front
+                    cam_rotate.z = rotate.z + Math.PI;
+                    cam_rotate.x *= -1;
                 }
-                const safe_margin = -.1;
-                cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+                const view_vector = player.forward.clone();
+                view_vector.multiplyScalar(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
+                //
+                const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+                cam_pos_new.moveToSelf(cam_rotate, d);
+                if(!player.game_mode.isSpectator()) {
+                    // raycast from eyes to cam
+                    const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true);
+                    if(bPos) {
+                        this.obstacle_pos = this.obstacle_pos || new Vector(0, 0, 0);
+                        this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
+                        let dist1 = pos.distance(cam_pos_new);
+                        let dist2 = pos.distance(this.obstacle_pos);
+                        if(dist2 < dist1) {
+                            cam_pos_new.copyFrom(this.obstacle_pos);
+                        }
+                    }
+                    const safe_margin = -.1;
+                    cam_pos_new.addSelf(new Vector(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin));
+                }
+                cam_pos.copyFrom(cam_pos_new);
             }
-            cam_pos.copyFrom(cam_pos_new);
+
         }
 
         this.camera.set(cam_pos, cam_rotate, tmp);

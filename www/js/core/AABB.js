@@ -334,13 +334,23 @@ export function pushTransformed(
     c0, c1, c2, c3,
     pp, flags
 ) {
+
     pivot = pivot || defaultPivot;
-    cx += pivot[0];
-    cy += pivot[1];
-    cz += pivot[2];
-    x0 -= pivot[0];
-    y0 -= pivot[1];
-    z0 -= pivot[2];
+    if(Array.isArray(pivot)) {
+        cx += pivot[0];
+        cy += pivot[1];
+        cz += pivot[2];
+        x0 -= pivot[0];
+        y0 -= pivot[1];
+        z0 -= pivot[2];
+    } else {
+        cx += pivot.x;
+        cy += pivot.y;
+        cz += pivot.z;
+        x0 -= pivot.x;
+        y0 -= pivot.y;
+        z0 -= pivot.z;
+    }
 
     mat = mat || defaultMatrix;
 
@@ -351,6 +361,7 @@ export function pushTransformed(
     // unroll mat4 matrix to mat3 + tx, ty, tz
     if (mat.length === 16) {
         mat3.fromMat4(tempMatrix, mat);
+        mat3.transpose(tempMatrix, tempMatrix);
 
         tx = mat[12];
         ty = mat[14]; // flip

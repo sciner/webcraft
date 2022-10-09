@@ -1,3 +1,4 @@
+import { BBModel_Compiler } from "./bbmodel_compiler.js";
 import { Compiler } from "./compiler.js";
 
 const options = {
@@ -16,6 +17,19 @@ const options = {
     ]
 };
 
+// Textures
 const compiler = new Compiler(options);
 await compiler.init();
 compiler.run();
+
+// bbmodels
+const bbcompiler = new BBModel_Compiler({
+    resolution:         32,
+    tx_cnt:             32,
+    model_dir:          "./bbmodel/models",
+    output_dir:         "../../www/resource_packs/bbmodel",
+    conf:               "./bbmodel/conf.json",
+    texture_pack_dir:   options.texture_pack_dir,
+});
+await bbcompiler.init();
+await bbcompiler.run();

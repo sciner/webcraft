@@ -96,17 +96,17 @@ export default class style {
             const a = Math.PI / 5;
             const shift = 4.5 / 16;
             switch(rotate.x) {
-                case 0: rot[0] = -a; pos.z -= shift; break;
-                case 1: rot[2] = -a; pos.x += shift; break;
-                case 2: rot[0] = a; pos.z += shift; break;
-                case 3: rot[2] = a; pos.x -= shift; break;
+                case 2: rot[0] = -a; pos.z += shift; break;
+                case 3: rot[2] = -a; pos.x -= shift; break;
+                case 0: rot[0] = a; pos.z -= shift; break;
+                case 1: rot[2] = a; pos.x += shift; break;
             }
             pos.y += 2/16;
             torch_pos.addSelf(pos.div(new Vector(1.2, 1.2, 1.2)));
         }
 
         for(let part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos.addScalarSelf(x, y, z),

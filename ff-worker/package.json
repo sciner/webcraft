@@ -4,9 +4,12 @@
     "start": "rollup --config rollup.config.js"
   },
   "dependencies": {
-    "rollup": "^2.75.5"
+    "rollup": "^2.75.5",
+    "rollup-plugin-import-assert": "^2.1.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.0"
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-dynamic-import-vars": "^1.4.3",
+    "@rollup/plugin-node-resolve": "^13.3.0"
   }
 }

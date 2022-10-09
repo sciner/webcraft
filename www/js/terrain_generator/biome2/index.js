@@ -110,6 +110,8 @@ export default class Terrain_Generator extends Demo_Map {
         const BLOCK_WATER_ID            = BLOCK.STILL_WATER.id;
         const ywl                       = map.options.WATER_LINE - chunk.coord.y;
         const stone_block               = BLOCK.STONE.id;
+        const grass_block_id            = BLOCK.GRASS_BLOCK.id;
+        const dirt_block_id             = BLOCK.DIRT.id;
 
         const has_voxel_buildings       = this.intersectChunkWithVoxelBuildings(chunk.aabb);
         const has_islands               = this.intersectChunkWithIslands(chunk.aabb);
@@ -121,6 +123,7 @@ export default class Terrain_Generator extends Demo_Map {
         }
 
         //
+        let dirt_block_mat = null;
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
@@ -136,6 +139,10 @@ export default class Terrain_Generator extends Demo_Map {
                 const has_ocean_blocks  = biome.code == 'OCEAN' && ywl >= 0;
                 const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const has_modificator   = true; // has_voxel_buildings || has_islands || has_extruders;
+
+                if(!dirt_block_mat || dirt_block_mat.id != dirt_block) {
+                    dirt_block_mat = BLOCK.fromId(dirt_block);
+                }
 
                 cell.can_plant = false;
 
@@ -183,12 +190,15 @@ export default class Terrain_Generator extends Demo_Map {
                     // this.drawTreasureRoom(chunk, line, xyz, x, y, z);
 
                     // Ores (if this is not water, fill by ores)
-                    const block_id = xyz.y < local_dirt_level ? stone_block : dirt_block;
+                    let block_id = xyz.y < local_dirt_level ? stone_block : dirt_block;
+                    if(block_id == grass_block_id && xyz.y < value - 1) {
+                        block_id = dirt_block_id;
+                    }
                     chunk.setBlockIndirect(x, y, z, block_id);
 
                     // check if herbs planted
                     if(block_id == dirt_block && xyz.y == value - 1) {
-                        cell.can_plant = true;
+                        cell.can_plant = dirt_block_mat.material.id == 'dirt' || dirt_block_mat.material.id == 'sand';
                     }
 
                 }
@@ -232,6 +242,9 @@ export default class Terrain_Generator extends Demo_Map {
                 for(let i = 0; i < blocks.length; i++) {
                     const block = blocks[i];
                     chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i, pos.z, block.id, null, block.extra_data || null);
+                    if(block.not_transparent) {
+                        chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
+                    }
                 }
             }
         }
@@ -254,14 +267,20 @@ export default class Terrain_Generator extends Demo_Map {
                 //    continue;
                 //}
                 // globalThis.ggg++;
-                this.plantTree(
-                    tree,
-                    chunk,
-                    m.chunk.coord.x + tree.pos.x - chunk.coord.x,
-                    m.chunk.coord.y + tree.pos.y - chunk.coord.y,
-                    m.chunk.coord.z + tree.pos.z - chunk.coord.z,
-                    true
-                );
+
+                const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
+                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
+                const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
+
+                if(!tree.type.transparent_trunk) {
+                    const yu = y - 1;
+                    if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && (yu >= 0) && (yu < chunk.size.y)) {
+                        chunk.setBlockIndirect(x, yu, z, dirt_block_id, null, null);
+                    }
+                }
+
+                this.plantTree(tree, chunk, x, y, z, true);
+
             }
         }
 

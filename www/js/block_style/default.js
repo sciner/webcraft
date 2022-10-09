@@ -6,6 +6,7 @@ export const TX_CNT = 32;
 export const TX_SIZE = 16;
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { Vector } from "../helpers.js";
 
 const {mat4} = glMatrix;
 
@@ -43,6 +44,9 @@ export default class style {
 
         // Matrix
         let matrix = mat4.create();
+        if(plane.matrix) {
+            matrix = mat4.multiply(matrix, matrix, plane.matrix);
+        }
         if(plane.rot && !isNaN(plane.rot[0])) {
             if (plane.rot[2] != 0) {
                 mat4.rotateZ(matrix, matrix, plane.rot[2]);
@@ -53,9 +57,6 @@ export default class style {
             if (plane.rot[0] != 0) {
                 mat4.rotateX(matrix, matrix, plane.rot[0]);
             }
-        }
-        if(plane.matrix) {
-            matrix = mat4.multiply(matrix, matrix, plane.matrix);
         }
 
         //
@@ -87,15 +88,18 @@ export default class style {
     }
 
     //
-    static pushAABB(vertices, part) {
-
-        const pivot = null;
+    static pushPART(vertices, part, pivot = null) {
 
         const width = part.size.x / TX_SIZE;
         const height = part.size.y / TX_SIZE;
         const depth = part.size.z / TX_SIZE;
 
-        const aabb = new AABB();
+        // AABB
+        // const aabb = new AABB();
+        let aabb = part.aabb;
+        if(!aabb) {
+            aabb = part.aabb = new AABB();
+        }
         aabb.set(
             part.pos.x + .5,
             part.pos.y + .5,
@@ -110,43 +114,61 @@ export default class style {
 
         // Matrix
         let matrix = mat4.create();
+        if(part.matrix) {
+            matrix = mat4.multiply(matrix, matrix, part.matrix);
+        }
         if(part.rot && !isNaN(part.rot[0])) {
             if(part.rot[0]) mat4.rotateX(matrix, matrix, part.rot[0]);
             if(part.rot[1]) mat4.rotateY(matrix, matrix, part.rot[1]);
             if(part.rot[2]) mat4.rotateZ(matrix, matrix, part.rot[2]);
         }
-        if(part.matrix) {
-            matrix = mat4.multiply(matrix, matrix, part.matrix);
-        }
-        //
-        const anim = part?.lm?.b || 1;
 
         // Faces
-        const faces = part.faces;
-        for(let k in faces) {
+        let faces = part._faces_compilled;
+        if(!faces) {
 
-            const face = faces[k];
-            const orig_tex = face.texture;
+            faces = {};
+            const anim = part?.lm?.b || 1;
 
-            // UV
-            const uv = [orig_tex[0], orig_tex[1]];
-            const add_uv = [
-                -.5 + face.uv[0]/TX_SIZE,
-                -.5 + face.uv[1]/TX_SIZE
-            ];
-            uv[0] += add_uv[0];
-            uv[1] += add_uv[1];
+            for(let k in part.faces) {
 
-            // Texture
-            const tex = [...orig_tex];
-            tex[0] += (add_uv[0] / TX_CNT);
-            tex[1] += (add_uv[1] / TX_CNT);
+                const face = part.faces[k];
+                const orig_tex = face.texture;
+                const tx_cnt = face.tx_cnt ?? TX_CNT;
+                const tx_size = face.tx_size ?? TX_SIZE;
 
-            if(!('autoUV' in face)) {
-                face.autoUV = true;
+                // UV
+                const uv = [orig_tex[0], orig_tex[1]];
+                const add_uv = [
+                    -.5 + face.uv[0]/tx_size,
+                    -.5 + face.uv[1]/tx_size
+                ];
+                uv[0] += add_uv[0];
+                uv[1] += add_uv[1];
+
+                // Texture
+                const tex = [...orig_tex];
+                tex[0] += (add_uv[0] / tx_cnt);
+                tex[1] += (add_uv[1] / tx_cnt);
+
+                if(!('autoUV' in face)) {
+                    face.autoUV = true;
+                }
+
+                //
+                if(!face.autoUV && face.uv.length == 4) {
+                    tex[2] = face.uv[2] / tx_size;
+                    tex[3] = face.uv[3] / tx_size;
+                }
+
+                faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
+
             }
+            part._faces_compilled = faces;
+        }
 
-            faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
+        if(pivot) {
+            pivot = new Vector(pivot).divScalar(TX_SIZE);
         }
 
         // Push vertices

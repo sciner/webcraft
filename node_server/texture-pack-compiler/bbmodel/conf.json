@@ -1,0 +1,39 @@
+{
+    "id": "bbmodel",
+    "shader": {
+        "extends": "base"
+    },
+    "textures": {},
+    "bbmodels": [],
+    "_bbmodels": [
+        {"name": "garbage_monster", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "bookshelf", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "black_big_can", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "reaper", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}}
+    ],
+    "blocks": [],
+    "_blocks": [
+        {
+            "id": 416,
+            "name": "BB_BABOCHKA",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "transparent": true,
+            "can_rotate": true,
+            "spawnable": false,
+            "material": {
+                "id": "wood"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "id": "babochka",
+                "side": "block/quartz_block_side.png"
+            }
+        }
+    ]
+}

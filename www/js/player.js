@@ -38,8 +38,10 @@ export class Player {
             ping:               0
         };
         this.effects = {effects:[]}
+
+        this.headBlock = null;
     }
-    
+
     // возвращает уровень эффекта
     getEffectLevel(val) {
         for (const effect of this.effects.effects) {
@@ -131,8 +133,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            let dist = cmd.data.pos ? this.pos.distance(new Vector(cmd.data.pos)) : null;
-            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, dist);
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
@@ -182,7 +183,7 @@ export class Player {
             const hand_current_item = this.inventory.current_item;
             if(e && e.createBlock && hand_current_item) {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
-                if(hand_item_mat && hand_item_mat.name == 'LILY_PAD') {
+                if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
                         const e_orig = JSON.parse(JSON.stringify(e));
@@ -296,7 +297,7 @@ export class Player {
             const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
             if(can_play_sound) {
                 const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
-                if(!block_over || !block_over.material.is_fluid) {
+                if(!block_over || !block_over.fluid > 0) {
                     const default_sound   = 'madcraft:block.stone';
                     const action          = 'step';
                     let sound             = world_block.getSound();
@@ -664,13 +665,12 @@ export class Player {
             const eye_y             = this.getEyePos().y;
             this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, eye_y | 0, this.blockPos.z);
             this.eyes_in_block_o    = this.eyes_in_block;
-            this.eyes_in_block      = (this.headBlock.material.is_fluid || this.headBlock.material.is_portal) ? this.headBlock.material : null;
-            if(this.eyes_in_block) {
-                // если в воде, то проверим еще высоту воды
-                const headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (eye_y + 1) | 0, this.blockPos.z);
-                if(!headBlockOver.material.is_fluid) {
-                    let power = 1; // Math.min(this.headBlock.power, .9);
-                    this.eyes_in_block = (eye_y < (eye_y | 0) + power + .01) ? this.headBlock.material : null;
+            this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
+            // если в воде, то проверим еще высоту воды
+            if (this.headBlock.fluid > 0) {
+                let fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
+                if (eye_y < fluidLevel) {
+                    this.eyes_in_block = this.headBlock.getFluidBlockMaterial();
                 }
             }
             //
@@ -720,7 +720,7 @@ export class Player {
         }
     }
 
-    // 
+    //
     triggerEvent(name, args) {
         switch(name) {
             case 'step': {
