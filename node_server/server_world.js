@@ -839,6 +839,10 @@ export class ServerWorld {
                 return this.info.rules[rule_code] || 3;
                 break;
             }
+            case 'difficulty': {
+                return this.info.rules[rule_code] || 0;
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
@@ -896,6 +900,10 @@ export class ServerWorld {
                 value = parseIntValue(value);
                 break;
             }
+            case 'difficulty': {
+                value = parseIntValue(value);
+                break;
+            }
             default: {
                 throw 'error_incorrect_rule_code';
             }
@@ -935,7 +943,7 @@ export class ServerWorld {
 
     // Возвращает идет ли дождь или снег
     isRaining() {
-        return this.weather?.name != 'clear';
+        return this.weather != Weather.CLEAR;
     }
 
     // Возвращает уровень освещности в мире

@@ -768,6 +768,16 @@ export class DBWorldMigration {
         migrations.push({version: 83, queries: [
             `update world set game_mode = 'creative' where guid = '0c8970d7-942b-4208-9743-dbec371558fa'`,
         ]});
+        migrations.push({version: 84, queries: [
+            `UPDATE world_modify SET block_id = 260 WHERE block_id = 347;`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":347,', '"id":260,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":348,', '"id":320,');`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":349,', '"id":300,');`,
+            `UPDATE world_modify SET block_id = 320 WHERE block_id = 348;`,
+            `UPDATE world_modify SET block_id = 300 WHERE block_id = 349;`,
+            `DELETE FROM world_modify_chunks`,
+            ...update_world_modify_chunks,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
