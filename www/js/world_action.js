@@ -658,7 +658,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removeFromPot, deletePortal]) {
+            for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
                 if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -726,7 +726,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1251,6 +1251,12 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
  * @returns 
  */
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(e.shiftKey) {
+        return false;
+    }
+    if(mat_block && mat_block.tags.includes('wool')) {
+        return false;
+    }
     const world_block_is_slab = world_material.layering && world_material.height == 0.5;
     const is_stool = world_material.style == 'stool';
     const is_chair = world_material.style == 'chair';
@@ -2144,4 +2150,56 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
 // Place rail
 function prePlaceRail(world, pos, new_item, actions) {
     return RailShape.place(world, pos, new_item, actions);
+}
+
+// Set furniture upholstery
+async function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(mat_block.tags.includes('wool')) {
+        if(['chair', 'stool'].includes(world_material.style)) {
+            if(extra_data.is_head) {
+                pos = new Vector(0, -1, 0).add(pos);
+                world_block = world.getBlock(pos);
+                extra_data = world_block?.extra_data;
+            }
+            extra_data.upholstery = mat_block.name;
+            actions.addBlocks([{
+                pos: new Vector(pos),
+                item: {id: world_material.id, rotate, extra_data},
+                action_id: ServerClient.BLOCK_ACTION_MODIFY
+            }]);
+            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+        }
+        return true;
+    }
+    return false;
+}
+
+// Remove furniture upholstery
+async function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(['chair', 'stool'].includes(world_material.style)) {
+        if(extra_data.is_head) {
+            pos = new Vector(0, -1, 0).add(pos);
+            world_block = world.getBlock(pos);
+            extra_data = world_block?.extra_data;
+            rotate = world_block.rotate;
+        }
+        //
+        if(extra_data?.upholstery) {
+            const drop_item = {
+                id: BLOCK.fromName(extra_data?.upholstery).id,
+                count: 1
+            };
+            delete(extra_data.upholstery);
+            actions.addBlocks([{
+                pos: new Vector(pos),
+                item: {id: world_block.id, rotate, extra_data},
+                action_id: ServerClient.BLOCK_ACTION_MODIFY
+            }]);
+            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+            // Create drop item
+            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, .5, .5)), items: [drop_item], force: true});
+            return true;
+        }
+    }
+    return false;
 }

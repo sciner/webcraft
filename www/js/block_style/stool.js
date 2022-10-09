@@ -28,8 +28,8 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const extra_data = block.extra_data;
-        const frame = extra_data?.frame ? extra_data.frame.toUpperCase() : 'OAK_LOG';
+        const extra_data = block.extra_data ?? block.material.extra_data;
+        const frame = (extra_data?.frame ? extra_data.frame : block.material.extra_data.frame).toUpperCase();
         const log = BLOCK.calcTexture(BLOCK[frame].texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
