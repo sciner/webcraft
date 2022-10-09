@@ -10,7 +10,7 @@ export default class Ticker {
     
     //
     static func(tick_number, world, chunk, v) {
-        const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
+        const random_tick_speed = world.getGameRule('randomTickSpeed') / 410;
         if (Math.random() >= random_tick_speed) {
             return false;
         }
@@ -20,16 +20,13 @@ export default class Ticker {
         const updated = [];
         const block = world.getBlock(pos.add(Vector.YN));
         if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id) {
-            //console.log("delete");
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
         const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
         if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
-            //console.log("rain")
             return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
         } else {
             if (age < 15) { 
-                //console.log("age: " + age)
                 extra_data.west = getFlame(world.getBlock(pos.add(Vector.XN))) ? true : false;
                 extra_data.east = getFlame(world.getBlock(pos.add(Vector.XP))) ? true : false;
                 extra_data.north = getFlame(world.getBlock(pos.add(Vector.ZP))) ? true : false;
@@ -40,11 +37,9 @@ export default class Ticker {
             }
             if (!infiniburn) {
                 if (!isBurnPosition(world, pos) && age > 3) {
-                    //console.log("not burn age: " + age);
                     return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
                 }
                 if (age >= 15 && rndInt(4) == 0) {
-                    //console.log("age> 15")
                     return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
                 }
             }
@@ -68,8 +63,8 @@ export default class Ticker {
                             const position = pos.offset(x, y, z);
                             const flames = getNeighborFlame(world, position);
                             if (flames > 0) {
-                                const burns = Math.round((flames + 40 + world.getGameRule('difficulty') * 100) / (age + 30));
-                                if (burns > 0 && rndInt(chance) <= burns) {
+                                const burns = Math.round((flames + 40 + world.getGameRule('difficulty') * 7) / (age + 30));
+                                if (burns > 0 && rndInt(chance) <= burns && !world.isRaining()) {
                                     setFireBlock(world, position, age, updated);
                                 }
                             }
@@ -86,7 +81,7 @@ export default class Ticker {
 // Возможность воспламенения соседних блоков (зависит от материала)
 function getNeighborFlame(world, pos) {
     let block = world.getBlock(pos);
-    if (block.id == BLOCK.AIR.id) {
+    if (block.id == BLOCK.AIR.id || getBurn(block) == 0) {
         return 0;
     }
     let flames = 0;
@@ -136,7 +131,6 @@ function setFireOrDes(world, pos, chance, age, updated) {
         if (rndInt(age + 10) < 5) {
             setFireBlock(world, pos, age, updated);
         } else {
-            //console.log("destroy: chance: " + chance + " burn: " + burn);
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
     }
