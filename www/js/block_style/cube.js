@@ -456,6 +456,12 @@ export default class style {
         const calcSideParams = (side, dir, width, height) => {
             const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
+                const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
+                if(fuel_time > 0) {
+                    dir = 'north_on';
+                }
+            }
             const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
             const f = flags | upFlags | sideFlags | animFlag;
             if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {

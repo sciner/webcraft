@@ -634,6 +634,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
 
+    // protect from indirect changes
+    if(extra_data) extra_data = JSON.parse(JSON.stringify(extra_data));
+
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
         console.error('error_empty_world_material', world_block.id, pos);

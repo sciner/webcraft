@@ -778,6 +778,12 @@ export class DBWorldMigration {
             `DELETE FROM world_modify_chunks`,
             ...update_world_modify_chunks,
         ]});
+        migrations.push({version: 85, queries: [
+            `UPDATE world_modify SET block_id = 61 WHERE block_id = 62;`,
+            `UPDATE user SET inventory = REPLACE(inventory, '"id":61,', '"id":62,');`,
+            `DELETE FROM world_modify_chunks`,
+            ...update_world_modify_chunks,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
