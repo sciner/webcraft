@@ -3,7 +3,7 @@ import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.j
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
-import {FluidQueue} from "../www/js/fluid/FluidQueue.js";
+import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
@@ -36,7 +36,7 @@ export class ServerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
-        this.fluidWorld.queue = new FluidQueue(this);
+        this.fluidWorld.queue = new FluidWorldQueue(this);
         this.initRandomTickers(random_tickers);
     }
 
@@ -222,7 +222,7 @@ export class ServerChunkManager {
 
     /**
      * Return chunk by addr
-     * @param {Vector} addr 
+     * @param {Vector} addr
      * @returns {ServerChunk}
      */
     get(addr) {
