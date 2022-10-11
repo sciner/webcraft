@@ -122,6 +122,7 @@ export class Window {
             },
             border: {
                 color: '#3f3f3f',
+                color_light: '#ffffff',
                 width: 4,
                 hidden: false
             }
@@ -263,18 +264,27 @@ export class Window {
         // draw border
         if(!this.style.border.hidden) {
 
+            // colors
+            const colors = [
+                this.style.border.color_light,
+                this.style.border.color
+            ];
+            if(this.style.border?.style == 'inset') {
+                colors.push(colors.shift());
+            }
+
             ctx.lineJoin = 'round';
             ctx.lineWidth = this.style.border.width;
             ctx.beginPath(); // Start a new path
 
-            ctx.strokeStyle = '#ffffff';
+            ctx.strokeStyle = colors[0];
             ctx.moveTo(x, y + h);
             ctx.lineTo(x, y );
             ctx.lineTo(x + w, y);
             ctx.stroke();
 
             ctx.beginPath(); // Start a new path
-            ctx.strokeStyle = this.style.border.color;
+            ctx.strokeStyle = colors[1];
             ctx.moveTo(x + w, y);
             ctx.lineTo(x + w, y + h);
             ctx.lineTo(x, y + h);
@@ -851,6 +861,10 @@ export class TextEdit extends Window {
         this.focused = false;
         this.buffer = [];
 
+        this.onChange = (text) => {
+            // do nothing
+        };
+
         // Backspace pressed
         this.backspace = () => {
             if(!this.focused) {
@@ -858,6 +872,7 @@ export class TextEdit extends Window {
             }
             if(this.buffer.length > 0) {
                 this.buffer.pop();
+                this._changed();
             }
         }
 
@@ -868,6 +883,7 @@ export class TextEdit extends Window {
                 case KEY.ENTER: {
                     if(down) {
                         this.buffer.push(String.fromCharCode(13));
+                        this._changed();
                     }
                     return true;
                 }
@@ -898,9 +914,15 @@ export class TextEdit extends Window {
                     }
                 }
                 this.buffer.push(ch);
+                this._changed();
             }
         }
 
+    }
+
+    //
+    _changed() {
+        this.onChange(this.buffer.join(''));
     }
     
     setEditText(text) {
@@ -911,7 +933,7 @@ export class TextEdit extends Window {
     draw(ctx, ax, ay) {
         this.setText(this.buffer.join(''));
         //
-        this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
+        // this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
         super.draw(ctx, ax, ay);
     }
 
