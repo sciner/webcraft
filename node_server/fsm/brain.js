@@ -168,6 +168,8 @@ export class FSMBrain {
     }
 
     doStand(delta) {
+        this.doUpdate(delta);
+        
         if (this.findTarget()) {
             return;
         }
@@ -208,7 +210,8 @@ export class FSMBrain {
     }
 
     doForward(delta) {
-
+        this.doUpdate(delta);
+        
         if (this.findTarget()) {
             return;
         }
@@ -292,5 +295,10 @@ export class FSMBrain {
         velocity.y = 0.5;
         mob.addVelocity(velocity);
         this.onPanic();
+    }
+    
+    // Метод для возобновления жизни, урона и т.д.
+    doUpdate(delta) {
+        
     }
 }
