@@ -6,6 +6,7 @@ const eps = 1e-3;
 const coord = ['x', 'y', 'z'];
 const point_precision = 1; // 000;
 const side = new Vector(0, 0, 0);
+const side_fluid = new Vector(0, 0, 0);
 const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
 const startBlock = new Vector(0, 0, 0);
@@ -178,6 +179,7 @@ export class Raycaster {
         side.zero();
         leftTop.zero();
         check.zero();
+        side_fluid.zero();
 
         let fluidVal = 0;
         let fluidLeftTop = null;
@@ -213,9 +215,11 @@ export class Raycaster {
                 hitShape = false;
             }
 
-            if (fluidVal === 0 && b.fluidSource > 0) {
+            let hitFluid = fluidVal === 0 && b.fluidSource > 0;
+            if (hitFluid) {
                 fluidLeftTop = block.floored();
                 fluidVal = b.fluidSource;
+                side_fluid.zero().y = 1;
             }
 
             if (hitShape) {
@@ -309,7 +313,7 @@ export class Raycaster {
             if (!res) {
                 res = new RaycasterResult();
             }
-            res.setFluid(fluidLeftTop, fluidVal, side);
+            res.setFluid(fluidLeftTop, fluidVal, side_fluid);
         }
 
         callback && callback(res);

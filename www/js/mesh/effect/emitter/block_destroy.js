@@ -1,9 +1,11 @@
 import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
+import { GRASS_PALETTE_OFFSET } from "../../../constant.js";
 import { DIRECTION, getChunkAddr, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 const _pos_floored = new Vector(0, 0, 0);
+const _lm_grass = new IndexedColor(0, 0, 0);
 
 export default class emitter {
 
@@ -136,18 +138,21 @@ export default class emitter {
     calcPPAndFlags(pos, block, chunk) {
         // Color masks
         let flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
-        let lm = IndexedColor.WHITE;
+        let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
         if(block) {
             if(this.block_manager.MASK_BIOME_BLOCKS.includes(block.id)) {
                 _pos_floored.copyFrom(pos).flooredSelf();
                 const index = ((_pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (_pos_floored.x - chunk.coord.x)) * 2;
-                lm = new IndexedColor(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
+                lm.set(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
+                if(block.id == this.block_manager.GRASS_BLOCK.id || block.is_grass) {
+                    lm.r += GRASS_PALETTE_OFFSET;
+                }
                 flags |= QUAD_FLAGS.MASK_BIOME;
             } else if(this.block_manager.MASK_COLOR_BLOCKS.includes(block.id)) {
-                lm = new IndexedColor(block.mask_color.r, block.mask_color.g, block.mask_color.b);
+                lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
                 flags |= QUAD_FLAGS.MASK_BIOME;
             } else if(block.tags.includes('multiply_color')) {
-                lm = new IndexedColor(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
+                lm.set(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
                 flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
             }
         }

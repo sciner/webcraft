@@ -303,6 +303,61 @@ export class RecipeManager {
                 }
             });
         }
+        // chairs and stools
+        const logs = {
+            oak: 'oak_log',
+            birch: 'birch_log',
+            spruce: 'spruce_log',
+            acacia: 'acacia_log',
+            jungle: 'jungle_log',
+            dark_oak: 'dark_oak_log',
+            crimson: 'crimson_stem',
+            warped: 'warped_stem'
+        };
+        for(let k in logs) {
+            const log_name = logs[k];
+            recipes.push({
+                "id": md5s(`${k}_chair`),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "L",
+                    "LL",
+                    "SS"
+                ],
+                "key": {
+                    "L": {
+                        "item": `madcraft:${log_name}`
+                    },
+                    "S": {
+                        "item": "madcraft:stick"
+                    }
+                },
+                "result": {
+                    "item": `madcraft:${k}_chair`,
+                    "count": 1
+                }
+            });
+            recipes.push({
+                "id": md5s(`${k}_stool`),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    " L",
+                    "SS"
+                ],
+                "key": {
+                    "L": {
+                        "item": `madcraft:${log_name}`
+                    },
+                    "S": {
+                        "item": "madcraft:stick"
+                    }
+                },
+                "result": {
+                    "item": `madcraft:${k}_stool`,
+                    "count": 1
+                }
+            });
+        }
         //
         for(let item of recipes) {
             if(!('id' in item)) {

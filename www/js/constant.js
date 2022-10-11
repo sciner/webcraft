@@ -9,6 +9,7 @@ export const SOUND_MAX_DIST                 = 16;
 export const NO_TICK_BLOCKS                 = false;
 export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
+export const GRASS_PALETTE_OFFSET           = 256; // (in px) offset in mask_color.png for grass palette
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;

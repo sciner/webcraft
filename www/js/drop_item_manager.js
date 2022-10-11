@@ -3,16 +3,18 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
 
 export class DropItemManager {
+
+    #world;
 	
     constructor(world) {
-        this.world = world;
+        this.#world = world;
         this.list = new Map();
     }
 
     // Client side method
     init() {
         // On server message
-        this.world.server.AddCmdListener([ServerClient.CMD_DROP_ITEM_ADDED, ServerClient.CMD_DROP_ITEM_UPDATE, ServerClient.CMD_DROP_ITEM_DELETED], (cmd) => {
+        this.#world.server.AddCmdListener([ServerClient.CMD_DROP_ITEM_ADDED, ServerClient.CMD_DROP_ITEM_UPDATE, ServerClient.CMD_DROP_ITEM_DELETED], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_DROP_ITEM_ADDED: {
                     for(let drop_item of cmd.data) {
@@ -47,7 +49,7 @@ export class DropItemManager {
     add(data, time) {
         if(data.items[0].id < 1) return;
         const drop_item = new Mesh_Object_Block_Drop(null, data.entity_id, data.items, data.pos);
-        drop_item.world = this.world;
+        drop_item.world = this.#world;
         drop_item.dt = data.dt;
         drop_item.deathTime = data.dt + DROP_LIFE_TIME_SECONDS;
         drop_item.applyNetState({

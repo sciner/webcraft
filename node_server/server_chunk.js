@@ -116,6 +116,8 @@ class TickingBlockManager {
 
 }
 
+let global_uniqId = 0;
+
 // Server chunk
 export class ServerChunk {
 
@@ -124,6 +126,7 @@ export class ServerChunk {
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.addr           = new Vector(addr);
         this.coord          = this.addr.mul(this.size);
+        this.uniqId         = ++global_uniqId;
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = {};
@@ -181,6 +184,7 @@ export class ServerChunk {
                     {
                         update:         true,
                         addr:           this.addr,
+                        uniqId:         this.uniqId,
                         modify_list:    ml
                     }
                 ]
@@ -348,6 +352,10 @@ export class ServerChunk {
     async onBlocksGenerated(args) {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
+            return;
+        }
+        if (args.uniqId !== this.uniqId) {
+            //TODO cover it with a test
             return;
         }
         if(this.addr.equal(new Vector(-10,0,-1))) {
@@ -538,7 +546,7 @@ export class ServerChunk {
         //
         function createDrop(tblock) {
             const pos = tblock.posworld;
-            const actions = new WorldAction(null, world, false, false);
+            const actions = new WorldAction(null, world, false, true);
             actions.addBlocks([
                 {pos: pos.clone(), item: BLOCK.AIR}
             ])
@@ -546,13 +554,13 @@ export class ServerChunk {
             world.actions_queue.add(null, actions);
         }
 
+        const pos = tblock.posworld;
+        const rot = tblock.rotate;
+        const rotx = tblock.rotate?.x;
+        const roty = tblock.rotate?.y;
+
         //
         if(neighbour.id == 0) {
-
-            const pos = tblock.posworld;
-            const rot = tblock.rotate;
-            const rotx = tblock.rotate?.x;
-            const roty = tblock.rotate?.y;
 
             switch(tblock.material.style) {
                 case 'rails':
@@ -610,6 +618,22 @@ export class ServerChunk {
                         drop = true;
                     }
                     if(drop) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'redstone':
+                case 'cactus': {
+                    if(neighbour.posworld.y < pos.y) {
+                        return createDrop(tblock);
+                    }
+                }
+            }
+        } else {
+            switch(tblock.material.style) {
+                case 'cactus': {
+                    // nesw only
+                    if(neighbour.posworld.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
                         return createDrop(tblock);
                     }
                     break;

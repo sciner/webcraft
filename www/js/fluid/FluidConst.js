@@ -48,6 +48,9 @@ export function fluidLightPower(fluidVal) {
 export function fluidBlockProps(block) {
     let res = 0;
 
+    if (!block) {
+        return res;
+    }
     const blockMat = block.material;
     if (block.is_solid) {
         if (block.transparent) {

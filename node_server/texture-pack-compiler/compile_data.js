@@ -18,6 +18,8 @@ const START_BANNER_ID           = 778;
 const START_FENCE_GATE_ID       = 911;
 const START_NUMBER_ID           = 209;
 const START_SLOPE_ID            = 919;
+const START_CHAIR_ID            = 300;
+const START_STOOL_ID            = 320;
 
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
@@ -59,6 +61,7 @@ export class CompileData {
         this.initFenceGate();
         this.initNumber();
         this.initSlope();
+        this.initChairAndStool();
     }
 
     async initDiscs() {
@@ -96,6 +99,7 @@ export class CompileData {
                 "texture": {"side": "block/white_wool.png"},
                 "mask_color": mask_color,
                 "tags": [
+                    "wool",
                     "can_put_info_pot",
                     "mask_color"
                 ]
@@ -168,9 +172,11 @@ export class CompileData {
                 },
                 "can_rotate": true,
                 "inventory": {
-                    "id": "default",
                     "style": "extruder",
-                    "texture": "24|31"
+                    "texture": {
+                        "id": "entity",
+                        "side": "24|31"
+                    }
                 },
                 "mask_color": mask_color,
                 "has_head": {"pos": {"x": 0, "y": 0, "z": 1}},
@@ -789,6 +795,84 @@ export class CompileData {
             b = {...b, ...p};
             this.blocks.push(b);
         }
+    }
+
+    /**
+     * chairs and stools
+     */
+    initChairAndStool() {
+
+        const FURNITURE_MATERIALS = [
+            {prefix: 'OAK', log: 'oak_log', texture: 'block/oak_log_top.png'},
+            {prefix: 'BIRCH', log: 'birch_log', texture: 'block/birch_log_top.png'},
+            {prefix: 'SPRUCE', log: 'spruce_log', texture: 'block/spruce_log_top.png'},
+            {prefix: 'ACACIA', log: 'acacia_log', texture: 'block/acacia_log_top.png'},
+            {prefix: 'JUNGLE', log: 'jungle_log', texture: 'block/jungle_log_top.png'},
+            {prefix: 'DARK_OAK', log: 'dark_oak_log', texture: 'block/dark_oak_log_top.png'},
+            {prefix: 'CRIMSON', log: 'crimson_stem', texture: 'block/crimson_stem_top.png'},
+            {prefix: 'WARPED', log: 'warped_stem', texture: 'block/warped_stem_top.png'}
+        ];
+
+        for(let i = 0; i < FURNITURE_MATERIALS.length; i++) {
+            const item = FURNITURE_MATERIALS[i];
+            // stool
+            this.blocks.push({
+                "id": START_STOOL_ID + i,
+                "can_rotate": true,
+                "transparent": true,
+                "mining_time": 0,
+                "name": `${item.prefix}_STOOL`,
+                "sound": "madcraft:block.wood",
+                "style": "stool",
+                "fuel_time": 16,
+                "material": {
+                    "id": "wood"
+                },
+                "tags": [
+                    "no_drop_ao",
+                    "rotate_x8"
+                ],
+                "extra_data": {
+                    // "upholstery": "white_wool",
+                    "frame": item.log
+                },
+                "texture": item.texture
+            });
+            // chair
+            this.blocks.push({
+                "id": START_CHAIR_ID + i,
+                "can_rotate": true,
+                "transparent": true,
+                "mining_time": 0,
+                "name": `${item.prefix}_CHAIR`,
+                "sound": "madcraft:block.wood",
+                "style": "chair",
+                "fuel_time": 16,
+                "material": {
+                    "id": "wood"
+                },
+                "tags": [
+                    "no_drop_ao",
+                    "rotate_x8"
+                ],
+                "inventory": {
+                    "scale": 0.8,
+                    "move": {"x": -0.2, "y": 0, "z": -0.4}
+                },
+                "extra_data": {
+                    "frame": item.log
+                },
+                "has_head": {
+                    "pos": {
+                        "x": 0,
+                        "y": 1,
+                        "z": 0
+                    }
+                },
+                "texture": item.texture
+            });
+        }
+
     }
 
 }

@@ -23,7 +23,8 @@ import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
-import { Weather } from "./type.js";
+import { Weather } from "./block_type/weather.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -645,9 +646,9 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.fromId(this.player.currentInventoryItem.id);
-            if(block) {
-                const power = block.light_power_number;
+            const mat = BLOCK.fromId(this.player.currentInventoryItem.id);
+            if(mat && !mat.is_dynamic_light) {
+                const power = mat.light_power_number;
                 // and skip all block that have power greater that 0x0f
                 // it not a light source, it store other light data
                 globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
@@ -771,20 +772,31 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
+    // addBBModel
+    addBBModel(pos, bbname, rotate, animation_name) {
+        const model = Resources._bbmodels.get(bbname);
+        if(!model) {
+            return false;
+        }
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
+        bbmodel.setAnimation(animation_name);
+        this.meshes.add(bbmodel);
+    }
+
     /**
      * Set weather
      * @param {Weather} weather
      */
     setWeather(weather) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != weather.name) {
+        if(!rain || rain.type != Weather.get(weather)) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, weather.name);
+            rain = new Mesh_Object_Rain(this, Weather.get(weather));
             this.meshes.add(rain, 'weather');
         }
-        rain.enabled = weather.name != 'clear';
+        rain.enabled = weather != Weather.CLEAR;
     }
 
     // drawPlayers

@@ -426,6 +426,7 @@ export class WorldAction {
             sitting:                    false,
             notify:                     notify,
             fluids:                     [],
+            fluidFlush:                 false,
             blocks: {
                 list: [],
                 options: {
@@ -466,6 +467,7 @@ export class WorldAction {
     }
 
     addFluids(fluids, offset) {
+        offset = offset || Vector.ZERO;
         for (let i = 0; i < fluids.length; i += 4) {
             this.fluids.push(fluids[i + 0] + offset.x, fluids[i + 1] + offset.y, fluids[i + 2] + offset.z, fluids[i + 3]);
         }
@@ -589,6 +591,11 @@ export class WorldAction {
         }
     }
 
+    /**
+     * Set sitting
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     */
     setSitting(pos, rotate) {
         this.sitting = {pos, rotate};
         this.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [/*player.session.user_id*/]});
@@ -627,6 +634,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     let extra_data          = world_block ? world_block.extra_data : null;
     let world_block_rotate  = world_block ? world_block.rotate : null;
 
+    // protect from indirect changes
+    if(extra_data) extra_data = JSON.parse(JSON.stringify(extra_data));
+
     // Check world block material
     if(!world_material && (e.cloneBlock || e.createBlock)) {
         console.error('error_empty_world_material', world_block.id, pos);
@@ -651,7 +661,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }*/
         if(can_destroy) {
             // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removeFromPot, deletePortal]) {
+            for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
                 if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return actions;
                 }
@@ -719,7 +729,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate]) {
+        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1124,7 +1134,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 
 // Drop egg
 async function dropEgg(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(!BLOCK.isEgg(mat_block.id)) {
+    if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
     }
     pos.x += pos.n.x + .5
@@ -1227,36 +1237,62 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
     return false;
 }
 
-// Sit down
+/**
+ * Sit down
+ * @param {*} e 
+ * @param {*} world 
+ * @param {Vector} pos 
+ * @param {*} player 
+ * @param {*} world_block 
+ * @param {*} world_material 
+ * @param {*} mat_block 
+ * @param {*} current_inventory_item 
+ * @param {*} extra_data 
+ * @param {Vector} rotate 
+ * @param {*} replace_block 
+ * @param {WorldAction} actions 
+ * @returns 
+ */
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    const world_block_is_slab = world_material.layering && world_material.height == 0.5;
-    const is_chair = world_material.style == 'chair' || world_material.style == 'stool';
-    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair;
-    if(!block_for_sittings) {
+    if(e.shiftKey) {
         return false;
     }
-    const n = (world_material?.has_head && world_block.extra_data.is_head == false) ? 2 : 1;
+    if(mat_block && mat_block.tags.includes('wool')) {
+        return false;
+    }
+    const world_block_is_slab = world_material.layering && world_material.height == 0.5;
+    const is_stool = world_material.style == 'stool';
+    const is_chair = world_material.style == 'chair';
+    const block_for_sittings = (world_material.tags.includes('stairs')) || world_block_is_slab || is_chair || is_stool;
+    if(!block_for_sittings || (mat_block && !is_chair && !is_stool)) {
+        return false;
+    }
+    const is_head = world_material?.has_head && world_block.extra_data.is_head;
     // check over block if not empty for head
-    const overBlock = world.getBlock(new Vector(pos.x, pos.y + n, pos.z));
-    if(!overBlock || overBlock.id == 0) {
-        const obj_pos = new Vector(pos.x, pos.y, pos.z)
-        if(world_block_is_slab) {
-            const on_ceil = world_block.extra_data?.point?.y >= .5;
-            obj_pos.addScalarSelf(.5, on_ceil ? .5 : 0, .5);
-        } else if(is_chair) {
-            obj_pos.addScalarSelf(.5, .5, .5);
-        } else {
-            obj_pos.addScalarSelf(.5, 0, .5);
-        }
-        const dist = player.pos.distance(obj_pos);
-        if(dist < 3.0) {
-            actions.reset_mouse_actions = true;
-            actions.setSitting(
-                obj_pos.addScalarSelf(0, .5, 0),
-                new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-            )
-            return true;
-        }
+    const overBlock = world.getBlock(new Vector(pos.x, pos.y + (is_head ? 1 : 2), pos.z));
+    if(overBlock && !overBlock.material.transparent) {
+        return false;
+    }
+    //
+    const sit_height = (is_chair || is_stool) ? 11/16 : 1/2;
+    const sit_pos = new Vector(
+        pos.x + .5,
+        pos.y + sit_height - (is_head ? 1 : 0),
+        pos.z + .5
+    )
+    // if slab on ceil
+    if(world_block_is_slab) {
+        const on_ceil = world_block.extra_data?.point?.y >= .5;
+        if(on_ceil) sit_pos.y += .5;
+    }
+    //
+    if(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0) {
+        actions.reset_mouse_actions = true;
+        actions.setSitting(
+            sit_pos,
+            new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
+        )
+        return true;
     }
     return false;
 }
@@ -1576,7 +1612,18 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
     // поджигаем блок
     if (pos.n.y != -1 && world.getBlock(position).id == BLOCK.AIR.id) {
-        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data:{age: 0}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        const data = {age: 0};
+        let block = world.getBlock(position.offset(1, 0, 0));
+        data.east = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(-1, 0, 0));
+        data.west = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, 0, 1));
+        data.north = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, 0, -1));
+        data.south = (block?.material?.flammable) ? true : false;
+        block = world.getBlock(position.offset(0, -1, 0));
+        data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
+        actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         return true;
     }
 
@@ -1848,6 +1895,18 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
     );
 }
 
+// use shears
+async function useShears(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(current_inventory_item.id != BLOCK.SHEARS.id) {
+        return false;
+    }
+    const position = new Vector(pos);
+    if (world_material.tags.includes('leaves')) {
+       actions.addBlocks([{pos: position, item: {id: world_material.id, extra_data: { sheared: true }}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    }
+    return false;
+}
+
 //
 async function useTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(!mat_block || mat_block.style != 'torch') {
@@ -2094,4 +2153,56 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
 // Place rail
 function prePlaceRail(world, pos, new_item, actions) {
     return RailShape.place(world, pos, new_item, actions);
+}
+
+// Set furniture upholstery
+async function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(mat_block.tags.includes('wool')) {
+        if(['chair', 'stool'].includes(world_material.style)) {
+            if(extra_data.is_head) {
+                pos = new Vector(0, -1, 0).add(pos);
+                world_block = world.getBlock(pos);
+                extra_data = world_block?.extra_data;
+            }
+            extra_data.upholstery = mat_block.name;
+            actions.addBlocks([{
+                pos: new Vector(pos),
+                item: {id: world_material.id, rotate, extra_data},
+                action_id: ServerClient.BLOCK_ACTION_MODIFY
+            }]);
+            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+            return true;
+        }
+    }
+    return false;
+}
+
+// Remove furniture upholstery
+async function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if(['chair', 'stool'].includes(world_material.style)) {
+        if(extra_data.is_head) {
+            pos = new Vector(0, -1, 0).add(pos);
+            world_block = world.getBlock(pos);
+            extra_data = world_block?.extra_data;
+            rotate = world_block.rotate;
+        }
+        //
+        if(extra_data?.upholstery) {
+            const drop_item = {
+                id: BLOCK.fromName(extra_data?.upholstery).id,
+                count: 1
+            };
+            delete(extra_data.upholstery);
+            actions.addBlocks([{
+                pos: new Vector(pos),
+                item: {id: world_block.id, rotate, extra_data},
+                action_id: ServerClient.BLOCK_ACTION_MODIFY
+            }]);
+            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+            // Create drop item
+            actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, .5, .5)), items: [drop_item], force: true});
+            return true;
+        }
+    }
+    return false;
 }

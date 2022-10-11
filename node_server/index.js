@@ -82,6 +82,8 @@ const page = {
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+// express.static.mime.define({'application/json': ['bbmodel']})
+// express.mime.type['bbmodel'] = 'application/json';
 app.use(express.json());
 app.engine('html', renderFile);
 app.set('view engine', 'html');

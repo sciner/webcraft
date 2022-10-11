@@ -90,7 +90,7 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         for(let part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,
@@ -155,7 +155,7 @@ function drawBook(vertices, pos, matrix) {
           
     const lm = IndexedColor.WHITE;
     for(let part of parts) {
-        default_style.pushAABB(vertices, {
+        default_style.pushPART(vertices, {
             ...part,
             lm:         lm,
             pos:        pos,

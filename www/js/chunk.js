@@ -7,6 +7,7 @@ import {CubeTexturePool} from "./light/CubeTexturePool.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {fluidLightPower, FLUID_TYPE_MASK} from "./fluid/FluidConst.js";
 
+let global_uniqId = 0;
 // Creates a new chunk
 export class Chunk {
 
@@ -17,7 +18,8 @@ export class Chunk {
     constructor(addr, modify_list, chunkManager) {
 
         this.addr                       = new Vector(addr); // относительные координаты чанка
-        this.seed                       = chunkManager.world.info.seed;
+        this.seed                       = chunkManager.getWorld().info.seed;
+        this.uniqId                     = ++global_uniqId;
 
         //
         this.tblocks                    = null;
@@ -29,6 +31,7 @@ export class Chunk {
         this.lightTex                   = null;
         this.lightData                  = null;
         this.lightMats                  = new Map();
+        this._tempLightSource           = null;
 
         // Fluid
         this.fluid_buf                  = null;
@@ -66,6 +69,7 @@ export class Chunk {
             {
                 addr:           this.addr,
                 seed:           this.seed,
+                uniqId:         this.uniqId,
                 modify_list:    modify_list || null,
                 dataId: this.getDataTextureOffset()
             }
@@ -76,6 +80,9 @@ export class Chunk {
     onBlocksGenerated(args) {
         const chunkManager = this.getChunkManager();
         if (!chunkManager) {
+            return;
+        }
+        if (args.uniqId !== this.uniqId) {
             return;
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
@@ -158,6 +165,15 @@ export class Chunk {
                         prev_block_id = block_id;
                         prev_fluid = fluid_type;
                     }
+
+                    // dynamic light
+                    if(block_material.is_dynamic_light) {
+                        const tblock = this.getBlock(this.coord.x + x, this.coord.y + y, this.coord.z + z);
+                        if(tblock) {
+                            light_power_number = tblock.lightSource;
+                        }
+                    }
+
                     light_source[ind++] = light_power_number;
                 }
         return light_source;
@@ -331,6 +347,9 @@ export class Chunk {
             return;
         }
         this.chunkManager = null;
+        if (this._dataTexture) {
+            this._dataTexture.remove(this);
+        }
         chunkManager.dataWorld.removeChunk(this);
         // destroy buffers
         for(let [_, v] of this.vertices) {
@@ -422,7 +441,7 @@ export class Chunk {
             let tblock           = this.tblocks.get(pos);
 
             if (this.chunkManager.use_light) {
-                oldLight = tblock.material.light_power_number;
+                oldLight = tblock.lightSource;
             }
 
             this.tblocks.delete(pos);
@@ -435,7 +454,7 @@ export class Chunk {
             tblock.falling       = !!material.gravity;
             update_vertices         = true;
             if (this.chunkManager.use_light) {
-                const light         = material.light_power_number;
+                const light      = tblock.lightSource;
                 if (oldLight !== light) {
                     chunkManager.postLightWorkerMessage(['setChunkBlock', {
                         addr: this.addr,
@@ -577,32 +596,47 @@ export class Chunk {
         }
     }
 
+    beginLightChanges() {
+        if (!this.chunkManager.use_light) {
+            return;
+        }
+        this._tempLightSource = this.genLightSourceBuf();
+    }
+
+    endLightChanges() {
+        if (!this.chunkManager.use_light) {
+            return;
+        }
+        const oldBuf = this._tempLightSource;
+        this._tempLightSource = null;
+        const newBuf = this.genLightSourceBuf();
+
+        this.chunkManager.dataWorld.syncOuter(this);
+
+        const { size } = this;
+        let diff = [];
+        let ind = 0;
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x = 0; x < size.x; x++) {
+                    if (oldBuf[ind] !== newBuf[ind]) {
+                        diff.push(x, y, z, newBuf[ind]);
+                    }
+                    ind++;
+                }
+        this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
+            addr: this.addr,
+            dataId: this.getDataTextureOffset(),
+            list: diff}]);
+    }
+
     setFluid(buf) {
         if(this.inited) {
             this.fluid.markDirtyMesh();
-
+            this.beginLightChanges();
             //TODO: make it diff!
-            const oldBuf = this.genLightSourceBuf();
             this.fluid.loadDbBuffer(buf, false);
-            const newBuf = this.genLightSourceBuf();
-
-            this.chunkManager.dataWorld.syncOuter(this);
-
-            const { size } = this;
-            let diff = [];
-            let ind = 0;
-            for (let y = 0; y < size.y; y++)
-                for (let z = 0; z < size.z; z++)
-                    for (let x = 0; x < size.x; x++) {
-                        if (oldBuf[ind] !== newBuf[ind]) {
-                            diff.push(x, y, z, newBuf[ind]);
-                        }
-                        ind++;
-                    }
-            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
-                addr: this.addr,
-                dataId: this.getDataTextureOffset(),
-                list: diff}]);
+            this.endLightChanges();
         } else {
             this.fluid_buf = buf;
         }

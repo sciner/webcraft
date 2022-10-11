@@ -106,7 +106,7 @@ export default class style {
         }
 
         for(let part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos.addScalarSelf(x, y, z),

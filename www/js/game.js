@@ -70,7 +70,7 @@ export class GameClass {
      */
     Started(player) {
         this.player             = player;
-        this.sounds             = new Sounds();
+        this.sounds             = new Sounds(player);
         this.averageClockTimer  = new AverageClockTimer();
         this.prev_player_state  = null;
         //
@@ -83,26 +83,9 @@ export class GameClass {
         // Interval functions
         this.sendStateInterval = setInterval(() => {
             player.sendState();
-            // TrackerPlayer change volumes
-            TrackerPlayer.changePos(this.player.lerpPos);
-            // Add jukebox animations
-            /*for(let pos of TrackerPlayer.vc.keys()) {
-                if(Math.random() < .1) {
-                    Qubatch.render.meshes.effects.createBlockEmitter({type: 'music_note', pos: [pos.add(new V)]});
-                }
-            }*/
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
-        /*
-        setInterval(() => {
-            Qubatch.world.chunkManager.setBlock(2902, 4, 2703, {id: 502}, true, null, null, null, {model: 'sword'});
-            Qubatch.world.chunkManager.setBlock(2905, 4, 2703, {id: 502}, true, null, null, null, {model: 'garbage_monster'});
-            Qubatch.world.chunkManager.setBlock(2908, 4, 2703, {id: 502}, true, null, null, null, {model: 'black_big_can'});
-            Qubatch.world.chunkManager.setBlock(2911, 4, 2703, {id: 502}, true, null, null, null, {model: 'bookshelf'});
-            Qubatch.world.chunkManager.setBlock(2914, 4, 2703, {id: 502}, true, null, null, null, {model: 'test'});
-        }, 10)
-        */
     }
 
     // Set the canvas the renderer uses for some input operations.
@@ -515,6 +498,9 @@ export class GameClass {
         } else {
             player.lastUpdate = null;
         }
+
+        // update a sounds after player update
+        this.sounds.update();
 
         this.world.chunkManager.update(player.pos, delta);
 

@@ -40,10 +40,11 @@ export class FluidWorld {
     }
 
     applyWorldFluidsList(fluids) {
-        if (!fluids || fluids.length === 0) {
-            return;
-        }
         let chunks = new VectorCollector();
+        let {use_light} = this.chunkManager;
+        if (!fluids || fluids.length === 0) {
+            return chunks;
+        }
         let chunk_addr = new Vector();
         for (let i = 0; i < fluids.length; i += 4) {
             let x = fluids[i], y = fluids[i + 1], z = fluids[i + 2], val = fluids[i + 3];
@@ -57,7 +58,14 @@ export class FluidWorld {
                     continue;
                 }
             }
+            if (use_light) {
+                //TODO: its slow!!!
+                chunk.beginLightChanges();
+            }
             chunk.fluid.setValue(x - chunk.coord.x, y - chunk.coord.y, z - chunk.coord.z, val);
+            if (use_light) {
+                chunk.endLightChanges();
+            }
         }
         //chunks
         return chunks;

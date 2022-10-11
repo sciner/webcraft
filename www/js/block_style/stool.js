@@ -19,7 +19,8 @@ export default class style {
 
     static computeAABB(block, for_physic) {
         const aabbs = [];
-        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, 0.75, 0.875));
+        const height = for_physic ? 11/16 : 12/16;
+        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, height, 0.875));
         return aabbs;
     }
 
@@ -27,8 +28,8 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const extra_data = block.extra_data;
-        const frame = extra_data?.frame ? extra_data.frame.toUpperCase() : 'OAK_LOG';
+        const extra_data = block.extra_data ?? block.material.extra_data;
+        const frame = (extra_data?.frame ? extra_data.frame : block.material.extra_data.frame).toUpperCase();
         const log = BLOCK.calcTexture(BLOCK[frame].texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
@@ -97,7 +98,7 @@ export default class style {
         mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
 
         for(const part of parts) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,
@@ -127,7 +128,7 @@ export default class style {
                 }
             ]);
             for(const wool of wools) {
-                default_style.pushAABB(vertices, {
+                default_style.pushPART(vertices, {
                     ...wool,
                     lm:         color,
                     pos:        pos,

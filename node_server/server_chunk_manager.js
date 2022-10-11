@@ -218,6 +218,11 @@ export class ServerChunkManager {
         this.all.set(chunk.addr, chunk);
     }
 
+    /**
+     * Return chunk by addr
+     * @param {Vector} addr 
+     * @returns {ServerChunk}
+     */
     get(addr) {
         return this.all.get(addr) || null;
     }

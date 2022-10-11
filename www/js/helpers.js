@@ -1157,6 +1157,16 @@ export class IndexedColor {
         return new IndexedColor(this.r, this.g, this.b);
     }
 
+    /**
+     * @param {IndexedColor} ic 
+     */
+    copyFrom(ic) {
+        this.r = ic.r;
+        this.g = ic.g;
+        this.b = ic.b;
+        return this;
+    }
+
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }

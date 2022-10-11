@@ -237,8 +237,9 @@ export class World {
         if(actions.reset_mouse_actions) {
             player.resetMouseActivity();
         }
-        if(actions.clone_block /* && player.game_mode.canBlockClone()*/) {
+        if(actions.clone_block) {
             this.server.CloneBlock(actions.clone_block);
+            player.inventory.cloneMaterial(new Vector(actions.clone_block), true);
         }
         //
         if(actions.blocks && actions.blocks.list) {
@@ -281,6 +282,10 @@ export class World {
     onBlockDestroy(pos, item) {
         // Destroy beacon ray
         Qubatch.render.meshes.remove('beacon/' + pos.toHash(), this);
+    }
+
+    get chunks() {
+        return this.chunkManager.chunks;
     }
 
 }

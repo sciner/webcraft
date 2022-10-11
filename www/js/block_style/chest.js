@@ -35,7 +35,7 @@ export default class style {
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const flag = 0;
         const cd = block.getCardinalDirection();
-        const rot = cd * (Math.PI / 2)
+        const rot = cd * -(Math.PI / 2)
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
 
@@ -63,7 +63,7 @@ export default class style {
                 "west":  {"uv": [70/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
             }
         };
-        default_style.pushAABB(vertices, {
+        default_style.pushPART(vertices, {
             ...box,
             lm:         lm,
             pos:        pos,
@@ -102,7 +102,7 @@ export default class style {
         ];
 
         for(let part of lid) {
-            default_style.pushAABB(vertices, {
+            default_style.pushPART(vertices, {
                 ...part,
                 lm:         lm,
                 pos:        pos,

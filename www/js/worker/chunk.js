@@ -28,6 +28,9 @@ export class ChunkManager {
             material: BLOCK.DUMMY,
             getProperties: function() {
                 return this.properties;
+            },
+            canReplace: function() {
+                return false;
             }
         };
         this.dataWorld = new DataWorld(this);
