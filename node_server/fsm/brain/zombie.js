@@ -75,6 +75,8 @@ export class Brain extends FSMBrain {
             this.timer_attack++;
             if (this.timer_attack >= this.interval_attack) {
                 this.timer_attack = 0;
+                
+                const difficulty = world.getGameRule('difficulty'); // Урон от сложности игры
                 player.setDamage(2);
                 const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
