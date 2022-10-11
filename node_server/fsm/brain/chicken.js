@@ -4,6 +4,10 @@ import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
+const TIME_IN_NEST = 12000;
+const LAY_INTERVAL = 100000;
+const COUNT_EGGS_IN_NEST = 8;
+
 export class Brain extends FSMBrain {
 
     constructor(mob) {
@@ -20,7 +24,11 @@ export class Brain extends FSMBrain {
         this.follow_distance = 6;
 
         this.egg_timer = performance.now();
-        this.lay_interval = 200000;
+        
+        // nest
+        this.nest_timer = 0;
+        this.nest = null;
+        
         this.stack.pushState(this.doStand);
     }
 
@@ -29,7 +37,7 @@ export class Brain extends FSMBrain {
             const mob = this.mob;
             const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
             const friends = [];
-            for (let player of players) {
+            for (const player of players) {
                 if (player.state.hands.right.id == BLOCK.WHEAT_SEEDS.id) {
                     friends.push(player);
                 }
@@ -46,32 +54,61 @@ export class Brain extends FSMBrain {
     }
 
     doForward(delta) {
-        if ((performance.now() - this.egg_timer) > this.lay_interval) {
+        if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
             const block = this.getBeforeBlocks();
             if (!block) {
                 return;
             }
-            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < 9) {
+            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < COUNT_EGGS_IN_NEST) {
                 this.egg_timer = performance.now();
-                const mob = this.mob;
-                const world = mob.getWorld();
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: block.body.posworld, 
-                    item: {
-                        id : BLOCK.CHICKEN_NEST.id,
-                        extra_data: {
-                            eggs: block.body.extra_data.eggs + 1
-                        }
-                    }, 
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
-                }]);
-                world.actions_queue.add(null, actions); 
-                this.stack.replaceState(this.doStand);
+                this.nest_timer = performance.now();
+                this.nest = block.body;
+                this.stack.replaceState(this.doLay);
                 return;
             }
         }
         super.doForward(delta);
+    }
+    
+    // Процесс сноса яйца
+    doLay(delta) {
+        if (!this.nest || this.nest.extra_data.eggs >= COUNT_EGGS_IN_NEST) {
+            this.stack.replaceState(this.doForward);
+            return;
+        }
+        const mob = this.mob;
+        const nest_pos = this.nest.posworld.offset(0.5, 0.5, 0.5);
+        const distance =  mob.pos.horizontalDistance(nest_pos);
+        if (distance < 0.1) {
+            if ((performance.now() - this.nest_timer) > TIME_IN_NEST) {
+                const world = mob.getWorld();
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: this.nest.posworld, 
+                    item: {
+                        id : BLOCK.CHICKEN_NEST.id,
+                        extra_data: {
+                            eggs: this.nest.extra_data.eggs + 1
+                        }
+                    }, 
+                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+                this.stack.replaceState(this.doForward);
+            }
+            return;
+        }
+        
+        mob.rotate.z = this.angleTo(nest_pos);
+
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: true,
+            jump: false
+        });
+
+        this.applyControl(delta);
+        this.sendState();
     }
 
     doCatch(delta) {

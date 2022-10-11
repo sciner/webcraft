@@ -7983,7 +7983,8 @@
                 "id": "wood"
             },
             "tags":[
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_set_on_top"
             ],
             "texture": "block/hay_block_top.png",
             "style":"chicken_nest",
