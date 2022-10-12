@@ -840,7 +840,7 @@ export class ServerWorld {
                 break;
             }
             case 'difficulty': {
-                return this.info.rules[rule_code] || 0;
+                return this.info.rules[rule_code] || 1;
                 break;
             }
             default: {

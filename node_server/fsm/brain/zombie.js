@@ -57,7 +57,8 @@ export class Brain extends FSMBrain {
         if (!chunk) {
             return;
         }
-        
+         // Урон от сложности игры
+        const difficulty = mob.getWorld().getGameRule('difficulty'); 
         const ahead = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.pc.playerHeight + 1, Math.cos(mob.rotate.z))).floored());
         const head = chunk.getBlock(mob.pos.add(new Vector(0, this.pc.playerHeight + 1, 0)).floored());
         const legs = chunk.getBlock(mob.pos.add(new Vector(0, 0, 0)).floored());
@@ -99,13 +100,22 @@ export class Brain extends FSMBrain {
             this.timer_health = 10 * MUL_1_SEC;
         }
         // поиск жертвы
-        if (this.target == null) {
+        if (this.target == null && difficulty != EnumDifficulty.PEACEFUL) {
             const players = this.getPlayersNear(mob.pos, VIEW_DISTANCE, true);
             if (players.length > 0) {
                 const rnd = (Math.random() * players.length) | 0;
                 const player = players[rnd];
-                const angle = this.angleTo(player.state.pos);
                 this.target = player;
+                // Если выбран режим hard, то устанавливаем общий таргет
+                if (difficulty == EnumDifficulty.HARD) {
+                    const bots = world.getMobsNear(mob.pos, VIEW_DISTANCE);
+                    for (const bot of bots) {
+                        const brain = bot.getBrain();
+                        if (bot.type == "zombie" && !brain.target) {
+                            brain.target = player;
+                        }
+                    }
+                }
             }
         }
     }
@@ -209,7 +219,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+    // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
