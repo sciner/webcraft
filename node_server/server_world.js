@@ -949,11 +949,11 @@ export class ServerWorld {
     // Возвращает уровень освещности в мире
     getLight() {
         const time = this.info.calendar.day_time;
-        if (this.isRaining()) {
-            return 12;
-        }
         if (time < 6000 || time > 18000) {
             return 4;
+        }
+        if (this.isRaining()) {
+            return 12;
         }
         return 15;
     }

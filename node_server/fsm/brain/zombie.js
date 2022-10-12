@@ -4,7 +4,11 @@ import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
+import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/fluid/FluidConst.js";
+
+const ATTACK_DISTANCE = 1.5;
+const VIEW_DISTANCE = 40;
 
 const FOLLOW_DISTANCE = 20;
 const DISTANCE_LOST_TRAGET = 25;
@@ -19,16 +23,12 @@ export class Brain extends FSMBrain {
         this.prevPos = new Vector(mob.pos);
         this.lerpPos = new Vector(mob.pos);
         this.pc = this.createPlayerControl(this, {
-            baseSpeed: 1 / 2,
+            baseSpeed: 0.8,
             playerHeight: 1.6,
+            playerHalfWidth: 0.45,
             stepHeight: 1
         });
 
-        this.width = 0.6;
-        this.height = 1.95;
-
-        this.follow_distance = 20;
-        this.distance_attack = 1.5;
         this.timer_attack = 0;
         this.interval_attack = 16;
         this.stack.pushState(this.doStand);
@@ -40,8 +40,9 @@ export class Brain extends FSMBrain {
         this.timer_health = 0;
         this.timer_fire_damage = 0;
         this.timer_lava_damage = 0;
+        this.timer_water_damage = 0;
         this.time_fire = 0;
-        
+
         // где находится моб
         this.in_fire = false;
         this.in_water = false;
@@ -57,12 +58,14 @@ export class Brain extends FSMBrain {
             return;
         }
         
-        const head = chunk.getBlock(mob.pos.add(new Vector(0, this.height + 1, 0)).floored());
+        const ahead = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.pc.playerHeight + 1, Math.cos(mob.rotate.z))).floored());
+        const head = chunk.getBlock(mob.pos.add(new Vector(0, this.pc.playerHeight + 1, 0)).floored());
         const legs = chunk.getBlock(mob.pos.add(new Vector(0, 0, 0)).floored());
         this.in_water = head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
-        this.in_fire = ((legs && legs.id == BLOCK.FIRE.id) || world.getLight() > 11);
+        this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
         this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        
+        this.is_well = ahead.id != 0 && ahead.id != -1;
+
         if (this.in_lava) {
             if (this.timer_lava_damage-- <= 0) {
                 this.timer_lava_damage = MUL_1_SEC; 
@@ -71,18 +74,23 @@ export class Brain extends FSMBrain {
             this.time_fire = Math.max(10 * MUL_1_SEC, this.time_fire); 
         }
         
-        if (this.in_fire) {
-            this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire); 
+        if (this.in_fire || world.getLight() > 11) {
+            this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
-        //console.log('in_lava: ' + this.in_lava + ' in_fire:' + this.in_fire);
         
-        // урон от горения
-        if (this.timer_fire_damage++ > this.time_fire) {
-            if (this.timer_fire_damage % MUL_1_SEC == 0) {
+        // горение 
+        if (this.time_fire-- >= 0 && !this.in_water) {
+            if (this.timer_fire_damage-- <= 0) {
+                this.timer_fire_damage = MUL_1_SEC; 
                 this.onDamage(null, 1, EnumDamage.FIRE);
             }
-            this.timer_fire_damage = 0;
-            this.time_fire = 0;
+        }
+        // нехватка воздуха
+        if (this.in_water) {
+            if (this.timer_water_damage-- <= 0) {
+                this.timer_water_damage = MUL_1_SEC; 
+                this.onDamage(null, 2, EnumDamage.WATER);
+            }
         }
         // регенерация жизни
         if (this.timer_health-- <= 0) {
@@ -90,50 +98,74 @@ export class Brain extends FSMBrain {
             live.value = Math.min(live.value + 1, this.health);
             this.timer_health = 10 * MUL_1_SEC;
         }
-        
-        // Приоритеты действий
-        if (this.in_water) {
-            //return;
-        }
-    }
-
-    findTarget() {
+        // поиск жертвы
         if (this.target == null) {
-            const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, this.follow_distance, true);
+            const players = this.getPlayersNear(mob.pos, VIEW_DISTANCE, true);
             if (players.length > 0) {
                 const rnd = (Math.random() * players.length) | 0;
                 const player = players[rnd];
-                this.target = player.session.user_id;
-                this.stack.replaceState(this.doCatch);
-                return true;
+                const angle = this.angleTo(player.state.pos);
+                this.target = player;
             }
         }
-        return false;
     }
-
-    onPanic() {
-
-    }
-
-    lostTarget() {
-        this.target = null;
-        this.stack.replaceState(this.doStand);
-        this.sendState();
-    }
-
-    doAttack(delta) {
+    
+    // простое движение
+    doForward(delta) {
         this.onUpdate(delta);
         const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty'); // Урон от сложности игры
-        const dist = mob.pos.distance(player.state.pos);
-        if (mob.playerCanBeAtacked(player) || dist > this.distance_attack) {
+        // нашел цель
+        if (this.target) {
             this.stack.replaceState(this.doCatch);
             return;
         }
-        const angle_to_player = this.angleTo(player.state.pos);
+        // уперся в стену, поворот
+        if (this.is_well) {
+            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: true
+        });
+        this.applyControl(delta);
+        this.sendState();
+        if (Math.random() < 0.05) {
+            this.stack.replaceState(this.doStand);
+        }
+    }
+    
+    // просто стоит
+    doStand(delta) {
+        this.onUpdate(delta);
+        const mob = this.mob;
+        if (this.target) {
+            this.stack.replaceState(this.doCatch);
+            return;
+        }
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: false
+        });
+        this.applyControl(delta);
+        this.sendState();
+        if (Math.random() < 0.05) {
+            this.stack.replaceState(this.doForward);
+        }
+    }
+    
+    doAttack(delta) {
+        this.onUpdate(delta);
+        const mob = this.mob;
+        // Урон от сложности игры
+        const difficulty = mob.getWorld().getGameRule('difficulty'); 
+        const dist = mob.pos.distance(this.target.state.pos);
+        if (mob.playerCanBeAtacked(this.target) || dist > ATTACK_DISTANCE) {
+            this.stack.replaceState(this.doCatch);
+            return;
+        }
+        const angle_to_player = this.angleTo(this.target.state.pos);
         // моб должен примерно быть направлен на игрока
         if (Math.abs(mob.rotate.z - angle_to_player) > Math.PI / 2) {
             // сперва нужно к нему повернуться
@@ -143,48 +175,41 @@ export class Brain extends FSMBrain {
             if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
                 switch(difficulty) {
-                    case 1: player.setDamage(Math.random() < 0.5 ? 2 : 3); break;
-                    case 2: player.setDamage(3); break;
-                    case 3: player.setDamage(Math.random() < 0.5 ? 4 : 5); break;
+                    case EnumDifficulty.EASY: player.setDamage(Math.random() < 0.5 ? 2 : 3); break;
+                    case EnumDifficulty.NORMAL: player.setDamage(3); break;
+                    case EnumDifficulty.HARD: player.setDamage(Math.random() < 0.5 ? 4 : 5); break;
                 }
             }
         }
     }
-
+    
     // Chasing a player
     async doCatch(delta) {
         this.onUpdate(delta);
         const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        const dist = mob.pos.distance(player.state.pos);
-        if (mob.playerCanBeAtacked(player) || dist > DISTANCE_LOST_TRAGET) {
-            this.lostTarget();
+        if (!this.target) {
+            this.stack.replaceState(this.doStand);
             return;
         }
-
-        mob.rotate.z = this.angleTo(player.state.pos);
-
-        const block = this.getBeforeBlocks();
-        const is_water = block.body.is_fluid;
+        const dist = mob.pos.distance(this.target.state.pos);
+        if (mob.playerCanBeAtacked(this.target) || dist > VIEW_DISTANCE) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        if (dist < ATTACK_DISTANCE) {
+            this.stack.replaceState(this.doAttack);
+            return;
+        }
+        mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             yaw: mob.rotate.z,
-            forward: true,
-            jump: is_water
+            forward: true
         });
         this.applyControl(delta);
         this.sendState();
-
-        if (dist < this.distance_attack) {
-            this.stack.replaceState(this.doAttack);
-        }
     }
-
-    lostTarget() {
-        const mob = this.mob;
-        this.target = null;
-        this.stack.replaceState(this.doStand);
-    }
-
+    
     onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
@@ -210,13 +235,13 @@ export class Brain extends FSMBrain {
     }
     
     onDamage(actor, val, type_damage) {
-        console.log('damage: ' + val + ' source: ' + type_damage)
         const mob = this.mob;
         const live = mob.indicators.live;
-        const pos_actor = (actor && actor.session) ? actor.state.pos : new Vector(0, 0, 0);
-        const velocity = mob.pos.sub(pos_actor).normSelf();
-        velocity.y = 0.3;
-        mob.addVelocity(velocity);
+        if (actor) {
+            const velocity = mob.pos.sub(actor.state.pos).normSelf();
+            velocity.y = 0.4;
+            mob.addVelocity(velocity);
+        }
         live.value -= val;
         if (live.value < 1) {
             this.onKill(actor, type_damage);
