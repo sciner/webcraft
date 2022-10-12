@@ -185,8 +185,8 @@ export default class Mesh_Object_Rain {
                         block_pos.y -= chunk.coord.y;
                         block_pos.z -= chunk.coord.z;
                         block = chunk.tblocks.get(block_pos, block);
-                        if(block.id > 0) {
-                            item.max_y = pos.y + k;
+                        if(block.id > 0 || block.fluid > 0) {
+                            item.max_y = pos.y + k + 1;
                             break;
                         }
                     }
