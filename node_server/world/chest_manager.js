@@ -42,10 +42,10 @@ export class WorldChestManager {
         if(is_ender_chest) {
             chest = await player.loadEnderChest();
         } else {
+            chest = tblock_chest.extra_data;
             if(!('slots' in chest)) {
                 chest.slots = {};
             }
-            chest = tblock_chest.extra_data
         }
 
         // Валидация ключей слотов сундука,
