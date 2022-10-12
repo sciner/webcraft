@@ -1,20 +1,12 @@
 import {
-    FLUID_BLOCK_RESTRICT,
     FLUID_LAVA_ID,
-    FLUID_LEVEL_MASK, FLUID_SOLID16,
-    FLUID_STRIDE,
+    FLUID_LEVEL_MASK, FLUID_QUEUE16, FLUID_SOLID16,
     FLUID_TYPE_MASK, FLUID_WATER_ID,
-    OFFSET_FLUID
 } from "./FluidConst.js";
-
-function lessThan(fluid16, type, lvl) {
-    if ((fluid16 & type) === 0) {
-
-    }
-}
+import {SingleQueue} from "../light/MultiQueue.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
-function canAffectNeibs(uint16View, index, cx, cy, cz) {
+function shouldGoToQueue(uint16View, index, cx, cy, cz) {
     const val = uint16View[index];
     const fluidType = val & FLUID_TYPE_MASK, lvl = val & FLUID_LEVEL_MASK;
 
@@ -27,8 +19,6 @@ function canAffectNeibs(uint16View, index, cx, cy, cz) {
 
     const EMPTY_MASK = FLUID_TYPE_MASK | FLUID_SOLID16;
 
-    // check down
-
     const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
     const lessThan = (lvl & 7) - lower;
     const moreThan = (lvl & 7) + lower;
@@ -37,7 +27,8 @@ function canAffectNeibs(uint16View, index, cx, cy, cz) {
 
     let hasDownFlow = false, hasEmpty = false;
     let goesSides = lvl === 0;
-
+    let hasSupport = lvl === 0 || (neib[0] & FLUID_TYPE_MASK) === fluidType;
+    // check down
     if ((neib[1] & FLUID_SOLID16) === 0) {
         goesSides = true;
     } else {
@@ -75,9 +66,10 @@ function canAffectNeibs(uint16View, index, cx, cy, cz) {
                 // water affecting lava neib
                 hasImprovement = fluidType === FLUID_WATER_ID;
             } else {
-                let neibLvl = (neib[i] & FLUID_LEVEL_MASK) & 7;
+                let neibLvl = (neib[1] & FLUID_LEVEL_MASK) & 7;
                 hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
                 hasDownFlow = hasDownFlow || neibLvl > lvl;
+                hasSupport = hasSupport || neibLvl < lvl;
             }
         } else if (moreThan < 8 && goesSides) {
             // empty neib - we can go there
@@ -91,7 +83,7 @@ function canAffectNeibs(uint16View, index, cx, cy, cz) {
             return true;
         }
     }
-    return false;
+    return !hasSupport;
 }
 
 export class FluidChunkQueue {
@@ -101,11 +93,12 @@ export class FluidChunkQueue {
         this.pagedList = new SingleQueue({
             pagePool: this.fluidWorld.queue.pool,
         });
+        this.inQueue = false;
         //TODO: several pages, depends on current fluid tick
     }
 
     init() {
-        const {fluidChunk, fluidWorld, uint16View} = this;
+        const {fluidChunk, uint16View} = this;
         const {cx, cy, cz, cw} = fluidChunk.dataChunk;
 
         const bounds = fluidChunk.getLocalBounds();
@@ -118,38 +111,31 @@ export class FluidChunkQueue {
                     if (fluidType === 0) {
                         continue;
                     }
-                    const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
-
-
-                    neib[0] = uint16View[index + cy];
-                    neib[1] = uint16View[index - cy];
-                    neib[2] = uint16View[index - cz];
-                    neib[3] = uint16View[index + cz];
-                    neib[4] = uint16View[index + cx];
-                    neib[5] = uint16View[index - cx];
-                    neibDown[2] = uint16View[index - cz - cy];
-                    neibDown[3] = uint16View[index + cz - cy];
-                    neibDown[4] = uint16View[index + cx - cy];
-                    neibDown[5] = uint16View[index - cx - cy];
-
-                    let hasLowerNeib = false, hasLowerNeibDown = false;
-                    if (lvl + lower < 8) {
-                        for (let i = 2; i < 6; i++) {
-                            let neibType = (neib[i] & FLUID_TYPE_MASK);
-                            if (neibType > 0 && fluidType !== neibType) {
-                                //block gen!!!
-                            }
-                            if ((neib[i] & FLUID_SOLID16) === 0 || fluidType > 0 && fluidType !== neibType) {
-                                continue;
-                            }
-                        }
-                        // look at neibs
+                    if (shouldGoToQueue(uint16View, index, cx, cy, cz)) {
+                        this.pagedList.push(index);
+                        uint16View[index] = val | FLUID_QUEUE16;
                     }
                 }
         }
+        if (this.pagedList.head !== null) {
+            this.markDirty();
+        }
+    }
+
+    markDirty() {
+        if (!this.inQueue) {
+            this.fluidWorld.queue.push(this);
+            this.inQueue = true;
+        }
+    }
+
+    markClean() {
+        this.inQueue = false;
     }
 
     process() {
+        let { pagedList } = this;
+        //for (let i = 0)
     }
 
     dispose() {

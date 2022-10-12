@@ -27,7 +27,7 @@ export class QueuePagePool {
 
     alloc() {
         if (this.freePageCount === 0) {
-            this.pages.push(new QueuePage(this.pageSize, bytesPerElement));
+            this.pages.push(new QueuePage(this.pageSize, this.bytesPerElement));
             this.freePageStack.push(null);
             this.freePageStack[0] = this.pages[this.pages.length - 1];
             this.freePageCount++;

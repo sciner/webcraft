@@ -1,7 +1,7 @@
 import {
     FLUID_BLOCK_RESTRICT,
     FLUID_GENERATED_FLAG,
-    FLUID_LAVA_ID,
+    FLUID_LAVA_ID, FLUID_MASK, FLUID_PROPS_MASK16, FLUID_SOLID16,
     FLUID_STRIDE, FLUID_TYPE_MASK,
     FLUID_WATER_ID, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID
@@ -221,18 +221,16 @@ export class FluidChunk {
     }
 
     syncBlockProps(index, blockId, isPortal) {
-        const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
-        const old = this.uint8View[ind];
-        const props = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
-        if (props === old) {
+        const old16 = this.uint16View[index];
+        const props16 = blockId ? (fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) << 8) : 0;
+        if (props16 === (old16 & FLUID_PROPS_MASK16)) {
             return;
         }
-        this.uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
 
         // things to check
         // 1. mesh solid block status near fluids
-        const isSolid = props & FLUID_BLOCK_RESTRICT;
-        if (this.meshID >= 0 && isSolid !== (old & FLUID_BLOCK_RESTRICT) > 0) {
+        const isSolid = props16 & FLUID_SOLID16;
+        if (this.meshID >= 0 && isSolid !== (old16 & FLUID_SOLID16) > 0) {
             const {uint16View} = this;
             const {cx, cy, cz, cw, size, outerSize} = this.dataChunk;
 
@@ -256,10 +254,12 @@ export class FluidChunk {
                 this.markDirtyMesh();
             }
         }
+
+        let newVal = (old16 & ~FLUID_PROPS_MASK16) | props16;
         // 2. solid block on top of fluid
-        if ((this.uint16View[index] & FLUID_TYPE_MASK) > 0) {
+        if ((old16 & FLUID_TYPE_MASK) > 0) {
             if (isSolid) {
-                this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+                newVal = newVal & ~FLUID_MASK;
                 if (!isPortal) {
                     this.updateID++;
                     this.markDirtyMesh();
@@ -267,12 +267,14 @@ export class FluidChunk {
                 }
             }
         }
+
+        this.uint16View[index] = newVal;
     }
 
     syncAllProps() {
         const {cx, cy, cz, outerSize} = this.dataChunk;
         const {id} = this.parentChunk.tblocks;
-        const {uint8View} = this;
+        const {uint16View} = this;
         const {BLOCK_BY_ID} = BLOCK;
 
         for (let y = 0; y < outerSize.y; y++)
@@ -282,11 +284,15 @@ export class FluidChunk {
                     let props = 0;
                     const blockId = id[index];
                     if (blockId) {
-                        props = fluidBlockProps(BLOCK_BY_ID[blockId]);
+                        props = fluidBlockProps(BLOCK_BY_ID[blockId]) << 8;
                     }
-                    uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
+                    const oldVal = uint16View[index];
+                    let newVal = (oldVal & ~FLUID_PROPS_MASK16) | props;
+                    if (newVal & FLUID_SOLID16) {
+                        newVal = newVal &~ FLUID_MASK;
+                    }
+                    uint16View[index] = newVal;
                 }
-        this.propsID++;
     }
 
     markDirtyMesh() {

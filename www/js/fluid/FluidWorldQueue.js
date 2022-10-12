@@ -8,6 +8,7 @@ export class FluidWorldQueue {
             pageSize: 256,
             bytesPerElement: 2,
         });
+        this.dirtyChunks = [];
     }
 
     addChunk(fluidChunk) {
@@ -17,5 +18,24 @@ export class FluidWorldQueue {
 
     removeChunk(fluidChunk) {
         fluidChunk.queue.dispose();
+    }
+
+    process(msLimit = 16) {
+        const start = performance.now();
+        const {dirtyChunks} = this;
+        if (dirtyChunks.length === 0) {
+            return;
+        }
+        let i;
+        for (i = 0; i < dirtyChunks.length; i++) {
+            dirtyChunks[i].process();
+            dirtyChunks[i].markClean();
+            if (performance.now() - start >= msLimit) {
+                break;
+            }
+        }
+        if (i > 0) {
+            dirtyChunks.splice(0, i);
+        }
     }
 }
