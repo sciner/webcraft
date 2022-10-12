@@ -176,6 +176,8 @@ export class InHandOverlay {
             player, globalUniforms, renderBackend
         } = render;
 
+        this.player = player;
+
         const {
             camera, inHandItemMesh
         } = this;
@@ -183,19 +185,12 @@ export class InHandOverlay {
         this.update(render, delta);
 
         mat4.identity(camera.bobPrependMatrix);
-        // this.bobViewItem(player, camera.bobPrependMatrix);
-
-        // SCINER temp position of cam
-        // camera.pos.set(
-        //     -157.48671900056806/100,
-        //     210.10827698032705/100
-        //     -57.69201067788088/100,
-        // );
+        this.bobViewItem(player, camera.bobPrependMatrix);
 
         camera.pos.set(
-            0,
+            -.5, // тут было 0, но помоему -.5 подходит больше
             1,
-                -1,
+            -1,
         );
 
         // const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
@@ -230,8 +225,14 @@ export class InHandOverlay {
                 return this.id == block.id;
             };
             mainHandItem.getUseAnimation = function() {
-                return ItemUseAnimation.NONE;
+                // TODO: НУЖНО ВОЗВРАЩАТЬ ID ТЕКУЩЕЙ АНИМАЦИИ
+                return ItemUseAnimation.EAT;
             };
+            // длительность текущей анимации (не прошедшая, а общая)
+            mainHandItem.getUseDuration = function() {
+                return player.inhand_animation_duration;
+            };
+            
 
             // @param {float}
             let pPartialTicks = 0.0000014305115;
@@ -452,7 +453,7 @@ export class InHandOverlay {
                 this.renderItem(player, matInHand, flag2 ? ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag2, modelMatrix, p_109380_, pCombinedLight);
             */
             } else {
-                let flag3 = humanoidarm == HumanoidArm.RIGHT;
+                const flag3 = humanoidarm == HumanoidArm.RIGHT;
                 if (player.isUsingItem() && player.getUseItemRemainingTicks() > 0 && player.getUsedItemHand() == hand) {
                     let k = flag3 ? 1 : -1;
                     switch(matInHand.getUseAnimation()) {
@@ -539,25 +540,6 @@ export class InHandOverlay {
                     //this.applyItemArmTransform(modelMatrix, humanoidarm, p_109378_);
                     //this.applyItemArmAttackTransform(modelMatrix, humanoidarm, p_109376_);
 
-                    /*
-                    modelMatrix[0] = 0.9999999;
-                    modelMatrix[1] = 0.0;
-                    modelMatrix[2] = -5.267266E-4;
-                    modelMatrix[3] = 0.0;
-                    modelMatrix[4] = -5.022468E-7;
-                    modelMatrix[5] = 0.9999995;
-                    modelMatrix[6] = -9.5352455E-4;
-                    modelMatrix[7] = 0.0;
-                    modelMatrix[8] = 5.2672636E-4;
-                    modelMatrix[9] = 9.5352466E-4;
-                    modelMatrix[10] = 0.9999994;
-                    modelMatrix[11] = 0.0;
-                    modelMatrix[12] = 0.0;
-                    modelMatrix[13] = 0.0;
-                    modelMatrix[14] = 0.0;
-                    modelMatrix[15] = 1.0;
-                    */
-
                     let f5 = -0.4 * Math.sin(Math.sqrt(pSwingProgress) * Math.PI);
                     let f6 = 0.2 * Math.sin(Math.sqrt(pSwingProgress) * (Math.PI * 2));
                     let f10 = -0.2 * Math.sin(pSwingProgress * Math.PI);
@@ -635,19 +617,31 @@ export class InHandOverlay {
     * @param {ItemStack} matInHand
     */
     applyEatTransform(modelMatrix, pPartialTicks, hand, matInHand) {
-        let f = this.minecraft.player.getUseItemRemainingTicks() - pPartialTicks + 1.0;
+        let f = this.player.getUseItemRemainingTicks() - pPartialTicks + 1.0;
         let f1 = f / matInHand.getUseDuration();
         if (f1 < 0.8) {
             let f2 = Math.abs(Math.cos(f / 4.0 * Math.PI) * 0.1);
-            modelMatrix.translate(0.0, f2, 0.0);
+
+            // modelMatrix.translate(0.0, f2, 0.0);
+            mat4.translate(modelMatrix, modelMatrix, [0.0, f2, 0.0]);
         }
 
         let f3 = 1.0 - Math.pow(f1, 27.0);
         let i = hand == HumanoidArm.RIGHT ? 1 : -1;
-        modelMatrix.translate((f3 * 0.6 * i), (f3 * -0.5), (f3 * 0.0));
-        modelMatrix.mulPose(Vector.YP.rotationDegrees(i * f3 * 90.0));
-        modelMatrix.mulPose(Vector.XP.rotationDegrees(f3 * 10.0));
-        modelMatrix.mulPose(Vector.ZP.rotationDegrees(i * f3 * 30.0));
+
+        // modelMatrix.translate((f3 * 0.6 * i), (f3 * -0.5), (f3 * 0.0));
+        mat4.translate(modelMatrix, modelMatrix, [(f3 * 0.6 * i), (f3 * -0.5), (f3 * 0.0)]);
+
+        const m = mat4.create();
+        const q = quat.create();
+
+        // modelMatrix.mulPose(Vector.YP.rotationDegrees(i * f3 * 90.0));
+        // modelMatrix.mulPose(Vector.XP.rotationDegrees(f3 * 10.0));
+        // modelMatrix.mulPose(Vector.ZP.rotationDegrees(i * f3 * 30.0));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Helpers.deg2rad(i * f3 * 90.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Helpers.deg2rad(f3 * 10.0))));
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(i * f3 * 30.0))));
+
     }
 
     /**

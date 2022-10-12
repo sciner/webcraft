@@ -1010,4 +1010,18 @@ export class Player {
 
     }
 
+    // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
+    getUseItemRemainingTicks() {
+        // this.mineTime = itsme.swingProgress;
+        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+            return 0;
+        }
+        return this.inhand_animation_duration - (this.inhand_animation_duration * this.mineTime);
+    }
+
+    // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
+    getUsedItemHand() {
+        return InteractionHand.MAIN_HAND;
+    }
+
 }
