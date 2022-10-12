@@ -109,6 +109,9 @@ export default class Mesh_Object_Rain {
             vec.y = item.max_y + item.add_y;
             vec.z += .5;
             render.renderBackend.drawMesh(this.buffer, this.material, vec, item.matrix);
+            if(this.type == 'rain' && Math.random() < .001) {
+                render.destroyBlock({id: 200}, vec, true, 1, 1);
+            }
         }
 
     }
@@ -185,7 +188,7 @@ export default class Mesh_Object_Rain {
                         block_pos.y -= chunk.coord.y;
                         block_pos.z -= chunk.coord.z;
                         block = chunk.tblocks.get(block_pos, block);
-                        if(block.id > 0 || block.fluid > 0) {
+                        if((block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
                             item.max_y = pos.y + k + 1;
                             break;
                         }
@@ -247,7 +250,7 @@ export default class Mesh_Object_Rain {
      * @memberOf Mesh_Object_Raindrop
      */
     isAlive() {
-        return true;
+        return this.enabled;
     }
 
 }
