@@ -761,6 +761,7 @@ export class DBWorldMigration {
                  OR data LIKE '"id":170,' OR data LIKE '"id":170}'
                  OR data LIKE '"id":171,' OR data LIKE '"id":171}';`,
         ]});
+
         migrations.push({version: 82, queries: [
             `DELETE from world_modify WHERE block_id = 95;`,
             `UPDATE world_modify_chunks SET data_blob = NULL WHERE data LIKE '"id":95,' OR data LIKE '"id":95}';`,

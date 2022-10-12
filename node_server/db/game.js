@@ -109,6 +109,11 @@ export class DBGame {
         migrations.push({version: 8, queries: [
             `ALTER TABLE "world" ADD "cover" TEXT;`
         ]});
+
+        migrations.push({version: 9, queries: [
+            `ALTER TABLE world ADD COLUMN "game_mode" TEXT`,
+            `UPDATE world set game_mode = 'survival'`
+        ]});
         
         for(let m of migrations) {
             if(m.version > version) {
@@ -211,7 +216,7 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
@@ -219,12 +224,12 @@ export class DBGame {
                 const world = {
                     'id':           row.id,
                     'user_id':      row.user_id,
-                    'dt':           '2021-10-06T19:20:04+02:00',
+                    'dt':           new Date(row.dt * 1000).toISOString(), // '2021-10-06T19:20:04+02:00',
                     'guid':         row.guid,
                     'title':        row.title,
                     'seed':         row.seed,
                     'cover':        row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null,
-                    'game_mode':    '',
+                    'game_mode':    row.game_mode,
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
                     'state':        null
@@ -270,12 +275,13 @@ export class DBGame {
                 break;
             }
         }
-        const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+        const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        guid,
             ':user_id':     user_id,
             ':title':       title,
             ':seed':        seed,
+            ':game_mode':   game_mode,
             ':generator':   JSON.stringify(generator),
             ':pos_spawn':   JSON.stringify(default_pos_spawn)
         });

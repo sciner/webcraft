@@ -270,7 +270,7 @@
 						<div class="animated-mask">
 							<h2 class="m-0">{{item.title}}</h2>
 							<div class="flex">
-								<p class="game-mode">{{Lang.gamemode_survival}}</p>
+								<p class="game-mode">{{item.game_mode_title}}</p>
 								<div class="users-online" title="{{Lang.players_online}}">
 									<i class="icon-bx-user" style="font-size: 14px; color: #AEEA00;"></i>
 									<span>{{item.players_online}}</span>
@@ -509,6 +509,13 @@
                                 <div>
                                     <p>{{Lang.world_generator_type}}</p>
                                     <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
+                                </div>
+                            </div>
+
+                            <div class="grid-2 input-group">
+                                <div>
+                                    <p>{{Lang.world_game_mode}}</p>
+                                    <select class="slim-select" id="create-w-select2" ng-options="item as item.title for item in newgame.gamemodes.list" ng-model="newgame.gamemodes.current" ng-change="newgame.gamemodes.select(newgame.gamemodes.current)"></select>
                                 </div>
                             </div>
 

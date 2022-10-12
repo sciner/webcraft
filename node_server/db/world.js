@@ -62,14 +62,15 @@ export class DBWorld {
         }
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
-        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
             ':seed':        world.seed,
             ':generator':   JSON.stringify(world.generator),
-            ':pos_spawn':   JSON.stringify(world.pos_spawn)
+            ':pos_spawn':   JSON.stringify(world.pos_spawn),
+            ':game_mode':   world.game_mode
         });
         return this.getWorld(world_guid);
     }
