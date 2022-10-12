@@ -1,4 +1,4 @@
-export class Damage {
+export class EnumDamage {
     
     static WATER = 0;
     static FIRE = 1;

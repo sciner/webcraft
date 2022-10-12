@@ -39,7 +39,7 @@ export class Brain extends FSMBrain {
     doUpdate(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (world.getLight() > 6) {
+        if (world.getLight() > 11) {
             this.in_fire = true;
         }
         if (this.in_fire) {
@@ -94,22 +94,12 @@ export class Brain extends FSMBrain {
             this.mob.rotate.z = angle_to_player;
             this.sendState();
         } else {
-            this.timer_attack++;
-            if (this.timer_attack >= this.interval_attack) {
+            if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
                 switch(difficulty) {
-                    case 0: {
-                        player.setDamage(Math.random() < 0.5 ? 2 : 3);
-                        break;
-                    }
-                    case 1: {
-                        player.setDamage(3);
-                        break;
-                    }
-                    case 3: {
-                        player.setDamage(Math.random() < 0.5 ? 4 : 5);
-                        break;
-                    }
+                    case 1: player.setDamage(Math.random() < 0.5 ? 2 : 3); break;
+                    case 2: player.setDamage(3); break;
+                    case 3: player.setDamage(Math.random() < 0.5 ? 4 : 5); break;
                 }
             }
         }
@@ -159,8 +149,12 @@ export class Brain extends FSMBrain {
             items.push({ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh });
         }
         if (Math.random() < 0.025) {
-            
-            items.push({ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh });
+            const drop = (Math.random() * 2) | 0;
+            switch (drop) {
+                case 0: items.push({ id: BLOCK.IRON_INGOT.id, count: 1 }); break;
+                case 1: items.push({ id: BLOCK.CARROT.id, count: 1 }); break;
+                case 2: items.push({ id: type_damage != Damage.FIRE ? BLOCK.POTATO.id : BLOCK.BACKED_POTATO.id, count: 1 }); break;
+            }
         }
         if (items.length > 0) {
             actions.addDropItem({ pos: mob.pos, items: items, force: true });
