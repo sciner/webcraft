@@ -3,11 +3,13 @@ import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { ServerClient } from "../../../www/js/server_client.js";
-import { Damage } from "../../../www/js/block_type/damage.js";
+import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/fluid/FluidConst.js";
 
 const FOLLOW_DISTANCE = 20;
 const DISTANCE_LOST_TRAGET = 25;
 const FIRE_LOST_TICKS = 10;
+const MUL_1_SEC = 20;
 
 export class Brain extends FSMBrain {
 
@@ -31,23 +33,60 @@ export class Brain extends FSMBrain {
         this.interval_attack = 16;
         this.stack.pushState(this.doStand);
         
+        // инфо
+        this.health = 20;
+        
+        // таймеры
+        this.timer_health = 0;
         this.timer_fire_damage = 0;
+        this.timer_lava_damage = 0;
+        this.time_fire = 0;
+        
+        // где находится моб
         this.in_fire = false;
+        this.in_water = false;
+        this.in_lava = false;
     }
     
     // Метод для возобновления жизни, урона и т.д.
-    doUpdate(delta) {
+    onUpdate(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (world.getLight() > 11) {
-            this.in_fire = true;
+        const chunk = world.chunks.get(mob.chunk_addr);
+        if (!chunk) {
+            return;
         }
-        if (this.in_fire) {
-            if (this.timer_fire_damage++ > FIRE_LOST_TICKS) {
-                this.in_fire = false;
-                this.timer_fire_damage = 0;
-                this.onDamage(null, 2, Damage.FIRE);
+        
+        const head = chunk.getBlock(mob.pos.add(new Vector(0, this.height + 1, 0)).floored());
+        const legs = chunk.getBlock(mob.pos.add(new Vector(0, 0, 0)).floored());
+        this.in_water = head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+        this.in_fire = ((legs && legs.id == BLOCK.FIRE.id) || world.getLight() > 11);
+        this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        
+        if (this.in_lava) {
+            if (this.timer_lava_damage-- <= 0) {
+                this.timer_lava_damage = MUL_1_SEC; 
+                this.onDamage(null, 2, EnumDamage.LAVA);
             }
+            this.time_fire = Math.max(10 * MUL_1_SEC, this.time_fire); 
+        }
+        
+        if (this.in_fire) {
+            this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire); 
+        }
+        //console.log('in_lava: ' + this.in_lava + ' in_fire:' + this.in_fire);
+        if (this.timer_fire_damage++ > this.time_fire) {
+            if (this.timer_fire_damage % MUL_1_SEC == 0) {
+                this.onDamage(null, 1, EnumDamage.FIRE);
+            }
+            this.timer_fire_damage = 0;
+            this.time_fire = 0;
+        }
+        
+        if (this.timer_health-- <= 0) {
+            const live = mob.indicators.live;
+            live.value = Math.min(live.value + 1, this.health);
+            this.timer_health = 10 * MUL_1_SEC;
         }
     }
 
@@ -77,7 +116,7 @@ export class Brain extends FSMBrain {
     }
 
     doAttack(delta) {
-        this.doUpdate(delta);
+        this.onUpdate(delta);
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
         const world = mob.getWorld();
@@ -107,7 +146,7 @@ export class Brain extends FSMBrain {
 
     // Chasing a player
     async doCatch(delta) {
-        this.doUpdate(delta);
+        this.onUpdate(delta);
         const mob = this.mob;
         const player = mob.getWorld().players.get(this.target);
         const dist = mob.pos.distance(player.state.pos);
@@ -130,7 +169,7 @@ export class Brain extends FSMBrain {
 
         if (dist < this.distance_attack) {
             this.stack.replaceState(this.doAttack);
-		}
+        }
     }
 
     lostTarget() {
@@ -164,6 +203,7 @@ export class Brain extends FSMBrain {
     }
     
     onDamage(actor, val, type_damage) {
+        console.log('damage: ' + val + ' source: ' + type_damage)
         const mob = this.mob;
         const live = mob.indicators.live;
         const pos_actor = (actor && actor.session) ? actor.state.pos : new Vector(0, 0, 0);

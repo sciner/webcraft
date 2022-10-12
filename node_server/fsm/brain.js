@@ -168,7 +168,7 @@ export class FSMBrain {
     }
 
     doStand(delta) {
-        this.doUpdate(delta);
+        this.onUpdate(delta);
         
         if (this.findTarget()) {
             return;
@@ -210,7 +210,7 @@ export class FSMBrain {
     }
 
     doForward(delta) {
-        this.doUpdate(delta);
+        this.onUpdate(delta);
         
         if (this.findTarget()) {
             return;
@@ -298,7 +298,7 @@ export class FSMBrain {
     }
     
     // Метод для возобновления жизни, урона и т.д.
-    doUpdate(delta) {
+    onUpdate(delta) {
         
     }
 }
