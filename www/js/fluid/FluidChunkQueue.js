@@ -1,11 +1,17 @@
 import {
     FLUID_LAVA_ID,
-    FLUID_LEVEL_MASK, FLUID_QUEUE16, FLUID_SOLID16,
+    FLUID_LEVEL_MASK, FLUID_PROPS_MASK16, FLUID_QUEUE16, FLUID_SOLID16,
     FLUID_TYPE_MASK, FLUID_WATER_ID,
 } from "./FluidConst.js";
+import {
+    BLOCK
+} from "./../blocks.js";
 import {SingleQueue} from "../light/MultiQueue.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
+let assignedValues = new Uint16Array(0),
+    assignedIndices = new Uint16Array(0),
+    lavaCast = [];
 function shouldGoToQueue(uint16View, index, cx, cy, cz) {
     const val = uint16View[index];
     const fluidType = val & FLUID_TYPE_MASK, lvl = val & FLUID_LEVEL_MASK;
@@ -64,7 +70,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
         if (neibType > 0) {
             if (fluidType !== neibType) {
                 // water affecting lava neib
-                hasImprovement = fluidType === FLUID_WATER_ID;
+                hasImprovement = fluidType === FLUID_LAVA_ID;
             } else {
                 let neibLvl = (neib[1] & FLUID_LEVEL_MASK) & 7;
                 hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
@@ -135,7 +141,97 @@ export class FluidChunkQueue {
 
     process() {
         let { pagedList } = this;
-        //for (let i = 0)
+
+        if (!pagedList.head) {
+            return;
+        }
+        lavaCast.length = 0;
+        const {uint16View} = this.fluidChunk;
+        const {tblocks} = this.fluidChunk.parentChunk.tblocks;
+        const {cx, cy, cz, cw, outerSize} = this.fluidChunk.dataChunk;
+        if (assignedValues.length < uint16View.length) {
+            assignedValues = new Uint16Array(uint16View.length);
+            assignedIndices = new Uint16Array(uint16View.length);
+        }
+        let num = 0;
+        cycle: while (pagedList.head) {
+            const index = pagedList.shift();
+            let val = uint16View[index];
+            const props = val & FLUID_PROPS_MASK16;
+            let lvl = val & FLUID_LEVEL_MASK;
+            const fluidType = val & FLUID_TYPE_MASK;
+            let curNum = num;
+            assignedValues[num] = props | lvl | fluidType;
+            assignedIndices[num++] = index;
+            if (fluidType === 0) {
+                num++;
+                continue;
+            }
+
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+
+            neib[0] = uint16View[index + cy];
+            neib[1] = uint16View[index - cy];
+            neib[2] = uint16View[index - cz];
+            neib[3] = uint16View[index + cz];
+            neib[4] = uint16View[index + cx];
+            neib[5] = uint16View[index - cx];
+
+            // check lavacast
+            for (let i = 0; i < 6; i++) {
+                if (i === 1) {
+                    continue;
+                }
+                let neibType = (neib[0] & FLUID_TYPE_MASK);
+                if (neibType > 0 && neibType !== fluidType) {
+                    if (fluidType === FLUID_LAVA_ID) {
+                        lavaCast.push(index);
+                        if ((val & FLUID_LEVEL_MASK) === 0) {
+                            lavaCast.push(1);
+                        } else {
+                            lavaCast.push(2);
+                        }
+                    }
+                    assignedValues[curNum] = 0;
+                    continue cycle;
+                }
+            }
+
+            // 1. check support
+            let supportLvl = (val & FLUID_LEVEL_MASK) === 0 ? 16 : 0;
+            let neibType = (neib[0] & FLUID_TYPE_MASK);
+            if (neibType > 0) {
+                supportLvl = Math.min(supportLvl, 8);
+            }
+            const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
+            for (let i = 2; i < 6; i++) {
+                neibType = (neib[0] & FLUID_TYPE_MASK);
+                if (neibType > 0) {
+                    const neibLvl = neib[0] & FLUID_LEVEL_MASK;
+                    const lowLvl = (neibLvl & 7) + lower;
+                    if (lowLvl < 8) {
+                        supportLvl = Math.min(supportLvl, lowLvl);
+                    }
+                }
+            }
+
+            if (lvl !== supportLvl) {
+                if (supportLvl === 16) {
+                    // no fluid for you
+                    assignedValues[curNum] = 0;
+                    continue;
+                }
+                lvl = supportLvl;
+                assignedValues[num] = props | lvl | fluidType;
+            }
+        }
     }
 
     dispose() {
