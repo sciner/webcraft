@@ -13,7 +13,12 @@ export default class packet_reader {
         return ServerClient.CMD_LOAD_CHEST;
     }
 
-    // Request chest content
+    /**
+     * Request chest content
+     * @param { import("../server_player.js").ServerPlayer } player
+     * @param {*} packet 
+     * @returns 
+     */
     static async read(player, packet) {
         if(!player.game_mode.canBlockAction()) {
             return true;
@@ -31,7 +36,7 @@ export default class packet_reader {
                     return false;
                 }
             } else {
-                player.world.chests.sendContentToPlayers([player], pos);
+                await player.world.chests.sendContentToPlayers([player], pos);
                 return true;
             }
         }

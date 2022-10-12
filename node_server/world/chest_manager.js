@@ -1,6 +1,6 @@
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
-import {ServerClient} from "../../www/js/server_client.js";
-import {BLOCK} from "../../www/js/blocks.js";
+import { ServerClient } from "../../www/js/server_client.js";
+import { BLOCK } from "../../www/js/blocks.js";
 import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT } from "../../www/js/constant.js";
@@ -24,7 +24,7 @@ export class WorldChestManager {
         if(!tblock.material?.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
-        if(tblock.extra_data.generate) {
+        if(tblock.extra_data?.generate) {
             const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
             tblock.extra_data = params.item.extra_data;
         }
@@ -34,10 +34,18 @@ export class WorldChestManager {
     //
     async confirmPlayerAction(player, pos, params) {
 
-        const chest = await this.get(pos);
+        const tblock_chest = await this.get(pos);
+        const is_ender_chest = tblock_chest.material.name == 'ENDER_CHEST';
 
-        if(!('slots' in chest.extra_data)) {
-            chest.extra_data.slots = {};
+        let chest = null;
+
+        if(is_ender_chest) {
+            chest = await player.loadEnderChest();
+        } else {
+            if(!('slots' in chest)) {
+                chest.slots = {};
+            }
+            chest = tblock_chest.extra_data
         }
 
         // Валидация ключей слотов сундука,
@@ -52,7 +60,7 @@ export class WorldChestManager {
         }
 
         // Compare server state and new state from player
-        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
+        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.slots))];
         const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
         const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
 
@@ -74,22 +82,29 @@ export class WorldChestManager {
                 }
             }
             // update chest slots
-            chest.extra_data.slots = new_chest_slots;
-            chest.extra_data.can_destroy = !new_chest_slots || Object.entries(new_chest_slots).length == 0;
+            chest.slots = new_chest_slots;
             // update player inventory
             player.inventory.applyNewItems(params.inventory_slots, false);
             player.inventory.refresh(false);
-            // Send new chest state to players
-            this.sendChestToPlayers(pos, [player.session.user_id]);
-            // Save chest slots to DB
-            await this.world.db.saveChestSlots({
-                pos: pos,
-                slots: chest.extra_data.slots
-            });
-            //
-            this.sendItem(pos, chest);
+            if(is_ender_chest) {
+                await player.saveEnderChest(chest);
+                // Send new chest state to players
+                this.sendChestToPlayers(pos, [player.session.user_id]);
+            } else {
+                // Send new chest state to players
+                this.sendChestToPlayers(pos, [player.session.user_id]);
+                // Save chest slots to DB
+                await this.world.db.saveChestSlots({
+                    pos: pos,
+                    slots: chest.slots
+                });
+                //
+                this.sendItem(pos, tblock_chest);
+            }
         } else {
-            this.sendContentToPlayers([player], pos);
+            if(!is_ender_chest) {
+                this.sendContentToPlayers([player], pos);
+            }
             // @todo
             player.inventory.refresh(true);
         }
@@ -98,8 +113,8 @@ export class WorldChestManager {
     // Send block item
     // @todo without slots
     async sendItem(block_pos, chest) {
-        let chunk_addr = getChunkAddr(block_pos);
-        let chunk = this.world.chunks.get(chunk_addr);
+        const chunk_addr = getChunkAddr(block_pos);
+        const chunk = this.world.chunks.get(chunk_addr);
         if(chunk) {
             const item = {
                 id:         chest.id,
@@ -115,35 +130,57 @@ export class WorldChestManager {
     }
 
     //
-    sendContentToPlayers(players, block_pos) {
+    async sendContentToPlayers(players, block_pos) {
         const tblock = this.world.getBlock(block_pos);
         if(!tblock || tblock.id < 0) {
             return false;
         }
-        if(!tblock.extra_data || !tblock.extra_data.slots) {
-            return false;
-        }
-        const chest = {
-            pos:            tblock.posworld,
-            slots:          tblock.extra_data.slots,
-            can_destroy:    tblock.extra_data.can_destroy,
-            state:          tblock.extra_data.state
-        };
-        for(let player of players) {
-            const packets = [{
-                name: ServerClient.CMD_CHEST_CONTENT,
-                data: chest
-            }];
-            player.sendPackets(packets);
+        if(tblock.material.name == 'ENDER_CHEST') {
+            if(players.length == 1) {
+                const player = players[0];
+                const c = await player.loadEnderChest();
+                if(c) {
+                    const chest = {
+                        pos:            tblock.posworld,
+                        slots:          c.slots,
+                        state:          tblock.extra_data.state
+                    };
+                    if(chest.slots) {
+                        const packets = [{
+                            name: ServerClient.CMD_CHEST_CONTENT,
+                            data: chest
+                        }];
+                        player.sendPackets(packets);
+                    }
+                } else {
+                    console.error('error_ender_chest_empty_for_player');
+                }
+            }
+        } else {
+            if(!tblock.extra_data || !tblock.extra_data.slots) {
+                return false;
+            }
+            const chest = {
+                pos:            tblock.posworld,
+                slots:          tblock.extra_data.slots,
+                state:          tblock.extra_data.state
+            };
+            for(let player of players) {
+                const packets = [{
+                    name: ServerClient.CMD_CHEST_CONTENT,
+                    data: chest
+                }];
+                player.sendPackets(packets);
+            }
         }
         return true;
     }
 
     sendChestToPlayers(pos, except_player_ids) {
-        let chunk_addr = getChunkAddr(pos);
+        const chunk_addr = getChunkAddr(pos);
         const chunk = this.world.chunks.get(chunk_addr);
         if(chunk) {
-            let players = [];
+            const players = [];
             for(let p of Array.from(chunk.connections.values())) {
                 if(except_player_ids && Array.isArray(except_player_ids)) {
                     if(except_player_ids.indexOf(p.session.user_id) >= 0) {

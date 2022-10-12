@@ -785,6 +785,9 @@ export class DBWorldMigration {
             `DELETE FROM world_modify_chunks`,
             ...update_world_modify_chunks,
         ]});
+        migrations.push({version: 86, queries: [
+            `alter table user add column "ender_chest" TEXT DEFAULT '{"slots":{}}'`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
