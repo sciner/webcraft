@@ -3,15 +3,18 @@ import {
     FLUID_LAVA_ID,
     FLUID_LEVEL_MASK, FLUID_SOLID16,
     FLUID_STRIDE,
-    FLUID_TYPE_MASK,
+    FLUID_TYPE_MASK, FLUID_WATER_ID,
     OFFSET_FLUID
 } from "./FluidConst.js";
 
 function lessThan(fluid16, type, lvl) {
+    if ((fluid16 & type) === 0) {
+
+    }
 }
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
-function willChange(uint16View, index, cx, cy, cz) {
+function canAffectNeibs(uint16View, index, cx, cy, cz) {
     const val = uint16View[index];
     const fluidType = val & FLUID_TYPE_MASK, lvl = val & FLUID_LEVEL_MASK;
 
@@ -21,39 +24,74 @@ function willChange(uint16View, index, cx, cy, cz) {
     neib[3] = uint16View[index + cz];
     neib[4] = uint16View[index + cx];
     neib[5] = uint16View[index - cx];
-    neibDown[2] = uint16View[index - cz - cy];
-    neibDown[3] = uint16View[index + cz - cy];
-    neibDown[4] = uint16View[index + cx - cy];
-    neibDown[5] = uint16View[index - cx - cy];
+
+    const EMPTY_MASK = FLUID_TYPE_MASK | FLUID_SOLID16;
+
+    // check down
 
     const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
+    const lessThan = (lvl & 7) - lower;
+    const moreThan = (lvl & 7) + lower;
 
-    neib[0] = uint16View[index + cy];
-    neib[1] = uint16View[index - cy];
-    neib[2] = uint16View[index - cz];
-    neib[3] = uint16View[index + cz];
-    neib[4] = uint16View[index + cx];
-    neib[5] = uint16View[index - cx];
-    neibDown[2] = uint16View[index - cz - cy];
-    neibDown[3] = uint16View[index + cz - cy];
-    neibDown[4] = uint16View[index + cx - cy];
-    neibDown[5] = uint16View[index - cx - cy];
+    let hasImprovement = false;
 
-    let hasLowerNeib = false, hasLowerNeibDown = false;
-    if (lvl + lower < 8) {
-        for (let i = 2; i < 6; i++) {
-            let neibType = (neib[i] & FLUID_TYPE_MASK);
-            if (neibType > 0 && fluidType !== neibType) {
-                //block gen!!!
-            }
-            if ((neib[i] & FLUID_SOLID16) === 0 || fluidType > 0 && fluidType !== neibType) {
-                continue;
+    let hasDownFlow = false, hasEmpty = false;
+    let goesSides = lvl === 0;
+
+    if ((neib[1] & FLUID_SOLID16) === 0) {
+        goesSides = true;
+    } else {
+        let neibType = (neib[1] & FLUID_TYPE_MASK);
+        if (neibType > 0) {
+            if (neibType !== neibType) {
+                //TODO: fluids need table of interaction.
+                // in mods There might be something that does not interact with water/lava
+                hasImprovement = true;
+            } else {
+                hasImprovement = (neib[i] & lvl) > 0;
             }
         }
-        // look at neibs
     }
 
-    return true;
+    if (hasImprovement) {
+        return true;
+    }
+
+    if (goesSides) {
+        neibDown[2] = uint16View[index - cz - cy];
+        neibDown[3] = uint16View[index + cz - cy];
+        neibDown[4] = uint16View[index + cx - cy];
+        neibDown[5] = uint16View[index - cx - cy];
+    }
+
+    for (let i = 2; i < 6; i++) {
+        let neibType = (neib[i] & FLUID_TYPE_MASK);
+        if ((neib[i] & FLUID_SOLID16) === 0) {
+            // no interaction with solid
+            continue;
+        }
+        if (neibType > 0) {
+            if (fluidType !== neibType) {
+                // water affecting lava neib
+                hasImprovement = fluidType === FLUID_WATER_ID;
+            } else {
+                let neibLvl = (neib[i] & FLUID_LEVEL_MASK) & 7;
+                hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
+                hasDownFlow = hasDownFlow || neibLvl > lvl;
+            }
+        } else if (moreThan < 8 && goesSides) {
+            // empty neib - we can go there
+            hasEmpty = true;
+            if ((neibDown[i] & EMPTY_MASK) === 0) {
+                hasImprovement = true;
+            }
+        }
+        hasImprovement = hasImprovement || (hasEmpty & hasDownFlow);
+        if (hasImprovement) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export class FluidChunkQueue {
