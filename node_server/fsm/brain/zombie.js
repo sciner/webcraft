@@ -75,6 +75,8 @@ export class Brain extends FSMBrain {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire); 
         }
         //console.log('in_lava: ' + this.in_lava + ' in_fire:' + this.in_fire);
+        
+        // урон от горения
         if (this.timer_fire_damage++ > this.time_fire) {
             if (this.timer_fire_damage % MUL_1_SEC == 0) {
                 this.onDamage(null, 1, EnumDamage.FIRE);
@@ -82,11 +84,16 @@ export class Brain extends FSMBrain {
             this.timer_fire_damage = 0;
             this.time_fire = 0;
         }
-        
+        // регенерация жизни
         if (this.timer_health-- <= 0) {
             const live = mob.indicators.live;
             live.value = Math.min(live.value + 1, this.health);
             this.timer_health = 10 * MUL_1_SEC;
+        }
+        
+        // Приоритеты действий
+        if (this.in_water) {
+            //return;
         }
     }
 
