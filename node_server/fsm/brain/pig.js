@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/fluid/FluidConst.js";
 
 export class Brain extends FSMBrain {
 
@@ -12,19 +13,75 @@ export class Brain extends FSMBrain {
         this.lerpPos        = new Vector(mob.pos);
         this.pc             = this.createPlayerControl(this,{
             baseSpeed: 1/4,
-            playerHeight: 0.9,
+            playerHeight: 0.5,
             stepHeight: 1,
             playerHalfWidth: .5
         });
-
-        this.widtn = 0.6;
-        this.height = 1.2;
-
-        this.follow_distance = 16;
-
+        
         this.stack.pushState(this.doStand);
     }
-
+    
+    // Метод для возобновления жизни, урона и т.д.
+    onUpdate(delta) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const chunk = world.chunks.get(mob.chunk_addr);
+        if (!chunk) {
+            return;
+        }
+        const head = chunk.getBlock(mob.pos.offset(0, this.pc.playerHeight + 1, 0).floored());
+        this.in_water = (head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        console.log('in_water: ' + this.in_water);
+        
+        //this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
+        //this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        //this.is_wall = ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting';
+        //this.is_abyss = under.id == 0 && abyss.id == 0;
+    }
+    
+    // просто стоит
+    doStand(delta) {
+        this.onUpdate(delta);
+        const mob = this.mob;
+        if (this.in_water) {
+            this.stack.replaceState(this.doFindGround);
+            return;
+        }
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: false
+        });
+        this.applyControl(delta);
+        this.sendState();
+    }
+    
+    // поиск суши
+    doFindGround(delta) {
+        this.onUpdate(delta);
+        const mob = this.mob;
+        if (!this.in_water) {
+            mob.rotate.z += (Math.random() * Math.PI / 6);
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        // определяем берег
+        const ray = this.raycastFromHead();
+        if (ray) {
+            const pos = new Vector(ray.x, ray.y, ray.z)
+            const world = mob.getWorld();
+            const body = world.getBlock(pos.offset(0, 1, 0));
+            const head = world.getBlock(pos.offset(0, 2, 0));
+        }
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: false,
+            jump: true
+        });
+        this.applyControl(delta);
+        this.sendState();
+    }
+    
+/*
     findTarget() {
         if (this.target == null) {
             const mob = this.mob;
@@ -90,5 +147,5 @@ export class Brain extends FSMBrain {
             world.actions_queue.add(actor, actions);
         }
     }
-
+*/
 }
