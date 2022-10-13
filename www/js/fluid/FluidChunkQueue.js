@@ -9,9 +9,15 @@ import {
 import {SingleQueue} from "../light/MultiQueue.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
+
+const dx = [0, 0, 0, 0, 1, -1], dy = [1, -1, 0, 0, 0, 0], dz = [0, 0, -1, 1, 0, 0];
+
+const QUEUE_PROCESS = 4;
+
 let assignedValues = new Uint16Array(0),
-    assignedIndices = new Uint16Array(0),
-    lavaCast = [];
+    assignedIndices = [],
+    lavaCast = [],
+    knownPortals = [];
 function shouldGoToQueue(uint16View, index, cx, cy, cz) {
     const val = uint16View[index];
     const fluidType = val & FLUID_TYPE_MASK, lvl = val & FLUID_LEVEL_MASK;
@@ -61,8 +67,8 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
         neibDown[5] = uint16View[index - cx - cy];
     }
 
-    for (let i = 2; i < 6; i++) {
-        let neibType = (neib[i] & FLUID_TYPE_MASK);
+    for (let dir = 2; dir < 6; dir++) {
+        let neibType = (neib[dir] & FLUID_TYPE_MASK);
         if ((neib[i] & FLUID_SOLID16) === 0) {
             // no interaction with solid
             continue;
@@ -72,7 +78,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
                 // water affecting lava neib
                 hasImprovement = fluidType === FLUID_LAVA_ID;
             } else {
-                let neibLvl = (neib[1] & FLUID_LEVEL_MASK) & 7;
+                let neibLvl = (neib[dir] & FLUID_LEVEL_MASK) & 7;
                 hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
                 hasDownFlow = hasDownFlow || neibLvl > lvl;
                 hasSupport = hasSupport || neibLvl < lvl;
@@ -80,7 +86,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
         } else if (moreThan < 8 && goesSides) {
             // empty neib - we can go there
             hasEmpty = true;
-            if ((neibDown[i] & EMPTY_MASK) === 0) {
+            if ((neibDown[dir] & EMPTY_MASK) === 0) {
                 hasImprovement = true;
             }
         }
@@ -99,8 +105,13 @@ export class FluidChunkQueue {
         this.pagedList = new SingleQueue({
             pagePool: this.fluidWorld.queue.pool,
         });
+        this.nextList = new SingleQueue({
+            pagePool: this.fluidWorld.queue.pool,
+        });
         this.qplace = null;
         this.inQueue = false;
+        this.curFlag = 1;
+        this.nextFlag = 2;
         //TODO: several pages, depends on current fluid tick
     }
 
@@ -111,13 +122,22 @@ export class FluidChunkQueue {
         return this.qplace;
     }
 
-    pushIndex(index) {
-        this.pagedList.push(index);
+    swapLists() {
+        let t = this.pagedList;
+        this.pagedList = this.nextList;
+        this.nextList = t;
+        let u = this.curFlag;
+        this.curFlag = this.nextFlag;
+        this.nextFlag = u;
+    }
+
+    pushIndex(index, checkFlag = this.nextFlag) {
+        this.nextList.push(index);
         const qplace = this.ensurePlace();
-        if (qplace[index]) {
+        if ((qplace[index] & checkFlag) !== 0) {
             // nothing
         } else {
-            qplace[index] = 1;
+            qplace[index] |= this.nextFlag;
         }
     }
 
@@ -141,6 +161,7 @@ export class FluidChunkQueue {
                 }
         }
         if (this.pagedList.head !== null) {
+            this.swapLists();
             this.markDirty();
         }
     }
@@ -163,27 +184,25 @@ export class FluidChunkQueue {
             return;
         }
         lavaCast.length = 0;
-        const {uint16View} = this.fluidChunk;
-        const {tblocks} = this.fluidChunk.parentChunk.tblocks;
-        const {cx, cy, cz, cw, outerSize} = this.fluidChunk.dataChunk;
+        const {qplace, curFlag, nextFlag} = this;
+        const {uint16View, uint8View} = this.fluidChunk;
+        const {tblocks} = this.fluidChunk.parentChunk;
+        const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
         if (assignedValues.length < uint16View.length) {
             assignedValues = new Uint16Array(uint16View.length);
-            assignedIndices = new Uint16Array(uint16View.length);
         }
-        let num = 0;
+        let assignNum = 0;
         cycle: while (pagedList.head) {
             const index = pagedList.shift();
-            let val = uint16View[index];
-            const props = val & FLUID_PROPS_MASK16;
+            qplace[index] |= QUEUE_PROCESS;
+            let val = assignedValues[index] = uint16View[index];
             let lvl = val & FLUID_LEVEL_MASK;
-            const fluidType = val & FLUID_TYPE_MASK;
-            let curNum = num;
-            assignedValues[num] = props | lvl | fluidType;
-            assignedIndices[num++] = index;
+            let fluidType = val & FLUID_TYPE_MASK;
             if (fluidType === 0) {
-                num++;
+                assignNum++;
                 continue;
             }
+            const oldLvl = lvl & 7;
 
             let tmp = index - cw;
             let x = tmp % outerSize.x;
@@ -194,6 +213,8 @@ export class FluidChunkQueue {
             tmp /= outerSize.z;
             let y = tmp;
 
+            let wx = x + pos.x, wy = y + pos.y, wz = z + pos.z;
+
             neib[0] = uint16View[index + cy];
             neib[1] = uint16View[index - cy];
             neib[2] = uint16View[index - cz];
@@ -201,7 +222,8 @@ export class FluidChunkQueue {
             neib[4] = uint16View[index + cx];
             neib[5] = uint16View[index - cx];
 
-            // check lavacast
+            // 0 check lavacast
+            let emptied = false;
             for (let i = 0; i < 6; i++) {
                 if (i === 1) {
                     continue;
@@ -216,8 +238,8 @@ export class FluidChunkQueue {
                             lavaCast.push(2);
                         }
                     }
-                    assignedValues[curNum] = 0;
-                    continue cycle;
+                    emptied = true;
+                    break;
                 }
             }
 
@@ -228,10 +250,10 @@ export class FluidChunkQueue {
                 supportLvl = Math.min(supportLvl, 8);
             }
             const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
-            for (let i = 2; i < 6; i++) {
-                neibType = (neib[0] & FLUID_TYPE_MASK);
+            for (let dir = 2; dir < 6; dir++) {
+                neibType = (neib[dir] & FLUID_TYPE_MASK);
                 if (neibType > 0) {
-                    const neibLvl = neib[0] & FLUID_LEVEL_MASK;
+                    const neibLvl = neib[dir] & FLUID_LEVEL_MASK;
                     const lowLvl = (neibLvl & 7) + lower;
                     if (lowLvl < 8) {
                         supportLvl = Math.min(supportLvl, lowLvl);
@@ -239,16 +261,106 @@ export class FluidChunkQueue {
                 }
             }
 
-            if (lvl !== supportLvl) {
+            // 2. apply support
+            let changed = emptied;
+            if (!changed && lvl !== supportLvl) {
                 if (supportLvl === 16) {
                     // no fluid for you
-                    assignedValues[curNum] = 0;
+                    emptied = true;
+                } else {
+                    lvl = supportLvl;
+                    changed = true;
+                }
+            }
+
+            // 3 calc portals
+            let portalCount = 0;
+            if (!safeAABB.contains(wx, wy, wz)) {
+                for (let i = 0; i < portals.length; i++) {
+                    if (portals[i].aabb.contains(wx, wy, wz)) {
+                        knownPortals[portalCount++] = i;
+                    }
+                }
+            }
+
+            const moreThan = emptied ? 16 : (lvl & 7) + lower;
+            let goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
+            let flowMask = 0, emptyMask = 0, emptyBest = 0;
+            // 4 propagate to neibs
+            for (let dir = 1; dir < 6; dir++) {
+                let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
+                // dif26 here?
+                let nIndex = cx * nx + cy * ny + cz * nz + shiftCoord;
+                let neibVal = uint16View[nIndex];
+                if ((neibVal & FLUID_SOLID16) > 0) {
                     continue;
                 }
-                lvl = supportLvl;
-                assignedValues[num] = props | lvl | fluidType;
+                if (aabb.contains(nx, ny, nz)) {
+                    if ((qplace[nIndex] & QUEUE_PROCESS) > 0) {
+                        neibVal = assignedValues[nIndex];
+                    }
+                }
+                let neibType = neibVal & FLUID_TYPE_MASK;
+                let neibLvl = neibVal & FLUID_LEVEL_MASK;
+                let improve = false;
+                if (neibType !== 0 && fluidType !== neibType) {
+                    improve = true;
+                } else if (neibLvl === 0) {
+                    // do nothing
+                } else {
+                    // same type or empty
+                    if (dir === 1) {
+                        // going down!
+                        improve = (neibType !== 0 && neibLvl !== 8) ^ !emptied;
+                        if (improve && neibType === 0) {
+                            emptyMask |= 1 << dir;
+                        }
+                    } else {
+                        // going side!
+                        if (neibType === 0) {
+                            if (goesSides) {
+                                emptyMask |= 1 << dir;
+                                if ((uint16View[nIndex - cy] & FLUID_SOLID16) === 0) {
+                                    emptyBest |= 1 << dir;
+                                }
+                            }
+                        } else if (neibLvl === 8) {
+                            //nothing
+                        } else {
+                            improve = neibLvl > moreThan;
+                            if (changed) {
+                                improve |= neibLvl === oldLvl + lower;
+                            }
+                        }
+                    }
+                }
+                if (improve) {
+                    flowMask |= 1 << dir;
+                    if (aabb.contains(nx, ny, nz)) {
+                        this.pushIndex(index);
+                    } else {
+                        // push into neib chunk if need
+                    }
+                }
+            }
+            // TODO: bfs for shortest route like in MC
+            if (emptyMask > 0) {
+                if (emptyBest > 0) {
+                    emptyMask = emptyBest;
+                }
+                for (let dir = 1; dir < 6; dir++) {
+                    if ((emptyMask & (1<<dir)) > 0) {
+                        let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
+                        if (aabb.contains(nx, ny, nz)) {
+                            // force in our chunk
+                        } else {
+                            // force into neib chunk
+                        }
+                    }
+                }
             }
         }
+        //SWAP FLAGS AND APPLY STUFF
     }
 
     dispose() {
