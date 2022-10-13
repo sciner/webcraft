@@ -397,7 +397,6 @@ export class InHandOverlay {
             // хз что такое
             // modelMatrix.pushPose();
             if (matInHand.isEmpty()) {
-                console.log('empty', matInHand)
                 // в руке ничего нет
                 if (flag && !player.isInvisible()) {
                     this.renderPlayerArm(modelMatrix, p_109380_, pCombinedLight, pEquippedProgress, pSwingProgress, humanoidarm);
@@ -526,9 +525,18 @@ export class InHandOverlay {
                 } else if (player.isAutoSpinAttack()) {
                     this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
                     let j = flag3 ? 1 : -1;
-                    modelMatrix.translate((j * -0.4), 0.8, 0.3);
-                    modelMatrix.mulPose(Vector.YP.rotationDegrees(j * 65.0));
-                    modelMatrix.mulPose(Vector.ZP.rotationDegrees(j * -85.0));
+
+                    // modelMatrix.translate((j * -0.4), 0.8, 0.3);
+                    mat4.translate(modelMatrix, modelMatrix, [(j * -0.4), 0.8, 0.3]);
+
+                    const m = mat4.create();
+                    const q = quat.create();
+
+                    // modelMatrix.mulPose(Vector.YP.rotationDegrees(j * 65.0));
+                    // modelMatrix.mulPose(Vector.ZP.rotationDegrees(j * -85.0));
+                    mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.YP, Helpers.deg2rad(j * 65.0))));
+                    mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(j * -85.0))));
+
                 } else {
 
                     // Java
