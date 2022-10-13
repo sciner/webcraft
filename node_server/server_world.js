@@ -136,7 +136,7 @@ export class ServerWorld {
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок
-                    if (under && (under.material.is_dirt || under.material.style == 'planting')) {
+                    if (under && (under.id != 0 || under.material.style == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         // проверям что область для спауна это воздух или вода

@@ -58,12 +58,13 @@ export class Brain extends FSMBrain {
         const ahead = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.pc.playerHeight + 1, Math.cos(mob.rotate.z))).floored());
         const head = chunk.getBlock(mob.pos.add(new Vector(0, this.pc.playerHeight + 1, 0)).floored());
         const legs = chunk.getBlock(mob.pos.floored());
+        const under = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), -1, Math.cos(mob.rotate.z))).floored());
+        const abyss = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), -2, Math.cos(mob.rotate.z))).floored());
         this.in_water = head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
         this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
         this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.is_wall = ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting';
-
-        //console.log('ahead: ' + ahead.id + ' ' + ahead.material.style);
+        this.is_abyss = under.id == 0 && abyss.id == 0;
 
         if (this.in_lava) {
             if (this.timer_lava_damage-- <= 0) {
@@ -86,9 +87,10 @@ export class Brain extends FSMBrain {
         // нехватка воздуха
         if (this.in_water) {
             if (this.timer_water_damage-- <= 0) {
-                this.timer_water_damage = MUL_1_SEC; 
-                this.onDamage(null, 2, EnumDamage.WATER);
+                this.onDamage(null, 50, EnumDamage.WATER);
             }
+        } else {
+            this.timer_water_damage = 30 * MUL_1_SEC; 
         }
         // регенерация жизни
         if (this.timer_health-- <= 0) {
@@ -127,7 +129,7 @@ export class Brain extends FSMBrain {
             return;
         }
         // уперся в стену, поворот
-        if (this.is_wall) {
+        if (this.is_wall || this.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;
@@ -215,7 +217,7 @@ export class Brain extends FSMBrain {
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             yaw: mob.rotate.z,
-            forward: true
+            forward: !(this.is_abyss | this.is_well)
         });
         this.applyControl(delta);
         this.sendState();
