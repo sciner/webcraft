@@ -249,7 +249,9 @@ export class InHandOverlay {
             this.oOffHandHeight = 1; // число между 0 и 1
             this.offHandHeight = 1;
 
-            // ещё какое-то вращение =(
+            // // ещё какое-то вращение =(
+            // p_109092_.mulPose(Vector3f.XP.rotationDegrees(camera.getXRot()));
+            // p_109092_.mulPose(Vector3f.YP.rotationDegrees(camera.getYRot() + 180.0));
             // const m = mat4.create();
             // const q = quat.create();
             // mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Qubatch.render.camera.rotate.x)));
