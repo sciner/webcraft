@@ -9,10 +9,6 @@ import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/
 
 const ATTACK_DISTANCE = 1.5;
 const VIEW_DISTANCE = 40;
-
-const FOLLOW_DISTANCE = 20;
-const DISTANCE_LOST_TRAGET = 25;
-const FIRE_LOST_TICKS = 10;
 const MUL_1_SEC = 20;
 
 export class Brain extends FSMBrain {
@@ -65,7 +61,9 @@ export class Brain extends FSMBrain {
         this.in_water = head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
         this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
         this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_wall = ahead.id != 0 && ahead.id != -1;
+        this.is_wall = ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting';
+
+        //console.log('ahead: ' + ahead.id + ' ' + ahead.material.style);
 
         if (this.in_lava) {
             if (this.timer_lava_damage-- <= 0) {
@@ -167,6 +165,10 @@ export class Brain extends FSMBrain {
     doAttack(delta) {
         this.onUpdate(delta);
         const mob = this.mob;
+        if (!this.target) {
+            this.stack.replaceState(this.doStand);
+            return;
+        }
         // Урон от сложности игры
         const difficulty = mob.getWorld().getGameRule('difficulty'); 
         const dist = mob.pos.distance(this.target.state.pos);
@@ -184,9 +186,9 @@ export class Brain extends FSMBrain {
             if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
                 switch(difficulty) {
-                    case EnumDifficulty.EASY: player.setDamage(Math.random() < 0.5 ? 2 : 3); break;
-                    case EnumDifficulty.NORMAL: player.setDamage(3); break;
-                    case EnumDifficulty.HARD: player.setDamage(Math.random() < 0.5 ? 4 : 5); break;
+                    case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
+                    case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
+                    case EnumDifficulty.HARD: this.target.setDamage(Math.random() < 0.5 ? 4 : 5); break;
                 }
             }
         }

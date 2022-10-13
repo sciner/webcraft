@@ -23,6 +23,8 @@ import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 
+import { WorldAction } from "../www/js/world_action.js";
+
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
@@ -114,6 +116,54 @@ export class ServerWorld {
         return this.info;
     }
     
+    // спавнер мобов
+    autoSpawner() {
+        const SPAWN_DISTANCE = 8;
+        if (this.getLight() > 6) {
+            return;
+        }
+        // находим игроков
+        for (const player of this.players.values()) {
+            if (!player.game_mode.isSpectator() && !player.is_dead) {
+                // количество мобов одного типа в радусе спауна
+                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
+                if (mobs.length <= 4) {
+                    // выбираем рандомную позицию для спауна
+                    const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
+                    const y = player.state.pos.y + 2 * (Math.random());
+                    const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
+                    const spawn_pos = new Vector(x, y, z).floored();
+                    // проверка места для спауна
+                    const under = this.getBlock(spawn_pos.offset(0, -1, 0));
+                    // под ногами только твердый, целый блок
+                    if (under && (under.material.is_dirt || under.material.style == 'planting')) {
+                        const body = this.getBlock(spawn_pos);
+                        const head = this.getBlock(spawn_pos.offset(0, 1, 0));
+                        // проверям что область для спауна это воздух или вода
+                        if (body && head && body.id == 0 && head.id == 0) {
+                            // не спавним рядом с игроком
+                            const players = this.getPlayersNear(spawn_pos, 4);
+                            if (players.length == 0) {
+                                const params = {
+                                    type:       'zombie',
+                                    skin:       'base',
+                                    pos:        spawn_pos,
+                                    pos_spawn:  spawn_pos.clone(),
+                                    rotate:     0,
+                                };
+                                const actions = new WorldAction(null, this, false, false);
+                                actions.spawnMob(params);
+                                this.actions_queue.add(null, actions);
+                                console.log('Auto spawn zombie');
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+    }
+    
     // Update world wather
     updateWorldWeather() {
         const MIN_TIME_RAIN = 30;
@@ -158,7 +208,7 @@ export class ServerWorld {
     }
 
     // World tick
-    async tick() {this.updateWorldWeather();
+    async tick() {
         const started = performance.now();
         let delta = 0;
         if (this.pn) {
@@ -166,6 +216,7 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         this.updateWorldCalendar();
+        this.updateWorldWeather();
         if(!this.pause_ticks) {
             //
             this.ticks_stat.number++;
@@ -202,6 +253,10 @@ export class ServerWorld {
             if(this.ticks_stat.number % 100 == 0) {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
+            }
+            if(this.ticks_stat.number % 100 == 0) {
+                this.autoSpawner();
+                this.ticks_stat.add('auto_spawner');
             }
             //
             this.ticks_stat.add('db_fluid_save');
