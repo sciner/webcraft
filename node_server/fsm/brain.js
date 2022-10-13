@@ -288,12 +288,21 @@ export class FSMBrain {
     * val - количество урона
     * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onDamage(actor, val, type_damage) {
+    async onDamage(actor, val, type_damage) {
         const mob = this.mob;
-        const pos_actor = (actor.session) ? actor.state.pos : new Vector(0, 0, 0);
-        let velocity = mob.pos.sub(pos_actor).normSelf();
-        velocity.y = 0.5;
-        mob.addVelocity(velocity);
+        const live = mob.indicators.live;
+        if (actor) {
+            const velocity = mob.pos.sub(actor.state.pos).normSelf();
+            velocity.y = 0.4;
+            mob.addVelocity(velocity);
+        }
+        live.value -= val;
+        if (live.value <= 0) {
+            await mob.kill();
+            this.onKill(actor, type_damage);
+        } else {
+            mob.save();
+        }
         this.onPanic();
     }
     

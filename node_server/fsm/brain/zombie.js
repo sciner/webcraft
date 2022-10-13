@@ -61,11 +61,11 @@ export class Brain extends FSMBrain {
         const difficulty = mob.getWorld().getGameRule('difficulty'); 
         const ahead = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.pc.playerHeight + 1, Math.cos(mob.rotate.z))).floored());
         const head = chunk.getBlock(mob.pos.add(new Vector(0, this.pc.playerHeight + 1, 0)).floored());
-        const legs = chunk.getBlock(mob.pos.add(new Vector(0, 0, 0)).floored());
+        const legs = chunk.getBlock(mob.pos.floored());
         this.in_water = head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID;
         this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
         this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_well = ahead.id != 0 && ahead.id != -1;
+        this.is_wall = ahead.id != 0 && ahead.id != -1;
 
         if (this.in_lava) {
             if (this.timer_lava_damage-- <= 0) {
@@ -78,7 +78,6 @@ export class Brain extends FSMBrain {
         if (this.in_fire || world.getLight() > 11) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
-        
         // горение 
         if (this.time_fire-- >= 0 && !this.in_water) {
             if (this.timer_fire_damage-- <= 0) {
@@ -108,10 +107,10 @@ export class Brain extends FSMBrain {
                 this.target = player;
                 // Если выбран режим hard, то устанавливаем общий таргет
                 if (difficulty == EnumDifficulty.HARD) {
-                    const bots = world.getMobsNear(mob.pos, VIEW_DISTANCE);
+                    const bots = world.getMobsNear(mob.pos, VIEW_DISTANCE, 'zombie');
                     for (const bot of bots) {
                         const brain = bot.getBrain();
-                        if (bot.type == "zombie" && !brain.target) {
+                        if (!brain.target) {
                             brain.target = player;
                         }
                     }
@@ -130,7 +129,7 @@ export class Brain extends FSMBrain {
             return;
         }
         // уперся в стену, поворот
-        if (this.is_well) {
+        if (this.is_wall) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;
@@ -194,7 +193,7 @@ export class Brain extends FSMBrain {
     }
     
     // Chasing a player
-    async doCatch(delta) {
+    doCatch(delta) {
         this.onUpdate(delta);
         const mob = this.mob;
         if (!this.target) {
@@ -219,6 +218,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
+    
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
@@ -244,17 +244,7 @@ export class Brain extends FSMBrain {
         world.actions_queue.add(actor, actions);
     }
     
-    onDamage(actor, val, type_damage) {
-        const mob = this.mob;
-        const live = mob.indicators.live;
-        if (actor) {
-            const velocity = mob.pos.sub(actor.state.pos).normSelf();
-            velocity.y = 0.4;
-            mob.addVelocity(velocity);
-        }
-        live.value -= val;
-        if (live.value < 1) {
-            this.onKill(actor, type_damage);
-        }
+    onPanic() {
+        
     }
 }

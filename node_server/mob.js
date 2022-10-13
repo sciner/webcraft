@@ -138,23 +138,8 @@ export class Mob {
             this.#brain.onUse(server_player, server_player.state.hands.right.id);
         } else if(params.button_id == MOUSE.BUTTON_LEFT) {
             if(this.indicators.live.value > 0) {
-                await this.changeLive(-5, server_player);
-                this.#brain.onDamage(server_player, 5);
+                await this.#brain.onDamage(server_player, 5);
             }
-        }
-    }
-
-    //
-    async changeLive(value, owner) {
-        const ind = this.indicators.live;
-        const prev_value = ind.value;
-        ind.value = Math.max(prev_value + value, 0);
-        console.log(`Mob live ${prev_value} -> ${ind.value}`);
-        if(ind.value == 0) {
-            this.#brain.onKill(owner);
-            await this.kill();
-        } else {
-            this.save();
         }
     }
 
