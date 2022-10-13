@@ -99,8 +99,26 @@ export class FluidChunkQueue {
         this.pagedList = new SingleQueue({
             pagePool: this.fluidWorld.queue.pool,
         });
+        this.qplace = null;
         this.inQueue = false;
         //TODO: several pages, depends on current fluid tick
+    }
+
+    ensurePlace() {
+        if (!this.qplace) {
+            this.qplace = new Uint8Array(this.fluidChunk.uint16View.length);
+        }
+        return this.qplace;
+    }
+
+    pushIndex(index) {
+        this.pagedList.push(index);
+        const qplace = this.ensurePlace();
+        if (qplace[index]) {
+            // nothing
+        } else {
+            qplace[index] = 1;
+        }
     }
 
     init() {
@@ -118,8 +136,7 @@ export class FluidChunkQueue {
                         continue;
                     }
                     if (shouldGoToQueue(uint16View, index, cx, cy, cz)) {
-                        this.pagedList.push(index);
-                        uint16View[index] = val | FLUID_QUEUE16;
+                        this.pushIndex(index);
                     }
                 }
         }
