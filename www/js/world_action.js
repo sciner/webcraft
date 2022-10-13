@@ -655,32 +655,26 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 2. Destroy
     if(e.destroyBlock) {
         const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
-        let can_destroy = true;
-        /*if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
-            can_destroy = world_block.extra_data.can_destroy;
-        }*/
-        if(can_destroy) {
-            // 1. Проверка выполняемых действий с блоками в мире
-            for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
-                if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                    return actions;
-                }
+        // 1. Проверка выполняемых действий с блоками в мире
+        for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
+            if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
+                return actions;
             }
-            // 2.
-            if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
-                const tblock = world.getBlock(pos);
-                if(tblock.id > 0) {
-                    destroyBlocks.add(tblock, pos);
-                    //
-                    actions.decrement_instrument = {id: tblock.id};
-                    if(!tblock.material.destroy_to_down) {
-                        // Destroyed block
-                        pos = new Vector(pos);
-                        // destroy plants over this block
-                        let block_over = world.getBlock(pos.add(Vector.YP));
-                        if(BLOCK.isPlants(block_over.id)) {
-                            destroyBlocks.add(block_over, pos);
-                        }
+        }
+        // 2.
+        if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
+            const tblock = world.getBlock(pos);
+            if(tblock.id > 0) {
+                destroyBlocks.add(tblock, pos);
+                //
+                actions.decrement_instrument = {id: tblock.id};
+                if(!tblock.material.destroy_to_down) {
+                    // Destroyed block
+                    pos = new Vector(pos);
+                    // destroy plants over this block
+                    let block_over = world.getBlock(pos.add(Vector.YP));
+                    if(BLOCK.isPlants(block_over.id)) {
+                        destroyBlocks.add(block_over, pos);
                     }
                 }
             }

@@ -111,7 +111,6 @@
         "servers": {"en": "Servers", "ru": "Серверы", "fr": "", "es": "", "man": ""},
         "friends": {"en": "Friends", "ru": "Друзья", "fr": "", "es": "", "man": ""},
         "worlds": {"en": "Worlds", "ru": "Миры", "fr": "", "es": "", "man": ""},
-        "gamemode_survival": {"en": "Survival", "ru": "Выживание", "fr": "", "es": "", "man": ""},
         "render_options": {"en": "Render Options", "ru": "Опции отображения", "fr": "", "es": "", "man": ""},
         "world_options": {"en": "World options", "ru": "Опции мира", "fr": "", "es": "", "man": ""},
         "enter_world_name": {"en": "Enter name", "ru": "Введите название", "fr": "", "es": "", "man": ""},
@@ -129,6 +128,12 @@
         "loading_game_connecting": {"en": "CONNECTING TO SERVER...", "ru": "СОЕДИНЕНИЕ С СЕРВЕРОМ ...", "fr": "", "es": "", "man": ""},
         "loading_game_generate_planet": {"en": "GENERATE PLANET ...", "ru": "ГЕНЕРАЦИЯ ПЛАНЕТЫ ...", "fr": "", "es": "", "man": ""},
         "im": {"en": "I'm", "ru": "Я", "fr": "", "es": "", "man": ""},
-        "beautiful_leaves": {"en": "Beautiful leaves", "ru": "Красивые листья", "fr": "", "es": "", "man": ""}
+        "beautiful_leaves": {"en": "Beautiful leaves", "ru": "Красивые листья", "fr": "", "es": "", "man": ""},
+        "gamemode_survival": {"en": "Survival", "ru": "Выживание", "fr": "", "es": "", "man": ""},
+        "gamemode_creative": {"en": "Creative", "ru": "Творчество", "fr": "", "es": "", "man": ""},
+        "gamemode_adventure": {"en": "Adventure", "ru": "Приключения", "fr": "", "es": "", "man": ""},
+        "gamemode_spectator": {"en": "Spectator", "ru": "Наблюдатель", "fr": "", "es": "", "man": ""},
+        "world_difficulty": {"en": "Difficulty", "ru": "Сложность", "fr": "", "es": "", "man": ""},
+        "world_game_mode": {"en": "Game mode", "ru": "Режим игры", "fr": "", "es": "", "man": ""}
     }
 }
