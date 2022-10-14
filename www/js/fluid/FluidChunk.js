@@ -48,6 +48,12 @@ export class FluidChunk {
     setValue(x, y, z, value) {
         const {cx, cy, cz, cw, portals, pos, safeAABB} = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
+        const old = this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+
+        if (old === value) {
+            return;
+        }
+
         this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = value;
         //TODO: check in liquid queue here
         const wx = x + pos.x;
@@ -55,6 +61,9 @@ export class FluidChunk {
         const wz = z + pos.z;
         this.updateID++;
         this.markDirtyMesh();
+        if (this.queue) {
+            this.queue.pushCurIndex(index);
+        }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -278,6 +287,19 @@ export class FluidChunk {
                     this.updateID++;
                     this.markDirtyMesh();
                     this.markDirtyDatabase();
+                    if (this.queue) {
+                        //TODO: remove this
+                        const {cw, outerSize} = this.dataChunk;
+                        let tmp = index - cw;
+                        let x = tmp % outerSize.x;
+                        tmp -= x;
+                        tmp /= outerSize.x;
+                        let z = tmp % outerSize.z;
+                        tmp -= z;
+                        tmp /= outerSize.z;
+                        let y = tmp;
+                        this.queue.pushAllNeibs(x, y, z);
+                    }
                 }
             }
         }

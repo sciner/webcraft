@@ -1,7 +1,7 @@
 import {
     FLUID_LAVA_ID,
     FLUID_LEVEL_MASK, FLUID_SOLID16, FLUID_STRIDE,
-    FLUID_TYPE_MASK, OFFSET_FLUID,
+    FLUID_TYPE_MASK, FLUID_WATER_ID, OFFSET_FLUID,
 } from "./FluidConst.js";
 import {
     BLOCK
@@ -162,6 +162,36 @@ export class FluidChunkQueue {
             // nothing
         } else {
             qplace[index] |= this.nextFlag;
+        }
+    }
+
+    pushAllNeibs(lx, ly, lz) {
+        const {fluidChunk} = this;
+        const {cx, cy, cz, shiftCoord, pos, aabb, safeAABB, portals} = fluidChunk.dataChunk;
+        const {uint16View} = fluidChunk;
+        const wx = lx + pos.x, wy = ly + pos.y, wz = lz + pos.z;
+
+        portalNum = 0;
+        if (!safeAABB.contains(wx, wy, wz)) {
+            for (let i = 0; i < portals.length; i++) {
+                if (portals[i].aabb.contains(wx, wy, wz)) {
+                    knownPortals[portalNum++] = portals[i];
+                }
+            }
+        }
+
+        for (let i = 0; i < 6; i++) {
+            let nx = wx + dx[i], ny = wy + dy[i], nz = wz + dz[i];
+            let nIndex = nx * cx + ny * cy + nz * cz + shiftCoord;
+            if ((uint16View[nIndex] & FLUID_WATER_ID) !== 0) {
+                //push it!
+                if (aabb.contains(nx, ny, nz)) {
+                    this.pagedList.push(nIndex);
+                    this.markDirty();
+                } else {
+                    pushKnownPortal(nx, ny, nz, 0);
+                }
+            }
         }
     }
 
@@ -406,7 +436,7 @@ export class FluidChunkQueue {
                     if (aabb.contains(nx, ny, nz)) {
                         this.pushNextIndex(index);
                     } else {
-                        pushKnownPortal(portalNum, nx, ny, nz);
+                        pushKnownPortal(nx, ny, nz, 0);
                         // push into neib chunk if need
                     }
                 }
