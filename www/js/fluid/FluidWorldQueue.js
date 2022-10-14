@@ -2,8 +2,8 @@ import {QueuePagePool} from "../light/MultiQueue.js";
 import {FluidChunkQueue} from "./FluidChunkQueue.js";
 
 export class FluidWorldQueue {
-    constructor(world) {
-        this.world = world;
+    constructor(fluidWorld) {
+        this.world = fluidWorld;
         this.pool = new QueuePagePool({
             pageSize: 256,
             bytesPerElement: 2,
@@ -12,7 +12,7 @@ export class FluidWorldQueue {
     }
 
     addChunk(fluidChunk) {
-        fluidChunk.queue = new FluidChunkQueue(this, fluidChunk);
+        fluidChunk.queue = new FluidChunkQueue(this.world, fluidChunk);
         fluidChunk.queue.init();
     }
 
@@ -28,8 +28,12 @@ export class FluidWorldQueue {
         }
         let i;
         for (i = 0; i < dirtyChunks.length; i++) {
-            dirtyChunks[i].process();
-            dirtyChunks[i].markClean();
+            const fluidChunk = dirtyChunks[i];
+            if (!fluidChunk.parentChunk.fluid) {
+                continue;
+            }
+            fluidChunk.process();
+            fluidChunk.markClean();
             if (performance.now() - start >= msLimit) {
                 break;
             }

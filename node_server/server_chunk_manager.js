@@ -36,7 +36,7 @@ export class ServerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
-        this.fluidWorld.queue = new FluidWorldQueue(this);
+        this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
         this.initRandomTickers(random_tickers);
     }
 

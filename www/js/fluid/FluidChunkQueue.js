@@ -120,7 +120,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
 export class FluidChunkQueue {
     constructor(fluidWorld, fluidChunk) {
-        this.fluidWorld = world;
+        this.fluidWorld = fluidWorld;
         this.fluidChunk = fluidChunk;
         this.pagedList = new SingleQueue({
             pagePool: this.fluidWorld.queue.pool,
