@@ -463,7 +463,7 @@ export class FluidChunkQueue {
                 }
             }
             if (changed) {
-                this.assign(index, wx, wy, wz,emptied ? 0 : lvl | fluidType, knownPortals, portalNum);
+                this.assign(index, wx, wy, wz,emptied ? 0 : (lvl | fluidType), knownPortals, portalNum);
             }
         }
         this.assignFinish();
