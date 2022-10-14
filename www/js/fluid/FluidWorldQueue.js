@@ -13,7 +13,6 @@ export class FluidWorldQueue {
 
     addChunk(fluidChunk) {
         fluidChunk.queue = new FluidChunkQueue(this.world, fluidChunk);
-        fluidChunk.queue.init();
     }
 
     removeChunk(fluidChunk) {

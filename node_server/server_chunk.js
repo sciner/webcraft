@@ -391,6 +391,7 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
             this._preloadFluidBuf = null;
         }
+        this.fluid.queue.init();
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
         }

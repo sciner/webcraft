@@ -89,7 +89,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
     for (let dir = 2; dir < 6; dir++) {
         let neibType = (neib[dir] & FLUID_TYPE_MASK);
-        if ((neib[i] & FLUID_SOLID16) === 0) {
+        if ((neib[dir] & FLUID_SOLID16) === 0) {
             // no interaction with solid
             continue;
         }
@@ -173,7 +173,8 @@ export class FluidChunkQueue {
     }
 
     init() {
-        const {fluidChunk, uint16View} = this;
+        const {fluidChunk} = this;
+        const {uint16View} = fluidChunk;
         const {cx, cy, cz, cw} = fluidChunk.dataChunk;
 
         const bounds = fluidChunk.getLocalBounds();
