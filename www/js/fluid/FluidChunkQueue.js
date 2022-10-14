@@ -73,6 +73,8 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
             } else {
                 hasImprovement = (neib[1] & FLUID_LEVEL_MASK) > 0;
             }
+        } else {
+            hasImprovement = true;
         }
     }
 
