@@ -2,7 +2,6 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
-import { ServerClient } from "../../../www/js/server_client.js";
 import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
 import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/fluid/FluidConst.js";
@@ -84,6 +83,10 @@ export class Brain extends FSMBrain {
                 this.onDamage(null, 1, EnumDamage.FIRE);
             }
         }
+
+        // update extra data
+        this.mob.extra_data.time_fire = this.time_fire;
+
         // нехватка воздуха
         if (this.in_water) {
             if (this.timer_water_damage-- <= 0) {

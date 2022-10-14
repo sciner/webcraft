@@ -6,8 +6,7 @@ import { ServerClient } from "../../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
 import { BLOCK } from "../../www/js/blocks.js";
-
-const FORWARD_DISTANCE = 20;
+import { Mob } from "../mob.js";
 
 export class FSMBrain {
 
@@ -18,6 +17,9 @@ export class FSMBrain {
         vec_add: new Vector(0, 0, 0)
     }
 
+    /**
+     * @param {Mob} mob 
+     */
     constructor(mob) {
         this.mob = mob;
         this.stack = new FSMStack();
@@ -72,37 +74,14 @@ export class FSMBrain {
         if (!chunk_over) {
             return;
         }
-        let new_state = {
-            id:         mob.id,
-            extra_data: mob.extra_data, // { is_alive: mob.isAlive() },
-            rotate:     mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
-            pos:        mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
-        };
-        let need_send = true;
-        if (mob.prev_state) {
-            if (mob.prev_state.rotate.equal(new_state.rotate)) {
-                if (mob.prev_state.pos.equal(new_state.pos)) {
-                    let all_extas_equal = true;
-                    const checked_extras = ['is_alive', 'detonation_started'];
-                    for(let i = 0; i < checked_extras.length; i++) {
-                        const field_name = checked_extras[i];
-                        if (mob.prev_state.extra_data[field_name] != new_state.extra_data[field_name]) {
-                            all_extas_equal = false;
-                            break;
-                        }
-                    }
-                    if(all_extas_equal) {
-                        need_send = false;
-                    }
-                }
-            }
-        }
-        if (need_send) {
+        const new_state = mob.exportState();
+        // if state changed
+        if(!mob.prev_state || !new_state.equal(mob.prev_state)) {
             mob.prev_state = new_state;
             mob.prev_state.rotate = mob.prev_state.rotate.clone();
             mob.prev_state.pos = mob.prev_state.pos.clone();
             mob.prev_state.extra_data = JSON.parse(JSON.stringify(mob.prev_state.extra_data));
-            let packets = [{
+            const packets = [{
                 name: ServerClient.CMD_MOB_UPDATE,
                 data: new_state
             }];

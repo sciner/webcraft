@@ -31,6 +31,7 @@
     #define FLAG_MIR2_TEX 12
     #define FLAG_MULTIPLY_COLOR 13
     #define FLAG_LEAVES 14
+    #define LOOK_AT_CAMERA_HOR 15
 
 #endif
 
@@ -273,6 +274,7 @@
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
+    int flagLookAtCameraHor = (flags >> LOOK_AT_CAMERA_HOR) & 1;
     int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
     int flagScroll = (flags >> FLAG_TEXTURE_SCROLL) & 1;
     int flagNoCanTakeAO = (flags >> NO_CAN_TAKE_AO) & 1;

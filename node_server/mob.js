@@ -2,6 +2,34 @@ import { MOUSE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 
+//
+export class MobState {
+    
+    constructor(id, pos, rotate, extra_data) {
+        this.id = id;
+        this.pos = pos;
+        this.rotate = rotate;
+        this.extra_data = extra_data;
+    }
+
+    /**
+     * Compare
+     * @param {MobState} state 
+     */
+    equal(state) {
+        if (this.pos.equal(state.pos)) {
+            if (this.rotate.equal(state.rotate)) {
+                if(JSON.stringify(this.extra_data) == JSON.stringify(state.extra_data)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+}
+
+//
 export class Mob {
 
     #world;
@@ -184,6 +212,10 @@ export class Mob {
             extra_data: JSON.parse(row.extra_data),
             indicators: JSON.parse(row.indicators)
         });
+    }
+
+    exportState() {
+        return new MobState(this.id, this.pos, this.rotate, this.extra_data);
     }
 
 }

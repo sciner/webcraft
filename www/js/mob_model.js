@@ -5,6 +5,8 @@ import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
+import { Renderer } from "./render.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -677,15 +679,18 @@ export class MobModel extends NetworkPhysicObject {
         this.animator.update(delta, camPos, this, speed);
     }
 
-    isAlive() {
-        return this.extra_data?.is_alive;
-    }
-
     isDetonationStarted() {
         return this.extra_data?.detonation_started || false;
     }
 
-    // draw
+    /**
+     * Draw mob model
+     * @param {Renderer} render 
+     * @param {Vector} camPos 
+     * @param {float} delta 
+     * @param {float} speed 
+     * @returns 
+     */
     draw(render, camPos, delta, speed) {
 
         this.lazyInit(render);
@@ -705,6 +710,9 @@ export class MobModel extends NetworkPhysicObject {
                     scale: Array.from(this.sceneTree[0].scale)
                 };
                 this.sneak = 1;
+                if(this.fire_mesh) {
+                    this.fire_mesh.life = 0;
+                }
             }
             const elapsed = performance.now() - this.die_info.time;
             const max_die_animation_time = 1000;
@@ -757,6 +765,11 @@ export class MobModel extends NetworkPhysicObject {
             this.detonation_started_info = null;
         }
 
+        // Draw in fire
+        if((this.extra_data?.time_fire ?? 0) > 0) {
+            this.drawInFire(render);
+        }
+
         // ignore_roots
         const ignore_roots = [];
         if(this.type == 'sheep' && this.extra_data?.is_shaered) {
@@ -770,6 +783,18 @@ export class MobModel extends NetworkPhysicObject {
         //if(this.aabb) {
         //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
         //}
+    }
+
+    /**
+     * @param {Renderer} render 
+     */
+    drawInFire(render) {
+        if(this.fire_mesh) {
+            this.fire_mesh.apos.copyFrom(this.pos);
+        } else {
+            this.fire_mesh = new Mesh_Object_MobFire(this);
+            render.meshes.add(this.fire_mesh);
+        }
     }
 
     /**
