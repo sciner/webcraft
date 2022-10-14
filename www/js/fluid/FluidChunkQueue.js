@@ -158,11 +158,11 @@ export class FluidChunkQueue {
     }
 
     pushNextIndex(index, checkFlag = this.nextFlag) {
-        this.nextList.push(index);
         const qplace = this.ensurePlace();
         if ((qplace[index] & checkFlag) !== 0) {
             // nothing
         } else {
+            this.nextList.push(index);
             qplace[index] |= this.nextFlag;
         }
     }
@@ -198,11 +198,11 @@ export class FluidChunkQueue {
     }
 
     pushCurIndex(index, checkFlag = this.curFlag) {
-        this.pagedList.push(index);
         const qplace = this.ensurePlace();
         if ((qplace[index] & checkFlag) !== 0) {
             // nothing
         } else {
+            this.pagedList.push(index);
             qplace[index] |= this.curFlag;
         }
         this.markDirty();
