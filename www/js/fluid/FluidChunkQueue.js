@@ -71,7 +71,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
                 // in mods There might be something that does not interact with water/lava
                 hasImprovement = true;
             } else {
-                hasImprovement = (neib[i] & lvl) > 0;
+                hasImprovement = (neib[1] & FLUID_LEVEL_MASK) > 0;
             }
         }
     }
@@ -149,6 +149,10 @@ export class FluidChunkQueue {
         let u = this.curFlag;
         this.curFlag = this.nextFlag;
         this.nextFlag = u;
+
+        if (this.pagedList.head) {
+            this.markDirty();
+        }
     }
 
     pushNextIndex(index, checkFlag = this.nextFlag) {
@@ -194,7 +198,6 @@ export class FluidChunkQueue {
         }
         if (this.nextList.head !== null) {
             this.swapLists();
-            this.markDirty();
         }
     }
 
@@ -217,17 +220,18 @@ export class FluidChunkQueue {
     }
 
     assignFinish() {
-        const {qplace, curIndex, fluidChunk} = this;
+        const {qplace, curFlag, fluidChunk} = this;
         const {uint8View} = fluidChunk;
         for (let i = 0; i < assignNum; i++) {
             const ind = assignIndices[i];
             uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = assignValues[ind];
-            qplace[ind] = qplace[ind] & ~QUEUE_PROCESS & ~curIndex;
+            qplace[ind] = qplace[ind] & ~QUEUE_PROCESS & ~curFlag;
         }
         this.swapLists();
         if (assignNum > 0) {
             fluidChunk.updateID++;
             fluidChunk.markDirtyDatabase();
+            fluidChunk.parentChunk.sendFluid(fluidChunk.saveDbBuffer());
         }
         for (let i = 0; i < knownPortals.length; i++) {
             knownPortals[i] = null;
