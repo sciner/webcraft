@@ -20,7 +20,7 @@ export class FluidWorldQueue {
         fluidChunk.queue.dispose();
     }
 
-    process(msLimit = 16) {
+    async process(msLimit = 8) {
         const start = performance.now();
         const {dirtyChunks} = this;
         if (dirtyChunks.length === 0) {

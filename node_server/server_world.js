@@ -184,6 +184,8 @@ export class ServerWorld {
                 await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
+            await this.chunks.fluidWorld.queue.process();
+            this.ticks_stat.add('fluid_queue');
             // 4.
             for (let [_, drop_item] of this.all_drop_items) {
                 drop_item.tick(delta);
