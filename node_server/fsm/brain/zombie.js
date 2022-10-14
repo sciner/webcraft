@@ -144,6 +144,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
         if (Math.random() < 0.05) {
+            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
         }
     }
