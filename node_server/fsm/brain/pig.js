@@ -31,7 +31,7 @@ export class Brain extends FSMBrain {
         }
         const head = chunk.getBlock(mob.pos.offset(0, this.pc.playerHeight + 1, 0).floored());
         this.in_water = (head && head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        console.log('in_water: ' + this.in_water);
+       // console.log('in_water: ' + this.in_water);
         
         //this.in_fire = (legs && legs.id == BLOCK.FIRE.id);
         //this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
@@ -69,8 +69,11 @@ export class Brain extends FSMBrain {
         if (ray) {
             const pos = new Vector(ray.x, ray.y, ray.z)
             const world = mob.getWorld();
-            const body = world.getBlock(pos.offset(0, 1, 0));
-            const head = world.getBlock(pos.offset(0, 2, 0));
+            const block = world.getBlock(pos.offset(0, 1, 0));
+            this.isAir(block)
+            //if (body.id == BLOCK.AIR.id || body.material.style != 'planting') {
+              //  const head = world.getBlock(pos.offset(0, 2, 0));
+            //}
         }
         this.updateControl({
             yaw: mob.rotate.z,
@@ -79,6 +82,10 @@ export class Brain extends FSMBrain {
         });
         this.applyControl(delta);
         this.sendState();
+    }
+   
+    isAir(block) {
+        console.log(block.material.name);
     }
     
 /*
