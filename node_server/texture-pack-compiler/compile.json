@@ -303,6 +303,7 @@
             "can_rotate": true,
             "transparent": true,
             "is_fire": true,
+            "is_dynamic_light": true,
             "inventory": {
                 "style": "extruder",
                 "texture": "item/campfire.png"
@@ -2893,6 +2894,7 @@
             "window": "frmFurnace",
             "is_entity": true,
             "is_chest": true,
+            "is_dynamic_light": true,
             "ticking": {
                 "type": "furnace"
             },
@@ -2903,27 +2905,7 @@
                 "up": "block/furnace_top.png",
                 "down": "block/furnace_top.png",
                 "north": "block/furnace_front.png",
-                "side": "block/furnace_side.png"
-            },
-            "can_rotate": true
-        },
-        {
-            "id": 62,
-            "name": "BURNING_FURNACE",
-            "sound": "madcraft:block.stone",
-            "window": "frmFurnace",
-            "is_entity": true,
-            "is_chest": true,
-            "ticking": {
-                "type": "furnace"
-            },
-            "material": {
-                "id": "stone"
-            },
-            "texture": {
-                "up": "block/furnace_top.png",
-                "down": "block/furnace_top.png",
-                "north": "block/furnace_front_on.png",
+                "north_on": "block/furnace_front_on.png",
                 "side": "block/furnace_side.png"
             },
             "light_power": {
@@ -2932,8 +2914,7 @@
                 "b": 131,
                 "a": 224
             },
-            "can_rotate": true,
-            "spawnable": false
+            "can_rotate": true
         },
         {
             "id": 23,
@@ -3353,6 +3334,12 @@
             "item": {"name": "bucket", "emit_on_set": "FLOWING_LAVA"},
             "material": {
                 "id": "iron"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
             },
             "texture": {
                 "side": "item/lava_bucket.png"
@@ -7989,75 +7976,21 @@
             ]
         },
         {
-            "id": 347,
+            "id": 260,
             "name": "CHICKEN_NEST",
             "transparent": true,
             "material": {
                 "id": "wood"
             },
             "tags":[
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_set_on_top"
             ],
             "texture": "block/hay_block_top.png",
             "style":"chicken_nest",
             "extra_data": {
                 "eggs": 0
             }
-        },
-        {
-            "id": 349,
-            "can_rotate": true,
-            "transparent": true,
-            "name": "OAK_CHAIR",
-            "sound": "madcraft:block.wood",
-            "style": "chair",
-            "fuel_time": 16,
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "no_drop_ao",
-                "no_set_on_top",
-                "rotate_x8"
-            ],
-            "inventory": {
-                "scale": 0.8,
-                "move": {"x": -0.2, "y": 0, "z": -0.4}
-            },
-            "extra_data": {
-                "upholstery": "red_wool",
-                "frame": "oak_log"
-            },
-            "has_head": {
-                "pos": {
-                    "x": 0,
-                    "y": 1,
-                    "z": 0
-                }
-            },
-            "texture": "block/oak_log_top.png"
-        },
-        {
-            "id": 348,
-            "can_rotate": true,
-            "transparent": true,
-            "name": "OAK_STOOL",
-            "sound": "madcraft:block.wood",
-            "style": "stool",
-            "fuel_time": 16,
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "no_drop_ao",
-                "no_set_on_top",
-                "rotate_x8"
-            ],
-            "extra_data": {
-                "upholstery": "white_wool",
-                "frame": "oak_log"
-            },
-            "texture": "block/oak_log_top.png"
         },
         {
             "id": 796,

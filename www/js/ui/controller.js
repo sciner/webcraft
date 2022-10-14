@@ -506,6 +506,9 @@ let gameCtrl = async function($scope, $timeout) {
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
                     that.list = worlds;
+                    for(let w of worlds) {
+                        w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
+                    }
                     /*
                     that.shared_worlds = [];
                     for(let w of worlds) {
@@ -611,11 +614,41 @@ let gameCtrl = async function($scope, $timeout) {
             this.form.seed  = '';
         },
         init() {
+            // game modes
+            $scope.App.Gamemodes({}, (gamemodes) => {
+                $timeout(() => {
+                    this.gamemodes.list = gamemodes;
+                    for(let gm of this.gamemodes.list) {
+                        gm.title = Lang[`gamemode_${gm.id}`]
+                    }
+                });
+            });
+            // generators
             $scope.App.Generators({}, (generators) => {
                 $timeout(() => {
                     this.generators.list = generators;
                 });
             });
+        },
+        gamemodes: {
+            index: 0,
+            list: [],
+            get current() {
+                return this.list[this.index];
+            },
+            set current(item) {
+                for(let i in this.list) {
+                    const t = this.list[i];
+                    if(t.id == item.id) {
+                        this.index = i;
+                        break;
+                    }
+                }
+            },
+            select(game_mode) {
+                const form = $scope.newgame.form;
+                form.game_mode = game_mode.id;
+            }
         },
         generators: {
             index: 0,
@@ -681,6 +714,7 @@ let gameCtrl = async function($scope, $timeout) {
         },
         open() {
             this.generators.select(this.generators.list[0]);
+            this.gamemodes.select(this.gamemodes.list[0]);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },

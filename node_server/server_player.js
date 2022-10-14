@@ -650,5 +650,22 @@ export class ServerPlayer extends Player {
     setFoodLevel(food, saturation) {
         this.damage.setFoodLevel(food, saturation);
     }
-    
+
+    // Save ender chest content
+    async saveEnderChest(ender_chest) {
+        this.ender_chest = ender_chest
+        await this.world.db.saveEnderChest(this, ender_chest);
+    }
+
+    /**
+     * Return ender chest content
+     * @returns 
+     */
+    async loadEnderChest() {
+        if(this.ender_chest) {
+            return this.ender_chest;
+        }
+        return this.ender_chest = await this.world.db.loadEnderChest(this);
+    }
+
 }

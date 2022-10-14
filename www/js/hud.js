@@ -40,6 +40,8 @@ export class HUD {
         this.strMeasures                = new Map();
         this.FPS                        = new FPSCounter();
 
+        const that = this;
+
         // Splash screen (Loading...)
         this.splash = {
             loading:    true,
@@ -108,6 +110,8 @@ export class HUD {
                 ctx.textBaseline = 'top';
                 ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
                 //
+                that.drawKbHelp(ctx, w, h, padding);
+                //
                 for(let i = 0; i < texts.length; i++) {
                     const txt = texts[i];
                     // Measure text
@@ -161,6 +165,48 @@ export class HUD {
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu);
+    }
+
+    //
+    drawKbHelp(ctx, w, h, padding) {
+        if(!this.kb_tips) {
+            this.kb_tips = {
+                measures: {},
+                list: [
+                    // Lang.lbl_commands,
+                    {key: 'WASD', tip: Lang.kb_help_wasd},
+                    {key: 'F4', tip: Lang.kb_help_f4},
+                    {key: 'R', tip: Lang.kb_help_r},
+                    {key: '0-9', tip: Lang.kb_help_09},
+                    {key: Lang.mouse_button_left, tip: Lang.kb_help_lm},
+                    {key: Lang.mouse_button_right, tip: Lang.kb_help_rm},
+                    {key: Lang.mouse_wheel, tip: Lang.kb_help_mm},
+                    {key: Lang.kb_help_ctrlw_key, tip: Lang.kb_help_ctrlw},
+                    // Lang.lbl_other
+                    {key: 'F10', tip: Lang.change_game_mode}
+                ]
+            };
+            this.kb_tips.row_height = 0;
+            this.kb_tips.max_width = 0;
+            this.kb_tips.max_key_width = 0;
+            for(let item of this.kb_tips.list) {
+                let keym = ctx.measureText(item.key);
+                let tipm = ctx.measureText(item.tip);
+                if(keym.width > this.kb_tips.max_width) this.kb_tips.max_width = keym.width;
+                if(keym.actualBoundingBoxDescent > this.kb_tips.row_height) this.kb_tips.row_height = keym.actualBoundingBoxDescent;
+                if(tipm.width > this.kb_tips.max_width) this.kb_tips.max_width = tipm.width;
+                if(tipm.actualBoundingBoxDescent > this.kb_tips.row_height) this.kb_tips.row_height = tipm.actualBoundingBoxDescent;
+                if(keym.width > this.kb_tips.max_key_width) this.kb_tips.max_key_width = keym.width;
+            }
+        };
+        let y = h - padding - this.kb_tips.row_height * this.kb_tips.list.length;
+        for(let item of this.kb_tips.list) {
+            ctx.fillStyle = '#ffffffbb';
+            ctx.fillText(item.key + ': ' + item.tip, padding, y);
+            ctx.fillStyle = '#ffc107';
+            ctx.fillText(item.key, padding, y);
+            y += this.kb_tips.row_height;
+        }
     }
 
     get zoom() {

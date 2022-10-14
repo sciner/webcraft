@@ -1,4 +1,4 @@
-import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
@@ -24,9 +24,15 @@ class CreativeInventoryCollection extends Window {
     }
 
     // Init
-    init() {
+    init(filter_text = null) {
         //
-        let all_blocks = [];
+        const all_blocks = [];
+        if(filter_text) {
+            filter_text = filter_text
+                .toUpperCase()
+                .replaceAll('_', ' ')
+                .replace(/\s\s+/g, ' ');
+        }
         for(let b of BLOCK.getAll()) {
             if(b.id < 1 || !b.spawnable) {
                 continue;
@@ -37,6 +43,11 @@ class CreativeInventoryCollection extends Window {
             if('power' in b && (b.power !== 0)) {
                 block.power = b.power;
             }
+            if(filter_text) {
+                if(b.name.replaceAll('_', ' ').indexOf(filter_text) < 0 && b.id != filter_text) {
+                    continue;
+                }
+            }
             all_blocks.push(block)
         }
         // Create slots
@@ -45,6 +56,9 @@ class CreativeInventoryCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
+        this.list.clear();
+        this.scrollY            = 0;
+        this.max_height         = 0;
         this.collection_slots   = [];
         let sx                  = 0;
         let sy                  = 0;
@@ -124,7 +138,7 @@ class CreativeInventoryCollection extends Window {
         ctx.save();
         ctx.clip(region, 'evenodd');
         for(let lblSlot of this.list.values()) {
-            lblSlot.drawOrig(ctx, ax + 16 * this.zoom, ay + 34 * this.zoom + this.scrollY);
+            lblSlot.drawOrig(ctx, ax + 16 * this.zoom, ay + 70 * this.zoom + this.scrollY);
         }
         ctx.restore();
     }
@@ -136,7 +150,7 @@ export class CreativeInventoryWindow extends Window {
 
     constructor(inventory) {
 
-        super(10, 10, 390, 416, 'frmCreativeInventory', null, null);
+        super(10, 10, 390, 450, 'frmCreativeInventory', null, null);
 
         this.width *= this.zoom;
         this.height *= this.zoom;
@@ -196,7 +210,6 @@ export class CreativeInventoryWindow extends Window {
         this.onKeyEvent = (e) => {
             const {keyCode, down, first} = e;
             switch(keyCode) {
-                case KEY.E:
                 case KEY.ESC: {
                     if(!down) {
                         ct.hide();
@@ -211,6 +224,33 @@ export class CreativeInventoryWindow extends Window {
             }
             return false;
         }
+
+        // Text editor
+        const txtSearch = new TextEdit(
+            16 * this.zoom,
+            37 * this.zoom,
+            this.cell_size * 9,
+            25 * this.zoom,
+            'txtSearch1',
+            null,
+            'Type for search'
+        );
+        txtSearch.word_wrap              = false;
+        txtSearch.focused                = true;
+        txtSearch.max_length             = 100;
+        txtSearch.max_lines              = 1;
+        txtSearch.max_chars_per_line     = 20;
+        // style
+        txtSearch.style.color            = '#fff';
+        txtSearch.style.border.hidden    = false;
+        txtSearch.style.border.style     = 'inset';
+        txtSearch.style.font.size        *= this.zoom;
+        txtSearch.style.background.color = '#706f6cff';
+        ct.add(txtSearch);
+
+        txtSearch.onChange = (text) => {
+            this.collection.init(text);
+        };
 
     }
 
@@ -243,9 +283,10 @@ export class CreativeInventoryWindow extends Window {
             console.error('createCollectionSlots() already created');
             return;
         }
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 35 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 68 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
         this.add(this.collection);
         this.collection.init();
+        return this.collection;
     }
 
     // Return inventory slots

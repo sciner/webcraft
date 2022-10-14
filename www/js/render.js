@@ -646,9 +646,9 @@ export class Renderer {
         }
 
         if (this.player.currentInventoryItem) {
-            const block = BLOCK.fromId(this.player.currentInventoryItem.id);
-            if(block) {
-                const power = block.light_power_number;
+            const mat = BLOCK.fromId(this.player.currentInventoryItem.id);
+            if(mat && !mat.is_dynamic_light) {
+                const power = mat.light_power_number;
                 // and skip all block that have power greater that 0x0f
                 // it not a light source, it store other light data
                 globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);

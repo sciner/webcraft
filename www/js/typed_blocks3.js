@@ -689,6 +689,9 @@ export class TBlock {
         let res = 0;
         const mat = BLOCK.BLOCK_BY_ID[this.id]
         if (mat) {
+            if(mat.is_dynamic_light) {
+                return this?.extra_data?.active ? mat.light_power_number : 0;
+            }
             res = mat.light_power_number;
         }
         const fluidVal = this.tb.fluid.getValueByInd(this.index);

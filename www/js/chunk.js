@@ -165,6 +165,15 @@ export class Chunk {
                         prev_block_id = block_id;
                         prev_fluid = fluid_type;
                     }
+
+                    // dynamic light
+                    if(block_material.is_dynamic_light) {
+                        const tblock = this.getBlock(this.coord.x + x, this.coord.y + y, this.coord.z + z);
+                        if(tblock) {
+                            light_power_number = tblock.lightSource;
+                        }
+                    }
+
                     light_source[ind++] = light_power_number;
                 }
         return light_source;
@@ -432,7 +441,7 @@ export class Chunk {
             let tblock           = this.tblocks.get(pos);
 
             if (this.chunkManager.use_light) {
-                oldLight = tblock.material.light_power_number;
+                oldLight = tblock.lightSource;
             }
 
             this.tblocks.delete(pos);
@@ -445,7 +454,7 @@ export class Chunk {
             tblock.falling       = !!material.gravity;
             update_vertices         = true;
             if (this.chunkManager.use_light) {
-                const light         = material.light_power_number;
+                const light      = tblock.lightSource;
                 if (oldLight !== light) {
                     chunkManager.postLightWorkerMessage(['setChunkBlock', {
                         addr: this.addr,

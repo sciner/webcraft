@@ -219,7 +219,7 @@ export class Raycaster {
             if (hitFluid) {
                 fluidLeftTop = block.floored();
                 fluidVal = b.fluidSource;
-                hitShape = true;
+                side_fluid.zero().y = 1;
             }
 
             if (hitShape) {
@@ -281,14 +281,9 @@ export class Raycaster {
                 side.x = -side.x;
                 side.y = -side.y;
                 side.z = -side.z;
-
-                if (hitFluid) {
-                    side_fluid.copyFrom(side);
-                } else {
-                    res = new RaycasterResult(pos, leftTop, side, null, b?.id);
-                    if(res.point.y == 1) {
-                        res.point.y = 0;
-                    }
+                res = new RaycasterResult(pos, leftTop, side, null, b?.id);
+                if(res.point.y == 1) {
+                    res.point.y = 0;
                 }
                 break;
             }
