@@ -19,13 +19,6 @@ let assignValues = new Uint8Array(0),
     knownPortals = [],
     portalNum = 0;
 
-function startAssign(indMax) {
-    if (assignValues.length < indMax) {
-        assignValues = new Uint8Array(indMax);
-    }
-    assignNum = 0;
-}
-
 function pushKnownPortal(wx, wy, wz, forceVal) {
     for (let i = 0; i < portalNum; i++) {
         const toRegion = knownPortals[i].toRegion;
@@ -215,6 +208,28 @@ export class FluidChunkQueue {
         this.inQueue = false;
     }
 
+    assignStart(indMax) {
+        if (assignValues.length < indMax) {
+            assignValues = new Uint8Array(indMax);
+        }
+        assignNum = 0;
+    }
+
+    assignFinish() {
+        const {qplace, curIndex, fluidChunk} = this;
+        const {uint8View} = fluidChunk;
+        for (let i = 0; i < assignNum; i++) {
+            const ind = assignIndices[i];
+            uint8View[ind] = assignValues[ind];
+            qplace[ind] = qplace[ind] & ~QUEUE_PROCESS & ~curIndex;
+        }
+        this.swapLists();
+        if (assignNum > 0) {
+            fluidChunk.updateID++;
+            fluidChunk.markDirtyDatabase();
+        }
+    }
+
     assign(ind, wx, wy, wz, val, knownPortals, portalNum) {
         const {fluidChunk, qplace} = this;
         fluidChunk.setValuePortals(ind, wx, wy, wz, val, knownPortals, portalNum);
@@ -236,7 +251,7 @@ export class FluidChunkQueue {
         const {uint16View, uint8View} = fluidChunk;
         const {tblocks} = fluidChunk.parentChunk;
         const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
-        startAssign(uint16View.length);
+        this.assignStart(uint16View.length);
         cycle: while (pagedList.head) {
             const index = pagedList.shift();
             qplace[index] |= QUEUE_PROCESS;
@@ -402,9 +417,6 @@ export class FluidChunkQueue {
                             this.assign(index, nx, ny, nz,
                                 moreThan | fluidType, portals, portals.length);
                             this.pushNextIndex(index);
-                            qplace[index] |= QUEUE_PROCESS;
-                            assignValues[index] = moreThan | fluidType;
-                            assignIndices[assignNum++] = index;
                         } else {
                             // force into neib chunk
                             pushKnownPortal(portalNum, nx, ny, nz, moreThan | fluidType);
@@ -412,11 +424,12 @@ export class FluidChunkQueue {
                     }
                 }
             }
-            if (emptied) {
-                this.fluidChunk.setValu();
+            if (changed) {
+                this.assign(index, wx, wy, wz,emptied ? 0 : lvl | fluidType, knownPortals, portalNum);
             }
         }
-        //SWAP FLAGS AND APPLY STUFF
+        this.assignFinish();
+        //TODO: lavacast here
     }
 
     dispose() {
