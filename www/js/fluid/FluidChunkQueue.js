@@ -29,10 +29,10 @@ function pushKnownPortal(wx, wy, wz, forceVal) {
             if (forceVal) {
                 fluidChunk.updateID++;
                 fluidChunk.markDirtyDatabase();
-                fluidChunk.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = value;
+                fluidChunk.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = forceVal;
                 fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, knownPortals, portalNum);
             }
-            fluidChunk.queue.pushCurIndex(index);
+            fluidChunk.queue.pushCurIndex(ind);
             break;
         }
     }
@@ -89,7 +89,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
     for (let dir = 2; dir < 6; dir++) {
         let neibType = (neib[dir] & FLUID_TYPE_MASK);
-        if ((neib[dir] & FLUID_SOLID16) === 0) {
+        if ((neib[dir] & FLUID_SOLID16) !== 0) {
             // no interaction with solid
             continue;
         }
@@ -110,7 +110,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
                 hasImprovement = true;
             }
         }
-        hasImprovement = hasImprovement || (hasEmpty & hasDownFlow);
+        hasImprovement = hasImprovement || (hasEmpty & !hasDownFlow);
         if (hasImprovement) {
             return true;
         }
@@ -192,7 +192,7 @@ export class FluidChunkQueue {
                     }
                 }
         }
-        if (this.pagedList.head !== null) {
+        if (this.nextList.head !== null) {
             this.swapLists();
             this.markDirty();
         }
@@ -200,7 +200,7 @@ export class FluidChunkQueue {
 
     markDirty() {
         if (!this.inQueue) {
-            this.fluidWorld.queue.push(this);
+            this.fluidWorld.queue.dirtyChunks.push(this);
             this.inQueue = true;
         }
     }
@@ -221,13 +221,16 @@ export class FluidChunkQueue {
         const {uint8View} = fluidChunk;
         for (let i = 0; i < assignNum; i++) {
             const ind = assignIndices[i];
-            uint8View[ind] = assignValues[ind];
+            uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = assignValues[ind];
             qplace[ind] = qplace[ind] & ~QUEUE_PROCESS & ~curIndex;
         }
         this.swapLists();
         if (assignNum > 0) {
             fluidChunk.updateID++;
             fluidChunk.markDirtyDatabase();
+        }
+        for (let i = 0; i < knownPortals.length; i++) {
+            knownPortals[i] = null;
         }
     }
 
@@ -255,12 +258,11 @@ export class FluidChunkQueue {
         this.assignStart(uint16View.length);
         cycle: while (pagedList.head) {
             const index = pagedList.shift();
-            qplace[index] |= QUEUE_PROCESS;
-            let val = assignValues[index] = uint16View[index];
+            let val = uint16View[index];
             let lvl = val & FLUID_LEVEL_MASK;
             let fluidType = val & FLUID_TYPE_MASK;
+            qplace[index] &= !curFlag;
             if (fluidType === 0) {
-                assignNum++;
                 continue;
             }
             const oldLvl = lvl & 7;
@@ -305,7 +307,7 @@ export class FluidChunkQueue {
             }
 
             // 1. check support
-            let supportLvl = (val & FLUID_LEVEL_MASK) === 0 ? 16 : 0;
+            let supportLvl = (val & FLUID_LEVEL_MASK) === 0 ? 0 : 16;
             let neibType = (neib[0] & FLUID_TYPE_MASK);
             if (neibType > 0) {
                 supportLvl = Math.min(supportLvl, 8);
@@ -339,7 +341,7 @@ export class FluidChunkQueue {
             if (!safeAABB.contains(wx, wy, wz)) {
                 for (let i = 0; i < portals.length; i++) {
                     if (portals[i].aabb.contains(wx, wy, wz)) {
-                        knownPortals[portalNum++] = i;
+                        knownPortals[portalNum++] = portals[i];
                     }
                 }
             }
@@ -366,7 +368,7 @@ export class FluidChunkQueue {
                 let improve = false;
                 if (neibType !== 0 && fluidType !== neibType) {
                     improve = true;
-                } else if (neibLvl === 0) {
+                } else if (neibType !== 0 && neibLvl === 0) {
                     // do nothing
                 } else {
                     // same type or empty
@@ -413,14 +415,15 @@ export class FluidChunkQueue {
                 for (let dir = 1; dir < 6; dir++) {
                     if ((emptyMask & (1<<dir)) > 0) {
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
+                        const asVal = (dir === 1 ? 8 : moreThan) | fluidType;
                         if (aabb.contains(nx, ny, nz)) {
                             // force in our chunk
-                            this.assign(index, nx, ny, nz,
-                                moreThan | fluidType, portals, portals.length);
-                            this.pushNextIndex(index);
+                            let nIndex = cx * nx + cy * ny + cz * nz + shiftCoord;
+                            this.assign(nIndex, nx, ny, nz, asVal, portals, portals.length);
+                            this.pushNextIndex(nIndex);
                         } else {
                             // force into neib chunk
-                            pushKnownPortal(portalNum, nx, ny, nz, moreThan | fluidType);
+                            pushKnownPortal(nx, ny, nz, asVal);
                         }
                     }
                 }
