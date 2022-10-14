@@ -71,6 +71,19 @@ export class FluidChunk {
         return pcnt;
     }
 
+    setValuePortals(index, wx, wy, wz, value, portals, portalLen) {
+        const {safeAABB} = this.dataChunk;
+        if (safeAABB.contains(wx, wy, wz)) {
+            return 0;
+        }
+        for (let i = 0; i < portalLen; i++) {
+            if (portals[i].aabb.contains(wx, wy, wz)) {
+                const other = portals[i].toRegion;
+                other.rev.fluid.uint8View[other.indexByWorld(wx, wy, wz) * FLUID_STRIDE + OFFSET_FLUID] = value;
+            }
+        }
+    }
+
     getValueByInd(ind) {
         return this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID];
     }
