@@ -57,26 +57,41 @@ export class RecipeManager {
     }
 
     calcStartIndex(recipe, pattern, rows = 3, cols = 3) {
-        let pat = [...pattern];
-        while(pat.length < rows) {
-            pat.unshift('   ');
+        const max_cols = 3;
+        const pat = [...pattern];
+        // добираем сверху пустыми строками
+        while(pat.length < max_cols) {
+            pat.unshift(' '.repeat(max_cols));
         }
-        let resp = 0;
+        // добираем каждуб строку пробелами справа
         for(let i in pat) {
             let line = pat[i];
-            if(line.length < cols) {
-                line += ' '.repeat(cols - line.length);
-                pat[i] = line;
-            }
-            const rn = runes(line);
-            for(let j of rn) {
-                if(j != ' ') {
-                    return resp;
-                }
-                resp++;
+            if(line.length < max_cols) {
+                pat[i] = line + ' '.repeat(max_cols - line.length);
             }
         }
-        return resp;
+        // убираем все пустые строки сверху, но оставляем то количество строк, под которое запрошен метод
+        while(pat.length > rows && pat[0].trim() == '') {
+            pat.shift();
+        }
+        // если в рецепте больше строк, чем запрошено, то возвращаем невалидный индекс
+        if(pat.length > rows) {
+            return -1;
+        }
+        for(let i in pat) {
+            const rn = runes(pat[i].trimRight());
+            if(rn.length > cols) {
+                // возвращаем невалидный индекс
+                return -1;
+            }
+            for(let j = 0; j < rn.length; j++) {
+                if(rn[j] != ' ') {
+                    return i * cols + j;
+                }
+            }
+        }
+        // возвращаем невалидный индекс
+        return -1;
     }
 
     add(recipe) {
@@ -142,10 +157,10 @@ export class RecipeManager {
                 for(let i in keys_variants) {
                     const keys = keys_variants[i];
                     let r = Object.assign({}, recipe);
-                    r.start_index = {
-                        2: this.calcStartIndex(recipe, r.pattern, 2, 2),
-                        3: this.calcStartIndex(recipe, r.pattern, 3, 3)
-                    };
+                    r.start_index = {};
+                    for(let sz of [2, 3]) {
+                        r.start_index[sz] = this.calcStartIndex(recipe, r.pattern, sz, sz);
+                    }
                     if(i > 0) {
                         r.id += `:${i}`;
                     }

@@ -151,7 +151,8 @@ export class RecipeWindow extends Window {
 
         this.onShow = () => {
             // Создание слотов
-            this.createRecipes(this.cell_size);    
+            this.createRecipes(this.cell_size);
+            this.paginator.update();
         };
 
         this.addPaginatorButtons();
