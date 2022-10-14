@@ -790,11 +790,17 @@ export class MobModel extends NetworkPhysicObject {
      */
     drawInFire(render) {
         if(this.fire_mesh) {
+            this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
             this.fire_mesh.apos.copyFrom(this.pos);
         } else {
             this.fire_mesh = new Mesh_Object_MobFire(this);
             render.meshes.add(this.fire_mesh);
         }
+    }
+
+    angleTo(pos, target) {
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
     /**

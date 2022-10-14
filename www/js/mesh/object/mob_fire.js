@@ -23,12 +23,13 @@ export class Mesh_Object_MobFire {
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
+        this.yaw            = 0;
         // this.lightTex       = null;
 
         const material      = BLOCK.fromName('FIRE');
         const texture       = material.texture;
         const c_fire        = BLOCK.calcTexture(texture, DIRECTION.EAST);
-        const flags         = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.LOOK_AT_CAMERA_HOR;
+        const flags         = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.FLAG_ANIMATED; // | QUAD_FLAGS.LOOK_AT_CAMERA_HOR;
         const lm            = IndexedColor.WHITE;
 
         this.gl_material = material.resource_pack.getMaterial(material.material_key);
@@ -39,10 +40,10 @@ export class Mesh_Object_MobFire {
         for(let i = 0; i < 5; i++) {
             const w = mob.width - i/10;
             const h = mob.height * .3;
-            const d = 0;
+            const d = .5;
             const aabb = new AABB();
-            aabb.set(0, 0, 0, w, h * 1.65, d);
-            aabb.translate(-w/2, i * h, -d/2 + i / 100);
+            aabb.set(0, 0, 0, w, h * 1 * 1.5, d);
+            aabb.translate(-w/2, i * h, -d/2 + i / 50);
             pushAABB(
                 this.vertices,
                 aabb,
@@ -68,8 +69,10 @@ export class Mesh_Object_MobFire {
 
         // this.updateLightTex(render);
 
-        // const rot = ((performance.now() * 5) / 1000) % (Math.PI * 2);
+        this.matrix = mat4.create();
+        mat4.rotate(this.matrix, this.matrix, this.yaw, [0, 0, 1]);
 
+        // const rot = ((performance.now() * 5) / 1000) % (Math.PI * 2);
         // this.matrix = mat4.create();
         // mat4.rotate(this.matrix, this.matrix, rot, [0, 0, 1]);
         // mat4.scale(this.matrix, this.matrix, this.scale.toArray());
