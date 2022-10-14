@@ -710,9 +710,6 @@ export class MobModel extends NetworkPhysicObject {
                     scale: Array.from(this.sceneTree[0].scale)
                 };
                 this.sneak = 1;
-                if(this.fire_mesh) {
-                    this.fire_mesh.life = 0;
-                }
             }
             const elapsed = performance.now() - this.die_info.time;
             const max_die_animation_time = 1000;
@@ -767,7 +764,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw in fire
         if((this.extra_data?.time_fire ?? 0) > 0) {
-            this.drawInFire(render);
+            this.drawInFire(render, delta);
         }
 
         // ignore_roots
@@ -788,13 +785,14 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * @param {Renderer} render 
      */
-    drawInFire(render) {
+    drawInFire(render, delta) {
         if(this.fire_mesh) {
             this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
             this.fire_mesh.apos.copyFrom(this.pos);
+            this.fire_mesh.draw(render, delta);
         } else {
             this.fire_mesh = new Mesh_Object_MobFire(this);
-            render.meshes.add(this.fire_mesh);
+            // render.meshes.add(this.fire_mesh);
         }
     }
 
@@ -886,6 +884,12 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         this.animator.prepare(this);
+    }
+
+    onUnload() {
+        if(this.fire_mesh) {
+            this.fire_mesh.destroy();
+        }
     }
 
 }

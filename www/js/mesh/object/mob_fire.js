@@ -82,8 +82,10 @@ export class Mesh_Object_MobFire {
     }
 
     destroy() {
-        this.buffer.destroy();
-        this.buffer = null;
+        if(this.buffer) {
+            this.buffer.destroy();
+            this.buffer = null;
+        }
     }
 
     isAlive() {
