@@ -366,6 +366,7 @@ export class FluidChunkQueue {
                 if (supportLvl === 16) {
                     // no fluid for you
                     emptied = true;
+                    changed = true;
                 } else {
                     lvl = supportLvl;
                     changed = true;
