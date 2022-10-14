@@ -19,6 +19,12 @@ export class Brain extends FSMBrain {
         });
         
         this.stack.pushState(this.doStand);
+        
+        // куда двигаться
+        this.goto = null;
+        
+        // таймеры
+        this.timer_reset = 0;
     }
     
     // Метод для возобновления жизни, урона и т.д.
@@ -37,10 +43,14 @@ export class Brain extends FSMBrain {
         //this.in_lava = (legs && legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         //this.is_wall = ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting';
         //this.is_abyss = under.id == 0 && abyss.id == 0;
+        if (this.timer_reset++ > 5 * 20) {
+            this.to = null;
+        }
     }
     
     // просто стоит
     doStand(delta) {
+        this.timer_reset = 0;
         this.onUpdate(delta);
         const mob = this.mob;
         if (this.in_water) {
@@ -59,21 +69,21 @@ export class Brain extends FSMBrain {
     doFindGround(delta) {
         this.onUpdate(delta);
         const mob = this.mob;
-        if (!this.in_water) {
-            mob.rotate.z += (Math.random() * Math.PI / 6);
-            this.stack.replaceState(this.doStand);
-            return;
-        }
-        // определяем берег
-        const ray = this.raycastFromHead();
-        if (ray) {
-            const pos = new Vector(ray.x, ray.y, ray.z)
-            const world = mob.getWorld();
-            const block = world.getBlock(pos.offset(0, 1, 0));
-            this.isAir(block)
-            //if (body.id == BLOCK.AIR.id || body.material.style != 'planting') {
-              //  const head = world.getBlock(pos.offset(0, 2, 0));
-            //}
+        if (!this.to) {
+            mob.rotate.z += (Math.random() * Math.PI / 12);
+            // определяем берег
+            const ray = this.raycastFromHead();
+            if (ray) {
+                const pos = new Vector(ray.x, ray.y, ray.z);
+                if (this.isGround(pos) && !this.isGround(pos.offset(0, 1, 0)) && !this.isGround(pos.offset(0, 2, 0))) {
+                    this.to = pos;
+                    return;
+                }
+            }
+        } else {
+            mob.rotate.z = this.angleTo(this.to);
+            const distance = mob.pos.distance(this.to);
+            console.log(distance)
         }
         this.updateControl({
             yaw: mob.rotate.z,
@@ -84,8 +94,10 @@ export class Brain extends FSMBrain {
         this.sendState();
     }
    
-    isAir(block) {
-        console.log(block.material.name);
+    isGround(pos) {
+        const block = this.mob.getWorld().getBlock(pos);
+        return (block.id != BLOCK.AIR.id && block.material.style != 'planting');
+        //console.log(block.material.name + ' ' + block.fluid + ' ' + block.material.style);
     }
     
 /*
