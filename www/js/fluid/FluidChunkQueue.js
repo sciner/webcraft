@@ -434,7 +434,7 @@ export class FluidChunkQueue {
                 if (improve) {
                     flowMask |= 1 << dir;
                     if (aabb.contains(nx, ny, nz)) {
-                        this.pushNextIndex(index);
+                        this.pushNextIndex(nIndex);
                     } else {
                         pushKnownPortal(nx, ny, nz, 0);
                         // push into neib chunk if need
