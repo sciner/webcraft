@@ -118,7 +118,7 @@ export class ServerWorld {
     
     // спавнер мобов
     autoSpawner() {
-        const SPAWN_DISTANCE = 8;
+        const SPAWN_DISTANCE = 16;
         if (this.getLight() > 6) {
             return;
         }
@@ -142,7 +142,7 @@ export class ServerWorld {
                         // проверям что область для спауна это воздух или вода
                         if (body && head && body.id == 0 && head.id == 0) {
                             // не спавним рядом с игроком
-                            const players = this.getPlayersNear(spawn_pos, 4);
+                            const players = this.getPlayersNear(spawn_pos, 8);
                             if (players.length == 0) {
                                 const params = {
                                     type:       'zombie',
