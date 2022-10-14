@@ -26,13 +26,14 @@ export class FluidWorldQueue {
             return;
         }
         let i;
-        for (i = 0; i < dirtyChunks.length; i++) {
+        let len = dirtyChunks.length;
+        for (i = 0; i < len; i++) {
             const chunkQueue = dirtyChunks[i];
             if (!chunkQueue.fluidChunk.parentChunk.fluid) {
                 continue;
             }
-            chunkQueue.process();
             chunkQueue.markClean();
+            chunkQueue.process();
             if (performance.now() - start >= msLimit) {
                 break;
             }
