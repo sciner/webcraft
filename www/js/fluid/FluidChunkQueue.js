@@ -59,7 +59,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
     let hasDownFlow = false, hasEmpty = false;
     let goesSides = lvl === 0;
-    let hasSupport = lvl === 0 || (neib[0] & FLUID_TYPE_MASK) === fluidType;
+    let hasSupport = lvl === 0 || lvl === 8 && (neib[0] & FLUID_TYPE_MASK) === fluidType;
     // check down
     if ((neib[1] & FLUID_SOLID16) === 0) {
         goesSides = true;
@@ -411,7 +411,7 @@ export class FluidChunkQueue {
                     // same type or empty
                     if (dir === 1) {
                         // going down!
-                        improve = (neibType !== 0 && neibLvl !== 8) ^ !emptied;
+                        improve = (neibType !== 0 && neibLvl === 8) ^ !emptied;
                         if (improve && neibType === 0) {
                             emptyMask |= 1 << dir;
                         }
