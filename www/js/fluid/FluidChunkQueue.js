@@ -183,10 +183,10 @@ export class FluidChunkQueue {
             }
         }
 
-        for (let i = 0; i < 6; i++) {
-            let nx = wx + dx[i], ny = wy + dy[i], nz = wz + dz[i];
+        for (let dir = 0; dir < 6; dir++) {
+            let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
             let nIndex = nx * cx + ny * cy + nz * cz + shiftCoord;
-            if ((uint16View[nIndex] & FLUID_WATER_ID) !== 0) {
+            if ((uint16View[nIndex] & FLUID_TYPE_MASK) !== 0) {
                 //push it!
                 if (aabb.contains(nx, ny, nz)) {
                     this.pagedList.push(nIndex);
@@ -324,11 +324,11 @@ export class FluidChunkQueue {
 
             // 0 check lavacast
             let emptied = false;
-            for (let i = 0; i < 6; i++) {
-                if (i === 1) {
+            for (let dir = 0; dir < 6; dir++) {
+                if (dir === 1) {
                     continue;
                 }
-                let neibType = (neib[0] & FLUID_TYPE_MASK);
+                let neibType = (neib[dir] & FLUID_TYPE_MASK);
                 if (neibType > 0 && neibType !== fluidType) {
                     if (fluidType === FLUID_LAVA_ID) {
                         lavaCast.push(index);
