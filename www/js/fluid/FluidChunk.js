@@ -83,7 +83,7 @@ export class FluidChunk {
     setValuePortals(index, wx, wy, wz, value, portals, portalLen) {
         const {safeAABB} = this.dataChunk;
         if (safeAABB.contains(wx, wy, wz)) {
-            return 0;
+            return;
         }
         for (let i = 0; i < portalLen; i++) {
             if (portals[i].aabb.contains(wx, wy, wz)) {

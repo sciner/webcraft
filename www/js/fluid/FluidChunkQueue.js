@@ -30,7 +30,8 @@ function pushKnownPortal(wx, wy, wz, forceVal) {
                 fluidChunk.updateID++;
                 fluidChunk.markDirtyDatabase();
                 fluidChunk.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = forceVal;
-                fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, knownPortals, portalNum);
+                const portals2 = fluidChunk.dataChunk.portals;
+                fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
             }
             fluidChunk.queue.pushCurIndex(ind);
             break;
