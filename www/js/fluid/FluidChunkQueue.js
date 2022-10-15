@@ -289,7 +289,7 @@ export class FluidChunkQueue {
         }
         lavaCast.length = 0;
         const {qplace, curFlag, nextFlag, fluidChunk} = this;
-        const {uint16View, uint8View} = fluidChunk;
+        const {uint16View} = fluidChunk;
         const {tblocks} = fluidChunk.parentChunk;
         const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
         this.assignStart(uint16View.length);
