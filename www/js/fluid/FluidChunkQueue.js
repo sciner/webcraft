@@ -274,6 +274,9 @@ export class FluidChunkQueue {
     assign(ind, wx, wy, wz, val, knownPortals, portalNum) {
         const {fluidChunk, qplace} = this;
         fluidChunk.setValuePortals(ind, wx, wy, wz, val, knownPortals, portalNum);
+        if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
+            val = 0;
+        }
         assignValues[ind] = val;
         if ((qplace[ind] & QUEUE_PROCESS) === 0) {
             qplace[ind] |= QUEUE_PROCESS;
@@ -384,8 +387,14 @@ export class FluidChunkQueue {
                 }
             }
 
-            const moreThan = emptied ? 16 : (lvl & 7) + lower;
-            let goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
+            let moreThan = 16;
+            let goesSides = false;
+            if (!emptied) {
+                // if emptied, we have to check all neibs supported by this cell
+                //TODO: refactor this
+                moreThan = (lvl & 7) + lower;
+                goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
+            }
             let flowMask = 0, emptyMask = 0, emptyBest = 0;
             // 4 propagate to neibs
             for (let dir = 1; dir < 6; dir++) {

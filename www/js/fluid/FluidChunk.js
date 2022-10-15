@@ -213,6 +213,9 @@ export class FluidChunk {
                     if (x >= x_min && x <= x_max
                         && z >= z_min && z <= z_max) {
                         val = arr[k++];
+                        if ( (val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
+                            val = 0;
+                        }
                     }
                     let index = x * cx + y * cy + z * cz + cw;
                     uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
