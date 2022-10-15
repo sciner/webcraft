@@ -57,7 +57,7 @@ export class RecipeSlot extends Window {
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
         super.draw(ctx, ax, ay);
-        let item = this.block;
+        const item = this.block;
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
     }
 
@@ -65,11 +65,7 @@ export class RecipeSlot extends Window {
 
         const inventory_image = Resources.inventory.image;
 
-        if(!inventory_image) {
-            return;
-        }
-
-        if(!item) {
+        if(!inventory_image || !item) {
             return;
         }
 
@@ -77,6 +73,7 @@ export class RecipeSlot extends Window {
         const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
 
         ctx.imageSmoothingEnabled = false;
+
         // 
         if('inventory_icon_id' in item) {
             let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);

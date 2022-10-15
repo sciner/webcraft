@@ -198,7 +198,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
             }
             //
             that.used_recipes.push(recipe_id);
-            that.parent.checkRecipe();
+            that.parent.checkRecipe(this.parent.area.size);
         }
 
         // Drag & drop
@@ -223,7 +223,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                     }
                 }
                 that.used_recipes.push(recipe_id);
-                that.parent.checkRecipe();
+                that.parent.checkRecipe(this.parent.area.size);
                 const next_item = this.getItem();
                 if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
                     break;
@@ -524,7 +524,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
     // Вызывается после изменения любой из её ячеек
     setItem(item) {
         super.setItem(item);
-        this.parent.checkRecipe();
+        this.parent.checkRecipe(this.parent.area.size);
     }
 
 }
@@ -598,16 +598,16 @@ export class BaseCraftWindow extends Window {
 
     //
     getCurrentSlotsPattern() {
-        let current_slots_pattern = [];
+        const current_slots_pattern = [];
         for(let slot of this.craft.slots) {
-            let item = slot.getItem();
+            const item = slot.getItem();
             if(item) {
                 current_slots_pattern.push(item.id);
             } else {
                 current_slots_pattern.push(' ');
             }
         }
-        return current_slots_pattern.join('').trim('').split('').map(vaue => vaue.trim() ? parseInt(vaue) : null);
+        return current_slots_pattern.join('').trim('').split('').map(value => value.trim() ? parseInt(value) : null);
     }
 
     // Автоматически расставить рецепт в слотах по указанному рецепту
@@ -619,17 +619,16 @@ export class BaseCraftWindow extends Window {
         if(recipe.size.height > this.area.size.height) {
             return false;
         }
-        let slot_index = recipe.start_index[this.area.size.width];
-        //
-        let pattern_array = recipe.getCroppedPatternArray(this.area.size);
+        const pattern = recipe.adaptivePattern[this.area.size.width];
+        let slot_index = pattern.start_index;
         // Clear current craft recipe slots and result
         // Compare current slots recipe with new, then clear if not equals
-        let current_slots_pattern = this.getCurrentSlotsPattern();
-        if(this.recipes.patternsIsEqual(current_slots_pattern, pattern_array)) {
+        const current_slots_pattern = this.getCurrentSlotsPattern();
+        if(this.recipes.patternsIsEqual(current_slots_pattern, pattern)) {
             // Find first item in craft slots
             for(let i in this.craft.slots) {
-                let slot = this.craft.slots[i];
-                let item = slot.getItem();
+                const slot = this.craft.slots[i];
+                const item = slot.getItem();
                 if(item) {
                     slot_index = parseInt(i);
                     break;
@@ -639,23 +638,26 @@ export class BaseCraftWindow extends Window {
             this.clearCraft();
         }
         // Fill craft slots from recipe
-        for(let i in pattern_array) {
-            let item_id = pattern_array[i];
-            let slot = this.craft.slots[slot_index];
-            let item = slot.getItem();
-            if(item_id) {
-                if(!item) {
-                    item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
-                    item.count = 0;
+        try {
+            for(let item_id of pattern.array_id) {
+                const slot = this.craft.slots[slot_index];
+                let item = slot.getItem();
+                if(item_id) {
+                    if(!item) {
+                        item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(item_id), null, true);
+                        item.count = 0;
+                    }
+                    const count = 1;
+                    item.count += count;
+                    Qubatch.player.inventory.decrementByItemID(item_id, count, true);
+                } else {
+                    item = null;
                 }
-                let count = 1;
-                item.count += count;
-                Qubatch.player.inventory.decrementByItemID(item_id, count, true);
-            } else {
-                item = null;
+                slot.setItem(item);
+                slot_index++;
             }
-            slot.setItem(item);
-            slot_index++;
+        } catch(e) {
+            debugger
         }
     }
 

@@ -181,7 +181,7 @@ export class InventoryWindow extends BaseCraftWindow {
     }
 
     // собираем и проверяем шаблон
-    checkRecipe() {
+    checkRecipe(area_size) {
         let pattern_array = [];
         for(let i in this.craft.slots) {
             let slot = this.craft.slots[i];
@@ -192,12 +192,9 @@ export class InventoryWindow extends BaseCraftWindow {
             } else {
                 pattern_array.push(slot.item.id);
             }
-            if(i % 2 == 1) {
-                pattern_array.push(null);
-            }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array);
+        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array, area_size);
         let craft_result = this.lblResultSlot.recipe?.result || null;
         if(!craft_result) {
             return this.lblResultSlot.setItem(null);

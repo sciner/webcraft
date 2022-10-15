@@ -4,6 +4,128 @@ import {BLOCK} from "./blocks.js";
 import { md5 } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
 
+const MAX_SIZE = 3;
+
+class Recipe {
+
+    constructor(recipe, variant_index, size, keys) {
+
+        Object.assign(this, recipe);
+
+        this.size = size;
+        this.fixPattern(this.pattern, keys);
+
+        //
+        this.adaptivePattern = {};
+        for(let sz of [2, 3]) {
+            this.adaptivePattern[sz] = this.calcAdaptivePattern(this.pattern, keys, sz, sz);
+        }
+
+        // Need resources
+        this.calcNeedResources(this.adaptivePattern[3].array_id);
+
+        //if(this.id == '8dafbca0-e5a4-46b3-8673-49c6e5e3a909') {
+        //    console.log(this.pattern, this.adaptivePattern)
+        //    debugger;
+        //}
+
+        if(variant_index > 0) {
+            this.id += `:${variant_index}`;
+        }
+
+    }
+
+    /**
+     * 
+     * @param {*} pattern 
+     * @param {*} keys 
+     * @returns 
+     */
+    fixPattern(pattern, keys) {
+        // добираем сверху пустыми строками
+        while(pattern.length < MAX_SIZE) {
+            pattern.unshift(' '.repeat(MAX_SIZE));
+        }
+        // добираем каждую строку пробелами справа
+        for(let i in pattern) {
+            let line = pattern[i];
+            if(line.length < MAX_SIZE) {
+                pattern[i] = line + ' '.repeat(MAX_SIZE - line.length);
+            }
+        }
+    }
+
+    // Need resources
+    calcNeedResources(pattern_array) {
+        this.need_resources = new Map();
+        for(let item_id of pattern_array) {
+            if(!item_id) {
+                continue;
+            }
+            if(!this.need_resources.has(item_id)) {
+                this.need_resources.set(item_id, {
+                    item_id: item_id,   
+                    count: 0
+                });
+            }
+            this.need_resources.get(item_id).count++;
+        }
+        this.need_resources = Array.from(this.need_resources, ([name, value]) => (value));
+    }
+
+    /**
+     * 
+     * @param {*} recipe 
+     * @param {*} pattern 
+     * @param {*} rows 
+     * @param {*} cols 
+     * @returns 
+     */
+    calcAdaptivePattern(pattern, keys, rows = 3, cols = 3) {
+
+        // 1. check pattern size
+        for(let i in pattern) {
+            const rn = runes(pattern[i].trimRight());
+            if(rn.length > 0 && pattern.length - i > rows) return null;
+            if(rn.length > cols) return null;
+        }
+
+        let array = [];
+        let start_index = -1;
+
+        // 2. search start index
+        for(let i in pattern) {
+            const rn = runes(pattern[i]);
+            if(pattern.length - i > rows) continue;
+            for(let j = 0; j < rn.length; j++) {
+                if(j > cols - 1) continue;
+                array.push(rn[j]);
+                if(start_index < 0 && rn[j] != ' ') {
+                    start_index = (i - (pattern.length - rows)) * cols + j;
+                }
+            }
+        }
+
+        array = array.join('').trim().split('');
+
+        //
+        const array_id = [];
+        array.map(function(key) {
+            if(key == ' ') {
+                array_id.push(null);
+            } else {
+                if(!keys.hasOwnProperty(key)) {
+                    throw `error_invalid_recipe_pattern_key|${key}`;
+                }
+                array_id.push(keys[key]);
+            }
+        });
+
+        return {array, array_id, start_index};
+    }
+
+}
+
 export class RecipeManager {
 
     constructor(force_load) {
@@ -12,11 +134,14 @@ export class RecipeManager {
             list: [],
             grouped: [],
             map: new Map(),
-            searchRecipe: function(pattern_array) {
+            searchRecipe: function(pattern_array, area_size) {
                 for(let recipe of this.list) {
-                    if(recipe.pattern_array.length == pattern_array.length) {
-                        if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
-                            return recipe;
+                    const ap = recipe.adaptivePattern[area_size.width];
+                    if(ap) {
+                        if(ap.array_id.length == pattern_array.length) {
+                            if(ap.array_id.every((val, index) => val === pattern_array[index])) {
+                                return recipe;
+                            }
                         }
                     }
                 }
@@ -54,44 +179,6 @@ export class RecipeManager {
             }
         }
         return null;
-    }
-
-    calcStartIndex(recipe, pattern, rows = 3, cols = 3) {
-        const max_cols = 3;
-        const pat = [...pattern];
-        // добираем сверху пустыми строками
-        while(pat.length < max_cols) {
-            pat.unshift(' '.repeat(max_cols));
-        }
-        // добираем каждуб строку пробелами справа
-        for(let i in pat) {
-            let line = pat[i];
-            if(line.length < max_cols) {
-                pat[i] = line + ' '.repeat(max_cols - line.length);
-            }
-        }
-        // убираем все пустые строки сверху, но оставляем то количество строк, под которое запрошен метод
-        while(pat.length > rows && pat[0].trim() == '') {
-            pat.shift();
-        }
-        // если в рецепте больше строк, чем запрошено, то возвращаем невалидный индекс
-        if(pat.length > rows) {
-            return -1;
-        }
-        for(let i in pat) {
-            const rn = runes(pat[i].trimRight());
-            if(rn.length > cols) {
-                // возвращаем невалидный индекс
-                return -1;
-            }
-            for(let j = 0; j < rn.length; j++) {
-                if(rn[j] != ' ') {
-                    return i * cols + j;
-                }
-            }
-        }
-        // возвращаем невалидный индекс
-        return -1;
     }
 
     add(recipe) {
@@ -155,48 +242,11 @@ export class RecipeManager {
                 }
                 //
                 for(let i in keys_variants) {
-                    const keys = keys_variants[i];
-                    let r = Object.assign({}, recipe);
-                    r.start_index = {};
-                    for(let sz of [2, 3]) {
-                        r.start_index[sz] = this.calcStartIndex(recipe, r.pattern, sz, sz);
-                    }
-                    if(i > 0) {
-                        r.id += `:${i}`;
-                    }
-                    r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
-                    //
-                    r.size = {
+                    const size = {
                         width: max_x - min_x + 1,
                         height: max_y - min_y + 1
                     };
-                    //
-                    r.getCroppedPatternArray = function(size) {
-                        let resp = [];
-                        for(let i in this.pattern_array) {
-                            if(i % 3 == size.width) {
-                                continue;
-                            }
-                            resp.push(this.pattern_array[i]);
-                        }
-                        return resp;
-                    };
-                    // Need resources
-                    r.need_resources = new Map();
-                    for(let item_id of r.pattern_array) {
-                        if(!item_id) {
-                            continue;
-                        }
-                        if(!r.need_resources.has(item_id)) {
-                            r.need_resources.set(item_id, {
-                                item_id: item_id,   
-                                count: 0
-                            });
-                        }
-                        r.need_resources.get(item_id).count++;
-                    }
-                    r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
-                    //
+                    const r = new Recipe(recipe, i, size, keys_variants[i]);
                     this.crafting_shaped.list.push(r);
                     this.crafting_shaped.map.set(r.id, r);
                 }
@@ -204,31 +254,8 @@ export class RecipeManager {
             }
             default: {
                 throw 'Invalid recipe type ' + recipe.type;
-                break;
             }
         }
-    }
-
-    makeRecipePattern(pattern, keys, index) {
-        // Make pattern
-        for(let pk in pattern) {
-            if(pattern[pk].length < 3) {
-                pattern[pk] = (pattern[pk] + '   ').substring(0, 3);
-            }
-        }
-        return pattern
-            .join('')
-            .trim()
-            .split('')
-            .map(function(key) {
-                if(key == ' ') {
-                    return null;
-                }
-                if(!keys.hasOwnProperty(key)) {
-                    throw 'Invalid recipe pattern key `' + key + '`';
-                }
-                return keys[key];
-            });
     }
 
     // Compare two patterns for equals
@@ -243,24 +270,25 @@ export class RecipeManager {
         }
         return true;
     }
+    
+    md5s(text) {
+        const guid = md5(text);
+        return guid.substring(0, 8) + '-' +
+            guid.substring(8, 12) + '-' + guid.substring(12, 16) + '-' +
+            guid.substring(16, 20) + '-' + guid.substring(20, 32);
+    }
 
     // Load
     async load(callback) {
-        let that = this;
-        let recipes = await Resources.loadRecipes();
-        let ids = new Map();
-        const md5s = (text) => {
-            const guid = md5(text);
-            return guid.substring(0, 8) + '-' +
-                guid.substring(8, 12) + '-' + guid.substring(12, 16) + '-' +
-                guid.substring(16, 20) + '-' + guid.substring(20, 32);
-        };
+        const that = this;
+        const recipes = await Resources.loadRecipes();
+        const ids = new Map();
         // bed
         for(let color in COLOR_PALETTE) {
             let name = `${color}_bed`;
             recipes.push(
             {
-                "id": md5s(name),
+                "id": this.md5s(name),
                 "type": "madcraft:crafting_shaped",
                 "pattern": [
                     "   ",
@@ -282,7 +310,7 @@ export class RecipeManager {
             let name = `${color}_carpet`;
             recipes.push(
             {
-                "id": md5s(name),
+                "id": this.md5s(name),
                 "type": "madcraft:crafting_shaped",
                 "pattern": [
                     "WW"
@@ -301,7 +329,7 @@ export class RecipeManager {
             let name = `${color}_banner`;
             recipes.push(
             {
-                "id": md5s(name),
+                "id": this.md5s(name),
                 "type": "madcraft:crafting_shaped",
                 "pattern": [
                     "WWW",
@@ -332,7 +360,7 @@ export class RecipeManager {
         for(let k in logs) {
             const log_name = logs[k];
             recipes.push({
-                "id": md5s(`${k}_chair`),
+                "id": this.md5s(`${k}_chair`),
                 "type": "madcraft:crafting_shaped",
                 "pattern": [
                     "L",
@@ -353,7 +381,7 @@ export class RecipeManager {
                 }
             });
             recipes.push({
-                "id": md5s(`${k}_stool`),
+                "id": this.md5s(`${k}_stool`),
                 "type": "madcraft:crafting_shaped",
                 "pattern": [
                     " L",
