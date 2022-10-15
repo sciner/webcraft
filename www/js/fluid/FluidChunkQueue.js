@@ -7,6 +7,9 @@ import {
     BLOCK
 } from "./../blocks.js";
 import {SingleQueue} from "../light/MultiQueue.js";
+import { WorldAction } from "../world_action.js";
+import { Vector } from "../helpers.js";
+import { ServerClient } from "../server_client.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
 const dx = [0, 0, 0, 0, 1, -1], dy = [1, -1, 0, 0, 0, 0], dz = [0, 0, -1, 1, 0, 0];
@@ -336,9 +339,9 @@ export class FluidChunkQueue {
                     if (fluidType === FLUID_LAVA_ID) {
                         lavaCast.push(index);
                         if ((val & FLUID_LEVEL_MASK) === 0) {
-                            lavaCast.push(1);
+                            lavaCast.push(BLOCK.OBSIDIAN.id);
                         } else {
-                            lavaCast.push(2);
+                            lavaCast.push(BLOCK.COBBLESTONE.id); // cobblestone
                         }
                     }
                     emptied = true;
@@ -481,6 +484,32 @@ export class FluidChunkQueue {
         }
         this.assignFinish();
         //TODO: lavacast here
+        if(lavaCast.length > 0) {
+            this.pushLavaCast(lavaCast);
+        }
+    }
+
+    pushLavaCast(lavaCast) {
+        const cm = this.fluidWorld.chunkManager;
+        const world = cm.world;
+        const actions = new WorldAction(randomUUID(), world, false, true);
+        const chunk_coord = this.fluidChunk.dataChunk.pos;
+        const {cw, outerSize} = this.fluidChunk.dataChunk;
+        for(let i = 0; i < lavaCast.length; i += 2) {
+            const index = lavaCast[i + 0];
+            const block_id = lavaCast[i + 1];
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+            const pos = new Vector(x, y, z).addSelf(chunk_coord);
+            actions.addBlocks([{pos, item: {id: block_id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+        world.actions_queue.add(null, actions);
     }
 
     dispose() {
