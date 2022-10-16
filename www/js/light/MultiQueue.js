@@ -64,6 +64,9 @@ export class SingleQueue {
         }
 
         const newPage = this.pagePool.alloc();
+        if (newPage.next) {
+            console.log("WTFWTFWTF");
+        }
         newPage.arr[newPage.finish++] = value;
         if (curPage) {
             curPage.next = newPage;
