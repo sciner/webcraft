@@ -277,6 +277,9 @@ export class ServerChat {
                break;
             }
             case '/stairs': {
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
                 const pos = player.state.pos.floored();
                 const cd = BLOCK.getCardinalDirection(player.rotateDegree.clone());
                 let ax = 0, az = 0;
