@@ -315,30 +315,31 @@ let gameCtrl = async function($scope, $timeout) {
             const form = localStorage.getItem('settings');
             if(form) {
                 this.form = Object.assign(this.form, JSON.parse(form));
-                // add default render_distance
-                if(!('render_distance' in this.form)) {
-                    this.form.render_distance = 4;
-                }
-                // use_light
-                if('use_light' in this.form) {
-                    this.form.use_light = parseInt(this.form.use_light | 0);
-                }
-                // forced Joystick control
-                if(!('render_distance' in this.form)) {
-                    this.form.forced_joystick_control = false;
-                }
+            }
+            // add default render_distance
+            if(!('render_distance' in this.form)) {
+                this.form.render_distance = 4;
+            }
+            // use_light
+            if('use_light' in this.form) {
+                this.form.use_light = parseInt(this.form.use_light | 0);
+            }
+            // forced Joystick control
+            if(!('forced_joystick_control' in this.form)) {
+                this.form.forced_joystick_control = false;
+            }
+            // mouse sensitivity
+            if(!('mouse_sensitivity' in this.form)) {
+                this.form.mouse_sensitivity = 100;
             }
         },
         updateSlider: function (inputId) {
             const slider = document.getElementById(inputId);
-            const text = document.getElementById(inputId + '_text');
             const step = parseInt(slider.getAttribute("step"));
-            const perc = (slider.value);
-            //change current value text
-            text.innerHTML = slider.value;
-            //track background
+            const perc = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+            // track background
             slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
-            //ticks set active
+            // ticks set active
             const ticks = document.getElementById(inputId + '_ticks').children;
             const tickMarks = Array.prototype.slice.call(ticks);
             tickMarks.map(function (tick, index) {
