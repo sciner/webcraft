@@ -331,20 +331,28 @@ export class FluidChunkQueue {
             // 0 check lavacast
             let emptied = false;
             for (let dir = 0; dir < 6; dir++) {
-                if (dir === 1) {
-                    continue;
-                }
                 let neibType = (neib[dir] & FLUID_TYPE_MASK);
                 if (neibType > 0 && neibType !== fluidType) {
-                    if (fluidType === FLUID_LAVA_ID) {
+                    if (fluidType === FLUID_LAVA_ID && dir !== 1) {
                         lavaCast.push(index);
                         if ((val & FLUID_LEVEL_MASK) === 0) {
                             lavaCast.push(BLOCK.OBSIDIAN.id);
                         } else {
                             lavaCast.push(BLOCK.COBBLESTONE.id); // cobblestone
                         }
+                        emptied = true;
+                    } else {
+                        // need neib lava update there for lavacast!
+                        let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
+                        if (aabb.contains(nx, ny, nz)) {
+                            this.pushNextIndex(cx * nx + cy * ny + cz * nz + shiftCoord);
+                        } else {
+                            pushKnownPortal(nx, ny, nz);
+                        }
+                        if (fluidType === FLUID_WATER_ID && dir === 0) {
+                            emptied = true;
+                        }
                     }
-                    emptied = true;
                     break;
                 }
             }
