@@ -101,7 +101,11 @@ export class MobManager {
 
     // delete
     delete(id) {
-        this.list.delete(id);
+        const mob = this.list.get(id);
+        if(mob) {
+            mob.onUnload();
+            this.list.delete(id);
+        }
     }
 
     // Play mob idle or step sounds

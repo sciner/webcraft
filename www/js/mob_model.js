@@ -5,6 +5,8 @@ import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
+import { Renderer } from "./render.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -677,15 +679,18 @@ export class MobModel extends NetworkPhysicObject {
         this.animator.update(delta, camPos, this, speed);
     }
 
-    isAlive() {
-        return this.extra_data?.is_alive;
-    }
-
     isDetonationStarted() {
         return this.extra_data?.detonation_started || false;
     }
 
-    // draw
+    /**
+     * Draw mob model
+     * @param {Renderer} render 
+     * @param {Vector} camPos 
+     * @param {float} delta 
+     * @param {float} speed 
+     * @returns 
+     */
     draw(render, camPos, delta, speed) {
 
         this.lazyInit(render);
@@ -757,6 +762,11 @@ export class MobModel extends NetworkPhysicObject {
             this.detonation_started_info = null;
         }
 
+        // Draw in fire
+        if((this.extra_data?.time_fire ?? 0) > 0) {
+            this.drawInFire(render, delta);
+        }
+
         // ignore_roots
         const ignore_roots = [];
         if(this.type == 'sheep' && this.extra_data?.is_shaered) {
@@ -770,6 +780,25 @@ export class MobModel extends NetworkPhysicObject {
         //if(this.aabb) {
         //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
         //}
+    }
+
+    /**
+     * @param {Renderer} render 
+     */
+    drawInFire(render, delta) {
+        if(this.fire_mesh) {
+            this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
+            this.fire_mesh.apos.copyFrom(this.pos);
+            this.fire_mesh.draw(render, delta);
+        } else {
+            this.fire_mesh = new Mesh_Object_MobFire(this);
+            // render.meshes.add(this.fire_mesh);
+        }
+    }
+
+    angleTo(pos, target) {
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
+        return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
     /**
@@ -855,6 +884,12 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         this.animator.prepare(this);
+    }
+
+    onUnload() {
+        if(this.fire_mesh) {
+            this.fire_mesh.destroy();
+        }
     }
 
 }
