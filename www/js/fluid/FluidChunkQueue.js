@@ -309,6 +309,7 @@ export class FluidChunkQueue {
                 continue;
             }
             const oldLvl = lvl & 7;
+            const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
 
             let tmp = index - cw;
             let x = tmp % outerSize.x;
@@ -327,6 +328,16 @@ export class FluidChunkQueue {
             neib[3] = uint16View[index + cz];
             neib[4] = uint16View[index + cx];
             neib[5] = uint16View[index - cx];
+
+            // -1 calc portals
+            portalNum = 0;
+            if (!safeAABB.contains(wx, wy, wz)) {
+                for (let i = 0; i < portals.length; i++) {
+                    if (portals[i].aabb.contains(wx, wy, wz)) {
+                        knownPortals[portalNum++] = portals[i];
+                    }
+                }
+            }
 
             // 0 check lavacast
             let emptied = false;
@@ -357,43 +368,31 @@ export class FluidChunkQueue {
                 }
             }
 
-            // 1. check support
-            let supportLvl = (val & FLUID_LEVEL_MASK) === 0 ? 0 : 16;
-            let neibType = (neib[0] & FLUID_TYPE_MASK);
-            if (neibType > 0) {
-                supportLvl = Math.min(supportLvl, 8);
-            }
-            const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
-            for (let dir = 2; dir < 6; dir++) {
-                neibType = (neib[dir] & FLUID_TYPE_MASK);
+            let changed = emptied;
+            if (!emptied && lvl > 0) {
+                // 1. if not source - check support
+                let supportLvl = 16;
+                let neibType = (neib[0] & FLUID_TYPE_MASK);
                 if (neibType > 0) {
-                    const neibLvl = neib[dir] & FLUID_LEVEL_MASK;
-                    const lowLvl = (neibLvl & 7) + lower;
-                    if (lowLvl < 8) {
-                        supportLvl = Math.min(supportLvl, lowLvl);
+                    supportLvl = 8;
+                } else {
+                    for (let dir = 2; dir < 6; dir++) {
+                        neibType = (neib[dir] & FLUID_TYPE_MASK);
+                        if (neibType > 0) {
+                            const neibLvl = neib[dir] & FLUID_LEVEL_MASK;
+                            const lowLvl = (neibLvl & 7) + lower;
+                            if (lowLvl < 8) {
+                                supportLvl = Math.min(supportLvl, lowLvl);
+                            }
+                        }
                     }
                 }
-            }
-
-            // 2. apply support
-            let changed = emptied;
-            if (!changed && lvl !== supportLvl) {
-                if (supportLvl === 16) {
-                    // no fluid for you
-                    emptied = true;
+                if (lvl !== supportLvl) {
                     changed = true;
-                } else {
-                    lvl = supportLvl;
-                    changed = true;
-                }
-            }
-
-            // 3 calc portals
-            portalNum = 0;
-            if (!safeAABB.contains(wx, wy, wz)) {
-                for (let i = 0; i < portals.length; i++) {
-                    if (portals[i].aabb.contains(wx, wy, wz)) {
-                        knownPortals[portalNum++] = portals[i];
+                    if (supportLvl === 16) {
+                        emptied = true;
+                    } else {
+                        lvl = supportLvl;
                     }
                 }
             }

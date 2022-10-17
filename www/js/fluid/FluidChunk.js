@@ -290,21 +290,21 @@ export class FluidChunk {
                     this.updateID++;
                     this.markDirtyMesh();
                     this.markDirtyDatabase();
-                    if (this.queue) {
-                        //TODO: remove this
-                        const {cw, outerSize} = this.dataChunk;
-                        let tmp = index - cw;
-                        let x = tmp % outerSize.x;
-                        tmp -= x;
-                        tmp /= outerSize.x;
-                        let z = tmp % outerSize.z;
-                        tmp -= z;
-                        tmp /= outerSize.z;
-                        let y = tmp;
-                        this.queue.pushAllNeibs(x, y, z);
-                    }
                 }
             }
+        }
+        if (!isPortal && this.queue) {
+            //TODO: remove this
+            const {cw, outerSize} = this.dataChunk;
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+            this.queue.pushAllNeibs(x, y, z);
         }
     }
 
