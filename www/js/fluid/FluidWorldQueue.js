@@ -9,7 +9,15 @@ export class FluidWorldQueue {
             bytesPerElement: 2,
         });
         this.dirtyChunks = [];
+
+        //ticker
         this.tick = 0;
+        this.preTick = 0;
+
+        // constants
+        this.lavaSpeedSlow = 6;
+        this.lavaLower = 2;
+        this.tickRate = 5;
     }
 
     addChunk(fluidChunk) {
@@ -23,6 +31,11 @@ export class FluidWorldQueue {
     async process(msLimit = 8) {
         const start = performance.now();
         const {dirtyChunks} = this;
+        this.preTick = (this.preTick + 1) % this.tickRate;
+        if (this.preTick !== 0) {
+            return;
+        }
+        this.tick++;
         if (dirtyChunks.length === 0) {
             return;
         }
@@ -42,6 +55,5 @@ export class FluidWorldQueue {
         if (i > 0) {
             dirtyChunks.splice(0, i);
         }
-        this.tick++;
     }
 }

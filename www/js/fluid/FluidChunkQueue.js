@@ -13,7 +13,9 @@ import { ServerClient } from "../server_client.js";
 
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0];
 const dx = [0, 0, 0, 0, 1, -1], dy = [1, -1, 0, 0, 0, 0], dz = [0, 0, -1, 1, 0, 0];
-const QUEUE_PROCESS = 4;
+const QUEUE_PROCESS = 128;
+const QUEUE_MASK_NUM = 127;
+const MAX_TICKS = 7;
 
 let assignValues = new Uint8Array(0),
     assignIndices = [],
@@ -22,7 +24,7 @@ let assignValues = new Uint8Array(0),
     knownPortals = [],
     portalNum = 0;
 
-function pushKnownPortal(wx, wy, wz, forceVal) {
+function pushKnownPortal(wx, wy, wz, ticks, forceVal) {
     for (let i = 0; i < portalNum; i++) {
         const toRegion = knownPortals[i].toRegion;
         if (toRegion.aabb.contains(wx, wy, wz)) {
@@ -36,13 +38,13 @@ function pushKnownPortal(wx, wy, wz, forceVal) {
                 const portals2 = fluidChunk.dataChunk.portals;
                 fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
             }
-            fluidChunk.queue.pushTickIndex(ind);
+            fluidChunk.queue.pushTickIndex(ind, ticks);
             break;
         }
     }
 }
 
-function shouldGoToQueue(uint16View, index, cx, cy, cz) {
+function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
     const val = uint16View[index];
     const fluidType = val & FLUID_TYPE_MASK, lvl = val & FLUID_LEVEL_MASK;
 
@@ -55,7 +57,6 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
     const EMPTY_MASK = FLUID_TYPE_MASK | FLUID_SOLID16;
 
-    const lower = fluidType === FLUID_LAVA_ID ? 2 : 1;
     const lessThan = (lvl & 7) - lower;
     const moreThan = (lvl & 7) + lower;
 
@@ -128,16 +129,17 @@ export class FluidChunkQueue {
     constructor(fluidWorld, fluidChunk) {
         this.fluidWorld = fluidWorld;
         this.fluidChunk = fluidChunk;
-        this.pagedList = new SingleQueue({
-            pagePool: this.fluidWorld.queue.pool,
-        });
-        this.nextList = new SingleQueue({
-            pagePool: this.fluidWorld.queue.pool,
-        });
+        this.lists = [];
+        for (let i = 0; i < MAX_TICKS; i++) {
+            this.lists.push(new SingleQueue({
+                pagePool: this.fluidWorld.queue.pool,
+            }));
+        }
         this.qplace = null;
         this.inQueue = false;
+        this.curList = 0;
+        this.nextList = 1;
         this.curFlag = 1;
-        this.nextFlag = 2;
         this.lastTick = -1;
         //TODO: several pages, depends on current fluid tick
     }
@@ -150,32 +152,34 @@ export class FluidChunkQueue {
     }
 
     swapLists() {
-        let t = this.pagedList;
-        this.pagedList = this.nextList;
-        this.nextList = t;
-        let u = this.curFlag;
-        this.curFlag = this.nextFlag;
-        this.nextFlag = u;
+        this.curList = (this.curList + 1) % MAX_TICKS;
+        this.nextList = (this.nextList + 1) % MAX_TICKS;
+        this.curFlag = (1 << this.curList);
 
-        if (this.pagedList.head) {
-            this.markDirty();
+        for (let i = 0; i < MAX_TICKS; i++) {
+            if (this.lists[i].head) {
+                this.markDirty();
+                break;
+            }
         }
     }
 
-    pushNextIndex(index, checkFlag = this.nextFlag) {
+    pushNextIndex(index, ticks = 1) {
         const qplace = this.ensurePlace();
-        if ((qplace[index] & checkFlag) !== 0) {
-            // nothing
-        } else {
-            this.nextList.push(index);
-            qplace[index] |= this.nextFlag;
+        let ntick = (this.curList + ticks) % MAX_TICKS;
+        let flag = 1 << ntick;
+        if ((qplace[index] & flag) !== 0) {
+            return;
         }
+        this.lists[ntick].push(index);
+        qplace[index] |= flag;
     }
 
     pushAllNeibs(lx, ly, lz) {
         const {fluidChunk} = this;
         const {cx, cy, cz, shiftCoord, pos, aabb, safeAABB, portals} = fluidChunk.dataChunk;
         const {uint16View} = fluidChunk;
+        const {lavaSpeedSlow} = this.fluidWorld.queue;
         const wx = lx + pos.x, wy = ly + pos.y, wz = lz + pos.z;
 
         portalNum = 0;
@@ -190,30 +194,32 @@ export class FluidChunkQueue {
         for (let dir = 0; dir < 6; dir++) {
             let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
             let nIndex = nx * cx + ny * cy + nz * cz + shiftCoord;
-            if ((uint16View[nIndex] & FLUID_TYPE_MASK) !== 0) {
+            let fluidType = uint16View[nIndex] & FLUID_TYPE_MASK;
+            if (fluidType !== 0) {
                 //push it!
+                const ticks = FLUID_LAVA_ID ? lavaSpeedSlow : 1;
                 if (aabb.contains(nx, ny, nz)) {
                     this.pushTickIndex(nIndex);
                 } else {
-                    pushKnownPortal(nx, ny, nz, 0);
+                    pushKnownPortal(nx, ny, nz, ticks, 0);
                 }
             }
         }
     }
 
-    pushTickIndex(index) {
+    pushTickIndex(index, tick = 1) {
         const qplace = this.ensurePlace();
 
-        let checkFlag = this.curFlag;
+        let ntick = (this.curList + tick) % MAX_TICKS;
         if (this.lastTick === this.fluidWorld.queue.tick) {
-            checkFlag = this.nextFlag;
+            ntick = (ntick + 1) % MAX_TICKS;
         }
-        if ((qplace[index] & checkFlag) !== 0) {
-            // nothing
-        } else {
-            this.pagedList.push(index);
-            qplace[index] |= this.curFlag;
+        let flag = 1 << ntick;
+        if ((qplace[index] & flag) !== 0) {
+            return;
         }
+        this.lists[ntick].push(index);
+        qplace[index] |= flag;
         this.markDirty();
     }
 
@@ -221,6 +227,8 @@ export class FluidChunkQueue {
         const {fluidChunk} = this;
         const {uint16View} = fluidChunk;
         const {cx, cy, cz, cw} = fluidChunk.dataChunk;
+
+        const {lavaLower} = this.fluidWorld.queue;
 
         const bounds = fluidChunk.getLocalBounds();
         for (let y = bounds.y_min; y <= bounds.y_max; y++) {
@@ -232,20 +240,20 @@ export class FluidChunkQueue {
                     if (fluidType === 0) {
                         continue;
                     }
-                    if (shouldGoToQueue(uint16View, index, cx, cy, cz)) {
-                        this.pushNextIndex(index);
+                    const lower = fluidType === FLUID_LAVA_ID ? lavaLower : 1;
+                    if (shouldGoToQueue(uint16View, index, cx, cy, cz, lower)) {
+                        this.pushNextIndex(index, 1);
                     }
                 }
         }
-        if (this.nextList.head !== null) {
-            this.swapLists();
-        }
+        this.swapLists();
     }
 
     markDirty() {
         if (!this.inQueue) {
             this.fluidWorld.queue.dirtyChunks.push(this);
             this.inQueue = true;
+            this.lastTick = this.fluidWorld.queue.tick;
         }
     }
 
@@ -293,22 +301,18 @@ export class FluidChunkQueue {
     }
 
     process() {
-        let { pagedList } = this;
+        let {lists} = this;
 
         this.lastTick = this.fluidWorld.queue.tick;
-        if (!pagedList.head) {
-            this.swapLists();
-            return;
-        }
         lavaCast.length = 0;
-        const {qplace, curFlag, nextFlag, fluidChunk} = this;
+        const {qplace, curList, curFlag, fluidChunk} = this;
         const {uint16View} = fluidChunk;
-        const {tblocks} = fluidChunk.parentChunk;
         const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
+        const {lavaSpeedSlow, lavaLower} = this.fluidWorld.queue;
         this.assignStart(uint16View.length);
 
-        cycle: while (pagedList.head) {
-            const index = pagedList.shift();
+        cycle: while (lists[curList].head) {
+            const index = lists[curList].shift();
             let val = uint16View[index];
             let lvl = val & FLUID_LEVEL_MASK;
             let fluidType = val & FLUID_TYPE_MASK;
@@ -321,7 +325,8 @@ export class FluidChunkQueue {
                 continue;
             }
             const oldLvl = lvl & 7;
-            const lower = fluidType === FLUID_LAVA_ID ? 2 : 1;
+            const lower = fluidType === FLUID_LAVA_ID ? lavaLower : 1;
+            const ticks = fluidType === FLUID_LAVA_ID ? lavaSpeedSlow : 1;
 
             let tmp = index - cw;
             let x = tmp % outerSize.x;
@@ -370,9 +375,9 @@ export class FluidChunkQueue {
                         // need neib lava update there for lavacast!
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
                         if (aabb.contains(nx, ny, nz)) {
-                            this.pushNextIndex(cx * nx + cy * ny + cz * nz + shiftCoord);
+                            this.pushNextIndex(cx * nx + cy * ny + cz * nz + shiftCoord, 1);
                         } else {
-                            pushKnownPortal(nx, ny, nz);
+                            pushKnownPortal(nx, ny, nz, 1, 0);
                         }
                         if (fluidType === FLUID_WATER_ID && dir === 0) {
                             emptied = true;
@@ -471,9 +476,9 @@ export class FluidChunkQueue {
                 if (improve) {
                     flowMask |= 1 << dir;
                     if (aabb.contains(nx, ny, nz)) {
-                        this.pushNextIndex(nIndex);
+                        this.pushNextIndex(nIndex, ticks);
                     } else {
-                        pushKnownPortal(nx, ny, nz, 0);
+                        pushKnownPortal(nx, ny, nz, ticks, 0);
                         // push into neib chunk if need
                     }
                 }
@@ -484,28 +489,29 @@ export class FluidChunkQueue {
                     emptyMask = emptyBest;
                 }
                 for (let dir = 1; dir < 6; dir++) {
-                    if ((emptyMask & (1<<dir)) > 0) {
+                    if ((emptyMask & (1 << dir)) > 0) {
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
                         const asVal = (dir === 1 ? 8 : moreThan) | fluidType;
                         if (aabb.contains(nx, ny, nz)) {
                             // force in our chunk
                             let nIndex = cx * nx + cy * ny + cz * nz + shiftCoord;
                             this.assign(nIndex, nx, ny, nz, asVal, portals, portals.length);
-                            this.pushNextIndex(nIndex);
+                            this.pushNextIndex(nIndex, ticks);
                         } else {
                             // force into neib chunk
-                            pushKnownPortal(nx, ny, nz, asVal);
+                            pushKnownPortal(nx, ny, nz, ticks, asVal);
                         }
                     }
                 }
             }
             if (changed) {
-                this.assign(index, wx, wy, wz,emptied ? 0 : (lvl | fluidType), knownPortals, portalNum);
+                this.assign(index, wx, wy, wz, emptied ? 0 : (lvl | fluidType), knownPortals, portalNum);
             }
         }
         this.assignFinish();
+
         //TODO: lavacast here
-        if(lavaCast.length > 0) {
+        if (lavaCast.length > 0) {
             this.pushLavaCast(lavaCast);
         }
     }
@@ -516,7 +522,7 @@ export class FluidChunkQueue {
         const actions = new WorldAction(randomUUID(), world, false, true);
         const chunk_coord = this.fluidChunk.dataChunk.pos;
         const {cw, outerSize} = this.fluidChunk.dataChunk;
-        for(let i = 0; i < lavaCast.length; i += 2) {
+        for (let i = 0; i < lavaCast.length; i += 2) {
             const index = lavaCast[i + 0];
             const block_id = lavaCast[i + 1];
             let tmp = index - cw;
@@ -534,7 +540,9 @@ export class FluidChunkQueue {
     }
 
     dispose() {
-        this.pagedList.clear();
+        for (let i = 0; i < MAX_TICKS; i++) {
+            this.lists[i].clear();
+        }
         this.fluidChunk.queue = null;
     }
 }
