@@ -305,7 +305,8 @@ export class FluidChunkQueue {
             let lvl = val & FLUID_LEVEL_MASK;
             let fluidType = val & FLUID_TYPE_MASK;
             if ((qplace[index] & curFlag) === 0) {
-                console.log("WTF2");
+                //TODO: find out who violates this invariant
+                // console.log("WTF_FLUID_QUEUE");
             }
             qplace[index] &= !curFlag;
             if (fluidType === 0) {
@@ -349,9 +350,6 @@ export class FluidChunkQueue {
                 if (neibType > 0 && neibType !== fluidType) {
                     if (fluidType === FLUID_LAVA_ID && dir !== 1) {
                         if (!emptied) {
-                            if (lavaCast.length > 2 && lavaCast[lavaCast.length - 2] === index) {
-                                console.log("LAVAWTFWTF")
-                            }
                             lavaCast.push(index);
                             if ((val & FLUID_LEVEL_MASK) === 0) {
                                 lavaCast.push(BLOCK.OBSIDIAN.id);
@@ -500,9 +498,6 @@ export class FluidChunkQueue {
         this.assignFinish();
         //TODO: lavacast here
         if(lavaCast.length > 0) {
-            if (lavaCast.length > 100) {
-                console.log("WTFWTFLAVA");
-            }
             this.pushLavaCast(lavaCast);
         }
     }
