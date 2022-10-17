@@ -55,7 +55,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz) {
 
     const EMPTY_MASK = FLUID_TYPE_MASK | FLUID_SOLID16;
 
-    const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
+    const lower = fluidType === FLUID_LAVA_ID ? 2 : 1;
     const lessThan = (lvl & 7) - lower;
     const moreThan = (lvl & 7) + lower;
 
@@ -313,7 +313,7 @@ export class FluidChunkQueue {
                 continue;
             }
             const oldLvl = lvl & 7;
-            const lower = fluidType === FLUID_LAVA_ID ? 3 : 1;
+            const lower = fluidType === FLUID_LAVA_ID ? 2 : 1;
 
             let tmp = index - cw;
             let x = tmp % outerSize.x;
