@@ -3,6 +3,206 @@ import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
+import { ServerClient } from "../../../www/js/server_client.js";
+import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
+
+export class Brain extends FSMBrain {
+
+    constructor(mob) {
+        super(mob);
+        //
+        this.prevPos = new Vector(mob.pos);
+        this.lerpPos = new Vector(mob.pos);
+        this.pc = this.createPlayerControl(this, {
+            baseSpeed: 0.8,
+            playerHeight: 1.6,
+            playerHalfWidth: 0.45,
+            stepHeight: 1
+        });
+        this.stack.pushState(this.doStand);
+        this.health = 20;       // максимальное здоровье
+        this.distance_view = 40; // дистанция на которм виден игрок
+        this.distance_attack = 1.5; // дистанция для атаки
+        this.timer_attack = 0;
+        this.interval_attack = 16;
+        this.resistance_light = false; // загорается при свете
+    }
+    
+    // поиск игрока для атаки
+    onFind() {
+        if (this.target || this.distance_view < 1) {
+            return;
+        }
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const difficulty = world.getGameRule('difficulty'); 
+        const players = world.getPlayersNear(mob.pos, this.distance_view, true);
+        if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
+            const rnd = (Math.random() * players.length) | 0;
+            const player = players[rnd];
+            this.target = player;
+            // Если выбран режим hard, то устанавливаем общий таргет
+            if (difficulty == EnumDifficulty.HARD) {
+                const bots = world.getMobsNear(mob.pos, this.distance_view, 'zombie');
+                for (const bot of bots) {
+                    const brain = bot.getBrain();
+                    if (!brain.target) {
+                        brain.target = player;
+                    }
+                }
+            }
+        }
+    }
+    
+    // просто стоит на месте
+    doStand(delta) {
+        // нашел цель
+        if (this.target) {
+            this.stack.replaceState(this.doCatch);
+            return;
+        }
+        if (Math.random() < 0.05 || this.timer_panick > 0) {
+            this.stack.replaceState(this.doForward);
+            return;
+        }
+        const mob = this.mob;
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: false,
+            jump: false,
+            sneak: false
+        });
+        this.applyControl(delta);
+        this.sendState();
+    }
+    
+    // просто ходит
+    doForward(delta) {
+        // нашел цель
+        if (this.target) {
+            this.stack.replaceState(this.doCatch);
+            return;
+        }
+        // обход препятсвия
+        const mob = this.mob;
+        if (this.is_wall || this.is_fire || this.is_lava) {
+            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        if (Math.random() < 0.05) {
+            mob.rotate.z = mob.rotate.z + Math.random() * Math.PI;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: true,
+            jump: false,
+            sneak: false
+        });
+        this.applyControl(delta);
+        this.sendState();
+    }
+    
+    // преследование игрока
+    doCatch(delta) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const difficulty = world.getGameRule('difficulty');
+        if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        const dist = mob.pos.distance(this.target.state.pos);
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        if (dist < this.distance_attack) {
+            this.stack.replaceState(this.doAttack);
+            return;
+        }
+        mob.rotate.z = this.angleTo(this.target.state.pos);
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: !(this.is_abyss | this.is_well),
+            jump: this.is_water
+        });
+        this.applyControl(delta);
+        this.sendState();
+    }
+    
+    doAttack(delta) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const difficulty = world.getGameRule('difficulty');
+        if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
+            this.target = null;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
+        const dist = mob.pos.distance(this.target.state.pos);
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack) {
+            this.stack.replaceState(this.doCatch);
+            return;
+        }
+        const angle_to_player = this.angleTo(this.target.state.pos);
+        // моб должен примерно быть направлен на игрока
+        if (Math.abs(mob.rotate.z - angle_to_player) > Math.PI / 2) {
+            // сперва нужно к нему повернуться
+            this.mob.rotate.z = angle_to_player;
+            this.sendState();
+        } else {
+            if (this.timer_attack++ >= this.interval_attack) {
+                this.timer_attack = 0;
+                switch(difficulty) {
+                    case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
+                    case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
+                    case EnumDifficulty.HARD: this.target.setDamage(Math.random() < 0.5 ? 4 : 5); break;
+                }
+            }
+        }
+    }
+    
+    // Если убили моба
+    onKill(actor, type_damage) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        const items = [];
+        const actions = new WorldAction();
+        const rnd_count_flesh = (Math.random() * 2) | 0;
+        if (rnd_count_flesh > 0) {
+            items.push({ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh });
+        }
+        if (Math.random() < 0.025) {
+            const drop = (Math.random() * 2) | 0;
+            switch (drop) {
+                case 0: items.push({ id: BLOCK.IRON_INGOT.id, count: 1 }); break;
+                case 1: items.push({ id: BLOCK.CARROT.id, count: 1 }); break;
+                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.POTATO.id : BLOCK.BACKED_POTATO.id, count: 1 }); break;
+            }
+        }
+        if (items.length > 0) {
+            actions.addDropItem({ pos: mob.pos, items: items, force: true });
+        }
+        actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
+        world.actions_queue.add(actor, actions);
+    }
+    
+    onPanic() {
+        
+    }
+    
+}
+/*import { FSMBrain } from "../brain.js";
+import { BLOCK } from "../../../www/js/blocks.js";
+import { Vector } from "../../../www/js/helpers.js";
+import { WorldAction } from "../../../www/js/world_action.js";
+import { ServerClient } from "../../../www/js/server_client.js";
+import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
 import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../www/js/fluid/FluidConst.js";
 
@@ -52,6 +252,8 @@ export class Brain extends FSMBrain {
         if (!chunk) {
             return;
         }
+        this.onDamage(null, 10000, EnumDamage.FIRE);
+        return;
          // Урон от сложности игры
         const difficulty = mob.getWorld().getGameRule('difficulty'); 
         const ahead = chunk.getBlock(mob.pos.add(new Vector(Math.sin(mob.rotate.z), this.pc.playerHeight + 1, Math.cos(mob.rotate.z))).floored());
@@ -83,10 +285,6 @@ export class Brain extends FSMBrain {
                 this.onDamage(null, 1, EnumDamage.FIRE);
             }
         }
-
-        // update extra data
-        this.mob.extra_data.time_fire = this.time_fire;
-
         // нехватка воздуха
         if (this.in_water) {
             if (this.timer_water_damage-- <= 0) {
@@ -144,7 +342,6 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
         if (Math.random() < 0.05) {
-            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
         }
     }
@@ -256,3 +453,4 @@ export class Brain extends FSMBrain {
         
     }
 }
+*/

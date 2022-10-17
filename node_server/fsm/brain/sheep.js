@@ -1,8 +1,9 @@
-import {FSMBrain} from "../brain.js";
-import {BLOCK} from "../../../www/js/blocks.js";
-import {Vector} from "../../../www/js/helpers.js";
-import {ServerClient} from "../../../www/js/server_client.js";
-import {WorldAction} from "../../../www/js/world_action.js";
+import { FSMBrain } from "../brain.js";
+import { BLOCK } from "../../../www/js/blocks.js";
+import { Vector } from "../../../www/js/helpers.js";
+import { WorldAction } from "../../../www/js/world_action.js";
+import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
+import { ServerClient } from "../../../www/js/server_client.js";
 
 export class Brain extends FSMBrain {
 
@@ -14,17 +15,15 @@ export class Brain extends FSMBrain {
             baseSpeed: 1/4,
             playerHeight: 1.3,
             stepHeight: 1,
-            playerHalfWidth: .5
+            playerHalfWidth: .45
         });
-        this.widtn = 0.6;
-        this.height = 1.2;
-        
-        this.color = 0;
-        this.count_grass = 0;
-        this.target = null;
-        this.follow_distance = 6;
-        
         this.stack.pushState(this.doStand);
+        this.health = 8; // максимальное здоровье
+        this.distance_view = 6; // дистанция на которм виден игрок
+        this.count_grass = 0;  // количество травы
+        this.targets = [
+            BLOCK.WHEAT.id
+        ];
     }
 
     get is_shaered() {
@@ -35,36 +34,16 @@ export class Brain extends FSMBrain {
         this.mob.extra_data.is_shaered = value;
     }
     
-    findTarget() {
-        if (this.target == null) {
-            const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
-            let friends = [];
-            for (let player of players) {
-                if (player.state.hands.right.id == BLOCK.WHEAT.id) {
-                    friends.push(player);
-                }
-            } 
-            if (friends.length > 0) {
-                const rnd = (Math.random() * friends.length) | 0;
-                const player = friends[rnd];
-                this.target = player.session.user_id;
-                this.stack.replaceState(this.doCatch);
-                return true;
-            }
-        }
-        return false;
-    }
-    
+    // просто стоит и кушает траву, если голодная
     doStand(delta) {
         super.doStand(delta);
-
         if (this.is_shaered && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
         }
     }
-   
-    async doEat(delta) {
+    
+    // ест траву
+    doEat(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
         if (this.count_grass > 5) {
@@ -72,12 +51,11 @@ export class Brain extends FSMBrain {
             this.is_shaered = false;
         }
         if (this.is_shaered) {
-            const block = this.getBeforeBlocks();
-            if (block.body.id == BLOCK.TALL_GRASS.id) {
+            if (this.legs_id == BLOCK.TALL_GRASS.id) {
                 const actions = new WorldAction();
                 actions.addBlocks([
                     {
-                        pos: block.body.posworld, 
+                        pos: mob.pos.floored(), 
                         item: {id : BLOCK.AIR.id}, 
                         action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }
@@ -85,11 +63,11 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
             } else {
-                if (block.legs.id == BLOCK.GRASS_BLOCK.id) {
+                if (this.under_id == BLOCK.GRASS_BLOCK.id) {
                     const actions = new WorldAction();
                     actions.addBlocks([
                         {
-                            pos: block.legs.posworld, 
+                            pos: mob.pos.offset(0, -1, 0).floored(), 
                             item: {id : BLOCK.DIRT.id}, 
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }
@@ -102,32 +80,25 @@ export class Brain extends FSMBrain {
         this.stack.replaceState(this.doForward);
     }
     
-     // Chasing a player
-    async doCatch(delta) {
+    // Если убили моба
+    onKill(actor, type_damage) {
         const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        const distance = mob.pos.distance(player.state.pos);
-        if(!player || player.state.hands.right.id != BLOCK.WHEAT.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
-            this.target = null;
-            this.stack.replaceState(this.doStand);
-            return;
+        const world = mob.getWorld();
+        const items = [];
+        const actions = new WorldAction();
+        const rnd_count_mutton = (Math.random() * 2) | 0;
+        items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.MUTTON.id : BLOCK.COOKED_MUTTON.id, count: rnd_count_mutton + 1 });
+        if (!this.is_shaered) {
+            const drop_block = world.block_manager.fromName('WHITE_WOOL');
+            items.push({ id: drop_block.id, count: 1 });
         }
-
-        mob.rotate.z = this.angleTo(player.state.pos);
-        
-        const forward = (distance > 1.5) ? true : false;
-        const block = this.getBeforeBlocks();
-        const is_water = block.body.is_fluid;
-        this.updateControl({
-            yaw: mob.rotate.z,
-            forward: forward,
-            jump: is_water
-        });
-        this.applyControl(delta);
-        this.sendState();
+        actions.addDropItem({ pos: mob.pos, items: items, force: true });
+        actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'death', pos: mob.pos.clone() });
+        world.actions_queue.add(actor, actions);
     }
     
-    async onUse(actor, id) {
+    // если использовали предмет
+    onUse(actor, id) {
         if (!actor || !id){
             return;
         }
@@ -142,27 +113,6 @@ export class Brain extends FSMBrain {
             const rnd_count = ((Math.random() * 2) | 0) + 1;
             const drop_block = world.block_manager.fromName('WHITE_WOOL');
             actions.addDropItem({ pos: mob.pos, items: [{ id: drop_block.id, count: rnd_count }] });
-
-            world.actions_queue.add(actor, actions);
-        }
-    }
-    
-    async onKill(actor, type_damage) {
-        const mob = this.mob;
-        const world = mob.getWorld();
-        if (actor != null) {
-            const actions = new WorldAction();
-            const rnd_count_mutton = ((Math.random() * 2) | 0) + 1;
-
-            let drop_item = { pos: mob.pos, items: [] };
-            drop_item.items.push({ id: BLOCK.MUTTON.id, count: rnd_count_mutton });
-            if (!this.is_shaered) {
-                const drop_block = world.block_manager.fromName('WHITE_WOOL');
-                drop_item.items.push({ id: drop_block.id, count: 1 });
-            }
-            actions.addDropItem(drop_item);
-
-            actions.addPlaySound({ tag: 'madcraft:block.sheep', action: 'death', pos: mob.pos.clone() });
 
             world.actions_queue.add(actor, actions);
         }
