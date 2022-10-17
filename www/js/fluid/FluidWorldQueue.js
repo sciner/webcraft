@@ -11,13 +11,13 @@ export class FluidWorldQueue {
         this.dirtyChunks = [];
 
         //ticker
-        this.tick = 0;
+        this.tick = 0;со
         this.preTick = 0;
 
         // constants
         this.lavaSpeedSlow = 6;
         this.lavaLower = 2;
-        this.tickRate = 5;
+        this.tickRate = 1;
     }
 
     addChunk(fluidChunk) {

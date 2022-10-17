@@ -197,7 +197,7 @@ export class FluidChunkQueue {
             let fluidType = uint16View[nIndex] & FLUID_TYPE_MASK;
             if (fluidType !== 0) {
                 //push it!
-                const ticks = FLUID_LAVA_ID ? lavaSpeedSlow : 1;
+                const ticks = fluidType === FLUID_LAVA_ID ? lavaSpeedSlow : 1;
                 if (aabb.contains(nx, ny, nz)) {
                     this.pushTickIndex(nIndex);
                 } else {
@@ -211,7 +211,7 @@ export class FluidChunkQueue {
         const qplace = this.ensurePlace();
 
         let ntick = (this.curList + tick) % MAX_TICKS;
-        if (this.lastTick === this.fluidWorld.queue.tick) {
+        if (this.lastTick < this.fluidWorld.queue.tick && this.inQueue) {
             ntick = (ntick + 1) % MAX_TICKS;
         }
         let flag = 1 << ntick;
