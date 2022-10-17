@@ -11,7 +11,7 @@ export class FluidWorldQueue {
         this.dirtyChunks = [];
 
         //ticker
-        this.tick = 0;со
+        this.tick = 0;
         this.preTick = 0;
 
         // constants
