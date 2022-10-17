@@ -36,7 +36,7 @@ function pushKnownPortal(wx, wy, wz, forceVal) {
                 const portals2 = fluidChunk.dataChunk.portals;
                 fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
             }
-            fluidChunk.queue.pushCurIndex(ind);
+            fluidChunk.queue.pushTickIndex(ind);
             break;
         }
     }
@@ -138,6 +138,7 @@ export class FluidChunkQueue {
         this.inQueue = false;
         this.curFlag = 1;
         this.nextFlag = 2;
+        this.lastTick = -1;
         //TODO: several pages, depends on current fluid tick
     }
 
@@ -192,7 +193,7 @@ export class FluidChunkQueue {
             if ((uint16View[nIndex] & FLUID_TYPE_MASK) !== 0) {
                 //push it!
                 if (aabb.contains(nx, ny, nz)) {
-                    this.pushCurIndex(nIndex);
+                    this.pushTickIndex(nIndex);
                 } else {
                     pushKnownPortal(nx, ny, nz, 0);
                 }
@@ -200,8 +201,13 @@ export class FluidChunkQueue {
         }
     }
 
-    pushCurIndex(index, checkFlag = this.curFlag) {
+    pushTickIndex(index) {
         const qplace = this.ensurePlace();
+
+        let checkFlag = this.curFlag;
+        if (this.lastTick === this.fluidWorld.queue.tick) {
+            checkFlag = this.nextFlag;
+        }
         if ((qplace[index] & checkFlag) !== 0) {
             // nothing
         } else {
@@ -289,7 +295,9 @@ export class FluidChunkQueue {
     process() {
         let { pagedList } = this;
 
+        this.lastTick = this.fluidWorld.queue.tick;
         if (!pagedList.head) {
+            this.swapLists();
             return;
         }
         lavaCast.length = 0;

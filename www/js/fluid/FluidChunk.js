@@ -62,7 +62,7 @@ export class FluidChunk {
         this.updateID++;
         this.markDirtyMesh();
         if (this.queue) {
-            this.queue.pushCurIndex(index);
+            this.queue.pushTickIndex(index);
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;

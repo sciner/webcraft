@@ -9,6 +9,7 @@ export class FluidWorldQueue {
             bytesPerElement: 2,
         });
         this.dirtyChunks = [];
+        this.tick = 0;
     }
 
     addChunk(fluidChunk) {
@@ -41,5 +42,6 @@ export class FluidWorldQueue {
         if (i > 0) {
             dirtyChunks.splice(0, i);
         }
+        this.tick++;
     }
 }
