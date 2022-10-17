@@ -56,6 +56,16 @@ export class SingleQueue {
         }
     }
 
+    countPages() {
+        let res = 0;
+        let test = this.head;
+        while (test) {
+            res++;
+            test = test.next;
+        }
+        return 0;
+    }
+
     push(value) {
         let curPage = this.tail;
         if (curPage && curPage.finish < curPage.size) {

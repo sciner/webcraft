@@ -192,8 +192,7 @@ export class FluidChunkQueue {
             if ((uint16View[nIndex] & FLUID_TYPE_MASK) !== 0) {
                 //push it!
                 if (aabb.contains(nx, ny, nz)) {
-                    this.pagedList.push(nIndex);
-                    this.markDirty();
+                    this.pushCurIndex(nIndex);
                 } else {
                     pushKnownPortal(nx, ny, nz, 0);
                 }
@@ -299,11 +298,15 @@ export class FluidChunkQueue {
         const {tblocks} = fluidChunk.parentChunk;
         const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
         this.assignStart(uint16View.length);
+
         cycle: while (pagedList.head) {
             const index = pagedList.shift();
             let val = uint16View[index];
             let lvl = val & FLUID_LEVEL_MASK;
             let fluidType = val & FLUID_TYPE_MASK;
+            if ((qplace[index] & curFlag) === 0) {
+                console.log("WTF2");
+            }
             qplace[index] &= !curFlag;
             if (fluidType === 0) {
                 continue;
@@ -345,13 +348,18 @@ export class FluidChunkQueue {
                 let neibType = (neib[dir] & FLUID_TYPE_MASK);
                 if (neibType > 0 && neibType !== fluidType) {
                     if (fluidType === FLUID_LAVA_ID && dir !== 1) {
-                        lavaCast.push(index);
-                        if ((val & FLUID_LEVEL_MASK) === 0) {
-                            lavaCast.push(BLOCK.OBSIDIAN.id);
-                        } else {
-                            lavaCast.push(BLOCK.COBBLESTONE.id); // cobblestone
+                        if (!emptied) {
+                            if (lavaCast.length > 2 && lavaCast[lavaCast.length - 2] === index) {
+                                console.log("LAVAWTFWTF")
+                            }
+                            lavaCast.push(index);
+                            if ((val & FLUID_LEVEL_MASK) === 0) {
+                                lavaCast.push(BLOCK.OBSIDIAN.id);
+                            } else {
+                                lavaCast.push(BLOCK.COBBLESTONE.id); // cobblestone
+                            }
+                            emptied = true;
                         }
-                        emptied = true;
                     } else {
                         // need neib lava update there for lavacast!
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
@@ -492,6 +500,9 @@ export class FluidChunkQueue {
         this.assignFinish();
         //TODO: lavacast here
         if(lavaCast.length > 0) {
+            if (lavaCast.length > 100) {
+                console.log("WTFWTFLAVA");
+            }
             this.pushLavaCast(lavaCast);
         }
     }
