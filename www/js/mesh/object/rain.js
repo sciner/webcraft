@@ -182,7 +182,7 @@ export default class Mesh_Object_Rain {
                         chunk = world.chunkManager.getChunk(chunk_addr);
                         chunk_addr_o.copyFrom(chunk_addr);
                     }
-                    if(chunk) {
+                    if(chunk && chunk.tblocks) {
                         chunk_addr.multiplyVecSelf(chunk_size);
                         block_pos.x -= chunk.coord.x;
                         block_pos.y -= chunk.coord.y;
