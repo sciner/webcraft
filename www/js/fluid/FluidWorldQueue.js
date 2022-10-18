@@ -15,9 +15,10 @@ export class FluidWorldQueue {
         this.preTick = 0;
 
         // constants
-        this.lavaSpeedSlow = 6;
+        this.lavaSpeedSlow = 6; // 3
         this.lavaLower = 2;
-        this.tickRate = 1;
+        this.tickRate = 5; // 1
+
     }
 
     addChunk(fluidChunk) {
