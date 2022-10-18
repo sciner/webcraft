@@ -126,11 +126,11 @@ export class FSMBrain {
         const pos = position.floored();
         const world = this.mob.getWorld()
         let block = world.getBlock(pos);
-        if ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting')) {
+        if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting'))) {
             block = world.getBlock(pos.offset(0, -1, 0)); 
-            if (block.id != BLOCK.AIR.id) {
+            if (block && block.id != BLOCK.AIR.id) {
                 block = world.getBlock(pos.offset(0, 1, 0));
-                if ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting')) {
+                if (block && ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting'))) {
                     return true;
                 }
             }
