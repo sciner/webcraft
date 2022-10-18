@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
+import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 
 const TIME_IN_NEST = 12000;
@@ -17,57 +18,41 @@ export class Brain extends FSMBrain {
         this.pc             = this.createPlayerControl(this, {
             baseSpeed: 1/2,
             playerHeight: 0.9,
-            stepHeight: 1,
-            playerHalfWidth: .25
+            stepHeight: 1.5,
+            playerHalfWidth: .45
         });
-        
-        this.follow_distance = 6;
-
-        this.egg_timer = performance.now();
-        
-        // nest
-        this.nest_timer = 0;
-        this.nest = null;
-        
         this.stack.pushState(this.doStand);
+        this.egg_timer = performance.now();
+        this.nest_timer = 0;
+        this.nest = null;   // гнездо 
+        this.health = 4;    // максимальное здоровье
+        this.distance_view = 6; // дистанция на которм виден игрок
+        this.targets = [
+            BLOCK.WHEAT_SEEDS.id,
+            BLOCK.MELON_SEEDS.id,
+            BLOCK.PUMPKIN_SEEDS.id,
+            BLOCK.BEETROOT_SEEDS.id
+        ];
     }
-
-    findTarget() {
-        if (this.target == null) {
-            const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
-            const friends = [];
-            for (const player of players) {
-                if (player.state.hands.right.id == BLOCK.WHEAT_SEEDS.id) {
-                    friends.push(player);
-                }
-            }
-            if (friends.length > 0) {
-                const rnd = (Math.random() * friends.length) | 0;
-                const player = friends[rnd];
-                this.target = player.session.user_id;
-                this.stack.replaceState(this.doCatch);
-                return true;
-            }
-        }
-        return false;
-    }
-
+    
+    // если нашли гнездо
     doForward(delta) {
+        super.doForward(delta);
         if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
-            const block = this.getBeforeBlocks();
+            const mob = this.mob;
+            const world = mob.getWorld();
+            const block = world.getBlock(mob.pos.floored());
             if (!block) {
                 return;
             }
-            if (block.body.id == BLOCK.CHICKEN_NEST.id && block.body.extra_data.eggs < COUNT_EGGS_IN_NEST) {
+            if (block.id == BLOCK.CHICKEN_NEST.id && block.extra_data.eggs < COUNT_EGGS_IN_NEST) {
                 this.egg_timer = performance.now();
                 this.nest_timer = performance.now();
-                this.nest = block.body;
+                this.nest = block;
                 this.stack.replaceState(this.doLay);
                 return;
             }
         }
-        super.doForward(delta);
     }
     
     // Процесс сноса яйца
@@ -104,57 +89,27 @@ export class Brain extends FSMBrain {
         this.updateControl({
             yaw: mob.rotate.z,
             forward: true,
-            jump: false
+            jump: false,
+            sneak: true
         });
 
         this.applyControl(delta);
         this.sendState();
     }
-
-    doCatch(delta) {
-        this.panick_timer = 0;
-
-        const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        const distance = mob.pos.distance(player.state.pos);
-        if (!player || player.state.hands.right.id != BLOCK.WHEAT_SEEDS.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
-            this.target = null;
-            this.stack.replaceState(this.doStand);
-            return;
-        }
-
-        mob.rotate.z = this.angleTo(player.state.pos);
-
-        const forward = (distance > 1.5) ? true : false;
-        const block = this.getBeforeBlocks();
-        const is_water = block.body.is_fluid;
-        this.updateControl({
-            yaw: mob.rotate.z,
-            forward: forward,
-            jump: is_water
-        });
-
-        this.applyControl(delta);
-        this.sendState();
-    }
-
-    async onKill(actor, type_damage) {
+    
+    onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor != null) {
-            const actions = new WorldAction();
-
-            const drop_item = { pos: mob.pos, items: [] };
-            drop_item.items.push({ id: BLOCK.CHICKEN.id, count: 1 });
-            const rnd_count_feather = (Math.random() * 2) | 0;
-            if (rnd_count_feather > 0) {
-                drop_item.items.push({ id: BLOCK.FEATHER.id, count: rnd_count_feather });
-            }
-            actions.addDropItem(drop_item);
-
-            actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
-
-            world.actions_queue.add(actor, actions);
+        const items = [];
+        const actions = new WorldAction();
+        items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.CHICKEN.id : BLOCK.COOKED_CHICKEN.id, count: 1 });
+        const rnd_count_feather = (Math.random() * 2) | 0;
+        if (rnd_count_feather > 0) {
+            items.push({ id: BLOCK.FEATHER.id, count: rnd_count_feather });
         }
+        actions.addDropItem({ pos: mob.pos, items: items, force: true });
+        actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
+        world.actions_queue.add(actor, actions);
     }
+    
 }

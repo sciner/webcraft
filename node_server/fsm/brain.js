@@ -10,6 +10,7 @@ import { Mob } from "../mob.js";
 import { EnumDamage } from "../../www/js/enums/enum_damage.js";
 import { EnumDifficulty } from "../../www/js/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
+import { WorldAction } from "../../www/js/world_action.js";
 
 const MUL_1_SEC = 20;
 
@@ -38,6 +39,7 @@ export class FSMBrain {
         this.time_fire = 0;
         // цель
         this.target = null;
+        this.to = null;
         // защита
         this.resistance_light = true;
     }
@@ -107,9 +109,10 @@ export class FSMBrain {
 
     applyControl(delta) {
         const pc = this.pc;
-        pc.tick(delta * (this.panick_timer > 0 ? 4 : 1));
+        pc.tick(delta * (this.timer_panick > 0 ? 4 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
+    
     
     // угол между таргетом и мобом
     angleTo(target) {
@@ -118,10 +121,21 @@ export class FSMBrain {
         return (angle > 0) ? angle : angle + 2 * Math.PI;
     }
     
-    // можно ли стоять на этой позиции
-    isGround(pos) {
-        const block = this.mob.getWorld().getBlock(pos);
-        return (block && block.id != BLOCK.AIR.id && block.material.style != 'planting');
+    // на этом месте можно стоять
+    isStandAt(position) {
+        const pos = position.floored();
+        const world = this.mob.getWorld()
+        let block = world.getBlock(pos);
+        if ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting')) {
+            block = world.getBlock(pos.offset(0, -1, 0)); 
+            if (block.id != BLOCK.AIR.id) {
+                block = world.getBlock(pos.offset(0, 1, 0));
+                if ((block.id == BLOCK.AIR.id && block.fluid == 0) || (block.material.style == 'planting')) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     
     // контроль жизней и состяния моба
@@ -133,17 +147,18 @@ export class FSMBrain {
             return;
         }
         const forward = mob.pos.add(mob.forward).floored();
-        const ahead = chunk.getBlock(forward.offset(0, this.pc.physics.playerHeight, 0).floored());
+        const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
         const alegs = chunk.getBlock(forward);
         const under = chunk.getBlock(forward.offset(0, -1, 0));
         const abyss = chunk.getBlock(forward.offset(0, -2, 0));
-        const head = chunk.getBlock(mob.pos.offset(0, this.pc.physics.playerHeight, 0).floored());
+        const head = chunk.getBlock(mob.pos.offset(0, 1, 0).floored());
         const legs = chunk.getBlock(mob.pos.floored());
         this.under_id = under.id;
         this.legs_id = legs.id;
         this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
         this.in_fire = (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id);
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
         this.is_abyss = under.id == 0 && abyss.id == 0 && alegs.id == 0;
         this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting' && ahead.material.style != 'chicken_nest') || (alegs.material.style == 'fence');
         this.is_fire = (alegs.id == BLOCK.FIRE.id || alegs.id == BLOCK.CAMPFIRE.id);
@@ -162,7 +177,7 @@ export class FSMBrain {
             this.timer_lava_damage = 0;
         }
         // стоит в огне или на свете 
-        if (this.in_fire  || (world.getLight() > 11 && !this.resistance_light)) {
+        if (this.in_fire || (world.getLight() > 11 && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
         // нехватка воздуха
@@ -188,6 +203,8 @@ export class FSMBrain {
         } else {
             this.time_fire--;
         }
+        // update extra data
+        this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
             const live = mob.indicators.live;
@@ -202,9 +219,6 @@ export class FSMBrain {
         }
         
         this.onFind();
-        
-        // update extra data
-        this.mob.extra_data.time_fire = this.time_fire;
     }
         
     // поиск игроков или мобов
@@ -297,12 +311,12 @@ export class FSMBrain {
         }
         // обход препятсвия
         if (this.is_wall || this.is_fire || this.is_lava || this.is_water) {
-            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
+            mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
             return;
         }
         if (Math.random() < 0.05) {
-            mob.rotate.z = mob.rotate.z + Math.random() * Math.PI;
+            mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
             this.stack.replaceState(this.doStand);
             return;
         }
@@ -324,25 +338,35 @@ export class FSMBrain {
             this.stack.replaceState(this.doCatch);
             return;
         }
-        // вышел из воды
-        if (!this.in_water) {
-            this.stack.replaceState(this.doStand);
-            return;
-        }
-        // пытаемся найти берег
-        const ray = this.raycaster.get(mob.pos, mob.forward, 32);
-        if (ray && this.in_water) {
-            const pos = new Vector(ray.x, ray.y, ray.z);
-            if (!this.isGround(pos) || this.isGround(pos.offset(0, 1, 0)) || this.isGround(pos.offset(0, 2, 0))) {
-                mob.rotate.z += (Math.random() * Math.PI / 4);
+        // находим пересечение сред
+        if (this.in_air) {
+            const angle_random = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 8;
+            const ray = this.raycaster.get(mob.pos, new Vector(Math.sin(angle_random), 0, Math.cos(angle_random)), 32);
+            if (ray) {
+               const to = new Vector(ray.x, ray.y + 1, ray.z);
+               if (!this.to || (this.isStandAt(to) && mob.pos.distance(to) < mob.pos.distance(this.to))) {
+                   this.to = to;
+               }
             }
-        } else {
-            mob.rotate.z += (Math.random() * Math.PI / 4);
+            if (!this.to || !this.isStandAt(this.to)) {
+                this.to = null;
+                mob.rotate.z += (Math.random()  * Math.PI / 12);
+            }
         }
+        
+        if (this.to) {
+            const dist = mob.pos.distance(this.to);
+            mob.rotate.z = this.angleTo(this.to);
+            if (dist < 0.5) {
+                this.stack.replaceState(this.doStand);
+                return;  
+            }
+        }
+        
         this.updateControl({
             yaw: mob.rotate.z,
-            forward: true,
-            jump: true,
+            forward: this.to ? true : false,
+            jump: this.in_water,
             sneak: false
         });
         this.applyControl(delta);
@@ -357,6 +381,7 @@ export class FSMBrain {
     */
     async onDamage(actor, val, type_damage) {
         const mob = this.mob;
+        const world = mob.getWorld();
         const live = mob.indicators.live;
         if (actor) {
             const velocity = mob.pos.sub(actor.state.pos).normSelf();
@@ -368,9 +393,12 @@ export class FSMBrain {
             await mob.kill();
             this.onKill(actor, type_damage);
         } else {
+            const actions = new WorldAction();
+            actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
+            world.actions_queue.add(actor, actions);
+            this.onPanic();
             mob.save();
         }
-        this.onPanic();
     }
     
     // паника моба от урона
@@ -397,5 +425,5 @@ export class FSMBrain {
     */
     onUse(actor, item){
     }
-   
+    
 }

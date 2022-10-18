@@ -46,5 +46,10 @@ export class Brain extends FSMBrain {
         actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
+    
+    // тег моба
+    getTag() {
+        return 'madcraft:block.pig';
+    }
 
 }
