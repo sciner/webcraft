@@ -155,6 +155,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // 0 ... 0.06
                             if(stone_density < 0.06) {
                                 stone_block_id = BLOCK.DIAMOND_ORE.id;
+                                if(y < 2) {
+                                    const over_block = getBlock(x, y + 1, z);
+                                    if(over_block == 0) {
+                                        stone_block_id = BLOCK.FLOWING_LAVA.id;
+                                    }
+                                }
                             // 0.06 ... 0.1
                             } else if (density_ore < .1) {
                                 stone_block_id = BLOCK.COAL_ORE.id;
