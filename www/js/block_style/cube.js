@@ -290,6 +290,7 @@ export default class style {
         let depth                   = 1;
         let autoUV                  = true;
         let axes_up                 = null;
+        let axes_down               = null;
         let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE);
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
@@ -348,6 +349,14 @@ export default class style {
                 if(neighbours.EAST.material.is_glass && neighbours.EAST.material.style == material.style) canDrawEAST = false;
                 if(neighbours.UP.material.is_glass && neighbours.UP.material.style == material.style) canDrawUP = false;
                 if(neighbours.DOWN.material.is_glass && neighbours.DOWN.material.style == material.style) canDrawDOWN = false;
+            }
+
+            if(material.draw_only_down) {
+                canDrawUP = false;
+                canDrawSOUTH = false;
+                canDrawNORTH = false;
+                canDrawWEST = false;
+                canDrawEAST = false;
             }
 
             // Texture color multiplier
@@ -450,7 +459,11 @@ export default class style {
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id || block.id == BLOCK.LILY_PAD.id) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
-            axes_up = UP_AXES[rv % 4];
+            if(block.id == BLOCK.LILY_PAD.id) {
+                axes_down = UP_AXES[rv % 4];
+            } else {
+                axes_up = UP_AXES[rv % 4];
+            }
             autoUV = false;
         }
 
@@ -479,7 +492,7 @@ export default class style {
         }
         if(canDrawDOWN) {
             const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
-            sides.down = _sides.down.set(t, f, anim_frames, lm, null, true);
+            sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
         }
         if(canDrawSOUTH) {
             const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK, width, height);

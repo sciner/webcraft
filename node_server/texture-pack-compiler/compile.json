@@ -7003,8 +7003,10 @@
             },
             "planting": false,
             "tags": [
+                "draw_only_down",
                 "set_on_water",
                 "mask_biome",
+                "doubleface",
                 "no_drop_ao"
             ],
             "texture": "block/lily_pad.png"
