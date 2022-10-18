@@ -334,6 +334,22 @@
             }
         },
         {
+            "id": 797,
+            "name": "KELP",
+            "sound": "madcraft:block.grass",
+            "style": "planting",
+            "transparent": true,
+            "texture_animations": {
+                "side": null
+            },
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "./textures/kelp_plant.png"
+            }
+        },
+        {
             "id": -1,
             "name": "DUMMY",
             "spawnable": false,

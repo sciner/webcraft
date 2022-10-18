@@ -167,7 +167,7 @@ export class Chunk {
                     }
 
                     // dynamic light
-                    if(block_material.is_dynamic_light) {
+                    if(block_material && block_material.is_dynamic_light) {
                         const tblock = this.getBlock(this.coord.x + x, this.coord.y + y, this.coord.z + z);
                         if(tblock) {
                             light_power_number = tblock.lightSource;
