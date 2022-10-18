@@ -658,6 +658,7 @@ export class BLOCK {
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
+        block.draw_only_down    = block.tags.includes('draw_only_down');
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = !!block.is_fluid && WATER_BLOCKS_ID.includes(block.id);
         block.is_jukebox        = block.tags.includes('jukebox');

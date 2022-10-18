@@ -162,7 +162,7 @@ export class CraftTable extends BaseCraftWindow {
     }
 
     // собираем и проверяем шаблон
-    checkRecipe() {
+    checkRecipe(area_size) {
         let pattern_array = [];
         for(let slot of this.craft.slots) {
             if(!slot.item) {
@@ -174,7 +174,7 @@ export class CraftTable extends BaseCraftWindow {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array);
+        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array, area_size);
         let craft_result = this.lblResultSlot.recipe?.result || null;
         if(!craft_result) {
             let pattern_array2 = [];
@@ -192,7 +192,7 @@ export class CraftTable extends BaseCraftWindow {
                 }
             }
             pattern_array2 = pattern_array2.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-            this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array2);
+            this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array2, area_size);
             craft_result = this.lblResultSlot.recipe?.result || null;
         }
         if(!craft_result) {

@@ -69,7 +69,7 @@ export default class Ticker {
                         }
                     } else {
                         if(extra_data.stage == 2 && extra_data.pos) {
-                            if(over1.id == tblock.id && under1.id == tblock.id) {
+                            if(over1 && under1 && over1.id == tblock.id && under1.id == tblock.id) {
                                 if(!over1.extra_data || !under1.extra_data) {
                                     console.log('TODO: Errorrrr... 2');
                                     return

@@ -350,6 +350,10 @@ export class Chunk {
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
             const material = block.material;
 
+            if(!material) {
+                return;
+            }
+
             // material.group, material.material_key
             if (!materialToId.has(material.material_key)) {
                 materialToId.set(material.material_key, materialToId.size);
