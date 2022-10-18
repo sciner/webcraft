@@ -17,7 +17,7 @@ export class FluidWorldQueue {
         // constants
         this.lavaSpeedSlow = 6; // 3
         this.lavaLower = 2;
-        this.tickRate = 5; // 1
+        this.fluidTickRate = 5; // 1
 
     }
 
@@ -32,7 +32,7 @@ export class FluidWorldQueue {
     async process(msLimit = 8) {
         const start = performance.now();
         const {dirtyChunks} = this;
-        this.preTick = (this.preTick + 1) % this.tickRate;
+        this.preTick = (this.preTick + 1) % this.fluidTickRate;
         if (this.preTick !== 0) {
             return;
         }

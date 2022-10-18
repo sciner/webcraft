@@ -9,7 +9,7 @@ export class GameRule {
             doWeatherCycle:     {default: true, type: 'boolean'},
             randomTickSpeed:    {default: 3, type: 'int'},
             difficulty:         {default: 0, type: 'int'},
-            tickRate:           {default: 5, min: 1, max: 6, type: 'int'},
+            fluidTickRate:      {default: 5, min: 1, max: 6, type: 'int'},
             lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'}
         };
     }
@@ -57,7 +57,7 @@ export class GameRule {
         //
         switch(rule_code) {
             case 'lavaSpeed':
-            case 'tickRate': {
+            case 'fluidTickRate': {
                 world.chunkManager.fluidWorld.queue[rule_code] = value;
                 break;
             }
@@ -102,7 +102,7 @@ export class GameRule {
         return value == 'true';
     }
 
-    // 
+    //
     parseIntValue(value) {
         value = parseInt(value);
         if (isNaN(value) || !isFinite(value)) {
