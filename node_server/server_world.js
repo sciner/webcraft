@@ -22,6 +22,7 @@ import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
+import { DBWorld } from "./db/world.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -33,6 +34,11 @@ export class ServerWorld {
         this.block_manager = block_manager;
     }
 
+    /**
+     * 
+     * @param {string} world_guid 
+     * @param {DBWorld} db_world 
+     */
     async initServer(world_guid, db_world) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);

@@ -222,8 +222,12 @@ export class ServerPlayer extends Player {
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);
     }
     
-    // Change render dist
-    // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+    /**
+     * Change render dist
+     * 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109),
+     * 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+     * @param {int} value 
+     */
     changeRenderDist(value) {
         if(Number.isNaN(value)) {
             value = 4;

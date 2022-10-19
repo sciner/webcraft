@@ -35,7 +35,6 @@ export class World {
          * @type {TWorldInfo}
          */
         this.info = null;
-        this.localPlayer = null;
         this.serverTimeShift = 0;
         this.latency = 0;
 
