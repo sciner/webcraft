@@ -75,7 +75,8 @@ void main() {
             );
         }
 
-        vec3 minecraftSun = vec3(0.8, 0.6, 1.0);
+        vec3 minecraftSun = vec3(0.6, 0.8, 1.0);
+
         if (v_normal.z < 0.0) minecraftSun.z = 0.5;
         float sunNormalLight = dot(minecraftSun, v_normal * v_normal);
 
