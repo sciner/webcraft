@@ -9,6 +9,7 @@ export class FluidWorldQueue {
             bytesPerElement: 2,
         });
         this.dirtyChunks = [];
+        this.deltaChunks = [];
 
         //ticker
         this.tick = 0;
@@ -18,7 +19,6 @@ export class FluidWorldQueue {
         this.lavaSpeedSlow = 6; // 3
         this.lavaLower = 2;
         this.fluidTickRate = 5; // 1
-
     }
 
     addChunk(fluidChunk) {
@@ -56,5 +56,14 @@ export class FluidWorldQueue {
         if (i > 0) {
             dirtyChunks.splice(0, i);
         }
+        const {deltaChunks} = this;
+        for (let i = 0; i < deltaChunks.length; i++)
+        {
+            const chunkQueue = deltaChunks[i];
+            chunkQueue.deltaDirty = false;
+            const fluidChunk = chunkQueue.fluidChunk;
+            fluidChunk.parentChunk.sendFluid(fluidChunk.saveDbBuffer());
+        }
+        deltaChunks.length = 0;
     }
 }

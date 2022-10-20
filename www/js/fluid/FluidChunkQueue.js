@@ -135,6 +135,9 @@ export class FluidChunkQueue {
         this.curFlag = 1;
         this.lastTick = -1;
         //TODO: several pages, depends on current fluid tick
+
+        //TODO: switch this to actual deltas
+        this.deltaDirty = false;
     }
 
     ensurePlace() {
@@ -214,6 +217,7 @@ export class FluidChunkQueue {
         const portals2 = fluidChunk.dataChunk.portals;
         fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
+        this.markDelta();
     }
 
     pushTickIndex(index, tick = 1) {
@@ -286,6 +290,13 @@ export class FluidChunkQueue {
         }
     }
 
+    markDelta() {
+        if (!this.deltaDirty) {
+            this.deltaDirty = true;
+            this.fluidWorld.queue.deltaChunks.push(this);
+        }
+    }
+
     markClean() {
         this.inQueue = false;
     }
@@ -309,7 +320,7 @@ export class FluidChunkQueue {
         if (assignNum > 0) {
             fluidChunk.updateID++;
             fluidChunk.markDirtyDatabase();
-            fluidChunk.parentChunk.sendFluid(fluidChunk.saveDbBuffer());
+            this.markDelta();
         }
         for (let i = 0; i < knownPortals.length; i++) {
             knownPortals[i] = null;
