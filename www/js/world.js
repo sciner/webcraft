@@ -103,7 +103,7 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
             this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
-                Qubatch.render.setWeather(cmd.data);
+                Qubatch.render.setWeather(cmd.data, this.chunkManager);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
