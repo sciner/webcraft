@@ -164,7 +164,7 @@ export default class Mesh_Object_Rain {
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
-    // updateHeightMap...
+    // Update height map
     updateHeightMap() {
         let checked_blocks = 0;
         let p = performance.now();
@@ -176,6 +176,7 @@ export default class Mesh_Object_Rain {
         const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity);
         let chunk           = null;
         let block           = null;
+        let cx = 0, cy = 0, cz = 0, cw = 0;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
                 for(let k = 0; k < RAIN_HEIGHT; k++) {
@@ -186,17 +187,26 @@ export default class Mesh_Object_Rain {
                     if(!chunk_addr.equal(chunk_addr_o)) {
                         chunk = this.chunkManager.getChunk(chunk_addr);
                         chunk_addr_o.copyFrom(chunk_addr);
+                        const dc = chunk.tblocks.dataChunk;
+                        cx = dc.cx;
+                        cy = dc.cy;
+                        cz = dc.cz;
+                        cw = dc.cw;
                     }
                     if(chunk && chunk.tblocks) {
                         chunk_addr.multiplyVecSelf(chunk_size);
                         block_pos.x -= chunk.coord.x;
                         block_pos.y -= chunk.coord.y;
                         block_pos.z -= chunk.coord.z;
-                        block = chunk.tblocks.get(block_pos, block);
-                        checked_blocks++;
-                        if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
-                            this.#_map.set(vec, k)
-                            break;
+                        const index = (block_pos.x * cx + block_pos.y * cy + block_pos.z * cz + cw);
+                        const block_id = chunk.tblocks.id[index];
+                        if(block_id > 0) {
+                            block = chunk.tblocks.get(block_pos, block);
+                            checked_blocks++;
+                            if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
+                                this.#_map.set(vec, k)
+                                break;
+                            }
                         }
                     }
                 }
@@ -204,7 +214,7 @@ export default class Mesh_Object_Rain {
         }
         p = performance.now() - p;
         const quads = this.createBuffer(TARGET_TEXTURES);
-        console.log('tm', checked_blocks, p, quads);
+        // console.log('tm', checked_blocks, p, quads);
     }
 
     get enabled() {
