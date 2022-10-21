@@ -9,7 +9,7 @@ export class GameRule {
             doWeatherCycle:     {default: true, type: 'boolean'},
             randomTickSpeed:    {default: 3, type: 'int'},
             difficulty:         {default: 0, type: 'int'},
-            fluidTickRate:      {default: 5, min: 1, max: 6, type: 'int'},
+            fluidTickRate:      {default: 5, min: 1, max: 1000000, type: 'int'},
             lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'}
         };
     }
