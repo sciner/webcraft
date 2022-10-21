@@ -1829,6 +1829,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1843,6 +1846,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1920,6 +1926,7 @@
             },
             "tags": [
                 "layering",
+                "is_solid_for_fluid",
                 "no_drop_ao"
             ]
         },
