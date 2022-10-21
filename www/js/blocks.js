@@ -536,7 +536,14 @@ export class BLOCK {
         let group = 'regular';
         if('group' in block) return block.group;
         // make vertices array
-        if(WATER_BLOCKS_ID.includes(block.id) || (block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
+        if (block.is_fluid) {
+            if (WATER_BLOCKS_ID.includes(block.id)) {
+                group = 'doubleface_transparent';
+            } else {
+                group = 'doubleface';
+            }
+        } else
+        if((block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {

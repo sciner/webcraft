@@ -104,6 +104,7 @@
         {
             "id": 171,
             "name": "STILL_LAVA",
+            "transparent": true,
             "passable": 0.25,
             "selflit": true,
             "gravity": true,
@@ -131,6 +132,7 @@
             "id": 170,
             "name": "FLOWING_LAVA",
             "passable": 0.25,
+            "transparent": true,
             "selflit": true,
             "is_fluid": true,
             "material": {
