@@ -2722,6 +2722,7 @@
                 "id": "dirt"
             },
             "tags": [
+                "is_solid_for_fluid",
                 "dirt"
             ],
             "texture": {
