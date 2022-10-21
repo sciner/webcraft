@@ -249,6 +249,9 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
                     z1 += eps;
                 }
+                if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
+                    y0 += eps;
+                }
 
                 let h00 = 1, h10 = 1, h11 = 1, h01 = 1;
 
