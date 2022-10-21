@@ -184,7 +184,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
         initFluidMaterials();
     }
 
-    const eps = 0.01;
+    const eps = -0.01;
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();

@@ -700,9 +700,10 @@ export class BLOCK {
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.is_solid          = this.isSolid(block);
-        block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') || block.tags.includes('stairs');
+        block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
+                                    block.tags.includes('stairs') ||
+                                    ['wall', 'pane'].includes(block.style);
 
-        
         block.is_simple_qube    = this.isSimpleQube(block);
         //
         if(block.planting && !('inventory_style' in block)) {
