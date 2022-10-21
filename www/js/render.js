@@ -722,7 +722,8 @@ export class Renderer {
                 }
             }
         }
-
+        // @todo и тут тоже не должно быть
+        this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
             this.drawInhandItem(delta);
         }
