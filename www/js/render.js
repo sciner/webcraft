@@ -717,9 +717,15 @@ export class Renderer {
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
-                    this.meshes.draw(this, delta, player.lerpPos);
+                    // this.meshes.draw(this, delta, player.lerpPos);
                     // 7. Draw shadows
                     this.drawShadows();
+                }
+            } else {
+                const shader = this.defaultShader;
+                if (shader.texture) {
+                    // 6. Draw meshes
+                    this.meshes.draw(this, delta, player.lerpPos);
                 }
             }
         }
