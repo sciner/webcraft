@@ -4,6 +4,7 @@ import { BLEND_MODES } from '../../renders/BaseRenderer.js';
 import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
+import {impl as alea} from "../../../vendors/alea.js";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -12,6 +13,13 @@ const SNOW_SPEED_X      = 16;
 const RAIN_RAD          = 8;
 const RAIN_START_Y      = 128;
 const RAIN_HEIGHT       = 128;
+
+const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
+const randoms = new Array(RANDOMS_COUNT);
+const a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
 
 /**
  * Draw rain over player
@@ -68,13 +76,23 @@ export default class Mesh_Object_Rain {
         }
 
         this.pos = new Vector(this.player.lerpPos.x, RAIN_START_Y, this.player.lerpPos.z).flooredSelf();
+        let chunk_addr = null;
+        const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
         for(let [vec, height] of this.#_map.entries()) {
-            const add = Math.random();
+
+            chunk_addr = getChunkAddr(vec, chunk_addr).multiplyVecSelf(chunk_size);
+            const rx = vec.x - chunk_addr.x;
+            const rz = vec.z - chunk_addr.z;
+
+            const rnd_index = Math.abs(Math.round(rx * CHUNK_SIZE_Z + rz)) % randoms.length;
+            const rnd = randoms[rnd_index];
+
+            const add = rnd;
             height += add;
-            const x = vec.x - this.pos.x + Math.random() / 10;
+            const x = vec.x - this.pos.x + (rnd * .2 - .1)
             const y = add + 1;
-            const z = vec.z - this.pos.z + Math.random() / 10;
+            const z = vec.z - this.pos.z + (rnd * .2 - .1)
             const c2 = [...c];
             const uvSize0 = c[2];
             const uvSize1 = -height * c[3];
