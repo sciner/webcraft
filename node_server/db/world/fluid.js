@@ -58,8 +58,8 @@ export class DBWorldFluid {
             if (elem.databaseID === elem.updateID) {
                 continue;
             }
-            await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
             elem.databaseID = elem.updateID;
+            await this.saveChunkFluid(elem.parentChunk.addr, elem.saveDbBuffer());
             maxSaveChunks--;
         }
     }
@@ -69,20 +69,36 @@ export class DBWorldFluid {
     }
 
     async flushChunk(chunk) {
-        await this.saveChunkFluid(chunk.addr, chunk.fluid.saveDbBuffer());
-        chunk.fluid.databaseID = chunk.fluid.updateID;
+        if (chunk.fluid.databaseID !== chunk.fluid.updateID) {
+            chunk.fluid.databaseID = chunk.fluid.updateID;
+            await this.saveChunkFluid(chunk.addr, chunk.fluid.saveDbBuffer());
+        }
+    }
+
+    async applyLoadedChunk(chunk, fluidList) {
+        //FORCE
+        chunk.fluid.databaseID = -1;
+        this.world.chunkManager.fluidWorld.applyWorldFluidsList(fluidList);
+        await this.flushChunk(chunk);
+        chunk.sendFluid(chunk.fluid.saveDbBuffer());
     }
 
     async applyAnyChunk(fluidList) {
         let chunk_addr = getChunkAddr(fluidList[0], fluidList[1], fluidList[2]);
-        const chunk = this.world.chunks.get(chunk_addr);
+        let chunk = this.world.chunks.get(chunk_addr);
         if (chunk) {
-            this.world.chunkManager.fluidWorld.applyWorldFluidsList(fluidList);
-            await this.flushChunk(chunk);
-            chunk.sendFluid(chunk.fluid.saveDbBuffer());
+            await this.applyLoadedChunk(chunnk, fluidList);
         } else {
             //TODO: GRID!
             let buf = await this.loadChunkFluid(chunk_addr);
+
+            chunk = this.world.chunks.get(chunk_addr);
+            if (chunk) {
+                //someone loaded chunk while we were loading this!
+                await this.applyLoadedChunk(chunk, fluidList);
+                return;
+            }
+
             const sz = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
             const coord = chunk_addr.mul(sz);
 

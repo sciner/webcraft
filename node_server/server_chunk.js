@@ -144,6 +144,8 @@ export class ServerChunk {
         //    this.mobGenerator = new MobGenerator(this);
         //}
         this.setState(CHUNK_STATE_NEW);
+        this.dataChunk      = null;
+        this.fluid          = null;
     }
 
     // Set chunk init state
@@ -190,12 +192,11 @@ export class ServerChunk {
                 ]
             ]);
             // Разошлем чанк игрокам, которые его запрашивали
+            this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
-
-            this._preloadFluidBuf = fluid;
         };
 
         const loadCMPromise = new Promise((resolve, reject) => {
@@ -722,8 +723,12 @@ export class ServerChunk {
         if (!chunkManager) {
             return;
         }
-        chunkManager.dataWorld.removeChunk(this);
         this.setState(CHUNK_STATE_UNLOADED);
+        if (this.dataChunk) {
+            await this.world.db.fluid.flushChunk(this);
+            chunkManager.dataWorld.removeChunk(this);
+        }
+
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
