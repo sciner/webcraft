@@ -194,9 +194,6 @@ export class ServerChunk {
             // Разошлем чанк игрокам, которые его запрашивали
             this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
-                if (this.testing) {
-                    console.log("WTFWTF");
-                }
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
@@ -374,6 +371,12 @@ export class ServerChunk {
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
+        if(this._preloadFluidBuf) {
+            // now its stored in fluid facet
+            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
+            this._preloadFluidBuf = null;
+        }
+        chunkManager.dataWorld.syncOuter(this);
         //
         this.testing = 1;
         this.randomTickingBlockCount = 0;
@@ -388,20 +391,9 @@ export class ServerChunk {
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         // fluid
         if(this.load_state === CHUNK_STATE_UNLOADED) {
-            this.testing = 2;
             return;
         }
-        this.testing = 0;
-        if(this._preloadFluidBuf) {
-            // now its stored in fluid facet
-            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
-            this._preloadFluidBuf = null;
-        }
-        chunkManager.dataWorld.syncOuter(this);
         this.fluid.queue.init();
-        if(this.load_state === CHUNK_STATE_UNLOADED) {
-            return;
-        }
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
