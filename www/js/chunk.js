@@ -89,13 +89,10 @@ export class Chunk {
         chunkManager.dataWorld.addChunk(this);
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
-            // захлест на соседние чанки
-            chunkManager.dataWorld.syncOuter(this);
         }
-        // init fluid
         if(this.fluid_buf) {
             this.fluid.loadDbBuffer(this.fluid_buf);
-            chunkManager.dataWorld.syncOuter(this);
+            this.fluid_buf = null;
         }
         //
         const mods_arr = chunkManager.chunk_modifiers.get(this.addr);
@@ -105,6 +102,7 @@ export class Chunk {
             this.newModifiers(mods_arr, set_block_list);
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
+        chunkManager.dataWorld.syncOuter(this);
         this.inited = true;
         this.initLights();
     }
@@ -541,6 +539,7 @@ export class Chunk {
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
+        const use_light = this.inited && chunkManager.use_light;
         const tblock_pos        = new Vector(Infinity, Infinity, Infinity);
         let material            = null;
         let tblock              = null;
@@ -558,7 +557,7 @@ export class Chunk {
             tblock = this.tblocks.get(tblock_pos, tblock);
             // light
             let oldLight = 0;
-            if(chunkManager.use_light) {
+            if(use_light) {
                 if(!tblock.material) {
                     debugger
                 }
@@ -579,7 +578,7 @@ export class Chunk {
             set_block_list.push({pos, type, power, rotate, extra_data, is_modify});
             Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
             // light
-            if(chunkManager.use_light) {
+            if(use_light) {
                 const light = tblock.lightSource;
                 if(oldLight !== light) {
                     lightList.push(tblock_pos.x, tblock_pos.y, tblock_pos.z, light);
@@ -611,8 +610,6 @@ export class Chunk {
         this._tempLightSource = null;
         const newBuf = this.genLightSourceBuf();
 
-        this.chunkManager.dataWorld.syncOuter(this);
-
         const { size } = this;
         let diff = [];
         let ind = 0;
@@ -637,6 +634,7 @@ export class Chunk {
             //TODO: make it diff!
             this.fluid.loadDbBuffer(buf, false);
             this.endLightChanges();
+            this.chunkManager.dataWorld.syncOuter(this);
         } else {
             this.fluid_buf = buf;
         }
