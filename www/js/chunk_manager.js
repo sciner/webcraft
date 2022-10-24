@@ -318,13 +318,14 @@ export class ChunkManager {
             this.fluidWorld.mesher.initRenderPool(render.renderBackend);
         }
 
-        const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
-        const player_chunk_addr = Qubatch.player.chunkAddr;
+        const player = render.player;
+        const chunk_render_dist = player.state.chunk_render_dist;
+        const player_chunk_addr = player.chunkAddr;
 
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            this.postLightWorkerMessage(['setPotentialCenter', { pos: Qubatch.player.pos }]);
+            this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
 
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();

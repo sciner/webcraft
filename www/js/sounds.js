@@ -237,17 +237,50 @@ export class Sounds {
 
         const { lerpPos, forward } = this.#player;
 
-        Howler.pos(
+        // Howler.pos
+        this.setPos(
             lerpPos.x,
             lerpPos.z,
             lerpPos.y,
         );
 
-        Howler.orientation(
+        // Howler.orientation
+        this.setOrientation(
             forward.x,
             forward.z,
             forward.y,
             0,  0,  1
         );
+
     }
+
+    //
+    setPos(x, y, z) {
+        const listener = Howler.ctx.listener;
+        const ctx = Howler.ctx;
+        if (typeof listener.positionX !== 'undefined') {
+            listener.positionX.setValueAtTime(x, ctx.currentTime);
+            listener.positionY.setValueAtTime(y, ctx.currentTime);
+            listener.positionZ.setValueAtTime(z, ctx.currentTime);
+        } else {
+            listener.setPosition(x, z, y);
+        }
+    }
+
+    //
+    setOrientation(x, y, z, xUp, yUp, zUp) {
+        const listener = Howler.ctx.listener;
+        const ctx = Howler.ctx;
+        if (typeof listener.forwardX !== 'undefined') {
+            listener.forwardX.setValueAtTime(x, ctx.currentTime);
+            listener.forwardY.setValueAtTime(y, ctx.currentTime);
+            listener.forwardZ.setValueAtTime(z, ctx.currentTime);
+            listener.upX.setValueAtTime(xUp, ctx.currentTime);
+            listener.upY.setValueAtTime(yUp, ctx.currentTime);
+            listener.upZ.setValueAtTime(zUp, ctx.currentTime);
+        } else {
+            listener.setOrientation(x, y, z, xUp, yUp, zUp);
+        }
+    }
+
 }

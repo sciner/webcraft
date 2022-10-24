@@ -23,6 +23,9 @@ export class DBWorld {
         this.world = world;
     }
 
+    /**
+     * @returns {DBWorld}
+     */
     async init() {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
@@ -34,7 +37,12 @@ export class DBWorld {
         return this;
     }
 
-    // Open database and return provider
+    /**
+     * Open database and return provider
+     * @param {*} conn 
+     * @param {*} world 
+     * @returns {DBWorld}
+     */
     static async openDB(conn, world) {
         return await new DBWorld(conn, world).init();
     }
@@ -248,7 +256,7 @@ export class DBWorld {
         });
     }
 
-    // changeRenderDist...
+    // Change render dist
     async changeRenderDist(player, value) {
         await this.conn.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
             ':id':                  player.session.user_id,

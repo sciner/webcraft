@@ -146,7 +146,7 @@ export default class style {
                     up:     {x: 22, y: 1, w: 40, h: 2},
                     down:   {x: 62, y: 1, w: 40, h: 2},
                     south:  {x: 64, y: 42, w: 40, h: 80},
-                    north:  {x: 22, y: 42, w: 40, h: 80},
+                    north:  {x: 22, y: 42, w: 40, h: -80},
                     west:   {x: 43, y: 42, w: 2, h: 80},
                     east:   {x: 1, y: 42, w: 2, h: 80}
                 }
@@ -162,7 +162,7 @@ export default class style {
             // check if on wall
             if(on_wall) {
                 parts.stem.visible = false;
-                rot.y = ((block.rotate.x - 2) / 4) * (Math.PI * 2);
+                rot.y = ((block.rotate.x - 2) / 4) * -(Math.PI * 2);
                 trans.set(0, 0, 14.5)
             } else {
                 rot.y = ((block.rotate.x - 2) / 4) * (Math.PI * 2);

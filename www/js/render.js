@@ -25,6 +25,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
+import { ChunkManager } from "./chunk_manager.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -716,9 +717,15 @@ export class Renderer {
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
-                    this.meshes.draw(this, delta, player.lerpPos);
+                    // this.meshes.draw(this, delta, player.lerpPos);
                     // 7. Draw shadows
                     this.drawShadows();
+                }
+            } else {
+                const shader = this.defaultShader;
+                if (shader.texture) {
+                    // 6. Draw meshes
+                    this.meshes.draw(this, delta, player.lerpPos);
                 }
             }
         }
@@ -787,14 +794,15 @@ export class Renderer {
     /**
      * Set weather
      * @param {Weather} weather
+     * @param {ChunkManager} chunkManager
      */
-    setWeather(weather) {
+    setWeather(weather, chunkManager) {
         let rain = this.meshes.get('weather');
         if(!rain || rain.type != Weather.get(weather)) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, Weather.get(weather));
+            rain = new Mesh_Object_Rain(this, Weather.get(weather), chunkManager);
             this.meshes.add(rain, 'weather');
         }
         rain.enabled = weather != Weather.CLEAR;
