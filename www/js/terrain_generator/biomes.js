@@ -58,8 +58,11 @@ export class  BIOMES {
                 list: []
             },
             plants: {
-                frequency: 0,
-                list: []
+                frequency: .5,
+                list: [
+                    {percent: .8, blocks: [{id: BLOCK.SEAGRASS.id}]},
+                    {percent: .2, blocks: [{id: BLOCK.SEAGRASS.id}, {id: BLOCK.SEAGRASS.id}]}
+                ]
             }
         };
 

@@ -44,11 +44,11 @@ export default class style {
         if(!block || typeof block == 'undefined') {
             return;
         }
-        const extra_data = block.extra_data;
+        const extra_data = block.extra_data ?? block.material.extra_data;
         if (extra_data?.is_head) {
             return;
         }
-        const frame = extra_data?.frame ? extra_data.frame.toUpperCase() : 'OAK_LOG';
+        const frame = (extra_data?.frame ? extra_data.frame : block.material.extra_data.frame).toUpperCase();
         const log = BLOCK.calcTexture(BLOCK[frame].texture, DIRECTION.UP);
         const parts = [];
         parts.push(...[
@@ -156,8 +156,13 @@ export default class style {
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         matrix = mat4.create();
-        // mat4.rotateY(matrix, matrix, block.getCardinalDirection() * -Math.PI / 2);
-        mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
+        if(block.rotate) {
+            if(block.rotate.y == 0) {
+                mat4.rotateY(matrix, matrix, (block.rotate.x / 4) * -(2 * Math.PI));
+            } else {
+                mat4.rotateY(matrix, matrix, Math.PI / 180 * (block.rotate?.x ?? 0));
+            }
+        }
 
         for(const part of parts) {
             default_style.pushPART(vertices, {

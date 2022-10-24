@@ -1257,13 +1257,17 @@ export class XMPlayer extends XMEffects {
         return true;
     }
 
-    async init() {
-        if (!this.audioctx) {
+    async init(context) {
+        if (!this.audioctx || (context && this.audioctx !== context)) {
             var audioContext = window.AudioContext || window.webkitAudioContext;
-            this.audioctx = new audioContext();
-            this.gainNode = this.audioctx.createGain();
-            this.gainNode.gain.value = 0.1;  // master volume
+            this.audioctx = context || new audioContext();
         }
+
+        if (!this.gainNode || this.gainNode.context !== this.audioctx) {
+            this.gainNode = this.audioctx.createGain();
+            this.gainNode.gain.value = 1;  // master volume
+        }
+
         if (this.audioctx.createScriptProcessor === undefined) {
             this.jsNode = this.audioctx.createJavaScriptNode(16384, 0, 2);
         } else {

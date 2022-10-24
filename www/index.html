@@ -270,7 +270,7 @@
 						<div class="animated-mask">
 							<h2 class="m-0">{{item.title}}</h2>
 							<div class="flex">
-								<p class="game-mode">{{Lang.gamemode_survival}}</p>
+								<p class="game-mode">{{item.game_mode_title}}</p>
 								<div class="users-online" title="{{Lang.players_online}}">
 									<i class="icon-bx-user" style="font-size: 14px; color: #AEEA00;"></i>
 									<span>{{item.players_online}}</span>
@@ -307,14 +307,15 @@
             <form class="form" ng-init="initSelects()">
                 <div class="main">
                     <h1>{{Lang.main}}</h1>
-                    <!-- <div class="input-group">
-                        <p>Mouse Sensitivity: <span id="inputRange_Mouse_text">30</span></p>
+                    <div class="input-group">
+                        <p>Mouse Sensitivity: <span>{{settings.form.mouse_sensitivity}}</span>%</p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
-                            <input id="inputRange_Mouse" class="slider" type="range" step="1" value="{test11}"
-                                ng-model="test11" ng-change="settings.updateSlider('inputRange_Mouse')">
+                            <input id="inputRange_Mouse" class="slider" type="range" min="25" max="300" step="25" value="settings.form.mouse_sensitivity"
+                                ng-model="settings.form.mouse_sensitivity" ng-change="settings.updateSlider('inputRange_Mouse')">
                         </div>
                         <div id="inputRange_Mouse_ticks"></div>
                     </div>
+                    <!-- 
                     <div class="input-group">
                         <p>HUD Scale: <span id="inputRange_HudScale_text">30</span></p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
@@ -509,6 +510,13 @@
                                 <div>
                                     <p>{{Lang.world_generator_type}}</p>
                                     <select class="slim-select" id="create-w-select1" ng-options="item as item.title for item in newgame.generators.list" ng-model="newgame.generators.current" ng-change="newgame.generators.select(newgame.generators.current)"></select>
+                                </div>
+                            </div>
+
+                            <div class="grid-2 input-group">
+                                <div>
+                                    <p>{{Lang.world_game_mode}}</p>
+                                    <select class="slim-select" id="create-w-select2" ng-options="item as item.title for item in newgame.gamemodes.list" ng-model="newgame.gamemodes.current" ng-change="newgame.gamemodes.select(newgame.gamemodes.current)"></select>
                                 </div>
                             </div>
 

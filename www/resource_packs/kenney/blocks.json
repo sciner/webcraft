@@ -142,18 +142,10 @@
             "up": [14, 3],
             "down": [14, 3],
             "north": [12, 2],
+            "north_on": [14, 2],
             "side": [13, 2]
         }
     },
-    {"id": 62, "name": "BURNING_FURNACE",
-        "texture": {
-            "up": [14, 3],
-            "down": [14, 3],
-            "north": [14, 2],
-            "side": [13, 2]
-        }
-    },
-
     {"id": 606, "name": "WOODEN_SWORD",
         "texture": {
             "id": "default",

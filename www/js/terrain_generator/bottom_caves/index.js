@@ -47,6 +47,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             aleaRandom = new alea(`${this.seed}/${chunk.id}`);
         }
 
+        const options               = chunk.chunkManager.world.generator.options;
         const noise3d               = noise.simplex3;
         let xyz                     = new Vector(0, 0, 0);
         let xyz_stone_density       = new Vector(0, 0, 0);
@@ -155,6 +156,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // 0 ... 0.06
                             if(stone_density < 0.06) {
                                 stone_block_id = BLOCK.DIAMOND_ORE.id;
+                                if(y < 2 && options.generate_bottom_caves_lava) {
+                                    debugger
+                                    const over_block = getBlock(x, y + 1, z);
+                                    if(over_block == 0) {
+                                        stone_block_id = BLOCK.FLOWING_LAVA.id;
+                                    }
+                                }
                             // 0.06 ... 0.1
                             } else if (density_ore < .1) {
                                 stone_block_id = BLOCK.COAL_ORE.id;

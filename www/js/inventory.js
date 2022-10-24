@@ -1,4 +1,4 @@
-import {Helpers, Vector} from "./helpers.js";
+import {getChunkAddr, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
 
 export class Inventory {
@@ -315,6 +315,96 @@ export class Inventory {
 
     prev() {
         this.select(--this.current.index);
+    }
+
+    // Refresh
+    refresh() {
+        return true;
+    }
+
+    // Клонирование материала в инвентарь
+    cloneMaterial(pos, allow_create_new) {
+
+        const { block_manager, player } = this;
+
+        if(!player.game_mode.canBlockClone()) {
+            return true;
+        }
+
+        //
+        const tblock = player.world.getBlock(pos);
+        let mat = tblock.material;
+
+        //
+        if(mat.id < 2 || mat.deprecated || mat.tags.includes('noclonable')) {
+            return false;
+        }
+        while(mat.previous_part && mat.previous_part.id != mat.id) {
+            let b = block_manager.fromId(mat.previous_part.id);
+            mat = {id: b.id, previous_part: b.previous_part};
+        }
+        const cloned_block = block_manager.convertItemToInventoryItem(mat);
+        delete(cloned_block.extra_data);
+        if('power' in cloned_block && cloned_block.power == 0) {
+            delete(cloned_block.power);
+        }
+        // Search same material with count < max
+        for(let k in Object.keys(this.items)) {
+            k = parseInt(k);
+            if(this.items[k]) {
+                let item = this.items[k];
+                if(item.id == cloned_block.id) {
+                    if(k >= this.hotbar_count) {
+                        // swith with another from inventory
+                        this.items[k] = this.items[this.current.index];
+                        this.items[this.current.index] = item;
+                        this.select(this.current.index);
+                        return this.refresh(false);
+                    } else {
+                        // select if on hotbar
+                        if(k == this.current.index) {
+                            const block = block_manager.fromId(cloned_block.id);
+                            item.count = Math.min(item.count + 1, block.max_in_stack);
+                        }
+                        this.select(k);
+                        return this.refresh(false);
+                    }
+                }
+            }
+        }
+        if(!allow_create_new) {
+            return false;
+        }
+        // Create in current cell if this empty
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
+            if(!this.items[k]) {
+                this.items[k] = Object.assign({count: 1}, cloned_block);
+                delete(this.items[k].texture);
+                this.select(parseInt(k));
+                return this.refresh(true);
+            }
+        }
+        // Start new cell
+        for(let k in Object.keys(this.items)) {
+            if(parseInt(k) >= this.hotbar_count) {
+                break;
+            }
+            if(!this.items[k]) {
+                this.items[k] = Object.assign({count: 1}, cloned_block);
+                delete(this.items[k].texture);
+                this.select(parseInt(k));
+                return this.refresh(true);
+            }
+        }
+        // Replace current cell
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
+            this.items[k] = Object.assign({count: 1}, cloned_block);
+            delete(this.items[k].texture);
+            this.select(parseInt(k));
+            return this.refresh(true);
+        }
     }
 
     /*

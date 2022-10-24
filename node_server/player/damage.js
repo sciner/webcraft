@@ -84,7 +84,7 @@ export class ServerPlayerDamage {
         }
         
         // урон он воды и удушения эффект подводное дыхание
-        if (!head.material.has_oxygen) {
+        if (!head.has_oxygen) {
             this.oxygen_got_timer = 0;
             this.oxygen_lost_timer++;
             if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {

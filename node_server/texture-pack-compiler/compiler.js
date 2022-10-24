@@ -133,6 +133,11 @@ export class Compiler {
         let tmpCnv;
         let tmpContext;
         for(let block of blocks) {
+
+            //
+            block.tags = block.tags ?? [];
+
+            //
             if('texture' in block) {
                 console.log(++num_blocks, block.name);
                 block.flammable = this.flammable_blocks.get(block.name) ?? false;
@@ -179,9 +184,23 @@ export class Compiler {
                     if(!tex) {
                         const img = await spritesheet.loadTex(value);
                         //
+                        if(img.texture.width == 16) {
+                            const scale = 2;
+                            const temp = new skiaCanvas.Canvas(img.texture.width * scale, img.texture.height * scale);
+                            const ctx = temp.getContext('2d');
+                            ctx.imageSmoothingEnabled = false;
+                            ctx.drawImage(
+                                img.texture,
+                                0, 0, img.texture.width, img.texture.height,
+                                0, 0, img.texture.width * scale, img.texture.height * scale
+                            );
+                            img.texture = temp;
+                        }
+                        //
                         if(block.name == BLOCK_NAMES.DIRT) {
                             dirt_image = img.texture;
                         }
+                        //
                         x_size = Math.min(Math.ceil(img.texture.width / spritesheet.tx_sz), spritesheet.tx_cnt);
                         y_size = Math.min(Math.ceil(img.texture.height / spritesheet.tx_sz), spritesheet.tx_cnt);
                         //

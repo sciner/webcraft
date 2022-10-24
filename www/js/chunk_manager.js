@@ -318,13 +318,14 @@ export class ChunkManager {
             this.fluidWorld.mesher.initRenderPool(render.renderBackend);
         }
 
-        const chunk_render_dist = Qubatch.player.state.chunk_render_dist;
-        const player_chunk_addr = Qubatch.player.chunkAddr;
+        const player = render.player;
+        const chunk_render_dist = player.state.chunk_render_dist;
+        const player_chunk_addr = player.chunkAddr;
 
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            this.postLightWorkerMessage(['setPotentialCenter', { pos: Qubatch.player.pos }]);
+            this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
 
             const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
@@ -424,14 +425,28 @@ export class ChunkManager {
                 const {arr, count} = list;
                 const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
                 const mat = resource_pack[shaderName].materials[group];
-                for (let i = 0; i < count; i += 2) {
-                    const chunk = arr[i];
-                    const vertices = arr[i + 1];
-                    chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                    if (!chunk.rendered) {
-                        this.rendered_chunks.fact++;
+
+                if (!mat.opaque && mat.shader.fluidFlags) {
+                    // REVERSED!!!
+                    for (let i = count - 2; i >= 0; i -= 2) {
+                        const chunk = arr[i];
+                        const vertices = arr[i + 1];
+                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                        if (!chunk.rendered) {
+                            this.rendered_chunks.fact++;
+                        }
+                        chunk.rendered++;
                     }
-                    chunk.rendered++;
+                } else {
+                    for (let i = 0; i < count; i += 2) {
+                        const chunk = arr[i];
+                        const vertices = arr[i + 1];
+                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                        if (!chunk.rendered) {
+                            this.rendered_chunks.fact++;
+                        }
+                        chunk.rendered++;
+                    }
                 }
             }
         }

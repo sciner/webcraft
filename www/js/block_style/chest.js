@@ -35,7 +35,7 @@ export default class style {
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const flag = 0;
         const cd = block.getCardinalDirection();
-        const rot = cd * (Math.PI / 2)
+        const rot = cd * -(Math.PI / 2)
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
 

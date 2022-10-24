@@ -222,8 +222,12 @@ export class ServerPlayer extends Player {
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);
     }
     
-    // Change render dist
-    // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+    /**
+     * Change render dist
+     * 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109),
+     * 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+     * @param {int} value 
+     */
     changeRenderDist(value) {
         if(Number.isNaN(value)) {
             value = 4;
@@ -650,5 +654,22 @@ export class ServerPlayer extends Player {
     setFoodLevel(food, saturation) {
         this.damage.setFoodLevel(food, saturation);
     }
-    
+
+    // Save ender chest content
+    async saveEnderChest(ender_chest) {
+        this.ender_chest = ender_chest
+        await this.world.db.saveEnderChest(this, ender_chest);
+    }
+
+    /**
+     * Return ender chest content
+     * @returns 
+     */
+    async loadEnderChest() {
+        if(this.ender_chest) {
+            return this.ender_chest;
+        }
+        return this.ender_chest = await this.world.db.loadEnderChest(this);
+    }
+
 }

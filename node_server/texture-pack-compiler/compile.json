@@ -242,8 +242,13 @@
                 "id": "plant"
             },
             "texture": {
-                "side": "block/seagrass.png"
+                "side": "block/seagrass.png",
+                "up": "block/tall_seagrass_top.png",
+                "down": "block/tall_seagrass_bottom.png"
             },
+            "tags": [
+                "is_tall_plant"
+            ],
             "texture_animations": {
                 "side": null
             },
@@ -298,6 +303,7 @@
             "can_rotate": true,
             "transparent": true,
             "is_fire": true,
+            "is_dynamic_light": true,
             "inventory": {
                 "style": "extruder",
                 "texture": "item/campfire.png"
@@ -325,6 +331,22 @@
             "texture": {
                 "side": "block/campfire_log.png",
                 "up": "block/campfire_fire.png"
+            }
+        },
+        {
+            "id": 797,
+            "name": "KELP",
+            "sound": "madcraft:block.grass",
+            "style": "planting",
+            "transparent": true,
+            "texture_animations": {
+                "side": null
+            },
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "./textures/kelp_plant.png"
             }
         },
         {
@@ -1110,7 +1132,7 @@
             "gravity": true,
             "sound": "madcraft:block.gravel",
             "material": {
-                "id": "sand"
+                "id": "gravel"
             },
             "texture": "block/gravel.png"
         },
@@ -1807,6 +1829,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1821,6 +1846,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1898,6 +1926,7 @@
             },
             "tags": [
                 "layering",
+                "is_solid_for_fluid",
                 "no_drop_ao"
             ]
         },
@@ -2700,6 +2729,7 @@
                 "id": "dirt"
             },
             "tags": [
+                "is_solid_for_fluid",
                 "dirt"
             ],
             "texture": {
@@ -2888,6 +2918,7 @@
             "window": "frmFurnace",
             "is_entity": true,
             "is_chest": true,
+            "is_dynamic_light": true,
             "ticking": {
                 "type": "furnace"
             },
@@ -2898,27 +2929,7 @@
                 "up": "block/furnace_top.png",
                 "down": "block/furnace_top.png",
                 "north": "block/furnace_front.png",
-                "side": "block/furnace_side.png"
-            },
-            "can_rotate": true
-        },
-        {
-            "id": 62,
-            "name": "BURNING_FURNACE",
-            "sound": "madcraft:block.stone",
-            "window": "frmFurnace",
-            "is_entity": true,
-            "is_chest": true,
-            "ticking": {
-                "type": "furnace"
-            },
-            "material": {
-                "id": "stone"
-            },
-            "texture": {
-                "up": "block/furnace_top.png",
-                "down": "block/furnace_top.png",
-                "north": "block/furnace_front_on.png",
+                "north_on": "block/furnace_front_on.png",
                 "side": "block/furnace_side.png"
             },
             "light_power": {
@@ -2927,8 +2938,7 @@
                 "b": 131,
                 "a": 224
             },
-            "can_rotate": true,
-            "spawnable": false
+            "can_rotate": true
         },
         {
             "id": 23,
@@ -3348,6 +3358,12 @@
             "item": {"name": "bucket", "emit_on_set": "FLOWING_LAVA"},
             "material": {
                 "id": "iron"
+            },
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 255
             },
             "texture": {
                 "side": "item/lava_bucket.png"
@@ -4023,7 +4039,7 @@
             },
             "texture": "item/carrot.png",
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.6
             }
         },
@@ -4037,7 +4053,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "texture": "item/apple.png"
@@ -4374,7 +4390,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             },
             "texture": "item/bread.png"
@@ -5115,7 +5131,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.1
             }
         },
@@ -5130,7 +5146,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5256,7 +5272,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.3
             }
         },
@@ -5282,7 +5298,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5297,7 +5313,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.6
             }
         },
@@ -5313,7 +5329,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -5328,7 +5344,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.8
             }
         },
@@ -5344,7 +5360,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5359,7 +5375,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -5375,7 +5391,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5390,7 +5406,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5406,7 +5422,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5421,7 +5437,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5475,7 +5491,7 @@
                 "id": "plant"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -6914,7 +6930,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 1, 
+                "amount": 1,
                 "saturation": 0.3
             }
         },
@@ -6929,7 +6945,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -6946,7 +6962,7 @@
                 "texture": "item/sugar_cane.png"
             },
             "extra_data": {
-                "stage": 0, 
+                "stage": 0,
                 "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
@@ -7011,8 +7027,10 @@
             },
             "planting": false,
             "tags": [
+                "draw_only_down",
                 "set_on_water",
                 "mask_biome",
+                "doubleface",
                 "no_drop_ao"
             ],
             "texture": "block/lily_pad.png"
@@ -7223,11 +7241,11 @@
         },
         {
             "id": 212,
-            "name": "GILD_NUGGET",
+            "name": "GOLD_NUGGET",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
-                "id": "iron"
+                "id": "gold"
             },
             "texture": "item/gold_nugget.png"
         },
@@ -7235,7 +7253,7 @@
             "id": 213,
             "name": "GILDED_BLACKSTONE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "GILD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
+            "drop_item": {"name": "GOLD_NUGGET", "count": [2, 3, 4, 5], "chance": 0.1},
             "material": {
                 "id": "stone"
             },
@@ -7350,7 +7368,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "effects":[
@@ -7984,14 +8002,15 @@
             ]
         },
         {
-            "id": 347,
+            "id": 260,
             "name": "CHICKEN_NEST",
             "transparent": true,
             "material": {
                 "id": "wood"
             },
             "tags":[
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_set_on_top"
             ],
             "texture": "block/hay_block_top.png",
             "style":"chicken_nest",
@@ -8000,59 +8019,14 @@
             }
         },
         {
-            "id": 349,
-            "can_rotate": true,
-            "transparent": true,
-            "name": "OAK_CHAIR",
-            "sound": "madcraft:block.wood",
-            "style": "chair",
-            "fuel_time": 16,
+            "id": 796,
+            "name": "IRON_NUGGET",
+            "item": {"name": "nugget"},
+            "style": "extruder",
             "material": {
-                "id": "wood"
+                "id": "iron"
             },
-            "tags": [
-                "no_drop_ao",
-                "no_set_on_top",
-                "rotate_x8"
-            ],
-            "inventory": {
-                "scale": 0.8,
-                "move": {"x": -0.2, "y": 0, "z": -0.4}
-            },
-            "extra_data": {
-                "upholstery": "red_wool",
-                "frame": "oak_log"
-            },
-            "has_head": {
-                "pos": {
-                    "x": 0,
-                    "y": 1,
-                    "z": 0
-                }
-            },
-            "texture": "block/oak_log_top.png"
-        },
-        {
-            "id": 348,
-            "can_rotate": true,
-            "transparent": true,
-            "name": "OAK_STOOL",
-            "sound": "madcraft:block.wood",
-            "style": "stool",
-            "fuel_time": 16,
-            "material": {
-                "id": "wood"
-            },
-            "tags": [
-                "no_drop_ao",
-                "no_set_on_top",
-                "rotate_x8"
-            ],
-            "extra_data": {
-                "upholstery": "white_wool",
-                "frame": "oak_log"
-            },
-            "texture": "block/oak_log_top.png"
+            "texture": "item/iron_nugget.png"
         }
     ]
 }

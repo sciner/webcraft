@@ -536,7 +536,14 @@ export class BLOCK {
         let group = 'regular';
         if('group' in block) return block.group;
         // make vertices array
-        if(WATER_BLOCKS_ID.includes(block.id) || (block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
+        if (block.is_fluid) {
+            if (WATER_BLOCKS_ID.includes(block.id)) {
+                group = 'doubleface_transparent';
+            } else {
+                group = 'doubleface';
+            }
+        } else
+        if((block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
         } else if(block.style == 'pane' || block.is_glass) {
@@ -580,6 +587,7 @@ export class BLOCK {
         return block.style == 'default' &&
             !block.is_fluid &&
             !block.is_leaves &&
+            !['NUM1', 'NUM2'].includes(block.name) &&
             !('width' in block) &&
             !('height' in block);
     }
@@ -657,6 +665,7 @@ export class BLOCK {
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
+        block.draw_only_down    = block.tags.includes('draw_only_down');
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = !!block.is_fluid && WATER_BLOCKS_ID.includes(block.id);
         block.is_jukebox        = block.tags.includes('jukebox');
@@ -688,8 +697,13 @@ export class BLOCK {
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
+        block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.is_solid          = this.isSolid(block);
+        block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
+                                    block.tags.includes('stairs') ||
+                                    ['wall', 'pane'].includes(block.style);
+
         block.is_simple_qube    = this.isSimpleQube(block);
         //
         if(block.planting && !('inventory_style' in block)) {

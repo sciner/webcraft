@@ -35,7 +35,6 @@ export class World {
          * @type {TWorldInfo}
          */
         this.info = null;
-        this.localPlayer = null;
         this.serverTimeShift = 0;
         this.latency = 0;
 
@@ -104,7 +103,7 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
             this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd) => {
-                Qubatch.render.setWeather(cmd.data);
+                Qubatch.render.setWeather(cmd.data, this.chunkManager);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
@@ -237,8 +236,9 @@ export class World {
         if(actions.reset_mouse_actions) {
             player.resetMouseActivity();
         }
-        if(actions.clone_block /* && player.game_mode.canBlockClone()*/) {
+        if(actions.clone_block) {
             this.server.CloneBlock(actions.clone_block);
+            player.inventory.cloneMaterial(new Vector(actions.clone_block), true);
         }
         //
         if(actions.blocks && actions.blocks.list) {
@@ -281,6 +281,10 @@ export class World {
     onBlockDestroy(pos, item) {
         // Destroy beacon ray
         Qubatch.render.meshes.remove('beacon/' + pos.toHash(), this);
+    }
+
+    get chunks() {
+        return this.chunkManager.chunks;
     }
 
 }

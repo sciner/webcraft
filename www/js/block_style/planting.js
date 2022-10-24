@@ -6,6 +6,7 @@ import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -95,9 +96,22 @@ export default class style {
 
         // Get texture
         let texture_dir = DIRECTION.DOWN;
-        if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
-            texture_dir = DIRECTION.UP;
+        if(block.hasTag('is_tall_plant')) {
+            const top_id = neighbours.UP?.id;
+            const bottom_id = neighbours.DOWN?.id;
+            if(top_id != block.id) {
+                if(bottom_id == block.id) {
+                    texture_dir = DIRECTION.UP;
+                } else {
+                    texture_dir = DIRECTION.NORTH;
+                }
+            }
+        } else {
+            if('has_head' in material && block.extra_data && block.extra_data?.is_head) {
+                texture_dir = DIRECTION.UP;
+            }
         }
+
         let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block);
 
         let dx = 0, dy = 0, dz = 0;
@@ -148,6 +162,7 @@ export default class style {
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.set(dirt_color);
+            style.lm.r += GRASS_PALETTE_OFFSET;
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
 

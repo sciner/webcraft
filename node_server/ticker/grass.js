@@ -18,7 +18,8 @@ export default class Ticker {
 
         throw 'deprecated';
 
-        const random_tick_speed = world.getGameRule('randomTickSpeed') / 4096;
+        /*
+        const random_tick_speed = world.rules.getValue('randomTickSpeed') / 4096;
         const is_tick = Math.random() < random_tick_speed;
         if (!is_tick) {
             return;
@@ -43,6 +44,7 @@ export default class Ticker {
                 }
             }
         }
+        */
        
     }
 

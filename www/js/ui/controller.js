@@ -315,30 +315,31 @@ let gameCtrl = async function($scope, $timeout) {
             const form = localStorage.getItem('settings');
             if(form) {
                 this.form = Object.assign(this.form, JSON.parse(form));
-                // add default render_distance
-                if(!('render_distance' in this.form)) {
-                    this.form.render_distance = 4;
-                }
-                // use_light
-                if('use_light' in this.form) {
-                    this.form.use_light = parseInt(this.form.use_light | 0);
-                }
-                // forced Joystick control
-                if(!('render_distance' in this.form)) {
-                    this.form.forced_joystick_control = false;
-                }
+            }
+            // add default render_distance
+            if(!('render_distance' in this.form)) {
+                this.form.render_distance = 4;
+            }
+            // use_light
+            if('use_light' in this.form) {
+                this.form.use_light = parseInt(this.form.use_light | 0);
+            }
+            // forced Joystick control
+            if(!('forced_joystick_control' in this.form)) {
+                this.form.forced_joystick_control = false;
+            }
+            // mouse sensitivity
+            if(!('mouse_sensitivity' in this.form)) {
+                this.form.mouse_sensitivity = 100;
             }
         },
         updateSlider: function (inputId) {
             const slider = document.getElementById(inputId);
-            const text = document.getElementById(inputId + '_text');
             const step = parseInt(slider.getAttribute("step"));
-            const perc = (slider.value);
-            //change current value text
-            text.innerHTML = slider.value;
-            //track background
+            const perc = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+            // track background
             slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
-            //ticks set active
+            // ticks set active
             const ticks = document.getElementById(inputId + '_ticks').children;
             const tickMarks = Array.prototype.slice.call(ticks);
             tickMarks.map(function (tick, index) {
@@ -506,6 +507,9 @@ let gameCtrl = async function($scope, $timeout) {
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
                     that.list = worlds;
+                    for(let w of worlds) {
+                        w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
+                    }
                     /*
                     that.shared_worlds = [];
                     for(let w of worlds) {
@@ -611,11 +615,41 @@ let gameCtrl = async function($scope, $timeout) {
             this.form.seed  = '';
         },
         init() {
+            // game modes
+            $scope.App.Gamemodes({}, (gamemodes) => {
+                $timeout(() => {
+                    this.gamemodes.list = gamemodes;
+                    for(let gm of this.gamemodes.list) {
+                        gm.title = Lang[`gamemode_${gm.id}`]
+                    }
+                });
+            });
+            // generators
             $scope.App.Generators({}, (generators) => {
                 $timeout(() => {
                     this.generators.list = generators;
                 });
             });
+        },
+        gamemodes: {
+            index: 0,
+            list: [],
+            get current() {
+                return this.list[this.index];
+            },
+            set current(item) {
+                for(let i in this.list) {
+                    const t = this.list[i];
+                    if(t.id == item.id) {
+                        this.index = i;
+                        break;
+                    }
+                }
+            },
+            select(game_mode) {
+                const form = $scope.newgame.form;
+                form.game_mode = game_mode.id;
+            }
         },
         generators: {
             index: 0,
@@ -681,6 +715,7 @@ let gameCtrl = async function($scope, $timeout) {
         },
         open() {
             this.generators.select(this.generators.list[0]);
+            this.gamemodes.select(this.gamemodes.list[0]);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },

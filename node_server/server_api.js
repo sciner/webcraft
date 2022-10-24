@@ -1,3 +1,4 @@
+import { GameMode } from "../www/js/game_mode.js";
 import { WorldGenerators } from "./world/generators.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
@@ -41,7 +42,7 @@ export class ServerAPI {
                 const title       = params.title;
                 const seed        = params.seed;
                 const generator   = WorldGenerators.validateAndFixOptions(params.generator);
-                const game_mode   = 'survival';
+                const game_mode   = params.game_mode ?? 'survival';
                 const session     = await Qubatch.db.GetPlayerSession(session_id);
                 const world       = await Qubatch.db.InsertNewWorld(session.user_id, generator, seed, title, game_mode);
                 Log.append('InsertNewWorld', {user_id: session.user_id, generator, seed, title, game_mode});
@@ -127,6 +128,14 @@ export class ServerAPI {
             }
             case '/api/Game/Generators': {
                 return WorldGenerators.list;
+            }
+            case '/api/Game/Gamemodes': {
+                const game_modes = new GameMode();
+                const list = [];
+                for(let gm of game_modes.modes) {
+                    list.push({id: gm.id, title: gm.title});
+                }
+                return list;
             }
             default: {
                 throw 'error_method_not_exists';

@@ -1,13 +1,4 @@
-import { Weather } from "../../www/js/type.js";
-
-/**
- * @type Weather[]
- */
-const LEGAL_WEATHERS = [
-    new Weather('rain', 'Установлена дождливая погода'),
-    new Weather('snow', 'Установлена снежная погода'),
-    new Weather('clear', 'Установлена ясная погода'),
-];
+import { Weather } from "../../www/js/block_type/weather.js";
 
 export default class Chat_Weather {
 
@@ -19,7 +10,6 @@ export default class Chat_Weather {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            console.log(cmd);
             switch(cmd) {
                 case '/weather': {
                     const world = player.world;
@@ -29,10 +19,20 @@ export default class Chat_Weather {
                     args = chat.parseCMD(args, ['string', 'string']);
                     if(args.length == 2) {
                         const name = args[1].trim().toLowerCase();
-                        for(let weather of LEGAL_WEATHERS) {
-                            if(weather.name == name) {
-                                world.setWeather(weather);
-                                world.chat.sendSystemChatMessageToSelectedPlayers(weather.message, [player.session.user_id]);    
+                        switch (name) {
+                            case 'rain': {
+                                world.setWeather(Weather.RAIN);
+                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена дождливая погода', [player.session.user_id]);
+                                break;
+                            }
+                            case 'snow': {
+                                world.setWeather(Weather.SNOW);
+                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена снежная погода', [player.session.user_id]);
+                                break;
+                            }
+                            default: {
+                                world.setWeather(Weather.CLEAR);
+                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена ясная погода', [player.session.user_id]);
                             }
                         }
                         return true;

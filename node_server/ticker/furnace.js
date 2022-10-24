@@ -18,6 +18,9 @@ export default class Ticker {
         if(!('state' in extra_data)) {
             extra_data.state = {};
         }
+        if(!('active' in extra_data)) {
+            extra_data.active = false;
+        }
         const state = extra_data.state;
         let is_update = false;
         if(!('fuel_time' in state)) {
@@ -89,13 +92,14 @@ export default class Ticker {
                 is_update = state.result_ticks % 2 == 0;
             }
         }
-        state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
-        const prev_id = tblock.id;
-        // tblock.id = ((state.result_ticks % max_ticks) > 0 || coocked) ? 62 : 61;
-        tblock.id = state.fuel_time > 0 ? 62 : 61;
-        if(!is_update) {
-            is_update = tblock.id != prev_id;
+        //
+        const active_o = extra_data.active;
+        extra_data.active = state.fuel_time > 0;
+        if(extra_data.active != active_o) {
+            is_update = true;
         }
+        //
+        state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
         // списание переработанного ресурса
         if(coocked) {
             product_slot.count--;

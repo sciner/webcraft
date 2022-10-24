@@ -8,6 +8,7 @@ import {
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import {AABB} from "../core/AABB.js";
+import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
 
 export class FluidChunk {
     constructor({dataChunk, dataId, parentChunk = null, world = null}) {
@@ -42,11 +43,18 @@ export class FluidChunk {
         this.savedID = -1;
         this.databaseID = 0;
         this.inSaveQueue = false;
+        this.queue = null;
     }
 
     setValue(x, y, z, value) {
         const {cx, cy, cz, cw, portals, pos, safeAABB} = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
+        const old = this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID];
+
+        if (old === value) {
+            return;
+        }
+
         this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = value;
         //TODO: check in liquid queue here
         const wx = x + pos.x;
@@ -54,6 +62,9 @@ export class FluidChunk {
         const wz = z + pos.z;
         this.updateID++;
         this.markDirtyMesh();
+        if (this.queue) {
+            this.queue.pushTickIndex(index);
+        }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -68,6 +79,19 @@ export class FluidChunk {
         }
 
         return pcnt;
+    }
+
+    setValuePortals(index, wx, wy, wz, value, portals, portalLen) {
+        const {safeAABB} = this.dataChunk;
+        if (safeAABB.contains(wx, wy, wz)) {
+            return;
+        }
+        for (let i = 0; i < portalLen; i++) {
+            if (portals[i].aabb.contains(wx, wy, wz)) {
+                const other = portals[i].toRegion;
+                other.rev.fluid.uint8View[other.indexByWorld(wx, wy, wz) * FLUID_STRIDE + OFFSET_FLUID] = value;
+            }
+        }
     }
 
     getValueByInd(ind) {
@@ -126,11 +150,10 @@ export class FluidChunk {
         const {cx, cy, cz, cw, size} = this.dataChunk;
         const {uint8View} = this;
         const bounds = this.getLocalBounds();
-        const arr = [];
+        let arr = [];
 
         let encodeType = 1; // version number
-        arr.push(encodeType);
-        arr.push(bounds.y_min, bounds.y_max);
+        arr.push(bounds.y_min, bounds.y_max + 1);
         for (let y = bounds.y_min; y <= bounds.y_max; y++) {
             let x_min = size.x, x_max = 0, z_min = size.z, z_max = 0;
             for (let z = bounds.z_min; z <= bounds.z_max; z++)
@@ -144,56 +167,123 @@ export class FluidChunk {
                         z_max = Math.max(z_max, z);
                     }
                 }
+            arr.push(x_min, x_max + 1, z_min, z_max + 1);
+        }
             //TODO: encode 0 +1 -1 here
-            arr.push(x_min, x_max, z_min, z_max);
+        let k = 2;
+        for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+            let x_min = arr[k++], x_max = arr[k++] - 1, z_min = arr[k++], z_max = arr[k++] - 1;
             for (let z = z_min; z <= z_max; z++)
                 for (let x = x_min; x <= x_max; x++) {
                     let index = x * cx + y * cy + z * cz + cw;
                     arr.push(uint8View[index * FLUID_STRIDE + OFFSET_FLUID]);
                 }
-
         }
+
+        if (arr.length > 128) {
+            let arr2 = gzip(new Uint8Array(arr));
+            arr = new Uint8Array(arr2.length + 1);
+            arr[0] = 3;
+            // gzip
+            arr.set(arr2, 1);
+        } else {
+            // no gzip
+            arr.unshift(2);
+            arr = new Uint8Array(arr);
+        }
+
         this.savedID = this.updateID;
-        return this.savedBuffer = new Uint8Array(arr);
+        return this.savedBuffer = arr;
     }
 
     loadDbBuffer(stateArr, fromDb) {
         const {cx, cy, cz, cw, size} = this.dataChunk;
         const {uint8View} = this;
-        const arr = stateArr;
+        let arr = stateArr;
         const bounds = this._localBounds;
         let k = 0;
         let encodeType = arr[k++]; // version number
 
-        bounds.set(size.x, arr[k++], size.z, 0, arr[k++], 0);
-        for (let y = 0; y < size.y; y++) {
-            if (y >= bounds.y_min && y <= bounds.y_max) {
-                continue;
-            }
-            for (let z = 0; z < size.z; z++)
-                for (let x = 0; x < size.x; x++) {
-                    //TODO: calc changed bounds here
-                    let index = x * cx + y * cy + z * cz + cw;
-                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+        if (encodeType === 1) {
+            //old version
+            bounds.set(size.x, arr[k++], size.z, 0, arr[k++], 0);
+            for (let y = 0; y < size.y; y++) {
+                if (y >= bounds.y_min && y <= bounds.y_max) {
+                    continue;
                 }
-        }
-        for (let y = bounds.y_min; y <= bounds.y_max; y++) {
-            let x_min = arr[k++], x_max = arr[k++], z_min = arr[k++], z_max = arr[k++];
-            bounds.x_min = Math.min(bounds.x_min, x_min);
-            bounds.x_max = Math.max(bounds.x_max, x_max);
-            bounds.z_min = Math.min(bounds.z_min, z_min);
-            bounds.z_max = Math.max(bounds.z_max, z_max);
-
-            for (let z = 0; z < size.z; z++)
-                for (let x = 0; x < size.x; x++) {
-                    let val = 0;
-                    if (x >= x_min && x <= x_max
-                        && z >= z_min && z <= z_max) {
-                        val = arr[k++];
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        //TODO: calc changed bounds here
+                        let index = x * cx + y * cy + z * cz + cw;
+                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
                     }
-                    let index = x * cx + y * cy + z * cz + cw;
-                    uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+            }
+            for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+                let x_min = arr[k++], x_max = arr[k++], z_min = arr[k++], z_max = arr[k++];
+                bounds.x_min = Math.min(bounds.x_min, x_min);
+                bounds.x_max = Math.max(bounds.x_max, x_max);
+                bounds.z_min = Math.min(bounds.z_min, z_min);
+                bounds.z_max = Math.max(bounds.z_max, z_max);
+
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        let val = 0;
+                        if (x >= x_min && x <= x_max
+                            && z >= z_min && z <= z_max) {
+                            val = arr[k++];
+                            if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
+                                val = 0;
+                            }
+                        }
+                        let index = x * cx + y * cy + z * cz + cw;
+                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+                    }
+            }
+        } else {
+            //new version!
+            arr = stateArr.subarray(1, uint8View.length);
+            if (encodeType === 3) {
+                arr = ungzip(arr);
+            }
+            k = 0;
+            bounds.set(size.x, arr[k++], size.z, 0, arr[k++] - 1, 0);
+            let dims = [];
+            for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+                dims.push(arr[k++], arr[k++], arr[k++], arr[k++]);
+            }
+            for (let y = 0; y < size.y; y++) {
+                if (y >= bounds.y_min && y <= bounds.y_max) {
+                    continue;
                 }
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        //TODO: calc changed bounds here
+                        let index = x * cx + y * cy + z * cz + cw;
+                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
+                    }
+            }
+            let s = 0;
+            for (let y = bounds.y_min; y <= bounds.y_max; y++) {
+                let x_min = dims[s++], x_max = dims[s++] - 1, z_min = dims[s++], z_max = dims[s++] - 1;
+                bounds.x_min = Math.min(bounds.x_min, x_min);
+                bounds.x_max = Math.max(bounds.x_max, x_max);
+                bounds.z_min = Math.min(bounds.z_min, z_min);
+                bounds.z_max = Math.max(bounds.z_max, z_max);
+
+                for (let z = 0; z < size.z; z++)
+                    for (let x = 0; x < size.x; x++) {
+                        let val = 0;
+                        if (x >= x_min && x <= x_max
+                            && z >= z_min && z <= z_max) {
+                            val = arr[k++];
+                            if ((val & FLUID_TYPE_MASK) === FLUID_TYPE_MASK) { // WRONG FLUID TYPE
+                                val = 0;
+                            }
+                        }
+                        let index = x * cx + y * cy + z * cz + cw;
+                        uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
+                    }
+            }
         }
 
         this.updateID++;
@@ -266,6 +356,19 @@ export class FluidChunk {
                     this.markDirtyDatabase();
                 }
             }
+        }
+        if (!isPortal && this.queue) {
+            //TODO: remove this
+            const {cw, outerSize} = this.dataChunk;
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+            this.queue.pushAllNeibs(x, y, z);
         }
     }
 

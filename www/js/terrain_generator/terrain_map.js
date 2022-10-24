@@ -405,7 +405,7 @@ export class TerrainMap extends Default_Terrain_Map {
         let cluster                 = null;
         const plant_pos             = new Vector(0, 0, 0);
         //
-        const addPlant = (rnd, x, y, z) => {
+        const addPlant = (rnd, x, y, z, max_y) => {
 
             const xyz = new Vector(
                 x + chunk.coord.x,
@@ -427,7 +427,9 @@ export class TerrainMap extends Default_Terrain_Map {
                 const p = biome.plants.list[i];
                 s += p.percent;
                 if(r < s) {
-                    this.plants.set(plant_pos, p.blocks);
+                    if(y + p.blocks.length < max_y) {
+                        this.plants.set(plant_pos, p.blocks);
+                    }
                     break;
                 }
             }
@@ -509,7 +511,11 @@ export class TerrainMap extends Default_Terrain_Map {
                 }
                 if(rnd <= biome.plants.frequency) {
                     // Трава
-                    addPlant(rnd, x, y, z);
+                    let max_y = Infinity;
+                    if(biome.code == 'OCEAN') {
+                        max_y = this.options.WATER_LINE
+                    }
+                    addPlant(rnd, x, y, z, max_y);
                 }
             }
         }

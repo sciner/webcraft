@@ -8,6 +8,7 @@ import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { GRASS_PALETTE_OFFSET } from '../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -18,6 +19,8 @@ const leaves_planes = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
 ];
+
+const _lm_grass = new IndexedColor(0, 0, 0);
 const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
@@ -250,7 +253,8 @@ export default class style {
         const no_anim               = material.is_simple_qube || !material.texture_animations;
 
         // Beautiful leaves
-        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL) {
+        const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
+        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
             const leaves_tex = BLOCK.calcTexture(material.texture, 'round');
             _lm_leaves.copyFrom(dirt_color);
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
@@ -286,7 +290,8 @@ export default class style {
         let depth                   = 1;
         let autoUV                  = true;
         let axes_up                 = null;
-        let lm                      = IndexedColor.WHITE;
+        let axes_down               = null;
+        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE);
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
@@ -346,9 +351,20 @@ export default class style {
                 if(neighbours.DOWN.material.is_glass && neighbours.DOWN.material.style == material.style) canDrawDOWN = false;
             }
 
+            if(material.draw_only_down) {
+                canDrawUP = false;
+                canDrawSOUTH = false;
+                canDrawNORTH = false;
+                canDrawWEST = false;
+                canDrawEAST = false;
+            }
+
             // Texture color multiplier
             if(block.hasTag('mask_biome')) {
-                lm = dirt_color; // IndexedColor.GRASS;
+                lm.copyFrom(dirt_color)
+                if(block.id == BLOCK.GRASS_BLOCK.id) {
+                    lm.r += GRASS_PALETTE_OFFSET;
+                }
                 sideFlags = QUAD_FLAGS.MASK_BIOME;
                 upFlags = QUAD_FLAGS.MASK_BIOME;
             }
@@ -406,12 +422,14 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             let replace_side_tex = false;
+            /*
             if(material.is_dirt) {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == BLOCK.DIRT_PATH.id))) {
                     replace_side_tex = true;
                 }
             }
+            */
             if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
@@ -441,7 +459,11 @@ export default class style {
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id || block.id == BLOCK.LILY_PAD.id) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
-            axes_up = UP_AXES[rv % 4];
+            if(block.id == BLOCK.LILY_PAD.id) {
+                axes_down = UP_AXES[rv % 4];
+            } else {
+                axes_up = UP_AXES[rv % 4];
+            }
             autoUV = false;
         }
 
@@ -449,6 +471,12 @@ export default class style {
         const calcSideParams = (side, dir, width, height) => {
             const anim_frames = no_anim ? 0 : BLOCK.getAnimations(material, side);
             const animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            if(material.name == 'FURNACE' && dir == DIRECTION.NORTH) {
+                const fuel_time = block?.extra_data?.state?.fuel_time ?? 0;
+                if(fuel_time > 0) {
+                    dir = 'north_on';
+                }
+            }
             const t = force_tex || BLOCK.calcMaterialTexture(material, dir, width, height, block);
             const f = flags | upFlags | sideFlags | animFlag;
             if((f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
@@ -464,7 +492,7 @@ export default class style {
         }
         if(canDrawDOWN) {
             const {anim_frames, t, f} = calcSideParams('down', DIRECTION_DOWN, null, null);
-            sides.down = _sides.down.set(t, f, anim_frames, lm, null, true);
+            sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
         }
         if(canDrawSOUTH) {
             const {anim_frames, t, f} = calcSideParams('south', DIRECTION_BACK, width, height);

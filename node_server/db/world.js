@@ -23,6 +23,9 @@ export class DBWorld {
         this.world = world;
     }
 
+    /**
+     * @returns {DBWorld}
+     */
     async init() {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
@@ -34,7 +37,12 @@ export class DBWorld {
         return this;
     }
 
-    // Open database and return provider
+    /**
+     * Open database and return provider
+     * @param {*} conn 
+     * @param {*} world 
+     * @returns {DBWorld}
+     */
     static async openDB(conn, world) {
         return await new DBWorld(conn, world).init();
     }
@@ -62,14 +70,15 @@ export class DBWorld {
         }
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
-        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
             ':seed':        world.seed,
             ':generator':   JSON.stringify(world.generator),
-            ':pos_spawn':   JSON.stringify(world.pos_spawn)
+            ':pos_spawn':   JSON.stringify(world.pos_spawn),
+            ':game_mode':   world.game_mode
         });
         return this.getWorld(world_guid);
     }
@@ -247,7 +256,7 @@ export class DBWorld {
         });
     }
 
-    // changeRenderDist...
+    // Change render dist
     async changeRenderDist(player, value) {
         await this.conn.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
             ':id':                  player.session.user_id,
@@ -289,7 +298,6 @@ export class DBWorld {
         for(let row of rows) {
             const extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
             extra_data.slots = chest.slots;
-            extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
             // save slots
             await this.conn.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
                 ':extra_data':  JSON.stringify(extra_data),
@@ -625,6 +633,25 @@ export class DBWorld {
             ':world_guid':  world_guid,
             ':pos_spawn':   JSON.stringify(pos_spawn)
         });
+    }
+
+    // Save ender chest content
+    async saveEnderChest(player, ender_chest) {
+        await this.conn.run('UPDATE user SET ender_chest = :ender_chest WHERE id = :id', {
+            ':id':            player.session.user_id,
+            ':ender_chest':   JSON.stringify(ender_chest)
+        });
+    }
+
+    // Return ender chest content
+    async loadEnderChest(player)  {
+        const rows = await this.conn.all('SELECT ender_chest FROM user WHERE id = :id', {
+            ':id': player.session.user_id
+        });
+        for(let row of rows) {
+            return JSON.parse(row.ender_chest);
+        }
+        return null;
     }
 
 }

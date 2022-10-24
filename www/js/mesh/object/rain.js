@@ -1,46 +1,24 @@
 import { IndexedColor, getChunkAddr, QUAD_FLAGS, Vector, VectorCollector } from '../../helpers.js';
 import GeometryTerrain from "../../geometry_terrain.js";
 import { BLEND_MODES } from '../../renders/BaseRenderer.js';
-import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
+import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
-
-const {mat4} = glMatrix;
+import {impl as alea} from "../../../vendors/alea.js";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
 const SNOW_SPEED        = 42;
 const SNOW_SPEED_X      = 16;
 const RAIN_RAD          = 8;
-const RAIN_HEIGHT       = 14;
+const RAIN_START_Y      = 128;
+const RAIN_HEIGHT       = 128;
 
-//
-class RainColumn {
-
-    constructor(i, j, y, version) {
-        this.update(i, j, y, version);
-        // this.matrix = mat4.create();
-        // mat4.rotateZ(this.matrix, this.matrix, Math.random() * (Math.PI * 2));
-        this.matrix = mat4.create();
-        const angle_z = Math.random() * Math.PI * 2; // this.angleTo(vec, center);
-        mat4.rotateZ(this.matrix, this.matrix, -angle_z);
-    }
-
-    update(i, j, y, version) {
-        this.i = i;
-        this.j = j;
-        this.y = y;
-        this.max_y = y;
-        this.version = version;
-        const dist = Math.sqrt(i * i + j * j);
-        this.dist = dist / RAIN_RAD;
-        if(this.dist > 1) {
-            this.version = 0;
-        }
-        this.add_y = 0; // Math.random() * this.dist;
-    }
-
+const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
+const randoms = new Array(RANDOMS_COUNT);
+const a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
 }
 
 /**
@@ -57,11 +35,12 @@ export default class Mesh_Object_Rain {
     #_version           = 0;
     #_blocks_sets       = 0;
 
-    constructor(render, type) {
+    constructor(render, type, chunkManager) {
 
-        this.life = 1;
-        this.type = type;
-        this.chunkManager = Qubatch.world.chunkManager;
+        this.life           = 1;
+        this.type           = type;
+        this.chunkManager   = chunkManager;
+        this.player         = render.player;
 
         // Material (rain)
         const mat = render.defaultShader.materials.doubleface_transparent;
@@ -74,13 +53,77 @@ export default class Mesh_Object_Rain {
             magFilter: 'nearest'
         }));
 
-        this.aabb = new AABB();
-        this.aabb.set(0, 0, 0, 0, RAIN_HEIGHT, 0);
-        this.aabb.expand(.5, 0, .5);
-        this.buffer = this.createBuffer(this.aabb, TARGET_TEXTURES);
+    }
+
+    /**
+     * 
+     * @param {AABB} aabb 
+     * @param {*} c 
+     * @returns 
+     */
+    createBuffer(c) {
+
+        const snow      = this.type == 'snow';
+        const vertices  = [];
+        const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
+        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
+        const pp        = lm.pack();
+
+        let quads       = 0;
+
+        if(this.buffer) {
+            this.buffer.destroy();
+        }
+
+        this.pos = new Vector(this.player.lerpPos.x, RAIN_START_Y, this.player.lerpPos.z).flooredSelf();
+        let chunk_addr = null;
+        const chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+
+        for(let [vec, height] of this.#_map.entries()) {
+
+            chunk_addr = getChunkAddr(vec, chunk_addr).multiplyVecSelf(chunk_size);
+            const rx = vec.x - chunk_addr.x;
+            const rz = vec.z - chunk_addr.z;
+
+            const rnd_index = Math.abs(Math.round(rx * CHUNK_SIZE_Z + rz)) % randoms.length;
+            const rnd = randoms[rnd_index];
+
+            const add = rnd;
+            height += add;
+            const x = vec.x - this.pos.x + (rnd * .2 - .1)
+            const y = add + 1;
+            const z = vec.z - this.pos.z + (rnd * .2 - .1)
+            const c2 = [...c];
+            const uvSize0 = c[2];
+            const uvSize1 = -height * c[3];
+            // SOUTH
+            vertices.push(
+                x + 0.5, z + 0.5, y - height/2,
+                1, 0, 0, 0, 1, height,
+                c2[0], c2[1],
+                uvSize0,
+                uvSize1,
+                pp, flags
+            );
+            // WEST
+            vertices.push(
+                x + 0.5, z + 0.5, y - height/2,
+                0, -1, 0, 1, 0, height,
+                c2[0], c2[1],
+                uvSize0,
+                uvSize1,
+                pp, flags
+            );
+            quads += 2;
+        }
+
+        this.buffer = new GeometryTerrain(vertices);
+
+        return quads;
 
     }
 
+    //
     update(delta) {
     }
 
@@ -92,57 +135,46 @@ export default class Mesh_Object_Rain {
      */
     draw(render, delta) {
 
-        if(!this.enabled) {
+        if(!this.enabled || !this.prepare() || !this.buffer) {
             return false;
         }
 
-        this.prepare();
-
-        // draw
-        for(const [vec, item] of this.#_map.entries()) {
-            if(item.version != this.#_version) {
-                this.#_map.delete(vec);
-                continue;
-            }
-            if(item.i == 0 && item.j == 0) continue;
-            vec.x += .5;
-            vec.y = item.max_y + item.add_y;
-            vec.z += .5;
-            render.renderBackend.drawMesh(this.buffer, this.material, vec, item.matrix);
-        }
+        render.renderBackend.drawMesh(this.buffer, this.material, this.pos);
 
     }
 
+    /**
+     * @returns {boolean}
+     */
     prepare() {
 
-        const player = Qubatch.player;
+        const player = this.player;
 
-        if(!this.#_player_block_pos.equal(player.blockPos)) {
-            this.#_player_block_pos.copyFrom(player.blockPos);
-            this.#_version++;
-            // update
-            const vec = new Vector();
-            for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
-                for(let j = - RAIN_RAD; j <= RAIN_RAD; j++) {
-                    vec.copyFrom(this.#_player_block_pos);
-                    vec.addScalarSelf(i, -vec.y, j);
-                    const existing = this.#_map.get(vec);
-                    const y = this.#_player_block_pos.y - 4;
-                    if(existing) {
-                        existing.update(i, j, y, this.#_version);
-                        continue;
-                    }
-                    const item = new RainColumn(i, j, y, this.#_version);
-                    this.#_map.set(vec, item);
-                }
-            }
-            this.updateHeightMap();
-        } else {
+        if(this.#_player_block_pos.equal(player.blockPos)) {
             if(this.#_blocks_sets != this.chunkManager.block_sets) {
                 this.#_blocks_sets = this.chunkManager.block_sets;
                 this.updateHeightMap();
             }
+        } else {
+            this.#_player_block_pos.copyFrom(player.blockPos);
+            this.#_map.clear();
+            // update
+            const vec = new Vector();
+            for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
+                for(let j = - RAIN_RAD; j <= RAIN_RAD; j++) {
+                    const dist = Math.sqrt(i * i + j * j);
+                    if(dist < RAIN_RAD) {
+                        vec.copyFrom(this.#_player_block_pos);
+                        vec.addScalarSelf(i, -vec.y, j);
+                        this.#_map.set(vec, 0);
+                    }
+                }
+            }
+            this.updateHeightMap();
         }
+
+        return true;
+
     }
 
     angleTo(pos, target) {
@@ -150,10 +182,10 @@ export default class Mesh_Object_Rain {
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
-    // updateHeightMap...
+    // Update height map
     updateHeightMap() {
-        // let p = performance.now();
-        const world         = Qubatch.world;
+        let checked_blocks = 0;
+        let p = performance.now();
         const pos           = this.#_player_block_pos;
         const vec           = new Vector();
         const block_pos     = new Vector();
@@ -162,39 +194,45 @@ export default class Mesh_Object_Rain {
         const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity);
         let chunk           = null;
         let block           = null;
+        let cx = 0, cy = 0, cz = 0, cw = 0;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
-                for(let k = RAIN_HEIGHT; k >= -1; k--) {
+                for(let k = 0; k < RAIN_HEIGHT; k++) {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
-                    const item = this.#_map.get(vec);
-                    if(!item) continue;
-                    if(item.version != this.#_version) {
-                        this.#_map.delete(vec);
-                        continue;
-                    }
-                    block_pos.set(pos.x + i, pos.y + k, pos.z + j);
+                    block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
                     getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
                     if(!chunk_addr.equal(chunk_addr_o)) {
-                        chunk = world.chunkManager.getChunk(chunk_addr);
+                        chunk = this.chunkManager.getChunk(chunk_addr);
                         chunk_addr_o.copyFrom(chunk_addr);
+                        const dc = chunk.tblocks.dataChunk;
+                        cx = dc.cx;
+                        cy = dc.cy;
+                        cz = dc.cz;
+                        cw = dc.cw;
                     }
-                    if(chunk) {
+                    if(chunk && chunk.tblocks) {
                         chunk_addr.multiplyVecSelf(chunk_size);
                         block_pos.x -= chunk.coord.x;
                         block_pos.y -= chunk.coord.y;
                         block_pos.z -= chunk.coord.z;
-                        block = chunk.tblocks.get(block_pos, block);
-                        if(block.id > 0) {
-                            item.max_y = pos.y + k;
-                            break;
+                        const index = (block_pos.x * cx + block_pos.y * cy + block_pos.z * cz + cw);
+                        const block_id = chunk.tblocks.id[index];
+                        if(block_id > 0) {
+                            block = chunk.tblocks.get(block_pos, block);
+                            checked_blocks++;
+                            if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
+                                this.#_map.set(vec, k)
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-        // p = performance.now() - p;
-        // console.log(Math.round(p * 1000) / 1000)
+        p = performance.now() - p;
+        const quads = this.createBuffer(TARGET_TEXTURES);
+        // console.log('tm', checked_blocks, p, quads);
     }
 
     get enabled() {
@@ -205,40 +243,14 @@ export default class Mesh_Object_Rain {
         this.#_enabled = value;
     }
 
-    // createBuffer...
-    createBuffer(aabb, c) {
-
-        const snow = this.type == 'snow';
-
-        const vertices  = [];
-        const lm        = new IndexedColor((snow ? SNOW_SPEED_X : 0), snow ? SNOW_SPEED : RAIN_SPEED, 0);
-        const sideFlags = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
-        const pivot     = null;
-        const matrix    = null;
-
-        pushAABB(
-            vertices,
-            aabb,
-            pivot,
-            matrix,
-            {
-                // south:  new AABBSideParams(c, sideFlags, 1, lm, null, true),
-                north:  new AABBSideParams(c, sideFlags, 1, lm, null, true),
-                // west:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
-                // east:   new AABBSideParams(c, sideFlags, 1, lm, null, true),
-            },
-            Vector.ZERO
-        );
-
-        return new GeometryTerrain(vertices);
-    }
-
     /**
      * Destructor
      * @memberOf Mesh_Object_Raindrop
      */
     destroy(render) {
-        this.buffer.destroy();
+        if(this.buffer) {
+            this.buffer.destroy();
+        }
     }
 
     /**
@@ -247,7 +259,7 @@ export default class Mesh_Object_Rain {
      * @memberOf Mesh_Object_Raindrop
      */
     isAlive() {
-        return true;
+        return this.enabled;
     }
 
 }
