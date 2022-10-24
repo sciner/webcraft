@@ -344,8 +344,7 @@
                 "texture": "item/kelp.png"
             },
             "tags":[
-                "no_drop_ao",
-                "alpha"
+                "doubleface"
             ],
             "texture_animations": {
                 "side": null
@@ -362,12 +361,16 @@
                 "max_stage": 4
             },
             "extra_data": {
-                "stage": 0
+                "stage": 0,
+                "calculated": [
+                    {"type": "random_int", "name": "height", "min_max": [4, 20]}
+                ]
             },
             "previous_part": {
                 "offset_pos": {"x": 0, "y": 1, "z": 0},
                 "id": 797
-            }
+            },
+            "spawnable": true
         },
         {
             "id": -1,
