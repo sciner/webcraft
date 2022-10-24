@@ -3,6 +3,7 @@ import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y} from "../www/js/chunk_const.j
 import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
+import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
@@ -35,6 +36,7 @@ export class ServerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
+        this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
         this.initRandomTickers(random_tickers);
     }
 
@@ -153,7 +155,7 @@ export class ServerChunkManager {
     randomTick(tick_number) {
 
         const world_light = this.world.getLight();
-        const check_count = Math.floor(this.world.getGameRule('randomTickSpeed') * 2.5);
+        const check_count = Math.floor(this.world.rules.getValue('randomTickSpeed') * 2.5);
         let rtc = 0;
 
         if(!this.random_chunks || tick_number % 20 == 0)  {
@@ -220,7 +222,7 @@ export class ServerChunkManager {
 
     /**
      * Return chunk by addr
-     * @param {Vector} addr 
+     * @param {Vector} addr
      * @returns {ServerChunk}
      */
     get(addr) {

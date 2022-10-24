@@ -14,6 +14,7 @@ export class FluidWorld {
         this.chunkManager = chunkManager;
         this.mesher = null;
         this.database = null;
+        this.queue = null;
     }
 
     addChunk(chunk) {
@@ -23,6 +24,9 @@ export class FluidWorld {
             parentChunk: chunk,
             world: this
         });
+        if (this.queue) {
+            this.queue.addChunk(chunk.fluid);
+        }
 
         chunk.tblocks.fluid = chunk.fluid;
         if (this.mesher) {
@@ -34,6 +38,9 @@ export class FluidWorld {
     removeChunk(chunk) {
         if (!chunk.fluid) {
             return;
+        }
+        if (this.queue) {
+            this.queue.removeChunk(chunk.fluid);
         }
         chunk.fluid.dispose();
         chunk.fluid = null;

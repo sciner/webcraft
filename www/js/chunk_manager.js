@@ -425,14 +425,28 @@ export class ChunkManager {
                 const {arr, count} = list;
                 const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
                 const mat = resource_pack[shaderName].materials[group];
-                for (let i = 0; i < count; i += 2) {
-                    const chunk = arr[i];
-                    const vertices = arr[i + 1];
-                    chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                    if (!chunk.rendered) {
-                        this.rendered_chunks.fact++;
+
+                if (!mat.opaque && mat.shader.fluidFlags) {
+                    // REVERSED!!!
+                    for (let i = count - 2; i >= 0; i -= 2) {
+                        const chunk = arr[i];
+                        const vertices = arr[i + 1];
+                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                        if (!chunk.rendered) {
+                            this.rendered_chunks.fact++;
+                        }
+                        chunk.rendered++;
                     }
-                    chunk.rendered++;
+                } else {
+                    for (let i = 0; i < count; i += 2) {
+                        const chunk = arr[i];
+                        const vertices = arr[i + 1];
+                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                        if (!chunk.rendered) {
+                            this.rendered_chunks.fact++;
+                        }
+                        chunk.rendered++;
+                    }
                 }
             }
         }
