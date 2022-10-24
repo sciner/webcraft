@@ -133,6 +133,11 @@ export class Compiler {
         let tmpCnv;
         let tmpContext;
         for(let block of blocks) {
+
+            //
+            block.tags = block.tags ?? [];
+
+            //
             if('texture' in block) {
                 console.log(++num_blocks, block.name);
                 block.flammable = this.flammable_blocks.get(block.name) ?? false;

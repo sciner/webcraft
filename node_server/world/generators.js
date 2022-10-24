@@ -133,6 +133,12 @@ export class WorldGenerators {
                     "type": "checkbox",
                     "strict_type": "boolean"
                 },
+                "generate_bottom_caves_lava": {
+                    "title": "Generate lava in bottom caves",
+                    "default_value": false,
+                    "type": "checkbox",
+                    "strict_type": "boolean"
+                },
                 "random_spawn_radius": {
                     "title": "Random spawn radius",
                     "type": "select",

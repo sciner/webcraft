@@ -10,7 +10,7 @@ export default class Ticker {
     
     //
     static func(tick_number, world, chunk, v) {
-        const random_tick_speed = world.getGameRule('randomTickSpeed') / 410;
+        const random_tick_speed = world.rules.getValue('randomTickSpeed') / 410;
         if (Math.random() >= random_tick_speed) {
             return false;
         }
@@ -63,7 +63,7 @@ export default class Ticker {
                             const position = pos.offset(x, y, z);
                             const flames = getNeighborFlame(world, position);
                             if (flames > 0) {
-                                const burns = Math.round((flames + 40 + world.getGameRule('difficulty') * 7) / (age + 30));
+                                const burns = Math.round((flames + 40 + world.rules.getValue('difficulty') * 7) / (age + 30));
                                 if (burns > 0 && rndInt(chance) <= burns && !world.isRaining()) {
                                     setFireBlock(world, position, age, updated);
                                 }

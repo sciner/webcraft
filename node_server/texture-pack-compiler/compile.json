@@ -1852,6 +1852,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1866,6 +1869,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1943,6 +1949,7 @@
             },
             "tags": [
                 "layering",
+                "is_solid_for_fluid",
                 "no_drop_ao"
             ]
         },
@@ -2745,6 +2752,7 @@
                 "id": "dirt"
             },
             "tags": [
+                "is_solid_for_fluid",
                 "dirt"
             ],
             "texture": {
@@ -4054,7 +4062,7 @@
             },
             "texture": "item/carrot.png",
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.6
             }
         },
@@ -4068,7 +4076,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "texture": "item/apple.png"
@@ -4405,7 +4413,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             },
             "texture": "item/bread.png"
@@ -5146,7 +5154,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.1
             }
         },
@@ -5161,7 +5169,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5287,7 +5295,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.3
             }
         },
@@ -5313,7 +5321,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5328,7 +5336,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.6
             }
         },
@@ -5344,7 +5352,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -5359,7 +5367,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.8
             }
         },
@@ -5375,7 +5383,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5390,7 +5398,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -5406,7 +5414,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5421,7 +5429,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5437,7 +5445,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5452,7 +5460,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5506,7 +5514,7 @@
                 "id": "plant"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -6945,7 +6953,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 1, 
+                "amount": 1,
                 "saturation": 0.3
             }
         },
@@ -6960,7 +6968,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -6977,7 +6985,7 @@
                 "texture": "item/sugar_cane.png"
             },
             "extra_data": {
-                "stage": 0, 
+                "stage": 0,
                 "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
@@ -7383,7 +7391,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "effects":[
