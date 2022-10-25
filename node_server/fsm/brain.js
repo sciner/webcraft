@@ -27,6 +27,7 @@ export class FSMBrain {
         this.stack = new FSMStack();
         this.raycaster = new Raycaster(mob.getWorld());
         this.#pos = new Vector(0, 0, 0);
+        this._eye_pos = new Vector(0, 0, 0);
         // инфо
         this.health = 1;
         this.distance_view = 0;
@@ -137,6 +138,20 @@ export class FSMBrain {
         }
         return false;
     }
+
+    // Returns the position of the eyes of the mob
+    getEyePos() {
+        const mob = this.mob;
+        const subY = 0;
+        //if(this.state.sitting) {
+        //    subY = this.pc.physics.playerHeight * 1/3;
+        //}
+        return this._eye_pos.set(mob.pos.x, mob.pos.y + this.height * 0.85 - subY, mob.pos.z);
+    }
+
+    get height() {
+        return this.pc.physics.playerHeight;
+    }
     
     // контроль жизней и состяния моба
     onLive() {
@@ -151,7 +166,7 @@ export class FSMBrain {
         const alegs = chunk.getBlock(forward);
         const under = chunk.getBlock(forward.offset(0, -1, 0));
         const abyss = chunk.getBlock(forward.offset(0, -2, 0));
-        const head = chunk.getBlock(mob.pos.offset(0, 1, 0).floored());
+        const head = chunk.getBlock(this.getEyePos().floored());
         const legs = chunk.getBlock(mob.pos.floored());
         this.under_id = under.id;
         this.legs_id = legs.id;
