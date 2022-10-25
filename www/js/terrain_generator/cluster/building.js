@@ -262,6 +262,8 @@ export class Farmland extends Building {
                     water_size.y = 1;
                     for(let i = 3; i < building.size[axe] - 1; i += 3) {
                         water_pos[axe] += 3;
+                        // fix. because water not replace FARMLAND_WET
+                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);
                         cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.STILL_WATER);
                         water_pos.y++;
                         cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);

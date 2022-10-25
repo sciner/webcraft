@@ -329,18 +329,6 @@ export default class style {
 
         } else {
 
-            // Jukebox
-            if(material.is_jukebox) {
-                const disc = block?.extra_data?.disc || null;
-                if(disc) {
-                    worker.postMessage(['play_disc', {
-                        ...disc,
-                        dt: block.extra_data?.dt,
-                        pos: chunk.coord.add(new Vector(x, y, z))
-                    }]);
-                }
-            }
-
             // Glass
             if(material.transparent && material.is_glass) {
                 if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.style == material.style) canDrawSOUTH = false;
@@ -422,14 +410,12 @@ export default class style {
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
             let replace_side_tex = false;
-            /*
-            if(material.is_dirt) {
+            if(material.is_dirt && ('height' in material)) {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == BLOCK.DIRT_PATH.id))) {
                     replace_side_tex = true;
                 }
             }
-            */
             if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
@@ -437,15 +423,13 @@ export default class style {
                 }
             }
             if(replace_side_tex) {
-                if(replace_side_tex) {
-                    DIRECTION_UP        = DIRECTION.DOWN;
-                    DIRECTION_BACK      = DIRECTION.DOWN;
-                    DIRECTION_RIGHT     = DIRECTION.DOWN;
-                    DIRECTION_FORWARD   = DIRECTION.DOWN;
-                    DIRECTION_LEFT      = DIRECTION.DOWN;
-                    sideFlags = 0;
-                    upFlags = 0;
-                }
+                DIRECTION_UP        = DIRECTION.DOWN;
+                DIRECTION_BACK      = DIRECTION.DOWN;
+                DIRECTION_RIGHT     = DIRECTION.DOWN;
+                DIRECTION_FORWARD   = DIRECTION.DOWN;
+                DIRECTION_LEFT      = DIRECTION.DOWN;
+                sideFlags = 0;
+                upFlags = 0;
             }
 
             // uvlock
@@ -457,7 +441,7 @@ export default class style {
         }
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
-        if(block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SAND.id || block.id == BLOCK.LILY_PAD.id) {
+        if(material.random_rotate_up) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             if(block.id == BLOCK.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
@@ -532,8 +516,15 @@ export default class style {
             }]);
         }
 
+        // Jukebox
         if(typeof worker != 'undefined' && block.id == BLOCK.JUKEBOX.id) {
-            if(block.extra_data?.disc) {
+            const disc = block?.extra_data?.disc || null;
+            if(disc) {
+                worker.postMessage(['play_disc', {
+                    ...disc,
+                    dt: block.extra_data?.dt,
+                    pos: chunk.coord.add(new Vector(x, y, z))
+                }]);
                 worker.postMessage(['add_animated_block', {
                     block_pos: block.posworld,
                     pos: [block.posworld.add(new Vector(.5, .5, .5))],
