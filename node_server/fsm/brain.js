@@ -198,9 +198,9 @@ export class FSMBrain {
         // нехватка воздуха
         if (this.in_water) {
             this.time_fire = 0;
-            if (this.timer_water_damage >= 30 * MUL_1_SEC) {
+            if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
-                this.onDamage(null, 100, EnumDamage.WATER);
+                this.onDamage(null, 1, EnumDamage.WATER);
             } else {
                 this.timer_water_damage++;
             }
