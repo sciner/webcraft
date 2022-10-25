@@ -2,9 +2,6 @@
 import { ConvertSample, GetString, UnrollSampleLoop } from './Utils.js';
 import { XMEffects, EnvelopeFollower, Envelope } from "./XMEffects.js";
 
-console.debug = () => undefined;
-console.log = () => undefined;
-
 /**
  * @type { AudioWorkletGlobalScope }
  *
@@ -47,6 +44,8 @@ class XMProcessor extends AudioWorkletProcessor {
 
             this.tasks[messageId] = res;
 
+            console.log('processor notify', messageId, res);
+
             this.port.postMessage({
                 type,
                 data,
@@ -68,7 +67,9 @@ class XMProcessor extends AudioWorkletProcessor {
 
         // invoke api methods that exist
         if (typeof this['api_' + type] === 'function') {
+            console.log('invoke api', type)
             const result = this['api_' + type](data);
+            console.log('invoke api', result);
 
             if (result !== undefined) {
                 this.notify(type, result, null,  messageId);

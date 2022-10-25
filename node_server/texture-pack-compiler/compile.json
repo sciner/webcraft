@@ -404,6 +404,7 @@
             "drop_item": {"name": "DIRT", "count": 1, "chance": 1},
             "tags": [
                 "mask_biome",
+                "random_rotate_up",
                 "dirt"
             ],
             "random_ticker": "grass_block",
@@ -1124,6 +1125,9 @@
             "material": {
                 "id": "sand"
             },
+            "tags": [
+                "random_rotate_up"
+            ],
             "texture": "block/sand.png"
         },
         {
@@ -2729,6 +2733,7 @@
                 "id": "dirt"
             },
             "tags": [
+                "random_rotate_up",
                 "is_solid_for_fluid",
                 "dirt"
             ],
@@ -7031,7 +7036,8 @@
                 "set_on_water",
                 "mask_biome",
                 "doubleface",
-                "no_drop_ao"
+                "no_drop_ao",
+                "random_rotate_up"
             ],
             "texture": "block/lily_pad.png"
         },

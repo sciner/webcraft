@@ -17,18 +17,23 @@ export class Tracker_Player {
     loadAndPlay(url, pos, dt) {
         const sounds = Sounds.instance;
 
+        console.log('disc', 1, url, pos);
         let prev_jukebox = this.vc.get(pos);
 
+        console.log('disc', 2);
         if(prev_jukebox && prev_jukebox.url == url) {
             return;
         }
 
+        console.log('disc', 3);
         const jukebox = new XMPlayer();
         jukebox.url = url;
 
+        console.log('disc', 4);
         this.stop(pos);
         this.vc.set(pos, jukebox);
 
+        console.log('disc', 5);
         jukebox.panner = new PannerNode(sounds.context, {
             ...Sounds.PANNER_ATTR,
 
@@ -53,15 +58,28 @@ export class Tracker_Player {
 
         jukebox.volume = Tracker_Player.MASTER_VOLUME;
 
+        console.log('disc', 6);
         fetch(url)
             .then(res => res.arrayBuffer()) // Gets the response and returns it as a blob
             .then(buffer => {
-                jukebox.stop();
-                // jukebox.volume = MAX_VOLUME;
-                return jukebox.load(buffer);
+                try {
+                    console.log('disc', 7, buffer);
+                    jukebox.stop();
+                    console.log('disc', 7, 'stopped');
+                    // jukebox.volume = MAX_VOLUME;
+                    const resp = jukebox.load(buffer);
+                    console.log('disc', 7, resp);
+                    return resp;
+                } catch(e) {
+                    debugger;
+                }
             })
-            .then(() => {    
+            .then(() => {   
+                console.log('disc', 8);
                 jukebox.play()
+            })
+            .catch((e) => {   
+                console.log('disc', 9, e);
             })
     }
 
