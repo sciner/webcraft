@@ -51,7 +51,6 @@ export class XMPlayer {
  
     onMessage({ data: msgData }) {
         const { messageId, data } = msgData;
-        console.log('->', messageId);
 
         if (messageId in this.tasks) {
             this.tasks[messageId](data);
@@ -105,17 +104,12 @@ export class XMPlayer {
 
     async load(buffer) {
         if (!this.active) {
-            console.log('xm init');
             await this.init();
         }
-
-        console.log('inited');
 
         this.buffer = null;
 
         const data = await this.notify('load', { buffer }, [buffer]);
-
-        console.log('data loaded');
 
         this.xm = data;
 
