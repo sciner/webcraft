@@ -40,7 +40,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty'); 
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             const rnd = (Math.random() * players.length) | 0;
@@ -57,7 +57,7 @@ export class Brain extends FSMBrain {
     async doCatch(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty');
+        const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.lostTarget();
             return;
@@ -97,7 +97,7 @@ export class Brain extends FSMBrain {
     doTimerDetonation(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty');
+        const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.lostTarget();
             return;
@@ -133,7 +133,7 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         const mobPos = mob.pos.clone();
-        const difficulty = world.getGameRule('difficulty');
+        const difficulty = world.rules.getValue('difficulty');
         const mobPosCenter = mobPos.addScalarSelf(mob.width / 2, mob.height / 2, mob.width / 2);
         // Actions
         const actions = new WorldAction(null, world, true, false);

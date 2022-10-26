@@ -39,7 +39,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty'); 
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             const rnd = (Math.random() * players.length) | 0;
@@ -113,7 +113,7 @@ export class Brain extends FSMBrain {
     doCatch(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty');
+        const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
@@ -142,7 +142,7 @@ export class Brain extends FSMBrain {
     doAttack(delta) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.getGameRule('difficulty');
+        const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
