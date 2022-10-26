@@ -12,7 +12,6 @@ uniform int u_fluidFrames[2];
 in float a_chunkId;
 in uint a_fluidId;
 in vec3 a_position;
-in vec2 a_uv;
 in uint a_color;
 
 // please, replace all out with v_
@@ -69,15 +68,18 @@ void main() {
 
     if (fluidSide == 2 || fluidSide == 3) {
         v_normal = vec3(0.0, 1.0, 0.0);
+        v_texcoord0 = a_position.xz;
     } else if (fluidSide == 4 || fluidSide == 5) {
         v_normal = vec3(1.0, 0.0, 0.0);
+        v_texcoord0 = a_position.yz;
     } else if (fluidSide == 1) {
         v_normal = vec3(0.0, 0.0, -1.0);
+        v_texcoord0 = a_position.xy;
     } else {
         v_normal = vec3(0.0, 0.0, 1.0);
+        v_texcoord0 = a_position.xy;
     }
 
-    v_texcoord0 = a_uv;
     // Scrolled textures
     if (flagScroll > 0 || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);

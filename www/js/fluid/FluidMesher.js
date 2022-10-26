@@ -9,8 +9,8 @@ export class FluidMesher {
         this.dirtyChunks = [];
         this.renderPool = null;
         this.geometryPool = new Worker05GeometryPool(null, {
-            instanceSize: 48,
-            pageSize: 85,
+            instanceSize: 36,
+            pageSize: 113,
         });
     }
 
@@ -19,7 +19,7 @@ export class FluidMesher {
             return;
         }
         this.renderPool = new FluidGeometryPool(context, {
-            pageSize: 85,
+            pageSize: 113,
         });
     }
 

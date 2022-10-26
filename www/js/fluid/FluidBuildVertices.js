@@ -277,10 +277,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.UP, clr,
                         x, z, y,
-                        x0, z1, h01, x0, z1,
-                        x1, z1, h11, x1, z1,
-                        x1, z0, h10, x1, z0,
-                        x0, z0, h00, x0, z0,
+                        x0, z1, h01,
+                        x1, z1, h11,
+                        x1, z0, h10,
+                        x0, z0, h00,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
@@ -289,10 +289,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.DOWN, clr,
                         x, z, y,
-                        x0, z1, y0, x0, z1,
-                        x1, z1, y0, x1, z1,
-                        x1, z0, y0, x1, z0,
-                        x0, z0, y0, x0, z0,
+                        x0, z1, y0,
+                        x1, z1, y0,
+                        x1, z0, y0,
+                        x0, z0, y0,
                     );
                 }
                 clr += (1 << 20); // flowing liquid, scroll
@@ -301,10 +301,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
                         x, z, y,
-                        x0, z1, h01, z1, h01,
-                        x0, z0, h00, z0, h00,
-                        x0, z0, y0, z0, y0,
-                        x0, z1, y0, z1, y0,
+                        x0, z1, h01,
+                        x0, z0, h00,
+                        x0, z0, y0,
+                        x0, z1, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.EAST]) {
@@ -312,10 +312,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=Z, V=Y
                     geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
                         x, z, y,
-                        x1, z0, h10, z0, h10,
-                        x1, z1, h11, z1, h11,
-                        x1, z1, y0, z1, y0,
-                        x1, z0, y0, z0, y0,
+                        x1, z0, h10,
+                        x1, z1, h11,
+                        x1, z1, y0,
+                        x1, z0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.SOUTH]) {
@@ -323,10 +323,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.SOUTH, clr,
                         x, z, y,
-                        x0, z0, h00, x0, h00,
-                        x1, z0, h10, x1, h10,
-                        x1, z0, y0, x1, y0,
-                        x0, z0, y0, x0, y0,
+                        x0, z0, h00,
+                        x1, z0, h10,
+                        x1, z0, y0,
+                        x0, z0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
@@ -334,10 +334,10 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.NORTH, clr,
                         x, z, y,
-                        x1, z1, h11, x1, h11,
-                        x0, z1, h01, x0, h01,
-                        x0, z1, y0, x0, y0,
-                        x1, z1, y0, x1, y0,
+                        x1, z1, h11,
+                        x0, z1, h01,
+                        x0, z1, y0,
+                        x1, z1, y0,
                     );
                 }
             }
