@@ -63,6 +63,7 @@ export class FSMBrain {
     createPlayerControl(brain, options) {
         const mob = brain.mob;
         const world = mob.getWorld();
+        options.effects
         return new PrismarinePlayerControl({
             chunkManager: new PrismarineServerFakeChunkManager(world)
         }, mob.pos, options);
@@ -110,7 +111,7 @@ export class FSMBrain {
 
     applyControl(delta) {
         const pc = this.pc;
-        pc.tick(delta * (this.timer_panick > 0 ? 4 : 1));
+        pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
     
@@ -174,10 +175,10 @@ export class FSMBrain {
         this.in_fire = (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id);
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.is_abyss = under.id == 0 && abyss.id == 0 && alegs.id == 0;
+        this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
         this.is_wall = (ahead.id != 0 && ahead.id != -1 && ahead.material.style != 'planting' && ahead.material.style != 'chicken_nest') || (alegs.material.style == 'fence');
         this.is_fire = (alegs.id == BLOCK.FIRE.id || alegs.id == BLOCK.CAMPFIRE.id);
-        this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
         this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         // стоит в лаве
         if (this.in_lava) {
@@ -339,7 +340,8 @@ export class FSMBrain {
             yaw: mob.rotate.z,
             forward: true,
             jump: false,
-            sneak: false
+            sneak: false,
+            pitch: (this.timer_panick > 0) ? true : false
         });
         this.applyControl(delta);
         this.sendState();

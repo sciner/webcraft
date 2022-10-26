@@ -411,7 +411,12 @@ export function Physics(mcData, fake_world, options) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
-            if (entity.control.sprint) acceleration *= physics.sprintSpeed
+            if (entity.control.pitch) {
+                acceleration *= physics.pitchSpeed;
+            }
+            if (entity.control.sprint) {
+                acceleration *= physics.sprintSpeed;
+            }
             const speed = getEffectLevel(Effect.SPEED, entity.effects);
             if (speed > 0) {
                 acceleration *= physics.speedEffect * speed;
