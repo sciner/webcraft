@@ -247,7 +247,7 @@ export class ServerChat {
                 break;
             }
             case '/spawnpoint': {
-                player.changePosSpawn({pos: player.state.pos.clone().multiplyScalar(1000).floored().divScalar(1000)});
+                player.changePosSpawn({pos: player.state.pos.round(3)});
                 break;
             }
             case '/spawnmob': {

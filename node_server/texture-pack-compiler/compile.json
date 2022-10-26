@@ -204,7 +204,7 @@
             "transparent": true,
             "tags":[
                 "no_drop_ao",
-                "alpha"
+                "doubleface"
             ],
             "is_fire": true,
             "light_power": {
