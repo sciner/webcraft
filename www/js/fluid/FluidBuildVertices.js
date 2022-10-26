@@ -184,7 +184,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
         initFluidMaterials();
     }
 
-    const eps = -0.01;
+    const eps = -0.01, eps_x = 0, eps_y = 0;
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
@@ -276,7 +276,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.UP, clr,
-                        x, z, y,
+                        index,
                         x0, z1, h01,
                         x1, z1, h11,
                         x1, z0, h10,
@@ -288,7 +288,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //same as up
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.DOWN, clr,
-                        x, z, y,
+                        index,
                         x0, z1, y0,
                         x1, z1, y0,
                         x1, z0, y0,
@@ -300,7 +300,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
-                        x, z, y,
+                        index,
                         x0, z1, h01,
                         x0, z0, h00,
                         x0, z0, y0,
@@ -311,7 +311,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     //U=Z, V=Y
                     geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
-                        x, z, y,
+                        index,
                         x1, z0, h10,
                         x1, z1, h11,
                         x1, z1, y0,
@@ -322,7 +322,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.SOUTH, clr,
-                        x, z, y,
+                        index,
                         x0, z0, h00,
                         x1, z0, h10,
                         x1, z0, y0,
@@ -333,7 +333,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.NORTH, clr,
-                        x, z, y,
+                        index,
                         x1, z1, h11,
                         x0, z1, h01,
                         x0, z1, y0,

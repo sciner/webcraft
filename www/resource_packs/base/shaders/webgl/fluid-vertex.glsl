@@ -35,7 +35,14 @@ out float v_flagMultiplyColor;
 
 void main() {
     uint fluidId = a_fluidId & uint(3);
-    int fluidSide = int(a_fluidId >> 2);
+    int fluidSide = int(a_fluidId >> 2) & 7;
+    int blockIndex = int(a_fluidId >> 5);
+    // TODO: write chunk size somewhere, not related to light!
+    vec3 blockPos = vec3(
+        float(blockIndex % 18) - 1.0,
+        float((blockIndex / 18) % 18) - 1.0,
+        float(blockIndex / (18 * 18)) - 1.0
+    );
 
     int flags = u_fluidFlags[fluidId];
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
@@ -85,7 +92,7 @@ void main() {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
-    v_chunk_pos = a_position;
+    v_chunk_pos = a_position + blockPos;
     v_world_pos = v_chunk_pos + u_add_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);

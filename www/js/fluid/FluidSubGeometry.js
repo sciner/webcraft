@@ -7,7 +7,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
     }
 
     push(fluidId, side, color,
-         cx, cy, cz,
+         blockIndex,
          x0, y0, z0,
          x1, y1, z1,
          x2, y2, z2,
@@ -16,7 +16,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }
 
-        fluidId = fluidId | (side << 2);
+        fluidId = fluidId | (side << 2) | (blockIndex << 5);
 
         const chunkId = this.chunkDataId;
 
@@ -33,54 +33,54 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x0;
-        data[ind + 4] = cy + y0;
-        data[ind + 5] = cz + z0;
+        data[ind + 3] = x0;
+        data[ind + 4] = y0;
+        data[ind + 5] = z0;
 
         ind += 6;
 
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x1;
-        data[ind + 4] = cy + y1;
-        data[ind + 5] = cz + z1;
+        data[ind + 3] = x1;
+        data[ind + 4] = y1;
+        data[ind + 5] = z1;
 
         ind += 6;
 
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x2;
-        data[ind + 4] = cy + y2;
-        data[ind + 5] = cz + z2;
+        data[ind + 3] = x2;
+        data[ind + 4] = y2;
+        data[ind + 5] = z2;
 
         ind += 6;
 
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x0;
-        data[ind + 4] = cy + y0;
-        data[ind + 5] = cz + z0;
+        data[ind + 3] = x0;
+        data[ind + 4] = y0;
+        data[ind + 5] = z0;
 
         ind += 6;
 
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x2;
-        data[ind + 4] = cy + y2;
-        data[ind + 5] = cz + z2;
+        data[ind + 3] = x2;
+        data[ind + 4] = y2;
+        data[ind + 5] = z2;
 
         ind += 6;
 
         data[ind] = chunkId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = cx + x3;
-        data[ind + 4] = cy + y3;
-        data[ind + 5] = cz + z3;
+        data[ind + 3] = x3;
+        data[ind + 4] = y3;
+        data[ind + 5] = z3;
         // if (arg15) {
         //     console.log('old build logic');
         // }
