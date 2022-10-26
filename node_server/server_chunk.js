@@ -144,6 +144,8 @@ export class ServerChunk {
         //    this.mobGenerator = new MobGenerator(this);
         //}
         this.setState(CHUNK_STATE_NEW);
+        this.dataChunk      = null;
+        this.fluid          = null;
     }
 
     // Set chunk init state
@@ -190,12 +192,11 @@ export class ServerChunk {
                 ]
             ]);
             // Разошлем чанк игрокам, которые его запрашивали
+            this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
                 this.sendToPlayers(Array.from(this.preq.keys()));
                 this.preq.clear();
             }
-
-            this._preloadFluidBuf = fluid;
         };
 
         const loadCMPromise = new Promise((resolve, reject) => {
@@ -370,7 +371,14 @@ export class ServerChunk {
         if(args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
         }
+        if(this._preloadFluidBuf) {
+            // now its stored in fluid facet
+            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
+            this._preloadFluidBuf = null;
+        }
+        chunkManager.dataWorld.syncOuter(this);
         //
+        this.testing = 1;
         this.randomTickingBlockCount = 0;
         for(let i = 0; i < this.tblocks.id.length; i++) {
             const block_id = this.tblocks.id[i];
@@ -385,15 +393,7 @@ export class ServerChunk {
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
         }
-        let _preloadFluidBuf = this._preloadFluidBuf;
-        if(this._preloadFluidBuf) {
-            // now its stored in fluid facet
-            this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
-            this._preloadFluidBuf = null;
-        }
-        if(this.load_state === CHUNK_STATE_UNLOADED) {
-            return;
-        }
+        this.fluid.queue.init();
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Scan ticking blocks
         this.scanTickingBlocks(args.ticking_blocks);
@@ -720,8 +720,12 @@ export class ServerChunk {
         if (!chunkManager) {
             return;
         }
-        chunkManager.dataWorld.removeChunk(this);
         this.setState(CHUNK_STATE_UNLOADED);
+        if (this.dataChunk) {
+            await this.world.db.fluid.flushChunk(this);
+            chunkManager.dataWorld.removeChunk(this);
+        }
+
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {

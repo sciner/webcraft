@@ -334,6 +334,22 @@
             }
         },
         {
+            "id": 797,
+            "name": "KELP",
+            "sound": "madcraft:block.grass",
+            "style": "planting",
+            "transparent": true,
+            "texture_animations": {
+                "side": null
+            },
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "./textures/kelp_plant.png"
+            }
+        },
+        {
             "id": -1,
             "name": "DUMMY",
             "spawnable": false,
@@ -388,6 +404,7 @@
             "drop_item": {"name": "DIRT", "count": 1, "chance": 1},
             "tags": [
                 "mask_biome",
+                "random_rotate_up",
                 "dirt"
             ],
             "random_ticker": "grass_block",
@@ -1108,6 +1125,9 @@
             "material": {
                 "id": "sand"
             },
+            "tags": [
+                "random_rotate_up"
+            ],
             "texture": "block/sand.png"
         },
         {
@@ -1813,6 +1833,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1827,6 +1850,9 @@
                 "down":  "block/dirt.png",
                 "side": "block/dirt.png"
             },
+            "tags": [
+                "is_solid_for_fluid"
+            ],
             "material": {
                 "id": "dirt"
             }
@@ -1904,6 +1930,7 @@
             },
             "tags": [
                 "layering",
+                "is_solid_for_fluid",
                 "no_drop_ao"
             ]
         },
@@ -2706,6 +2733,8 @@
                 "id": "dirt"
             },
             "tags": [
+                "random_rotate_up",
+                "is_solid_for_fluid",
                 "dirt"
             ],
             "texture": {
@@ -4015,7 +4044,7 @@
             },
             "texture": "item/carrot.png",
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.6
             }
         },
@@ -4029,7 +4058,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "texture": "item/apple.png"
@@ -4366,7 +4395,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             },
             "texture": "item/bread.png"
@@ -5107,7 +5136,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.1
             }
         },
@@ -5122,7 +5151,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5248,7 +5277,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.3
             }
         },
@@ -5274,7 +5303,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.1
             }
         },
@@ -5289,7 +5318,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.6
             }
         },
@@ -5305,7 +5334,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -5320,7 +5349,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 6, 
+                "amount": 6,
                 "saturation": 0.8
             }
         },
@@ -5336,7 +5365,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5351,7 +5380,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -5367,7 +5396,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5382,7 +5411,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5398,7 +5427,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 3, 
+                "amount": 3,
                 "saturation": 0.3
             }
         },
@@ -5413,7 +5442,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 8, 
+                "amount": 8,
                 "saturation": 0.8
             }
         },
@@ -5467,7 +5496,7 @@
                 "id": "plant"
             },
             "food": {
-                "amount": 2, 
+                "amount": 2,
                 "saturation": 0.3
             }
         },
@@ -6906,7 +6935,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 1, 
+                "amount": 1,
                 "saturation": 0.3
             }
         },
@@ -6921,7 +6950,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 5, 
+                "amount": 5,
                 "saturation": 0.6
             }
         },
@@ -6938,7 +6967,7 @@
                 "texture": "item/sugar_cane.png"
             },
             "extra_data": {
-                "stage": 0, 
+                "stage": 0,
                 "calculated": [
                 {"type": "pos", "name": "pos"},
                 {"type": "random_int", "name": "max_height", "min_max": [2, 4]}
@@ -7007,7 +7036,8 @@
                 "set_on_water",
                 "mask_biome",
                 "doubleface",
-                "no_drop_ao"
+                "no_drop_ao",
+                "random_rotate_up"
             ],
             "texture": "block/lily_pad.png"
         },
@@ -7344,7 +7374,7 @@
                 "id": "food"
             },
             "food": {
-                "amount": 4, 
+                "amount": 4,
                 "saturation": 0.3
             },
             "effects":[

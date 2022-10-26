@@ -36,6 +36,7 @@
 - place_only_to_ceil:     Блок с таким тегом можно только подвесить на потолок
 - plank:
 - pot:
+- random_rotate_up:       Крутить верхнюю текстуру в случайном направлении
 - rotate_by_pos_n:        Можно ставить в любом направлении
 - rotate_by_pos_n_12:
 - rotate_by_pos_n_6:

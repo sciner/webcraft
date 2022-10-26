@@ -87,9 +87,6 @@ export class SchematicReader {
             if(NO_IMPORT_BLOCKS.includes(name)) {
                 return;
             }
-            if(name == 'SEAGRASS') {
-                console.log(block);
-            }
             const b = BLOCK[name];
             let new_block = null;
             if(b) {

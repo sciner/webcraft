@@ -64,6 +64,9 @@ class FakeWorld {
             return new FakeBlock(null, -1, 0, shapesEmpty);
         }
         _localPos.set(_pos.x - chunk.coord.x, _pos.y - chunk.coord.y, _pos.z - chunk.coord.z);
+        if(!chunk.tblocks) {
+            return null;
+        }
         chunk.tblocks.get(_localPos, tblock);
         const id = tblock.id;
         const fluid = tblock.fluid;

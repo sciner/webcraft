@@ -22,6 +22,7 @@ import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
+import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
 
@@ -81,6 +82,7 @@ export class ServerWorld {
         this.start_time     = performance.now();
         this.weather_update_time = 0;
         this.info.calendar  = {age: 0, day_time: 0};
+        this.rules          = new GameRule(this);
         //
         this.weather        = Weather.CLEAR;
         //
@@ -171,7 +173,7 @@ export class ServerWorld {
         const MIN_TIME_WITHOUT_RAIN = 1 * 60;
         const MAX_TIME_WITHOUT_RAIN = 1 * 2 * 60;
         const time = (Date.now() * GAME_ONE_SECOND / 60000);
-        if (!this.getGameRule('doWeatherCycle') || time < this.weather_update_time) {
+        if (!this.rules.getValue('doWeatherCycle') || time < this.weather_update_time) {
             return;
         }
         if (this.weather == Weather.CLEAR) {
@@ -235,6 +237,8 @@ export class ServerWorld {
                 await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
+            await this.chunks.fluidWorld.queue.process();
+            this.ticks_stat.add('fluid_queue');
             // 4.
             for (let [_, drop_item] of this.all_drop_items) {
                 drop_item.tick(delta);
@@ -877,102 +881,6 @@ export class ServerWorld {
             }
         }
         return resp;
-    }
-
-    // Return game rule
-    getGameRule(rule_code) {
-        switch(rule_code) {
-            case 'doDaylightCycle': {
-                return this.info.rules[rule_code] || true;
-                break;
-            }
-            case 'doWeatherCycle': {
-                return this.info.rules[rule_code] || true;
-                break;
-            }
-            case 'randomTickSpeed': {
-                return this.info.rules[rule_code] || 3;
-                break;
-            }
-            case 'difficulty': {
-                return this.info.rules[rule_code] || 1;
-                break;
-            }
-            default: {
-                throw 'error_incorrect_rule_code';
-            }
-        }
-    }
-
-
-    // Set world game rule value
-    async setGameRule(rule_code, value) {
-        //
-        function parseBoolValue(value) {
-            value = value.toLowerCase().trim();
-            if(['true', 'false'].indexOf(value) < 0) {
-                throw 'error_invalid_value_type';
-            }
-            return value == 'true';
-        }
-        // 
-        function parseIntValue(value) {
-            value = parseInt(value);
-            if (isNaN(value) || !isFinite(value)) {
-                throw 'error_invalid_value_type';
-            }
-            return value;
-        }
-        //
-        function parseIntValue(value) {
-            value = parseInt(value);
-            if (isNaN(value) || !isFinite(value)) {
-                throw 'error_invalid_value_type';
-            }
-            return value;
-        }
-        //
-        const rules = this.info.rules;
-        //
-        switch(rule_code) {
-            case 'doDaylightCycle': {
-                // /gamerule doDaylightCycle false|true
-                value = parseBoolValue(value);
-                if(value) {
-                    delete(rules.doDaylightCycleTime);
-                } else {
-                    // fix current day_time
-                    this.updateWorldCalendar();
-                    rules.doDaylightCycleTime = this.info.calendar.day_time;
-                }
-                break;
-            }
-            case 'doWeatherCycle': {
-                value = parseBoolValue(value);
-                break;
-            }
-            case 'randomTickSpeed': {
-                value = parseIntValue(value);
-                break;
-            }
-            case 'difficulty': {
-                value = parseIntValue(value);
-                break;
-            }
-            default: {
-                throw 'error_incorrect_rule_code';
-            }
-        }
-        // Apply changes if not equal with current
-        if(rules[rule_code] == value) {
-            return false;
-        }
-        rules[rule_code] = value;
-        // Save to DB and send to players
-        await this.db.saveGameRules(this.info.guid, this.info.rules);
-        this.sendUpdatedInfo();
-        this.chat.sendSystemChatMessageToSelectedPlayers(`Game rule '${rule_code}' changed to '${value}'`, this.players.keys());
-        return true;
     }
 
     /**

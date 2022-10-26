@@ -1,6 +1,7 @@
 import {ServerClient} from "../www/js/server_client.js";
-import {Vector} from "../www/js/helpers.js";
+import {DIRECTION, Vector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
+import {WorldAction} from "../www/js/world_action.js";
 
 export class ServerChat {
 
@@ -274,6 +275,48 @@ export class ServerChat {
                 // spawn
                 this.world.mobs.spawn(player, params);
                break;
+            }
+            case '/stairs': {
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
+                const pos = player.state.pos.floored();
+                const cd = BLOCK.getCardinalDirection(player.rotateDegree.clone());
+                let ax = 0, az = 0;
+                switch(cd) {
+                    case DIRECTION.WEST: {
+                        ax = 1;
+                        break;
+                    }
+                    case DIRECTION.EAST: {
+                        ax = -1;
+                        break;
+                    }
+                    case DIRECTION.SOUTH: {
+                        az = 1;
+                        break;
+                    }
+                    case DIRECTION.NORTH: {
+                        az = -1;
+                        break;
+                    }
+                }
+                const actions = new WorldAction(null, this.world, false, false);
+                const item = {id: BLOCK.STONE.id};
+                const action_id = ServerClient.BLOCK_ACTION_CREATE;
+                pos.x += 1 * ax;
+                pos.z += 1 * az;
+                for(let i = 0; i < 20; i++) {
+                    pos.x += 1 * ax;
+                    pos.z += 1 * az;
+                    actions.addBlocks([
+                        {pos: pos.clone(), item, action_id},
+                        {pos: pos.clone().addScalarSelf(1 * ax, 0, 1 * az), item, action_id}
+                    ]);
+                    pos.y++;
+                }
+                this.world.actions_queue.add(null, actions);
+                break;
             }
             case '/clear':
             default: {

@@ -5,7 +5,7 @@ export class WebGLMaterial extends BaseMaterial {
     constructor(context, options) {
         super(context, options);
 
-        this._dirty = true;;
+        this._dirty = true;
     }
 
     changeLighTex(tex) {
@@ -48,6 +48,9 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
         } else {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
+        }
+        if (!this.opaque && this.shader.fluidFlags) {
+            gl.depthMask(false);
         }
         if (this.ignoreDepth) {
             gl.disable(gl.DEPTH_TEST);
@@ -110,6 +113,9 @@ export class WebGLMaterial extends BaseMaterial {
         const { gl } = this.context;
         if (!this.cullFace) {
             gl.enable(gl.CULL_FACE);
+        }
+        if (!this.opaque && this.shader.fluidFlags) {
+            gl.depthMask(true);
         }
         if (this.ignoreDepth) {
             gl.enable(gl.DEPTH_TEST);

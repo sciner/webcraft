@@ -19,10 +19,10 @@ export default class Chat_Gamerule {
                     if(args.length > 1) {
                         const rule_code = args[1].trim();
                         if(args.length == 3) {
-                            await world.setGameRule(rule_code, args[2]);
+                            await world.rules.setValue(rule_code, args[2]);
                             return true;
                         } else if(args.length == 2) {
-                            const value = world.getGameRule(rule_code);
+                            const value = world.rules.getValue(rule_code);
                             world.chat.sendSystemChatMessageToSelectedPlayers(`Gamerule ${rule_code} is currently set to: ${value}`, [player.session.user_id]);
                             return true;
                         }

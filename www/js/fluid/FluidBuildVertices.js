@@ -27,8 +27,7 @@ class FluidMaterial {
         }
 
         this.material_key = block.resource_pack.id + '/'
-            + (block.transparent ? 'doubleface_transparent': 'doubleface') + '/fluid/'
-            + texture_id;
+            + block.group + '/fluid/' + texture_id;
     }
 }
 
@@ -185,6 +184,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
         initFluidMaterials();
     }
 
+    const eps = -0.01;
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
@@ -236,6 +236,22 @@ export function buildFluidVertices(mesher, fluidChunk) {
 
                 let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
+
+                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
+                    x0 += eps;
+                }
+                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
+                    x1 -= eps;
+                }
+                if (hasNeib[SIMPLE_DIRECTION.SOUTH]) {
+                    z0 += eps;
+                }
+                if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
+                    z1 += eps;
+                }
+                if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
+                    y0 += eps;
+                }
 
                 let h00 = 1, h10 = 1, h11 = 1, h01 = 1;
 

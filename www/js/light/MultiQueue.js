@@ -1,6 +1,11 @@
 class QueuePage {
-    constructor(size) {
+    constructor(size, bytesPerElement = 4) {
         this.size = size;
+        if (bytesPerElement === 4) {
+            this.arr = new Uint32Array(size);
+        } else {
+            this.arr = new Uint16Array(size);
+        }
         this.arr = new Uint32Array(size);
         this.clear();
     }
@@ -12,16 +17,17 @@ class QueuePage {
 }
 
 export class QueuePagePool {
-    constructor({pageSize}) {
+    constructor({pageSize, bytesPerElement = 4}) {
         this.pageSize = pageSize;
         this.pages = [];
         this.freePageStack = [];
         this.freePageCount = 0;
+        this.bytesPerElement = bytesPerElement;
     }
 
     alloc() {
         if (this.freePageCount === 0) {
-            this.pages.push(new QueuePage(this.pageSize));
+            this.pages.push(new QueuePage(this.pageSize, this.bytesPerElement));
             this.freePageStack.push(null);
             this.freePageStack[0] = this.pages[this.pages.length - 1];
             this.freePageCount++;
@@ -45,7 +51,19 @@ export class SingleQueue {
 
     clear() {
         this.priority = 0;
-        //TODO: proper clear if head or tails isnt null
+        while (this.head) {
+            this.freeHeadPage();
+        }
+    }
+
+    countPages() {
+        let res = 0;
+        let test = this.head;
+        while (test) {
+            res++;
+            test = test.next;
+        }
+        return 0;
     }
 
     push(value) {
@@ -56,6 +74,9 @@ export class SingleQueue {
         }
 
         const newPage = this.pagePool.alloc();
+        if (newPage.next) {
+            console.log("WTFWTFWTF");
+        }
         newPage.arr[newPage.finish++] = value;
         if (curPage) {
             curPage.next = newPage;

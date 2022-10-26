@@ -158,25 +158,6 @@ export default class style {
             const vg = worker.drop_item_meshes[block.extra_data.item.id];
 
             const scale = 0.3;
-            const depth = 0.3;
-
-            const matRotate = mat4.create();
-            matRotate[0] = matrix[0] * scale;
-            matRotate[1] = matrix[2] * scale;
-            matRotate[2] = -matrix[1] * depth;
-
-            matRotate[4] = matrix[4] * scale;
-            matRotate[5] = matrix[6] * scale;
-            matRotate[6] = -matrix[5] * depth;
-
-            matRotate[8] = matrix[8] * scale;
-            matRotate[9] = matrix[10] * scale;
-            matRotate[10] = -matrix[9] * depth;
-
-            // old version compatibility
-            if(!('rot' in block.extra_data)) {
-                block.extra_data.rot = 0;
-            }
 
             // old version compatibility
             if(!('rot' in block.extra_data)) {
@@ -184,18 +165,27 @@ export default class style {
             }
 
             // Rotate item in frame
-            const angle = Math.PI / 4 * block.extra_data.rot + Math.PI;
-            const rot = [0, 0, 0];
+            const matRotate = mat4.create();
+
+            // rotate item inside frame
+            mat4.rotate(matRotate, matRotate, Math.PI / 4 * block.extra_data.rot + Math.PI, [0, 0, 1]);
+            mat4.rotate(matRotate, matRotate, Math.PI, [1, 0, 0]);
+            mat4.scale(matRotate, matRotate, [scale, scale, scale]);
+
             if(rotate.y == 0) {
-                if(rotate.x == CubeSym.ROT_X) rot[2] = 1;
-                if(rotate.x == 18) rot[2] = -1;
-                if(rotate.x == 22) rot[0] = 1;
-                if(rotate.x == 13) rot[0] = -1;
+                let angle = 0;
+                if(rotate.x == 7) angle = Math.PI / 2 * 2;
+                if(rotate.x == 18) angle = Math.PI / 2 * 0;
+                if(rotate.x == 22) angle = Math.PI / 2 * 1;
+                if(rotate.x == 13) angle = Math.PI / 2 * 3;
+                mat4.rotate(matRotate, matRotate, angle, [0, 1, 0]);
             } else {
-                rot[1] = -1 * rotate.y;
+                mat4.rotate(matRotate, matRotate, Math.PI/2, [1, 0, 0]);
+                if(rotate.y == -1) {
+                    mat4.rotate(matRotate, matRotate, Math.PI, [0, 0, 1]);
+                }
             }
-            mat4.rotate(matRotate, matRotate, angle, rot);
-            mat4.rotate(matRotate, matRotate, Math.PI, [0, 1, 0]);
+
             const mesh = new DropItemVertices(block.extra_data.item.id, block.extra_data, new Vector(x, y, z), rotate, matRotate, vg.vertices);
             return [mesh];
         }
