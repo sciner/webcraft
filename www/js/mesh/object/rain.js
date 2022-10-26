@@ -197,7 +197,7 @@ export default class Mesh_Object_Rain {
         let cx = 0, cy = 0, cz = 0, cw = 0;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
-                for(let k = 0; k < RAIN_HEIGHT; k++) {
+                for(let k = 0; k <= RAIN_HEIGHT; k++) {
                     vec.copyFrom(this.#_player_block_pos);
                     vec.addScalarSelf(i, -vec.y, j);
                     block_pos.set(pos.x + i, RAIN_START_Y - k, pos.z + j);
