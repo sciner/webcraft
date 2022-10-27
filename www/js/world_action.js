@@ -1894,7 +1894,6 @@ async function useShears(e, world, pos, player, world_block, world_material, mat
     if(current_inventory_item.id != BLOCK.SHEARS.id || extra_data?.sheared) {
         return false;
     }
-    console.log(current_inventory_item);
     const position = new Vector(pos);
     if (world_material.tags.includes('leaves')) {
         actions.addBlocks([{pos: position, item: {id: world_material.id, extra_data: { sheared: true }}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
