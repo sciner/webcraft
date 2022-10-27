@@ -1344,6 +1344,7 @@
             "style": "extruder",
             "diagonal": true,
             "item": {"name": "instrument", "instrument_id": "shears"},
+            "power": 200,
             "material": {
                 "id": "iron"
             },

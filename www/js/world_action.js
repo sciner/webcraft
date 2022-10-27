@@ -1891,12 +1891,14 @@ async function restrictTorch(e, world, pos, player, world_block, world_material,
 
 // use shears
 async function useShears(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(current_inventory_item.id != BLOCK.SHEARS.id) {
+    if(current_inventory_item.id != BLOCK.SHEARS.id || extra_data?.sheared) {
         return false;
     }
+    console.log(current_inventory_item);
     const position = new Vector(pos);
     if (world_material.tags.includes('leaves')) {
-       actions.addBlocks([{pos: position, item: {id: world_material.id, extra_data: { sheared: true }}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: position, item: {id: world_material.id, extra_data: { sheared: true }}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.decrement_instrument = {id: current_inventory_item.id};
     }
     return false;
 }
