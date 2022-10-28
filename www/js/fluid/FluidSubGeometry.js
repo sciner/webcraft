@@ -16,9 +16,9 @@ export class FluidSubGeometry extends Worker05SubGeometry {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }
 
-        fluidId = fluidId | (side << 2) | (blockIndex << 5);
+        fluidId = fluidId | (side << 2);
 
-        const chunkId = this.chunkDataId;
+        const blockId = (this.chunkDataId << 16) | blockIndex;
 
         const data = this.lastPage.data, uint32Data = this.lastPage.uint32Data;
         let ind = (this.lastPage.filled++) * FluidMultiGeometry.strideFloats;
@@ -30,7 +30,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         // gl.vertexAttribPointer(attribs.a_uv, 2, gl.FLOAT, false, stride, 5 * 4);
         // gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 7 * 4);
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x0;
@@ -39,7 +39,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
 
         ind += 6;
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x1;
@@ -48,7 +48,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
 
         ind += 6;
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x2;
@@ -57,7 +57,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
 
         ind += 6;
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x0;
@@ -66,7 +66,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
 
         ind += 6;
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x2;
@@ -75,7 +75,7 @@ export class FluidSubGeometry extends Worker05SubGeometry {
 
         ind += 6;
 
-        data[ind] = chunkId;
+        uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
         data[ind + 3] = x3;

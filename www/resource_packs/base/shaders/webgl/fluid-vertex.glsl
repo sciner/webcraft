@@ -9,7 +9,7 @@ uniform int u_fluidFlags[2];
 uniform vec4 u_fluidUV[2];
 uniform int u_fluidFrames[2];
 
-in float a_chunkId;
+in uint a_blockId;
 in uint a_fluidId;
 in vec3 a_position;
 in uint a_color;
@@ -34,9 +34,26 @@ out float v_noCanTakeLight;
 out float v_flagMultiplyColor;
 
 void main() {
+
+// blockId pass start
+    ivec4 chunkData0 = ivec4(0, 0, 0, 0);
+    ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
+    int chunkId = int(a_blockId >> 16);
+    int size = textureSize(u_chunkDataSampler, 0).x;
+    int dataX = chunkId * 2 % size;
+    int dataY = (chunkId * 2 - dataX) / size;
+    chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
+    chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
+
+    ivec3 lightRegionSize = chunkData1.xyz >> 16;
+    ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
+    v_lightOffset.xyz = vec3(lightRegionOffset);
+    v_lightOffset.w = float(lightRegionSize.z);
+    v_lightId = float(chunkData1.w);
+
     uint fluidId = a_fluidId & uint(3);
     int fluidSide = int(a_fluidId >> 2) & 7;
-    int blockIndex = int(a_fluidId >> 5);
+    int blockIndex = int(a_blockId) & 0xffff;
     // TODO: write chunk size somewhere, not related to light!
     vec3 blockPos = vec3(
         float(blockIndex % 18) - 1.0,
@@ -93,9 +110,8 @@ void main() {
     }
 
     v_chunk_pos = a_position + blockPos;
-    v_world_pos = v_chunk_pos + u_add_pos;
+
+    v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
-
-    #include<ao_light_pass_vertex>
 }
