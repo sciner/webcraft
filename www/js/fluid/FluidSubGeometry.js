@@ -60,24 +60,6 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = x0;
-        data[ind + 4] = y0;
-        data[ind + 5] = z0;
-
-        ind += 6;
-
-        uint32Data[ind] = blockId;
-        uint32Data[ind + 1] = fluidId;
-        uint32Data[ind + 2] = color;
-        data[ind + 3] = x2;
-        data[ind + 4] = y2;
-        data[ind + 5] = z2;
-
-        ind += 6;
-
-        uint32Data[ind] = blockId;
-        uint32Data[ind + 1] = fluidId;
-        uint32Data[ind + 2] = color;
         data[ind + 3] = x3;
         data[ind + 4] = y3;
         data[ind + 5] = z3;
