@@ -198,6 +198,7 @@
             "sound": "madcraft:block.wood",
             "style": "fire",
             "spawnable": false,
+            "mining_time": 0,
             "material": {
                 "id": "wood"
             },
