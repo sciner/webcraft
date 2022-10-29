@@ -4,7 +4,7 @@ import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
 export class FluidGeometryPool extends Basic05GeometryPool {
     constructor(context, {
         pageSize = 256,
-        pageCount = 1000,
+        pageCount = 100,
         growCoeff = 1.5,
     }) {
         super(context, {pageSize, pageCount, growCoeff});
