@@ -15,11 +15,13 @@ export class BaseMultiGeometry {
         this.context = context;
         this.size = size;
         this.data = new Float32Array(size * this.strideFloats);
+        this.indexData = null;
         /**
          *
          * @type {BaseBuffer}
          */
         this.buffer = null;
+        this.indexBuffer = null;
         /**
          *
          * @type {BaseBuffer}
@@ -67,6 +69,7 @@ export class BaseMultiGeometry {
             }
         }
 
+
         const {gl} = this;
 
         if (gl) {
@@ -92,11 +95,15 @@ export class BaseMultiGeometry {
             this.buffer.multiUpdate(updates);
             updates.length = 0;
         }
+        if (this.indexBuffer) {
+            this.indexBuffer.bind();
+        }
     }
 
     resize(newSize) {
         this.size = newSize;
         this.updates.length = 0;
+        this.updateID++;
         const oldData = this.data;
         this.data = new Float32Array(newSize * this.strideFloats);
         this.data.set(oldData, 0);
