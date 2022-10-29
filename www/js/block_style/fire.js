@@ -91,7 +91,7 @@ export default class style {
         }
         const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);
-        const lm = IndexedColor.WHITE;
+        const lm = IndexedColor.WHITE.clone();
         lm.b = BLOCK.getAnimations(material, "west");
         for(const plane of planes) {
             default_style.pushPlane(vertices, {
