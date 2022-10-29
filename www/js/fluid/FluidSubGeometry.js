@@ -7,16 +7,12 @@ export class FluidSubGeometry extends Worker05SubGeometry {
     }
 
     push(fluidId, side, color,
-         blockIndex,
-         x0, y0, z0,
-         x1, y1, z1,
-         x2, y2, z2,
-         x3, y3, z3,/*, arg15*/) {
+         blockIndex, epsShift, y0, y1, y2, y3,/*, arg15*/) {
         if (!this.lastPage || this.lastPage.filled === this.lastPage.sizeQuads) {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }
 
-        fluidId = fluidId | (side << 2);
+        fluidId = fluidId | (side << 2) | (epsShift << 5);
 
         const blockId = (this.chunkDataId << 16) | blockIndex;
 
@@ -33,36 +29,28 @@ export class FluidSubGeometry extends Worker05SubGeometry {
         uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = x0;
-        data[ind + 4] = y0;
-        data[ind + 5] = z0;
+        data[ind + 3] = y0;
 
-        ind += 6;
+        ind += 4;
 
         uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = x1;
-        data[ind + 4] = y1;
-        data[ind + 5] = z1;
+        data[ind + 3] = y1;
 
-        ind += 6;
+        ind += 4;
 
         uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = x2;
-        data[ind + 4] = y2;
-        data[ind + 5] = z2;
+        data[ind + 3] = y2;
 
-        ind += 6;
+        ind += 4;
 
         uint32Data[ind] = blockId;
         uint32Data[ind + 1] = fluidId;
         uint32Data[ind + 2] = color;
-        data[ind + 3] = x3;
-        data[ind + 4] = y3;
-        data[ind + 5] = z3;
+        data[ind + 3] = y3;
         // if (arg15) {
         //     console.log('old build logic');
         // }

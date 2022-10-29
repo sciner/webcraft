@@ -32,7 +32,7 @@ export class WebGLFluidShader extends WebGLTerrainShader {
 
         this.a_blockId       = gl.getAttribLocation(program, 'a_blockId');
         this.a_fluidId       = gl.getAttribLocation(program, 'a_fluidId');
-        this.a_position      = gl.getAttribLocation(program, 'a_position');
+        this.a_height        = gl.getAttribLocation(program, 'a_height');
         this.a_color         = gl.getAttribLocation(program, 'a_color');
     }
 

@@ -11,7 +11,7 @@ uniform int u_fluidFrames[2];
 
 in uint a_blockId;
 in uint a_fluidId;
-in vec3 a_position;
+in float a_height;
 in uint a_color;
 
 // please, replace all out with v_
@@ -67,8 +67,8 @@ const vec3 cubeVert[24] = vec3[24] (
 );
 
 const vec3 cubeNorm[6] = vec3[6] (
-    vec3(0.0, 0.0, -1.0),
     vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 0.0, -1.0),
     vec3(0.0, -1.0, 0.0),
     vec3(0.0, 1.0, 0.0),
     vec3(1.0, 0.0, 0.0),
@@ -95,6 +95,7 @@ void main() {
 
     uint fluidId = a_fluidId & uint(3);
     int cubeSide = int(a_fluidId >> 2) & 7;
+    int epsShift = int(a_fluidId >> 5) & 63;
     int blockIndex = int(a_blockId) & 0xffff;
     // TODO: write chunk size somewhere, not related to light!
     vec3 blockPos = vec3(
@@ -131,20 +132,33 @@ void main() {
         v_fluidAnim.z = float((i + 1) % frames) * u_fluidUV[fluidId].y;
         v_fluidAnim.w = fract(t);
     }
+
+    vec3 subPos = cubeVert[cubeSide * 4 + gl_VertexID % 4];
+    subPos.z = a_height;
+
+    if (epsShift > 0) {
+        for (int i = 0; i < 6; i++) {
+            // EPS correction
+            if ((epsShift & (1 << i)) > 0 && dot(subPos - vec3(0.1), cubeNorm[i]) > 0.0) {
+                subPos += cubeNorm[i] * 0.01;
+            }
+        }
+    }
+
     v_normal = cubeNorm[cubeSide];
     if (cubeSide == 2 || cubeSide == 3) {
-        v_texcoord0 = a_position.xz;
+        v_texcoord0 = subPos.xz;
     } else if (cubeSide == 4 || cubeSide == 5) {
-        v_texcoord0 = a_position.yz;
+        v_texcoord0 = subPos.yz;
     } else {
-        v_texcoord0 = a_position.xy;
+        v_texcoord0 = subPos.xy;
     }
     // Scrolled textures
     if (flagScroll > 0 || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
-    v_chunk_pos = blockPos + vec3(cubeVert[cubeSide * 4 + gl_VertexID % 4].xy, a_position.z);
+    v_chunk_pos = blockPos + subPos;
 
     v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
