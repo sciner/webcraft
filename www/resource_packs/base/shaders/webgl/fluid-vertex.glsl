@@ -9,10 +9,9 @@ uniform int u_fluidFlags[2];
 uniform vec4 u_fluidUV[2];
 uniform int u_fluidFrames[2];
 
-in float a_chunkId;
+in uint a_blockId;
 in uint a_fluidId;
-in vec3 a_position;
-in vec2 a_uv;
+in float a_height;
 in uint a_color;
 
 // please, replace all out with v_
@@ -34,9 +33,76 @@ out float v_noCanTakeAO;
 out float v_noCanTakeLight;
 out float v_flagMultiplyColor;
 
+const vec3 cubeVert[24] = vec3[24] (
+// up
+    vec3(0.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(0.0, 0.0, 0.0),
+// down
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 0.0),
+    // south
+    vec3(0.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 0.0),
+    // north
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    // east
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    // west
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0)
+);
+
+const vec3 cubeNorm[6] = vec3[6] (
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 0.0, -1.0),
+    vec3(0.0, -1.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(-1.0, 0.0, 0.0)
+);
+
 void main() {
+// gl_VertexID
+// blockId pass start
+    ivec4 chunkData0 = ivec4(0, 0, 0, 0);
+    ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
+    int chunkId = int(a_blockId >> 16);
+    int size = textureSize(u_chunkDataSampler, 0).x;
+    int dataX = chunkId * 2 % size;
+    int dataY = (chunkId * 2 - dataX) / size;
+    chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
+    chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
+
+    ivec3 lightRegionSize = chunkData1.xyz >> 16;
+    ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;
+    v_lightOffset.xyz = vec3(lightRegionOffset);
+    v_lightOffset.w = float(lightRegionSize.z);
+    v_lightId = float(chunkData1.w);
+
     uint fluidId = a_fluidId & uint(3);
-    int fluidSide = int(a_fluidId >> 2);
+    int cubeSide = int(a_fluidId >> 2) & 7;
+    int epsShift = int(a_fluidId >> 5) & 63;
+    int blockIndex = int(a_blockId) & 0xffff;
+    // TODO: write chunk size somewhere, not related to light!
+    vec3 blockPos = vec3(
+        float(blockIndex % 18) - 1.0,
+        float((blockIndex / 18) % 18) - 1.0,
+        float(blockIndex / (18 * 18)) - 1.0
+    );
 
     int flags = u_fluidFlags[fluidId];
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
@@ -67,26 +133,34 @@ void main() {
         v_fluidAnim.w = fract(t);
     }
 
-    if (fluidSide == 2 || fluidSide == 3) {
-        v_normal = vec3(0.0, 1.0, 0.0);
-    } else if (fluidSide == 4 || fluidSide == 5) {
-        v_normal = vec3(1.0, 0.0, 0.0);
-    } else if (fluidSide == 1) {
-        v_normal = vec3(0.0, 0.0, -1.0);
-    } else {
-        v_normal = vec3(0.0, 0.0, 1.0);
+    vec3 subPos = cubeVert[cubeSide * 4 + gl_VertexID % 4];
+    subPos.z = a_height;
+
+    if (epsShift > 0) {
+        for (int i = 0; i < 6; i++) {
+            // EPS correction
+            if ((epsShift & (1 << i)) > 0 && dot(subPos - vec3(0.1), cubeNorm[i]) > 0.0) {
+                subPos += cubeNorm[i] * 0.01;
+            }
+        }
     }
 
-    v_texcoord0 = a_uv;
+    v_normal = cubeNorm[cubeSide];
+    if (cubeSide == 2 || cubeSide == 3) {
+        v_texcoord0 = subPos.xz;
+    } else if (cubeSide == 4 || cubeSide == 5) {
+        v_texcoord0 = subPos.yz;
+    } else {
+        v_texcoord0 = subPos.xy;
+    }
     // Scrolled textures
     if (flagScroll > 0 || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
-    v_chunk_pos = a_position;
-    v_world_pos = v_chunk_pos + u_add_pos;
+    v_chunk_pos = blockPos + subPos;
+
+    v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
-
-    #include<ao_light_pass_vertex>
 }
