@@ -296,28 +296,6 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     );
                 }
                 clr += (1 << 20); // flowing liquid, scroll
-                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
-                    //U=Z, V=Y
-                    quads++;
-                    geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
-                        index,
-                        x0, z1, h01,
-                        x0, z0, h00,
-                        x0, z0, y0,
-                        x0, z1, y0,
-                    );
-                }
-                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
-                    quads++;
-                    //U=Z, V=Y
-                    geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
-                        index,
-                        x1, z0, h10,
-                        x1, z1, h11,
-                        x1, z1, y0,
-                        x1, z0, y0,
-                    );
-                }
                 if (hasNeib[SIMPLE_DIRECTION.SOUTH]) {
                     //U=Z, V=Y
                     quads++;
@@ -338,6 +316,28 @@ export function buildFluidVertices(mesher, fluidChunk) {
                         x0, z1, h01,
                         x0, z1, y0,
                         x1, z1, y0,
+                    );
+                }
+                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
+                    quads++;
+                    //U=Z, V=Y
+                    geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
+                        index,
+                        x1, z0, h10,
+                        x1, z1, h11,
+                        x1, z1, y0,
+                        x1, z0, y0,
+                    );
+                }
+                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
+                    //U=Z, V=Y
+                    quads++;
+                    geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
+                        index,
+                        x0, z1, h01,
+                        x0, z0, h00,
+                        x0, z0, y0,
+                        x0, z1, y0,
                     );
                 }
             }

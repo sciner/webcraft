@@ -33,8 +33,50 @@ out float v_noCanTakeAO;
 out float v_noCanTakeLight;
 out float v_flagMultiplyColor;
 
-void main() {
+const vec3 cubeVert[24] = vec3[24] (
+// up
+    vec3(0.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(0.0, 0.0, 0.0),
+// down
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 0.0),
+    // south
+    vec3(0.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 0.0, 0.0),
+    // north
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 1.0, 0.0),
+    // east
+    vec3(1.0, 0.0, 1.0),
+    vec3(1.0, 1.0, 1.0),
+    vec3(1.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    // west
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0)
+);
 
+const vec3 cubeNorm[6] = vec3[6] (
+    vec3(0.0, 0.0, -1.0),
+    vec3(0.0, 0.0, 1.0),
+    vec3(0.0, -1.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(1.0, 0.0, 0.0),
+    vec3(-1.0, 0.0, 0.0)
+);
+
+void main() {
+// gl_VertexID
 // blockId pass start
     ivec4 chunkData0 = ivec4(0, 0, 0, 0);
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
@@ -52,7 +94,7 @@ void main() {
     v_lightId = float(chunkData1.w);
 
     uint fluidId = a_fluidId & uint(3);
-    int fluidSide = int(a_fluidId >> 2) & 7;
+    int cubeSide = int(a_fluidId >> 2) & 7;
     int blockIndex = int(a_blockId) & 0xffff;
     // TODO: write chunk size somewhere, not related to light!
     vec3 blockPos = vec3(
@@ -89,27 +131,20 @@ void main() {
         v_fluidAnim.z = float((i + 1) % frames) * u_fluidUV[fluidId].y;
         v_fluidAnim.w = fract(t);
     }
-
-    if (fluidSide == 2 || fluidSide == 3) {
-        v_normal = vec3(0.0, 1.0, 0.0);
+    v_normal = cubeNorm[cubeSide];
+    if (cubeSide == 2 || cubeSide == 3) {
         v_texcoord0 = a_position.xz;
-    } else if (fluidSide == 4 || fluidSide == 5) {
-        v_normal = vec3(1.0, 0.0, 0.0);
+    } else if (cubeSide == 4 || cubeSide == 5) {
         v_texcoord0 = a_position.yz;
-    } else if (fluidSide == 1) {
-        v_normal = vec3(0.0, 0.0, -1.0);
-        v_texcoord0 = a_position.xy;
     } else {
-        v_normal = vec3(0.0, 0.0, 1.0);
         v_texcoord0 = a_position.xy;
     }
-
     // Scrolled textures
     if (flagScroll > 0 || v_color.b > 0.0) {
         v_texcoord0.y += mod(u_time / 1000.0, 1.0);
     }
 
-    v_chunk_pos = a_position + blockPos;
+    v_chunk_pos = blockPos + vec3(cubeVert[cubeSide * 4 + gl_VertexID % 4].xy, a_position.z);
 
     v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
