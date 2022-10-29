@@ -83,11 +83,9 @@ export default class packet_reader {
                     console.error(`player patch blocks '${player.session.username}'`);
                 }
             }
-            world.actions_queue.add(player, actions);
-        }
-        if(packet.data.destroyBlock == true) {
-            player.state.stats.pickat++;
-            player.addExhaustion(0.005);
+            if (player.isMiningComplete(packet.data)) {
+                world.actions_queue.add(player, actions);
+            }
         }
         return true;
     }

@@ -15,6 +15,7 @@ import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
+import { Effect } from "../www/js/block_type/effect.js";
 
 export class NetworkMessage {
     constructor({
@@ -77,6 +78,7 @@ export class ServerPlayer extends Player {
         };
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
+        this.mining_time_old        = 0; // время последнего разрушения блока
     }
 
     init(init_info) {
@@ -670,6 +672,32 @@ export class ServerPlayer extends Player {
             return this.ender_chest;
         }
         return this.ender_chest = await this.world.db.loadEnderChest(this);
+    }
+    
+    /**
+     * Return ender chest content
+     * @returns 
+     */
+    isMiningComplete(data) {
+        if (!data.destroyBlock || this.game_mode.isCreative()) {
+            return true;
+        }
+        const world_block = this.world.getBlock(new Vector(data.pos));
+        const block = BLOCK.fromId(world_block.id);
+        const instrument = BLOCK.fromId(this.state.hands.right.id);
+        let mul = 1;
+        mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+        mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
+        const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
+        const mining_time_client = performance.now() - this.mining_time_old; 
+        this.mining_time_old = performance.now();
+        this.addExhaustion(0.005); // @todo оставить тут, если применен нюкер, как наказание смерть от усталости
+        console.log(' mining_time_server: ' + mining_time_server +' mining_time_client: ' + mining_time_client + ' lat: ' + (mining_time_client - mining_time_server * 1000));
+        if ((mining_time_client - mining_time_server * 1000) >= -50) {
+            this.state.stats.pickat++;
+            return true;
+        }
+        return false;
     }
 
 }

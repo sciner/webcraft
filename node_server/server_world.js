@@ -146,6 +146,7 @@ export class ServerWorld {
                             // не спавним рядом с игроком
                             const players = this.getPlayersNear(spawn_pos, 8);
                             if (players.length == 0) {
+                                spawn_pos.addSelf(new Vectro(0.5, 0.5, 0.5));
                                 const params = {
                                     type:       'zombie',
                                     skin:       'base',
