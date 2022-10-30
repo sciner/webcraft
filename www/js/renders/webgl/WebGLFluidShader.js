@@ -30,12 +30,10 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         const { program } = this;
         const { gl } = this.context;
 
-        this.a_chunkId       = gl.getAttribLocation(program, 'a_chunkId');
+        this.a_blockId       = gl.getAttribLocation(program, 'a_blockId');
         this.a_fluidId       = gl.getAttribLocation(program, 'a_fluidId');
-        this.a_position      = gl.getAttribLocation(program, 'a_position');
-        this.a_uv            = gl.getAttribLocation(program, 'a_uv');
+        this.a_height        = gl.getAttribLocation(program, 'a_height');
         this.a_color         = gl.getAttribLocation(program, 'a_color');
-        this.a_flags         = gl.getAttribLocation(program, 'a_flags');
     }
 
     resetMatUniforms() {

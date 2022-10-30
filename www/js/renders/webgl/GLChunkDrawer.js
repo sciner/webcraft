@@ -106,23 +106,48 @@ export class GLChunkDrawer extends ChunkDrawer {
             }
         } else {
             // multi draw arrays
-            for (let j = 0; j < sz; j++) {
-                offsets[j] *= baseGeom.vertexPerInstance;
-                counts[j] *= baseGeom.vertexPerInstance;
+            if (baseGeom.indexBuffer) {
+                for (let j = 0; j < sz; j++) {
+                    offsets[j] *= baseGeom.indexPerInstance * 4;
+                    counts[j] *= baseGeom.indexPerInstance;
+                }
+            } else {
+                for (let j = 0; j < sz; j++) {
+                    offsets[j] *= baseGeom.vertexPerInstance;
+                    counts[j] *= baseGeom.vertexPerInstance;
+                }
             }
+
             if (md) {
-                md.multiDrawArraysWEBGL(
-                    gl.TRIANGLES,
-                    offsets, 0,
-                    counts, 0,
-                    sz,
-                );
+                if (baseGeom.indexBuffer) {
+                    md.multiDrawElementsWEBGL(
+                        gl.TRIANGLES,
+                        counts, 0,
+                        gl.UNSIGNED_INT,
+                        offsets, 0,
+                        sz,
+                    );
+                } else {
+                    md.multiDrawArraysWEBGL(
+                        gl.TRIANGLES,
+                        offsets, 0,
+                        counts, 0,
+                        sz,
+                    );
+                }
                 context.stat.multidrawcalls++;
             } else {
-                for (let i = 0; i < sz; i++) {
-                    gl.drawArrays(gl.TRIANGLES, offsets[i], counts[i]);
+                if (baseGeom.indexBuffer) {
+                    for (let i = 0; i < sz; i++) {
+                        gl.drawElements(gl.TRIANGLES, counts[i], gl.UNSIGNED_INT, offsets[i]);
+                        context.stat.drawcalls++;
+                    }
+                } else {
+                    for (let i = 0; i < sz; i++) {
+                        gl.drawArrays(gl.TRIANGLES, offsets[i], counts[i]);
+                        context.stat.drawcalls++;
+                    }
                 }
-                context.stat.drawcalls++;
             }
         }
     }

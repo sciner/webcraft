@@ -115,7 +115,7 @@ export class FluidWorld {
             } else {
                 const above = chunk.fluid.uint16View[ind + cy];
                 // same as mc_getHeight. almost.
-                lvl = ((fluid16 & FLUID_TYPE_MASK) === (above & FLUID_TYPE_MASK)) ? 1.0 : (8.0 - (neib & 7)) / 9.0;
+                lvl = ((fluid16 & FLUID_TYPE_MASK) === (above & FLUID_TYPE_MASK)) ? 1.0 : (8.0 - (fluid16 & 7)) / 9.0;
             }
         }
         return lvl + y;

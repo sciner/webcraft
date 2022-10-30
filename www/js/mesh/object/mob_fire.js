@@ -30,7 +30,8 @@ export class Mesh_Object_MobFire {
         const texture       = material.texture;
         const c_fire        = BLOCK.calcTexture(texture, DIRECTION.EAST);
         const flags         = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.FLAG_ANIMATED; // | QUAD_FLAGS.LOOK_AT_CAMERA_HOR;
-        const lm            = IndexedColor.WHITE;
+        const lm = IndexedColor.WHITE.clone();
+        lm.b = BLOCK.getAnimations(material, "west");
 
         this.gl_material = material.resource_pack.getMaterial(material.material_key);
 
