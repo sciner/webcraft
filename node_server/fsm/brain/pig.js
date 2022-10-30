@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { BLOCK } from "../../../www/js/blocks.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
+import { EnumDamage } from "../../../www/js/enums/enum_damage.js";
 
 export class Brain extends FSMBrain {
 
@@ -12,83 +13,43 @@ export class Brain extends FSMBrain {
         this.lerpPos        = new Vector(mob.pos);
         this.pc             = this.createPlayerControl(this,{
             baseSpeed: 1/4,
-            playerHeight: 0.9,
+            playerHeight: 1.125,
             stepHeight: 1,
-            playerHalfWidth: .5
+            playerHalfWidth: .45
         });
-
-        this.widtn = 0.6;
-        this.height = 1.2;
-
-        this.follow_distance = 16;
-
         this.stack.pushState(this.doStand);
+        this.health = 10; // максимальное здоровье
+        this.distance_view = 6; // дистанция на которм виден игрок
+        this.targets = [
+            BLOCK.CARROT.id,
+            BLOCK.POTATO.id,
+            BLOCK.BEETROOT.id
+        ];
     }
-
-    findTarget() {
-        if (this.target == null) {
-            const mob = this.mob;
-            const players = this.getPlayersNear(mob.pos, this.follow_distance, false);
-            let friends = [];
-            for (let player of players) {
-                if (player.state.hands.right.id == BLOCK.CARROT.id) {
-                    friends.push(player);
-                }
-            }
-            if (friends.length > 0) {
-                const rnd = (Math.random() * friends.length) | 0;
-                const player = friends[rnd];
-                this.target = player.session.user_id;
-                this.stack.replaceState(this.doCatch);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    async doCatch(delta) {
-        this.panick_timer = 0;
-
-        const mob = this.mob;
-        const player = mob.getWorld().players.get(this.target);
-        const distance = mob.pos.distance(player.state.pos);
-        if (!player || player.state.hands.right.id != BLOCK.CARROT.id || player.game_mode.isSpectator() || distance > this.follow_distance) {
-            this.target = null;
-            this.stack.replaceState(this.doStand);
-            return;
-        }
-
-        mob.rotate.z = this.angleTo(player.state.pos);
-
-        const forward = (distance > 1.5) ? true : false;
-        const block = this.getBeforeBlocks();
-        const is_water = block.body.is_fluid;
-        this.updateControl({
-            yaw: mob.rotate.z,
-            forward: forward,
-            jump: is_water
-        });
-        this.applyControl(delta);
-        this.sendState();
-    }
-
-
-    async onKill(actor, type_damage) {
+    
+    // Если убили моба
+    onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor != null) {
-            const actions = new WorldAction();
-            const rnd_count_porkchop = ((Math.random() * 2) | 0) + 1;
-
-            let drop_item = { pos: mob.pos, items: [] };
-            drop_item.items.push({ id: BLOCK.PORKCHOP.id, count: rnd_count_porkchop });
-
-            actions.addDropItem(drop_item);
-
-            actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'death', pos: mob.pos.clone() });
-
-            world.actions_queue.add(actor, actions);
-        }
+        const actions = new WorldAction();
+        const rnd_count_beef = (Math.random() * 2) | 0;
+        actions.addDropItem({ 
+            pos: mob.pos, 
+            items: [
+                {
+                    id: type_damage != EnumDamage.FIRE ? BLOCK.BEEF.id : BLOCK.COOKED_BEEF.id,
+                    count: rnd_count_beef + 1
+                }
+            ], 
+            force: true 
+        });
+        actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'death', pos: mob.pos.clone() });
+        world.actions_queue.add(actor, actions);
+    }
+    
+    // тег моба
+    getTag() {
+        return 'madcraft:block.pig';
     }
 
 }

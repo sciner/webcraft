@@ -24,6 +24,7 @@ export class WorldTickStat {
             actions_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             fluid_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
             db_fluid_save: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
+            auto_spawner: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
         };
     }
 

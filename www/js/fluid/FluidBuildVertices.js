@@ -184,7 +184,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
         initFluidMaterials();
     }
 
-    const eps = -0.01;
+    const eps = -0.01, eps_x = 0, eps_y = 0;
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
@@ -237,20 +237,11 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
 
-                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
-                    x0 += eps;
-                }
-                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
-                    x1 -= eps;
-                }
-                if (hasNeib[SIMPLE_DIRECTION.SOUTH]) {
-                    z0 += eps;
-                }
-                if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
-                    z1 += eps;
-                }
-                if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
-                    y0 += eps;
+                let epsShift = 0;
+                for (let i = 1; i < 6; i++) {
+                    if (hasNeib[i]) {
+                        epsShift |= (1 << i);
+                    }
                 }
 
                 let h00 = 1, h10 = 1, h11 = 1, h01 = 1;
@@ -276,11 +267,8 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.UP, clr,
-                        x, z, y,
-                        x0, z1, h01, x0, z1,
-                        x1, z1, h11, x1, z1,
-                        x1, z0, h10, x1, z0,
-                        x0, z0, h00, x0, z0,
+                        index, epsShift,
+                        h01, h11, h10, h00
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
@@ -288,56 +276,41 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //same as up
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.DOWN, clr,
-                        x, z, y,
-                        x0, z1, y0, x0, z1,
-                        x1, z1, y0, x1, z1,
-                        x1, z0, y0, x1, z0,
-                        x0, z0, y0, x0, z0,
+                        index, epsShift,
+                        y0, y0, y0, y0,
                     );
                 }
                 clr += (1 << 20); // flowing liquid, scroll
-                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
-                    //U=Z, V=Y
-                    quads++;
-                    geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
-                        x, z, y,
-                        x0, z1, h01, z1, h01,
-                        x0, z0, h00, z0, h00,
-                        x0, z0, y0, z0, y0,
-                        x0, z1, y0, z1, y0,
-                    );
-                }
-                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
-                    quads++;
-                    //U=Z, V=Y
-                    geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
-                        x, z, y,
-                        x1, z0, h10, z0, h10,
-                        x1, z1, h11, z1, h11,
-                        x1, z1, y0, z1, y0,
-                        x1, z0, y0, z0, y0,
-                    );
-                }
                 if (hasNeib[SIMPLE_DIRECTION.SOUTH]) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.SOUTH, clr,
-                        x, z, y,
-                        x0, z0, h00, x0, h00,
-                        x1, z0, h10, x1, h10,
-                        x1, z0, y0, x1, y0,
-                        x0, z0, y0, x0, y0,
+                        index, epsShift,
+                        h00, h10, y0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.NORTH, clr,
-                        x, z, y,
-                        x1, z1, h11, x1, h11,
-                        x0, z1, h01, x0, h01,
-                        x0, z1, y0, x0, y0,
-                        x1, z1, y0, x1, y0,
+                        index, epsShift,
+                        h11, h01, y0, y0,
+                    );
+                }
+                if (hasNeib[SIMPLE_DIRECTION.EAST]) {
+                    quads++;
+                    //U=Z, V=Y
+                    geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
+                        index, epsShift,
+                        h10, h11, y0, y0,
+                    );
+                }
+                if (hasNeib[SIMPLE_DIRECTION.WEST]) {
+                    //U=Z, V=Y
+                    quads++;
+                    geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
+                        index, epsShift,
+                        h01, h00, y0, y0,
                     );
                 }
             }

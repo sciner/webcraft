@@ -2,6 +2,34 @@ import { MOUSE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
 
+//
+export class MobState {
+    
+    constructor(id, pos, rotate, extra_data) {
+        this.id = id;
+        this.pos = pos;
+        this.rotate = rotate;
+        this.extra_data = extra_data;
+    }
+
+    /**
+     * Compare
+     * @param {MobState} state 
+     */
+    equal(state) {
+        if (this.pos.equal(state.pos)) {
+            if (this.rotate.equal(state.rotate)) {
+                if(JSON.stringify(this.extra_data) == JSON.stringify(state.extra_data)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+}
+
+//
 export class Mob {
 
     #world;
@@ -138,23 +166,8 @@ export class Mob {
             this.#brain.onUse(server_player, server_player.state.hands.right.id);
         } else if(params.button_id == MOUSE.BUTTON_LEFT) {
             if(this.indicators.live.value > 0) {
-                await this.changeLive(-5, server_player);
-                this.#brain.onDamage(server_player, 5);
+                await this.#brain.onDamage(server_player, 5);
             }
-        }
-    }
-
-    //
-    async changeLive(value, owner) {
-        const ind = this.indicators.live;
-        const prev_value = ind.value;
-        ind.value = Math.max(prev_value + value, 0);
-        console.log(`Mob live ${prev_value} -> ${ind.value}`);
-        if(ind.value == 0) {
-            this.#brain.onKill(owner);
-            await this.kill();
-        } else {
-            this.save();
         }
     }
 
@@ -199,6 +212,10 @@ export class Mob {
             extra_data: JSON.parse(row.extra_data),
             indicators: JSON.parse(row.indicators)
         });
+    }
+
+    exportState() {
+        return new MobState(this.id, this.pos, this.rotate, this.extra_data);
     }
 
 }
