@@ -1782,11 +1782,22 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
     if(!underBlock) {
         return true;
     }
-    if([BLOCK.GRASS_BLOCK.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
+    // водное растение
+    if (mat_block.tags.includes('in_water_plant')) {
+        const block = world.getBlock(new Vector(pos));
+        if (!block || (block.fluid & FLUID_TYPE_MASK) != FLUID_WATER_ID) {
+            return true
+        }
+        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id].includes(underBlock.id)) {
+            return true;
+        }
+        return false;
+    }
+    if(![BLOCK.GRASS_BLOCK.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return true;
     }
     // Посадить семена можно только на вспаханную землю
-    if(mat_block.seeds && [BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
+    if(mat_block.seeds && ![BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return true;
     }
     return false;

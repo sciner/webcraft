@@ -344,7 +344,8 @@
                 "texture": "item/kelp.png"
             },
             "tags":[
-                "doubleface"
+                "doubleface",
+                "in_water_plant"
             ],
             "texture_animations": {
                 "side": null
