@@ -51,7 +51,7 @@ export class  BIOMES {
             water_color: new IndexedColor(129, 194, 0),
             title:      'ОКЕАН',
             max_height: 64,
-            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.CLAY.id],
+            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.DIRT.id, BLOCK.CLAY.id],
             no_smooth:  false,
             trees:      {
                 frequency: 0,
@@ -74,7 +74,7 @@ export class  BIOMES {
             water_color: new IndexedColor(129, 194, 0),
             title:      'ОКЕАН',
             max_height: 64,
-            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.GRASS_BLOCK.id],
+            dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.DIRT.id],
             no_smooth:  false,
             trees:      {
                 frequency: 0,
