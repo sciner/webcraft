@@ -675,8 +675,8 @@ export class ServerPlayer extends Player {
     }
     
     /**
-     * Return ender chest content
-     * @returns 
+     * Сравнивает время разрушение блока на строне клиента и сервера. при совпадении возвращает true
+     * @returns bool
      */
     isMiningComplete(data) {
         if (!data.destroyBlock || this.game_mode.isCreative()) {
@@ -684,6 +684,9 @@ export class ServerPlayer extends Player {
         }
         const world_block = this.world.getBlock(new Vector(data.pos));
         const block = BLOCK.fromId(world_block.id);
+        if (!block) {
+            return false;
+        }
         const instrument = BLOCK.fromId(this.state.hands.right.id);
         let mul = 1;
         mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
@@ -691,8 +694,7 @@ export class ServerPlayer extends Player {
         const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
         const mining_time_client = performance.now() - this.mining_time_old; 
         this.mining_time_old = performance.now();
-        this.addExhaustion(0.005); // @todo оставить тут, если применен нюкер, как наказание смерть от усталости
-        console.log(' mining_time_server: ' + mining_time_server +' mining_time_client: ' + mining_time_client + ' lat: ' + (mining_time_client - mining_time_server * 1000));
+        this.addExhaustion(0.005);
         if ((mining_time_client - mining_time_server * 1000) >= -50) {
             this.state.stats.pickat++;
             return true;
