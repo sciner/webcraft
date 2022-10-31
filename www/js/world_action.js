@@ -710,7 +710,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater]) {
+        for(let func of [sitDown, getEggs, putIntoPot, needOpenWindow, ejectJukeboxDisc, pressToButton, goToBed, openDoor, eatCake, addCandle, openFenceGate, useTorch, setOnWater, putKelp]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1625,6 +1625,28 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
 
 }
 
+// добавление ламинарии вручную
+async function putKelp(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!world_material || !mat_block || mat_block.id != BLOCK.KELP.id)  {
+        return false;
+    }
+    const position = new Vector(pos.x, pos.y + 1, pos.z);
+    let block = world.getBlock(position);
+    // проверка, что уствновка в воде
+    if (!block || (block.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID) {
+        block = world.getBlock(position.offset(0, -1, 0));
+        // проверка, что уствнавливаем на kelp
+        if (block.id == BLOCK.KELP.id) {
+            actions.addBlocks([{pos: position, item: {id: BLOCK.KELP.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+        // @todo работает, но криво
+        /*if([BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id].includes(block.id)) {
+            actions.addBlocks([{pos: position, item: {id: BLOCK.KELP.id, extra_data: mat_block.extra_data, ticking:mat_block.ticking }, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }*/
+    }
+    return false;
+}
+
 //
 async function putPlate(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if (!world_material || !mat_block || mat_block.style != 'cover') {
@@ -1788,7 +1810,7 @@ async function restrictPlanting(e, world, pos, player, world_block, world_materi
         if (!block || (block.fluid & FLUID_TYPE_MASK) != FLUID_WATER_ID) {
             return true
         }
-        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id].includes(underBlock.id)) {
+        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id].includes(underBlock.id)) {
             return true;
         }
         return false;
