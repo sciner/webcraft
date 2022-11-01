@@ -338,8 +338,16 @@
             "id": 797,
             "name": "KELP",
             "sound": "madcraft:block.grass",
-            "style": "planting",
+            "style": "kelp",
             "transparent": true,
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/kelp.png"
+            },
+            "tags":[
+                "doubleface",
+                "in_water_plant"
+            ],
             "texture_animations": {
                 "side": null
             },
@@ -347,8 +355,24 @@
                 "id": "plant"
             },
             "texture": {
+                "up": "./textures/kelp.png",
                 "side": "./textures/kelp_plant.png"
-            }
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 4
+            },
+            "extra_data": {
+                "stage": 0,
+                "calculated": [
+                    {"type": "random_int", "name": "height", "min_max": [4, 20]}
+                ]
+            },
+            "previous_part": {
+                "offset_pos": {"x": 0, "y": 1, "z": 0},
+                "id": 797
+            },
+            "spawnable": true
         },
         {
             "id": -1,
