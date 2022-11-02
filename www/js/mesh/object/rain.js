@@ -5,6 +5,7 @@ import { AABB } from '../../core/AABB.js';
 import { Resources } from '../../resources.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import {impl as alea} from "../../../vendors/alea.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -152,8 +153,10 @@ export default class Mesh_Object_Rain {
 
         if(this.#_player_block_pos.equal(player.blockPos)) {
             if(this.#_blocks_sets != this.chunkManager.block_sets) {
+                if(!this.updateHeightMap()) {
+                    return false;
+                }
                 this.#_blocks_sets = this.chunkManager.block_sets;
-                this.updateHeightMap();
             }
         } else {
             this.#_player_block_pos.copyFrom(player.blockPos);
@@ -170,7 +173,11 @@ export default class Mesh_Object_Rain {
                     }
                 }
             }
-            this.updateHeightMap();
+            if(!this.updateHeightMap()) {
+                this.#_player_block_pos.set(Infinity, Infinity, Infinity);
+                return false;
+            }
+
         }
 
         return true;
@@ -184,16 +191,37 @@ export default class Mesh_Object_Rain {
 
     // Update height map
     updateHeightMap() {
-        let checked_blocks = 0;
+
         let p = performance.now();
+        let checked_blocks = 0;
+        let chunk = null;
+
         const pos           = this.#_player_block_pos;
         const vec           = new Vector();
         const block_pos     = new Vector();
         const chunk_size    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         const chunk_addr    = new Vector();
         const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity);
-        let chunk           = null;
-        let block           = null;
+
+        // check chunks available
+        const chunk_y_max = Math.floor(RAIN_START_Y / CHUNK_SIZE_Y);
+        for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
+            for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
+                for(let chunk_addr_y = 0; chunk_addr_y <= chunk_y_max; chunk_addr_y++) {
+                    vec.copyFrom(this.#_player_block_pos);
+                    vec.addScalarSelf(i, -vec.y, j);
+                    block_pos.set(pos.x + i, chunk_addr_y * CHUNK_SIZE_Y, pos.z + j);
+                    getChunkAddr(block_pos.x, block_pos.y, block_pos.z, chunk_addr);
+                    chunk = this.chunkManager.getChunk(chunk_addr);
+                    if(!chunk || !chunk.tblocks) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        //
+        let block = null;
         let cx = 0, cy = 0, cz = 0, cw = 0;
         for(let i = -RAIN_RAD; i <= RAIN_RAD; i++) {
             for(let j = -RAIN_RAD; j <= RAIN_RAD; j++) {
@@ -218,7 +246,8 @@ export default class Mesh_Object_Rain {
                         block_pos.z -= chunk.coord.z;
                         const index = (block_pos.x * cx + block_pos.y * cy + block_pos.z * cz + cw);
                         const block_id = chunk.tblocks.id[index];
-                        if(block_id > 0) {
+                        const is_fluid = (chunk.fluid.uint16View[index] & FLUID_TYPE_MASK) > 0
+                        if(block_id > 0 || is_fluid) {
                             block = chunk.tblocks.get(block_pos, block);
                             checked_blocks++;
                             if(block && (block.id > 0 || block.fluid > 0) && !block.material.invisible_for_rain) {
@@ -230,9 +259,12 @@ export default class Mesh_Object_Rain {
                 }
             }
         }
+
         p = performance.now() - p;
-        const quads = this.createBuffer(TARGET_TEXTURES);
-        // console.log('tm', checked_blocks, p, quads);
+        this.createBuffer(TARGET_TEXTURES);
+        // console.log('tm', checked_blocks, p);
+        return true;
+        
     }
 
     get enabled() {

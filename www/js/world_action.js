@@ -511,6 +511,14 @@ export class WorldAction {
         }
     }
 
+    /**
+     * Make explosion
+     * @param {Vector} vec_center 
+     * @param {float} rad 
+     * @param {boolean} add_particles 
+     * @param {float} drop_blocks_chance 
+     * @param {float} power 
+     */
     makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
         const world = this.#world;
         const air = { id: 0 };

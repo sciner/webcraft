@@ -17,8 +17,8 @@ import { Lang } from "./lang.js";
 globalThis.TrackerPlayer = new Tracker_Player();
 
 // Reset zoom
-const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
-globalThis.UI_ZOOM = Math.max(Math.round(isMobileBrowser() ? 1 : window.devicePixelRatio), 1) * RES_SCALE;
+globalThis.UI_ZOOM = Math.max(Math.floor(window.screen.availWidth / 1024), 1) * window.devicePixelRatio;
+console.debug('zoom', UI_ZOOM);
 globalThis.UI_FONT = 'Ubuntu';
 
 // Main game class

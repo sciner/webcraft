@@ -946,7 +946,7 @@ class Tooltip extends Label {
         this.style.background.color = '#000000cc';
         this.style.border.hidden = true;
         this.style.color = '#ffffff';
-        this.style.font.size = 20;
+        this.style.font.size = 20 * this.zoom;
         this.style.font.family = 'Ubuntu';
         this.style.padding = {
             left: 16,
