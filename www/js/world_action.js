@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION} from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, getChunkAddr } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -519,13 +519,14 @@ export class WorldAction {
      * @param {float} drop_blocks_chance 
      * @param {float} power 
      */
-    makeExplosion(vec_center, rad, add_particles, drop_blocks_chance, power) {
+    makeExplosion(vec_center, rad = 3, add_particles, drop_blocks_chance, power = .5) {
+        
         const world = this.#world;
         const air = { id: 0 };
-        const out_rad = Math.ceil(rad);
         const block_pos = new Vector();
         const extruded_blocks = new VectorCollector();
         drop_blocks_chance = parseFloat(drop_blocks_chance);
+
         //
         const createAutoDrop = (tblock) => {
             const mat = tblock.material;
@@ -551,29 +552,95 @@ export class WorldAction {
             }
             return true;
         };
-        // const block_pos_floored = vec_center.clone().flooredSelf();
-        for (let i = -out_rad; i <= out_rad; i++) {
-            for (let j = -out_rad; j <= out_rad; j++) {
-                for (let k = -out_rad; k <= out_rad; k++) {
-                    block_pos.copyFrom(vec_center).addScalarSelf(i, k, j);
-                    const dist = block_pos.distance(vec_center);
-                    block_pos.flooredSelf();
-                    if (dist <= rad) {
-                        const tblock = world.getBlock(block_pos);
-                        if(tblock) {
-                            const mat = tblock.material;
-                            if(mat.id > 0 && mat.material.mining.blast_resistance <= power) {
-                                this.addBlocks([
-                                    {pos: block_pos.clone(), item: air, drop_blocks_chance}
-                                ]);
-                                extruded_blocks.set(block_pos, 'extruded');
-                                createAutoDrop(tblock);
+
+        const distance              = rad;
+        const maxDistance           = Math.ceil(distance * 1.1);
+        const listBlockDestruction  = new VectorCollector();
+        const vec                   = new Vector(0, 0, 0);
+        const strength              = power; // (power + 1.) * .97;
+        const bePresentBlock        = new VectorCollector(); // Массив присутствующих блоков в кэше, для оптимизации повторного изъятия данных блока
+
+        let repeat = false;
+        let rays = 0;
+
+        const p = performance.now();
+
+        for(let x = -maxDistance; x <= maxDistance; ++x) {
+            for(let y = -maxDistance; y <= maxDistance; ++y) {
+                for(let z = -maxDistance; z <= maxDistance; ++z) {
+
+                    if(x == -maxDistance || x == maxDistance || y == -maxDistance || y == maxDistance || z == -maxDistance || z == maxDistance) {
+
+                        rays++;
+
+                        vec.set(x, y, z).normSelf();
+
+                        // дистанция x * 0.9 ... x * 1.1
+                        const dis = distance * (.9 + Math.random() * .2);
+                        // Сила x * 0.7 ... x * 1.3
+                        let res = strength * (.7 + Math.random() * .6);
+
+                        let fx = vec_center.x;
+                        let fy = vec_center.y;
+                        let fz = vec_center.z;
+                        let dis0 = 0;
+                        let resistance = 0;
+
+                        while(dis0 < dis && res > 0) {
+                            repeat = false;
+                            block_pos.set(fx, fy, fz).flooredSelf();
+                            let block = bePresentBlock.get(block_pos);
+                            if(block) {
+                                repeat = true;
+                                resistance = block.resistance;
+                            } else {
+                                let tblock = world.getBlock(block_pos);
+                                if(tblock.id > 0) {
+                                    resistance = tblock.material.material.mining.blast_resistance;
+                                } else {
+                                    resistance = -100;
+                                }
+                                block = {resistance, tblock};
+                                bePresentBlock.set(block_pos, block);
                             }
+                            if (resistance >= 0) {
+                                res -= (resistance + .3) * .3;
+                                if (!repeat && res > 0) {
+                                    listBlockDestruction.set(block_pos, block);
+                                }
+                            }
+                            fx += vec.x;
+                            fy += vec.y;
+                            fz += vec.z;
+                            dis0++;
                         }
+
                     }
+
                 }
             }
         }
+
+        /*console.log({
+            rays,
+            max_distance:       maxDistance,
+            destroyed_blocks:   listBlockDestruction.size,
+            get_blocks:         bePresentBlock.size,
+            elapsed: performance.now() - p
+        });
+        */
+
+        // Уничтожаем блоки
+        if (listBlockDestruction.size > 0) {
+            for(const [pos, block] of listBlockDestruction.entries()) {
+                this.addBlocks([
+                    {pos: pos.clone(), item: air, drop_blocks_chance}
+                ]);
+                extruded_blocks.set(pos, 'extruded');
+                createAutoDrop(block.tblock);
+            }
+        }
+
         //
         for(let [vec, _] of extruded_blocks.entries()) {
             // 1. check under

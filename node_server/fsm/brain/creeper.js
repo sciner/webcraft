@@ -9,7 +9,7 @@ const FOLLOW_DISTANCE       = 10;
 const DISTANCE_LOST_TRAGET  = 16;
 const DISTANCE_DETONATION   = 3;
 const DETONATION_TIMER      = 1500; //ms
-const EXPLODE_DEFAULT_RAD   = 2.7;
+const EXPLODE_DEFAULT_RAD   = 3;
 
 export class Brain extends FSMBrain {
 
@@ -138,7 +138,7 @@ export class Brain extends FSMBrain {
         // Actions
         const actions = new WorldAction(null, world, true, false);
         // Extrude blocks
-        actions.makeExplosion(mobPosCenter, rad, true, 1/3, 6);
+        actions.makeExplosion(mobPosCenter, rad, true, 1/3, 4);
         // Kill mob
         await mob.kill();
         // Add sound
