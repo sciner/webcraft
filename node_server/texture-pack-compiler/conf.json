@@ -1,0 +1,40 @@
+{
+    "id": "base",
+    "shader": {
+        "webgl": {
+            "vertex": "/shaders/webgl/vertex.glsl",
+            "fragment": "/shaders/webgl/fragment.glsl"
+        },
+        "webgpu": "/shaders/webgpu/shader.wgsl"
+    },
+    "fluidShader": {
+        "webgl": {
+            "vertex": "/shaders/webgl/fluid-vertex.glsl",
+            "fragment": "/shaders/webgl/fluid-fragment.glsl"
+        }
+    },
+    "textures": {
+        "default": {
+            "image": "/textures/default.png",
+            "image_n": "/textures/default_n.png",
+            "tx_cnt": 32
+        },
+        "entity": {
+            "image": "/textures/entity.png",
+            "image_n": "/textures/entity.png",
+            "tx_cnt": 32
+        },
+        "painting": {
+            "image": "/textures/painting.png",
+            "tx_cnt": 16
+        },
+        "alphabet": {
+            "image": "/textures/alphabet_msdf.png",
+            "_canvas": {"width": 1024, "height": 1024},
+            "tx_cnt": 32,
+            "minFilter": "linear",
+            "magFilter": "linear",
+            "mip": false
+        }
+    }
+}

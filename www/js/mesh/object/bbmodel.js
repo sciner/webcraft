@@ -24,6 +24,7 @@ export class Mesh_Object_BBModel {
 
         this.model = model;
         if(!this.model) {
+            console.error('error_model_not_found');
             return;
         }
 

@@ -65,6 +65,45 @@ class CreativeInventoryCollection extends Window {
         let sz                  = this.cell_size;
         let xcnt                = 9;
         const ct                = this;
+        // Drop on pallette slots
+        const dropFunc = function(e) {
+            const that      = this;
+            const drag      = e.drag;
+            const dropItem  = drag.getItem().item; // что перетащили
+            let targetItem  = this.getInventoryItem(); // куда перетащили
+            if(dropItem.id == targetItem.id) {
+                targetItem = {...dropItem};
+                // calc count
+                let count = 1;
+                const max_in_stack = BLOCK.fromId(targetItem.id).max_in_stack;
+                if(e.shiftKey) {
+                    count = max_in_stack
+                }
+                targetItem.count = Math.min(targetItem.count + count, max_in_stack);
+                this.getInventory().setDragItem(this, {...targetItem}, drag, that.width, that.height);
+            } else {
+                this.getInventory().clearDragItem();
+            }
+            return false;
+        };
+        const onMouseDownFunc = function(e) {
+            let that = this;
+            let targetItem = this.getInventoryItem();
+            // Set new drag
+            if(!targetItem) {
+                return;
+            }
+            // calc count
+            let count = 1;
+            if(e.shiftKey) {
+                count = BLOCK.fromId(targetItem.id).max_in_stack;
+            }
+            //
+            targetItem = {...targetItem};
+            targetItem.count = count;
+            this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
+            return false;
+        };
         //
         let items = all_blocks;
         for(let i = 0; i < items.length; i++) {
@@ -75,53 +114,15 @@ class CreativeInventoryCollection extends Window {
             }
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
             //
-            lblSlot.onMouseDown = function(e) {
-                let that = this;
-                let targetItem = this.getInventoryItem();
-                // Set new drag
-                if(!targetItem) {
-                    return;
-                }
-                // calc count
-                let count = 1;
-                if(e.shiftKey) {
-                    count = BLOCK.fromId(targetItem.id).max_in_stack;
-                }
-                //
-                targetItem = {...targetItem};
-                targetItem.count = count;
-                this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
-                return false;
-            };
-            // Drop on pallette slots
-            lblSlot.onDrop = function(e) {
-                const that      = this;
-                const drag      = e.drag;
-                const dropItem  = drag.getItem().item; // что перетащили
-                let targetItem  = this.getInventoryItem(); // куда перетащили
-                if(dropItem.id == targetItem.id) {
-                    targetItem = {...dropItem};
-                    // calc count
-                    let count = 1;
-                    const max_in_stack = BLOCK.fromId(targetItem.id).max_in_stack;
-                    if(e.shiftKey) {
-                        count = max_in_stack
-                    }
-                    targetItem.count = Math.min(targetItem.count + count, max_in_stack);
-                    this.getInventory().setDragItem(this, {...targetItem}, drag, that.width, that.height);
-                } else {
-                    this.getInventory().clearDragItem();
-                }
-                return false;
-            };
+            lblSlot.onMouseDown = onMouseDownFunc;
+            lblSlot.onDrop = dropFunc;
             // Draw
             lblSlot.drawOrig = lblSlot.draw;
             lblSlot.draw = function(ctx, ax, ay) {};
             //
             ct.add(lblSlot);
             ct.collection_slots.push(lblSlot);
-            let item = all_blocks[i];
-            lblSlot.setItem(item);
+            lblSlot.setItem(all_blocks[i]);
         }
 
     }

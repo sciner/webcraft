@@ -15,6 +15,7 @@ import { CHUNK_STATE_BLOCKS_GENERATED } from "./server_chunk.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
+import { Effect } from "../www/js/block_type/effect.js";
 
 export class NetworkMessage {
     constructor({
@@ -77,6 +78,7 @@ export class ServerPlayer extends Player {
         };
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
+        this.mining_time_old        = 0; // время последнего разрушения блока
     }
 
     init(init_info) {
@@ -215,7 +217,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
-        params.pos = new Vector(params.pos).multiplyScalar(1000).floored().divScalar(1000);
+        params.pos = new Vector(params.pos).round(3);
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
@@ -670,6 +672,34 @@ export class ServerPlayer extends Player {
             return this.ender_chest;
         }
         return this.ender_chest = await this.world.db.loadEnderChest(this);
+    }
+    
+    /**
+     * Сравнивает время разрушение блока на строне клиента и сервера. при совпадении возвращает true
+     * @returns bool
+     */
+    isMiningComplete(data) {
+        if (!data.destroyBlock || this.game_mode.isCreative()) {
+            return true;
+        }
+        const world_block = this.world.getBlock(new Vector(data.pos));
+        const block = BLOCK.fromId(world_block.id);
+        if (!block) {
+            return false;
+        }
+        const instrument = BLOCK.fromId(this.state.hands.right.id);
+        let mul = 1;
+        mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+        mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
+        const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
+        const mining_time_client = performance.now() - this.mining_time_old; 
+        this.mining_time_old = performance.now();
+        this.addExhaustion(0.005);
+        if ((mining_time_client - mining_time_server * 1000) >= -50) {
+            this.state.stats.pickat++;
+            return true;
+        }
+        return false;
     }
 
 }

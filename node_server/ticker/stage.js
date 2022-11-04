@@ -2,6 +2,7 @@ import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
 import { WorldAction } from '../../www/js/world_action.js';
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 
 // Проверка позиции для установки арбуза
 function getFreePosition(world, pos) {
@@ -54,7 +55,19 @@ export default class Ticker {
             extra_data.bone = 0;
         }
         const pos = v.pos.clone();
-        if (tblock.id == BLOCK.SUGAR_CANE.id || tblock.id == BLOCK.CACTUS.id) { // Эти блоки растут вверх, копируя основание. При срубании, рост продолжен
+        if (tblock.id == BLOCK.KELP.id) { // Эти блоки растут вверх, копируя основание. При срубании, рост продолжен, но в воде
+            // проверяем срубили ли кусок
+            let stage = 0, block = null;
+            for (stage = 1; stage < extra_data.height - 1; stage++) {
+                block = world.getBlock(pos.offset(0, stage, 0));
+                if (block.id != tblock.id) {
+                    break;
+                }
+            }
+            if (block && block.id == BLOCK.AIR.id && (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
+            }
+        } else if (tblock.id == BLOCK.SUGAR_CANE.id || tblock.id == BLOCK.CACTUS.id) { // Эти блоки растут вверх, копируя основание. При срубании, рост продолжен
             // проверяем срубили ли кусок
             let stage = 0;
             for (stage = 1; stage < ticking.max_stage - 1; stage++) {

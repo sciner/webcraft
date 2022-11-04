@@ -18,8 +18,14 @@ export class BBModel_Compiler {
             assert: { type: 'json' }
         })).default;
         //
+        const list = [];
         for(let bb of this.conf.bbmodels) {
-            const model = JSON.parse(fs.readFileSync(`${this.options.model_dir}/${bb.name}.bbmodel`));
+            const path = `${this.options.model_dir}/${bb.name}.bbmodel`;
+            if (!fs.existsSync(path)) {
+                console.error(`BBModel file not found ${path}`);
+                continue;
+            }
+            const model = JSON.parse(fs.readFileSync(path));
             /*
             const model = (await import(`${this.options.model_dir}/${item.name}.bbmodel`, {
                 assert: { type: 'json' }
@@ -29,7 +35,9 @@ export class BBModel_Compiler {
                 shift: bb.shift
             }
             this.models.set(bb.name, model);
+            list.push(bb);
         }
+        this.conf.bbmodels = list;
     }
 
     //

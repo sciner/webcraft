@@ -26,6 +26,9 @@ void main() {
         mat3 lookAtMat = inverse(mat3(u_worldView));
         axisX = lookAtMat * axisX.xzy;
         axisY = lookAtMat * axisY.xzy;
+    } else if (flagLookAtCameraHor > 0) {
+        mat3 lookAtMat = inverse(mat3(u_worldView));
+        axisX = lookAtMat * axisX.xzy;
     }
 
     // Animated textures

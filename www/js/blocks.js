@@ -699,6 +699,7 @@ export class BLOCK {
         block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
         block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
+        block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_solid          = this.isSolid(block);
         block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
                                     block.tags.includes('stairs') ||

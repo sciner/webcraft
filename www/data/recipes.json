@@ -70,6 +70,22 @@
         }
     },
     {
+        "id": "3a310106-2fd1-4a67-b290-1d35f4afe202",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "W"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:jungle_log"
+            }
+        },
+        "result": {
+            "item": "madcraft:jungle_planks",
+            "count": 4
+        }
+    },
+    {
         "id": "d6838b56-ab15-4393-bfde-06133639b24b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
