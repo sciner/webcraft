@@ -198,8 +198,10 @@ export class InHandOverlay {
         camera.set(camera.pos, Vector.ZERO, camera.bobPrependMatrix);
 
         // change GU for valid in hand block drawings
+        //TODO: remove it
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
+        globalUniforms.lightOverride = player.headBlock ? player.headBlock.lightValue : 0;
         globalUniforms.update();
 
         renderBackend.beginPass({clearDepth: true, clearColor: false});
@@ -232,7 +234,7 @@ export class InHandOverlay {
             mainHandItem.getUseDuration = function() {
                 return player.inhand_animation_duration;
             };
-            
+
 
             // @param {float}
             let pPartialTicks = 0.0000014305115;
@@ -265,6 +267,9 @@ export class InHandOverlay {
 
         }
         renderBackend.endPass();
+
+        globalUniforms.lightOverride = -1;
+        globalUniforms.update();
     }
 
     /**

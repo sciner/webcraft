@@ -65,6 +65,7 @@
     uniform sampler2D u_texture_n;
     uniform lowp sampler3D[10] u_lightTex;
     uniform vec3 u_lightSize;
+    uniform vec3 u_lightOverride;
 
     uniform float u_mipmap;
     uniform float u_blockSize;
@@ -388,7 +389,9 @@
     vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
-    if (v_lightId < 0.5) {
+    if (u_lightOverride.z > 0.0) {
+        centerSample.xy = u_lightOverride.xy;
+    } else if (v_lightId < 0.5) {
         texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
         centerSample = texture(u_lightTex[0], lightCoord * texSize);
         if (v_lightMode > 0.5) {

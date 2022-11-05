@@ -705,8 +705,8 @@ export class TBlock {
     /**
      * uin16, low bits are cave, high bits are day
      */
-    getLightValue() {
-        const {lightData} = this.tb.lightData;
+    get lightValue() {
+        const {lightData} = this.tb;
         const {index} = this;
         if (!lightData) {
             return 0;
@@ -716,8 +716,8 @@ export class TBlock {
             // 888
         } else {
             // 4444
-            return Math.round(((lightData[index * 4 + 1] >> 4) & 0x0f) * 255 / 15)
-                + Math.round((lightData[index * 4 + 1] & 0x0f) * 255 / 15);
+            return Math.round(((lightData[index] >> 12) & 0x0f) * 255 / 15)
+                + (Math.round(((lightData[index] >> 8) & 0x0f) * 255 / 15) << 8);
         }
     }
 
