@@ -3821,8 +3821,8 @@
                 "type": "pointed_dripstone"
             },
             "texture": {
-                "west": "./textures/pointed_dripstone.png",
                 "up": "./textures/pointed_dripstone_tip.png",
+                "west": "./textures/pointed_dripstone_tip_merge.png",
                 "north": "./textures/pointed_dripstone_frustum.png",
                 "south": "./textures/pointed_dripstone_middle.png",
                 "down": "./textures/pointed_dripstone_base.png"

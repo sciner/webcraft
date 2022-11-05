@@ -3,6 +3,8 @@ import { BLOCK } from '../blocks.js';
 import { AABB } from '../core/AABB.js';
 import { default as default_style } from './default.js';
 
+//const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
+
 // pointed_dripstone
 export default class style {
 
@@ -26,9 +28,41 @@ export default class style {
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
+        
         const extra_data = block.extra_data;
         const material = block.material;
-        const texture = BLOCK.calcTexture(material.texture, DIRECTION.UP);
+        //north перед толщиной
+        //south толстый
+        let texture = BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+        if (extra_data?.up) {
+            if (neighbours.DOWN.id == BLOCK.AIR.id && neighbours.DOWN.fluid == 0) {
+                texture = BLOCK.calcTexture(material.texture, DIRECTION.UP);
+            } else if (neighbours.DOWN.id == BLOCK.POINTED_DRIPSTONE.id) { 
+                if (neighbours.DOWN?.extra_data?.up) {
+                    
+                } else {
+                    texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+                }
+            }
+           // if (neighbours.DOWN.id == BLOCK.POINTED_DRIPSTONE.id && neighbours.DOWN.extra_data.up == false) {
+            //    texture = BLOCK.calcTexture(material.texture, DIRECTION.WEST);
+            //}
+            //if (neighbours.DOWN.id == BLOCK.POINTED_DRIPSTONE.id && neighbours.UP.id == BLOCK.POINTED_DRIPSTONE.id && neighbours.DOWN.extra_data?.up && neighbours.UP.extra_data?.up) {
+           //     texture = BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+           // }
+        }
+        
+        //let texture = BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+        //if (neighbours.UP.id != BLOCK.AIR.id && neighbours.UP.id != BLOCK.POINTED_DRIPSTONE.id) {
+          //  texture = BLOCK.calcTexture(material.texture,  (neighbours.DOWN.id == BLOCK.POINTED_DRIPSTONE.id) ? DIRECTION.DOWN : DIRECTION.UP);
+       // }
+        //if (neighbours.UP.id == BLOCK.POINTED_DRIPSTONE.id && neighbours.DOWN.id == BLOCK.POINTED_DRIPSTONE.id) {
+         //   texture = BLOCK.calcTexture(material.texture, DIRECTION.SOUTH);
+       // }
+        //if (neighbours.UP.id == BLOCK.POINTED_DRIPSTONE.id && neighbours.DOWN.id == BLOCK.AIR.id) {
+        //    texture = BLOCK.calcTexture(material.texture, DIRECTION.NORTH);
+        //}
+        
         const planes = [];
         planes.push(...[
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0]},
