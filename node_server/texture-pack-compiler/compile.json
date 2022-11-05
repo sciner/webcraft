@@ -3805,7 +3805,7 @@
             "name": "POINTED_DRIPSTONE",
             "passable": 0,
             "transparent": true,
-            "style": "planting",
+            "style": "pointed_dripstone",
             "inventory": {
                 "style": "extruder",
                 "texture": "./textures/pointed_dripstone.png"
@@ -3815,20 +3815,22 @@
                 "id": "stone"
             },
             "tags": [
-                "place_only_to_ceil",
-                "no_set_on_top"
+                "doubleface"
             ],
-            "texture": "./textures/pointed_dripstone.png",
-            "extra_data": {
-                "dir": -1,
-                "stage": 0
+            "ticking": {
+                "type": "pointed_dripstone"
             },
-            "stage_textures": [
-                "./textures/pointed_dripstone_tip.png",
-                "./textures/pointed_dripstone_frustum.png",
-                "./textures/pointed_dripstone_middle.png",
-                "./textures/pointed_dripstone_base.png"
-            ]
+            "texture": {
+                "west": "./textures/pointed_dripstone.png",
+                "up": "./textures/pointed_dripstone_tip.png",
+                "north": "./textures/pointed_dripstone_frustum.png",
+                "south": "./textures/pointed_dripstone_middle.png",
+                "down": "./textures/pointed_dripstone_base.png"
+            },
+            "extra_data": {
+                "up": true,
+                "stage": 0
+            }
         },
         {
             "id": 596,
