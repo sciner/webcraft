@@ -136,6 +136,7 @@ export class TypedBlocks3 {
         this.vertExtraLen = null;
         this.id = this.dataChunk.uint16View;
         this.fluid = null;
+        this.lightData = null;
     }
 
     ensureVertices() {
@@ -699,6 +700,25 @@ export class TBlock {
             res |= fluidLightPower(fluidVal);
         }
         return res;
+    }
+
+    /**
+     * uin16, low bits are cave, high bits are day
+     */
+    getLightValue() {
+        const {lightData} = this.tb.lightData;
+        const {index} = this;
+        if (!lightData) {
+            return 0;
+        }
+        if (lightData.BYTES_PER_ELEMENT === 1){
+            return lightData[index * 4] + (lightData[index * 4 + 1] << 8);
+            // 888
+        } else {
+            // 4444
+            return Math.round(((lightData[index * 4 + 1] >> 4) & 0x0f) * 255 / 15)
+                + Math.round((lightData[index * 4 + 1] & 0x0f) * 255 / 15);
+        }
     }
 
     //

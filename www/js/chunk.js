@@ -124,8 +124,19 @@ export class Chunk {
         const arrClass = lp.texFormat === 'rgb565unorm' || lp.texFormat === 'rgba4unorm'
             ? Uint16Array: Uint8Array;
         this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
+        this.tblocks.lightData = this.lightData;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
+        }
+    }
+
+    /**
+     * low bits are cave, high bits are day
+     */
+    getLightValue() {
+        const {lightData} = this.tb.lightData;
+        if (!lightData) {
+            return 0 + (15 << 8);
         }
     }
 
