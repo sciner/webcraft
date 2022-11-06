@@ -347,7 +347,7 @@ export class InHandOverlay {
         let rotate = new Vector(0, -45 - 180, 0);
 
 
-        if (this.inHandItemMesh.block_material.diagonal) {
+        if (this.inHandItemMesh?.block_material?.diagonal) {
             rotate.y = -65 - 180;
             rotate.z = 30;
         }
