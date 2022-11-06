@@ -322,7 +322,7 @@ export class InHandOverlay {
         let q = quat.create();
         let m = mat4.create();
 
-        let translation = new Vector(0.5, 0, -0);
+        let translation = new Vector(1.5, 0, -0);
         let scale = new Vector(0.4, 0.4, 0.4);
 
         if (isLeftHand) translation.x = -translation.x;
@@ -336,8 +336,8 @@ export class InHandOverlay {
         let q = quat.create();
         let m = mat4.create();
 
-        let translation = new Vector(0, 0, 0);
-        let rotate = new Vector(0, -45, 0);
+        let translation = new Vector(0.5, 0, 0);
+        let rotate = new Vector(0, -45 - 180, 0);
         mat4.multiply(modelMatrix, modelMatrix,
             mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z)));
         mat4.translate(modelMatrix, modelMatrix, translation.toArray());
