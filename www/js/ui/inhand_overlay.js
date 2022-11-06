@@ -202,6 +202,13 @@ export class InHandOverlay {
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
         globalUniforms.lightOverride = player.headBlock ? player.headBlock.lightValue : 0;
+
+        let inHandLight = inHandItemMesh?.block_material?.light_power?.a || 0;
+        if (inHandLight > 0) {
+            globalUniforms.lightOverride = (globalUniforms.lightOverride & 0xff00)
+                | (Math.max(globalUniforms.lightOverride & 0x00ff, inHandLight & 0xff));
+        }
+
         globalUniforms.update();
 
         renderBackend.beginPass({clearDepth: true, clearColor: false});
