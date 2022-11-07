@@ -536,6 +536,61 @@ export class TypedBlocks3 {
 
         return cnt;
     }
+
+
+    getInterpolatedLightValue(localVec) {
+        let totalW = 0, totalCave = 0, totalDay = 0;
+
+        const {lightData, id} = this;
+        if (!lightData) {
+            return 0;
+        }
+        const {cx, cy, cz, cw} = this.dataChunk;
+
+        let x1 = Math.floor(localVec.x), y1 = Math.floor(localVec.y), z1 = Math.floor(localVec.z);
+        let dx1 = localVec.x - x1, dy1 = localVec.y - y1, dz1 = localVec.z - z1;
+        let base = x1 * cx + y1 * cy + z1 * cz + cw;
+        for (let x0 = 0; x0 < 2; x0++)
+            for (let y0 = 0; y0 < 2; y0++)
+                for (let z0 = 0; z0 < 2; z0++) {
+                    const index = base + x0 * cx + y0 * cy + z0 * cz;
+                    const weight = (1 - x0 + (2 * x0 - 1) * dx1)
+                        * (1 - y0 + (2 * y0 - 1) * dy1)
+                        * (1 - z0 + (2 * z0 - 1) * dz1);
+                    const blockId = id[index];
+                    const block_material = BLOCK.BLOCK_BY_ID[blockId]
+                    let p = 0;
+                    if (block_material) {
+                        p = block_material.light_power_number;
+                    }
+
+
+                    let cave = 0, day = 0;
+                    if (lightData.BYTES_PER_ELEMENT === 1) {
+                        cave = lightData[index * 4];
+                        day = lightData[index * 4 + 1];
+                        // 888
+                    } else {
+                        // 4444
+                        cave = ((lightData[index] >> 12) & 0x0f) * 255 / 15;
+                        day = ((lightData[index] >> 8) & 0x0f) * 255 / 15;
+                    }
+
+                    if ((p & 96) < 96) {
+                        totalW += weight;
+                        totalCave += cave * weight;
+                        totalDay += day * weight;
+                    }
+                }
+        if (totalW > 0) {
+            totalCave = Math.round(totalCave / totalW);
+            totalDay = Math.round(totalDay / totalW);
+            return totalCave + (totalDay << 8);
+        } else {
+            //ZERO
+            return 0 + (255 << 8);
+        }
+    }
 }
 
 export class DataWorld {
@@ -951,5 +1006,4 @@ export class TBlock {
     get is_fluid() {
         return this.id == 0 && this.fluid > 0;
     }
-
 }

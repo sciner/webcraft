@@ -201,7 +201,7 @@ export class InHandOverlay {
         //TODO: remove it
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
-        globalUniforms.lightOverride = player.headBlock ? player.headBlock.lightValue : 0;
+        globalUniforms.lightOverride = player.getInterpolatedHeadLight();
 
         let inHandLight = inHandItemMesh?.block_material?.light_power?.a || 0;
         if (inHandLight > 0) {

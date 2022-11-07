@@ -712,6 +712,14 @@ export class Player {
         this.lastUpdate = performance.now();
     }
 
+    getInterpolatedHeadLight() {
+        if (!this.headBlock) {
+            return 0;
+        }
+        const {tb} = this.headBlock;
+        return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
+    }
+
     //
     checkBodyRot(delta) {
         const pc = this.getPlayerControl();
