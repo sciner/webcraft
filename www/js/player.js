@@ -394,7 +394,7 @@ export class Player {
     async onPickAtTarget(e, times, number) {
 
         this.inMiningProcess = true;
-        this.inhand_animation_duration = 2.5 * RENDER_DEFAULT_ARM_HIT_PERIOD;
+        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
         // createBlock
