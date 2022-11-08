@@ -34,7 +34,7 @@ export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease pla
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
-export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
+export const SPECTATOR_SPEED_MUL            = 3 * PLAYER_ZOOM;
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms
