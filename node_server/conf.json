@@ -37,7 +37,8 @@
         "bee_nest",
         "bn",
         "fire",
-        "tnt"
+        "tnt",
+        "dripstone"
     ],
     "random_tickers": [
         "grass_block"

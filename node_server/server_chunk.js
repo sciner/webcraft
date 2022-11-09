@@ -561,7 +561,7 @@ export class ServerChunk {
 
         //
         if(neighbour.id == 0) {
-
+            
             switch(tblock.material.style) {
                 case 'rails':
                 case 'candle': {
@@ -626,6 +626,19 @@ export class ServerChunk {
                 case 'cactus': {
                     if(neighbour.posworld.y < pos.y) {
                         return createDrop(tblock);
+                    }
+                }
+                case 'pointed_dripstone': {
+                    if(neighbour.posworld.x == pos.x && neighbour.posworld.z == pos.z) {
+                        console.log(tblock.posworld + ' nrh ' + neighbour.posworld + ' ' + tblock.extra_data.up);
+                        //if (tblock.extra_data.up) {
+                            
+                        //}
+                        console.log(neighbour);
+                        console.log(neighbour.extra_data);
+                        //if((neighbour.posworld.y < pos.y && !tblock?.extra_data?.up) || (neighbour.posworld.y > pos.y && tblock?.extra_data?.up)) {
+                            //return createDrop(tblock);
+                        //}
                     }
                 }
             }

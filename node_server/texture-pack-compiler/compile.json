@@ -3798,7 +3798,12 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "./textures/dripstone_block.png"
+            "texture": "./textures/dripstone_block.png",
+            "ticking": {
+                "type": "dripstone"
+            },
+            "extra_data": {
+            }
         },
         {
             "id": 593,
@@ -3817,9 +3822,6 @@
             "tags": [
                 "doubleface"
             ],
-            "ticking": {
-                "type": "pointed_dripstone"
-            },
             "texture": {
                 "up": "./textures/pointed_dripstone_tip.png",
                 "west": "./textures/pointed_dripstone_tip_merge.png",
@@ -3828,8 +3830,7 @@
                 "down": "./textures/pointed_dripstone_base.png"
             },
             "extra_data": {
-                "up": true,
-                "stage": 0
+                "up": true
             }
         },
         {
