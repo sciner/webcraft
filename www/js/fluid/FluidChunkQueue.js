@@ -408,7 +408,7 @@ export class FluidChunkQueue {
                     if (!aabb.contains(nx, ny, nz)) {
                         neibChunk[dir] = null;
                         for (let i = 0; i < portalNum; i++) {
-                            if (knownPortals[i].aabb.contains(nx, ny, nz)) {
+                            if (knownPortals[i].toRegion.aabb.contains(nx, ny, nz)) {
                                 neibChunk[dir] = knownPortals[i].toRegion.rev.fluid.queue;
                             }
                         }
