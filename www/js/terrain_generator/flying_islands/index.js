@@ -94,7 +94,7 @@ export default class Terrain_Generator extends Demo_Map {
                                             setBlock(x, y + 1, z, grass_id);
                                         }
                                         if(x > 7 && x < 11 && z > 7 && z < 11 && !tree_pos) {
-                                            tree_pos = new Vector(x, y, z);
+                                            tree_pos = new Vector(x, y + 1, z);
                                         }
                                     }
                                 }
