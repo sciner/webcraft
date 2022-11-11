@@ -81,7 +81,7 @@ export default class Ticker {
 // Возможность воспламенения соседних блоков (зависит от материала)
 function getNeighborFlame(world, pos) {
     let block = world.getBlock(pos);
-    if (block.id == BLOCK.AIR.id || getBurn(block) == 0) {
+    if (!block || block.id == BLOCK.AIR.id || getBurn(block) == 0) {
         return 0;
     }
     let flames = 0;
@@ -96,7 +96,7 @@ function getNeighborFlame(world, pos) {
 function isBurnPosition(world, pos) {
     for (const face of FACES) {
         const block = world.getBlock(pos.add(face));
-        if (getBurn(block) > 0) {
+        if (block && getBurn(block) > 0) {
             return true;
         }
     }
@@ -108,14 +108,14 @@ function rndInt(chance) {
 }
 
 function getFlame(block) {
-    if (block?.material?.flammable?.catch_chance_modifier) {
+    if (block && block?.material?.flammable?.catch_chance_modifier) {
         return block.material.flammable.catch_chance_modifier;
     }
     return 0;
 }
 
 function getBurn(block) {
-    if (block?.material?.flammable?.destroy_chance_modifier) {
+    if (block && block?.material?.flammable?.destroy_chance_modifier) {
         return block.material.flammable.destroy_chance_modifier;
     }
     return 0;
