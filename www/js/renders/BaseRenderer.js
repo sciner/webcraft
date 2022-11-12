@@ -317,7 +317,7 @@ export class GlobalUniformGroup {
         this.useNormalMap = false;
 
         this.localLigthRadius = 0;
-        this.lightOverride = 0;
+        this.lightOverride = -1;
     }
 
     update() {

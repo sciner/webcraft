@@ -20,6 +20,14 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
+const MAP_PRESETS = {
+    // relief - кривизна рельефа
+    // mid_level - базовая высота поверхности
+    min: {name: 'min', relief: 6, mid_level: 48},
+    norm: {name: 'norm', relief: 1, mid_level: 68, is_plain: true},
+    max: {name: 'max', relief: 12, mid_level: 32}
+};
+
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
 
@@ -62,107 +70,49 @@ export default class Terrain_Generator extends Demo_Map {
     generate(chunk) {
 
         const seed                      = chunk.id;
-        const aleaRandom                = new alea(seed);
-        // const maps                      = this.maps.generateAround(chunk, chunk.addr, false, true);
-        // const map                       = maps[4];
-        // const cluster                   = chunk.cluster;
+        const rnd                       = new alea(seed);
+        const noise2d                   = this.noise2d;
+        const noise3d                   = this.noise3d;
+        // const maps                   = this.maps.generateAround(chunk, chunk.addr, false, true);
+        // const map                    = maps[4];
+        // const cluster                = chunk.cluster;
+        // const caves                  = new CaveGenerator(chunk.coord, noise2d);
 
         const xyz                       = new Vector(0, 0, 0);
         const size_x                    = chunk.size.x;
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
         const WATER_LEVEL               = 70;
-        // const temp_vec                  = new Vector(0, 0, 0);
-        // const ywl                       = map.options.WATER_LINE - chunk.coord.y;
 
-        //
+        // blocks
         const water_id                  = BLOCK.STILL_WATER.id;
         const stone_block_id            = BLOCK.STONE.id;
         const grass_id                  = BLOCK.GRASS.id;
         const grass_block_id            = BLOCK.GRASS_BLOCK.id;
         const dirt_block_id             = BLOCK.DIRT.id;
 
-        const noise2d = this.noise2d;
-        const noise3d = this.noise3d;
-
-        // Caves
-        // const caves = new CaveGenerator(chunk.coord, noise2d);
-
-        //
-        const generateMap = () => {
-            const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-                code: 'Flat'
-            })};
-            return new Default_Terrain_Map(
-                chunk.addr,
-                chunk.size,
-                chunk.addr.mul(chunk.size),
-                {WATER_LINE: 63000},
-                Array(chunk.size.x * chunk.size.z).fill(cell)
-            );
-        };
-
-        if(!globalThis.sdfsdf) {
-            globalThis.sdfsdf = true;
-            globalThis.m = Infinity;
-            globalThis.x = -Infinity;
-        }
-
-        //  1  6 16
-        // 66 48 32
-
-        const options = {
-            // relief - кривизна рельефа
-            // mid_level - базовая высота поверхности
-            min: {name: 'min', relief: 6, mid_level: 48},
-            norm: {name: 'norm', relief: 1, mid_level: 68},
-            max: {name: 'max', relief: 12, mid_level: 32}
-        };
-
         let not_air_count = -1;
         let tree_pos = null;
-        const rnd = new alea(chunk.addr.toHash());
-
-        // const cell = {value2: 1000};
 
         //
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
-                const mh = Math.max(noise2d((chunk.coord.x + x) / 2048, (chunk.coord.z + z) / 2048) * 32, 8);
-
-                // динамическая толщина дерна
-                const dirt_level = noise2d((chunk.coord.x + x) / 16, (chunk.coord.z + z) / 16);
-
-                // базовые кривизна рельефа и высота поверхности
-                let relief = options.norm.relief;
-                let mid_level = options.norm.mid_level;
-
+                // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, 0, chunk.coord.z + z);
 
-                // Change relief
-                const cx = Math.round((chunk.coord.x + x) / 1024) * 1024;
-                const cz = Math.round((chunk.coord.z + z) / 1024) * 1024;
-                let lx = cx - (chunk.coord.x + x);
-                let lz = cz - (chunk.coord.z + z);
-                const dist = Math.sqrt(lx * lx + lz * lz);
-                const max_dist = 512;
-                const w = 64;
-                let op = options.norm;
+                // динамическая толщина дерна
+                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16);
 
-                if((dist < max_dist)) {
-                    const perc = 1 - Math.min( Math.max((dist - (max_dist - w)) / w, 0), 1);
-                    const perc_side = noise2d(cx / 2048, cz / 2048);
-                    // выбор настроек
-                    op = perc_side < .35 ? options.min : options.max;
-                    relief += ( (op.relief - options.norm.relief) * perc);
-                    mid_level += ((op.mid_level - options.norm.mid_level) * perc);
-                }
+                const {relief, mid_level, op} = this.getPreset(xyz);
 
                 //
-                let dirt_pattern = dirt_level; // noise2d((chunk.coord.x + x) / 16, (chunk.coord.z + z) / 16);
-                let mn = noise2d((chunk.coord.x + x) / 128, (chunk.coord.z + z) / 128);
+                const dirt_pattern = dirt_level;
+
+                let mn = noise2d(xyz.x / 128, xyz.z / 128);
                 mn = (mn / 2 + .5) * relief;
+
+                const mh = Math.max(noise2d(xyz.x / 2048, xyz.z / 2048) * 32, 8);
 
                 for(let y = size_y; y >= 0; y--) {
 
@@ -173,21 +123,18 @@ export default class Terrain_Generator extends Demo_Map {
                     const d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
                     const d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
 
-                    //if(xyz.y < WATER_LEVEL) {
-                    //    chunk.setBlockIndirect(x, y, z, stone_block_id);
-                    //}
-
                     let h = (mid_level - xyz.y) / mh;
                     h = 1 - Math.min(h, 1) / mn;
 
-                    const d = (
+                    const density = (
                             ((d1 * 64 + d2 * 32 + d3 * 16 + d4 * 8) / (64 + 32 + 16 + 8))
                             / 2 + .5
                         ) * h;
 
-                    if(d > .15 && d < 1.) {
+                    if(density > .15 && density < 1.) {
+                        // chunk.setBlockIndirect(x, y, z, stone_block_id);
                         let block_id = grass_block_id;
-                        if(d3 > .2 && op.name != 'norm') {
+                        if(d3 > .2 && !op.is_plain) {
                             // проплешины камня
                             block_id = stone_block_id;
                         } else {
@@ -262,7 +209,51 @@ export default class Terrain_Generator extends Demo_Map {
         // Dungeon
         this.dungeon.add(chunk);
 
-        return generateMap();
+        return this.generateMap(chunk);
+
+    }
+
+    //
+    generateMap(chunk) {
+        const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
+            code: 'Flat'
+        })};
+        return new Default_Terrain_Map(
+            chunk.addr,
+            chunk.size,
+            chunk.addr.mul(chunk.size),
+            {WATER_LINE: 63000},
+            Array(chunk.size.x * chunk.size.z).fill(cell)
+        );
+    }
+
+    //
+    getPreset(xyz) {
+
+        // базовые кривизна рельефа и высота поверхности
+        let relief = MAP_PRESETS.norm.relief;
+        let mid_level = MAP_PRESETS.norm.mid_level;
+
+        // Change relief
+        const cx = Math.round(xyz.x / 1024) * 1024;
+        const cz = Math.round(xyz.z / 1024) * 1024;
+        let lx = cx - xyz.x;
+        let lz = cz - xyz.z;
+        const dist = Math.sqrt(lx * lx + lz * lz);
+        const max_dist = 512;
+        const w = 64;
+        let op = MAP_PRESETS.norm;
+
+        if((dist < max_dist)) {
+            const perc = 1 - Math.min( Math.max((dist - (max_dist - w)) / w, 0), 1);
+            const perc_side = this.noise2d(cx / 2048, cz / 2048);
+            // выбор настроек
+            op = perc_side < .35 ? MAP_PRESETS.min : MAP_PRESETS.max;
+            relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
+            mid_level += ((op.mid_level - MAP_PRESETS.norm.mid_level) * perc);
+        }
+
+        return {relief, mid_level, op}
 
     }
 
