@@ -23,9 +23,9 @@ for(let i = 0; i < randoms.length; i++) {
 const MAP_PRESETS = {
     // relief - кривизна рельефа
     // mid_level - базовая высота поверхности
-    min: {name: 'min', relief: 6, mid_level: 48},
-    norm: {name: 'norm', relief: 1, mid_level: 68, is_plain: true},
-    max: {name: 'max', relief: 12, mid_level: 32}
+    min: {relief: 48, mid_level: 8, grass_block_id: BLOCK.GRASS_BLOCK.id},
+    norm: {relief: 4, mid_level: 8, is_plain: true, grass_block_id: BLOCK.GRASS_BLOCK.id},
+    max: {relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id}
 };
 
 // Terrain generator class
@@ -39,6 +39,7 @@ export default class Terrain_Generator extends Demo_Map {
         // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
+        this._center = new Vector(0, 0, 0);
     }
 
     async init() {
@@ -109,31 +110,30 @@ export default class Terrain_Generator extends Demo_Map {
                 //
                 const dirt_pattern = dirt_level;
 
-                let mn = noise2d(xyz.x / 128, xyz.z / 128);
-                mn = (mn / 2 + .5) * relief;
-
-                const mh = Math.max(noise2d(xyz.x / 2048, xyz.z / 2048) * 32, 8);
+                // let mn = noise2d(xyz.x / 128, xyz.z / 128);
+                // mn = (mn / 2 + .5) * relief;
+                // const mh = Math.max(noise2d(xyz.x / 2048, xyz.z / 2048) * 32, 8);
 
                 for(let y = size_y; y >= 0; y--) {
 
-                    xyz.set(chunk.coord.x + x, chunk.coord.y + y, chunk.coord.z + z);
+                    xyz.y = chunk.coord.y + y;
 
                     const d1 = noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
                     const d2 = noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
                     const d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
                     const d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
 
-                    let h = (mid_level - xyz.y) / mh;
-                    h = 1 - Math.min(h, 1) / mn;
+                    const underwater = xyz.y < WATER_LEVEL;
+                    const underwater_density = underwater ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
+                    const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * underwater_density;
 
                     const density = (
                             ((d1 * 64 + d2 * 32 + d3 * 16 + d4 * 8) / (64 + 32 + 16 + 8))
                             / 2 + .5
                         ) * h;
 
-                    if(density > .15 && density < 1.) {
-                        // chunk.setBlockIndirect(x, y, z, stone_block_id);
-                        let block_id = grass_block_id;
+                    if(density > .6) {
+                        let block_id = op.grass_block_id;
                         if(d3 > .2 && !op.is_plain) {
                             // проплешины камня
                             block_id = stone_block_id;
@@ -173,6 +173,7 @@ export default class Terrain_Generator extends Demo_Map {
                             }
                         }
                         not_air_count++;
+
                     } else {
                         not_air_count = 0;
                         if(xyz.y <= WATER_LEVEL) {
@@ -227,27 +228,53 @@ export default class Terrain_Generator extends Demo_Map {
         );
     }
 
+    // угол между точками на плоскости
+    angleTo(xyz, tx, tz) {
+        const angle = Math.atan2(tx - xyz.x, tz - xyz.z);
+        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    }
+
     //
     getPreset(xyz) {
 
-        // базовые кривизна рельефа и высота поверхности
-        let relief = MAP_PRESETS.norm.relief;
-        let mid_level = MAP_PRESETS.norm.mid_level;
+        // радиус области
+        const RAD = 1024;
+        const TRANSITION_WIDTH = 64; // ширина перехода межу обалстью и равниной
 
-        // Change relief
-        const cx = Math.round(xyz.x / 1024) * 1024;
-        const cz = Math.round(xyz.z / 1024) * 1024;
-        let lx = cx - xyz.x;
-        let lz = cz - xyz.z;
-        const dist = Math.sqrt(lx * lx + lz * lz);
-        const max_dist = 512;
-        const w = 64;
-        let op = MAP_PRESETS.norm;
+        // базовые кривизна рельефа и высота поверхности
+        let op          = MAP_PRESETS.norm;
+        let relief      = op.relief;
+        let mid_level   = op.mid_level;
+
+        // центр области
+        const cx = Math.round(xyz.x / RAD) * RAD;
+        const cz = Math.round(xyz.z / RAD) * RAD;
+
+        // угол к центру области
+        const angle = this.angleTo(xyz, cx, cz);
+
+        // Формируем неровное очертание области вокруг его центра
+        // https://www.benfrederickson.com/flowers-from-simplex-noise/
+        const circle_radius = RAD * 0.28;
+        const frequency = 2.15;
+        const magnitude = .5;
+        // Figure out the x/y coordinates for the given angle
+        const x = Math.cos(angle);
+        const y = Math.sin(angle);
+        // Randomly deform the radius of the circle at this point
+        const deformation = this.noise3d(x * frequency, y * frequency, 9999) + 1;
+        const radius = circle_radius * (1 + magnitude * deformation);
+        const max_dist = radius;
+
+        // Расстояние до центра области
+        let lenx = cx - xyz.x;
+        let lenz = cz - xyz.z;
+        const dist = Math.sqrt(lenx * lenx + lenz * lenz);
 
         if((dist < max_dist)) {
-            const perc = 1 - Math.min( Math.max((dist - (max_dist - w)) / w, 0), 1);
+            const perc = 1 - Math.min( Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
             const perc_side = this.noise2d(cx / 2048, cz / 2048);
-            // выбор настроек
+            // выбор типа области настроек
             op = perc_side < .35 ? MAP_PRESETS.min : MAP_PRESETS.max;
             relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
             mid_level += ((op.mid_level - MAP_PRESETS.norm.mid_level) * perc);

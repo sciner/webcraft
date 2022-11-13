@@ -1,0 +1,54 @@
+body {
+    background-color: #171717;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+#canvas3D {
+    background: #aaddff;
+}
+
+#canvas2D {
+    background: #aaddff;
+    position: fixed;
+    right: 10px;
+    top: 10px;
+}
+
+#timer {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    font-size: 20px;
+    font-family: monospace;
+}
+
+#axis {
+    position: fixed;
+    z-index: 2;
+    left: 10px;
+    top: 10px;
+}
+
+#dbg {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    font-size: 20px;
+    font-family: monospace;
+    text-align: right;
+}
+
+canvas {
+    image-rendering: optimizeSpeed;             /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated;                 /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}
