@@ -144,7 +144,7 @@ export default class Terrain_Generator extends Demo_Map {
                             // если это самый первый слой поверхности
                             if(not_air_count == 0) {
                                 // если это не под водой
-                                if(xyz.y >= WATER_LEVEL) {
+                                if(xyz.y > WATER_LEVEL + (dirt_level + 1) * 1.15) {
                                     let r = rnd.double();
                                     let plant_id = grass_id;
                                     if(r < .5) {
@@ -163,6 +163,9 @@ export default class Terrain_Generator extends Demo_Map {
                                     }
                                 } else {
                                     block_id = dirt_pattern < .0 ? BLOCK.GRAVEL.id : BLOCK.SAND.id;
+                                    if(dirt_pattern < -.3) {
+                                        block_id = xyz.y < WATER_LEVEL ? dirt_block_id : grass_block_id;
+                                    }
                                 }
                             } else {
                                 // dirt_level динамическая толщина дерна
@@ -172,7 +175,7 @@ export default class Terrain_Generator extends Demo_Map {
                         chunk.setBlockIndirect(x, y, z, block_id);
                         if(block_id == grass_block_id) {
                             if(xyz.y >= WATER_LEVEL && x > 7 && x < 11 && z > 7 && z < 11 && !tree_pos) {
-                                tree_pos = new Vector(x, y, z);
+                                tree_pos = new Vector(x, y + 1, z);
                             }
                         }
                         not_air_count++;
@@ -218,6 +221,9 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Dungeon
         this.dungeon.add(chunk);
+
+        // Cluster
+        // chunk.cluster.fillBlocks(this.maps, chunk, map);
 
         return this.generateMap(chunk);
 
