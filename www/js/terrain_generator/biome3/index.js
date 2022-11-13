@@ -3,7 +3,7 @@ import {Helpers, IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
-// import {MineGenerator} from "../mine/mine_generator.js";
+import {MineGenerator} from "../mine/mine_generator.js";
 // import {DungeonGenerator} from "../dungeon.js";
 // import FlyIslands from "../flying_islands/index.js";
 import {DungeonGenerator} from "../dungeon.js";
@@ -102,20 +102,13 @@ export default class Terrain_Generator extends Demo_Map {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, 0, chunk.coord.z + z);
 
-                
                 const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
                 const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
-                const {relief, mid_level, op} = this.getPreset(xyz);
+                const {relief, mid_level, radius, op} = this.getPreset(xyz);
 
                 //
                 const dirt_pattern = dirt_level;
-
-                // let mn = noise2d(xyz.x / 128, xyz.z / 128);
-                // mn = (mn / 2 + .5) * relief;
-                // const mh = Math.max(noise2d(xyz.x / 2048, xyz.z / 2048) * 32, 8);
-
                 const river_point = new Vector(Math.round(xyz.x / 1000) * 1000, WATER_LEVEL, xyz.z);
-                const river_hor_dist = xyz.horizontalDistance(river_point);
 
                 for(let y = size_y; y >= 0; y--) {
 
@@ -129,7 +122,7 @@ export default class Terrain_Generator extends Demo_Map {
                     // waterfront/берег
                     const under_waterline = xyz.y < WATER_LEVEL;
                     const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
-                    let h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+                    const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
                     // rivers/реки
                     const river_vert_dist = xyz.y - river_point.y;
@@ -217,6 +210,12 @@ export default class Terrain_Generator extends Demo_Map {
             );
         }
 
+        // Mines
+        if(chunk.addr.y == 0) {
+            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            mine.fillBlocks(chunk);
+        }
+
         // Dungeon
         this.dungeon.add(chunk);
 
@@ -290,7 +289,7 @@ export default class Terrain_Generator extends Demo_Map {
             mid_level += ((op.mid_level - MAP_PRESETS.norm.mid_level) * perc);
         }
 
-        return {relief, mid_level, op}
+        return {relief, mid_level, radius, op}
 
     }
 
