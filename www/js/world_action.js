@@ -1680,7 +1680,8 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     }
 
     // поджигаем блок
-    if (pos.n.y != -1 && world.getBlock(position).id == BLOCK.AIR.id) {
+    const air_block = world.getBlock(position);
+    if (pos.n.y != -1 && air_block.id == BLOCK.AIR.id && air_block.fluid == 0) {
         const data = {age: 0};
         let block = world.getBlock(position.offset(1, 0, 0));
         data.east = (block?.material?.flammable) ? true : false;
