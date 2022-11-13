@@ -46,8 +46,8 @@ export default class Terrain_Generator extends Demo_Map {
         await super.init();
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
         // this.temp_vec       = new Vector(0, 0, 0);
-        this.noise2d        = noise.perlin2;
-        this.noise3d        = noise.perlin3;
+        this.noise2d        = noise.simplex2;
+        this.noise3d        = noise.simplex3;
         this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noise2d, this.noise3d);
     }
 
@@ -102,9 +102,9 @@ export default class Terrain_Generator extends Demo_Map {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, 0, chunk.coord.z + z);
 
-                // динамическая толщина дерна
-                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16);
-
+                
+                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
+                const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
                 const {relief, mid_level, op} = this.getPreset(xyz);
 
                 //
@@ -113,6 +113,9 @@ export default class Terrain_Generator extends Demo_Map {
                 // let mn = noise2d(xyz.x / 128, xyz.z / 128);
                 // mn = (mn / 2 + .5) * relief;
                 // const mh = Math.max(noise2d(xyz.x / 2048, xyz.z / 2048) * 32, 8);
+
+                const river_point = new Vector(Math.round(xyz.x / 1000) * 1000, WATER_LEVEL, xyz.z);
+                const river_hor_dist = xyz.horizontalDistance(river_point);
 
                 for(let y = size_y; y >= 0; y--) {
 
@@ -123,14 +126,21 @@ export default class Terrain_Generator extends Demo_Map {
                     const d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
                     const d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
 
-                    const underwater = xyz.y < WATER_LEVEL;
-                    const underwater_density = underwater ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
-                    const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * underwater_density;
+                    // waterfront/берег
+                    const under_waterline = xyz.y < WATER_LEVEL;
+                    const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
+                    let h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+
+                    // rivers/реки
+                    const river_vert_dist = xyz.y - river_point.y;
+                    const tunnel_density = river_tunnel;
+                    const river_vert_density = Math.max(-.5, river_vert_dist * tunnel_density * Math.PI); // чем выше, тем больше воздуха вокруг реки
+                    const river_density = Math.min(river_point.distance(xyz) / (10 + river_vert_density), 1);
 
                     const density = (
                             ((d1 * 64 + d2 * 32 + d3 * 16 + d4 * 8) / (64 + 32 + 16 + 8))
                             / 2 + .5
-                        ) * h;
+                        ) * h * river_density;
 
                     if(density > .6) {
                         let block_id = op.grass_block_id;
@@ -273,7 +283,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         if((dist < max_dist)) {
             const perc = 1 - Math.min( Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
-            const perc_side = this.noise2d(cx / 2048, cz / 2048);
+            const perc_side = this.noise2d(cx / 1024, cz / 1024);
             // выбор типа области настроек
             op = perc_side < .35 ? MAP_PRESETS.min : MAP_PRESETS.max;
             relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
