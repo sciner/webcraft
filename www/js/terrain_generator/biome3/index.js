@@ -90,8 +90,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const grass_block_id            = BLOCK.GRASS_BLOCK.id;
         const dirt_block_id             = BLOCK.DIRT.id;
 
-        let not_air_count = -1;
-        let tree_pos = null;
+        let not_air_count               = -1;
+        let tree_pos                    = null;
 
         //
         for(let x = 0; x < size_x; x++) {
@@ -109,7 +109,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 //
                 const dirt_pattern = dirt_level;
-                const river_point = new Vector(Math.round(xyz.x / 1000) * 1000, WATER_LEVEL, xyz.z);
+                const river_point = this.maps.makeRiverPoint2(xyz.x, xyz.z);
 
                 for(let y = size_y; y >= 0; y--) {
 
@@ -130,16 +130,34 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
                     const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-                    // rivers/реки
-                    const river_vert_dist = xyz.y - river_point.y;
-                    const tunnel_density = river_tunnel;
-                    const river_vert_density = Math.max(-.5, river_vert_dist * tunnel_density * Math.PI); // чем выше, тем больше воздуха вокруг реки (чем меньше, тем выше вероятность образорвания реки в тоннеле)
-                    const river_density = Math.min(river_point.distance(xyz) / (10 + river_vert_density), 1);
+                    let density = (
+                        // 64/120 + 32/120 + 16/120 + 8/120
+                        (d1 * 0.5333 + d2 * 0.2667 + d3 * 0.1333 + d4 * 0.0667)
+                        / 2 + .5
+                    ) * h;
 
-                    const density = (
-                            ((d1 * 64 + d2 * 32 + d3 * 16 + d4 * 8) / (64 + 32 + 16 + 8))
-                            / 2 + .5
-                        ) * h * river_density;
+                    // rivers/реки
+                    
+                    if(river_point) {
+
+                        let river_density = 1;
+                        const {value, percent, river_percent, waterfront_percent} = river_point;
+                        const perc = Math.min(percent, waterfront_percent);
+                        river_density = Math.max(0, perc);
+
+                        const river_vert_dist = (WATER_LEVEL - xyz.y);
+                        // const tunnel_density = river_tunnel;
+                        // const river_vert_density = Math.max(-.5, river_vert_dist * tunnel_density * Math.PI); // чем выше, тем больше воздуха вокруг реки (чем меньше, тем выше вероятность образорвания реки в тоннеле)
+
+                        if(xyz.y < WATER_LEVEL && river_percent >= 0) {
+                            river_density = Math.min(density, Math.max(river_vert_dist / (32 * (1-perc)), river_density));
+                        }
+
+                        density *= river_density;
+
+                    }
+
+                    
 
                     if(density > .6) {
                         let block_id = op.grass_block_id;
@@ -296,8 +314,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         if((dist < max_dist)) {
             const perc = 1 - Math.min( Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
-            const perc_side = this.noise2d(cx / RAD, cz / RAD);
             // выбор типа области настроек
+            const perc_side = this.noise2d(cx / RAD, cz / RAD);
             op = perc_side < .35 ? MAP_PRESETS.min : MAP_PRESETS.max;
             relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
             mid_level += ((op.mid_level - MAP_PRESETS.norm.mid_level) * perc);

@@ -12,6 +12,13 @@ export const SMOOTH_RAD         = 3;
 export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
 export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
 
+//
+const WATER_START           = 0;
+const WATER_STOP            = 1.5;
+const WATERFRONT_STOP       = 24.0;
+const WATER_PERCENT         = WATER_STOP / (WATERFRONT_STOP - WATER_START);
+const RIVER_FULL_WIDTH      = WATERFRONT_STOP - WATER_START;
+
 // for clusters
 export const PLANT_MARGIN       = 0;
 export const TREE_MARGIN        = 3;
@@ -206,6 +213,20 @@ export class TerrainMapManager {
         }
         value = 1 - value / rw;
         return value;
+    }
+
+    makeRiverPoint2(x, z) {
+        let value1 = this.noisefn(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
+        let value2 = this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
+        let value3 = this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
+        const value = Math.abs((value1 + value2 + value3) / 0.004);
+        if(value > WATER_START && value < WATERFRONT_STOP) {
+            const percent = (value - WATER_START) / RIVER_FULL_WIDTH;
+            const river_percent = percent < WATER_PERCENT ? (1 - percent / WATER_PERCENT) : 0;
+            const waterfront_percent = (percent - WATER_PERCENT) / (1 - WATER_PERCENT);
+            return {value, percent, river_percent, waterfront_percent}
+        }
+        return null;
     }
 
     // generateMap
