@@ -46,8 +46,13 @@ export class Default_Terrain_Generator {
         };
     }
 
+    async init() {
+        return true;
+    }
+
     async setSeed(seed) {
         this.seed = seed;
+        this.seed_int = parseInt(this.seed);
         noise.seed(this.seed);
         this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
     }

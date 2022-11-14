@@ -2,14 +2,13 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Helpers, IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
-import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
+import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 // import {DungeonGenerator} from "../dungeon.js";
 // import FlyIslands from "../flying_islands/index.js";
 import {DungeonGenerator} from "../dungeon.js";
 
 // import { AABB } from '../../core/AABB.js';
-import Demo_Map from "./demo_map.js";
 import { CaveGenerator } from "../cave_generator.js";
 // import BottomCavesGenerator from "../bottom_caves/index.js";
 
@@ -29,7 +28,7 @@ const MAP_PRESETS = {
 };
 
 // Terrain generator class
-export default class Terrain_Generator extends Demo_Map {
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id, options) {
         super(seed, world_id, options);
@@ -56,7 +55,6 @@ export default class Terrain_Generator extends Demo_Map {
         if(!this.flying_islands) {
             return null;
         }
-        const xyz = new Vector(0, 0, 0);
         const CHUNK_START_Y = 25;
         const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
         const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
@@ -106,6 +104,9 @@ export default class Terrain_Generator extends Demo_Map {
                 const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
                 const {relief, mid_level, radius, dist, op} = this.getPreset(xyz);
 
+                const dist_percent = 1 - Math.min(dist/radius, 1);
+                // const max_height = 70 + dist_percent * 128;
+
                 //
                 const dirt_pattern = dirt_level;
                 const river_point = new Vector(Math.round(xyz.x / 1000) * 1000, WATER_LEVEL, xyz.z);
@@ -113,6 +114,11 @@ export default class Terrain_Generator extends Demo_Map {
                 for(let y = size_y; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
+
+                    //if(xyz.y < max_height) {
+                    //    chunk.setBlockIndirect(x, y, z, stone_block_id);
+                    //}
+                    // continue;
 
                     const d1 = noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
                     const d2 = noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
@@ -127,7 +133,7 @@ export default class Terrain_Generator extends Demo_Map {
                     // rivers/реки
                     const river_vert_dist = xyz.y - river_point.y;
                     const tunnel_density = river_tunnel;
-                    const river_vert_density = Math.max(-.5, river_vert_dist * tunnel_density * Math.PI); // чем выше, тем больше воздуха вокруг реки
+                    const river_vert_density = Math.max(-.5, river_vert_dist * tunnel_density * Math.PI); // чем выше, тем больше воздуха вокруг реки (чем меньше, тем выше вероятность образорвания реки в тоннеле)
                     const river_density = Math.min(river_point.distance(xyz) / (10 + river_vert_density), 1);
 
                     const density = (
@@ -137,14 +143,16 @@ export default class Terrain_Generator extends Demo_Map {
 
                     if(density > .6) {
                         let block_id = op.grass_block_id;
-                        if(d3 > .2 && !op.is_plain) {
-                            // проплешины камня
+                        // проплешины с камнем
+                        if(d3 * dist_percent > .1 && !op.is_plain) {
+                            // dist_percent влияет на то, что чем ближе к краю области, тем проплешин меньше,
+                            // чтобы они плавно сходили на нет и не было заметно резких границ каменных проплешин
                             block_id = stone_block_id;
                         } else {
                             // если это самый первый слой поверхности
                             if(not_air_count == 0) {
                                 // если это не под водой
-                                if(xyz.y > WATER_LEVEL + (dirt_level + 1) * 1.15) {
+                                if(xyz.y > WATER_LEVEL + (dirt_level + 2) * 1.15) {
                                     let r = rnd.double();
                                     let plant_id = grass_id;
                                     if(r < .5) {
@@ -169,7 +177,7 @@ export default class Terrain_Generator extends Demo_Map {
                                 }
                             } else {
                                 // dirt_level динамическая толщина дерна
-                                block_id = not_air_count < dirt_level * 3 ? dirt_block_id : stone_block_id;
+                                block_id = not_air_count < dirt_level * 4 ? dirt_block_id : stone_block_id;
                             }
                         }
                         chunk.setBlockIndirect(x, y, z, block_id);
@@ -252,43 +260,43 @@ export default class Terrain_Generator extends Demo_Map {
     //
     getPreset(xyz) {
 
-        // радиус области
-        const RAD = 1024;
+        const RAD = 1000; // радиус области
         const TRANSITION_WIDTH = 64; // ширина перехода межу обалстью и равниной
+
+        // центр области
+        const cx = Math.round(xyz.x / RAD) * RAD;
+        const cz = Math.round(xyz.z / RAD) * RAD;
+        const seed = this.seed_int + this.noise2d(cx / RAD, cz / RAD) * 1000000;
 
         // базовые кривизна рельефа и высота поверхности
         let op          = MAP_PRESETS.norm;
         let relief      = op.relief;
         let mid_level   = op.mid_level;
 
-        // центр области
-        const cx = Math.round(xyz.x / RAD) * RAD;
-        const cz = Math.round(xyz.z / RAD) * RAD;
-
         // угол к центру области
         const angle = this.angleTo(xyz, cx, cz);
 
         // Формируем неровное очертание области вокруг его центра
         // https://www.benfrederickson.com/flowers-from-simplex-noise/
-        const circle_radius = RAD * 0.28;
-        const frequency = 2.15;
+        const circle_radius = RAD * 0.25;
+        const frequency = 1.25;
         const magnitude = .5;
         // Figure out the x/y coordinates for the given angle
         const x = Math.cos(angle);
         const y = Math.sin(angle);
         // Randomly deform the radius of the circle at this point
-        const deformation = this.noise3d(x * frequency, y * frequency, 9999) + 1;
+        const deformation = this.noise3d(x * frequency, y * frequency, seed) + 1;
         const radius = circle_radius * (1 + magnitude * deformation);
         const max_dist = radius;
 
         // Расстояние до центра области
-        let lenx = cx - xyz.x;
-        let lenz = cz - xyz.z;
+        const lenx = cx - xyz.x;
+        const lenz = cz - xyz.z;
         const dist = Math.sqrt(lenx * lenx + lenz * lenz);
 
         if((dist < max_dist)) {
             const perc = 1 - Math.min( Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
-            const perc_side = this.noise2d(cx / 1024, cz / 1024);
+            const perc_side = this.noise2d(cx / RAD, cz / RAD);
             // выбор типа области настроек
             op = perc_side < .35 ? MAP_PRESETS.min : MAP_PRESETS.max;
             relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
