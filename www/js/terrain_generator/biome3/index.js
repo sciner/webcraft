@@ -104,7 +104,7 @@ export default class Terrain_Generator extends Demo_Map {
 
                 const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
                 const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
-                const {relief, mid_level, radius, op} = this.getPreset(xyz);
+                const {relief, mid_level, radius, dist, op} = this.getPreset(xyz);
 
                 //
                 const dirt_pattern = dirt_level;
@@ -295,7 +295,7 @@ export default class Terrain_Generator extends Demo_Map {
             mid_level += ((op.mid_level - MAP_PRESETS.norm.mid_level) * perc);
         }
 
-        return {relief, mid_level, radius, op}
+        return {relief, mid_level, radius, dist, op}
 
     }
 

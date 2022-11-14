@@ -547,7 +547,25 @@ export class Player {
 
     setFlying(value) {
         let pc = this.getPlayerControl();
+        pc.mul = 1;
         pc.player_state.flying = value;
+    }
+
+    //
+    changeSpectatorSpeed(value) {
+        if(!this.game_mode.isSpectator()) {
+            return false;
+        }
+        const pc = this.pr_spectator;
+        let mul = pc.mul ?? 1;
+        const multiplyer = 1.05;
+        if(value > 0) {
+            mul = Math.min(mul * multiplyer, 16);
+        } else {
+            mul = Math.max(mul / multiplyer, 0.05);
+        }
+        pc.mul = mul;
+        return true;
     }
 
     //
