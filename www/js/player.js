@@ -713,7 +713,7 @@ export class Player {
     }
 
     getInterpolatedHeadLight() {
-        if (!this.headBlock) {
+        if (!this.headBlock || !this.headBlock.tb) {
             return 0;
         }
         const {tb} = this.headBlock;
