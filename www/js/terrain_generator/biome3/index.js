@@ -215,7 +215,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     }
                                 } else {
                                     if(xyz.y >= WATER_LEVEL) {
-                                        block_id = d2 < 0 ? BLOCK.SAND.id : grass_block_id;
+                                        block_id = d2 < -.5 ? BLOCK.SAND.id : grass_block_id;
                                     } else {
                                         block_id = dirt_pattern < .0 ? BLOCK.GRAVEL.id : BLOCK.SAND.id;
                                         if(dirt_pattern < -.3) {
@@ -323,7 +323,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let mid_level           = op.mid_level;
 
         // частичное занижение общего уровня, чтобы равнины становились ближе к воде
-        let deform_mid_level = this.noise2d(xyz.x/500, xyz.z/500) * 6 + 1;
+        let deform_mid_level = -Math.abs(this.noise2d(xyz.x/500, xyz.z/500) * 4);
         if(deform_mid_level > 0) deform_mid_level /= 3;
         mid_level += deform_mid_level;
 
