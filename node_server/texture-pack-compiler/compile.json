@@ -1999,7 +1999,7 @@
             "name": "NETHER_BRICKS",
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "texture": "block/nether_bricks.png"
         },
@@ -2009,7 +2009,7 @@
             "item": {"name": "brick"},
             "style": "extruder",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "texture": "item/nether_brick.png"
         },
@@ -2096,7 +2096,7 @@
             "transparent": true,
             "style": "fence",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "texture": "block/nether_bricks.png"
         },
@@ -2104,7 +2104,7 @@
             "id": 87,
             "name": "NETHERRACK",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "texture": "block/netherrack.png"
         },
@@ -2357,7 +2357,7 @@
             "sound": "madcraft:block.stone",
             "style": "stairs",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "tags": [
                 "stairs"
@@ -5923,7 +5923,7 @@
             "name": "NETHERITE_BLOCK",
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "stone"
+                "id": "netherite"
             },
             "texture": "block/netherite_block.png"
         },
@@ -6292,7 +6292,7 @@
             "style": "stairs",
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "tags": [
                 "stairs"
@@ -6659,7 +6659,7 @@
             "transparent": true,
             "sound": "madcraft:block.stone",
             "material": {
-                "id": "netherite"
+                "id": "netherrack"
             },
             "height": 0.5,
             "layering": {

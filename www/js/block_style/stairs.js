@@ -163,7 +163,7 @@ export default class style {
         pushAABB(vertices, info.sides.BASE, pivot, matrix,
             {
                 up:     new AABBSideParams(c_up, 0, 0, null, null, false),
-                down:   new AABBSideParams(c_up, 0, 0, null, null, false),
+                down:   new AABBSideParams([c_up[0], c_up[1], c_up[2], c_up[3] * (info.on_ceil ? 1 : -1)], 0, 0, null, null, false),
                 south:  new AABBSideParams(c_south, 0, 0, null, null, false),
                 north:  new AABBSideParams(c_north, 0, 0, null, null, false),
                 west:   new AABBSideParams(c_north, 0, 0, null, null, false),
@@ -197,7 +197,7 @@ export default class style {
             pushAABB(vertices, info.sides[DIRECTION.SOUTH], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
-                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
                     south:  new AABBSideParams(c_1, 0, 1, null, null, false),
                     west:   new AABBSideParams([c_2[0] + .5/TX_CNT, c_2[1], c_2[2], c_2[3]], 0, 1, null, null, false),
                     north:  new AABBSideParams([c_3[0] + .5/TX_CNT, c_3[1], c_3[2], c_3[3]], 0, 1, null, null, false),
@@ -213,7 +213,7 @@ export default class style {
             pushAABB(vertices, info.sides[DIRECTION.EAST], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
-                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
                     south:  new AABBSideParams([c_1[0] + .5/TX_CNT, c_1[1], c_1[2], c_1[3]], 0, 1, null, null, false),
                     west:   new AABBSideParams([c_2[0] + .5/TX_CNT, c_2[1], c_2[2], c_2[3]], 0, 1, null, null, false),
                     north:  new AABBSideParams(c_3, 0, 1, null, null, false),
@@ -228,7 +228,7 @@ export default class style {
             pushAABB(vertices, info.sides[DIRECTION.NORTH], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
-                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
                     south:  new AABBSideParams([c_1[0] + .5/TX_CNT, c_1[1], c_1[2], c_1[3]], 0, 1, null, null, false),
                     west:   new AABBSideParams(c_2, 0, 1, null, null, false),
                     north:  new AABBSideParams(c_3, 0, 1, null, null, false),
@@ -243,7 +243,7 @@ export default class style {
             pushAABB(vertices, info.sides[DIRECTION.WEST], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
-                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
+                    down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
                     south:  new AABBSideParams(c_1, 0, 1, null, null, false),
                     west:   new AABBSideParams(c_2, 0, 1, null, null, false),
                     north:  new AABBSideParams([c_3[0] + .5/TX_CNT, c_3[1], c_3[2], c_3[3]], 0, 1, null, null, false),

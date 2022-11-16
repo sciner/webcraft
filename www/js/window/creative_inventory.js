@@ -71,7 +71,7 @@ class CreativeInventoryCollection extends Window {
             const drag      = e.drag;
             const dropItem  = drag.getItem().item; // что перетащили
             let targetItem  = this.getInventoryItem(); // куда перетащили
-            if(dropItem.id == targetItem.id) {
+            if(targetItem && dropItem.id == targetItem.id) {
                 targetItem = {...dropItem};
                 // calc count
                 let count = 1;
@@ -104,8 +104,9 @@ class CreativeInventoryCollection extends Window {
             this.getInventory().setDragItem(this, targetItem, e.drag, that.width, that.height);
             return false;
         };
+
         //
-        let items = all_blocks;
+        const items = all_blocks;
         for(let i = 0; i < items.length; i++) {
             let x = sx + (i % xcnt) * sz;
             let y = sy + Math.floor(i / xcnt) * this.cell_size;
@@ -115,6 +116,27 @@ class CreativeInventoryCollection extends Window {
             const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
             //
             lblSlot.onMouseDown = onMouseDownFunc;
+            lblSlot.onDrop = dropFunc;
+            // Draw
+            lblSlot.drawOrig = lblSlot.draw;
+            lblSlot.draw = function(ctx, ax, ay) {};
+            //
+            ct.add(lblSlot);
+            ct.collection_slots.push(lblSlot);
+            lblSlot.setItem(all_blocks[i]);
+        }
+
+        // Empty slots
+        const remains = items.length < 81 ? 81 - items.length : 9 - (items.length % 9);
+        for(let j = 0; j < remains; j++) {
+            let i = j + items.length;
+            let x = sx + (i % xcnt) * sz;
+            let y = sy + Math.floor(i / xcnt) * this.cell_size;
+            if(y + this.cell_size > this.max_height) {
+                this.max_height = y + this.cell_size;
+            }
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
+            //
             lblSlot.onDrop = dropFunc;
             // Draw
             lblSlot.drawOrig = lblSlot.draw;

@@ -40,6 +40,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
         this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
+        this.u_lightOverride    = gl.getUniformLocation(program, 'u_lightOverride');
 
         this.locateUniforms();
 
@@ -135,6 +136,12 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
+
+        if (gu.lightOverride >= 0) {
+            gl.uniform3f(this.u_lightOverride, ((gu.lightOverride & 0xff) / 255.0), ((gu.lightOverride >> 8) / 255.0),  1.0);
+        } else {
+            gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
+        }
     }
 
     setStaticUniforms() {

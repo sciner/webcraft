@@ -95,6 +95,8 @@ export class Player {
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
+        this.xBob                   = this.getXRot();
+        this.yBob                   = this.getYRot();
         // State
         this.falling                = false; // падает
         this.running                = false; // бежит
@@ -119,6 +121,7 @@ export class Player {
         this.body_rotate            = 0;
         this.body_rotate_o          = 0;
         this.body_rotate_speed      = BODY_ROTATE_SPEED;
+        this.mineTime               = 0;
         //
         this.inventory              = new PlayerInventory(this, data.inventory, Qubatch.hud);
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {effects:this.effects}); // player control
@@ -391,7 +394,7 @@ export class Player {
     async onPickAtTarget(e, times, number) {
 
         this.inMiningProcess = true;
-        this.inhand_animation_duration = 5 * RENDER_DEFAULT_ARM_HIT_PERIOD;
+        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
         // createBlock
@@ -440,6 +443,7 @@ export class Player {
                 console.log('Stand up first');
                 return false;
             }
+            this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
             const player = {
                 radius: 0.7,
@@ -556,9 +560,16 @@ export class Player {
 
     // Updates this local player (gravity, movement)
     update(delta) {
-        this.inMiningProcess = false;
+
         // View
         if(this.lastUpdate) {
+
+            // for compatibility with renderHandsWithItems
+            this.yBobO = this.yBob;
+            this.xBobO = this.xBob;
+            this.xBob += (this.getXRot() - this.xBob) * 0.5;
+            this.yBob += (this.getYRot() - this.yBob) * 0.5;
+
             if(!this.overChunk) {
                 this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
             }
@@ -699,6 +710,14 @@ export class Player {
             Qubatch.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
         }
         this.lastUpdate = performance.now();
+    }
+
+    getInterpolatedHeadLight() {
+        if (!this.headBlock) {
+            return 0;
+        }
+        const {tb} = this.headBlock;
+        return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
     //
@@ -927,6 +946,7 @@ export class Player {
                 return false;
             }
         }
+        this.mineTime = 0
         return this.inItemUseProcess = true;
     }
 
@@ -962,6 +982,53 @@ export class Player {
     isAutoSpinAttack() {
         // return (this.entityData.get(DATA_LIVING_ENTITY_FLAGS) & 4) != 0;
         return false;
+    }
+
+    getXRot() {
+        return this.rotateDegree.z;
+    }
+
+    getYRot() {
+        return this.rotateDegree.x;
+    }
+
+    getViewXRot(pPartialTicks) {
+        return this.getXRot();
+    }
+
+    getViewYRot(pPartialTicks) {
+        return this.getYRot();
+    }
+
+    getAttackAnim(pPartialTicks, delta) {
+
+        // this.mineTime = itsme.swingProgress;
+        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+            return 0;
+        }
+
+        this.mineTime += delta / this.inhand_animation_duration;
+
+        if (this.mineTime >= 1) {
+            this.mineTime = 0;
+        }
+
+        return this.mineTime;
+
+    }
+
+    // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
+    getUseItemRemainingTicks() {
+        // this.mineTime = itsme.swingProgress;
+        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+            return 0;
+        }
+        return this.inhand_animation_duration - (this.inhand_animation_duration * this.mineTime);
+    }
+
+    // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
+    getUsedItemHand() {
+        return InteractionHand.MAIN_HAND;
     }
 
 }
