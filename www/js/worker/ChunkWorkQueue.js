@@ -14,7 +14,7 @@ export class ChunkWorkQueue {
         this.entries = [];
         this.potentialCenter = null;
 
-        this.lastSortMs = performance.now();
+        this.lastSortMs = performance.now() - 1000;
         this.maxSortTime = 100; // in ms
         this.needSort = false;
     }
@@ -55,6 +55,17 @@ export class ChunkWorkQueue {
         }
 
         chunk.queueDist = dx + dy + dz;
+        let portalReady = chunk.dataChunk.facetPortals.length;
+        if (chunk.inited) {
+            // its build queue!
+            portalReady = 0;
+            for (let i = 0; i < chunk.dataChunk.facetPortals.length; i++) {
+                portalReady++;
+            }
+        }
+        if (portalReady < 6) {
+            chunk.queueDist += 100;
+        }
     }
 
     push(chunk) {
