@@ -34,7 +34,7 @@ export class ClusterBase {
         this.size           = CLUSTER_SIZE.clone();
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
-        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.is_empty       = false; // this.addr.y != 0 || this.randoms.double() > 1/4;
         this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
@@ -226,6 +226,17 @@ export class ClusterBase {
         z -= this.coord.z;
         const index = z * CLUSTER_SIZE.x + x;
         return this.near_mask[index] <= margin;
+    }
+
+    //
+    getCell(x, y, z) {
+        if(this.is_empty) {
+            return false;
+        }
+        x -= this.coord.x;
+        z -= this.coord.z;
+        const index = z * CLUSTER_SIZE.x + x;
+        return this.mask[index];
     }
 
     // Add NPC

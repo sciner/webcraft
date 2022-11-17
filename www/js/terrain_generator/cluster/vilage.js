@@ -165,7 +165,7 @@ export class ClusterVilage extends ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(maps, chunk, map) {
+    fillBlocks(maps, chunk, map, fill_blocks = true) {
         if(this.is_empty) {
             return false;
         }
@@ -215,7 +215,9 @@ export class ClusterVilage extends ClusterBase {
                 }
             }
         }
-        super.fillBlocks(maps, chunk, map);
+        if(fill_blocks) {
+            super.fillBlocks(maps, chunk, map);
+        }
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;

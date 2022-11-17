@@ -1,10 +1,11 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Helpers, IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
-import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 import {DungeonGenerator} from "../dungeon.js";
+import { TerrainMapManager2 } from "../terrain_map2.js";
+import { GENERATOR_OPTIONS } from "../terrain_map.js";
 
 // import {DungeonGenerator} from "../dungeon.js";
 // import FlyIslands from "../flying_islands/index.js";
@@ -32,7 +33,8 @@ const MAP_PRESETS = {
     norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true, grass_block_id: BLOCK.GRASS_BLOCK.id},
     mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
     high_noise:         {id: 'high_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_coarse_noise:  {id: 'high_coarse_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id}
+    high_coarse_noise:  {id: 'high_coarse_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id},
+    // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id}
 };
 
 // Terrain generator class
@@ -64,7 +66,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
         this.noise2d        = noise.simplex2;
         this.noise3d        = noise.simplex3;
-        this.maps           = new TerrainMapManager(this.seed, this.world_id, this.noise2d, this.noise3d);
+        this.maps           = new TerrainMapManager2(this.seed, this.world_id, this.noise2d, this.noise3d);
     }
 
     // Draw fly islands in the sky
@@ -82,6 +84,31 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return this.flying_islands.generate(fake_chunk);
     }
 
+    // Шум для гор
+    mountainFractalNoise(x, y, octaves, lacunarity, persistence, scale) {
+        // The sum of our octaves
+        let value = 0 
+        // These coordinates will be scaled the lacunarity
+        let x1 = x 
+        let y1 = y
+        // Determines the effect of each octave on the previous sum
+        let amplitude = 1
+        for (let i = 1; i < octaves; i++) {
+            // Multiply the noise output by the amplitude and add it to our sum
+            value += this.noise2d(x1 / scale, y1 / scale) * amplitude
+            
+            // Scale up our perlin noise by multiplying the coordinates by lacunarity
+            y1 *= lacunarity
+            x1 *= lacunarity
+
+            // Reduce our amplitude by multiplying it by persistence
+            amplitude *= persistence
+        }
+        // It is possible to have an output value outside of the range [-1,1]
+        // For consistency let's clamp it to that range
+        return Math.abs(value); // Helpers.clamp(value, -1, 1)
+    }
+
     // Generate
     generate(chunk) {
 
@@ -89,10 +116,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const rnd                       = new alea(seed);
         const noise2d                   = this.noise2d;
         const noise3d                   = this.noise3d;
-        // const maps                   = this.maps.generateAround(chunk, chunk.addr, false, true);
-        // const map                    = maps[4];
-        // const cluster                = chunk.cluster;
-        // const caves                  = new CaveGenerator(chunk.coord, noise2d);
+
+        const cluster                   = chunk.cluster;
+        const maps                      = this.maps.generateAround(chunk, chunk.addr, false, true);
+        const map                       = maps[4];
 
         const xyz                       = new Vector(0, 0, 0);
         const size_x                    = chunk.size.x;
@@ -110,8 +137,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let not_air_count               = -1;
         let tree_pos                    = null;
 
-        const map                       = this.generateMap(chunk);
-
         if(!globalThis.dsfghjxzcv) {
             globalThis.dsfghjxzcv = {min: Infinity, max: -Infinity}
         }
@@ -123,61 +148,81 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // const cell = map.cells[z * CHUNK_SIZE_X + x];
 
                 // абсолютные координаты в мире
-                xyz.set(chunk.coord.x + x, 0, chunk.coord.z + z);
+                xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
-                const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
                 const {relief, mid_level, radius, dist, op} = this.getPreset(xyz);
+                const dist_percent = 1 - Math.min(dist/radius, 1); // 1 in center
+                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
+                // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
-                const dist_percent = 1 - Math.min(dist/radius, 1);
-                // const max_height = WATER_LEVEL + dist_percent * 128;
+                const has_cluster = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+                const cluster_cell = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
+
+                let max_height = null;
+
+                /*if(op.id == 'gori') {
+                    const NOISE_SCALE = 100
+                    const HEIGHT_SCALE = 164 * dist_percent;
+                    max_height = WATER_LEVEL + this.fractalNoise(xyz.x/3, xyz.z/3,
+                        4, // -- Octaves (Integer that is >1)
+                        3, // -- Lacunarity (Number that is >1)
+                        0.35, // -- Persistence (Number that is >0 and <1)
+                        NOISE_SCALE,
+                    ) * HEIGHT_SCALE;
+                }
+                */
 
                 //
                 const dirt_pattern = dirt_level;
-                const river_point = this.maps.makeRiverPoint2(xyz.x, xyz.z);
-
+                let river_point = this.maps.makeRiverPoint(xyz.x, xyz.z);
                 const density_coeff = op.density_coeff ?? DEFAULT_DENSITY_COEFF;
 
                 for(let y = size_y; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
 
-                    //if(xyz.y < max_height) {
-                    //    chunk.setBlockIndirect(x, y, z, stone_block_id);
-                    //}
-                    // continue;
+                    let density = 0;
+                    let d1 = 0;
+                    let d2 = 0;
+                    let d3 = 0;
+                    let d4 = 0;
 
-                    const d1 = noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-                    const d2 = noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-                    const d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-                    const d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
+                    if(max_height !== null) {
+                        density = xyz.y < max_height ? 1 : 0;
+                        d3 = .2;
+                        river_point = null;
 
-                    // waterfront/берег
-                    const under_waterline = xyz.y < WATER_LEVEL;
-                    const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
-                    const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+                    } else {
 
-                    let density = (
-                        // 64/120 + 32/120 + 16/120 + 8/120
-                        (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
-                        / 2 + .5
-                    ) * h;
+                        d1 = noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
+                        d2 = noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
+                        d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
+                        d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
 
-                    // rivers/реки
-                    
-                    if(river_point) {
+                        // waterfront/берег
+                        const under_waterline = xyz.y < WATER_LEVEL;
+                        const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
+                        const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-                        let river_density = 1;
-                        const {value, percent, river_percent, waterfront_percent} = river_point;
-
-                        const river_vert_dist = WATER_LEVEL - xyz.y;
-                        river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
-
-                        // density *= river_density;
-                        density = Math.min(density, density*river_density);
+                        density = (
+                            // 64/120 + 32/120 + 16/120 + 8/120
+                            (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
+                            / 2 + .5
+                        ) * h;
 
                     }
 
+                    // rivers/реки
+                    if(river_point) {
+                        let river_density = 1;
+                        const {value, percent, river_percent, waterfront_percent} = river_point;
+                        const river_vert_dist = WATER_LEVEL - xyz.y;
+                        river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
+                        // density *= river_density;
+                        density = Math.min(density, density*river_density);
+                    }
+
+                    //
                     if(density > .6) {
                         let block_id = op.grass_block_id;
                         if(op.second_grass_block_id && dist_percent * d2 > op.second_grass_block_threshold) {
@@ -193,24 +238,32 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             if(not_air_count == 0) {
                                 // если это не под водой
                                 if(xyz.y > WATER_LEVEL + (dirt_level + 2) * 1.15) {
-                                    // растения
-                                    let r = rnd.double();
-                                    if(r < .5) {
-                                        let plant_id = grass_id;
-                                        if(block_id == BLOCK.PODZOL.id) {
-                                            plant_id = r < .005 ? BLOCK.DEAD_BUSH.id : null;
-                                        } else {
-                                            if(d4 < .5) {
-                                                if(r < .1) {
-                                                    plant_id = BLOCK.TALL_GRASS.id;
-                                                    chunk.setBlockIndirect(x, y + 2, z, plant_id, null, {is_head: true});
-                                                }
-                                            } else if(r < .1) {
-                                                plant_id = r < .03 ? BLOCK.RED_TULIP.id : BLOCK.OXEYE_DAISY.id;
-                                            }
+                                    if(cluster_cell && cluster_cell.height == 1 && !cluster_cell.building) {
+                                        block_id = cluster_cell.block_id;
+                                    } else if(cluster_cell && cluster_cell.building) {
+                                        if(cluster_cell.building.door_bottom.y == Infinity) {
+                                            // cluster_cell.building.door_bottom.y = xyz.y;
                                         }
-                                        if(plant_id) {
-                                            chunk.setBlockIndirect(x, y + 1, z, plant_id);
+                                    } else {
+                                            // растения
+                                        let r = rnd.double();
+                                        if(r < .5) {
+                                            let plant_id = grass_id;
+                                            if(block_id == BLOCK.PODZOL.id) {
+                                                plant_id = r < .005 ? BLOCK.DEAD_BUSH.id : null;
+                                            } else {
+                                                if(d4 < .5) {
+                                                    if(r < .1) {
+                                                        plant_id = BLOCK.TALL_GRASS.id;
+                                                        chunk.setBlockIndirect(x, y + 2, z, plant_id, null, {is_head: true});
+                                                    }
+                                                } else if(r < .1) {
+                                                    plant_id = r < .03 ? BLOCK.RED_TULIP.id : BLOCK.OXEYE_DAISY.id;
+                                                }
+                                            }
+                                            if(plant_id) {
+                                                chunk.setBlockIndirect(x, y + 1, z, plant_id);
+                                            }
                                         }
                                     }
                                 } else {
@@ -281,12 +334,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.dungeon.add(chunk);
 
         // Cluster
-        // chunk.cluster.fillBlocks(this.maps, chunk, map);
+        cluster.fillBlocks(this.maps, chunk, map, false);
 
         return map;
 
     }
 
+    /*
     //
     generateMap(chunk) {
         const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
@@ -299,7 +353,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             {WATER_LINE: 63000},
             Array(chunk.size.x * chunk.size.z).fill(cell)
         );
-    }
+    }*/
 
     // угол между точками на плоскости
     angleTo(xyz, tx, tz) {
