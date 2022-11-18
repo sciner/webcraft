@@ -308,6 +308,49 @@ export class ClusterBase {
         }
     }
 
+    //
+    drawNaturalBasement(chunk, pos, size, block) {
+        let bx = pos.x - chunk.coord.x;
+        let by = pos.y - chunk.coord.y - 1;
+        let bz = pos.z - chunk.coord.z;
+        const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
+        for(let k = size.y; k > 0; k--) {
+            for(let i = 0; i < size.x; i++) {
+                for(let j = 0; j < size.z; j++) {
+                    if(
+                        (i == 0 && j == 0) ||
+                        (j == 0 && i == size.x - 1) ||
+                        (i == 0 && j == size.z - 1) ||
+                        (i == size.x - 1 && j == size.z - 1)
+                        ) {
+                        if(randoms.double() < .4) {
+                            continue;
+                        }
+                    }
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    const block_id = this.getBlock(chunk, x, y, z);
+                    if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
+                        let bid = block.id;
+                        if(y > 0) {
+                            let under_block_id = this.getBlock(chunk, x, y - 1, z);
+                            if(under_block_id == BLOCK.GRASS_BLOCK.id || under_block_id == BLOCK.DIRT.id) {
+                                bid = BLOCK.GRASS_BLOCK.id;
+                                this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                            }
+                        }
+                        this.setBlock(chunk, x, y, z, bid);
+                    }
+                }
+            }
+            size.x -= 2;
+            size.z -= 2;
+            bx++;
+            bz++;
+        }
+    }
+
     // Draw walls
     draw4Walls(chunk, pos, size, block_palette) {
         const bx = pos.x - chunk.coord.x;

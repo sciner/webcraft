@@ -203,7 +203,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             let r = rnd.double();
                             if(r < .01) {
                                 if(xyz.y >= WATER_LEVEL && x > 1 && x < 14 && z > 1 && z < 14 && !tree_pos) {
-                                    tree_pos = new Vector(x, y + 1, z);
+                                    if(has_cluster && !cluster.cellIsOccupied(xyz.x, 0, xyz.z, 2)) {
+                                        tree_pos = new Vector(x, y + 1, z);
+                                    }
                                 }
                             }
                         }
@@ -252,13 +254,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.dungeon.add(chunk);
 
         // Cluster
-        //if(chunk.addr.y == 2) {
-            for(const [_, building] of cluster.buildings.entries()) {
-                building.door_bottom.y = 90;
-                building.entrance.y = 90;
-            }
-            cluster.fillBlocks(this.maps, chunk, map, false);
-       // }
+        cluster.fillBlocks(this.maps, chunk, map, false, false);
 
         return map;
 

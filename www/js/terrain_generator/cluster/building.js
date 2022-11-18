@@ -40,10 +40,14 @@ export class Building {
 
     drawBasement(cluster, chunk, height, basement_block_id) {
         const building = this;
-        // quboid
-        const coord = building.coord.clone().add(new Vector(0, -height, 0));
-        const size = building.size.clone().add(new Vector(0, -building.size.y + 4, 0));
-        cluster.drawQuboid(chunk, coord, size, BLOCK.fromId(basement_block_id || this.cluster.basement_block));
+        // floor
+        const coord_floor = building.coord.clone().addSelf(new Vector(0, -1, 0));
+        const size_floor = building.size.clone().addSelf(new Vector(0, -building.size.y + 1, 0));
+        cluster.drawQuboid(chunk, coord_floor, size_floor, BLOCK.fromId(basement_block_id || this.cluster.basement_block));
+        // natural basement
+        const coord = building.coord.clone().addSelf(new Vector(-1, -height, -1));
+        const size = building.size.clone().addSelf(new Vector(2, -building.size.y + 4, 2));
+        cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
     }
 
     // Limit building size
@@ -216,6 +220,14 @@ export class Building {
             roof_size = new Vector(0, roof_height, size.z + roof_size_add);
             cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, roof_block);
         }
+    }
+
+    setY(y) {
+        this.door_bottom.y     = y;
+        this.entrance.y        = y - 1;
+        this.coord.y           = this.entrance.y + this.coord.y;
+        this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN;
+        this.aabb.y_max        = this.aabb.y_min + this.size.y * 3;
     }
 
 }

@@ -8,6 +8,8 @@ import { GENERATOR_OPTIONS, TerrainMap, TerrainMapCell } from "./terrain_map.js"
 import { CaveGenerator } from './cave_generator.js';
 import { OreGenerator } from './ore_generator.js';
 import { IndexedColor, Vector, VectorCollector } from "../helpers.js";
+import { BUILDING_AABB_MARGIN } from "./cluster/building.js";
+import { getAheadMove } from "./cluster/vilage.js";
 
 // let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -280,24 +282,23 @@ export class TerrainMapManager2 {
         
         map.cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
 
-        /*for(const [_, building] of map.cluster.buildings.entries()) {
-            if(building.door_bottom && building.door_bottom.y == Infinity) {
-                building.door_bottom.y = 90;
-                building.entrance.y = 90;
-                xyz.copyFrom(building.door_bottom);
-                const river_point = this.makeRiverPoint(xyz.x, xyz.z);
-                for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
-                    xyz.y = 80 + y;
-                    const preset = this.getPreset(xyz);
-                    const {d1, d2, d3, d4, density} = this.makePoint(xyz, {river_point, preset});
-                    if(density > .6) {
-                        building.door_bottom.y = xyz.y;
-                        building.entrance.y = xyz.y;
-                        break;
+        if(!map.cluster.is_empty) {
+            for(const [_, building] of map.cluster.buildings.entries()) {
+                if(building.door_bottom && building.door_bottom.y == Infinity) {
+                    xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
+                    const river_point = this.makeRiverPoint(xyz.x, xyz.z);
+                    for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
+                        xyz.y = 80 + y;
+                        const preset = this.getPreset(xyz);
+                        const {d1, d2, d3, d4, density} = this.makePoint(xyz, {river_point, preset});
+                        if(density > .6) {
+                            building.setY(xyz.y + 1);
+                            break;
+                        }
                     }
                 }
             }
-        }*/
+        }
 
         const biome = BIOMES['GRASSLAND'];
         map.terrain = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
