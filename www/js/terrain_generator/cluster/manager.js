@@ -23,6 +23,21 @@ export class ClusterManager {
             return cluster;
         }
         cluster = new ClusterVilage(this, addr.clone());
+
+
+
+        for(const [_, building] of cluster.buildings.entries()) {
+            if(building.door_bottom && building.door_bottom.y == Infinity) {
+                building.door_bottom.y = 90;
+                building.entrance.y = 90;
+            }
+        }
+
+
+
+
+
+
         /*
         const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();

@@ -4,7 +4,7 @@ import {BLOCK} from '../../blocks.js';
 import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 import {DungeonGenerator} from "../dungeon.js";
-import { TerrainMapManager2 } from "../terrain_map2.js";
+import { DEFAULT_DENSITY_COEFF, TerrainMapManager2, WATER_LEVEL } from "../terrain_map2.js";
 import { GENERATOR_OPTIONS } from "../terrain_map.js";
 
 // import {DungeonGenerator} from "../dungeon.js";
@@ -20,23 +20,6 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
-const DEFAULT_DENSITY_COEFF = {
-    d1: 0.5333,
-    d2: 0.2667,
-    d3: 0.1333,
-    d4: 0.0667
-}
-
-const MAP_PRESETS = {
-    // relief - кривизна рельефа
-    // mid_level - базовая высота поверхности
-    norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true, grass_block_id: BLOCK.GRASS_BLOCK.id},
-    mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_noise:         {id: 'high_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_coarse_noise:  {id: 'high_coarse_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id},
-    // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id}
-};
-
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -48,17 +31,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
-        //
-        // Presets by chances
-        this.presets = [];
-        for(const k in MAP_PRESETS) {
-            const op = MAP_PRESETS[k];
-            for(let i = 0; i < op.chance; i++) {
-                this.presets.push(op);
-            }
-        }
-        this.rnd_presets = new alea(seed);
-        this.presets.sort(() => .5 - this.rnd_presets.double());
     }
 
     async init() {
@@ -114,8 +86,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const seed                      = this.seed + chunk.id;
         const rnd                       = new alea(seed);
-        const noise2d                   = this.noise2d;
-        const noise3d                   = this.noise3d;
+        // const noise2d                   = this.noise2d;
+        // const noise3d                   = this.noise3d;
 
         const cluster                   = chunk.cluster;
         const maps                      = this.maps.generateAround(chunk, chunk.addr, false, true);
@@ -125,7 +97,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const size_x                    = chunk.size.x;
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
-        const WATER_LEVEL               = 80;
 
         // blocks
         const water_id                  = BLOCK.STILL_WATER.id;
@@ -137,28 +108,23 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let not_air_count               = -1;
         let tree_pos                    = null;
 
-        if(!globalThis.dsfghjxzcv) {
-            globalThis.dsfghjxzcv = {min: Infinity, max: -Infinity}
-        }
-
         //
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
-                // const cell = map.cells[z * CHUNK_SIZE_X + x];
+                const cell = map.cells[z * CHUNK_SIZE_X + x];
 
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                const {relief, mid_level, radius, dist, op} = this.getPreset(xyz);
-                const dist_percent = 1 - Math.min(dist/radius, 1); // 1 in center
-                const dirt_level = noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
+                const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
+                const dirt_level = cell.dirt_level; // динамическая толщина дерна
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
                 const has_cluster = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const cluster_cell = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
 
-                let max_height = null;
+                // let max_height = null;
 
                 /*if(op.id == 'gori') {
                     const NOISE_SCALE = 100
@@ -172,55 +138,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
-                //
-                const dirt_pattern = dirt_level;
-                let river_point = this.maps.makeRiverPoint(xyz.x, xyz.z);
-                const density_coeff = op.density_coeff ?? DEFAULT_DENSITY_COEFF;
-
                 for(let y = size_y; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
-
-                    let density = 0;
-                    let d1 = 0;
-                    let d2 = 0;
-                    let d3 = 0;
-                    let d4 = 0;
-
-                    if(max_height !== null) {
-                        density = xyz.y < max_height ? 1 : 0;
-                        d3 = .2;
-                        river_point = null;
-
-                    } else {
-
-                        d1 = noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-                        d2 = noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-                        d3 = noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-                        d4 = noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
-
-                        // waterfront/берег
-                        const under_waterline = xyz.y < WATER_LEVEL;
-                        const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
-                        const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
-
-                        density = (
-                            // 64/120 + 32/120 + 16/120 + 8/120
-                            (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
-                            / 2 + .5
-                        ) * h;
-
-                    }
-
-                    // rivers/реки
-                    if(river_point) {
-                        let river_density = 1;
-                        const {value, percent, river_percent, waterfront_percent} = river_point;
-                        const river_vert_dist = WATER_LEVEL - xyz.y;
-                        river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
-                        // density *= river_density;
-                        density = Math.min(density, density*river_density);
-                    }
+                    const {d1, d2, d3, d4, density} = this.maps.makePoint(xyz, cell);
 
                     //
                     if(density > .6) {
@@ -236,14 +157,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         } else {
                             // если это самый первый слой поверхности
                             if(not_air_count == 0) {
+
                                 // если это не под водой
                                 if(xyz.y > WATER_LEVEL + (dirt_level + 2) * 1.15) {
                                     if(cluster_cell && cluster_cell.height == 1 && !cluster_cell.building) {
                                         block_id = cluster_cell.block_id;
-                                    } else if(cluster_cell && cluster_cell.building) {
-                                        if(cluster_cell.building.door_bottom.y == Infinity) {
-                                            // cluster_cell.building.door_bottom.y = xyz.y;
-                                        }
                                     } else {
                                             // растения
                                         let r = rnd.double();
@@ -270,8 +188,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     if(xyz.y >= WATER_LEVEL) {
                                         block_id = d2 < -.5 ? BLOCK.SAND.id : grass_block_id;
                                     } else {
-                                        block_id = dirt_pattern < .0 ? BLOCK.GRAVEL.id : BLOCK.SAND.id;
-                                        if(dirt_pattern < -.3) {
+                                        block_id = dirt_level < .0 ? BLOCK.GRAVEL.id : BLOCK.SAND.id;
+                                        if(dirt_level < -.3) {
                                             block_id = xyz.y < WATER_LEVEL ? dirt_block_id : grass_block_id;
                                         }
                                     }
@@ -334,85 +252,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.dungeon.add(chunk);
 
         // Cluster
-        cluster.fillBlocks(this.maps, chunk, map, false);
+        //if(chunk.addr.y == 2) {
+            for(const [_, building] of cluster.buildings.entries()) {
+                building.door_bottom.y = 90;
+                building.entrance.y = 90;
+            }
+            cluster.fillBlocks(this.maps, chunk, map, false);
+       // }
 
         return map;
-
-    }
-
-    /*
-    //
-    generateMap(chunk) {
-        const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-            code: 'Flat'
-        })};
-        return new Default_Terrain_Map(
-            chunk.addr,
-            chunk.size,
-            chunk.addr.mul(chunk.size),
-            {WATER_LINE: 63000},
-            Array(chunk.size.x * chunk.size.z).fill(cell)
-        );
-    }*/
-
-    // угол между точками на плоскости
-    angleTo(xyz, tx, tz) {
-        const angle = Math.atan2(tx - xyz.x, tz - xyz.z);
-        return (angle > 0) ? angle : angle + 2 * Math.PI;
-    }
-
-    //
-    getPreset(xyz) {
-
-        const RAD = 1000; // радиус области
-        const TRANSITION_WIDTH = 64; // ширина перехода межу обалстью и равниной
-
-        // центр области
-        const center_x = Math.round(xyz.x / RAD) * RAD;
-        const center_z = Math.round(xyz.z / RAD) * RAD;
-
-        // базовые кривизна рельефа и высота поверхности
-        let op                  = MAP_PRESETS.norm;
-        let relief              = op.relief;
-        let mid_level           = op.mid_level;
-
-        // частичное занижение общего уровня, чтобы равнины становились ближе к воде
-        let deform_mid_level = -Math.abs(this.noise2d(xyz.x/500, xyz.z/500) * 4);
-        if(deform_mid_level > 0) deform_mid_level /= 3;
-        mid_level += deform_mid_level;
-
-        // угол к центру области
-        const angle = this.angleTo(xyz, center_x, center_z);
-
-        // Формируем неровное очертание области вокруг его центра
-        // https://www.benfrederickson.com/flowers-from-simplex-noise/
-        const circle_radius = RAD * 0.25;
-        const frequency = 1.25;
-        const magnitude = .5;
-        // Figure out the x/y coordinates for the given angle
-        const x = Math.cos(angle);
-        const y = Math.sin(angle);
-        // Randomly deform the radius of the circle at this point
-        const deformation = this.noise2d(x * frequency, y * frequency) + 1;
-        const radius = circle_radius * (1 + magnitude * deformation);
-        const max_dist = radius;
-
-        // Расстояние до центра области
-        const lenx = center_x - xyz.x;
-        const lenz = center_z - xyz.z;
-        const dist = Math.sqrt(lenx * lenx + lenz * lenz);
-
-        if((dist < max_dist)) {
-            // выбор типа области настроек
-            const index = Math.abs(Math.round(center_x * 654 + center_x + center_z)) % this.presets.length;
-            op = this.presets[index];
-            // "перетекание" ландшафта
-            const perc = 1 - Math.min(Math.max((dist - (max_dist - TRANSITION_WIDTH)) / TRANSITION_WIDTH, 0), 1);
-            relief += ( (op.relief - MAP_PRESETS.norm.relief) * perc);
-            mid_level += (op.mid_level - MAP_PRESETS.norm.mid_level) * perc;
-        }
-
-        return {relief, mid_level, radius, dist, op}
 
     }
 
