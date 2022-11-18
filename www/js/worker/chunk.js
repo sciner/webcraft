@@ -129,6 +129,7 @@ export class Chunk {
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
+        //TODO: mark neibs dirty in sync outer
         this.chunkManager.dataWorld.syncOuter(this);
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
         this.inited = true;

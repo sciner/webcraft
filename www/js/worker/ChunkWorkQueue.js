@@ -55,16 +55,15 @@ export class ChunkWorkQueue {
         }
 
         chunk.queueDist = dx + dy + dz;
-        let portalReady = chunk.dataChunk.facetPortals.length;
         if (chunk.inited) {
             // its build queue!
-            portalReady = 0;
+            let portalReady = 0;
             for (let i = 0; i < chunk.dataChunk.facetPortals.length; i++) {
                 portalReady++;
             }
-        }
-        if (portalReady < 6) {
-            chunk.queueDist += 100;
+            if (portalReady < 6) {
+                chunk.queueDist += 100;
+            }
         }
     }
 
