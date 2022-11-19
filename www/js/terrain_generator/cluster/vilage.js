@@ -34,8 +34,9 @@ export class ClusterVilage extends ClusterBase {
             this.max_height         = this.flat ? 1 : 30;
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createPalette(this.flat ? [
-                {value: BLOCK.ANDESITE, chance: .5},
-                {value: BLOCK.STONE, chance: 1}
+                {value: BLOCK.DIRT_PATH, chance: 1}
+                // {value: BLOCK.ANDESITE, chance: .5},
+                // {value: BLOCK.STONE, chance: 1}
             ] : [
                 {value: BLOCK.DIRT_PATH, chance: 1}
             ]);
@@ -67,7 +68,7 @@ export class ClusterVilage extends ClusterBase {
             let t = performance.now();
             let vs = this.schema = new VilageSchema(this, {
                 margin: CLUSTER_PADDING,
-                road_damage_factor: this.flat ? 0 : ROAD_DAMAGE_FACTOR
+                road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
             });
             let resp = vs.generate(this.id);
             this.timers.generate = performance.now() - t; t = performance.now();
@@ -205,7 +206,7 @@ export class ClusterVilage extends ClusterBase {
                     }
                 }
                 if(b.entrance.y == Infinity) {
-                    console.error('Invalid building y');
+                    // console.error('Invalid building y');
                 } else if(b.aabb.intersect(chunk.aabb)) {
                     this.drawBulding(chunk, maps, b);
                 }

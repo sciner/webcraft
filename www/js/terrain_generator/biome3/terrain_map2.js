@@ -1,15 +1,15 @@
 // import { impl as alea } from '../../vendors/alea.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
 // import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
-import { BIOMES } from "./biomes.js";
-import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "./default.js";
+import { BIOMES } from "../biomes.js";
+import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 // import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
-import { GENERATOR_OPTIONS, TerrainMap, TerrainMapCell } from "./terrain_map.js";
-import { CaveGenerator } from './cave_generator.js';
-import { OreGenerator } from './ore_generator.js';
-import { IndexedColor, Vector, VectorCollector } from "../helpers.js";
-import { BUILDING_AABB_MARGIN } from "./cluster/building.js";
-import { getAheadMove } from "./cluster/vilage.js";
+import { GENERATOR_OPTIONS, TerrainMap, TerrainMapCell } from "../terrain_map.js";
+import { CaveGenerator } from '../cave_generator.js';
+import { OreGenerator } from '../ore_generator.js';
+import { IndexedColor, Vector, VectorCollector } from "../../helpers.js";
+import { BUILDING_AABB_MARGIN } from "../cluster/building.js";
+import { getAheadMove } from "../cluster/vilage.js";
 
 // let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -64,11 +64,6 @@ export class TerrainMapManager2 {
 
     static _temp_vec3 = Vector.ZERO.clone();
     static _temp_vec3_delete = Vector.ZERO.clone();
-
-    //static maps_in_memory = 0;
-    //static registry = new FinalizationRegistry(heldValue => {
-    //    TerrainMapManager.maps_in_memory--;
-    //});;
 
     constructor(seed, world_id, noise2d, noise3d) {
         this.seed = seed;
@@ -202,7 +197,7 @@ export class TerrainMapManager2 {
 
     }
 
-    makePoint(xyz, cell) {
+    calcDensity(xyz, cell) {
 
         let density;
         let d1;
@@ -280,7 +275,7 @@ export class TerrainMapManager2 {
             debugger
         }
         
-        map.cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
+        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
 
         if(!map.cluster.is_empty) {
             for(const [_, building] of map.cluster.buildings.entries()) {
@@ -288,9 +283,9 @@ export class TerrainMapManager2 {
                     xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
-                        xyz.y = 80 + y;
+                        xyz.y = map.cluster.y_base + y;
                         const preset = this.getPreset(xyz);
-                        const {d1, d2, d3, d4, density} = this.makePoint(xyz, {river_point, preset});
+                        const {d1, d2, d3, d4, density} = this.calcDensity(xyz, {river_point, preset});
                         if(density > .6) {
                             building.setY(xyz.y + 1);
                             break;

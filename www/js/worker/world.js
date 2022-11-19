@@ -29,10 +29,9 @@ export class WorkerWorldManager {
         if(this.list.has(key)) {
             return this.list.get(key);
         }
-        let generator = this.terrainGenerators.get(generator_id);
-        generator = new generator(seed, world_id, generator_options);
-        await generator.init();
-        const world = new WorkerWorld(generator);
+        const world = new WorkerWorld();
+        const generator_class = this.terrainGenerators.get(generator_id);
+        await world.init(seed, world_id, generator_class, generator_options)
         this.list.set(key, world);
         return world;
     }
@@ -42,10 +41,13 @@ export class WorkerWorldManager {
 // World
 export class WorkerWorld {
 
-    constructor(generator) {
-        this.generator = generator;
+    constructor() {}
+
+    async init(seed, world_id, generator_class, generator_options) {
         this.chunkManager = new ChunkManager(this);
         this.chunks = new VectorCollector();
+        this.generator = new generator_class(this, seed, world_id, generator_options);
+        await this.generator.init();
     }
 
     createChunk(args) {

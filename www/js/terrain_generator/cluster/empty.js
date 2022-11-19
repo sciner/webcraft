@@ -1,3 +1,4 @@
+import { VectorCollector } from "../../helpers.js";
 import {ClusterBase} from "./base.js";
 
 //

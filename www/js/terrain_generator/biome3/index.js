@@ -4,8 +4,10 @@ import {BLOCK} from '../../blocks.js';
 import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 import {DungeonGenerator} from "../dungeon.js";
-import { DEFAULT_DENSITY_COEFF, TerrainMapManager2, WATER_LEVEL } from "../terrain_map2.js";
+import { DEFAULT_DENSITY_COEFF, TerrainMapManager2, WATER_LEVEL } from "./terrain_map2.js";
 import { GENERATOR_OPTIONS } from "../terrain_map.js";
+import FlyIslands from "../flying_islands/index.js";
+import { ClusterManager } from "../cluster/manager.js";
 
 // import {DungeonGenerator} from "../dungeon.js";
 // import FlyIslands from "../flying_islands/index.js";
@@ -23,14 +25,16 @@ for(let i = 0; i < randoms.length; i++) {
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.clusterManager = new ClusterManager(world.chunkManager, seed);
         // this._createBlockAABB = new AABB();
         // this._createBlockAABB_second = new AABB();
         // this.temp_set_block = null;
         // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
+        this.flying_islands = new FlyIslands(seed, world_id, {});
     }
 
     async init() {
@@ -46,14 +50,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         if(!this.flying_islands) {
             return null;
         }
+        const xyz = new Vector(0, 0, 0);
         const CHUNK_START_Y = 25;
-        const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
-        const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
-        coord.y -= chunk.size.y * CHUNK_START_Y;
-        addr.y -= CHUNK_START_Y;
-        const fake_chunk = {...chunk, coord, addr};
-        fake_chunk.setBlockIndirect = chunk.setBlockIndirect;
-        return this.flying_islands.generate(fake_chunk);
+        const CHUNK_HEIGHT = 2;
+        if(chunk.addr.y >= CHUNK_START_Y && chunk.addr.y < CHUNK_START_Y + CHUNK_HEIGHT) {
+            const coord = new Vector(0, 0, 0).copyFrom(chunk.coord);
+            const addr = new Vector(0, 0, 0).copyFrom(chunk.addr);
+            coord.y -= chunk.size.y * CHUNK_START_Y;
+            addr.y -= CHUNK_START_Y;
+            const fake_chunk = {...chunk, coord, addr};
+            fake_chunk.setBlockIndirect = chunk.setBlockIndirect;
+            return this.flying_islands.generate(fake_chunk);
+        };
+        return null;
     }
 
     // Шум для гор
@@ -84,6 +93,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     // Generate
     generate(chunk) {
 
+        // Draw fly islands in the sky
+        const resp = this.drawFlyIslands(chunk);
+        if(resp) {
+            return resp;
+        }
+
         const seed                      = this.seed + chunk.id;
         const rnd                       = new alea(seed);
         // const noise2d                   = this.noise2d;
@@ -107,6 +122,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         let not_air_count               = -1;
         let tree_pos                    = null;
+
+        chunk.map = map;
 
         //
         for(let x = 0; x < size_x; x++) {
@@ -138,10 +155,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
+                let cluster_drawed = false;
+
                 for(let y = size_y; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
-                    const {d1, d2, d3, d4, density} = this.maps.makePoint(xyz, cell);
+                    const {d1, d2, d3, d4, density} = this.maps.calcDensity(xyz, cell);
 
                     //
                     if(density > .6) {
@@ -157,13 +176,28 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         } else {
                             // если это самый первый слой поверхности
                             if(not_air_count == 0) {
-
                                 // если это не под водой
                                 if(xyz.y > WATER_LEVEL + (dirt_level + 2) * 1.15) {
-                                    if(cluster_cell && cluster_cell.height == 1 && !cluster_cell.building) {
-                                        block_id = cluster_cell.block_id;
+                                    if(cluster_cell && !cluster_cell.building) {
+                                        if(!cluster_drawed) {
+                                            cluster_drawed = true;
+                                            if(Array.isArray(cluster_cell.block_id)) {
+                                                if(y < size_y - cluster_cell.height && cluster_cell.block_id.length) {
+                                                    for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                        chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
+                                                    }
+                                                }
+                                            } else {
+                                                if(y < size_y - cluster_cell.height) {
+                                                    for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                        chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
+                                                    }
+                                                }
+                                            }
+                                            if(cluster_cell.y_shift == 0) continue;
+                                        }
                                     } else {
-                                            // растения
+                                        // растения
                                         let r = rnd.double();
                                         if(r < .5) {
                                             let plant_id = grass_id;
@@ -198,12 +232,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 block_id = not_air_count < dirt_level * 4 ? (dirt_block_id) : stone_block_id;
                             }
                         }
+                        //
+                        if(not_air_count == 0 && !cell.map_block_id) {
+                            cell.map_block_id = block_id;
+                        }
                         chunk.setBlockIndirect(x, y, z, block_id);
                         if(block_id == grass_block_id && !tree_pos) {
                             let r = rnd.double();
                             if(r < .01) {
                                 if(xyz.y >= WATER_LEVEL && x > 1 && x < 14 && z > 1 && z < 14 && !tree_pos) {
-                                    if(has_cluster && !cluster.cellIsOccupied(xyz.x, 0, xyz.z, 2)) {
+                                    if(!has_cluster || (has_cluster && !cluster.cellIsOccupied(xyz.x, 0, xyz.z, 2))) {
                                         tree_pos = new Vector(x, y + 1, z);
                                     }
                                 }

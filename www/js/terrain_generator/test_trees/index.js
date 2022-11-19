@@ -6,7 +6,7 @@ import {TREES} from '../../terrain_generator/biomes.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(seed);
         TREES.init();

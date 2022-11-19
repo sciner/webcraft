@@ -240,7 +240,7 @@ export class TerrainMapManager {
         if(!real_chunk.chunkManager) {
             debugger
         }
-        const cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
+        const cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 const px = chunk.coord.x + x;
@@ -498,7 +498,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 return false;
             }
             aleaRandom = new alea(seed + '_' + chunk.coord.toString());
-            cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
+            cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
             return true;
         };
         //

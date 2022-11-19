@@ -3,7 +3,7 @@ import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
-import { ClusterManager } from '../terrain_generator/cluster/manager.js';
+// import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
@@ -20,7 +20,6 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
-        this.clusterManager = new ClusterManager(this, world.generator.seed);
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -74,7 +73,7 @@ export class Chunk {
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
-        this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
+        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord) ?? null;
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,

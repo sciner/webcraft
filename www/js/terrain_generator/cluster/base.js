@@ -2,6 +2,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
+import { MAX_PORTAL_SEARCH_DIST } from "../../constant.js";
 
 export const NEAR_MASK_MAX_DIST = 10;
 export const CLUSTER_SIZE       = new Vector(128, 128, 128);
@@ -29,6 +30,7 @@ export class ClusterBase {
     // constructor
     constructor(clusterManager, addr) {
         this.clusterManager = clusterManager;
+        this.y_base         = 80;
         this.addr           = addr;
         this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
         this.size           = CLUSTER_SIZE.clone();
@@ -311,43 +313,56 @@ export class ClusterBase {
     //
     drawNaturalBasement(chunk, pos, size, block) {
         let bx = pos.x - chunk.coord.x;
-        let by = pos.y - chunk.coord.y - 1;
+        let by = pos.y - chunk.coord.y;
         let bz = pos.z - chunk.coord.z;
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
+        const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)
+        const _vec = new Vector(0, 0, 0);
+        const margin = 2;
         for(let k = size.y; k > 0; k--) {
-            for(let i = 0; i < size.x; i++) {
-                for(let j = 0; j < size.z; j++) {
-                    if(
-                        (i == 0 && j == 0) ||
-                        (j == 0 && i == size.x - 1) ||
-                        (i == 0 && j == size.z - 1) ||
-                        (i == size.x - 1 && j == size.z - 1)
-                        ) {
-                        if(randoms.double() < .4) {
-                            continue;
-                        }
-                    }
+            const rad_coef = Math.sqrt(k / (size.y / 2.2)) * .6 * (1 - randoms.double() / 4.5);
+            for(let i = -margin; i < size.x + margin; i++) {
+                for(let j = -margin; j < size.z + margin; j++) {
                     const x = bx + i;
                     const y = by + k;
                     const z = bz + j;
-                    const block_id = this.getBlock(chunk, x, y, z);
-                    if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
-                        let bid = block.id;
-                        if(y > 0) {
-                            let under_block_id = this.getBlock(chunk, x, y - 1, z);
-                            if(under_block_id == BLOCK.GRASS_BLOCK.id || under_block_id == BLOCK.DIRT.id) {
-                                bid = BLOCK.GRASS_BLOCK.id;
-                                this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                    _vec.set(x, y, z);
+                    const dist = center.distance(_vec);
+                    if(dist < Math.max(size.x, size.z) * rad_coef) {
+                        const block_id = this.getBlock(chunk, x, y, z);
+                        if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
+                            let bid = block.id;
+                            // cell.map_block_id
+                            if(chunk.map && x >= 0 && z >= 0 && x < chunk.size.x && z < chunk.size.z) {
+                                const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
+                                if(cell?.map_block_id) {
+                                    bid = cell.map_block_id;
+                                    if(k < size.y && [BLOCK.GRASS_BLOCK.id, BLOCK.DIRT_PATH.id].includes(bid)) {
+                                        bid = BLOCK.DIRT.id;
+                                    }
+                                }
+                            }
+                            /*
+                            // bid = k == size.y ? BLOCK.GRASS_BLOCK.id : BLOCK.DIRT.id;
+                            if(y > 0) {
+                                const under_block_id = this.getBlock(chunk, x, y - 1, z);
+                                if(under_block_id == BLOCK.GRASS_BLOCK.id || under_block_id == BLOCK.DIRT.id) {
+                                    bid = BLOCK.GRASS_BLOCK.id;
+                                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                                }
+                            }
+                            */
+                            this.setBlock(chunk, x, y, z, bid);
+                            if(y > 0) {
+                                let under_block_id = this.getBlock(chunk, x, y - 1, z);
+                                if(under_block_id == BLOCK.GRASS_BLOCK.id) {
+                                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                                }
                             }
                         }
-                        this.setBlock(chunk, x, y, z, bid);
                     }
                 }
             }
-            size.x -= 2;
-            size.z -= 2;
-            bx++;
-            bz++;
         }
     }
 

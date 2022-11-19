@@ -45,8 +45,10 @@ export class Building {
         const size_floor = building.size.clone().addSelf(new Vector(0, -building.size.y + 1, 0));
         cluster.drawQuboid(chunk, coord_floor, size_floor, BLOCK.fromId(basement_block_id || this.cluster.basement_block));
         // natural basement
-        const coord = building.coord.clone().addSelf(new Vector(-1, -height, -1));
-        const size = building.size.clone().addSelf(new Vector(2, -building.size.y + 4, 2));
+        // const coord = building.coord.clone().addSelf(new Vector(-1, -height, -1));
+        // const size = building.size.clone().addSelf(new Vector(2, -building.size.y + 4, 2));
+        const coord = building.coord.clone().addSelf(new Vector(0, -height - 4, 0));
+        const size = building.size.clone().addSelf(new Vector(0, -building.size.y + 7, 0));
         cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
     }
 
@@ -421,7 +423,8 @@ export class WaterWell extends Building {
     draw(cluster, chunk) {
         const building = this;
         // 4 walls
-        const walls_size = building.size.clone().add(new Vector(0, -4, 0));
+        cluster.drawQuboid(chunk, building.coord, building.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
+        const walls_size = building.size.clone().addSelf(new Vector(0, -4, 0));
         cluster.draw4Walls(chunk, building.coord, walls_size, this.wallBlocks);
         const q_pos = building.coord.add(new Vector(1, 1, 1));
         const q_size = walls_size.add(new Vector(-2, -2, -2));

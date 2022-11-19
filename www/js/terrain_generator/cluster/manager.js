@@ -17,24 +17,25 @@ export class ClusterManager {
 
     // Return cluster
     getForCoord(coord) {
+        const version = 2;
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(CLUSTER_SIZE).flooredSelf();
         let cluster = this.all.get(addr);
         if(cluster) {
             return cluster;
         }
-        cluster = new ClusterVilage(this, addr.clone());
-        // cluster = new ClusterEmpty(this, addr.clone());
-        /*
         const rand = new alea(this.seed + '_' + addr.toHash());
-        const r = rand.double();
-        if(r <= .1) {
-            cluster = new ClusterPyramid(this, addr.clone());
-        } else if(r < .6) {
-            cluster = new ClusterEmpty(this, addr.clone());
+        if(version == 1) {
+            const r = rand.double();
+            if(r <= .1) {
+                cluster = new ClusterPyramid(this, addr.clone());
+            } else if(r < .6) {
+                cluster = new ClusterEmpty(this, addr.clone());
+            } else {
+                cluster = new ClusterVilage(this, addr.clone());
+            }
         } else {
             cluster = new ClusterVilage(this, addr.clone());
         }
-        */
         this.all.set(addr, cluster);
         return cluster;
     }
