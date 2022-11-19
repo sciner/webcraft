@@ -33,16 +33,16 @@ export class ItemWorld {
             drop_item.tick(delta);
         }
         for(let chunk of this.world.chunks.all) {
-            if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED)
+            if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED &&
+                chunk.pendingItemsMerge
+            ) {
+                chunk.pendingItemsMerge = false;
                 this.mergeItemsInChunk(chunk);
+            }
         }
     }
 
     mergeItemsInChunk(chunk) {
-        if (!chunk.pendingItemsMerge)
-            return;
-        chunk.pendingItemsMerge = false;
-
         this.mergeableItems.length = 0;
         // at the beginning of mergeableItems are items from the current chunk
         for(let [entity_id, item] of chunk.drop_items.entries()) {
