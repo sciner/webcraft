@@ -495,7 +495,6 @@ export class ServerChunk {
     async onBlockSet(item_pos, item) {
 
         const tblock = this.world.getBlock(item_pos);
-        console.log('t' + tblock.id);
         if(tblock) {
             const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
             const neighbours = tblock.getNeighbours(this.world, cache);
@@ -639,21 +638,6 @@ export class ServerChunk {
                         return createDrop(tblock);
                     }
                     break;
-                }
-                case 'pointed_dripstone': {
-                    if(neighbour.posworld.x == pos.x && neighbour.posworld.z == pos.z) {
-                        // @todo нет дуступа к extra_data у neighbour
-                        const block = world.getBlock(neighbour.posworld);
-                        console.log(tblock.posworld + ' extra:' + tblock.extra_data.up + ' nrh ' + neighbour.extra_data + ' ' + neighbour.id);
-                        //if (tblock.extra_data.up) {
-                            
-                        //}
-                        //console.log(neighbour);
-                        //console.log(neighbour.extra_data);
-                        //if((neighbour.posworld.y < pos.y && !tblock?.extra_data?.up) || (neighbour.posworld.y > pos.y && tblock?.extra_data?.up)) {
-                            //return createDrop(tblock);
-                        //}
-                    }
                 }
             }
             

@@ -10,7 +10,7 @@ export default class Ticker {
     
     //
     static func(tick_number, world, chunk, v) {
-        const random_tick_speed = 200 / 4096;
+        const random_tick_speed = 100 / 4096;
         const is_tick = Math.random() > random_tick_speed;
         if (is_tick) {
             return;
@@ -38,6 +38,10 @@ export default class Ticker {
             // вариация роста сталактита
             if (Math.random() < 0.8) {
                 updated_blocks.push({pos: pos.offset(0, -stalactite, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                block = world.getBlock(pos.offset(0, 2 - stalactite, 0));
+                if (block.id == BLOCK.POINTED_DRIPSTONE.id) {
+                    updated_blocks.push({pos: pos.offset(0, 2 - stalactite, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: true} }, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
             }
             // высота сталагмита
             let stalagmite = null;
@@ -51,9 +55,12 @@ export default class Ticker {
             // вариация роста сталагмита
             if (stalagmite && Math.random() < 0.6) {
                 updated_blocks.push({pos: pos.offset(0, -stalagmite, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: false} }, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                block = world.getBlock(pos.offset(0, -stalagmite - 2, 0));
+                if (block.id == BLOCK.POINTED_DRIPSTONE.id) {
+                    updated_blocks.push({pos: pos.offset(0, -stalagmite - 2, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: false} }, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
             }
         }
-        
         return updated_blocks;
     }
 
