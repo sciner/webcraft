@@ -45,8 +45,8 @@ const MAP_PRESETS = {
     // mid_level - базовая высота поверхности
     norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true, grass_block_id: BLOCK.GRASS_BLOCK.id},
     mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_noise:         {id: 'high_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_coarse_noise:  {id: 'high_coarse_noise', chance: 2, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id},
+    high_noise:         {id: 'high_noise', chance: 4, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
+    high_coarse_noise:  {id: 'high_coarse_noise', chance: 4, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id},
     // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id}
 };
 
@@ -205,6 +205,14 @@ export class TerrainMapManager2 {
         let d3;
         let d4;
 
+        /*
+        if(!globalThis.fffx) {
+            globalThis.fffx = 0;
+        }
+        globalThis.fffx++;
+        if(globalThis.fffx%1000==0) console.log(globalThis.fffx)
+        */
+
         //if(max_height !== null) {
         //    density = xyz.y < max_height ? 1 : 0;
         //    d3 = .2;
@@ -214,33 +222,42 @@ export class TerrainMapManager2 {
 
             const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
-            d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-            d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-            d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-            d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
-
             // waterfront/берег
             const under_waterline = xyz.y < WATER_LEVEL;
             const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
             const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-            density = (
-                // 64/120 + 32/120 + 16/120 + 8/120
-                (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
-                / 2 + .5
-            ) * h;
+            if(h < 0.333) {
+                d1 = 0;
+                d2 = 0;
+                d3 = 0;
+                d4 = 0;
+                density = 0;
+
+            } else {
+
+                d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
+                d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
+                d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
+                d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
+
+                density = (
+                    // 64/120 + 32/120 + 16/120 + 8/120
+                    (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
+                    / 2 + .5
+                ) * h;
+
+                // rivers/реки
+                if(cell.river_point) {
+                    const {value, percent, river_percent, waterfront_percent} = cell.river_point;
+                    const river_vert_dist = WATER_LEVEL - xyz.y;
+                    const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
+                    density = Math.min(density, density * river_density);
+                }
+
+            }
 
         //}
-
-        // rivers/реки
-        if(cell.river_point) {
-            let river_density = 1;
-            const {value, percent, river_percent, waterfront_percent} = cell.river_point;
-            const river_vert_dist = WATER_LEVEL - xyz.y;
-            river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
-            // density *= river_density;
-            density = Math.min(density, density * river_density);
-        }
 
         return {d1, d2, d3, d4, density};
 
