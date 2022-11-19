@@ -9,22 +9,24 @@ import {impl as alea} from '../../../vendors/alea.js';
 export class ClusterManager {
 
     // All clusters
-    constructor(chunkManager, seed) {
+    constructor(chunkManager, seed, version) {
         this.seed = seed;
+        this.version = version;
         this.chunkManager = chunkManager;
         this.all = new VectorCollector();
     }
 
     // Return cluster
     getForCoord(coord) {
-        const version = 2;
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(CLUSTER_SIZE).flooredSelf();
         let cluster = this.all.get(addr);
         if(cluster) {
             return cluster;
         }
         const rand = new alea(this.seed + '_' + addr.toHash());
-        if(version == 1) {
+        if(this.version == 2) {
+            cluster = new ClusterVilage(this, addr.clone());
+        } else {
             const r = rand.double();
             if(r <= .1) {
                 cluster = new ClusterPyramid(this, addr.clone());
@@ -33,8 +35,6 @@ export class ClusterManager {
             } else {
                 cluster = new ClusterVilage(this, addr.clone());
             }
-        } else {
-            cluster = new ClusterVilage(this, addr.clone());
         }
         this.all.set(addr, cluster);
         return cluster;

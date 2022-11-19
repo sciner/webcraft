@@ -27,7 +27,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
-        this.clusterManager = new ClusterManager(world.chunkManager, seed);
+        this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
         // this._createBlockAABB = new AABB();
         // this._createBlockAABB_second = new AABB();
         // this.temp_set_block = null;
