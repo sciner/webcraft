@@ -29,6 +29,7 @@ export class DropItem {
             defaultSlipperiness: 0.75,
             playerHalfWidth: .25
         });
+        this.moved = true;
         this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
         this.load_time = performance.now();
@@ -53,6 +54,10 @@ export class DropItem {
         return getChunkAddr(this.pos, this.#chunk_addr);
     }
 
+    setPrevChunkAddr(prevChunkAdr) {
+        this.#prev_chunk_addr.set(prevChunkAdr);
+    }
+
     addVelocity(vec) {
         this.#pc.player_state.vel.addSelf(vec);
         this.#pc.tick(0);
@@ -60,6 +65,10 @@ export class DropItem {
 
     getWorld() {
         return this.#world;
+    }
+
+    getChunk() {
+        return this.#world.chunks.get(this.chunk_addr);
     }
 
     // Create new drop item
@@ -80,6 +89,7 @@ export class DropItem {
         pc.tick(delta);
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
+            this.moved = true;
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);
             // Migrate drop item from previous chunk to new chunk
             if(!this.chunk_addr.equal(this.#prev_chunk_addr)) {
@@ -97,13 +107,22 @@ export class DropItem {
                 }
             }
             this.sendState();
+        } else {
+            // if it stopped just now
+            if(this.moved && delta !== 0) {
+                this.moved = false;
+                const chunk = this.getChunk();
+                if(chunk) {
+                    chunk.pendingItemsMerge = true;
+                }
+            }
         }
     }
 
     // Send current drop item state to players
     sendState() {
         const world = this.getWorld();
-        let chunk_over = world.chunks.get(this.chunk_addr);
+        let chunk_over = this.getChunk();
         if(!chunk_over) {
             return;
         }
