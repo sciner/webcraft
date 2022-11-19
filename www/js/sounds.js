@@ -146,7 +146,7 @@ export class Sounds {
      * @param {boolean} ignore_repeating 
      * @returns 
      */
-    play(tag, action, pos, ignore_repeating = false) {
+    play(tag, action, pos, ignore_repeating = false, loop = false) {
         const list = this.getTagActionList(tag, action)
 
         if(!list) {
@@ -154,7 +154,7 @@ export class Sounds {
         }
 
         // Remove repeats item play
-        let index_key = tag + '/' + action;
+        const index_key = tag + '/' + action;
         let prev_index = -1;
 
         if(this.prev_index.has(index_key)) {
@@ -172,7 +172,7 @@ export class Sounds {
  
         // play
         const track = list[index];
- 
+        
         let track_id;
  
         if(track) {
@@ -190,6 +190,8 @@ export class Sounds {
             // only sounds that can be listened at current pos will executed
             if (estimatedVolume > 0) {
                 track_id = this.sound_sprite_main.play( track.name );
+                
+                this.sound_sprite_main.loop(ignore_repeating, track_id);
  
                 if (pos) {
                     this.sound_sprite_main.pos( pos.x, pos.z, pos.y, track_id);
