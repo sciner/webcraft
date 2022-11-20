@@ -2,6 +2,11 @@ import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { PrismarinePlayerControl } from "../www/vendors/prismarine-physics/using.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
+import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
+
+export const MOTION_MOVED = 0;
+export const MOTION_JUST_STOPPED = 1;
+export const MOTION_STAYED = 2;
 
 export class DropItem {
 
@@ -29,7 +34,7 @@ export class DropItem {
             defaultSlipperiness: 0.75,
             playerHalfWidth: .25
         });
-        this.moved = true;
+        this.motion = MOTION_MOVED;
         this.#prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
         //
         this.load_time = performance.now();
@@ -89,7 +94,7 @@ export class DropItem {
         pc.tick(delta);
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
-            this.moved = true;
+            this.motion = MOTION_MOVED;
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);
             // Migrate drop item from previous chunk to new chunk
             if(!this.chunk_addr.equal(this.#prev_chunk_addr)) {
@@ -107,14 +112,15 @@ export class DropItem {
                 }
             }
             this.sendState();
-        } else {
-            // if it stopped just now
-            if(this.moved && delta !== 0) {
-                this.moved = false;
+        } else if (delta !== 0) { // If it doesn't move
+            if(this.motion === MOTION_MOVED) {
+                this.motion = MOTION_JUST_STOPPED;
                 const chunk = this.getChunk();
-                if(chunk) {
-                    chunk.pendingItemsMerge = true;
+                if(chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                    this.#world.chunks.itemWorld.chunksItemMergingQueue.set(chunk.uniqId, chunk);
                 }
+            } else {
+                this.motion = MOTION_STAYED;
             }
         }
     }

@@ -136,7 +136,6 @@ export class ServerChunk {
         this.ticking_blocks = new TickingBlockManager(this);
         this.randomTickingBlockCount = 0;
         this.block_random_tickers = this.getChunkManager().block_random_tickers;
-        this.pendingItemsMerge = false;
         this.options        = {};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);

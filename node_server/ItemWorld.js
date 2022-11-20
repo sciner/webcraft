@@ -1,16 +1,20 @@
+import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED} from "./drop_item.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 
 import {ServerClient} from "../www/js/server_client.js";
 
-const MAX_MERGE_DISTANCE = 0.5;
+const ITEM_MERGE_RADIUS = 0.5; // set it negative to disable merging
 
 export class ItemWorld {
+
+    // temporary collections
+    #mergeableItems = [];
+    #nonPendingItems = [];
 
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
-        // temporary collections
-        this.mergeableItems = [];
+        this.chunksItemMergingQueue = new Map();
     }
 
     /**
@@ -32,26 +36,32 @@ export class ItemWorld {
         for(let [_, drop_item] of this.world.all_drop_items) {
             drop_item.tick(delta);
         }
-        for(let chunk of this.world.chunks.all) {
-            if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED &&
-                chunk.pendingItemsMerge
-            ) {
-                chunk.pendingItemsMerge = false;
-                this.mergeItemsInChunk(chunk);
+        if (ITEM_MERGE_RADIUS >= 0) {
+            for(let [_, chunk] of this.chunksItemMergingQueue) {
+                this.#mergeItems(chunk);
             }
         }
+        this.chunksItemMergingQueue.clear();
     }
 
-    mergeItemsInChunk(chunk) {
-        this.mergeableItems.length = 0;
-        // at the beginning of mergeableItems are items from the current chunk
-        for(let [entity_id, item] of chunk.drop_items.entries()) {
-            if(!item.moved) {
-                this.mergeableItems.push(item);
+    #mergeItems(chunk) {
+        this.#mergeableItems.length = 0;
+        this.#nonPendingItems.length = 0;
+        /* The first pendingLength items of mergeableItems are from the current chunk
+        and just stopped. They must be checked for posible merging with all nearby items.
+        At the end of mergeableItems are other stationary items from the this and 
+        neighboring chunks. They can be checked for merging with the items from the 1st group. */
+        for(let [_, item] of chunk.drop_items) {
+            if(item.motion === MOTION_JUST_STOPPED) {
+                this.#mergeableItems.push(item);
+            } else if (item.motion === MOTION_STAYED) {
+                this.#nonPendingItems.push(item);
             }
         }
-        var chunkLength = this.mergeableItems.length;
-        // at the end of mergeableItems are items from the neighboring chunks
+        var pendingLength = this.#mergeableItems.length;
+        for(let item of this.#nonPendingItems) {
+            this.#mergeableItems.push(item);
+        }
         for(let portal of chunk.dataChunk.portals) {
             // I'm not sure if it can be null, but check it just in case
             if(!portal.toRegion)
@@ -59,20 +69,20 @@ export class ItemWorld {
             const otherChunk = portal.toRegion.rev;
             if(!otherChunk || otherChunk.load_state !== CHUNK_STATE_BLOCKS_GENERATED)
                 continue;
-            for(let [entity_id, item] of otherChunk.drop_items.entries()) {
-                if(!item.moved) {
-                    this.mergeableItems.push(item);
+            for(let [_, item] of otherChunk.drop_items) {
+                if(item.motion !== MOTION_MOVED) {
+                    this.#mergeableItems.push(item);
                 }
             }
         }
 
         var dropItemI = 0;
-        while (dropItemI < chunkLength) {
-            var dropItemA = this.mergeableItems[dropItemI];
+        while (dropItemI < pendingLength) {
+            var dropItemA = this.#mergeableItems[dropItemI];
 
             var dropItemJ = dropItemI + 1;
-            while (dropItemJ < this.mergeableItems.length) {
-                var dropItemB = this.mergeableItems[dropItemJ];
+            while (dropItemJ < this.#mergeableItems.length) {
+                var dropItemB = this.#mergeableItems[dropItemJ];
                 // DropItems can be merged if at least one of them has items.length == 1.
                 // If both have items.length > 1, it seems complicated and rare, not worth implementing.
                 if(dropItemA.items.length !== 1) {
@@ -94,15 +104,17 @@ export class ItemWorld {
                     }
                 }
                 if(indexB < 0 ||
-                    Math.floor(dropItemA.pos.distance(dropItemB.pos)) > MAX_MERGE_DISTANCE
+                    Math.floor(dropItemA.pos.distance(dropItemB.pos)) > ITEM_MERGE_RADIUS
                 ) {
                     ++dropItemJ;
                     continue;
                 }
                 /* Merge dropItemA.items[0] with dropItemB.items[indexB].
-                Rules of which dropItem remains:
+                Rules of which dropItem remains (by decreasing priority):
                 1. If one item has items.length > 1, it remains.
-                2. If both items have items.length == 1, the one with the bigger count remains. */
+                2. The one with the greater count remains.
+                3. The item without a pending check remains (it happens by default because that item has
+                    a greater index in #mergeableItems). */
                 if(dropItemB.items.length === 1 && dropItemB.items[0].count < dropItemA.items[0].count) {
                     var t = dropItemA; dropItemA = dropItemB; dropItemB = t;
                 }
@@ -127,27 +139,27 @@ export class ItemWorld {
                 }];
                 dropItemB.getChunk().sendAll(packetsB, []);
 
-                if(dropItemA === this.mergeableItems[dropItemI]) {
-                    // We removed the outer loop item. It's from the current chunk.
+                if(dropItemA === this.#mergeableItems[dropItemI]) {
+                    // We removed the outer loop item. It's an item with the pending merging check.
                     // Stop the inner loop, and repeat the outer loop with the same index.
-                    --chunkLength;
-                    this.mergeableItems[dropItemI] = this.mergeableItems[chunkLength];
-                    this.mergeableItems[chunkLength] = this.mergeableItems[this.mergeableItems.length - 1];
-                    --this.mergeableItems.length;
+                    --pendingLength;
+                    this.#mergeableItems[dropItemI] = this.#mergeableItems[pendingLength];
+                    this.#mergeableItems[pendingLength] = this.#mergeableItems[this.#mergeableItems.length - 1];
+                    --this.#mergeableItems.length;
                     --dropItemI; // compensate for ++dropItemI after the inner loop
                     break;
                 } else {
                     // We removed the inner loop item. Repeat the inner loop with the same index.
-                    if (dropItemJ < chunkLength) {
-                        // It's from the current chunk.
-                        --chunkLength;
-                        this.mergeableItems[dropItemJ] = this.mergeableItems[chunkLength];
-                        this.mergeableItems[chunkLength] = this.mergeableItems[this.mergeableItems.length - 1];
+                    if (dropItemJ < pendingLength) {
+                        // It's an item with the pending merging check.
+                        --pendingLength;
+                        this.#mergeableItems[dropItemJ] = this.#mergeableItems[pendingLength];
+                        this.#mergeableItems[pendingLength] = this.#mergeableItems[this.#mergeableItems.length - 1];
                     } else {
-                        // It's from a neighboring chunk.
-                        this.mergeableItems[dropItemJ] = this.mergeableItems[this.mergeableItems.length - 1];
+                        // It's an item without the pending merging check.
+                        this.#mergeableItems[dropItemJ] = this.#mergeableItems[this.#mergeableItems.length - 1];
                     }
-                    --this.mergeableItems.length;
+                    --this.#mergeableItems.length;
                 }
             }
             ++dropItemI;
