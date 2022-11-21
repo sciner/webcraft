@@ -725,6 +725,13 @@ export class Vector {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
+    distanceSqr(vec) {
+        let x = this.x - vec.x;
+        let y = this.y - vec.y;
+        let z = this.z - vec.z;
+        return x * x + y * y + z * z;
+    }
+
     /**
      * @param {Vector} vec
      * @return {number}
