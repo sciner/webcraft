@@ -29,7 +29,6 @@ export function compressNearby(nearby, use_start_vec = true) {
         nb.push(end_vec !== start_vec ? end_vec.toHash() : '');
     } else {
         nb.push('');
-        nb.push('');
     }
     const getSymbol = (num) => {
         return BINARY_ALPHABET[mid + num];
@@ -90,17 +89,15 @@ export function decompressNearby(str) {
     const star_vec_string = arr.shift();
     const use_start_vec = star_vec_string.length > 0;
     const start_vec = new Vector(0, 0, 0);
+    var end_vec = start_vec;
     if(use_start_vec) {
         start_vec.set(star_vec_string.split(',').map(x => parseInt(x)));
-    }
-    // end vec
-    const end_vec_string = arr.shift();
-    var end_vec;
-    if(end_vec_string.length > 0) {
-        end_vec = new Vector(0, 0, 0);
-        end_vec.set(end_vec_string.split(',').map(x => parseInt(x)));
-    } else {
-        end_vec = start_vec;
+        // end vec
+        const end_vec_string = arr.shift();
+        if(end_vec_string.length > 0) {
+            end_vec = new Vector(0, 0, 0);
+            end_vec.set(end_vec_string.split(',').map(x => parseInt(x)));
+        }
     }
     // added
     let added = arr.shift();
