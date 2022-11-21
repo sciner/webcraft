@@ -798,7 +798,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
+        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1501,6 +1501,33 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
             }
         }
     }
+
+}
+
+
+async function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+
+    if (!world_material || !mat_block || (mat_block.id != BLOCK.POINTED_DRIPSTONE.id)) {
+        return false;
+    }
+    const position = new Vector(pos);
+    if (world_block.id == BLOCK.POINTED_DRIPSTONE.id) {
+        const up = world_block.extra_data.up;
+        const air_pos = position.offset(0, up ? -1 : 1, 0);
+        const block = world.getBlock(air_pos);
+        if (block.id == BLOCK.AIR.id && block.fluid == 0) {
+            actions.addBlocks([{pos: air_pos, item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: up}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+    } else {
+        if (pos.n.y == 1) {
+            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: false}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+        if (pos.n.y == -1) {
+            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: true}}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+        }
+    }
+
+    return true;
 
 }
 
