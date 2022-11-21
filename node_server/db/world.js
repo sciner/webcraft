@@ -339,6 +339,16 @@ export class DBWorld {
         };
     }
 
+    async updateDropItem(params) {
+        await this.conn.run('UPDATE drop_item SET items = :items, x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
+            ':items':           JSON.stringify(params.items),            
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z,
+            ':entity_id':       params.entity_id
+        });
+    }
+
       // Delete drop item
       async removeDeadDrops(entity_id) {
         await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE dt < :dt', {
@@ -348,8 +358,7 @@ export class DBWorld {
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
-            ':is_deleted': 1,
+        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
     }

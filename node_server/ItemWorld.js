@@ -26,8 +26,7 @@ export class ItemWorld {
         let chunk = chunkOptional || dropItem.getChunk();
         // delete from chunk
         chunk.drop_items.delete(dropItem.entity_id);
-        // unload drop item
-        dropItem.onUnload();
+        this.world.all_drop_items.delete(dropItem.entity_id);
         // deactive drop item in database
         this.world.db.deleteDropItem(dropItem.entity_id);
     }
@@ -129,7 +128,8 @@ export class ItemWorld {
                 chunkA.sendAll(packetsA, []);
                 
                 // increment dropItemB count
-                dropItemB.items[indexB].count += dropItemA.items[0].count;        
+                dropItemB.items[indexB].count += dropItemA.items[0].count;
+                this.world.db.updateDropItem(dropItemB);
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_UPDATE,
                     data: {
