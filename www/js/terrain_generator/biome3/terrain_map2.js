@@ -4,12 +4,13 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { BIOMES } from "../biomes.js";
 import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
 // import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
-import { GENERATOR_OPTIONS, TerrainMap, TerrainMapCell } from "../terrain_map.js";
+import { GENERATOR_OPTIONS, TerrainMap } from "../terrain_map.js";
 import { CaveGenerator } from '../cave_generator.js';
 import { OreGenerator } from '../ore_generator.js';
 import { IndexedColor, Vector, VectorCollector } from "../../helpers.js";
 import { BUILDING_AABB_MARGIN } from "../cluster/building.js";
 import { getAheadMove } from "../cluster/vilage.js";
+import { Biomes } from "./biomes.js";
 
 // let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
@@ -43,11 +44,11 @@ const RIVER_OCTAVE_3 = 48 / RIVER_SCALE;
 const MAP_PRESETS = {
     // relief - кривизна рельефа
     // mid_level - базовая высота поверхности
-    norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true, grass_block_id: BLOCK.GRASS_BLOCK.id},
-    mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_noise:         {id: 'high_noise', chance: 4, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id},
-    high_coarse_noise:  {id: 'high_coarse_noise', chance: 4, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id},
-    // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id}
+    norm:               {id: 'norm', chance: 7, relief: 4, mid_level: 6, is_plain: true/*, grass_block_id: BLOCK.GRASS_BLOCK.id*/},
+    mountains:          {id: 'mountains', chance: 4, relief: 48, mid_level: 8/*, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id*/},
+    high_noise:         {id: 'high_noise', chance: 4, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, second_grass_block_threshold: 0.2, second_grass_block_id: BLOCK.MOSS_BLOCK.id*/},
+    high_coarse_noise:  {id: 'high_coarse_noise', chance: 4, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id*/},
+    // gori:               {id: 'gori', chance: 40, relief: 128, mid_level: 24/*, grass_block_id: BLOCK.GRASS_BLOCK.id, density_coeff: {d1: 0.5333, d2: 0.7, d3: 0.1333, d4: 0.0667}, second_grass_block_threshold: .1, second_grass_block_id: BLOCK.PODZOL.id*/}
 };
 
 const size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -72,6 +73,7 @@ export class TerrainMapManager2 {
         this.noise3d = noise3d;
         this.maps_cache = new VectorCollector();
         BIOMES.init();
+        this.biomes = new Biomes();
         // Presets by chances
         this.presets = [];
         for(const k in MAP_PRESETS) {
@@ -205,14 +207,6 @@ export class TerrainMapManager2 {
         let d3;
         let d4;
 
-        /*
-        if(!globalThis.fffx) {
-            globalThis.fffx = 0;
-        }
-        globalThis.fffx++;
-        if(globalThis.fffx%1000==0) console.log(globalThis.fffx)
-        */
-
         //if(max_height !== null) {
         //    density = xyz.y < max_height ? 1 : 0;
         //    d3 = .2;
@@ -260,6 +254,55 @@ export class TerrainMapManager2 {
         //}
 
         return {d1, d2, d3, d4, density};
+
+    }
+
+    /**
+     * 
+     * @param {Vector} xyz 
+     * @param {int} not_air_count 
+     * @param {TerrainMapCell} cell 
+     * @param {*} density_params 
+     * @returns 
+     */
+    getBlock(xyz, not_air_count, cell, density_params) {
+
+        const dirt_layers = cell.biome.dirt_layers;
+        const dist_percent = cell.preset.dist_percent;
+        const {d1, d2, d3, d4, density} = density_params;
+
+        // select dirt layer
+        let dirt_layer = dirt_layers[0];
+        if(dirt_layers.length > 1) {
+            // проплешины с камнем
+            if(dist_percent * d2 > .2) {
+                dirt_layer = dirt_layers[1];
+                if(dirt_layers.length > 2 && d3 < 0) {
+                    dirt_layer = dirt_layers[2];
+                }
+            }
+        }
+
+        // select block in dirt layer
+        let block_id = dirt_layer.blocks[0];
+        if(xyz.y <= WATER_LEVEL && dirt_layer.blocks.length > 1) {
+            block_id = dirt_layer.blocks[1];
+        }
+        const dirt_layer_blocks_count = dirt_layer.blocks.length;
+        if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
+            switch(dirt_layer_blocks_count) {
+                case 2: {
+                    block_id = dirt_layer.blocks[1];
+                    break;
+                }
+                case 3: {
+                    block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
+                    break;
+                }
+            }
+        }
+
+        return {dirt_layer, block_id};
 
     }
 
@@ -312,25 +355,29 @@ export class TerrainMapManager2 {
             }
         }
 
-        const biome = BIOMES['GRASSLAND'];
+        // const biome = BIOMES['GRASSLAND'];
         map.terrain = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
+
+        const value = 85;
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
+
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
+
                 // Create map cell
-                let value = 85;
-                const humidity = 1;
-                const equator = 1;
-                const dirt_block_id = biome.dirt_block[0];
-                const cell = new TerrainMapCell(value, humidity, equator, biome, dirt_block_id);
+                const temperature = this.biomes.calcNoise(xyz.x, xyz.z, 3);
+                const humidity = this.biomes.calcNoise(xyz.x, xyz.z, 2);
+                const biome = this.biomes.getBiome(temperature, humidity);
+
+                const dirt_block_id = biome.dirt_layers[0];
+                const cell = new TerrainMapCell(value, humidity, temperature, biome, dirt_block_id);
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
                 cell.preset = this.getPreset(xyz);
-                cell.dirt_level = this.noise2d(xyz.x / 16, xyz.z / 16); // динамическая толщина дерна
-                //for(let y = chunk.size.y; y >= 0; y--) {
-                //}
+                cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
                 cell.dirt_color = new IndexedColor(82, 450, 0);
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
+
             }
         }
 
@@ -360,6 +407,67 @@ export class TerrainMapManager2 {
             }
         }
         // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager2.maps_in_memory)
+    }
+
+}
+
+
+// Map cell
+export class TerrainMapCell extends Default_Terrain_Map_Cell {
+
+    constructor(value, humidity, equator, biome, dirt_block_id) {
+        super(biome);
+        this.value          = value;
+        this.value2         = value;
+        this.humidity       = Math.round(humidity * 100000) / 100000;
+        this.equator        = Math.round(equator * 100000) / 100000;
+        this.dirt_block_id  = dirt_block_id;
+    }
+
+    /**
+     * @param {Vector} xyz 
+     * @param {int} block_id 
+     */
+    getPlantOrGrass(x, y, z, size, block_id, rnd, density_params) {
+        
+        const biome = this.biome;
+        let resp = false;
+
+        if((biome.plants || biome.grass) && [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id].includes(block_id)) {
+
+            let r = rnd.double();
+
+            const calcSet = (plant_set) => {
+                if(r < plant_set.frequency) {
+                    const freq = r / plant_set.frequency;
+                    let s = 0;
+                    for(let i = 0; i < plant_set.list.length; i++) {
+                        const p = plant_set.list[i];
+                        s += p.percent;
+                        if(freq < s) {
+                            if(y + p.blocks.length < size.y) {
+                                return p.blocks;
+                            }
+                            break;
+                        }
+                    }
+                }
+                return false;
+            };
+            
+            if(density_params.d4 < .05 && biome.plants) {
+                resp = calcSet(biome.plants);
+            }
+
+            if(!resp && biome.grass) {
+                resp = calcSet(biome.grass);
+            }
+            
+
+        }
+
+        return {plant_blocks: resp};
+
     }
 
 }

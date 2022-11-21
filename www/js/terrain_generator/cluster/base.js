@@ -331,14 +331,14 @@ export class ClusterBase {
                     if(dist < Math.max(size.x, size.z) * rad_coef) {
                         const block_id = this.getBlock(chunk, x, y, z);
                         if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
-                            let bid = block.id;
-                            // cell.map_block_id
+                            let block_id = block.id;
+                            // blocks
                             if(chunk.map && x >= 0 && z >= 0 && x < chunk.size.x && z < chunk.size.z) {
                                 const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
-                                if(cell?.map_block_id) {
-                                    bid = cell.map_block_id;
-                                    if(k < size.y && [BLOCK.GRASS_BLOCK.id, BLOCK.DIRT_PATH.id].includes(bid)) {
-                                        bid = BLOCK.DIRT.id;
+                                if(cell?.dirt_layer) {
+                                    block_id = cell.dirt_layer.blocks[0];
+                                    if(k < size.y && cell.dirt_layer.blocks.length > 1) {
+                                        block_id = cell.dirt_layer.blocks[1];
                                     }
                                 }
                             }
@@ -352,7 +352,7 @@ export class ClusterBase {
                                 }
                             }
                             */
-                            this.setBlock(chunk, x, y, z, bid);
+                            this.setBlock(chunk, x, y, z, block_id);
                             if(y > 0) {
                                 let under_block_id = this.getBlock(chunk, x, y - 1, z);
                                 if(under_block_id == BLOCK.GRASS_BLOCK.id) {
