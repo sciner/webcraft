@@ -4,6 +4,7 @@ import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
+import {ItemWorld} from "./ItemWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
@@ -37,6 +38,7 @@ export class ServerChunkManager {
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
         this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
+        this.itemWorld = new ItemWorld(this);
         this.initRandomTickers(random_tickers);
     }
 

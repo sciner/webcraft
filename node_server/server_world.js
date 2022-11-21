@@ -241,9 +241,7 @@ export class ServerWorld {
             await this.chunks.fluidWorld.queue.process();
             this.ticks_stat.add('fluid_queue');
             // 4.
-            for (let [_, drop_item] of this.all_drop_items) {
-                drop_item.tick(delta);
-            }
+            this.chunks.itemWorld.tick(delta);
             this.ticks_stat.add('drop_items');
             // 6.
             await this.packet_reader.queue.process();

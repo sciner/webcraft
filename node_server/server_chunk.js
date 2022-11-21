@@ -268,6 +268,7 @@ export class ServerChunk {
 
     // Add drop item
     addDropItem(drop_item) {
+        drop_item.setPrevChunkAddr(this.addr);
         this.drop_items.set(drop_item.entity_id, drop_item);
         let packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,

@@ -40,7 +40,7 @@ export default class packet_reader {
             }
 
             // get chunk
-            const chunk = world.chunks.get(drop_item.chunk_addr);
+            const chunk = drop_item.getChunk();
             if(!chunk) {
                 continue;
             }
@@ -64,12 +64,7 @@ export default class packet_reader {
                 continue;
             }
 
-            // delete from chunk
-            chunk.drop_items.delete(entity_id);
-            // unload drop item
-            drop_item.onUnload();
-            // deactive drop item in database
-            world.db.deleteDropItem(entity_id);
+            world.chunks.itemWorld.delete(drop_item, chunk);
             
             // @todo players must receive this packet after 200ms after player send request
             // because animation not ended
