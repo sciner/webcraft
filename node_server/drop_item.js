@@ -142,8 +142,10 @@ export class DropItem {
         world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
     }
 
-    onUnload() {
-        this.#world.all_drop_items.delete(this.entity_id);
+    async onUnload() {
+        const world = this.getWorld();
+        world.all_drop_items.delete(this.entity_id);
+        await world.db.updateDropItem(this);
     }
 
 }
