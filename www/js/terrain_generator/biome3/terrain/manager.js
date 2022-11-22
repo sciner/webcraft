@@ -1,25 +1,24 @@
-// import { impl as alea } from '../../vendors/alea.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
-// import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
-import { BIOMES } from "../biomes.js";
-import {noise, alea, Default_Terrain_Map, Default_Terrain_Map_Cell, Default_Terrain_Generator} from "../default.js";
-// import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
-import { GENERATOR_OPTIONS, TerrainMap } from "../terrain_map.js";
-import { CaveGenerator } from '../cave_generator.js';
-import { OreGenerator } from '../ore_generator.js';
-import { IndexedColor, Vector, VectorCollector } from "../../helpers.js";
-import { BUILDING_AABB_MARGIN } from "../cluster/building.js";
-import { getAheadMove } from "../cluster/vilage.js";
-import { Biomes } from "./biomes.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
+import { alea } from "../../default.js";
+import { IndexedColor, Vector, VectorCollector } from "../../../helpers.js";
 
-// let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+import { getAheadMove } from "../../cluster/vilage.js";
 
-// export const SMOOTH_RAD         = 3;
-// export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
-// export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
+// import { BIOMES } from "../../biomes.js";
+import { Biomes } from "./../biomes.js";
+import { TerrainMap2 } from "./map.js";
+import { TerrainMapCell } from "./map_cell.js";
 
 export const TREE_MARGIN        = 3;
 export const WATER_LEVEL        = 80;
+
+export const GENERATOR_OPTIONS = {
+    WATER_LINE:             80, // Ватер-линия
+    SCALE_EQUATOR:          1280 * .5 * 3, // Масштаб для карты экватора
+    SCALE_BIOM:             640  * .5, // Масштаб для карты шума биомов
+    SCALE_HUMIDITY:         320  * .5, // Масштаб для карты шума влажности
+    SCALE_VALUE:            250  * .5 // Масштаб шума для карты высот
+};
 
 export const DEFAULT_DENSITY_COEFF = {
     d1: 0.5333,
@@ -73,7 +72,7 @@ export class TerrainMapManager2 {
         this.noise2d = noise2d;
         this.noise3d = noise3d;
         this.maps_cache = new VectorCollector();
-        BIOMES.init();
+        // BIOMES.init();
         this.biomes = new Biomes();
         // Presets by chances
         this.presets = [];
@@ -126,7 +125,7 @@ export class TerrainMapManager2 {
             for (let i = 0; i < maps.length; i++) {
                 const map = maps[i];
                 if(!map.vegetable_generated) {
-                    map.generateVegetation(chunk, this.seed, this);
+                    map.generateTrees(chunk, this.seed, this);
                 }
             }
         }
@@ -405,153 +404,6 @@ export class TerrainMapManager2 {
             }
         }
         // console.log('destroyAroundPlayers', this.maps_cache.size, TerrainMapManager2.maps_in_memory)
-    }
-
-}
-
-class TerrainMap2 extends TerrainMap {
-
-    /**
-     * 
-     * @param {*} chunk 
-     * @param {*} seed 
-     * @param {TerrainMapManager2} manager 
-     */
-    generateVegetation(real_chunk, seed, manager) {
-
-        let chunk = this.chunk;
-        const cluster = this.cluster;
-        this.trees = [];
-        this.vegetable_generated = true;
-        const aleaRandom = new alea('trees_' + seed + '_' + chunk.coord.toString());
-
-        // trees
-        const addTree = (rnd, x, y, z, biome) => {
-
-            const xyz = new Vector(
-                x + chunk.coord.x,
-                y + chunk.coord.y - 1,
-                z + chunk.coord.z
-            );
-
-            let s = 0;
-            let r = rnd / biome.trees.frequency;
-
-            for(let type of biome.trees.list) {
-                s += type.percent;
-                if(r < s) {
-                    if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
-                        break;
-                    }
-                    let r = aleaRandom.double();
-                    const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-                    const rad = Math.max(parseInt(height / 2), 2);
-                    this.trees.push({
-                        // biome_code: biome.code,
-                        pos:        new Vector(x, y, z),
-                        height:     height,
-                        rad:        rad,
-                        type:       type
-                    });
-                    return true;
-                }
-            }
-            return false;
-        };
-
-        const xyz = new Vector(0, 0, 0);
-        const map = this;
-
-        for(let i = 0; i < 8; i++) {
-            
-            const x = Math.floor(CHUNK_SIZE_X * aleaRandom.double());
-            const z = Math.floor(CHUNK_SIZE_X * aleaRandom.double());
-
-            xyz.set(x + chunk.coord.x, 0, z + chunk.coord.z);
-
-            const river_point = manager.makeRiverPoint(xyz.x, xyz.z);
-            const cell = this.cells[z * CHUNK_SIZE_X + x];
-            const biome = cell.biome;
-
-            const rnd = aleaRandom.double();
-
-            if(rnd <= biome.trees.frequency) {
-                for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
-                    xyz.y = map.cluster.y_base + y;
-                    const preset = manager.getPreset(xyz);
-                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset});
-                    if(density > .6) {
-                        if(addTree(rnd, x, xyz.y, z, biome)) {
-                            if(this.trees.length == 3) {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-    }
-
-}
-
-// Map cell
-export class TerrainMapCell extends Default_Terrain_Map_Cell {
-
-    constructor(value, humidity, equator, biome, dirt_block_id) {
-        super(biome);
-        this.value          = value;
-        this.value2         = value;
-        this.humidity       = Math.round(humidity * 100000) / 100000;
-        this.equator        = Math.round(equator * 100000) / 100000;
-        this.dirt_block_id  = dirt_block_id;
-    }
-
-    /**
-     * @param {Vector} xyz 
-     * @param {int} block_id 
-     */
-    getPlantOrGrass(x, y, z, size, block_id, rnd, density_params) {
-        
-        const biome = this.biome;
-        let resp = false;
-
-        if((biome.plants || biome.grass) && [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id].includes(block_id)) {
-
-            let r = rnd.double();
-
-            const calcSet = (plant_set) => {
-                if(r < plant_set.frequency) {
-                    const freq = r / plant_set.frequency;
-                    let s = 0;
-                    for(let i = 0; i < plant_set.list.length; i++) {
-                        const p = plant_set.list[i];
-                        s += p.percent;
-                        if(freq < s) {
-                            if(y + p.blocks.length < size.y) {
-                                return p.blocks;
-                            }
-                            break;
-                        }
-                    }
-                }
-                return false;
-            };
-            
-            if(density_params.d4 < .05 && biome.plants) {
-                resp = calcSet(biome.plants);
-            }
-
-            if(!resp && biome.grass) {
-                resp = calcSet(biome.grass);
-            }
-            
-
-        }
-
-        return {plant_blocks: resp};
-
     }
 
 }

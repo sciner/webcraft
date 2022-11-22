@@ -1,11 +1,10 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
-import {Helpers, Vector} from '../../helpers.js';
-import {BLOCK} from '../../blocks.js';
-import {noise, alea,  Default_Terrain_Generator} from "../default.js";
-import {MineGenerator} from "../mine/mine_generator.js";
-import {DungeonGenerator} from "../dungeon.js";
-import { TerrainMapManager2, WATER_LEVEL } from "./terrain_map2.js";
-import { GENERATOR_OPTIONS } from "../terrain_map.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
+import { Vector } from '../../helpers.js';
+import { BLOCK } from '../../blocks.js';
+import { noise, alea,  Default_Terrain_Generator } from "../default.js";
+import { MineGenerator } from "../mine/mine_generator.js";
+import { DungeonGenerator } from "../dungeon.js";
+import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
 import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 
@@ -113,10 +112,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // blocks
         const water_id                  = BLOCK.STILL_WATER.id;
-        const stone_block_id            = BLOCK.STONE.id;
-        const grass_id                  = BLOCK.GRASS.id;
         const grass_block_id            = BLOCK.GRASS_BLOCK.id;
-        const dirt_block_id             = BLOCK.DIRT.id;
 
         let not_air_count               = -1;
         let tree_pos                    = null;
@@ -143,7 +139,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 /*if(op.id == 'gori') {
                     const NOISE_SCALE = 100
                     const HEIGHT_SCALE = 164 * dist_percent;
-                    max_height = WATER_LEVEL + this.fractalNoise(xyz.x/3, xyz.z/3,
+                    max_height = GENERATOR_OPTIONS.WATER_LINE + this.fractalNoise(xyz.x/3, xyz.z/3,
                         4, // -- Octaves (Integer that is >1)
                         3, // -- Lacunarity (Number that is >1)
                         0.35, // -- Persistence (Number that is >0 and <1)
@@ -167,6 +163,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 for(let y = size_y - 1; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
+                    // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     const density_params = this.maps.calcDensity(xyz, cell);
                     const {d1, d2, d3, d4, density} = density_params;
 
@@ -179,7 +176,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(not_air_count == 0) {
 
                             // если это над водой
-                            if(xyz.y > WATER_LEVEL) {
+                            if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
 
                                 if(cluster_cell && !cluster_cell.building) {
 
@@ -210,7 +207,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     }
 
                                     // Plants and grass (растения и трава)
-                                    const {plant_blocks} = cell.getPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
+                                    const {plant_blocks} = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
                                     if(plant_blocks) {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];
@@ -235,7 +232,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(block_id == grass_block_id && !tree_pos) {
                             let r = rnd.double();
                             if(r < .01) {
-                                if(xyz.y >= WATER_LEVEL && x > 1 && x < 14 && z > 1 && z < 14 && !tree_pos) {
+                                if(xyz.y >= GENERATOR_OPTIONS.WATER_LINE && x > 1 && x < 14 && z > 1 && z < 14 && !tree_pos) {
                                     if(!has_cluster) {
                                         tree_pos = new Vector(x, y + 1, z);
                                     }
@@ -247,7 +244,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     } else {
                         not_air_count = 0;
-                        if(xyz.y <= WATER_LEVEL) {
+                        if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
                             chunk.setBlockIndirect(x, y, z, water_id);
                         }
                     }
