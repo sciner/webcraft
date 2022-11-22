@@ -14,11 +14,12 @@ import { Biomes } from "./biomes.js";
 
 // let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
-export const SMOOTH_RAD         = 3;
-export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
-export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
+// export const SMOOTH_RAD         = 3;
+// export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
+// export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
 
-export const WATER_LEVEL = 80;
+export const TREE_MARGIN        = 3;
+export const WATER_LEVEL        = 80;
 
 export const DEFAULT_DENSITY_COEFF = {
     d1: 0.5333,
@@ -100,10 +101,12 @@ export class TerrainMapManager2 {
 
     // Generate maps
     generateAround(chunk, chunk_addr, smooth, vegetation) {
+        
         const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noise2d;
         const maps                  = [];
         let center_map              = null;
+        
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManager2._temp_vec3.set(x, -chunk_addr.y, z);
@@ -118,20 +121,16 @@ export class TerrainMapManager2 {
                 }
             }
         }
-        /*
         // Generate vegetation
         if(vegetation) {
             for (let i = 0; i < maps.length; i++) {
                 const map = maps[i];
                 if(!map.vegetable_generated) {
-                    if(smooth && !map.smoothed) {
-                        map.smooth(this);
-                    }
-                    map.generateVegetation(chunk, this.seed);
+                    map.generateVegetation(chunk, this.seed, this);
                 }
             }
         }
-        */
+
         return maps;
     }
 
@@ -271,10 +270,9 @@ export class TerrainMapManager2 {
         const dist_percent = cell.preset.dist_percent;
         const {d1, d2, d3, d4, density} = density_params;
 
-        // select dirt layer
+        // 1. select dirt layer
         let dirt_layer = dirt_layers[0];
         if(dirt_layers.length > 1) {
-            // проплешины с камнем
             if(dist_percent * d2 > .2) {
                 dirt_layer = dirt_layers[1];
                 if(dirt_layers.length > 2 && d3 < 0) {
@@ -283,9 +281,9 @@ export class TerrainMapManager2 {
             }
         }
 
-        // select block in dirt layer
+        // 2. select block in dirt layer
         let block_id = dirt_layer.blocks[0];
-        if(xyz.y <= WATER_LEVEL && dirt_layer.blocks.length > 1) {
+        if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
             block_id = dirt_layer.blocks[1];
         }
         const dirt_layer_blocks_count = dirt_layer.blocks.length;
@@ -330,7 +328,7 @@ export class TerrainMapManager2 {
         }
 
         // Result map
-        const map = new TerrainMap(chunk, GENERATOR_OPTIONS);
+        const map = new TerrainMap2(chunk, GENERATOR_OPTIONS);
         if(!real_chunk.chunkManager) {
             debugger
         }
@@ -411,6 +409,92 @@ export class TerrainMapManager2 {
 
 }
 
+class TerrainMap2 extends TerrainMap {
+
+    /**
+     * 
+     * @param {*} chunk 
+     * @param {*} seed 
+     * @param {TerrainMapManager2} manager 
+     */
+    generateVegetation(real_chunk, seed, manager) {
+
+        let chunk = this.chunk;
+        const cluster = this.cluster;
+        this.trees = [];
+        this.vegetable_generated = true;
+        const aleaRandom = new alea('trees_' + seed + '_' + chunk.coord.toString());
+
+        // trees
+        const addTree = (rnd, x, y, z, biome) => {
+
+            const xyz = new Vector(
+                x + chunk.coord.x,
+                y + chunk.coord.y - 1,
+                z + chunk.coord.z
+            );
+
+            let s = 0;
+            let r = rnd / biome.trees.frequency;
+
+            for(let type of biome.trees.list) {
+                s += type.percent;
+                if(r < s) {
+                    if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
+                        break;
+                    }
+                    let r = aleaRandom.double();
+                    const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
+                    const rad = Math.max(parseInt(height / 2), 2);
+                    this.trees.push({
+                        // biome_code: biome.code,
+                        pos:        new Vector(x, y, z),
+                        height:     height,
+                        rad:        rad,
+                        type:       type
+                    });
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        const xyz = new Vector(0, 0, 0);
+        const map = this;
+
+        for(let i = 0; i < 8; i++) {
+            
+            const x = Math.floor(CHUNK_SIZE_X * aleaRandom.double());
+            const z = Math.floor(CHUNK_SIZE_X * aleaRandom.double());
+
+            xyz.set(x + chunk.coord.x, 0, z + chunk.coord.z);
+
+            const river_point = manager.makeRiverPoint(xyz.x, xyz.z);
+            const cell = this.cells[z * CHUNK_SIZE_X + x];
+            const biome = cell.biome;
+
+            const rnd = aleaRandom.double();
+
+            if(rnd <= biome.trees.frequency) {
+                for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
+                    xyz.y = map.cluster.y_base + y;
+                    const preset = manager.getPreset(xyz);
+                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset});
+                    if(density > .6) {
+                        if(addTree(rnd, x, xyz.y, z, biome)) {
+                            if(this.trees.length == 3) {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
+
+}
 
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {

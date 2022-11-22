@@ -257,6 +257,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         // Plant trees
+        /*
         if(tree_pos && tree_pos.y < 32) {
             let type = { "percent": 0.99, "trunk": 3, "leaves": 233, "style": "wood", "height": { "min": 4, "max": 8 } };
             const r = rnd.double();
@@ -276,7 +277,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 tree_pos.x, tree_pos.y, tree_pos.z,
                 true
             );
-        }
+        }*/
 
         // Mines
         if(chunk.addr.y == 0) {
@@ -289,6 +290,31 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // Cluster
         cluster.fillBlocks(this.maps, chunk, map, false, false);
+
+        // Plant trees
+        for(let i = 0; i < maps.length; i++) {
+            const m = maps[i];
+            for(let j = 0; j < m.trees.length; j++) {
+
+                const tree = m.trees[j];
+
+                const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
+                const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
+                const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
+
+                /*
+                if(!tree.type.transparent_trunk) {
+                    const yu = y - 1;
+                    if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && (yu >= 0) && (yu < chunk.size.y)) {
+                        chunk.setBlockIndirect(x, yu, z, dirt_block_id, null, null);
+                    }
+                }
+                */
+
+                this.plantTree(tree, chunk, x, y, z, true);
+
+            }
+        }
 
         return map;
 

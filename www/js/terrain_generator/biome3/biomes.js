@@ -5,7 +5,7 @@ const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015;
+const TREE_FREQUENCY        = 0.015 * 32;
 const PLANTS_FREQUENCY      = 0.015;
 const GRASS_FREQUENCY       = 0.015;
 
@@ -47,15 +47,22 @@ export class Biomes {
                 {blocks: [BLOCK.MOSS_BLOCK.id, BLOCK.STONE.id]
             }];
         }
-        // plants
-        if(typeof trees == 'undefined') {
+        // trees
+        //if(typeof trees == 'undefined') {
             trees = {
-                frequency: TREE_FREQUENCY / 10,
+                frequency: TREE_FREQUENCY,
                 list: [
-                    {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+                    {percent: .125, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    {percent: .125, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                    {percent: .125, ...TREES.JUNGLE, height: {min: 16, max: 22}},
+                    {percent: .125, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                    {percent: .125, ...TREES.SPRUCE, height: {min: 6, max: 24}},
+                    {percent: .125, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                    {percent: .125, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}},
+                    {percent: .125, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}}
                 ]
             };
-        }
+        //}
         // plants
         if(typeof plants == 'undefined') {
             plants = {
