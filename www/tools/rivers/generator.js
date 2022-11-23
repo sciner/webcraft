@@ -51,8 +51,14 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
     globalThis.ClusterManager = module.ClusterManager;
 });
 
+//
+const CHUNK_RENDER_DIST = 32;
+const demo_map_seed     = 'undefined';
+const seed              = 3; // allow only numeric values
+const world_id          = 'demo';
+
 globalThis.BLOCK = BLOCK;
-const chunk_addr_start = new Vector(180, 0, 170);
+const chunk_addr_start = new Vector(-CHUNK_RENDER_DIST, 0, -CHUNK_RENDER_DIST);
 const chunk_coord_start = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
 const all_maps = new VectorCollector();
 
@@ -63,12 +69,6 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
     globalThis.TerrainMapManager = module.TerrainMapManager;
-
-    //
-    const CHUNK_RENDER_DIST = 32;
-    const demo_map_seed     = 'undefined';
-    const seed              = demo_map_seed | 0; // allow only numeric values
-    const world_id          = 'demo';
 
     noise.seed(seed);
 
