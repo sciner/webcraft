@@ -462,17 +462,13 @@ export class ServerWorld {
     }
 
     /**
-     * Return block on world pos
+     * Returns block on world pos, or null.
      * @param {Vector} pos 
      * @returns {object}
      */
-    getBlock(pos) {
-        const chunk_addr = getChunkAddr(pos);
-        const chunk = this.chunks.get(chunk_addr);
-        if (!chunk) {
-            return null;
-        }
-        return chunk.getBlock(pos);
+    getBlock(pos, resultBlock = null) {
+        const chunk = this.chunks.getByPos(pos);
+        return chunk ? chunk.getBlock(pos, resultBlock) : null;
     }
 
     /**

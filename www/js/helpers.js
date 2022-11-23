@@ -571,6 +571,7 @@ export class Vector {
     }
 
     /**
+     * Much faster than set() if we know the soure type.
      * @param {Vector} vec
      */
     copyFrom(vec) {
@@ -906,6 +907,22 @@ export class Vector {
         this.x += x;
         this.y += y;
         this.z += z;
+        return this;
+    }
+
+    /**
+     * Identical semantics to the constructor, but more optimized for Vector argument.
+     * Useful for safely replacing the constructor calls.
+     */
+    initFrom(x, y, z) {
+        if (x instanceof Vector) { // this optimization helps a lot
+            return this.copyFrom(x);
+        }
+
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.set(x, y, z);
         return this;
     }
 

@@ -251,6 +251,14 @@ export class ServerChunkManager {
         return chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED ? chunk : null;
     }
 
+    getByPos(pos) {
+        return this.get(getChunkAddr(pos, tmp_getByPos_addrVector));
+    }
+
+    getReadyByPos(pos) {
+        return this.getReady(getChunkAddr(pos, tmp_getByPos_addrVector));
+    }
+
     remove(addr) {
         this.chunk_queue_load.delete(addr);
         this.chunk_queue_gen_mobs.delete(addr);
@@ -440,7 +448,7 @@ export class ServerChunkManager {
         let startTime = performance.now();
         var bestPos = initialPos;
         var bestDistSqr = Infinity;
-        const fluidWorld = this.fluidWorld;
+        const _this = this;
         const pos = initialPos.floored();
         const initialChunk = this.getReady(getChunkAddr(pos));
         if (initialChunk == null) {
@@ -474,28 +482,25 @@ export class ServerChunkManager {
             var chunk = chunks[chunkIndex];
             var topChunkAddr = chunk.addr;
             const pos = new Vector(x, 0, z);
+            // 2 blocks above the floor must be passable
+            var matPlus2 = _this.DUMMY.material;
+            var matPlus1 = _this.DUMMY.material;
             // for each chunk of the column
             do {
-                // 2 blocks above the floor must be passable
-                pos.y = chunk.maxBlockY + 2;
-                var blockPlus2 = chunk.getBlock(pos, true);
-                pos.y = chunk.maxBlockY + 1;
-                var blockPlus1 = chunk.getBlock(pos, true);
-                var block = null;
                 // for each floor block
                 for(pos.y = chunk.maxBlockY; pos.y >= chunk.coord.y; --pos.y) {
-                    block = chunk.getBlock(pos);
+                    const mat = chunk.getMaterial(pos);
                     // This is the top-most block that looks like some floor.
                     // We don't check any flors below that to avoid spawning in a cave.
-                    if (WorldPortal.suitablePortalFloorBlock(block) &&
-                        (blockPlus1.material.passable || blockPlus1.material.transparent)
+                    if (WorldPortal.suitablePortalFloorMaterial(mat) &&
+                        (matPlus1.passable || matPlus1.transparent)
                     ) {
                         // check if it's a suitable floor
-                        if (blockPlus1.material.passable != 1 ||
-                            blockPlus2.material.passable != 1 ||
+                        if (matPlus1.passable != 1 ||
+                            matPlus2.passable != 1 ||
                             // can spawn in 1-block-deep water
-                            fluidWorld.isFluid(pos.x, pos.y + 2, pos.z) ||
-                            fluidWorld.isLava(pos.x, pos.y + 1, pos.z)
+                            _this.fluidWorld.isFluid(pos.x, pos.y + 2, pos.z) ||
+                            _this.fluidWorld.isLava(pos.x, pos.y + 1, pos.z)
                         ) {
                             return;
                         }
@@ -511,10 +516,9 @@ export class ServerChunkManager {
                         }
                         return;
                     }
-                    // sawp the 2 upper blocks
-                    const t = blockPlus2;
-                    blockPlus2 = blockPlus1;
-                    blockPlus1 = block;
+                    // shift the 2 upper blocks
+                    matPlus2 = matPlus1;
+                    matPlus1 = mat;
                 }
                 // go to the chunk below
                 ++chunkIndex;
@@ -524,9 +528,10 @@ export class ServerChunkManager {
             } while(chunk.addr.x === topChunkAddr.x && chunk.addr.z === topChunkAddr.z)
         }
         // check the initial pos
-        const ipf = initialPos.floored();
-        findSafeFloor(0, ipf.x, ipf.z);
+        pos.copyFrom(initialPos).flooredSelf();
+        findSafeFloor(0, pos.x, pos.z);
         if (bestDistSqr < Infinity) {
+            // Don't log fast calls, they take a few ms.
             return bestPos;
         }
         // for each vertical column of chunks
@@ -561,3 +566,5 @@ export class ServerChunkManager {
     }
 
 }
+
+const tmp_getByPos_addrVector       = new Vector();
