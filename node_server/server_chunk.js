@@ -515,7 +515,7 @@ export class ServerChunk {
         }
 
         if (typeof pos == 'number') {
-            pos = tmp_getBlock_vector.set(pos, y, z);
+            pos = tmp_posVector.set(pos, y, z);
         } else {
             // We expect (typeof pos == 'object') here.
             pos = tmp_posVector.initFrom(pos);
