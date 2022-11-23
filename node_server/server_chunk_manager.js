@@ -437,6 +437,7 @@ export class ServerChunkManager {
     // Returns the horizontally closest safe position for a player.
     // If there are no such positions, returns initialPos.
     findSafePos(initialPos, chunkRenderDist) {
+        let startTime = performance.now();
         var bestPos = initialPos;
         var bestDistSqr = Infinity;
         const fluidWorld = this.fluidWorld;
@@ -522,12 +523,20 @@ export class ServerChunkManager {
                 chunk = chunks[chunkIndex];
             } while(chunk.addr.x === topChunkAddr.x && chunk.addr.z === topChunkAddr.z)
         }
+        // check the initial pos
+        const ipf = initialPos.floored();
+        findSafeFloor(0, ipf.x, ipf.z);
+        if (bestDistSqr < Infinity) {
+            return bestPos;
+        }
         // for each vertical column of chunks
         var topChunkIndex = 0;
         while(topChunkIndex < chunks.length) {
             const chunk = chunks[topChunkIndex];
+            const chunkDist = chunk.addr.horizontalDistance(initialChunk.addr);
+            // tweak it to change acuracy/performance
+            var dxz = Math.min(8, 2 + 2 * Math.floor(chunkDist));
             // for each colum of blocks
-            const dxz = topChunkIndex ? 2 : 1;
             for(var x = chunk.coord.x; x <= chunk.maxBlockX; x += dxz) {
                 for(var z = chunk.coord.z; z <= chunk.maxBlockZ; z += dxz) {
                     findSafeFloor(topChunkIndex, x, z);
@@ -537,7 +546,7 @@ export class ServerChunkManager {
             to the initial position from the 1st chunk colum that has any safe positions.
             It's a compromise between speed and finding the closest safe position. */
             if (bestDistSqr < Infinity) {
-                return bestPos;
+                break;
             }
             // skip all the chunks below the top chunk
             do {
@@ -546,6 +555,8 @@ export class ServerChunkManager {
                 chunks[topChunkIndex].addr.x === chunk.addr.x &&
                 chunks[topChunkIndex].addr.z === chunk.addr.z)
         }
+        let dt = Math.round(performance.now() - startTime);
+        console.log(`Finding safe position (${initialPos.x}, ${initialPos.y}, ${initialPos.z}) -> (${bestPos.x}, ${bestPos.y}, ${bestPos.z}); elpased: ${dt} ms`);
         return bestPos;
     }
 
