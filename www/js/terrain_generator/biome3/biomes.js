@@ -58,8 +58,8 @@ export class Biomes {
                     {percent: .125, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
                     {percent: .125, ...TREES.SPRUCE, height: {min: 6, max: 24}},
                     {percent: .125, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-                    {percent: .125, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}},
-                    {percent: .125, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}}
+                    {percent: .125, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
+                    {percent: .125, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
                 ]
             };
         //}

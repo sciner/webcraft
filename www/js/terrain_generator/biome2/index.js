@@ -31,7 +31,7 @@ export default class Terrain_Generator extends Demo_Map {
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
-        this.flying_islands = new FlyIslands(seed, world_id, {});
+        this.flying_islands = new FlyIslands(world, seed, world_id, {});
     }
 
     async init() {

@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
-import { noise, alea,  Default_Terrain_Generator } from "../default.js";
+import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
 import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
@@ -31,17 +31,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
-        this.flying_islands = new FlyIslands(seed, world_id, {});
+        // this.flying_islands = new FlyIslands(world, seed, world_id, {});
     }
 
     async init() {
         await super.init();
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
-        this.noise2d        = noise.simplex2;
-        this.noise3d        = noise.simplex3;
         this.maps           = new TerrainMapManager2(this.seed, this.world_id, this.noise2d, this.noise3d);
     }
 
+    /*
     // Draw fly islands in the sky
     drawFlyIslands(chunk) {
         if(!this.flying_islands) {
@@ -61,6 +60,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
         return null;
     }
+    */
 
     // Шум для гор
     mountainFractalNoise(x, y, octaves, lacunarity, persistence, scale) {
@@ -90,16 +90,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     // Generate
     generate(chunk) {
 
+        /*
         // Draw fly islands in the sky
         const resp = this.drawFlyIslands(chunk);
         if(resp) {
             return resp;
         }
+        */
 
         const seed                      = this.seed + chunk.id;
         const rnd                       = new alea(seed);
-        // const noise2d                   = this.noise2d;
-        // const noise3d                   = this.noise3d;
 
         const cluster                   = chunk.cluster;
         const maps                      = this.maps.generateAround(chunk, chunk.addr, false, true);
