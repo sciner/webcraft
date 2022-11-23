@@ -17,7 +17,7 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { PLAYER_STATUS_DEAD } from "../www/js/player.js";
+import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
@@ -812,7 +812,7 @@ export class ServerWorld {
                 if(!player) {
                     continue
                 }
-                if(player.status === PLAYER_STATUS_DEAD) {
+                if(player.status !== PLAYER_STATUS_ALIVE) {
                     continue;
                 }
                 if(!in_spectator && player.game_mode.isSpectator()) {
