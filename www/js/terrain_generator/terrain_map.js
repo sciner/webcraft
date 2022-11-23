@@ -216,9 +216,9 @@ export class TerrainMapManager {
     }
 
     makeRiverPoint2(x, z) {
-        let value1 = this.noisefn(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
-        let value2 = this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
-        let value3 = this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
+        const value1 = this.noisefn(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
+        const value2 = this.noisefn(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
+        const value3 = this.noisefn(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
         const value = Math.abs((value1 + value2 + value3) / 0.004);
         if(value > WATER_START && value < WATERFRONT_STOP) {
             const percent = (value - WATER_START) / RIVER_FULL_WIDTH;

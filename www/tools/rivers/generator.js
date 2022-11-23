@@ -52,9 +52,9 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
 });
 
 //
-const CHUNK_RENDER_DIST = 32;
+const CHUNK_RENDER_DIST = 16;
 const demo_map_seed     = 'undefined';
-const seed              = 3; // allow only numeric values
+const seed              = 20; // allow only numeric values
 const world_id          = 'demo';
 
 globalThis.BLOCK = BLOCK;
@@ -72,7 +72,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     noise.seed(seed);
 
-    const noisefn           = noise.perlin2;
+    const noisefn           = noise.simplex2;
     const Tmaps             = new TerrainMapManager(seed, world_id, noisefn);
     const SZ                = CHUNK_RENDER_DIST * 2 + 3;
 
@@ -98,16 +98,6 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
         }
     }
 
-    // chunks net
-    for(let x = 0; x < SZ * CHUNK_SIZE_X; x+=16) {
-        for(let z = 0; z < SZ * CHUNK_SIZE_Z; z+=16) {
-            let index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
-            imgData.data[index + 0] = 64;
-            imgData.data[index + 1] = 64;
-            imgData.data[index + 2] = 64;
-        }
-    }
-
     let steps = 0;
     const step = 1;
     const pn = performance.now();
@@ -118,16 +108,30 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
             const px = chunk_coord_start.x + x;
             const pz = chunk_coord_start.z + z;
             const point = Tmaps.makeRiverPoint2(px, pz);
+            const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
 
             if(point) {
                 const {value, percent, river_percent, waterfront_percent} = point;
-                const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
                 imgData.data[index + 2] = (waterfront_percent) * 255;
                 imgData.data[index + 1] = (river_percent) * 255;
+            } else {
+                imgData.data[index + 0] = 255;
+                imgData.data[index + 1] = 0;
+                imgData.data[index + 2] = 255;
             }
 
             steps++;
 
+        }
+    }
+
+    // chunks net
+    for(let x = 0; x < SZ * CHUNK_SIZE_X; x+=16) {
+        for(let z = 0; z < SZ * CHUNK_SIZE_Z; z+=16) {
+            let index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
+            imgData.data[index + 0] = 64
+            imgData.data[index + 1] = 64
+            imgData.data[index + 2] = 64
         }
     }
 
