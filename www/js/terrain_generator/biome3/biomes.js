@@ -1,4 +1,3 @@
-import noise from '../../../vendors/perlin.js';
 import { TREES } from '../biomes.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -11,7 +10,8 @@ const GRASS_FREQUENCY       = 0.015;
 
 export class Biomes {
 
-    constructor() {
+    constructor(noise2d) {
+        this.noise2d = noise2d;
         this.scale = 512;
         TREES.init();
         this.initBiomes();
@@ -32,7 +32,7 @@ export class Biomes {
         for(let i = 0; i < this.octaves; i++) {
             const d = this.pows[i];
             const shift = i * 1000 * t;
-            const h = noise.simplex2((px + shift) / (d * s), (pz + shift) / (d * s));
+            const h = this.noise2d((px + shift) / (d * s), (pz + shift) / (d * s));
             resp += h * (d / this.max_pow);
         }
         return (resp / 2 + .5) / 1.2;

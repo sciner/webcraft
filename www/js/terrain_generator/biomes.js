@@ -26,7 +26,7 @@ export class TREES {
         TREES.SPRUCE            = {trunk: BLOCK.SPRUCE_LOG.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}};
         TREES.JUNGLE            = {trunk: BLOCK.JUNGLE_LOG.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'jungle', height: {min: 1, max: 22}};
         TREES.RED_MUSHROOM      = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
-        TREES.BROWN_MUSHROOM    = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.BROWN_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}};
+        TREES.BROWN_MUSHROOM    = {trunk: BLOCK.MUSHROOM_STEM.id, leaves: BLOCK.BROWN_MUSHROOM_BLOCK.id, style: 'brown_mushroom', height: {min: 5, max: 12}};
         return true;
     }
 

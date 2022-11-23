@@ -5,8 +5,9 @@ import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
 import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
-import FlyIslands from "../flying_islands/index.js";
+// import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
+import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -23,7 +24,13 @@ for(let i = 0; i < randoms.length; i++) {
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(world, seed, world_id, options) {
-        super(seed, world_id, options);
+
+        const al = new alea(seed);
+        const noise2d = createNoise2D(al.double);
+        const noise3d = createNoise3D(al.double);
+
+        super(seed, world_id, options, noise2d, noise3d);
+
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
         // this._createBlockAABB = new AABB();
         // this._createBlockAABB_second = new AABB();

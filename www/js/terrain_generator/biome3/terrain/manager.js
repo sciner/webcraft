@@ -4,7 +4,6 @@ import { IndexedColor, Vector, VectorCollector } from "../../../helpers.js";
 
 import { getAheadMove } from "../../cluster/vilage.js";
 
-// import { BIOMES } from "../../biomes.js";
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
@@ -72,8 +71,7 @@ export class TerrainMapManager2 {
         this.noise2d = noise2d;
         this.noise3d = noise3d;
         this.maps_cache = new VectorCollector();
-        // BIOMES.init();
-        this.biomes = new Biomes();
+        this.biomes = new Biomes(noise2d);
         // Presets by chances
         this.presets = [];
         for(const k in MAP_PRESETS) {
@@ -304,9 +302,11 @@ export class TerrainMapManager2 {
     }
 
     makeRiverPoint(x, z) {
-        let value1 = this.noise2d(x / RIVER_OCTAVE_1, z / RIVER_OCTAVE_1) * 0.7;
-        let value2 = this.noise2d(x / RIVER_OCTAVE_2, z / RIVER_OCTAVE_2) * 0.2;
-        let value3 = this.noise2d(x / RIVER_OCTAVE_3, z / RIVER_OCTAVE_3) * 0.1;
+        x += 91234;
+        z -= 95678;
+        let value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
+        let value2 = this.noise2d((x) / RIVER_OCTAVE_2, (z) / RIVER_OCTAVE_2) * 0.2;
+        let value3 = this.noise2d((x - 10) / RIVER_OCTAVE_3, (z - 10) / RIVER_OCTAVE_3) * 0.1;
         const value = Math.abs((value1 + value2 + value3) / 0.004);
         if(value > WATER_START && value < WATERFRONT_STOP) {
             const percent = (value - WATER_START) / RIVER_FULL_WIDTH;
