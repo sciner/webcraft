@@ -9,6 +9,7 @@ import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
 export const TREE_MARGIN        = 3;
+export const TREE_MIN_Y_SPACE   = 5;
 export const WATER_LEVEL        = 80;
 
 export const GENERATOR_OPTIONS = {

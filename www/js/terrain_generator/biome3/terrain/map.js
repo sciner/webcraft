@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN } from "./manager.js";
+import { TREE_MARGIN, TREE_MIN_Y_SPACE } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
 
 export class TerrainMap2 extends TerrainMap {
@@ -112,18 +112,22 @@ export class TerrainMap2 extends TerrainMap {
             const rnd = aleaRandom.double();
 
             if(rnd <= biome.trees.frequency) {
+                let free_height = 0;
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = map.cluster.y_base + y;
                     const preset = manager.getPreset(xyz);
                     const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset});
                     if(density > .6) {
-                        if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome)) {
-                            if(this.trees.length == 3) {
-                                break;
+                        if(free_height >= TREE_MIN_Y_SPACE) {
+                            if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome)) {
+                                if(this.trees.length == 3) {
+                                    break;
+                                }
                             }
                         }
                         break;
                     }
+                    free_height++;
                 }
             }
         }
