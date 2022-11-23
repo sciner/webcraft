@@ -62,6 +62,8 @@ export class ServerClient {
     static CMD_STATS                    = 96;
     static CMD_DIE                      = 97;
     static CMD_RESURRECTION             = 98;
+    static CMD_SET_STATUS_WAITING_DATA  = 103; // s->p: changes player.status to PLAYER_STATUS_WAITING_DATA
+    static CMD_SET_STATUS_ALIVE         = 104; // s->p: changes player.status to PLAYER_STATUS_ALIVE
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66; // server -> player (when player inventory changed)
@@ -328,10 +330,11 @@ export class ServerClient {
     }
 
     //
-    Teleport(place_id, pos) {
+    Teleport(place_id, pos, safe) {
         this.Send({name: ServerClient.CMD_TELEPORT_REQUEST, data: {
             place_id: place_id,
-            pos: pos
+            pos: pos,
+            safe: safe
         }});
     }
 

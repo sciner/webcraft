@@ -742,6 +742,12 @@ export class Vector {
         return Math.sqrt(x * x + z * z);
     }
 
+    horizontalDistanceSqr(vec) {
+        const x = this.x - vec.x;
+        const z = this.z - vec.z;
+        return x * x + z * z;
+    }
+
     // distancePointLine...
     distanceToLine(line_start, line_end, intersection = null) {
         intersection = intersection || new Vector(0, 0, 0);

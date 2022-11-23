@@ -1,5 +1,5 @@
-import { Vector, VectorCollector } from "../www/js/helpers.js";
-import { Player } from "../www/js/player.js";
+import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { Player, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { GameMode } from "../www/js/game_mode.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
@@ -65,7 +65,8 @@ export class ServerPlayer extends Player {
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
         this.dt_connect             = new Date();
-        this.is_dead                = false;
+        this.safePosWaitingChunks   = [];
+        this.safePosInitialOverride = null; // if its null, state.pos_spawn is used instead
         this.in_portal              = false;
         this.wait_portal            = null;
         this.prev_use_portal        = null; // время последнего использования портала
@@ -89,6 +90,7 @@ export class ServerPlayer extends Player {
         this.food_level = this.state.indicators.food.value;
         this.oxygen_level = this.state.indicators.oxygen.value;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
+        this.status = init_info.status;
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
@@ -185,7 +187,7 @@ export class ServerPlayer extends Player {
     
     // Нанесение урона игроку
     setDamage(val, src) {
-        if(this.is_dead || !this.game_mode.mayGetDamaged()) {
+        if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
             return false;
         }
         this.live_level = Math.max(this.live_level - val, 0);
@@ -326,6 +328,9 @@ export class ServerPlayer extends Player {
         if(tick_number % 2 == 1) this.checkInPortal();
         // 5.
         await this.checkWaitPortal();
+        if (this.status === PLAYER_STATUS_WAITING_DATA) {
+            this.checkWaitingData();
+        }
         // 6.
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
@@ -414,6 +419,48 @@ export class ServerPlayer extends Player {
         }
     }
 
+    initWaitingDataForSpawn() {
+        if (this.status !== PLAYER_STATUS_WAITING_DATA) {
+            return;
+        }
+        this.safePosWaitingChunks = this.world.chunks.queryPlayerVisibleChunks(this);
+    }
+
+    checkWaitingData() {
+        // check if there are any chunks not generated; remove generated chunks from the list
+        var i = 0;
+        while (i < this.safePosWaitingChunks.length) {
+            if (this.safePosWaitingChunks[i].load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                this.safePosWaitingChunks[i] = this.safePosWaitingChunks[this.safePosWaitingChunks.length - 1];
+                --this.safePosWaitingChunks.length;
+            } else {
+                ++i;
+            }
+        }
+        // if everything is ready
+        if (this.safePosWaitingChunks.length == 0) {
+            // teleport
+            var initialPos = this.safePosInitialOverride || this.state.pos_spawn;
+            this.safePosInitialOverride = null;
+            this.state.pos = this.world.chunks.findSafePos(initialPos, this.state.chunk_render_dist);
+            
+            // change status
+            this.status = PLAYER_STATUS_ALIVE;
+            // send changes
+            const packets = [{
+                name: ServerClient.CMD_TELEPORT,
+                data: {
+                    pos: this.state.pos,
+                    place_id: 'spawn'
+                }
+            }, {
+                name: ServerClient.CMD_SET_STATUS_ALIVE, 
+                data: {}
+            }];
+            this.world.packets_queue.add([this.session.user_id], packets);
+        }
+    }
+
     // Send other players states for me
     sendNearPlayers() {
         const chunk_over = this.world.chunks.get(this.chunk_addr);
@@ -450,7 +497,7 @@ export class ServerPlayer extends Player {
 
     // check indicators
     checkIndicators(tick) {
-        if(this.is_dead || !this.game_mode.mayGetDamaged()) {
+        if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
             return false;
         }
         
@@ -466,7 +513,7 @@ export class ServerPlayer extends Player {
                 });
             }
             if(this.live_level == 0) {
-                this.is_dead = true;
+                this.status = PLAYER_STATUS_DEAD;
                 this.state.stats.death++;
                 // @todo check and drop inventory items if need
                 // const keep_inventory_on_dead = this.world.info.generator?.options?.keep_inventory_on_dead ?? true;
@@ -608,13 +655,20 @@ export class ServerPlayer extends Player {
                 console.log('error_too_far');
                 throw 'error_too_far';
             }
-            teleported_player.wait_portal = new WorldPortalWait(
-                teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
-                new_pos,
-                params
-            );
-            teleported_player.state.pos = new_pos;
-            world.chunks.checkPlayerVisibleChunks(teleported_player, true);
+            if (params.safe) {
+                this.status = PLAYER_STATUS_WAITING_DATA;
+                this.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
+                this.safePosWaitingChunks = world.chunks.queryPlayerVisibleChunks(this, new_pos);
+                this.safePosInitialOverride = new_pos;
+            } else {
+                teleported_player.wait_portal = new WorldPortalWait(
+                    teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
+                    new_pos,
+                    params
+                );
+                teleported_player.state.pos = new_pos;
+                world.chunks.checkPlayerVisibleChunks(teleported_player, true);
+            }
         }
     }
     

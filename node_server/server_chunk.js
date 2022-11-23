@@ -148,6 +148,18 @@ export class ServerChunk {
         this.fluid          = null;
     }
 
+    get maxBlockX() {
+        return this.coord.x + (CHUNK_SIZE_X - 1);
+    }
+    
+    get maxBlockY() {
+        return this.coord.y + (CHUNK_SIZE_Y - 1);
+    }
+    
+    get maxBlockZ() {
+        return this.coord.z + (CHUNK_SIZE_Z - 1);
+    }
+
     // Set chunk init state
     setState(state_id) {
         this.load_state = state_id;
@@ -466,7 +478,9 @@ export class ServerChunk {
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(pos, y, z) {
+    // If the argument after the coordiantes (y or fromOtherChunks) is true,
+    // it can return blocks from chunks outside its boundary.
+    getBlock(pos, y, z, fromOtherChunks) {
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
             return this.getChunkManager().DUMMY;
         }
@@ -475,11 +489,21 @@ export class ServerChunk {
             pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
         } else if (typeof pos == 'Vector') {
             pos = pos.floored().subSelf(this.coord);
+            fromOtherChunks = y;
         } else if (typeof pos == 'object') {
             pos = new Vector(pos).flooredSelf().subSelf(this.coord);
+            fromOtherChunks = y;
         }
 
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            if (fromOtherChunks) {
+                pos.addSelf(this.coord);
+                const otherChunk = this.world.chunks.getReady(pos);
+                if (otherChunk) {
+                    pos.subSelf(otherChunk.coord);
+                    return otherChunk.getBlock(pos);
+                }
+            }
             return this.getChunkManager().DUMMY;
         }
         const block = this.tblocks.get(pos);
