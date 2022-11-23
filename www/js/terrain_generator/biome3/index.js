@@ -135,7 +135,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
+                // const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
                 const has_cluster = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);

@@ -8,9 +8,10 @@ import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
-export const TREE_MARGIN        = 3;
-export const TREE_MIN_Y_SPACE   = 5;
-export const WATER_LEVEL        = 80;
+export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
+export const MAX_TREES_PER_CHUNK    = 3; // Максимальное число деревьев в чанке
+export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
+export const WATER_LEVEL            = 80;
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             80, // Ватер-линия
@@ -98,12 +99,11 @@ export class TerrainMapManager2 {
     }
 
     // Generate maps
-    generateAround(chunk, chunk_addr, smooth, vegetation) {
+    generateAround(chunk, chunk_addr, smooth, generate_trees) {
         
-        const rad                   = vegetation ? 2 : 1;
+        const rad                   = generate_trees ? 2 : 1;
         const noisefn               = this.noise2d;
         const maps                  = [];
-        let center_map              = null;
         
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
@@ -114,13 +114,11 @@ export class TerrainMapManager2 {
                 if(Math.abs(x) < 2 && Math.abs(z) < 2) {
                     maps.push(map);
                 }
-                if(x == 0 && z == 0) {
-                    center_map = map;
-                }
             }
         }
-        // Generate vegetation
-        if(vegetation) {
+
+        // Generate trees
+        if(generate_trees) {
             for (let i = 0; i < maps.length; i++) {
                 const map = maps[i];
                 if(!map.vegetable_generated) {
@@ -142,7 +140,7 @@ export class TerrainMapManager2 {
     getPreset(xyz) {
 
         const RAD = 1000; // радиус области
-        const TRANSITION_WIDTH = 64; // ширина перехода межу обалстью и равниной
+        const TRANSITION_WIDTH = 64; // ширина перехода межу областью и равниной
 
         // центр области
         const center_x = Math.round(xyz.x / RAD) * RAD;
