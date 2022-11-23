@@ -527,8 +527,9 @@ export class ServerChunkManager {
         while(topChunkIndex < chunks.length) {
             const chunk = chunks[topChunkIndex];
             // for each colum of blocks
-            for(var x = chunk.coord.x; x <= chunk.maxBlockX; ++x) {
-                for(var z = chunk.coord.z; z <= chunk.maxBlockZ; ++z) {
+            const dxz = topChunkIndex ? 2 : 1;
+            for(var x = chunk.coord.x; x <= chunk.maxBlockX; x += dxz) {
+                for(var z = chunk.coord.z; z <= chunk.maxBlockZ; z += dxz) {
                     findSafeFloor(topChunkIndex, x, z);
                 }
             }
