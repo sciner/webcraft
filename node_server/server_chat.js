@@ -143,7 +143,7 @@ export class ServerChat {
             case '/help':
                 let commands = [
                     '/weather (clear | rain)',
-                    '/gamemode (survival | creative | adventure | spectator)',
+                    '/gamemode [world] (survival | creative | adventure | spectator | get)',
                     '/tp -> teleport',
                     '/spawnpoint',
                     '/seed',
@@ -155,11 +155,33 @@ export class ServerChat {
                 if(!this.world.admins.checkIsAdmin(player)) {
                     throw 'error_not_permitted';
                 }
-                args = this.parseCMD(args, ['string', 'string']);
-                let game_mode_id = args[1].toLowerCase();
-                for(let mode of player.game_mode.modes) {
-                    if(mode.id == game_mode_id) {
+                args = this.parseCMD(args, ['string', 'string', 'string']);
+                if (args.length < 2 || args.length > 3) {
+                    throw 'Invalid arguments count';
+                }
+                const target = args.length == 3 ? args[1] : '';
+                let game_mode_id = args[args.length - 1].toLowerCase();
+                if (game_mode_id != 'get') {
+                    const mode = player.game_mode.getById(game_mode_id);
+                    if (mode == null) {
+                        throw 'Invalid game mode';
+                    }
+                    if (target == '') {
                         player.game_mode.applyMode(game_mode_id, true);
+                    } else if (target == 'world') {
+                        this.world.info.game_mode = game_mode_id;
+                        await this.world.db.setWorldGameMode(this.world.info.guid, game_mode_id);
+                        this.sendSystemChatMessageToSelectedPlayers('Done', [player.session.user_id]);
+                    } else {
+                        throw 'Invalid target';
+                    }
+                } else {
+                    if (target == '') {
+                        this.sendSystemChatMessageToSelectedPlayers('Player game mode id: ' + player.game_mode.current.id, [player.session.user_id]);
+                    } else if (target == 'world') {
+                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + this.world.info.game_mode, [player.session.user_id]);
+                    } else {
+                        throw 'Invalid target';
                     }
                 }
                 break;

@@ -90,6 +90,13 @@ export class DBWorld {
         });
     }
 
+    async setWorldGameMode(world_guid, game_mode) {
+        await this.conn.run('UPDATE world SET game_mode = :game_mode WHERE guid = :guid', {
+            ':game_mode':   game_mode,
+            ':guid':        world_guid
+        });
+    }
+
     async TransactionBegin() {
         await this.conn.get('begin transaction');
     }
