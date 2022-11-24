@@ -69,7 +69,7 @@ export class WorkerWorld {
             addr:           chunk.addr,
             tblocks:        chunk.tblocks,
             ticking_blocks: ticking_blocks,
-            map:            chunk.map
+            packedCells:    chunk.packCells()
         };
     }
 

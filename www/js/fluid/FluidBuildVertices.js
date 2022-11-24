@@ -178,7 +178,7 @@ export function getBlockByFluidVal(fluidVal) {
 
 export function buildFluidVertices(mesher, fluidChunk) {
     const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
-    const { map } = fluidChunk.parentChunk;
+    const { packedCells } = fluidChunk.parentChunk;
     const { uint16View } = fluidChunk;
 
     if (fluidMaterials.length === 0) {
@@ -195,6 +195,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
     const neib = [0, 0, 0, 0, 0, 0];
     const hasNeib = [0, 0, 0, 0, 0, 0];
     const texAlter = [0, 0, 0, 0];
+    const clrIndex = IndexedColor.WATER.clone();
     for (let y = bounds.y_min; y <= bounds.y_max; y++)
         for (let z = bounds.z_min; z <= bounds.z_max; z++)
             for (let x = bounds.x_min; x <= bounds.x_max; x++) {
@@ -230,12 +231,12 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 let clr = 0;
                 let flags = mat.flags;
                 if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
-                    if (map) {
-                        const cell = map.cells[z * size.x + x];
-                        clr = cell.water_color.pack();
-                    } else {
-                        clr = IndexedColor.WATER.pack();
+                    if (packedCells) {
+                        const ind = z * size.x + x;
+                        clrIndex.r = packedCells[ind * 4 + 2];
+                        clrIndex.g = packedCells[ind * 4 + 3];
                     }
+                    clr = clrIndex.pack();
                 }
 
                 let y0 = 0;
