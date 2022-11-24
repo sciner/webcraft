@@ -254,7 +254,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
                             let block_id = water_id;
                             if(cell.temperature * 2 - 1 < 0 && xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                if(d3 > -.2 && d3 < .8) {
+                                if(d3 > .12) {
+                                // if(d3 > -.2 && d3 < .8) {
                                     block_id = BLOCK.ICE.id;
                                 }
                             }
