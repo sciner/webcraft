@@ -1,3 +1,4 @@
+import { IndexedColor } from '../../helpers.js';
 import { TREES } from '../biomes.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -38,7 +39,7 @@ export class Biomes {
         return (resp / 2 + .5) / 1.2;
     }
 
-    addBiome(title, temp, humidity, dirt_layers, trees, plants, grass) {
+    addBiome(title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color) {
         const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -84,7 +85,7 @@ export class Biomes {
                 ]
             };
         }
-        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass});
+        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color});
     }
 
     initBiomes() {
@@ -127,9 +128,9 @@ export class Biomes {
                 {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
                 {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
             ]
-        });
-        this.addBiome('Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, null, null, snow_grass);
-        this.addBiome('Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass);
+        }, new IndexedColor(232, 510, 0), new IndexedColor(255, 255, 0));
+        this.addBiome('Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(255, 255, 0));
+        this.addBiome('Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(255, 255, 0));
         this.addBiome('Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
@@ -198,7 +199,7 @@ export class Biomes {
                 {percent: .005, blocks: [{id: BLOCK.MELON.id, not_transparent: true}]},
                 {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
             ]
-        });
+        }, new IndexedColor(32, 345, 0), new IndexedColor(12, 36, 0));
         this.addBiome('Рельефные джунгли', 0.95, 0.9);
         this.addBiome('Холмистые джунгли', 0.95, 0.9);
         this.addBiome('Окраина джунглей', 0.95, 0.8, undefined, {
@@ -225,7 +226,7 @@ export class Biomes {
                 {percent: .3, blocks: [{id: BLOCK.GRASS.id}]},
                 {percent: .5, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
             ]
-        });
+        }, new IndexedColor(32, 345, 0), new IndexedColor(12, 36, 0));
         this.addBiome('Рельефная окраина джунглей', 0.95, 0.8);
         this.addBiome('Бамбуковые джунгли', 0.95, 0.9);
         this.addBiome('Холмистые бамбуковые джунгли', 0.95, 0.9);
@@ -274,7 +275,7 @@ export class Biomes {
             list: [
                 {percent: 1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
             ]
-        });
+        }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(0, 255, 0));
         this.addBiome('Плато саванны', 1, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
@@ -283,8 +284,8 @@ export class Biomes {
                 {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
                 {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
             ]
-        });
-        this.addBiome('Выветренная саванна', 1.1, 0);
+        }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(0, 255, 0));
+        this.addBiome('Выветренная саванна', 1.1, 0, undefined, undefined, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(0, 255, 0));
         this.addBiome('Плато выветренной саванны', 1, 0);
         this.addBiome('Пустошь', 2, 0);
         this.addBiome('Выветренная пустошь', 2, 0);

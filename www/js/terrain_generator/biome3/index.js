@@ -157,7 +157,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 let cluster_drawed = false;
 
-                /*
                 if(!globalThis.sdfgfdgh) {
                     globalThis.sdfgfdgh = new Map();
                 }
@@ -165,7 +164,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     globalThis.sdfgfdgh.set(cell.biome.title, cell.biome.title);
                     console.log(globalThis.sdfgfdgh)
                 }
-                */
 
                 for(let y = size_y - 1; y >= 0; y--) {
 
