@@ -148,6 +148,18 @@ export class ServerChunk {
         this.fluid          = null;
     }
 
+    get maxBlockX() {
+        return this.coord.x + (CHUNK_SIZE_X - 1);
+    }
+    
+    get maxBlockY() {
+        return this.coord.y + (CHUNK_SIZE_Y - 1);
+    }
+    
+    get maxBlockZ() {
+        return this.coord.z + (CHUNK_SIZE_Z - 1);
+    }
+
     // Set chunk init state
     setState(state_id) {
         this.load_state = state_id;
@@ -463,27 +475,67 @@ export class ServerChunk {
         return this.world.chunks;
     }
 
+    // It's slightly faster than getBlock().
+    getMaterial(pos, y, z, fromOtherChunks = false) {
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
+            return this.getChunkManager().DUMMY.material;
+        }
+
+        if (typeof pos == 'number') {
+            pos = tmp_posVector.set(pos, y, z);
+        } else {
+            // We expect (typeof pos == 'object') here.
+            pos = tmp_posVector.initFrom(pos);
+            fromOtherChunks = y;
+        }
+        pos.flooredSelf().subSelf(this.coord);
+
+        if (pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            if (fromOtherChunks) {
+                pos.addSelf(this.coord);
+                const otherChunk = this.world.chunks.getReadyByPos(pos);
+                if (otherChunk) {
+                    // this recursion it doesn't affect tmp_posVector
+                    return otherChunk.getMaterial(pos);
+                }
+            }
+            return this.getChunkManager().DUMMY.material;
+        }
+        return this.tblocks.getMaterial(pos);
+    }
+
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(pos, y, z) {
+    // If the argument after the coordiantes (y or fromOtherChunks) is true,
+    // it can return blocks from chunks outside its boundary.
+    getBlock(pos, y, z, resultBlock = null, fromOtherChunks = false) {
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
             return this.getChunkManager().DUMMY;
         }
 
         if (typeof pos == 'number') {
-            pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
-        } else if (typeof pos == 'Vector') {
-            pos = pos.floored().subSelf(this.coord);
-        } else if (typeof pos == 'object') {
-            pos = new Vector(pos).flooredSelf().subSelf(this.coord);
+            pos = tmp_posVector.set(pos, y, z);
+        } else {
+            // We expect (typeof pos == 'object') here.
+            pos = tmp_posVector.initFrom(pos);
+            resultBlock = y;
+            fromOtherChunks = z;
         }
+        pos.flooredSelf().subSelf(this.coord);
 
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            if (fromOtherChunks) {
+                pos.addSelf(this.coord);
+                const otherChunk = this.world.chunks.getReadyByPos(pos);
+                if (otherChunk) {
+                    // this recursion it doesn't affect tmp_posVector
+                    return otherChunk.getBlock(pos, resultBlock);
+                }
+            }
             return this.getChunkManager().DUMMY;
         }
-        const block = this.tblocks.get(pos);
-        return block;
+        return this.tblocks.get(pos, resultBlock);
     }
 
     // getBlockAsItem
@@ -744,3 +796,5 @@ export class ServerChunk {
     }
 
 }
+
+const tmp_posVector         = new Vector();

@@ -14,6 +14,7 @@ import { DBWorldPortal } from "./world/portal.js";
 import { DBWorldFluid } from "./world/fluid.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
+import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from "../../www/js/player.js";
 
 // World database provider
 export class DBWorld {
@@ -185,17 +186,19 @@ export class DBWorld {
             if(inventory.current.index2 === undefined) {
                 inventory.current.index2 = -1;
             }
+            const state = {
+                pos:                new Vector(JSON.parse(row.pos)),
+                pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
+                rotate:             new Vector(JSON.parse(row.rotate)),
+                indicators:         JSON.parse(row.indicators),
+                chunk_render_dist:  row.chunk_render_dist,
+                game_mode:          row.game_mode || world.info.game_mode,
+                stats:              JSON.parse(row.stats)
+            };
             return {
-                state: {
-                    pos:                new Vector(JSON.parse(row.pos)),
-                    pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
-                    rotate:             new Vector(JSON.parse(row.rotate)),
-                    indicators:         JSON.parse(row.indicators),
-                    chunk_render_dist:  row.chunk_render_dist,
-                    game_mode:          row.game_mode || world.info.game_mode,
-                    stats:              JSON.parse(row.stats)
-                },
-                inventory: inventory
+                state: state,
+                inventory: inventory,
+                status: state.indicators.live.value ? PLAYER_STATUS_ALIVE : PLAYER_STATUS_DEAD
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
@@ -213,7 +216,9 @@ export class DBWorld {
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0,
             ':stats':       JSON.stringify(this.getDefaultPlayerStats())
         });
-        return await this.registerPlayer(world, player);
+        player = await this.registerPlayer(world, player);
+        player.status = PLAYER_STATUS_WAITING_DATA;
+        return player;
     }
 
     // Добавление сообщения в чат

@@ -17,6 +17,7 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
+import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
@@ -126,7 +127,7 @@ export class ServerWorld {
         }
         // находим игроков
         for (const player of this.players.values()) {
-            if (!player.game_mode.isSpectator() && !player.is_dead) {
+            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
                 if (mobs.length <= 4) {
@@ -294,6 +295,7 @@ export class ServerWorld {
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
+        player.initWaitingDataForSpawn();
         // 3. Insert to array
         this.players.set(player.session.user_id, player);
         // 4. Send about all other players
@@ -336,13 +338,14 @@ export class ServerWorld {
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
                 state: player.state,
+                status: player.status,
                 inventory: {
                     current: player.inventory.current,
                     items: player.inventory.items
                 }
             }
         }]);
-        // 8. Check player visible chunks
+        // 9. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
@@ -459,17 +462,13 @@ export class ServerWorld {
     }
 
     /**
-     * Return block on world pos
+     * Returns block on world pos, or null.
      * @param {Vector} pos 
      * @returns {object}
      */
-    getBlock(pos) {
-        const chunk_addr = getChunkAddr(pos);
-        const chunk = this.chunks.get(chunk_addr);
-        if (!chunk) {
-            return null;
-        }
-        return chunk.getBlock(pos);
+    getBlock(pos, resultBlock = null) {
+        const chunk = this.chunks.getByPos(pos);
+        return chunk ? chunk.getBlock(pos, resultBlock) : null;
     }
 
     /**
@@ -813,7 +812,7 @@ export class ServerWorld {
                 if(!player) {
                     continue
                 }
-                if(player.is_dead) {
+                if(player.status !== PLAYER_STATUS_ALIVE) {
                     continue;
                 }
                 if(!in_spectator && player.game_mode.isSpectator()) {

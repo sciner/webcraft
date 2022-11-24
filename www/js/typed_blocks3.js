@@ -345,6 +345,13 @@ export class TypedBlocks3 {
             : new TBlock(this, vec, index);
     }
 
+    getMaterial(vec) {
+        //TODO: are we sure that vec wont be modified?
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
+        return BLOCK.BLOCK_BY_ID[this.id[index]] || null;
+    }
+
     has(vec) {
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
@@ -709,6 +716,13 @@ export class TBlock {
         this.tb = tb;
         this.vec = vec;
         this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
+        return this;
+    }
+
+    initFrom(block) {
+        this.tb = block.tb;
+        this.vec = block.vec;
+        this.index = block.index;
         return this;
     }
 

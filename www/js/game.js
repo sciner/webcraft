@@ -377,7 +377,7 @@ export class GameClass {
                     // R (Respawn)
                     case KEY.R: {
                         if(!e.down) {
-                            this.player.world.server.Teleport('spawn');
+                            this.player.world.server.Teleport('spawn', null, true);
                         }
                         return true;
                     }

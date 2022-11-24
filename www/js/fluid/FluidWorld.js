@@ -6,6 +6,7 @@ import {
     FLUID_STRIDE,
     FLUID_TYPE_MASK,
     FLUID_WATER_ID,
+    FLUID_LAVA_ID,
     OFFSET_FLUID
 } from "./FluidConst.js";
 
@@ -127,5 +128,9 @@ export class FluidWorld {
 
     isWater(x, y, z) {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+    }
+
+    isFluid(x, y, z) {
+        return (this.getValue(x, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 }
