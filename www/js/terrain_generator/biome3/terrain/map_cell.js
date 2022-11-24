@@ -3,12 +3,13 @@ import { Default_Terrain_Map_Cell } from "../../default.js";
 // Map cell
 export class TerrainMapCell extends Default_Terrain_Map_Cell {
 
-    constructor(value, humidity, equator, biome, dirt_block_id) {
+    constructor(value, humidity, temperature, biome, dirt_block_id) {
         super(biome);
         this.value          = value;
         this.value2         = value;
         this.humidity       = Math.round(humidity * 100000) / 100000;
-        this.equator        = Math.round(equator * 100000) / 100000;
+        this.temperature    = temperature;
+        this.equator        = Math.round(temperature * 100000) / 100000;
         this.dirt_block_id  = dirt_block_id;
     }
 

@@ -333,11 +333,11 @@ export class Biomes {
     }
 
     /**
-     * @param {float} temp 
+     * @param {float} temperature 
      * @param {float} humidity 
      * @returns 
      */
-    getBiome(temp, humidity) {
+    getBiome(temperature, humidity) {
 
         /*
         const temp_value = temp * 3 - 1;
@@ -355,7 +355,7 @@ export class Biomes {
         return biome;
         */
 
-        let x = Math.floor(this.scale * temp);
+        let x = Math.floor(this.scale * temperature);
         let z = Math.floor(this.scale * humidity);
         x = Math.max(Math.min(x, this.scale - 1), 0)
         z = Math.max(Math.min(z, this.scale - 1), 0)

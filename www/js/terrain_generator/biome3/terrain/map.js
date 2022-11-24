@@ -119,7 +119,7 @@ export class TerrainMap2 extends TerrainMap {
                     const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset});
                     if(density > .6) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
-                            if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome)) {
+                            if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y + 1, z, biome)) {
                                 if(this.trees.length == MAX_TREES_PER_CHUNK) {
                                     break;
                                 }

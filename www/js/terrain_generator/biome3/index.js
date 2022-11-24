@@ -252,7 +252,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     } else {
                         not_air_count = 0;
                         if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
-                            chunk.setBlockIndirect(x, y, z, water_id);
+                            let block_id = water_id;
+                            if(cell.temperature * 2 - 1 < 0 && xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
+                                if(d3 > -.2 && d3 < .8) {
+                                    block_id = BLOCK.ICE.id;
+                                }
+                            }
+                            chunk.setBlockIndirect(x, y, z, block_id);
                         }
                     }
 
