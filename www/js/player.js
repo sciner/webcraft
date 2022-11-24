@@ -372,7 +372,13 @@ export class Player {
                 const cur_mat_id = this.inventory.current_item?.id;
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
-                    if(this.startItemUse(cur_mat)) {
+                    // putting items into a pot takes priority over using them
+                    var canPutIntoPot = false;
+                    if (cur_mat.tags.includes("can_put_info_pot")) {
+                        const targetBlock = this.pickAt.getTargetBlock(this);
+                        canPutIntoPot = targetBlock && targetBlock.material.tags.includes("pot");
+                    }
+                    if(!canPutIntoPot && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
