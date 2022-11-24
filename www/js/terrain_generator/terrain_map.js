@@ -6,11 +6,13 @@ import { CaveGenerator } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
 import { OreGenerator } from './ore_generator.js';
 
-let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-
 export const SMOOTH_RAD         = 3;
 export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
 export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
+
+const size                      = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+const VAL_COUNT                 = 5;
+const COLOR_COMPUTER            = new IndexedColor(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
 
 //
 const WATER_START           = 0;
@@ -172,7 +174,7 @@ export class TerrainMapManager {
             }
         }
 
-        if(biome.no_smooth) {
+        if(biome.no_smooth_heightmap) {
             value = value * biome.max_height + H;
         } else {
             // smooth with clusters
@@ -308,8 +310,8 @@ export class TerrainMap extends Default_Terrain_Map {
 
     static initCells() {
         TerrainMap._cells = new Array(SMOOTH_ROW_COUNT);
-        TerrainMap._vals = new Array(SMOOTH_ROW_COUNT * 3);
-        TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * 3);
+        TerrainMap._vals = new Array(SMOOTH_ROW_COUNT * VAL_COUNT);
+        TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * VAL_COUNT);
     }
 
     static getCell(x, z) {
@@ -325,9 +327,11 @@ export class TerrainMap extends Default_Terrain_Map {
         z += SMOOTH_RAD * 2;
         const ind = ((z * SMOOTH_ROW_COUNT) + x)
         TerrainMap._cells[ind] = cell;
-        TerrainMap._vals[ind * 3] = cell.value;
-        TerrainMap._vals[ind * 3 + 1] = cell.biome.dirt_color.r;
-        TerrainMap._vals[ind * 3 + 2] = cell.biome.dirt_color.g;
+        TerrainMap._vals[ind * VAL_COUNT] = cell.value;
+        TerrainMap._vals[ind * VAL_COUNT + 1] = cell.biome.dirt_color.r;
+        TerrainMap._vals[ind * VAL_COUNT + 2] = cell.biome.dirt_color.g;
+        TerrainMap._vals[ind * VAL_COUNT + 3] = cell.biome.water_color.r;
+        TerrainMap._vals[ind * VAL_COUNT + 4] = cell.biome.water_color.g;
     }
 
     static calcSum() {
@@ -336,22 +340,26 @@ export class TerrainMap extends Default_Terrain_Map {
         sums[0] = 0;
         sums[1] = 0;
         sums[2] = 0;
-        const ROW3 = SMOOTH_ROW_COUNT * 3;
-        const COL3 = 3;
+        const ROW3 = SMOOTH_ROW_COUNT * VAL_COUNT;
+        const COL3 = VAL_COUNT;
         for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
-            const ind = x * 3;
-            sums[ind] = sums[ind - COL3] + vals[ind - COL3];
+            const ind = x * VAL_COUNT;
+            sums[ind + 0] = sums[ind - COL3 + 0] + vals[ind - COL3 + 0];
             sums[ind + 1] = sums[ind - COL3 + 1] + vals[ind - COL3 + 1];
             sums[ind + 2] = sums[ind - COL3 + 2] + vals[ind - COL3 + 2];
+            sums[ind + 3] = sums[ind - COL3 + 3] + vals[ind - COL3 + 3];
+            sums[ind + 4] = sums[ind - COL3 + 4] + vals[ind - COL3 + 4];
         }
         for (let z = 1; z < SMOOTH_ROW_COUNT; z++) {
             const ind = z * (ROW3);
-            sums[ind] = sums[ind - ROW3] + vals[ind - ROW3]
+            sums[ind + 0] = sums[ind - ROW3 + 0] + vals[ind - ROW3 + 0]
             sums[ind + 1] = sums[ind - ROW3 + 1] + vals[ind - ROW3 + 1];
             sums[ind + 2] = sums[ind - ROW3 + 2] + vals[ind - ROW3 + 2];
+            sums[ind + 3] = sums[ind - ROW3 + 3] + vals[ind - ROW3 + 3];
+            sums[ind + 4] = sums[ind - ROW3 + 4] + vals[ind - ROW3 + 4];
             for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
-                for (let k = 0; k < 3; k++) {
-                    const ind = ((z * SMOOTH_ROW_COUNT) + x) * 3 + k;
+                for (let k = 0; k < VAL_COUNT; k++) {
+                    const ind = ((z * SMOOTH_ROW_COUNT) + x) * VAL_COUNT + k;
                     sums[ind] = sums[ind - ROW3] + sums[ind - COL3]
                         - sums[ind - ROW3 - COL3]
                         + vals[ind - ROW3 - COL3];
@@ -384,8 +392,6 @@ export class TerrainMap extends Default_Terrain_Map {
         }
 
         // 2. Smoothing | Сглаживание
-        let colorComputer = new IndexedColor(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
-
         TerrainMap.calcSum();
         const sums = TerrainMap._sums, cells = TerrainMap._cells;
         for(let x = 0; x < CHUNK_SIZE_X; x++) {
@@ -396,21 +402,27 @@ export class TerrainMap extends Default_Terrain_Map {
                 const ind2 = ind - SMOOTH_RAD * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
                 const ind3 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT - SMOOTH_RAD;
                 const ind4 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
-                const height_sum  = sums[ind1 * 3] + sums[ind4 * 3] - sums[ind2 * 3] - sums[ind3 * 3];
-                const dirt_color  = new IndexedColor(
-                    sums[ind1 * 3 + 1] + sums[ind4 * 3 + 1] - sums[ind2 * 3 + 1] - sums[ind3 * 3 + 1],
-                    sums[ind1 * 3 + 2] + sums[ind4 * 3 + 2] - sums[ind2 * 3 + 2] - sums[ind3 * 3 + 2],
+                // Не сглаживаем блоки пляжа и океана
+                const smooth_heightmap = !(cell.biome.no_smooth_heightmap && cell.value > this.options.WATER_LINE - 2);
+                const height_sum = smooth_heightmap ? (sums[ind1 * VAL_COUNT] + sums[ind4 * VAL_COUNT] - sums[ind2 * VAL_COUNT] - sums[ind3 * VAL_COUNT]) : 0;
+                const dirt_color = new IndexedColor(
+                    sums[ind1 * VAL_COUNT + 1] + sums[ind4 * VAL_COUNT + 1] - sums[ind2 * VAL_COUNT + 1] - sums[ind3 * VAL_COUNT + 1],
+                    sums[ind1 * VAL_COUNT + 2] + sums[ind4 * VAL_COUNT + 2] - sums[ind2 * VAL_COUNT + 2] - sums[ind3 * VAL_COUNT + 2],
                     0
                 );
-                // Не сглаживаем блоки пляжа и океана
-                const smooth = !(cell.biome.no_smooth && cell.value > this.options.WATER_LINE - 2);
-                if(smooth) {
+                const water_color = new IndexedColor(
+                    sums[ind1 * VAL_COUNT + 3] + sums[ind4 * VAL_COUNT + 3] - sums[ind2 * VAL_COUNT + 3] - sums[ind3 * VAL_COUNT + 3],
+                    sums[ind1 * VAL_COUNT + 4] + sums[ind4 * VAL_COUNT + 4] - sums[ind2 * VAL_COUNT + 4] - sums[ind3 * VAL_COUNT + 4],
+                    0
+                );
+                if(smooth_heightmap) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
                     if(cell.value2 <= this.options.WATER_LINE) {
                         cell.biome = BIOMES.OCEAN;
                     }
                 }
-                cell.dirt_color = dirt_color.divide(colorComputer);
+                cell.dirt_color = dirt_color.divide(COLOR_COMPUTER);
+                cell.water_color = water_color.divide(COLOR_COMPUTER);
             }
         }
 

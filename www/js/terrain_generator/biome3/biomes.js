@@ -9,7 +9,8 @@ const TREE_FREQUENCY        = 0.015 * 32;
 const PLANTS_FREQUENCY      = 0.015;
 const GRASS_FREQUENCY       = 0.015;
 
-const DEFAULT_DIRT_COLOR = new IndexedColor(82, 450, 0);
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
+const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 
 export class Biomes {
 
@@ -88,8 +89,9 @@ export class Biomes {
             };
         }
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
-        const no_smooth = true;
-        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth});
+        water_color = water_color ?? DEFAULT_WATER_COLOR;
+        const no_smooth_heightmap = true;
+        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap});
     }
 
     initBiomes() {

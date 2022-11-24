@@ -52,7 +52,7 @@ export class  BIOMES {
             title:      'ОКЕАН',
             max_height: 64,
             dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.DIRT.id, BLOCK.CLAY.id],
-            no_smooth:  false,
+            no_smooth_heightmap_heightmap:  false,
             trees:      {
                 frequency: 0,
                 list: []
@@ -75,7 +75,7 @@ export class  BIOMES {
             title:      'ОКЕАН',
             max_height: 64,
             dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.CLAY.id, BLOCK.DIRT.id],
-            no_smooth:  false,
+            no_smooth_heightmap: false,
             trees:      {
                 frequency: 0,
                 list: []
@@ -95,7 +95,7 @@ export class  BIOMES {
             title:      'ПЛЯЖ',
             max_height: 64,
             dirt_block: [BLOCK.SAND.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: 0,
                 list: []
@@ -117,7 +117,7 @@ export class  BIOMES {
             title:      'УМЕРЕННАЯ ПУСТЫНЯ',
             dirt_block: [BLOCK.SAND.id],
             max_height: 6,
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
@@ -141,7 +141,7 @@ export class  BIOMES {
             title:      'ДЖУНГЛИ',
             max_height: 48,
             dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 4,
                 list: [
@@ -175,7 +175,7 @@ export class  BIOMES {
             title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
             max_height: 6,
             dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.COARSE_DIRT.id, BLOCK.PODZOL.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
@@ -203,7 +203,7 @@ export class  BIOMES {
             title:      'ОБОГРЕВАЮЩИЙ',
             max_height: 12,
             dirt_block: [BLOCK.SAND.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY / 4,
                 list: [
@@ -227,7 +227,7 @@ export class  BIOMES {
             title:      'ПУСТОШЬ',
             max_height: 64,
             dirt_block: [BLOCK.STONE.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: 0,
                 list: []
@@ -244,7 +244,7 @@ export class  BIOMES {
             title:      'ТУНДРА',
             max_height: 48,
             dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.PODZOL.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
                 list: [
@@ -277,7 +277,7 @@ export class  BIOMES {
             title:      'ТАЙГА',
             max_height: 12,
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
@@ -300,7 +300,7 @@ export class  BIOMES {
             title:      'СНЕГ',
             max_height: 35,
             dirt_block: [BLOCK.SNOW_DIRT.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
@@ -322,7 +322,7 @@ export class  BIOMES {
             water_color: new IndexedColor(60, 220, 0),
             title:      'КУСТАРНИКИ',
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             max_height: 8,
             trees:      {
                 frequency: 0,
@@ -346,7 +346,7 @@ export class  BIOMES {
             title:      'ТРАВЯНАЯ ЗЕМЛЯ',
             max_height: 18,
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             plants: {
                 frequency: .5,
                 list: [
@@ -381,7 +381,7 @@ export class  BIOMES {
             title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
             max_height: 48,
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY,
                 list: [
@@ -408,7 +408,7 @@ export class  BIOMES {
             title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
             max_height: 15,
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY * 1.5,
                 list: [
@@ -431,7 +431,7 @@ export class  BIOMES {
             title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
             max_height: 32,
             dirt_block: [BLOCK.GRASS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: TREE_FREQUENCY / 2,
                 list: [
@@ -457,7 +457,7 @@ export class  BIOMES {
             title:      'ГРИБНОЙ',
             max_height: 64,
             dirt_block: [BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK.id, BLOCK.MYCELIUM.id, BLOCK.MOSS_BLOCK.id],
-            no_smooth:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: .0085,
                 list: [
