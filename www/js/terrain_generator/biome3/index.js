@@ -158,12 +158,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 let cluster_drawed = false;
 
                 /*
-                if(!globalThis.sdfgfdgh) {
-                    globalThis.sdfgfdgh = new Map();
+                if(!globalThis.used_biomes) {
+                    globalThis.used_biomes = new Map();
                 }
-                if(!globalThis.sdfgfdgh.has(cell.biome.title)) {
-                    globalThis.sdfgfdgh.set(cell.biome.title, cell.biome.title);
-                    console.log(globalThis.sdfgfdgh)
+                if(!globalThis.used_biomes.has(cell.biome.title)) {
+                    globalThis.used_biomes.set(cell.biome.title, cell.biome.title);
+                    console.table(Array.from(globalThis.used_biomes.values()))
                 }
                 */
 

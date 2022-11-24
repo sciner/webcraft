@@ -10,7 +10,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
-import {isFluidId} from "../fluid/FluidConst.js";
+import {isFluidId, PACKED_CELL_LENGTH} from "../fluid/FluidConst.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -135,14 +135,14 @@ export class Chunk {
     packCells() {
         const {cells} = this.map;
         let len = cells.length;
-        let packed = new Int16Array(4 * len);
+        let packed = new Int16Array(PACKED_CELL_LENGTH * len);
         const eps = 1e-2;
         for (let i = 0; i < len; i++) {
             const cell = cells[i];
-            packed[i * 4] = Math.floor(cell.dirt_color.r + eps);
-            packed[i * 4 + 1] = Math.floor(cell.dirt_color.g + eps);
-            packed[i * 4 + 2] = Math.floor(cell.water_color.r + eps);
-            packed[i * 4 + 3] = Math.floor(cell.water_color.g + eps);
+            packed[i * PACKED_CELL_LENGTH + 0] = Math.floor(cell.dirt_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + 1] = Math.floor(cell.dirt_color.g + eps);
+            packed[i * PACKED_CELL_LENGTH + 2] = Math.floor(cell.water_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + 3] = Math.floor(cell.water_color.g + eps);
         }
         return packed;
     }
