@@ -133,4 +133,16 @@ export class FluidWorld {
     isFluid(x, y, z) {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) !== 0;
     }
+
+    isPosLava(pos) {
+        return this.isLava(pos.x, pos.y, pos.z);
+    }
+
+    isPosWater(pos) {
+        return this.isWater(pos.x, pos.y, pos.z);
+    }
+
+    isPosFluid(pos) {
+        return this.isFluid(pos.x, pos.y, pos.z);
+    }
 }

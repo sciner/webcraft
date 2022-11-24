@@ -471,6 +471,11 @@ export class ServerWorld {
         return chunk ? chunk.getBlock(pos, resultBlock) : null;
     }
 
+    getMaterial(pos) {
+        const chunk = this.chunks.getByPos(pos);
+        return chunk ? chunk.getMaterial(pos) : null;
+    }
+
     /**
      * @return {ServerChunkManager}
      */
