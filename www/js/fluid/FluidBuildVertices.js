@@ -177,7 +177,8 @@ export function getBlockByFluidVal(fluidVal) {
 }
 
 export function buildFluidVertices(mesher, fluidChunk) {
-    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { map } = fluidChunk.parentChunk;
     const { uint16View } = fluidChunk;
 
     if (fluidMaterials.length === 0) {
@@ -188,6 +189,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
+    //for map
 
     // we have fluids in chunk!
     const neib = [0, 0, 0, 0, 0, 0];
@@ -228,13 +230,14 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 let clr = 0;
                 let flags = mat.flags;
                 if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
-                    //const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
-                    /*const resp = processBlock(block, neighbours,
-                        cell.biome, cell.dirt_color,*/
-                    clr = IndexedColor.WATER.packed;
+                    if (map) {
+                        const cell = map.cells[z * size.x + x];
+                        clr = cell.water_color.pack();
+                    } else {
+                        clr = IndexedColor.WATER.pack();
+                    }
                 }
 
-                let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
 
                 let epsShift = 0;
