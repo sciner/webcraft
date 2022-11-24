@@ -1,6 +1,7 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
+import { BlockUpdates } from './blockUpdates.js'
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
 
@@ -135,7 +136,7 @@ function setFireOrDes(world, pos, chance, age, updated) {
         }
     }
     if (block.id == BLOCK.TNT.id) {
-        updated.push({pos: pos, item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        updated.push(BlockUpdates.igniteTNT(pos, block));
     }
 }
 

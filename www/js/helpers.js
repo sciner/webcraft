@@ -519,6 +519,21 @@ export class Vector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+
+    static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
+    
+    // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
+    static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
+    static {
+        for(var i = 1; i < 6; ++i) {
+            this.SIX_DIRECTIONS_CUMULATIVE.push(
+                this.SIX_DIRECTIONS[i].sub(this.SIX_DIRECTIONS[i - 1]));
+        }
+    }
+
+    static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
+    static ZERO_AND_SIX_DIRECTIONS_CUMULATIVE = [this.ZERO].concat(this.SIX_DIRECTIONS_CUMULATIVE);
+
     /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
@@ -1482,6 +1497,25 @@ export class Helpers {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
 
+}
+
+export class ArrayHelpers {
+    static fastDelete(arr, index) {
+        arr[index] = arr[arr.length - 1];
+        --arr.length;
+    }
+
+    static filterSelf(arr, predicate) {
+        var src = 0;
+        var dst = 0;
+        while (src < arr.length) {
+            if (predicate(arr[src])) {
+                arr[dst++] = arr[src];
+            }
+            ++src;
+        }
+        arr.length = dst;
+    }
 }
 
 // Make fetch functions

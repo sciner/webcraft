@@ -1,11 +1,12 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector} from "../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { MobGenerator } from "./mob/generator.js";
 
 export const CHUNK_STATE_NEW               = 0;
@@ -101,7 +102,11 @@ class TickingBlockManager {
             }
             const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
             if(Array.isArray(upd_blocks)) {
-                updated_blocks.push(...upd_blocks);
+                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
+                ArrayHelpers.filterSelf(upd_blocks, v => v != null);
+                if (upd_blocks.length > 0) {
+                    updated_blocks.push(...upd_blocks);
+                }
             }
         }
 
@@ -542,6 +547,27 @@ export class ServerChunk {
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
         return BLOCK.convertItemToDBItem(block);
+    }
+
+    getFluidValue(pos, y, z) {
+        if (typeof pos == 'object') {
+            y = pos.y;
+            z = pos.z;
+            pos = pos.x;
+        }
+        return this.fluid.uint8View[FLUID_STRIDE * this.dataChunk.indexByWorld(pos, y, z) + OFFSET_FLUID];
+    }
+
+    isLava(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_LAVA_ID;
+    }
+
+    isWater(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+    }
+
+    isFluid(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
     // onBlockSet
