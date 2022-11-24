@@ -135,13 +135,14 @@ export class Chunk {
     packCells() {
         const {cells} = this.map;
         let len = cells.length;
-        let packed = new Uint8Array(4 * len);
+        let packed = new Int16Array(4 * len);
+        const eps = 1e-2;
         for (let i = 0; i < len; i++) {
             const cell = cells[i];
-            packed[i * 4] = cell.dirt_color.r;
-            packed[i * 4 + 1] = cell.dirt_color.g;
-            packed[i * 4 + 2] = cell.water_color.r;
-            packed[i * 4 + 3] = cell.water_color.g;
+            packed[i * 4] = Math.floor(cell.dirt_color.r + eps);
+            packed[i * 4 + 1] = Math.floor(cell.dirt_color.g + eps);
+            packed[i * 4 + 2] = Math.floor(cell.water_color.r + eps);
+            packed[i * 4 + 3] = Math.floor(cell.water_color.g + eps);
         }
         return packed;
     }
