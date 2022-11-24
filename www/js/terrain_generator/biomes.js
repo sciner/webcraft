@@ -52,7 +52,7 @@ export class  BIOMES {
             title:      'ОКЕАН',
             max_height: 64,
             dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.DIRT.id, BLOCK.CLAY.id],
-            no_smooth_heightmap_heightmap:  false,
+            no_smooth_heightmap:  false,
             trees:      {
                 frequency: 0,
                 list: []

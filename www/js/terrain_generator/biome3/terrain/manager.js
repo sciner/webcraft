@@ -394,8 +394,6 @@ export class TerrainMapManager2 {
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
                 cell.preset = this.getPreset(xyz);
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
-                // cell.dirt_color = biome.dirt_color;
-                // cell.water_color = biome.water_color;
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
 
             }

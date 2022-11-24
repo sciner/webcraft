@@ -1167,6 +1167,13 @@ export class IndexedColor {
         return this;
     }
 
+    flooredSelf() {
+        this.r = Math.floor(this.r);
+        this.g = Math.floor(this.g);
+        this.b = Math.floor(this.b);
+        return this;
+    }
+
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }

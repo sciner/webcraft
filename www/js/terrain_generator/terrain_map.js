@@ -340,6 +340,8 @@ export class TerrainMap extends Default_Terrain_Map {
         sums[0] = 0;
         sums[1] = 0;
         sums[2] = 0;
+        sums[3] = 0;
+        sums[4] = 0;
         const ROW3 = SMOOTH_ROW_COUNT * VAL_COUNT;
         const COL3 = VAL_COUNT;
         for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
