@@ -9,9 +9,37 @@ import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
 export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
-export const MAX_TREES_PER_CHUNK    = 3; // Максимальное число деревьев в чанке
+export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число деревьев в чанке
 export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
 export const WATER_LEVEL            = 80;
+
+//
+class RiverPoint {
+
+    constructor(value) {
+        this.value = value;
+        this.percent = (value - WATER_START) / RIVER_FULL_WIDTH;
+        this.percent_sqrt = Math.sqrt(this.percent);
+        this.river_percent = this.percent < WATER_PERCENT ? (1 - this.percent / WATER_PERCENT) : 0;
+        this.waterfront_percent = (this.percent - WATER_PERCENT) / (1 - WATER_PERCENT);
+    }
+
+}
+
+//
+export class DensityParams {
+
+    constructor(d1, d2, d3, d4, density) {
+        this.d1 = d1;
+        this.d2 = d2;
+        this.d3 = d3;
+        this.d4 = d4;
+        this.density = density;
+    }
+
+}
+
+const ZeroDensity = new DensityParams(0, 0, 0, 0);
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             80, // Ватер-линия
@@ -196,12 +224,6 @@ export class TerrainMapManager2 {
 
     calcDensity(xyz, cell) {
 
-        let density;
-        let d1;
-        let d2;
-        let d3;
-        let d4;
-
         //if(max_height !== null) {
         //    density = xyz.y < max_height ? 1 : 0;
         //    d3 = .2;
@@ -209,46 +231,37 @@ export class TerrainMapManager2 {
         //
         //} else {
 
-            const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
+        const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
-            // waterfront/берег
-            const under_waterline = xyz.y < WATER_LEVEL;
-            const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
-            const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
+        // waterfront/берег
+        const under_waterline = xyz.y < WATER_LEVEL;
+        const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
+        const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-            if(h < 0.333) {
-                d1 = 0;
-                d2 = 0;
-                d3 = 0;
-                d4 = 0;
-                density = 0;
+        if(h < 0.333) {
+            return ZeroDensity;
+        }
 
-            } else {
+        const d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
+        const d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
+        const d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
+        const d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
 
-                d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-                d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-                d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-                d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
+        let density = (
+            // 64/120 + 32/120 + 16/120 + 8/120
+            (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
+            / 2 + .5
+        ) * h;
 
-                density = (
-                    // 64/120 + 32/120 + 16/120 + 8/120
-                    (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
-                    / 2 + .5
-                ) * h;
+        // rivers/реки
+        if(cell.river_point) {
+            const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
+            const river_vert_dist = WATER_LEVEL - xyz.y;
+            const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
+            density = Math.min(density, density * river_density);
+        }
 
-                // rivers/реки
-                if(cell.river_point) {
-                    const {value, percent, river_percent, waterfront_percent} = cell.river_point;
-                    const river_vert_dist = WATER_LEVEL - xyz.y;
-                    const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - Math.sqrt(percent))) / Math.PI);
-                    density = Math.min(density, density * river_density);
-                }
-
-            }
-
-        //}
-
-        return {d1, d2, d3, d4, density};
+        return new DensityParams(d1, d2, d3, d4, density);
 
     }
 
@@ -257,7 +270,7 @@ export class TerrainMapManager2 {
      * @param {Vector} xyz 
      * @param {int} not_air_count 
      * @param {TerrainMapCell} cell 
-     * @param {*} density_params 
+     * @param {DensityParams} density_params 
      * @returns 
      */
     getBlock(xyz, not_air_count, cell, density_params) {
@@ -303,15 +316,12 @@ export class TerrainMapManager2 {
     makeRiverPoint(x, z) {
         x += 91234;
         z -= 95678;
-        let value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
-        let value2 = this.noise2d((x) / RIVER_OCTAVE_2, (z) / RIVER_OCTAVE_2) * 0.2;
-        let value3 = this.noise2d((x - 10) / RIVER_OCTAVE_3, (z - 10) / RIVER_OCTAVE_3) * 0.1;
+        const value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
+        const value2 = this.noise2d((x) / RIVER_OCTAVE_2, (z) / RIVER_OCTAVE_2) * 0.2;
+        const value3 = this.noise2d((x - 10) / RIVER_OCTAVE_3, (z - 10) / RIVER_OCTAVE_3) * 0.1;
         const value = Math.abs((value1 + value2 + value3) / 0.004);
         if(value > WATER_START && value < WATERFRONT_STOP) {
-            const percent = (value - WATER_START) / RIVER_FULL_WIDTH;
-            const river_percent = percent < WATER_PERCENT ? (1 - percent / WATER_PERCENT) : 0;
-            const waterfront_percent = (percent - WATER_PERCENT) / (1 - WATER_PERCENT);
-            return {value, percent, river_percent, waterfront_percent}
+            return new RiverPoint(value);
         }
         return null;
     }
@@ -352,7 +362,7 @@ export class TerrainMapManager2 {
         }
 
         // const biome = BIOMES['GRASSLAND'];
-        map.terrain = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
+        // map.terrain = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
 
         const value = 85;
 

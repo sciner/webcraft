@@ -4,6 +4,7 @@ import GeometryTerrain from "../../geometry_terrain.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
+import { DEFAULT_CLOUD_HEIGHT } from '../../constant.js';
 
 const {mat4} = glMatrix;
 
@@ -53,7 +54,7 @@ export default class Mesh_Object_Clouds {
         this.yaw        = -Math.PI;
         this.life       = 0.5;
         this.loading    = false;
-        this.y_pos      = 128.1;
+        this.y_pos      = DEFAULT_CLOUD_HEIGHT;
         this.pos        = new Vector(0, height, 0);
         this.vertices   = [];
         //
