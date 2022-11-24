@@ -107,6 +107,7 @@ export class TerrainMapManager {
         if(smooth && !center_map.smoothed) {
             center_map.smooth(this);
         }
+
         // Generate vegetation
         if(vegetation) {
             for (let i = 0; i < maps.length; i++) {
@@ -361,6 +362,7 @@ export class TerrainMap extends Default_Terrain_Map {
 
     // Сглаживание карты высот
     smooth(generator) {
+
         // 1. Кеширование ячеек
         let map             = null;
         let addr            = new Vector(0, 0, 0);
@@ -380,6 +382,7 @@ export class TerrainMap extends Default_Terrain_Map {
                 TerrainMap.setPartial(x, z, cell);
             }
         }
+
         // 2. Smoothing | Сглаживание
         let colorComputer = new IndexedColor(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
 
@@ -400,7 +403,7 @@ export class TerrainMap extends Default_Terrain_Map {
                     0
                 );
                 // Не сглаживаем блоки пляжа и океана
-                const smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
+                const smooth = !(cell.biome.no_smooth && cell.value > this.options.WATER_LINE - 2);
                 if(smooth) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
                     if(cell.value2 <= this.options.WATER_LINE) {

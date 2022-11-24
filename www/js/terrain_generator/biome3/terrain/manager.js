@@ -1,6 +1,6 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
-import { IndexedColor, Vector, VectorCollector } from "../../../helpers.js";
+import { Vector, VectorCollector } from "../../../helpers.js";
 
 import { getAheadMove } from "../../cluster/vilage.js";
 
@@ -132,6 +132,11 @@ export class TerrainMapManager2 {
         const rad                   = generate_trees ? 2 : 1;
         const noisefn               = this.noise2d;
         const maps                  = [];
+
+        /**
+         * @type {TerrainMap2}
+         */
+        let center_map              = null;
         
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
@@ -142,7 +147,15 @@ export class TerrainMapManager2 {
                 if(Math.abs(x) < 2 && Math.abs(z) < 2) {
                     maps.push(map);
                 }
+                if(x == 0 && z == 0) {
+                    center_map = map;
+                }
             }
+        }
+
+        // Smooth (for central and part of neighbours)
+        if(smooth && !center_map.smoothed) {
+            center_map.smooth(this);
         }
 
         // Generate trees
@@ -381,8 +394,8 @@ export class TerrainMapManager2 {
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
                 cell.preset = this.getPreset(xyz);
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
-                cell.dirt_color = biome.dirt_color ?? new IndexedColor(82, 450, 0);
-                // cell.water_color = biome.water_color ?? new IndexedColor(82, 450, 0);
+                // cell.dirt_color = biome.dirt_color;
+                // cell.water_color = biome.water_color;
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
 
             }
