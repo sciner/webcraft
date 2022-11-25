@@ -553,6 +553,20 @@ export class TypedBlocks3 {
         return cnt;
     }
 
+    setDirtyAABB(aabb) {
+        const { vertices } = this;
+        if (!vertices) {
+            return;
+        }
+        const { cx, cy, cz, portals, pos, safeAABB, shiftCoord} = this.dataChunk;
+        for (let x = aabb.x_min; x < aabb.x_max; x++)
+            for (let y = aabb.y_min; y < aabb.y_max; y++)
+                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+                    let index2 = cx * x + cy * y + cz * z + shiftCoord;
+                    vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                }
+    }
+
 
     getInterpolatedLightValue(localVec) {
         let totalW = 0, totalCave = 0, totalDay = 0;
@@ -671,6 +685,7 @@ export class DataWorld {
             const cw2 = other.shiftCoord;
 
             let otherDirtyFluid = false;
+            let otherDirtyMesh = 0;
 
             tempAABB.setIntersect(aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
@@ -678,7 +693,11 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        otherView[ind2] = uint16View[ind];
+                        const val = uint16View[ind];
+                        if (val !== 0) {
+                            otherDirtyMesh |= 1;
+                        }
+                        otherView[ind2] = val;
                         if (otherFluid[ind2] !== fluid[ind]) {
                             otherFluid[ind2] = fluid[ind];
                             otherDirtyFluid = true;
@@ -690,11 +709,20 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        uint16View[ind] = otherView[ind2];
+                        const val = otherView[ind];
+                        if (val !== 0) {
+                            otherDirtyMesh |= 2;
+                        }
+                        uint16View[ind] = val;
                         fluid[ind] = otherFluid[ind2];
                     }
             if (otherDirtyFluid) {
                 other.rev.fluid.markDirtyMesh();
+            }
+            if (otherDirtyMesh === 3) {
+                if (other.rev.tblocks.vertices) {
+
+                }
             }
         }
     }
