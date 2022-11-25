@@ -57,6 +57,17 @@ export class PickAt {
         return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
     }
 
+    // Used by other classes
+    getTargetBlock(player) {
+        if (!player.game_mode.canBlockAction()) {
+            return null;
+        }
+        // Get actual pick-at block
+        let pos = this.get(player.getEyePos(), null, 
+                player.game_mode.getPickatDistance(), player.forward, false);
+        return this.world.getBlock(pos);
+    }
+
     // setEvent...
     setEvent(player, e) {
         e.start_time        = performance.now();
