@@ -75,6 +75,8 @@ export class Chunk {
                 dataId: this.getDataTextureOffset()
             }
         ]]);
+
+        this.packedCells = null;
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -87,6 +89,7 @@ export class Chunk {
             return;
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.packedCells = args.packedCells || null;
         chunkManager.dataWorld.addChunk(this);
         if (args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
@@ -114,9 +117,6 @@ export class Chunk {
         this.need_apply_vertices = true;
         if (!this.dirt_colors) {
             this.dirt_colors = args.dirt_colors;
-        }
-        if (!this.map) {
-            this.map = args.map;
         }
     }
 

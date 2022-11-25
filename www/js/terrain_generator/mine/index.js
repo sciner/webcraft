@@ -6,7 +6,7 @@ import { alea } from "../default.js";
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.s = seed;
         this.aleaRandom = new alea(seed);

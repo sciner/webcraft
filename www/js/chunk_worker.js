@@ -144,7 +144,7 @@ async function onMessageFunc(e) {
                         uniqId:         item.uniqId,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
-                        map:            chunk.map
+                        packedCells:    chunk.packCells()
                     }]);
                 } else {
                     const ci = world.createChunk(item);
@@ -154,7 +154,8 @@ async function onMessageFunc(e) {
                         uniqId: item.uniqId,
                         // key: ci.key,
                         tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
-                        ticking_blocks: ci.ticking_blocks
+                        ticking_blocks: ci.ticking_blocks,
+                        packedCells:    ci.packedCells
                     }
                     worker.postMessage(['blocks_generated', ci2]);
                 }

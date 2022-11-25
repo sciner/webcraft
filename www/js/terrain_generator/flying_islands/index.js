@@ -8,7 +8,7 @@ import Demo_Map from '../biome2/demo_map.js';
 
 export default class Terrain_Generator extends Demo_Map {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(seed);
         this.dungeon = new DungeonGenerator(seed);
@@ -94,7 +94,7 @@ export default class Terrain_Generator extends Demo_Map {
                                             setBlock(x, y + 1, z, grass_id);
                                         }
                                         if(x > 7 && x < 11 && z > 7 && z < 11 && !tree_pos) {
-                                            tree_pos = new Vector(x, y, z);
+                                            tree_pos = new Vector(x, y + 1, z);
                                         }
                                     }
                                 }

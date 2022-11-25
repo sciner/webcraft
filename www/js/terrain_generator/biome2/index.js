@@ -10,6 +10,7 @@ import FlyIslands from "../flying_islands/index.js";
 import { AABB } from '../../core/AABB.js';
 import Demo_Map from "./demo_map.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
+import { ClusterManager } from "../cluster/manager.js";
 
 // Randoms
 const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -21,15 +22,16 @@ for(let i = 0; i < randoms.length; i++) {
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.clusterManager = new ClusterManager(world.chunkManager, seed);
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
-        this.flying_islands = new FlyIslands(seed, world_id, {});
+        this.flying_islands = new FlyIslands(world, seed, world_id, {});
     }
 
     async init() {
@@ -95,6 +97,8 @@ export default class Terrain_Generator extends Demo_Map {
         const maps                      = this.maps.generateAround(chunk, chunk.addr, true, true);
         const map                       = maps[4];
         const cluster                   = chunk.cluster;
+
+        chunk.map = map;
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {

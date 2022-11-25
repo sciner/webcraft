@@ -1,15 +1,50 @@
 import {BLOCK} from '../../js/blocks.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk_const.js';
-import { Vector } from '../../js/helpers.js';
-import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
-
-import {alea} from "../../js/terrain_generator/default.js";
+import { Color, Vector, VectorCollector } from '../../js/helpers.js';
 
 await BLOCK.init({
     texture_pack: 'base',
     json_url: '../../data/block_style.json',
     resource_packs_url: '../../data/resource_packs.json'
 });
+//
+await import('../../js/terrain_generator/biomes.js').then(module => {
+    globalThis.BIOMES = module.BIOMES;
+    globalThis.TREES = module.TREES;
+});
+//
+import {noise} from "../../js/terrain_generator/default.js";
+
+// Fix biomes color
+import {Resources} from "../../js/resources.js";
+await Resources.loadImage('resource_packs/base/textures/default.png', false).then(async (img) => {
+    let canvas          = document.createElement('canvas');
+    const w             = img.width;
+    const h             = img.height;
+    canvas.width        = w;
+    canvas.height       = h;
+    let ctx             = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+    const imgData = ctx.getImageData(0, 0, w, h).data;
+        for(let [code, biome] of Object.entries(BIOMES)) {
+            if(typeof biome === 'object') {
+                const dirt_color = biome.dirt_color;
+                const x = (dirt_color.r * w) | 0;
+                const y = (dirt_color.g * h) | 0;
+                const index = (y * w + x) * 4;
+                const color = new Color(
+                    imgData[index + 0],
+                    imgData[index + 1],
+                    imgData[index + 2],
+                    imgData[index + 3]
+                );
+                biome.color_rgba = color;
+                biome.color = color.toHex();
+                // console.log(biome.code, biome.color);
+            }
+        }
+    }
+);
 
 // load module
 await import('../../js/terrain_generator/cluster/manager.js').then(module => {
@@ -19,28 +54,26 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
 //
 const CHUNK_RENDER_DIST = 16;
 const demo_map_seed     = 'undefined';
-const seed              = 7; // allow only numeric values
+const seed              = 20; // allow only numeric values
 const world_id          = 'demo';
 
 globalThis.BLOCK = BLOCK;
 const chunk_addr_start = new Vector(-CHUNK_RENDER_DIST, 0, -CHUNK_RENDER_DIST);
 const chunk_coord_start = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
-// const all_maps = new VectorCollector();
+const all_maps = new VectorCollector();
 
 export function showCoordInfo(x, z) {
 }
 
-// await import('../../js/terrain_generator/terrain_map.js').then(module => {
-await import('../../js/terrain_generator/biome3/terrain/manager.js').then(module => {
+await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
-    globalThis.TerrainMapManager = module.TerrainMapManager2;
+    globalThis.TerrainMapManager = module.TerrainMapManager;
 
-    const a = new alea(seed);
-    const noise2d = createNoise2D(a.double);
-    const noise3d = createNoise3D(a.double);
+    noise.seed(seed);
 
-    const Tmaps             = new TerrainMapManager(seed, world_id, noise2d, noise3d);
+    const noisefn           = noise.simplex2;
+    const Tmaps             = new TerrainMapManager(seed, world_id, noisefn);
     const SZ                = CHUNK_RENDER_DIST * 2 + 3;
 
     let canvas = document.getElementById('canvas3D');
@@ -74,7 +107,7 @@ await import('../../js/terrain_generator/biome3/terrain/manager.js').then(module
 
             const px = chunk_coord_start.x + x;
             const pz = chunk_coord_start.z + z;
-            const point = Tmaps.makeRiverPoint(px, pz);
+            const point = Tmaps.makeRiverPoint2(px, pz);
             const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
 
             if(point) {

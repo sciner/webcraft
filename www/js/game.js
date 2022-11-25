@@ -153,6 +153,7 @@ export class GameClass {
                     if(e.ctrlKey) return;
                     if(player) {
                         if(controls.enabled) {
+                            player.changeSpectatorSpeed(-e.deltaY);
                             player.onScroll(e.deltaY > 0);
                         }
                         if(that.hud.wm.hasVisibleWindow()) {
