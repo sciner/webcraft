@@ -11,6 +11,7 @@ import { TerrainMapCell } from "./map_cell.js";
 export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
 export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число деревьев в чанке
 export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
+export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
 export const WATER_LEVEL            = 80;
 
 //
@@ -361,14 +362,19 @@ export class TerrainMapManager2 {
                 if(building.door_bottom && building.door_bottom.y == Infinity) {
                     xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
-                    for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
+                    let free_height = 0;
+                    for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                         xyz.y = map.cluster.y_base + y;
                         const preset = this.getPreset(xyz);
                         const {d1, d2, d3, d4, density} = this.calcDensity(xyz, {river_point, preset});
                         if(density > .6) {
-                            building.setY(xyz.y + 1);
-                            break;
+                            if(free_height >= BUILDING_MIN_Y_SPACE) {
+                                building.setY(xyz.y + 1);
+                                break;
+                            }
+                            free_height = 0;
                         }
+                        free_height++;
                     }
                 }
             }
