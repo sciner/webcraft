@@ -145,20 +145,20 @@ export class ServerWorld {
                         // проверям что область для спауна это воздух или вода
                         if (body && head && body.id == 0 && head.id == 0) {
                             // не спавним рядом с игроком
-                            const players = this.getPlayersNear(spawn_pos, 8);
+                            const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
                                 const params = {
                                     type:       'zombie',
                                     skin:       'base',
                                     pos:        spawn_pos,
-                                    pos_spawn:  spawn_pos.clone(),
+                                    pos_spawn:  spawn_pos,
                                     rotate:     0,
                                 };
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);
-                                console.log('Auto spawn zombie');
+                                console.log('Auto spawn zombie pos spawn: ' + spawn_pos);
                             }
                         }
                     }
