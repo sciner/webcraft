@@ -8,6 +8,7 @@ import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
+import { Chunk } from "../../worker/chunk.js";
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -69,7 +70,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
     */
 
-    // Generate
+    /**
+     * Generate
+     * @param {Chunk} chunk 
+     * @returns 
+     */
     generate(chunk) {
 
         /*
@@ -125,6 +130,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(!globalThis.used_biomes.has(cell.biome.title)) {
                     globalThis.used_biomes.set(cell.biome.title, cell.biome.title);
                     console.table(Array.from(globalThis.used_biomes.values()))
+                    console.log(cell.biome.title, xyz.toHash())
                 }
                 */
 
@@ -142,6 +148,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // если это самый первый слой поверхности
                         if(not_air_count == 0) {
+
+                            // random joke sign
+                            if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < size_y -2) {
+                                chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"Vasya","dt":"2022-11-25T18:01:52.715Z"});
+                            }
 
                             // если это над водой
                             if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
@@ -213,12 +224,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
                             let block_id = water_id;
                             if(cell.temperature * 2 - 1 < 0 && xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                if(d3 > .12) {
-                                // if(d3 > -.2 && d3 < .8) {
+                                if((d3 * .6 + d1 * .2 + d4 * .1) > .12) {
                                     block_id = BLOCK.ICE.id;
                                 }
                             }
                             chunk.setBlockIndirect(x, y, z, block_id);
+                        }
+                        if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
+                            if(rnd.double() < .07) {
+                                chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
+                            }
                         }
                     }
 

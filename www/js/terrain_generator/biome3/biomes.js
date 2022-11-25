@@ -120,7 +120,7 @@ export class Biomes {
                 {percent: 0.681 + 0.150, ...TREES.SPRUCE, height: {min: 6, max: 11}}
             ]
         }, {
-            frequency: GRASS_FREQUENCY,
+            frequency: PLANTS_FREQUENCY,
             list: [
                 {percent: .5, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
                 {percent: .5, blocks: [{id: BLOCK.SWEET_BERRY_BUSH.id, extra_data: {'stage': 3, 'complete': true}}]},
@@ -134,7 +134,7 @@ export class Biomes {
                 {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
                 {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
             ]
-        }, new IndexedColor(232, 510, 0), new IndexedColor(255, 255, 0));
+        }, new IndexedColor(200, 510, 0), new IndexedColor(255, 255, 0));
         this.addBiome('Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0));
         this.addBiome('Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0));
         this.addBiome('Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
@@ -165,7 +165,18 @@ export class Biomes {
         this.addBiome('Крупномерный холмистый березняк', 0.6, 0.6);
         this.addBiome('Темный лес', 0.7, 0.8);
         this.addBiome('Холмистый темный лес', 0.7, 0.8);
-        this.addBiome('Болото', 0.8, 0.9);
+        this.addBiome('Болото', 0.8, 0.9, undefined, {
+            frequency: TREE_FREQUENCY * .25,
+            list: [
+                {percent: 1, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
+            ]
+        }, {
+            frequency: PLANTS_FREQUENCY,
+            list: [
+                {percent: .5, blocks: [{id: BLOCK.RED_MUSHROOM.id}]},
+                {percent: .5, blocks: [{id: BLOCK.BROWN_MUSHROOM.id}]},
+            ]
+        }, undefined, new IndexedColor(140, 480, 0), new IndexedColor(1, 254, 0));
         this.addBiome('Холмистое болото', 0.8, 0.9);
         this.addBiome('Пляж', 0.8, 0.4,                          [{blocks: [BLOCK.SANDSTONE.id, BLOCK.SAND.id]}, {blocks: [BLOCK.STONE.id]}]);
         // this.addBiome('Река', 0.5, 0.5);
@@ -236,7 +247,13 @@ export class Biomes {
         this.addBiome('Рельефная окраина джунглей', 0.95, 0.8);
         this.addBiome('Бамбуковые джунгли', 0.95, 0.9);
         this.addBiome('Холмистые бамбуковые джунгли', 0.95, 0.9);
-        this.addBiome('Грибные поля', 0.9, 1);
+        this.addBiome('Грибные поля', 0.9, 1, undefined, undefined, {
+            frequency: PLANTS_FREQUENCY * 5,
+            list: [
+                {percent: .5, blocks: [{id: BLOCK.RED_MUSHROOM.id}]},
+                {percent: .5, blocks: [{id: BLOCK.BROWN_MUSHROOM.id, not_transparent: true}]}
+            ]
+        });
         this.addBiome('Грибной берег', 0.9, 1);
         this.addBiome('Пустыня', 2, 0,
             [
