@@ -540,7 +540,7 @@ export class ServerChunk {
             }
             return this.getChunkManager().DUMMY;
         }
-        return this.tblocks.get(pos, resultBlock);
+        return this.tblocks.get(pos.clone(), resultBlock);
     }
 
     // getBlockAsItem
