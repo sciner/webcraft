@@ -3,7 +3,7 @@ import { getChunkAddr, Vector, VectorCollector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK } from "../typed_blocks3.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
-// import { ClusterManager } from '../terrain_generator/cluster/manager.js';
+import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
@@ -20,6 +20,7 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
+        this.destroyed = false;
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -86,12 +87,16 @@ export class Chunk {
 
         this.vertexBuffers = new Map();
         this.serializedVertices = null;
-        this.inited = true;
+        this.inited = false;
+        this.buildVerticesInProgress = false;
+        this.totalPages = 0;
 
         this.fluid = null;
         if (world.fluid) {
             world.fluid.addChunk(this);
         }
+        this.inQueue = false;
+        this.queueDist = -1; // 0 and more means its in queue (build or gen
     }
 
     init() {
@@ -114,16 +119,19 @@ export class Chunk {
         this.chunkManager.dataWorld.addChunk(this);
         //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
+    }
+
+    doGen() {
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = this.chunkManager.world.generator.generate(this);
-        this.chunkManager.dataWorld.syncOuter(this);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
+        this.chunkManager.dataWorld.syncOuter(this);
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
-        // 4. Result
+        this.inited = true;
         return {
             key:        this.key,
             addr:       this.addr,
@@ -535,12 +543,15 @@ export class Chunk {
         const serializedVertices = this.serializedVertices = {}
         const removedEntries = Chunk.removedEntries;
 
+        this.totalPages = 0;
         for (let entry of this.vertexBuffers) {
             const vb = entry[1];
             if (vb.touched && (vb.vertices.filled + vb.cacheCopy > 0)) {
                 vb.skipCache(0);
                 serializedVertices[vb.material_key] = vb.getSerialized();
                 vb.markClear();
+
+                this.totalPages += vb.vertices.pages.length;
             } else {
                 removedEntries.push(entry[0]);
             }
@@ -565,6 +576,8 @@ export class Chunk {
 
     destroy() {
         this.chunkManager.dataWorld.removeChunk(this);
+        this.chunkManager = null;
+        this.destroyed = true;
         for (let entries of this.vertexBuffers) {
             entries[1].clear();
         }

@@ -30,10 +30,6 @@ export class FluidWorld {
         }
 
         chunk.tblocks.fluid = chunk.fluid;
-        if (this.mesher) {
-            this.mesher.dirtyChunks.push(chunk.fluid);
-        }
-        // fillOuter for water here!!!
     }
 
     removeChunk(chunk) {
@@ -45,6 +41,12 @@ export class FluidWorld {
         }
         chunk.fluid.dispose();
         chunk.fluid = null;
+    }
+
+    startMeshing(fluidChunk) {
+        if (this.mesher) {
+            this.mesher.dirtyChunks.push(fluidChunk);
+        }
     }
 
     applyWorldFluidsList(fluids) {

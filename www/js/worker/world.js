@@ -1,11 +1,14 @@
 import { ChunkManager, Chunk } from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
+import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 
 // WorkerWorldManager
 export class WorkerWorldManager {
 
     constructor() {
         this.list = new Map();
+        this.all = [];
+        this.curIndex = 0;
     }
 
     async InitTerrainGenerators(generator_codes) {
@@ -33,21 +36,60 @@ export class WorkerWorldManager {
         const generator_class = this.terrainGenerators.get(generator_id);
         await world.init(seed, world_id, generator_class, generator_options)
         this.list.set(key, world);
+        this.all.push(world);
         return world;
     }
 
+    process({maxMs = 20}) {
+        const {all} = this;
+        let ind = this.curIndex;
+        let looped = 0;
+        let start = performance.now();
+        let passed = 0;
+
+        if (all.length === 0) {
+            return;
+        }
+
+        while (passed < maxMs && looped < all.length) {
+            let world = all[ind];
+            if (world.process({maxMs: maxMs - passed}) > 1) {
+                looped = 0;
+            } else {
+                looped++;
+            }
+            ind = (ind + 1) % all.length;
+            passed = performance.now() - start;
+        }
+        this.curIndex = ind;
+    }
 }
 
 // World
 export class WorkerWorld {
 
-    constructor() {}
+    constructor() {
+        this.chunks = new VectorCollector();
+        this.genQueue = new ChunkWorkQueue(this);
+        this.buildQueue = null;
+        this.chunkManager = new ChunkManager(this);
+        this.generator = null;
+        this.activePotentialCenter = null;
+    }
 
     async init(seed, world_id, generator_class, generator_options) {
-        this.chunkManager = new ChunkManager(this);
-        this.chunks = new VectorCollector();
         this.generator = new generator_class(this, seed, world_id, generator_options);
         await this.generator.init();
+    }
+
+    ensureBuildQueue() {
+        this.buildQueue = new ChunkWorkQueue(this);
+        for (let chunk of this.chunks.values()) {
+            if (chunk.inited) {
+                chunk.buildVerticesInProgress = true;
+                this.buildQueue.push(chunk);
+            }
+        }
     }
 
     createChunk(args) {
@@ -55,22 +97,10 @@ export class WorkerWorld {
             return this.chunks.get(args.addr);
         }
         let chunk = new Chunk(this.chunkManager, args);
-        chunk.init();
         this.chunks.add(args.addr, chunk);
+        chunk.init();
+        this.genQueue.push(chunk);
         // console.log(`Actual chunks count: ${this.chunks.size}`);
-        // Ticking blocks
-        let ticking_blocks = [];
-        for(let k of chunk.ticking_blocks.keys()) {
-            ticking_blocks.push(k.toHash());
-        }
-        // Return chunk object
-        return {
-            key:            chunk.key,
-            addr:           chunk.addr,
-            tblocks:        chunk.tblocks,
-            ticking_blocks: ticking_blocks,
-            packedCells:    chunk.packCells()
-        };
     }
 
     destructChunk(addr) {
@@ -99,4 +129,140 @@ export class WorkerWorld {
         return default_value;
     }
 
+    checkPotential(npc) {
+        // potential was changed, reorder everything
+        this.activePotentialCenter = npc;
+        this.buildQueue.potentialCenter = npc;
+        this.genQueue.potentialCenter = npc;
+
+        this.buildQueue.needSort = true;
+        this.genQueue.needSort = true;
+    }
+
+    process({maxMs = 20, genPerIter = 3, buildPerIter = 40}) {
+        const {buildQueue, genQueue} = this;
+        genQueue.relaxEntries();
+        const start = performance.now();
+        const buildResults = [];
+
+        let loops = 0;
+        let totalTimes = 0, totalPages = 0, minGenDist = 10000, minBuildDist = 10000;
+        while (performance.now() - start < maxMs && (buildQueue ? buildQueue.size() : 0) + genQueue.size() > 0)
+        {
+            loops++;
+            let times = 0;
+            while (times < genPerIter) {
+                const chunk = genQueue.pop();
+                if (!chunk) {
+                    break;
+                }
+                times++;
+
+                chunk.doGen();
+                minGenDist = Math.min(minGenDist, chunk.queueDist);
+                // Ticking blocks
+                let ticking_blocks = [];
+                for(let k of chunk.ticking_blocks.keys()) {
+                    ticking_blocks.push(k.toHash());
+                }
+
+                if (buildQueue) {
+                    buildQueue.push(chunk);
+                    chunk.buildVerticesInProgress = true;
+                }
+
+                // Return chunk object
+                const ci = {
+                    key:            chunk.key,
+                    addr:           chunk.addr,
+                    tblocks:        chunk.tblocks,
+                    ticking_blocks: ticking_blocks,
+                    map:            chunk.map
+                };
+
+                const non_zero = ci.tblocks.refreshNonZero();
+                const ci2 = {
+                    addr: ci.addr,
+                    uniqId: chunk.uniqId,
+                    // key: ci.key,
+                    tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
+                    ticking_blocks: ci.ticking_blocks,
+                    packedCells: chunk.packCells()
+                }
+
+                globalThis.worker.postMessage(['blocks_generated', ci2]);
+            }
+
+            totalTimes += times;
+
+            if (!buildQueue) {
+                continue;
+            }
+
+            buildQueue.relaxEntries();
+
+            let pages = 0;
+            while (pages < buildPerIter) {
+                const chunk = buildQueue.pop();
+                if (!chunk) {
+                    break;
+                }
+                minBuildDist = Math.min(minBuildDist, chunk.queueDist);
+                chunk.buildVerticesInProgress = false;
+                const item = buildVertices(chunk, false);
+                pages += chunk.totalPages;
+                if(item) {
+                    item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
+                    let index = 0;
+                    for(let z = 0; z < chunk.size.z; z++) {
+                        for(let x = 0; x < chunk.size.x; x++) {
+                            item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.r;
+                            item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.g;
+                        }
+                    }
+                    buildResults.push(item);
+                    chunk.vertices = null;
+                }
+            }
+
+            totalPages += pages;
+        }
+        // if (totalPages + totalTimes > 0) {
+            // console.log(`Worker Iter gen=${totalTimes} buildPages=${totalPages}, genMin = ${minGenDist}, buildMin=${minBuildDist}`);
+        // }
+
+        if (buildResults.length > 0) {
+            worker.postMessage(['vertices_generated', buildResults]);
+        }
+        return loops;
+    }
+}
+
+const buildSettings = {
+    enableCache : true,
+}
+
+function buildVertices(chunk, return_map) {
+    let prev_dirty = chunk.dirty;
+    let pm = performance.now();
+    chunk.dirty = true;
+    let is_builded = chunk.buildVertices(buildSettings);
+    if(!is_builded) {
+        chunk.dirty = prev_dirty;
+        return null;
+    }
+    chunk.timers.build_vertices = Math.round((performance.now() - pm) * 1000) / 1000;
+    let resp = {
+        key:                    chunk.key,
+        addr:                   chunk.addr,
+        vertices:               chunk.serializedVertices,
+        gravity_blocks:         chunk.gravity_blocks,
+        fluid_blocks:           chunk.fluid_blocks,
+        timers:                 chunk.timers,
+        tm:                     chunk.tm,
+    };
+    if(return_map) {
+        resp.map = chunk.map;
+    }
+    return resp;
 }

@@ -62,10 +62,14 @@ export class FluidMesher {
     buildDirtyChunks(maxApplyVertexCount = 10) {
         const {dirtyChunks} = this;
         let limit = maxApplyVertexCount;
+        let waitForChunk = [];
         while (dirtyChunks.length > 0 && limit > 0) {
             const fluidChunk = dirtyChunks.shift();
             const {parentChunk} = fluidChunk;
             if (!parentChunk.getChunkManager()) {
+                continue;
+            }
+            if (fluidChunk.meshID === fluidChunk.updateID) {
                 continue;
             }
             fluidChunk.meshID = fluidChunk.updateID;

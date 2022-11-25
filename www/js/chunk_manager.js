@@ -188,6 +188,7 @@ export class ChunkManager {
                             chunk.onVerticesGenerated(result);
                         }
                     }
+                    // console.log(`got chunks count=${args.length}`);
                     break;
                 }
                 case 'play_disc': {
@@ -325,9 +326,11 @@ export class ChunkManager {
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
+            this.postWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
             this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
 
-            const pos               = this.poses_chunkPos = player_chunk_addr;
+            this.poses_chunkPos.copyFrom(player_chunk_addr);
+            const pos               = this.poses_chunkPos;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
@@ -342,6 +345,8 @@ export class ChunkManager {
             }
         }
 
+        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
+
         /**
          * please dont re-assign renderList entries
          */
@@ -353,7 +358,6 @@ export class ChunkManager {
                 }
             }
         }
-
         //
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let i = 0; i < this.poses.length; i++) {
@@ -403,7 +407,6 @@ export class ChunkManager {
                 chunk.rendered = 0;
             }
         }
-        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
     }
 
     // Draw level chunks
@@ -572,7 +575,7 @@ export class ChunkManager {
         // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
         // Build dirty chunks
-        this.buildDirtyChunks();
+        // this.buildDirtyChunks();
         // stat['Build dirty chunks'] = (performance.now() - p); p = performance.now();
 
         // Prepare render list

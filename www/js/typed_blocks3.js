@@ -494,6 +494,9 @@ export class TypedBlocks3 {
         if (!vertices) {
             return;
         }
+        const chunk = this.dataChunk.rev;
+        const { buildQueue } = chunk.chunkManager.world;
+
         const { cx, cy, cz, portals, pos, safeAABB, shiftCoord} = this.dataChunk;
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -516,6 +519,9 @@ export class TypedBlocks3 {
                     }
                     vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
                 }
+        if (buildQueue && !chunk.inQueue) {
+            buildQueue.push(chunk);
+        }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -537,6 +543,9 @@ export class TypedBlocks3 {
                                 cnt++;
                             }
                             vertices2[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                            if (buildQueue && !other.rev.inQueue) {
+                                buildQueue.push(other.rev);
+                            }
                         }
             }
         }

@@ -77,6 +77,8 @@ export class Chunk {
         ]]);
 
         this.packedCells = null;
+        this.firstTimeBuilt = false;
+        this.need_apply_vertices = false;
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -115,6 +117,14 @@ export class Chunk {
     onVerticesGenerated(args) {
         this.vertices_args = args;
         this.need_apply_vertices = true;
+
+        if (!this.firstTimeBuilt && this.fluid) {
+            this.firstTimeBuilt = true;
+            if (this.fluid) {
+                this.chunkManager.fluidWorld.startMeshing(this.fluid);
+            }
+        }
+
         if (!this.dirt_colors) {
             this.dirt_colors = args.dirt_colors;
         }
@@ -484,46 +494,6 @@ export class Chunk {
                 rotate: rotate,
                 extra_data: extra_data
             });
-            // Принудительная перерисовка соседних чанков
-            let update_neighbours = [];
-            if (x == 0) update_neighbours.push(new Vector(-1, 0, 0));
-            if (x == this.size.x - 1) update_neighbours.push(new Vector(1, 0, 0));
-            if (y == 0) update_neighbours.push(new Vector(0, -1, 0));
-            if (y == this.size.y - 1) update_neighbours.push(new Vector(0, 1, 0));
-            if (z == 0) update_neighbours.push(new Vector(0, 0, -1));
-            if (z == this.size.z - 1) update_neighbours.push(new Vector(0, 0, 1));
-            // diagonal
-            if (x == 0 && z == 0) update_neighbours.push(new Vector(-1, 0, -1));
-            if (x == this.size.x - 1 && z == 0) update_neighbours.push(new Vector(1, 0, -1));
-            if (x == 0 && z == this.size.z - 1) update_neighbours.push(new Vector(-1, 0, 1));
-            if (x == this.size.x - 1 && z == this.size.z - 1) update_neighbours.push(new Vector(1, 0, 1));
-            // Добавляем выше и ниже
-            let update_neighbours2 = [];
-            for (let i = 0; i < update_neighbours.length; i++) {
-                const update_neighbour = update_neighbours[i];
-                update_neighbours2.push(update_neighbour.add(new Vector(0, -1, 0)));
-                update_neighbours2.push(update_neighbour.add(new Vector(0, 1, 0)));
-            }
-            update_neighbours.push(...update_neighbours2);
-            let updated_chunks = new VectorCollector();
-            updated_chunks.set(this.addr, true);
-            let _chunk_addr = new Vector(0, 0, 0);
-            for (let i = 0; i < update_neighbours.length; i++) {
-                const update_neighbour = update_neighbours[i];
-                let pos = new Vector(x, y, z).addSelf(this.coord).addSelf(update_neighbour);
-                _chunk_addr = getChunkAddr(pos, _chunk_addr);
-                // чтобы не обновлять один и тот же чанк дважды
-                if (!updated_chunks.has(_chunk_addr)) {
-                    updated_chunks.set(_chunk_addr);
-                    set_block_list.push({
-                        pos,
-                        type: null,
-                        is_modify: is_modify,
-                        power: power,
-                        rotate: rotate
-                    });
-                }
-            }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }
