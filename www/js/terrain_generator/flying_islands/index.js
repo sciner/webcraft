@@ -6,6 +6,9 @@ import { CHUNK_SIZE_Y } from '../../chunk_const.js';
 import {DungeonGenerator} from "../dungeon.js";
 import Demo_Map from '../biome2/demo_map.js';
 
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
+const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+
 export default class Terrain_Generator extends Demo_Map {
 
     constructor(world, seed, world_id, options) {
@@ -22,8 +25,11 @@ export default class Terrain_Generator extends Demo_Map {
 
         //
         const generateMap = () => {
-            const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-                code: 'Flat'
+            const cell = {
+                dirt_color: DEFAULT_DIRT_COLOR,
+                water_color: DEFAULT_WATER_COLOR,
+                biome: new Default_Terrain_Map_Cell({
+                code: 'bottom_caves'
             })};
             return new Default_Terrain_Map(
                 chunk.addr,

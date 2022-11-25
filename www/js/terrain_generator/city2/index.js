@@ -4,6 +4,9 @@ import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import {BLOCK} from '../../blocks.js';
 
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
+const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+
 //
 let vox_templates = {};
 
@@ -138,8 +141,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         }
 
-        const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-            code: 'City2'
+        const cell = {
+            dirt_color: DEFAULT_DIRT_COLOR,
+            water_color: DEFAULT_WATER_COLOR,
+            biome: new Default_Terrain_Map_Cell({
+            code: 'city2'
         })};
 
         return new Default_Terrain_Map(

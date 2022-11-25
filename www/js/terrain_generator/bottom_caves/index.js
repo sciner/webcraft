@@ -5,6 +5,9 @@ import { CHUNK_SIZE } from "../../chunk_const.js";
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
 
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
+const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+
 const rotates = [
     new Vector(CubeSym.ROT_Z, 0, 0),
     new Vector(CubeSym.ROT_Z3, 0, 0),
@@ -259,8 +262,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         if(generate_map) {
 
-            const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-                code: 'Flat'
+            const cell = {
+                dirt_color: DEFAULT_DIRT_COLOR,
+                water_color: DEFAULT_WATER_COLOR,
+                biome: new Default_Terrain_Map_Cell({
+                code: 'bottom_caves'
             })};
 
             return new Default_Terrain_Map(

@@ -1222,6 +1222,11 @@ export class IndexedColor {
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
+    
+    clone() {
+        return new IndexedColor(this.r, this.g, this.b);
+    }
+
 }
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
