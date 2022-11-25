@@ -236,16 +236,60 @@ export class TerrainMapManager2 {
 
     }
 
+    // Шум для гор
+    mountainFractalNoise(x, y, octaves, lacunarity, persistence, scale) {
+        // The sum of our octaves
+        let value = 0 
+        // These coordinates will be scaled the lacunarity
+        let x1 = x 
+        let y1 = y
+        // Determines the effect of each octave on the previous sum
+        let amplitude = 1
+        for (let i = 1; i < octaves; i++) {
+            // Multiply the noise output by the amplitude and add it to our sum
+            value += this.noise2d(x1 / scale, y1 / scale) * amplitude;
+            // Scale up our perlin noise by multiplying the coordinates by lacunarity
+            y1 *= lacunarity
+            x1 *= lacunarity
+            // Reduce our amplitude by multiplying it by persistence
+            amplitude *= persistence
+        }
+        // It is possible to have an output value outside of the range [-1,1]
+        // For consistency let's clamp it to that range
+        return Math.abs(value); // Helpers.clamp(value, -1, 1)
+    }
+
     calcDensity(xyz, cell) {
 
-        //if(max_height !== null) {
-        //    density = xyz.y < max_height ? 1 : 0;
-        //    d3 = .2;
-        //    river_point = null;
-        //
-        //} else {
-
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
+
+        if(op.id == 'gori') {
+
+            if(!cell.mountain_density) {
+                const NOISE_SCALE = 100
+                const HEIGHT_SCALE = 164 * dist_percent;
+                const max_height = GENERATOR_OPTIONS.WATER_LINE + this.mountainFractalNoise(xyz.x/3, xyz.z/3,
+                    4, // -- Octaves (Integer that is >1)
+                    3, // -- Lacunarity (Number that is >1)
+                    0.35, // -- Persistence (Number that is >0 and <1)
+                    NOISE_SCALE,
+                ) * HEIGHT_SCALE;
+                // const density = xyz.y < max_height ? 1 : 0;
+                const d1 = 0;
+                const d2 = 0;
+                const d3 = (
+                    this.noise2d(xyz.x/25, xyz.z/25) + 
+                    this.noise2d((xyz.x + 1000) / 25, (xyz.z + 1000) / 25)
+                ) / 2;
+                const d4 = 0;
+                cell.mountain_density = new DensityParams(d1, d2, d3, d4, 1);
+                cell.mountain_density.max_height = max_height;
+                cell.mountain_density_zero = new DensityParams(d1, d2, d3, d4, 0);
+            }
+
+            return xyz.y < cell.mountain_density.max_height ? cell.mountain_density : cell.mountain_density_zero;
+
+        }
 
         // waterfront/берег
         const under_waterline = xyz.y < WATER_LEVEL;
