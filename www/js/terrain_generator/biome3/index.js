@@ -190,14 +190,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     // прорисовка наземных блоков кластера
                                     if(!cluster_drawed) {
                                         cluster_drawed = true;
-                                        if(Array.isArray(cluster_cell.block_id)) {
-                                            if(y < size_y - cluster_cell.height && cluster_cell.block_id.length) {
+                                        if(y < size_y - cluster_cell.height) {
+                                            if(Array.isArray(cluster_cell.block_id)) {
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
                                                     chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
                                                 }
-                                            }
-                                        } else {
-                                            if(y < size_y - cluster_cell.height) {
+                                            } else {
                                                 for(let yy = 0; yy < cluster_cell.height; yy++) {
                                                     chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
                                                 }

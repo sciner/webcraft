@@ -357,24 +357,29 @@ export class TerrainMapManager2 {
         
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
 
-        if(!map.cluster.is_empty) {
+        if(!map.cluster.is_empty && map.cluster.buildings) {
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.door_bottom && building.door_bottom.y == Infinity) {
                     xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     let free_height = 0;
-                    for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
-                        xyz.y = map.cluster.y_base + y;
-                        const preset = this.getPreset(xyz);
-                        const {d1, d2, d3, d4, density} = this.calcDensity(xyz, {river_point, preset});
-                        if(density > .6) {
-                            if(free_height >= BUILDING_MIN_Y_SPACE) {
-                                building.setY(xyz.y + 1);
-                                break;
-                            }
-                            free_height = 0;
+                    for(let i = 0; i < 2; i++) {
+                        if(building.door_bottom.y != Infinity) {
+                            break;
                         }
-                        free_height++;
+                        for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
+                            xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
+                            const preset = this.getPreset(xyz);
+                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, {river_point, preset});
+                            if(density > .6) {
+                                if(free_height >= BUILDING_MIN_Y_SPACE) {
+                                    building.setY(xyz.y + 1);
+                                    break;
+                                }
+                                free_height = 0;
+                            }
+                            free_height++;
+                        }
                     }
                 }
             }
