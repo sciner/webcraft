@@ -207,11 +207,11 @@ export class Biomes {
                     {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }, {
-                frequency: GRASS_FREQUENCY * 5.8,
+                frequency: GRASS_FREQUENCY * 100,
                 list: [
-                    {percent: .600, blocks: [{id: BLOCK.OAK_LEAVES.id}]},
-                    {percent: .327, blocks: [{id: BLOCK.GRASS.id}]},
-                    {percent: .053, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .500, blocks: [{id: BLOCK.GRASS.id}]},
+                    {percent: .400, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
+                    {percent: .027, blocks: [{id: BLOCK.OAK_LEAVES.id}]},
                     {percent: .010, blocks: [{id: BLOCK.RED_TULIP.id}]},
                     {percent: .005, blocks: [{id: BLOCK.MELON.id, not_transparent: true}]},
                     {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
@@ -237,7 +237,7 @@ export class Biomes {
                     {percent: .5, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }, {
-                frequency: GRASS_FREQUENCY * 105.8,
+                frequency: GRASS_FREQUENCY * 100,
                 list: [
                     {percent: .2, blocks: [{id: BLOCK.OAK_LEAVES.id}]},
                     {percent: .3, blocks: [{id: BLOCK.GRASS.id}]},

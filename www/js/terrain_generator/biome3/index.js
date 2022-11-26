@@ -107,6 +107,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         chunk.map = map;
 
         //
+        const calcBigStoneDensity = (xyz, has_cluster) => {
+            if(has_cluster) {
+                return 0;
+            }
+            const n2 = this.noise2d(xyz.x/1000, xyz.z/1000);
+            if(n2 > .6825) {
+                return this.noise2d(xyz.x/16, xyz.z/16);
+            }
+            return 0;
+        };
+
+        //
         for(let x = 0; x < size_x; x++) {
             for(let z = 0; z < size_z; z++) {
 
@@ -122,6 +134,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 const cluster_cell = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
 
                 let cluster_drawed = false;
+
+                // big stones
+                const big_stone_density = calcBigStoneDensity(xyz, has_cluster);
 
                 /*
                 if(!globalThis.used_biomes) {
@@ -173,7 +188,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                                 }
                                             }
                                         }
-                                        if(cluster_cell.y_shift == 0) continue;
+                                        if(cluster_cell.y_shift == 0) {
+                                            not_air_count++;
+                                            continue
+                                        }
                                     }
 
                                 } else {
@@ -196,6 +214,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         }
                                     }
 
+                                    // draw big stones
+                                    if(y < size_y - 2 && big_stone_density > .5) {
+                                        chunk.setBlockIndirect(x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
+                                        if(big_stone_density > .6) {
+                                            chunk.setBlockIndirect(x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -240,29 +265,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
         }
-
-        // Plant trees
-        /*
-        if(tree_pos && tree_pos.y < 32) {
-            let type = { "percent": 0.99, "trunk": 3, "leaves": 233, "style": "wood", "height": { "min": 4, "max": 8 } };
-            const r = rnd.double();
-            if(r < .05) {
-                // type = {"trunk": BLOCK.MUSHROOM_STEM.id, "leaves": BLOCK.RED_MUSHROOM_BLOCK.id, "style": 'mushroom', "height": {"min": 5, "max": 12}};
-            } else if(r < .5) {
-                type = {"trunk": BLOCK.BIRCH_LOG.id, "leaves": BLOCK.BIRCH_LEAVES.id, "style": 'wood', "height": {"min": 4, "max": 8}};
-            } else if(r < .55) {
-                type = {"trunk": BLOCK.MOSS_STONE.id, "leaves": null, "style": 'tundra_stone', "height": {"min": 2, "max": 2}};
-            }
-            const tree_height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-            this.plantTree({
-                    "biome_code": "TROPICAL_SEASONAL_FOREST", "pos": tree_pos, "height": tree_height, "rad": 3,
-                    type
-                },
-                chunk,
-                tree_pos.x, tree_pos.y, tree_pos.z,
-                true
-            );
-        }*/
 
         // Mines
         if(chunk.addr.y == 0) {

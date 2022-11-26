@@ -445,6 +445,31 @@ export class ClusterBase {
         }
     }
 
+    // Add flat roof
+    drawFlatRoof(chunk, pos, size, block) {
+        const bx = pos.x - chunk.coord.x;
+        const by = pos.y - chunk.coord.y;
+        const bz = pos.z - chunk.coord.z;
+        const xyz = new Vector(0, 0, 0);
+        // block_palette.reset();
+        for(let i = 0; i < size.x; i++) {
+            for(let j = 0; j < size.z; j++) {
+                for(let k = 0; k < size.y; k++) {
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    xyz.copyFrom(pos).add(i, k, j);
+                    const block_id = block.id; // block_palette.next().id;
+                    //if(i < 1 || j < 1 || k < 0 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
+                        this.setBlock(chunk, x, y, z, block_id, null);
+                    //} else {
+                    //    this.setBlock(chunk, x, y, z, 0, null);
+                    //}
+                }
+            }
+        }
+    }
+
     // Draw door
     drawDoor(chunk, pos, block, dir, opened, left) {
         const door_blocks = [block.id, block.id];

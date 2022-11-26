@@ -384,9 +384,21 @@ export class TerrainMapManager2 {
         return null;
     }
 
+    calcBiome(xz) {
+
+        // Create map cell
+        const temperature = this.biomes.calcNoise(xz.x, xz.z, 3);
+        const humidity = this.biomes.calcNoise(xz.x, xz.z, 2);
+        const biome = this.biomes.getBiome(temperature, humidity);
+
+        return {biome, temperature, humidity};
+
+    }
+
     // generateMap
     generateMap(real_chunk, chunk, noisefn) {
 
+        const value = 85;
         const xyz = new Vector(0, 0, 0);
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
@@ -398,51 +410,15 @@ export class TerrainMapManager2 {
         if(!real_chunk.chunkManager) {
             debugger
         }
-        
-        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
 
-        if(!map.cluster.is_empty && map.cluster.buildings) {
-            for(const [_, building] of map.cluster.buildings.entries()) {
-                if(building.door_bottom && building.door_bottom.y == Infinity) {
-                    xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
-                    const river_point = this.makeRiverPoint(xyz.x, xyz.z);
-                    let free_height = 0;
-                    for(let i = 0; i < 2; i++) {
-                        if(building.door_bottom.y != Infinity) {
-                            break;
-                        }
-                        for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
-                            xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
-                            const preset = this.getPreset(xyz);
-                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, {river_point, preset});
-                            if(density > .6) {
-                                if(free_height >= BUILDING_MIN_Y_SPACE) {
-                                    building.setY(xyz.y + 1);
-                                    break;
-                                }
-                                free_height = 0;
-                            }
-                            free_height++;
-                        }
-                    }
-                }
-            }
-        }
-
-        // const biome = BIOMES['GRASSLAND'];
-        // map.terrain = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z);
-
-        const value = 85;
-
+        // 1. Fill cells
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
                 // Create map cell
-                const temperature = this.biomes.calcNoise(xyz.x, xyz.z, 3);
-                const humidity = this.biomes.calcNoise(xyz.x, xyz.z, 2);
-                const biome = this.biomes.getBiome(temperature, humidity);
+                const {temperature, humidity, biome} = this.calcBiome(xyz);
 
                 const dirt_block_id = biome.dirt_layers[0];
                 const cell = new TerrainMapCell(value, humidity, temperature, biome, dirt_block_id);
@@ -451,6 +427,45 @@ export class TerrainMapManager2 {
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
 
+            }
+        }
+        
+        // 2. Create cluster
+        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
+
+        // 3. Find door Y position for cluster buildings
+        if(!map.cluster.is_empty && map.cluster.buildings) {
+            for(const [_, building] of map.cluster.buildings.entries()) {
+                if(building.door_bottom && building.door_bottom.y == Infinity) {
+                    xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
+                    const river_point = this.makeRiverPoint(xyz.x, xyz.z);
+                    let free_height = 0;
+                    const preset = this.getPreset(xyz);
+                    const cell = {river_point, preset};
+                    for(let i = 0; i < 2; i++) {
+                        if(building.door_bottom.y != Infinity) {
+                            break;
+                        }
+                        for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
+                            xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
+                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell);
+                            if(density > .6) {
+                                if(free_height >= BUILDING_MIN_Y_SPACE) {
+                                    // set Y for door
+                                    building.setY(xyz.y + 1);
+                                    // set building cell for biome info
+                                    const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+                                    const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+                                    const {biome, temperature, humidity} = this.calcBiome(xyz);
+                                    building.setBiome(biome, temperature, humidity);
+                                    break;
+                                }
+                                free_height = 0;
+                            }
+                            free_height++;
+                        }
+                    }
+                }
             }
         }
 
