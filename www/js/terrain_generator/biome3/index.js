@@ -146,6 +146,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const cluster                   = chunk.cluster;
         const map                       = chunk.map;
         const xyz                       = new Vector(0, 0, 0);
+        const MIN_DENSITY               = .6;
 
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
@@ -175,7 +176,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 const big_stone_density = calcBigStoneDensity(xyz, has_cluster);
 
                 let cluster_drawed = false;
-                let not_air_count = -1;
+                let not_air_count = 0;
 
                 /*
                 if(!globalThis.used_biomes) {
@@ -197,8 +198,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const {d1, d2, d3, d4, density} = density_params;
 
                     //
-                    if(density > .6) {
+                    if(density > MIN_DENSITY) {
 
+                        // убираем баг с полосой земли на границах чанков по высоте
+                        if(y == chunk.size.y - 1) {
+                            xyz.y++
+                            const over_density_params = this.maps.calcDensity(xyz, cell);
+                            xyz.y--
+                            if(over_density_params.density > MIN_DENSITY) {
+                                not_air_count = 100;
+                            }
+                        }
+
+                        // get block
                         const {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
 
                         // если это самый первый слой поверхности
