@@ -23,7 +23,8 @@ export class SchematicReader {
             LAVA:       'STILL_LAVA',
             WATER:      'STILL_WATER',
             WHEAT:      'WHEAT_SEEDS',
-            COCOA:      'COCOA_BEANS'
+            COCOA:      'COCOA_BEANS',
+            SIGN:       'BIRCH_SIGN'
         };
     }
 
