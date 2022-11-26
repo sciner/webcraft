@@ -105,11 +105,18 @@ async function initWorld(
     // Worker inited
     worker.postMessage(['world_inited', null]);
 
-    setInterval(run, RAF_MS);
+    setTimeout(run, 0);
 }
 
 function run() {
-    worlds.process({ maxMs: RAF_MS });
+    const now = performance.now();
+    try {
+        worlds.process({maxMs: RAF_MS});
+    } catch (e) {
+        e.print();
+    }
+    const passed = Math.ceil(performance.now() - now);
+    setTimeout(run, Math.max(0, RAF_MS - passed));
 }
 
 // On message callback function
