@@ -15,7 +15,7 @@ export class ChunkWorkQueue {
         this.potentialCenter = null;
 
         this.lastSortMs = performance.now() - 1000;
-        this.maxSortTime = 100; // in ms
+        this.maxSortTime = 15; // in ms
         this.needSort = false;
     }
 
