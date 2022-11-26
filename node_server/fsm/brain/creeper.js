@@ -67,7 +67,7 @@ export class Brain extends FSMBrain {
             this.lostTarget();
             return;
         }
-        if (dist < DISTANCE_DETONATION) {
+        if (dist < DISTANCE_DETONATION && !this.is_gate) {
             this.detonationTime = performance.now();
             mob.extra_data.detonation_started = true;
             const actions = new WorldAction();
