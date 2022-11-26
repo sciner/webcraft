@@ -621,15 +621,17 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour) {
 
         const world = this.world;
-
+        
         //
         function createDrop(tblock) {
             const pos = tblock.posworld;
             const actions = new WorldAction(null, world, false, true);
             actions.addBlocks([
                 {pos: pos.clone(), item: BLOCK.AIR}
-            ])
-            actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+            ]);
+            if (!tblock.material.tags.includes('no_drop')) {
+                actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+            }
             world.actions_queue.add(null, actions);
         }
 
@@ -640,6 +642,10 @@ export class ServerChunk {
 
         //
         if(neighbour.id == 0) {
+            
+            if (tblock.id == BLOCK.SNOW.id && neighbour.posworld.y < pos.y) {
+                return createDrop(tblock);
+            }
 
             switch(tblock.material.style) {
                 case 'rails':
