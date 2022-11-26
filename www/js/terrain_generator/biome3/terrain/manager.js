@@ -263,6 +263,7 @@ export class TerrainMapManager2 {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
+        /*
         if(op.id == 'gori') {
 
             if(!cell.mountain_density) {
@@ -290,13 +291,14 @@ export class TerrainMapManager2 {
             return xyz.y < cell.mountain_density.max_height ? cell.mountain_density : cell.mountain_density_zero;
 
         }
+        */
 
         // waterfront/берег
         const under_waterline = xyz.y < WATER_LEVEL;
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        if(h < 0.333) {
+        if(h < 0.6) {
             return ZeroDensity;
         }
 
