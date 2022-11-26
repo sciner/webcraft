@@ -1957,7 +1957,8 @@
             "tags": [
                 "layering",
                 "is_solid_for_fluid",
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_drop"
             ]
         },
         {
