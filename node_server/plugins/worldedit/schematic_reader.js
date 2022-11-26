@@ -263,7 +263,12 @@ export class SchematicReader {
                 for(let i in text_names) {
                     const t = text_names[i];
                     if(t in block.entities) {
-                        const temp = JSON.parse(block.entities[t]);
+                        var temp;
+                        try {
+                            temp = JSON.parse(block.entities[t]);
+                        } catch(e) {
+                            temp = { text: block.entities[t] };
+                        }
                         texts[i] = temp?.text || '';
                         formatted_text[i] = temp;
                     }
