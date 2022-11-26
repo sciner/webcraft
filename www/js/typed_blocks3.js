@@ -494,6 +494,9 @@ export class TypedBlocks3 {
         if (!vertices) {
             return;
         }
+        const chunk = this.dataChunk.rev;
+        const { buildQueue } = chunk.chunkManager.world;
+
         const { cx, cy, cz, portals, pos, safeAABB, shiftCoord} = this.dataChunk;
         const wx = x + pos.x;
         const wy = y + pos.y;
@@ -516,6 +519,9 @@ export class TypedBlocks3 {
                     }
                     vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
                 }
+        if (buildQueue && !chunk.inQueue) {
+            buildQueue.push(chunk);
+        }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
         }
@@ -537,6 +543,9 @@ export class TypedBlocks3 {
                                 cnt++;
                             }
                             vertices2[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                            if (buildQueue && !other.rev.inQueue) {
+                                buildQueue.push(other.rev);
+                            }
                         }
             }
         }
@@ -544,6 +553,16 @@ export class TypedBlocks3 {
         return cnt;
     }
 
+    setDirtyAABB(aabb) {
+        const { cx, cy, cz, shiftCoord} = this.dataChunk;
+        const {vertices} = this;
+        for (let x = aabb.x_min; x < aabb.x_max; x++)
+            for (let y = aabb.y_min; y < aabb.y_max; y++)
+                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+                    let index2 = cx * x + cy * y + cz * z + shiftCoord;
+                    vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
+                }
+    }
 
     getInterpolatedLightValue(localVec) {
         let totalW = 0, totalCave = 0, totalDay = 0;
@@ -654,7 +673,8 @@ export class DataWorld {
             const portal = portals[i];
             const other = portals[i].toRegion;
             const otherView = other.uint16View;
-            const otherFluid = other.rev.fluid.uint16View;
+            const otherChunk = other.rev;
+            const otherFluid = otherChunk.fluid.uint16View;
 
             const cx2 = other.cx;
             const cy2 = other.cy;
@@ -662,6 +682,7 @@ export class DataWorld {
             const cw2 = other.shiftCoord;
 
             let otherDirtyFluid = false;
+            let otherDirtyMesh = 0;
 
             tempAABB.setIntersect(aabb, portal.aabb);
             for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
@@ -669,7 +690,11 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        otherView[ind2] = uint16View[ind];
+                        const val = uint16View[ind];
+                        if (val !== 0) {
+                            otherDirtyMesh |= 1;
+                        }
+                        otherView[ind2] = val;
                         if (otherFluid[ind2] !== fluid[ind]) {
                             otherFluid[ind2] = fluid[ind];
                             otherDirtyFluid = true;
@@ -681,11 +706,24 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        uint16View[ind] = otherView[ind2];
+                        const val = otherView[ind2];
+                        if (val !== 0) {
+                            otherDirtyMesh |= 2;
+                        }
+                        uint16View[ind] = val;
                         fluid[ind] = otherFluid[ind2];
                     }
             if (otherDirtyFluid) {
                 other.rev.fluid.markDirtyMesh();
+            }
+            if (otherDirtyMesh === 3) {
+                const tb = otherChunk.tblocks;
+                if (tb.vertices) {
+                    tb.setDirtyAABB(tempAABB);
+                    if (!otherChunk.inQueue) {
+                        chunk.chunkManager.world.buildQueue.push(otherChunk);
+                    }
+                }
             }
         }
     }
