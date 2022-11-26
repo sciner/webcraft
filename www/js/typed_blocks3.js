@@ -706,7 +706,7 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        const val = otherView[ind];
+                        const val = otherView[ind2];
                         if (val !== 0) {
                             otherDirtyMesh |= 2;
                         }
