@@ -97,13 +97,13 @@ export class ChunkWorkQueue {
                 entries[j++] = entries[i];
             }
         }
-        entries.length = j;
         for (let i = 0; i < added.length; i++) {
             if (!added[i].destroyed) {
                 this.calcDist(added[i]);
-                entries.push(added[i]);
+                entries[j++] = added[i];
             }
         }
+        entries.length = j;
         added.length = 0;
         entries.sort(revChunkSort);
     }

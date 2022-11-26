@@ -92,9 +92,6 @@ export class Chunk {
         this.totalPages = 0;
 
         this.fluid = null;
-        if (world.fluid) {
-            world.fluid.addChunk(this);
-        }
         this.inQueue = false;
         this.queueDist = -1; // 0 and more means its in queue (build or gen
     }
@@ -116,12 +113,11 @@ export class Chunk {
         this.timers.init = performance.now();
 
         this.tblocks = newTypedBlocks(this.coord, this.size);
-        this.chunkManager.dataWorld.addChunk(this);
-        //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
     }
 
     doGen() {
+        this.chunkManager.dataWorld.addChunk(this);
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = this.chunkManager.world.generator.generate(this);

@@ -554,11 +554,8 @@ export class TypedBlocks3 {
     }
 
     setDirtyAABB(aabb) {
-        const { vertices } = this;
-        if (!vertices) {
-            return;
-        }
-        const { cx, cy, cz, portals, pos, safeAABB, shiftCoord} = this.dataChunk;
+        const { cx, cy, cz, shiftCoord} = this.dataChunk;
+        const {vertices} = this;
         for (let x = aabb.x_min; x < aabb.x_max; x++)
             for (let y = aabb.y_min; y < aabb.y_max; y++)
                 for (let z = aabb.z_min; z < aabb.z_max; z++) {
@@ -566,7 +563,6 @@ export class TypedBlocks3 {
                     vertices[index2 * 2 + 1] |= MASK_VERTEX_MOD;
                 }
     }
-
 
     getInterpolatedLightValue(localVec) {
         let totalW = 0, totalCave = 0, totalDay = 0;
@@ -677,7 +673,8 @@ export class DataWorld {
             const portal = portals[i];
             const other = portals[i].toRegion;
             const otherView = other.uint16View;
-            const otherFluid = other.rev.fluid.uint16View;
+            const otherChunk = other.rev;
+            const otherFluid = otherChunk.fluid.uint16View;
 
             const cx2 = other.cx;
             const cy2 = other.cy;
@@ -720,8 +717,12 @@ export class DataWorld {
                 other.rev.fluid.markDirtyMesh();
             }
             if (otherDirtyMesh === 3) {
-                if (other.rev.tblocks.vertices) {
-
+                const tb = otherChunk.tblocks;
+                if (tb.vertices) {
+                    tb.setDirtyAABB(tempAABB);
+                    if (!otherChunk.inQueue) {
+                        chunk.chunkManager.world.buildQueue.push(otherChunk);
+                    }
                 }
             }
         }
