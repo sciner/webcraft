@@ -1,4 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
@@ -23,6 +23,11 @@ for(let i = 0; i < randoms.length; i++) {
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
+
+    /**
+     * @type {TerrainMapManager2}
+     */
+    maps;
 
     constructor(world, seed, world_id, options) {
 
@@ -142,8 +147,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const map                       = chunk.map;
         const xyz                       = new Vector(0, 0, 0);
 
-        let not_air_count               = -1;
-
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
             if(has_cluster) {
@@ -160,21 +163,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
-                const cell = map.cells[z * CHUNK_SIZE_X + x];
-
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
                 // const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
-                const has_cluster = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
-                const cluster_cell = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
+                const cell              = map.cells[z * CHUNK_SIZE_X + x];
+                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+                const cluster_cell      = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
+                const big_stone_density = calcBigStoneDensity(xyz, has_cluster);
 
                 let cluster_drawed = false;
-
-                // big stones
-                const big_stone_density = calcBigStoneDensity(xyz, has_cluster);
+                let not_air_count = -1;
 
                 /*
                 if(!globalThis.used_biomes) {
@@ -190,6 +191,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
+
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     const density_params = this.maps.calcDensity(xyz, cell);
                     const {d1, d2, d3, d4, density} = density_params;
@@ -294,6 +296,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
 
                 }
+
             }
         }
 

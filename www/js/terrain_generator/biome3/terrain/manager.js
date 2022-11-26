@@ -40,7 +40,7 @@ export class DensityParams {
 
 }
 
-const ZeroDensity = new DensityParams(0, 0, 0, 0);
+const ZeroDensity = new DensityParams(0, 0, 0, 0, 0);
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             80, // Ватер-линия

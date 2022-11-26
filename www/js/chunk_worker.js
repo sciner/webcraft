@@ -113,7 +113,7 @@ function run() {
     try {
         worlds.process({maxMs: RAF_MS});
     } catch (e) {
-        e.print();
+        console.error(e);
     }
     const passed = Math.ceil(performance.now() - now);
     setTimeout(run, Math.max(0, RAF_MS - passed));
