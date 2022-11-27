@@ -90,6 +90,7 @@ export class ServerClient {
 
     // Fluid
 	static CMD_FLUID_UPDATE             = 102;
+    static CMD_FLUID_DELTA              = 105;
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

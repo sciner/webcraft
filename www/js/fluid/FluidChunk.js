@@ -44,6 +44,8 @@ export class FluidChunk {
         this.databaseID = 0;
         this.inSaveQueue = false;
         this.queue = null;
+
+        this.lastSavedSize = 16384;
     }
 
     setValue(x, y, z, value) {
@@ -191,6 +193,7 @@ export class FluidChunk {
             arr.unshift(2);
             arr = new Uint8Array(arr);
         }
+        this.lastSavedSize = arr.length;
 
         this.savedID = this.updateID;
         return this.savedBuffer = arr;
@@ -242,6 +245,7 @@ export class FluidChunk {
         } else {
             //new version!
             arr = stateArr.subarray(1, uint8View.length);
+            this.lastSavedSize = arr.length;
             if (encodeType === 3) {
                 arr = ungzip(arr);
             }
@@ -389,6 +393,17 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
+    }
+
+    applyDelta(deltaBuf) {
+        for (let i = 0; i < deltaBuf.length; i += 3) {
+            let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
+            let val = deltaBuf[i + 2];
+            this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
+
+            //TODO: neib chunks!!!11!!
+        }
+        this.markDirtyMesh();
     }
 
     markDirtyMesh() {

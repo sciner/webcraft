@@ -138,6 +138,8 @@ export class FluidChunkQueue {
 
         //TODO: switch this to actual deltas
         this.deltaDirty = false;
+        this.deltaPure = true;
+        this.deltaIndices = [];
     }
 
     ensurePlace() {
@@ -217,7 +219,7 @@ export class FluidChunkQueue {
         const portals2 = fluidChunk.dataChunk.portals;
         fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
-        this.markDelta();
+        this.markDeltaIndex(ind);
     }
 
     pushTickIndex(index, tick = 1) {
@@ -290,9 +292,44 @@ export class FluidChunkQueue {
         }
     }
 
+    markDeltaIndex(index) {
+        this.markDelta();
+        if (this.deltaPure && this.deltaIndices.length * 3 < this.fluidChunk.lastSavedSize) {
+            this.deltaIndices.push(index);
+        } else {
+            this.deltaPure = false;
+        }
+    }
+
+    markDeltaArray(indices, num) {
+        this.markDelta();
+        if (this.deltaPure && (this.deltaIndices.length + num) * 3 < this.fluidChunk.lastSavedSize) {
+            for (let i = 0; i < num; i++) {
+                this.deltaIndices.push(indices[num]);
+            }
+        } else {
+            this.deltaPure = false;
+        }
+    }
+
+    packDelta() {
+        const {deltaIndices, fluidChunk} = this;
+        const buf = new Uint8Array(deltaIndices.length * 3);
+        for (let i = 0; i < deltaIndices.length; i++) {
+            const ind = deltaIndices[i];
+            buf[i * 3] = ind & 0xff;
+            buf[i * 3 + 1] = (ind >> 8) & 0xff;
+            buf[i * 3 + 2] = (fluidChunk.uint16View[ind] & 0xff);
+        }
+        deltaIndices.length = 0;
+        return buf;
+    }
+
     markDelta() {
         if (!this.deltaDirty) {
             this.deltaDirty = true;
+            this.deltaPure = true;
+            this.deltaIndices.length = 0;
             this.fluidWorld.queue.deltaChunks.push(this);
         }
     }
@@ -320,7 +357,7 @@ export class FluidChunkQueue {
         if (assignNum > 0) {
             fluidChunk.updateID++;
             fluidChunk.markDirtyDatabase();
-            this.markDelta();
+            this.markDeltaArray(assignIndices, assignNum);
         }
         for (let i = 0; i < knownPortals.length; i++) {
             knownPortals[i] = null;

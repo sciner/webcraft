@@ -351,6 +351,17 @@ export class ServerChunk {
         }];
         this.sendAll(packets, []);
     }
+    
+    sendFluidDelta(buf) {
+        const packets = [{
+            name: ServerClient.CMD_FLUID_DELTA,
+            data: {
+                addr: this.addr,
+                buf: Buffer.from(buf).toString('base64')
+            }
+        }];
+        this.sendAll(packets, []);
+    }
 
     sendDropItems(player_user_ids) {
         // Send all drop items in this chunk
