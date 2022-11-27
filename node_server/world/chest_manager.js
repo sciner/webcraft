@@ -5,6 +5,9 @@ import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../../www/js/constant.js";
 
+const CHANGE_RESULT_FLAG_CHEST = 1;
+const CHANGE_RESULT_FLAG_INVENTORY = 2;
+
 export class WorldChestManager {
 
     constructor(world) {
@@ -70,15 +73,18 @@ export class WorldChestManager {
         if (params.change) {
             const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
                     player.inventory.items, params.inventory_slots, params.change);
-            // Are the expected and real server state after the chane equal?
-            const equal = await serverAndClientEqual();
-            // Notify the player if the change failed or result is diferent from expected
-            if (!changeApplied || !equal) {
-                player.inventory.refresh(true);
-                this.sendContentToPlayers([player], pos);
+            if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
+                const equal = await serverAndClientEqual();
+                // Save the invenory to DB.
+                // Notify the player if the result differs from expected.
+                // Send the inventory to other players.
+                player.inventory.refresh(!equal);
+            } else {
+                // Notify the player if inventory the change failed
+                player.inventory.send();
             }
             // Notify the other players about the chest change
-            if (changeApplied && params.change.slotInChest && !is_ender_chest) {
+            if ((changeApplied & CHANGE_RESULT_FLAG_CHEST) && !is_ender_chest) {
                 this.sendChestToPlayers(pos, [player.session.user_id]);
             }
             return;
@@ -142,18 +148,22 @@ export class WorldChestManager {
                         ...similarSlot,
                         count: 0
                     };
+                    if (inChest) {
+                        srvChest[index] = slot;
+                    } else {
+                        srvInv[index] = slot;
+                    }
                 }
                 slot.count += delta;
             } else {
                 slot.count += delta;
                 if (slot.count <= 0) {
-                    slot = null;
+                    if (inChest) {
+                        delete srvChest[index];
+                    } else {
+                        srvInv[index] = null;
+                    }
                 }
-            }
-            if (inChest) {
-                srvChest[index] = slot;
-            } else {
-                srvInv[index] = slot;
             }
         }
 
@@ -163,6 +173,11 @@ export class WorldChestManager {
             }
             return a.id === b.id && a.count === b.count;
         }
+
+        // a result for successful changes except merging small stacks
+        const defaultResult = change.slotInChest
+            ? CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY
+            : CHANGE_RESULT_FLAG_INVENTORY;
 
         const srvDrag = srvInv[INVENTORY_DRAG_SLOT_INDEX];
         const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
@@ -187,26 +202,76 @@ export class WorldChestManager {
         const slotDelta = cliSlotCount - prevCliSlotCount;
         const dragDelta = cliDragCount - prevCliDragCount;
 
-        if  (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
+        if (change.mergeSmallStacks) { // Gives the same result as in base_craft_window.js: this.onDrop = function(e)
+            if (!cliDrag || !prevCliDrag || cliDrag.id != prevCliDrag.id || cliDragCount <= prevCliDragCount) {
+                return 0; // incorrect change
+            }
+            const id = cliDrag.id
+            if (!srvDrag || srvDrag.id !== id) {
+                return 0; // it can't be applied on server
+            }
+            var resultFlags = 0;
+            const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
+            let need_count = maxStatck - srvDrag.count;
+            for(let i in srvChest) {
+                if (need_count == 0) {
+                    break;
+                }
+                const item = srvChest[i];
+                if (!item.entity_id && !item.extra_data &&
+                    item.id === id &&
+                    item.count < maxStatck
+                ) {
+                    let minus_count = item.count < need_count ? item.count : need_count;
+                    need_count -= minus_count;
+                    srvDrag.count += minus_count;
+                    item.count -= minus_count;
+                    if (item.count < 1) {
+                        delete srvChest[i];
+                    }
+                    resultFlags |= (CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY);
+                }
+            }
+            for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; ++i) {
+                if (need_count == 0) {
+                    break;
+                }
+                const item = srvInv[i];
+                if (item && !item.entity_id && !item.extra_data &&
+                    item.id === id &&
+                    item.count < maxStatck
+                ) {
+                    let minus_count = item.count < need_count ? item.count : need_count;
+                    need_count -= minus_count;
+                    srvDrag.count += minus_count;
+                    item.count -= minus_count;
+                    if (item.count < 1) {
+                        srvInv[i] = null;
+                    }
+                    resultFlags |= CHANGE_RESULT_FLAG_INVENTORY;
+                }
+            }
+            return resultFlags;
+        } else if  (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
             if (!slotsEqual(prevCliSlot, cliDrag) || !slotsEqual(prevCliDrag, cliSlot)) {
-                return false; // incorrect change
+                return 0; // incorrect change
             }
             // we can swap if the ids on the server are the same, regardless of the quantity
             if (!srvSlot || srvSlot.id !== prevCliSlot.id || 
                 !srvDrag || srvDrag.id !== prevCliDrag.id
             ) {
-                return false; // it can't be applied on server
+                return 0; // it can't be applied on server
             }
             // swap
             const srvContainer = change.slotInChest ? srvChest : srvInv;
             srvContainer[change.slotIndex] = srvDrag;
             srvInv[INVENTORY_DRAG_SLOT_INDEX] = srvSlot;
-            return true;
+            return defaultResult;
         } else if (cliDrag && prevCliSlot && slotDelta < 0) { // take from a slot
             const id = cliDrag.id
             const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
             if (!maxStatck) {
-                return false;
+                return 0;
             }
             if (cliSlot && cliSlot.id !== id ||
                 prevCliSlot.id !== id ||
@@ -214,24 +279,24 @@ export class WorldChestManager {
                 slotDelta !== -dragDelta ||
                 cliDrag.count > maxStatck
             ) {
-                return false; // incorrect change
+                return 0; // incorrect change
             }
             if (!srvSlot || srvSlot.id !== id || srvDrag && srvDrag.id !== id) {
-                return false; // it can't be applied on server
+                return 0; // it can't be applied on server
             }
             const delta = Math.min(Math.min(dragDelta, maxStatck - srvDragCount), srvSlotCount);
             if (delta <= 0) {
-                return false;
+                return 0;
             }
             // apply on the server
             updateSlot(srvDrag, INVENTORY_DRAG_SLOT_INDEX, false, delta, srvSlot);
             updateSlot(srvSlot, change.slotIndex, change.slotInChest, -delta, srvSlot);
-            return true;
+            return defaultResult;
         } else if (prevCliDrag && cliSlot && slotDelta > 0) { // put into a slot
             const id = cliSlot.id
             const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
             if (!maxStatck) {
-                return false;
+                return 0;
             }
             if (prevCliSlot && prevCliSlot.id !== id ||
                 cliDrag && cliDrag.id !== id ||
@@ -239,22 +304,22 @@ export class WorldChestManager {
                 slotDelta !== -dragDelta ||
                 cliSlot.count > maxStatck
             ) {
-                return false; // incorrect change
+                return 0; // incorrect change
             }
             if (srvSlot && srvSlot.id !== id || !srvDrag || srvDrag.id !== id) {
-                return false; // it can't be applied on server
+                return 0; // it can't be applied on server
             }
             const delta = Math.min(Math.min(slotDelta, maxStatck - srvSlotCount), srvDragCount);
             if (delta <= 0) {
-                return false;
+                return 0;
             }
             // apply on the server
             updateSlot(srvSlot, change.slotIndex, change.slotInChest, delta, srvDrag);
             updateSlot(srvDrag, INVENTORY_DRAG_SLOT_INDEX, false, -delta, srvDrag);
-            return true;
+            return defaultResult;
         }
         // some unknown case
-        return false;
+        return 0;
     }
 
     // Send block item

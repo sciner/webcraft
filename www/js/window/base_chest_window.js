@@ -36,10 +36,26 @@ export class BaseChestWindow extends Window {
         
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size);
+        
+        this.lastChange = {
+            slotIndex: -1, // if it's -1, slotInChest and slotPrevItem are ignored
+            slotInChest: false,
+            slotPrevItem: null,
+            dargPrevItem: null,
+            mergeSmallStacks: false,
+            noChange: false // if it's true, the confirmation requst won't be sent
+        }
+
+        var that = this;
+        function resetLastChange() {
+            that.lastChange.slotIndex = - 1;
+            that.lastChange.mergeSmallStacks = false;
+            that.lastChange.noChange = false;
+        }
 
         // Обработчик открытия формы
         this.onShow = function() {
-            lastChange.slotIndex = - 1;
+            resetLastChange();
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
             if(options.sound.open) {
@@ -48,8 +64,8 @@ export class BaseChestWindow extends Window {
         }
 
         // Обработчик закрытия формы
-        this.onHide = function() {            
-            lastChange.slotIndex = - 1;
+        this.onHide = function() {
+            resetLastChange();
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
             // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             this.inventory.clearDragItem(true);
@@ -126,12 +142,14 @@ export class BaseChestWindow extends Window {
     catchActions() {
 
         function updateLastChange(craftSlot) {
+            const lastChange = craftSlot.parent.lastChange
             lastChange.slotIndex = craftSlot.getIndex();
             lastChange.slotInChest = craftSlot.is_chest_slot;
             const item = craftSlot.getItem();
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dargPrevItem = dargItem ? { ...dargItem } : null;
+            lastChange.mergeSmallStacks = false;
         }
 
         //
@@ -161,10 +179,16 @@ export class BaseChestWindow extends Window {
 
     // Confirm action
     confirmAction() {
+        if (this.lastChange.noChange) {
+            // We know that there is no change - a user action was analyzed and it does nothing.
+            return;
+        }
+        // Here there may or may not be some change, described by this.lastChange or not.
         const params = {
             chest:           {pos: this.info.pos, slots: {}},
             inventory_slots: new Array(this.inventory.items.length),
-            change:          lastChange.slotIndex >= 0 ? lastChange : null
+            change:          this.lastChange.slotIndex >= 0 || this.lastChange.mergeSmallStacks 
+                                ? { ...this.lastChange } : null
         };
         // chest
         for(let k in this.chest.slots) {
@@ -324,12 +348,4 @@ export class BaseChestWindow extends Window {
         return this.chest.slots;
     }
 
-}
-
-// not memberf of the class, because slots have their own "this" in mouse handlers.
-const lastChange = {
-    slotIndex: -1, // if it's -1, the other 2 fields are ignored
-    slotInChest: false,
-    slotPrevItem: null,
-    dargPrevItem: null
 }

@@ -48,7 +48,7 @@ export class CraftTableSlot extends Label {
     }
 
     getIndex() {
-        return this.slot_index !== null ? this.slot_index : this.index;
+        return this.slot_index !== null ? this.slot_index : parseFloat(this.index);
     }
 
     // Draw slot
@@ -357,6 +357,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 const doubleClick = potential_double_click && (performance.now() - this.prev_mousedown_time < 200.0) && (max_stack_count > 1);
                 if(doubleClick) {
                     // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
+                    // It gives the same result in chest_manager.js: applyClientChange()
                     if(dropData.item.count < max_stack_count) {
                         let need_count = max_stack_count - dropData.item.count;
                         // проверить крафт слоты
@@ -365,47 +366,43 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             if(need_count == 0) {
                                 break;
                             }
-                            const slot = slots[i];
-                            if(slot?.item && !slot.item.entity_id && !slot.item.extra_data) {
-                                if(slot.item.id == dropData.item.id) {
-                                    if(slot.item.count != max_stack_count) {
-                                        let minus_count = 0;
-                                        if(slot.item.count < need_count) {
-                                            minus_count = slot.item.count;
-                                        } else {
-                                            minus_count = need_count;
-                                        }
-                                        need_count -= minus_count;
-                                        dropData.item.count += minus_count;
-                                        slot.item.count -= minus_count;
-                                        if(slot.item.count < 1) {
-                                            slots[i].setItem(null, e);
-                                        }
-                                    }
+                            const item = slots[i]?.item;
+                            if(item && !item.entity_id && !item.extra_data &&
+                                item.id == dropData.item.id &&
+                                item.count != max_stack_count
+                            ) {
+                                let minus_count = item.count < need_count ? item.count : need_count;
+                                need_count -= minus_count;
+                                dropData.item.count += minus_count;
+                                item.count -= minus_count;
+                                if(item.count < 1) {
+                                    slots[i].setItem(null, e);
                                 }
+                                this.parent.lastChange.mergeSmallStacks = true;
                             }
                         }
                         // проверить слоты инвентаря
                         const inventory_items = player.inventory.items;
-                        for(let i in inventory_items) {
+                        for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; ++i) {
                             if(need_count == 0) {
                                 break;
                             }
                             const item = inventory_items[i];
-                            if(item && !item.entity_id && !item.extra_data) {
-                                if(item.id == dropData.item.id) {
-                                    if(item.count != max_stack_count) {
-                                        let minus_count = item.count < need_count ? item.count : need_count;
-                                        need_count -= minus_count;
-                                        dropData.item.count += minus_count;
-                                        item.count -= minus_count;
-                                        if(item.count < 1) {
-                                            player.inventory.setItem(i, null);
-                                        }
-                                    }
+                            if(item && !item.entity_id && !item.extra_data &&
+                                item.id == dropData.item.id &&
+                                item.count != max_stack_count
+                            ) {
+                                let minus_count = item.count < need_count ? item.count : need_count;
+                                need_count -= minus_count;
+                                dropData.item.count += minus_count;
+                                item.count -= minus_count;
+                                if(item.count < 1) {
+                                    player.inventory.setItem(i, null);
                                 }
+                                this.parent.lastChange.mergeSmallStacks = true;
                             }
                         }
+                        this.parent.lastChange.noChange = !this.parent.lastChange.mergeSmallStacks;
                         return;
                     }
                 }
