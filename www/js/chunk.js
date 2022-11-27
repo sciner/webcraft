@@ -36,6 +36,7 @@ export class Chunk {
 
         // Fluid
         this.fluid_buf = null;
+        this.fluid_deltas = [];
 
         // Objects & variables
         this.inited = false;
@@ -100,6 +101,10 @@ export class Chunk {
             this.fluid.loadDbBuffer(this.fluid_buf);
             this.fluid_buf = null;
         }
+        for (let i = 0; i < this.fluid_deltas.length; i++) {
+            this.fluid.applyDelta(this.fluid_deltas[i]);
+        }
+        this.fluid_deltas = null;
         //
         const mods_arr = chunkManager.chunk_modifiers.get(this.addr);
         if (mods_arr) {
@@ -613,12 +618,22 @@ export class Chunk {
         if (this.inited) {
             this.fluid.markDirtyMesh();
             this.beginLightChanges();
-            //TODO: make it diff!
             this.fluid.loadDbBuffer(buf, false);
             this.endLightChanges();
             this.chunkManager.dataWorld.syncOuter(this);
         } else {
             this.fluid_buf = buf;
+        }
+    }
+
+    setFluidDelta(buf) {
+        if (this.inited) {
+            this.beginLightChanges();
+            //TODO: make it diff!
+            this.fluid.applyDelta(buf, true);
+            this.endLightChanges();
+        } else {
+            this.fluid_deltas.push(buf);
         }
     }
 }

@@ -148,6 +148,9 @@ export class ChunkManager {
         world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
             this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
+        world.server.AddCmdListener([ServerClient.CMD_FLUID_DELTA], (cmd) => {
+            this.setChunkFluidDelta(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
+        });
         //
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
@@ -266,6 +269,13 @@ export class ChunkManager {
             chunk.setFluid(fluid);
         } else {
             console.error('no_chunk');
+        }
+    }
+
+    setChunkFluidDelta(addr, fluidDelta) {
+        const chunk = this.getChunkForSetData(addr);
+        if(chunk instanceof Chunk) {
+            chunk.setFluidDelta(fluidDelta);
         }
     }
 
