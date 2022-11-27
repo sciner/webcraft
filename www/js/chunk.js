@@ -628,12 +628,10 @@ export class Chunk {
 
     setFluidDelta(buf) {
         if (this.inited) {
-            this.fluid.markDirtyMesh();
             this.beginLightChanges();
             //TODO: make it diff!
-            this.fluid.applyDelta(buf);
+            this.fluid.applyDelta(buf, true);
             this.endLightChanges();
-            this.chunkManager.dataWorld.syncOuter(this);
         } else {
             this.fluid_deltas.push(buf);
         }

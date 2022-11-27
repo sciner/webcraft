@@ -294,7 +294,7 @@ export class FluidChunkQueue {
 
     markDeltaIndex(index) {
         this.markDelta();
-        if (this.deltaPure && this.deltaIndices.length * 3 < this.fluidChunk.lastSavedSize) {
+        if (this.deltaPure && (this.deltaIndices.length + 1) * 3 < this.fluidChunk.lastSavedSize) {
             this.deltaIndices.push(index);
         } else {
             this.deltaPure = false;
@@ -305,7 +305,7 @@ export class FluidChunkQueue {
         this.markDelta();
         if (this.deltaPure && (this.deltaIndices.length + num) * 3 < this.fluidChunk.lastSavedSize) {
             for (let i = 0; i < num; i++) {
-                this.deltaIndices.push(indices[num]);
+                this.deltaIndices.push(indices[i]);
             }
         } else {
             this.deltaPure = false;

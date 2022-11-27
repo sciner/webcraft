@@ -395,15 +395,44 @@ export class FluidChunk {
                 }
     }
 
-    applyDelta(deltaBuf) {
+    applyDelta(deltaBuf, usePortals) {
+        const {cw, outerSize, pos, safeAABB, portals } = this.dataChunk;
+
+        this.markDirtyMesh();
         for (let i = 0; i < deltaBuf.length; i += 3) {
             let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
             let val = deltaBuf[i + 2];
             this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
 
-            //TODO: neib chunks!!!11!!
+            if (!usePortals) {
+                continue;
+            }
+            let tmp = ind - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+
+            const wx = x + pos.x;
+            const wy = y + pos.y;
+            const wz = z + pos.z;
+
+            if (safeAABB.contains(wx, wy, wz)) {
+                continue;
+            }
+            let pcnt = 0;
+            for (let i = 0; i < portals.length; i++) {
+                if (portals[i].aabb.contains(wx, wy, wz)) {
+                    const other = portals[i].toRegion;
+                    other.rev.fluid.uint8View[other.indexByWorld(wx, wy, wz) * FLUID_STRIDE + OFFSET_FLUID] = val;
+                    other.rev.fluid.markDirtyMesh();
+                    pcnt++;
+                }
+            }
         }
-        this.markDirtyMesh();
     }
 
     markDirtyMesh() {
