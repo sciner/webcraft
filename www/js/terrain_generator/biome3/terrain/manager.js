@@ -13,6 +13,7 @@ export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число
 export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
 export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
 export const WATER_LEVEL            = 80;
+export const DENSITY_THRESHOLD      = .6;
 
 //
 class RiverPoint {
@@ -263,7 +264,7 @@ export class TerrainMapManager2 {
 
     getMaxY(cell) {
         const {relief, mid_level} = cell.preset;
-        return Math.max(0, (1 - 0.6) * relief + mid_level * 2) + WATER_LEVEL;
+        return Math.max(0, (1 - DENSITY_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
     }
 
     calcDensity(xyz, cell) {
@@ -305,7 +306,7 @@ export class TerrainMapManager2 {
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        if(h < 0.6) {
+        if(h < DENSITY_THRESHOLD) {
             return ZeroDensity;
         }
 
@@ -462,7 +463,7 @@ export class TerrainMapManager2 {
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
                             const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell);
-                            if(density > .6) {
+                            if(density > DENSITY_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
                                     building.setY(xyz.y + 1);

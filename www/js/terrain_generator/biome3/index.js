@@ -4,7 +4,7 @@ import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
-import {GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
+import {DENSITY_THRESHOLD, GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
@@ -152,7 +152,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const cluster                   = chunk.cluster;
         const map                       = chunk.map;
         const xyz                       = new Vector(0, 0, 0);
-        const MIN_DENSITY               = .6;
 
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
@@ -217,14 +216,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const {d1, d2, d3, d4, density} = density_params;
 
                     //
-                    if(density > MIN_DENSITY) {
+                    if(density > DENSITY_THRESHOLD) {
 
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
                             xyz.y++
                             const over_density_params = this.maps.calcDensity(xyz, cell);
                             xyz.y--
-                            if(over_density_params.density > MIN_DENSITY) {
+                            if(over_density_params.density > DENSITY_THRESHOLD) {
                                 not_air_count = 100;
                             }
                         }
