@@ -185,13 +185,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                // const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
-                const cell              = map.cells[z * CHUNK_SIZE_X + x];
-                const has_cluster       = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
-                const cluster_cell      = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
-                const big_stone_density = calcBigStoneDensity(xyz, has_cluster);
+                const cell                  = map.cells[z * CHUNK_SIZE_X + x];
+                const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
+                const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
+                const big_stone_density     = calcBigStoneDensity(xyz, has_cluster);
+                
+                const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
@@ -307,11 +308,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         not_air_count = 0;
 
+                        // если это уровень воды
                         if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
                             let block_id = BLOCK.STILL_WATER.id;
-                            if(cell.temperature * 2 - 1 < 0 && xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                if((d3 * .6 + d1 * .2 + d4 * .1) > .12) {
+                            // поверхность воды
+                            if(xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
+                                // если холодно, то рисуем рандомные льдины
+                                const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+                                if(water_cap_ice > .12) {
                                     block_id = BLOCK.ICE.id;
+                                    // в еще более рандомных случаях на льдине рисует пику
+                                    if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                                        const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
+                                        for(let ph = 0; ph < peekh; ph++) {
+                                            chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                        }
+                                    }
                                 }
                             }
                             chunk.setBlockIndirect(x, y, z, block_id);
