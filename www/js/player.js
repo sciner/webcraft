@@ -722,6 +722,7 @@ export class Player {
             if (this.headBlock.fluid > 0) {
                 let fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
                 if (eye_y < fluidLevel) {
+                    Qubatch.render.addParticles({type: 'underwater', pos: this.pos});
                     this.eyes_in_block = this.headBlock.getFluidBlockMaterial();
                 }
             }
