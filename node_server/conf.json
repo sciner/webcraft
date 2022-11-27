@@ -51,7 +51,8 @@
         "chat_ping",
         "chat_weather",
         "chat_effects",
-        "chat_setworldspawn"
+        "chat_setworldspawn",
+        "chat_particle"
     ],
     "clientpackets": [
         "cmd_block_clone",
