@@ -2,7 +2,9 @@ import { Vector } from "../helpers.js";
 import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT } from "../constant.js";
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX 
+} from "../constant.js";
 
 export class BaseChestWindow extends Window {
 
@@ -37,6 +39,7 @@ export class BaseChestWindow extends Window {
 
         // Обработчик открытия формы
         this.onShow = function() {
+            lastChange.slotIndex = - 1;
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
             if(options.sound.open) {
@@ -45,7 +48,8 @@ export class BaseChestWindow extends Window {
         }
 
         // Обработчик закрытия формы
-        this.onHide = function() {
+        this.onHide = function() {            
+            lastChange.slotIndex = - 1;
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
             // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             this.inventory.clearDragItem(true);
@@ -102,17 +106,43 @@ export class BaseChestWindow extends Window {
             return false;
         }
 
+        // Updates drag UI if the dragged item changed
+        this.onInventorySetState = function() {
+            const inventory = Qubatch.player.inventory;
+            const prevDragItem = Qubatch.hud.wm.drag.getItem();
+            const newDargItem = inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+            if (newDargItem) {
+                if (prevDragItem == null || newDargItem.id != prevDragItem.id) {
+                    const anySlot = this.inventory_slots[0]; // it's used only for getting size and crawing
+                    inventory.setDragItem(anySlot, newDargItem, Qubatch.hud.wm.drag, anySlot.width, anySlot.height);
+                }
+            } else if (prevDragItem) {
+                Qubatch.hud.wm.drag.clear();
+            }
+        }
     }
 
     // Catch action
     catchActions() {
+
+        function updateLastChange(craftSlot) {
+            lastChange.slotIndex = craftSlot.getIndex();
+            lastChange.slotInChest = craftSlot.is_chest_slot;
+            const item = craftSlot.getItem();
+            lastChange.slotPrevItem = item ? { ...item } : null;
+            const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
+            lastChange.dargPrevItem = dargItem ? { ...dargItem } : null;
+        }
+
         //
         const handlerMouseDown = function(e) {
+            updateLastChange(this);
             this._originalMouseDown(e);
             this.parent.confirmAction();
         };
         //
         const handlerOnDrop = function(e) {
+            updateLastChange(this);
             this._originalOnDrop(e);
             this.parent.confirmAction();
         };
@@ -133,7 +163,8 @@ export class BaseChestWindow extends Window {
     confirmAction() {
         const params = {
             chest:           {pos: this.info.pos, slots: {}},
-            inventory_slots: new Array(this.inventory.items.length)
+            inventory_slots: new Array(this.inventory.items.length),
+            change:          lastChange.slotIndex >= 0 ? lastChange : null
         };
         // chest
         for(let k in this.chest.slots) {
@@ -293,4 +324,12 @@ export class BaseChestWindow extends Window {
         return this.chest.slots;
     }
 
+}
+
+// not memberf of the class, because slots have their own "this" in mouse handlers.
+const lastChange = {
+    slotIndex: -1, // if it's -1, the other 2 fields are ignored
+    slotInChest: false,
+    slotPrevItem: null,
+    dargPrevItem: null
 }

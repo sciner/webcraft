@@ -1,6 +1,8 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT, MOUSE } from "../constant.js";
+import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE 
+} from "../constant.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
@@ -43,6 +45,10 @@ export class CraftTableSlot extends Label {
         } else {
             return this.item;
         }
+    }
+
+    getIndex() {
+        return this.slot_index !== null ? this.slot_index : this.index;
     }
 
     // Draw slot
@@ -432,6 +438,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     } else {
                         // поменять местами перетаскиваемый элемент и содержимое ячейки
                         this.setItem(dropData.item, e);
+                        player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
                         dropData.item = targetItem;
                     }
                 } else {

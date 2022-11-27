@@ -37,6 +37,8 @@ export class PlayerInventory extends Inventory {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
         this.refresh();
+        // update drag UI if the dragged item changed
+        Qubatch.hud.wm.getVisibleWindowOrNull('frmChest')?.onInventorySetState();
     }
 
     get inventory_window() {

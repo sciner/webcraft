@@ -160,6 +160,10 @@ export class Window {
         }
         return this.list.get(id);
     }
+    getVisibleWindowOrNull(id) {
+        const w = this.list.get(id);
+        return w && w.visible ? w : null;
+    }
     move(x, y) {
         this.x = x;
         this.y = y;
