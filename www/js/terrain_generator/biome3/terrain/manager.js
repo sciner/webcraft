@@ -318,7 +318,7 @@ export class TerrainMapManager2 {
             const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
             const river_vert_dist = WATER_LEVEL - xyz.y;
             const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
-            density = Math.min(density, density * river_density);
+            density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
         }
 
         return new DensityParams(d1, d2, d3, d4, density);
@@ -389,8 +389,8 @@ export class TerrainMapManager2 {
     calcBiome(xz) {
 
         // Create map cell
-        const temperature = this.biomes.calcNoise(xz.x, xz.z, 3);
-        const humidity = this.biomes.calcNoise(xz.x, xz.z, 2);
+        const temperature = this.biomes.calcNoise(xz.x / 1.15, xz.z / 1.15, 3, .9);
+        const humidity = this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2);
         const biome = this.biomes.getBiome(temperature, humidity);
 
         return {biome, temperature, humidity};
@@ -456,8 +456,8 @@ export class TerrainMapManager2 {
                                     // set Y for door
                                     building.setY(xyz.y + 1);
                                     // set building cell for biome info
-                                    const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-                                    const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+                                    // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+                                    // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
                                     const {biome, temperature, humidity} = this.calcBiome(xyz);
                                     building.setBiome(biome, temperature, humidity);
                                     break;

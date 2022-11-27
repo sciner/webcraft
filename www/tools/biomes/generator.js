@@ -2,6 +2,9 @@ import {BLOCK} from '../../js/blocks.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk_const.js';
 import {Vector} from '../../js/helpers.js';
 import { Biomes } from '../../js/terrain_generator/biome3/biomes.js';
+import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
+import { alea } from '../../js/terrain_generator/default.js';
+import { TerrainMapManager2 } from '../../js/terrain_generator/biome3/terrain/manager.js';
 
 await BLOCK.init({
     texture_pack: 'base',
@@ -16,7 +19,7 @@ await import('../../js/terrain_generator/biomes.js').then(module => {
 
 globalThis.BLOCK            = BLOCK;
 
-const CHUNK_RENDER_DIST     = 16;
+const CHUNK_RENDER_DIST     = 64;
 const chunk_addr_start      = new Vector(0 - CHUNK_RENDER_DIST, 0, 0 - CHUNK_RENDER_DIST);
 const chunk_coord_start     = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
 const SZ                    = CHUNK_RENDER_DIST * 2;
@@ -53,8 +56,20 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
     const maps_generated = SZ * SZ;
     const imgData = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
 
-    const biomes = new Biomes();
+    const seed = '1';
+
+    const al = new alea(seed);
+    const noise2d = createNoise2D(al.double);
+    const noise3d = createNoise3D(al.double);
+
+    const world_id = al.double();
+
+    const maps = new TerrainMapManager2(seed, world_id, noise2d, noise3d);
+
+    const biomes = new Biomes(noise2d);
     const pn = performance.now();
+
+    const xyz = new Vector(0, 0, 0);
 
     for(let x = 0; x < SZ * CHUNK_SIZE_X; x += 1) {
         for(let z = 0; z < SZ * CHUNK_SIZE_Z; z += 1) {
@@ -62,6 +77,8 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
             const px = chunk_coord_start.x + x;
             const pz = chunk_coord_start.z + z;
             const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
+
+            xyz.set(px, 0, pz);
 
             // water
             const water = 1; // biomes.calcNoise(px, pz, 1)
@@ -73,15 +90,19 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
 
             } else {
 
-                const temp = biomes.calcNoise(px, pz, 3);
-                const humidity = biomes.calcNoise(px, pz, 2);
-                const biome = biomes.getBiome(temp, humidity);
+                const {biome, temperature, humidity} = maps.calcBiome(xyz);
 
                 const c = biome.id / biomes.list.length;
 
-                imgData.data[index + 0] = c * 255
-                imgData.data[index + 1] = c * 255
-                imgData.data[index + 2] = c * 255
+                if(biome.temp <= 0) {
+                    imgData.data[index + 0] = c * 128
+                    imgData.data[index + 1] = c * 128
+                    imgData.data[index + 2] = c * 255
+                } else {
+                    imgData.data[index + 0] = c * 255
+                    imgData.data[index + 1] = c * 128
+                    imgData.data[index + 2] = c * 128
+                }
 
             }
 
