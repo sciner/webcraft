@@ -789,6 +789,7 @@ export class Player {
             }
             case 'legs_enter_to_water': {
                 Qubatch.sounds.play('madcraft:environment', 'water_splash');
+                Qubatch.render.addParticles({type: 'bubble', pos: this.pos});
                 break;
             }
             case 'swim_under_water': {
