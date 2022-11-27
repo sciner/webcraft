@@ -12,7 +12,7 @@ const USE_ROAD_AS_GANGWAY   = 0;
 
 //
 const entranceAhead = new Vector(0, 0, 0);
-const getAheadMove = (dir) => {
+export const getAheadMove = (dir) => {
     entranceAhead.set(0, 0, 0);
     if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
     else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
@@ -34,8 +34,9 @@ export class ClusterVilage extends ClusterBase {
             this.max_height         = this.flat ? 1 : 30;
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createPalette(this.flat ? [
-                {value: BLOCK.ANDESITE, chance: .5},
-                {value: BLOCK.STONE, chance: 1}
+                {value: BLOCK.DIRT_PATH, chance: 1}
+                // {value: BLOCK.ANDESITE, chance: .5},
+                // {value: BLOCK.STONE, chance: 1}
             ] : [
                 {value: BLOCK.DIRT_PATH, chance: 1}
             ]);
@@ -67,7 +68,7 @@ export class ClusterVilage extends ClusterBase {
             let t = performance.now();
             let vs = this.schema = new VilageSchema(this, {
                 margin: CLUSTER_PADDING,
-                road_damage_factor: this.flat ? 0 : ROAD_DAMAGE_FACTOR
+                road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
             });
             let resp = vs.generate(this.id);
             this.timers.generate = performance.now() - t; t = performance.now();
@@ -165,7 +166,7 @@ export class ClusterVilage extends ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(maps, chunk, map) {
+    fillBlocks(maps, chunk, map, fill_blocks = true, call_building_y = true) {
         if(this.is_empty) {
             return false;
         }
@@ -179,7 +180,7 @@ export class ClusterVilage extends ClusterBase {
             // если строение частично или полностью находится в этом чанке
             if(b.aabb.intersect(chunk.aabb)) {
                 // у строения до этого момента нет точной информации о вертикальной позиции двери (а значит и пола)
-                if(b.entrance.y == Infinity) {
+                if(b.entrance.y == Infinity && call_building_y) {
                     // забираем карту того участка, где дверь, чтобы определить точный уровень пола
                     let value2 = 0;
                     for(let entrance of [b.entrance, b.entrance.clone().addSelf(getAheadMove(b.door_direction))]) {
@@ -201,21 +202,19 @@ export class ClusterVilage extends ClusterBase {
                         }
                     }
                     if(value2 > 0) {
-                        b.entrance.y        = value2 - 1;
-                        b.coord.y           = b.entrance.y + b.coord.y;
-                        b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
-                        b.aabb.y_max        = b.aabb.y_min + b.size.y * 3; // + BUILDING_AABB_MARGIN * 5;
-                        b.door_bottom.y     = value2;
+                        b.setY(value2);
                     }
                 }
                 if(b.entrance.y == Infinity) {
-                    console.error('Invalid building y');
+                    // console.error('Invalid building y');
                 } else if(b.aabb.intersect(chunk.aabb)) {
                     this.drawBulding(chunk, maps, b);
                 }
             }
         }
-        super.fillBlocks(maps, chunk, map);
+        if(fill_blocks) {
+            super.fillBlocks(maps, chunk, map);
+        }
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;

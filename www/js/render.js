@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
-import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
+import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -18,7 +18,7 @@ import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 // import { InHandOverlay } from "./ui/inhand_overlay_old.js";
-import { Environment, PRESET_NAMES } from "./environment.js";
+import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -26,6 +26,7 @@ import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from 
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
+import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -611,7 +612,28 @@ export class Renderer {
         if(player.eyes_in_block) {
             if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
-                blockDist = 8; //
+                blockDist = 8;
+
+                const p = FOG_PRESETS[preset];
+                const cm = this.world.chunkManager;
+                const chunk = cm.getChunk(player.chunkAddr);
+                if(chunk) {
+                    const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
+                    const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
+                    const cell_index = z * CHUNK_SIZE_X + x;
+                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 2];
+                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 3];
+                    const color = this.maskColorTex.getColorAt(x_pos, y_pos)
+                    p.color[0] = color.r / 255;
+                    p.color[1] = color.g / 255;
+                    p.color[2] = color.b / 255;
+                    p.addColor[0] = color.r / 255;
+                    p.addColor[1] = color.g / 255;
+                    p.addColor[2] = color.b / 255;
+                    this.env.presets[preset] = new FogPreset(p);
+                    this.env._fogDirty = true;
+                }
+
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
                 blockDist = 6; //

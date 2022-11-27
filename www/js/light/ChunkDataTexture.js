@@ -101,13 +101,14 @@ export class ChunkDataTexture {
 
     writeChunkData(chunk) {
         const { data } = this;
+        const { coord, size } = chunk;
         const ind = chunk._dataTextureOffset * 4 * this.pixelsPerChunk;
         chunk._dataTextureDirty = false;
 
-        data[ind + 0] = chunk.coord.x;
-        data[ind + 1] = chunk.coord.y;
-        data[ind + 2] = chunk.coord.z;
-        data[ind + 3] = 0;
+        data[ind + 0] = coord.x;
+        data[ind + 1] = coord.y;
+        data[ind + 2] = coord.z;
+        data[ind + 3] = size.x | (size.z << 8) | (size.y << 16);
 
         const { lightTex } = chunk;
 

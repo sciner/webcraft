@@ -4,9 +4,11 @@ import {getChunkAddr, SpiralGenerator, Vector, VectorCollector} from "../www/js/
 import {ServerClient} from "../www/js/server_client.js";
 import {FluidWorld} from "../www/js/fluid/FluidWorld.js";
 import {FluidWorldQueue} from "../www/js/fluid/FluidWorldQueue.js";
+import {ItemWorld} from "./ItemWorld.js";
 import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
+import { WorldPortal } from "../www/js/portal.js";
 
 async function waitABit() {
     return true;
@@ -37,6 +39,7 @@ export class ServerChunkManager {
         this.fluidWorld = new FluidWorld(this);
         this.fluidWorld.database = world.db.fluid;
         this.fluidWorld.queue = new FluidWorldQueue(this.fluidWorld);
+        this.itemWorld = new ItemWorld(this);
         this.initRandomTickers(random_tickers);
     }
 
@@ -233,10 +236,49 @@ export class ServerChunkManager {
         return this.get(addr);
     }
 
+    getOrAdd(addr) {
+        var chunk = this.get(addr) 
+        if (chunk == null) {
+            chunk = new ServerChunk(this.world, addr)
+            this.add(chunk);
+        }
+        return chunk;
+    }
+
+    // Returns a chunk with load_state === CHUNK_STATE_BLOCKS_GENERATED, or null
+    getReady(addr) {
+        const chunk = this.all.get(addr);
+        return chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED ? chunk : null;
+    }
+
+    getByPos(pos) {
+        return this.get(getChunkAddr(pos, tmp_getByPos_addrVector));
+    }
+
+    getReadyByPos(pos) {
+        return this.getReady(getChunkAddr(pos, tmp_getByPos_addrVector));
+    }
+
     remove(addr) {
         this.chunk_queue_load.delete(addr);
         this.chunk_queue_gen_mobs.delete(addr);
         this.all.delete(addr);
+    }
+
+    // forces chunks visible to the player to load, and return their list
+    queryPlayerVisibleChunks(player, posOptioanl) {
+        var list = [];
+        const pos = posOptioanl || player.state.pos;
+        const chunk_addr = getChunkAddr(pos);
+        const chunk_render_dist = player.state.chunk_render_dist;
+        const margin            = Math.max(chunk_render_dist + 1, 1);
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        // Find new chunks
+        for(let i = 0; i < spiral_moves_3d.length; i++) {
+            const addr = chunk_addr.add(spiral_moves_3d[i].pos);
+            list.push(this.getOrAdd(addr));
+        }
+        return list;
     }
 
     // Check player visible chunks
@@ -400,4 +442,129 @@ export class ServerChunkManager {
         }
     }
 
+    // Returns the horizontally closest safe position for a player.
+    // If there are no such positions, returns initialPos.
+    findSafePos(initialPos, chunkRenderDist) {
+        let startTime = performance.now();
+        var bestPos = initialPos;
+        var bestDistSqr = Infinity;
+        const _this = this;
+        const pos = initialPos.floored();
+        const initialChunk = this.getReady(getChunkAddr(pos));
+        if (initialChunk == null) {
+            return initialPos;
+        }
+        const chunks = [];
+        for(let chunk of this.getAround(pos, chunkRenderDist)) {
+            chunks.push(chunk);
+        }
+        // Gathers chunks with the same (x, z) together.
+        // Groups of chunks are sorted by the distance to the central column.
+        // Chunks within groups are sorted by decreasing y.
+        chunks.sort(function (a, b) {
+            const dxa = a.addr.x - initialChunk.addr.x;
+            const dza = a.addr.z - initialChunk.addr.z;
+            const dxb = b.addr.x - initialChunk.addr.x;
+            const dzb = b.addr.z - initialChunk.addr.z;
+            var d = (dxa * dxa + dza * dza) - (dxb * dxb + dzb * dzb);
+            if (d != 0) {
+                return d;
+            }
+            d = dxa - dxb;
+            if (d != 0) {
+                return d;
+            }
+            d = dza - dzb;
+            return d != 0 ? d : b.addr.y - a.addr.y;
+        });
+
+        function findSafeFloor(chunkIndex, x, z) {
+            var chunk = chunks[chunkIndex];
+            var topChunkAddr = chunk.addr;
+            const pos = new Vector(x, 0, z);
+            // 2 blocks above the floor must be passable
+            var matPlus2 = _this.DUMMY.material;
+            var matPlus1 = _this.DUMMY.material;
+            // for each chunk of the column
+            do {
+                // for each floor block
+                for(pos.y = chunk.maxBlockY; pos.y >= chunk.coord.y; --pos.y) {
+                    const mat = chunk.getMaterial(pos);
+                    // This is the top-most block that looks like some floor.
+                    // We don't check any flors below that to avoid spawning in a cave.
+                    if (WorldPortal.suitablePortalFloorMaterial(mat) &&
+                        (matPlus1.passable || matPlus1.transparent)
+                    ) {
+                        // check if it's a suitable floor
+                        if (matPlus1.passable != 1 ||
+                            matPlus2.passable != 1 ||
+                            // can spawn in 1-block-deep water
+                            _this.fluidWorld.isFluid(pos.x, pos.y + 2, pos.z) ||
+                            _this.fluidWorld.isLava(pos.x, pos.y + 1, pos.z)
+                        ) {
+                            return;
+                        }
+                        // looks safe
+                        const dist = pos.horizontalDistanceSqr(initialPos);
+                        if (bestDistSqr > dist) {
+                            bestDistSqr = dist;
+                            bestPos = pos;
+                            // spawn in the middle of a block
+                            pos.x += 0.5;
+                            pos.y += 1;
+                            pos.z += 0.5;
+                        }
+                        return;
+                    }
+                    // shift the 2 upper blocks
+                    matPlus2 = matPlus1;
+                    matPlus1 = mat;
+                }
+                // go to the chunk below
+                ++chunkIndex;
+                if (chunkIndex >= chunks.length)
+                    return;
+                chunk = chunks[chunkIndex];
+            } while(chunk.addr.x === topChunkAddr.x && chunk.addr.z === topChunkAddr.z)
+        }
+        // check the initial pos
+        pos.copyFrom(initialPos).flooredSelf();
+        findSafeFloor(0, pos.x, pos.z);
+        if (bestDistSqr < Infinity) {
+            // Don't log fast calls, they take a few ms.
+            return bestPos;
+        }
+        // for each vertical column of chunks
+        var topChunkIndex = 0;
+        while(topChunkIndex < chunks.length) {
+            const chunk = chunks[topChunkIndex];
+            const chunkDist = chunk.addr.horizontalDistance(initialChunk.addr);
+            // tweak it to change acuracy/performance
+            var dxz = Math.min(8, 2 + 2 * Math.floor(chunkDist));
+            // for each colum of blocks
+            for(var x = chunk.coord.x; x <= chunk.maxBlockX; x += dxz) {
+                for(var z = chunk.coord.z; z <= chunk.maxBlockZ; z += dxz) {
+                    findSafeFloor(topChunkIndex, x, z);
+                }
+            }
+            /* We find not a globally closest safe position, but a safe position closest
+            to the initial position from the 1st chunk colum that has any safe positions.
+            It's a compromise between speed and finding the closest safe position. */
+            if (bestDistSqr < Infinity) {
+                break;
+            }
+            // skip all the chunks below the top chunk
+            do {
+                ++topChunkIndex;
+            } while(topChunkIndex < chunks.length && 
+                chunks[topChunkIndex].addr.x === chunk.addr.x &&
+                chunks[topChunkIndex].addr.z === chunk.addr.z)
+        }
+        let dt = Math.round(performance.now() - startTime);
+        console.log(`Finding safe position (${initialPos.x}, ${initialPos.y}, ${initialPos.z}) -> (${bestPos.x}, ${bestPos.y}, ${bestPos.z}); elpased: ${dt} ms`);
+        return bestPos;
+    }
+
 }
+
+const tmp_getByPos_addrVector       = new Vector();

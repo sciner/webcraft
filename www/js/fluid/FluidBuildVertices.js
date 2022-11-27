@@ -1,6 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
-import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT } from "./FluidConst.js";
+import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH } from "./FluidConst.js";
 
 const fluidMaterials = [];
 
@@ -177,7 +177,8 @@ export function getBlockByFluidVal(fluidVal) {
 }
 
 export function buildFluidVertices(mesher, fluidChunk) {
-    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { cx, cy, cz, cw, size } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const { packedCells } = fluidChunk.parentChunk;
     const { uint16View } = fluidChunk;
 
     if (fluidMaterials.length === 0) {
@@ -188,11 +189,13 @@ export function buildFluidVertices(mesher, fluidChunk) {
     let buffers = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
+    //for map
 
     // we have fluids in chunk!
     const neib = [0, 0, 0, 0, 0, 0];
     const hasNeib = [0, 0, 0, 0, 0, 0];
     const texAlter = [0, 0, 0, 0];
+    const clrIndex = IndexedColor.WATER.clone();
     for (let y = bounds.y_min; y <= bounds.y_max; y++)
         for (let z = bounds.z_min; z <= bounds.z_max; z++)
             for (let x = bounds.x_min; x <= bounds.x_max; x++) {
@@ -228,13 +231,14 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 let clr = 0;
                 let flags = mat.flags;
                 if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
-                    //const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
-                    /*const resp = processBlock(block, neighbours,
-                        cell.biome, cell.dirt_color,*/
-                    clr = IndexedColor.WATER.packed;
+                    if (packedCells) {
+                        const ind = z * size.x + x;
+                        clrIndex.r = packedCells[ind * PACKED_CELL_LENGTH + 2];
+                        clrIndex.g = packedCells[ind * PACKED_CELL_LENGTH + 3];
+                    }
+                    clr = clrIndex.pack();
                 }
 
-                let x0 = 0, x1 = 1, z0 = 0, z1 = 1;
                 let y0 = 0;
 
                 let epsShift = 0;

@@ -2283,7 +2283,7 @@ async function setFurnitureUpholstery(e, world, pos, player, world_block, world_
 
 // Remove furniture upholstery
 async function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if(['chair', 'stool'].includes(world_material.style)) {
+    if(world_material && ['chair', 'stool'].includes(world_material.style)) {
         if(extra_data.is_head) {
             pos = new Vector(0, -1, 0).add(pos);
             world_block = world.getBlock(pos);

@@ -519,6 +519,21 @@ export class Vector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+
+    static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
+    
+    // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
+    static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
+    static {
+        for(var i = 1; i < 6; ++i) {
+            this.SIX_DIRECTIONS_CUMULATIVE.push(
+                this.SIX_DIRECTIONS[i].sub(this.SIX_DIRECTIONS[i - 1]));
+        }
+    }
+
+    static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
+    static ZERO_AND_SIX_DIRECTIONS_CUMULATIVE = [this.ZERO].concat(this.SIX_DIRECTIONS_CUMULATIVE);
+
     /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
@@ -571,6 +586,7 @@ export class Vector {
     }
 
     /**
+     * Much faster than set() if we know the soure type.
      * @param {Vector} vec
      */
     copyFrom(vec) {
@@ -725,6 +741,13 @@ export class Vector {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
+    distanceSqr(vec) {
+        let x = this.x - vec.x;
+        let y = this.y - vec.y;
+        let z = this.z - vec.z;
+        return x * x + y * y + z * z;
+    }
+
     /**
      * @param {Vector} vec
      * @return {number}
@@ -733,6 +756,12 @@ export class Vector {
         const x = this.x - vec.x;
         const z = this.z - vec.z;
         return Math.sqrt(x * x + z * z);
+    }
+
+    horizontalDistanceSqr(vec) {
+        const x = this.x - vec.x;
+        const z = this.z - vec.z;
+        return x * x + z * z;
     }
 
     // distancePointLine...
@@ -893,6 +922,22 @@ export class Vector {
         this.x += x;
         this.y += y;
         this.z += z;
+        return this;
+    }
+
+    /**
+     * Identical semantics to the constructor, but more optimized for Vector argument.
+     * Useful for safely replacing the constructor calls.
+     */
+    initFrom(x, y, z) {
+        if (x instanceof Vector) { // this optimization helps a lot
+            return this.copyFrom(x);
+        }
+
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.set(x, y, z);
         return this;
     }
 
@@ -1167,9 +1212,21 @@ export class IndexedColor {
         return this;
     }
 
+    flooredSelf() {
+        this.r = Math.floor(this.r);
+        this.g = Math.floor(this.g);
+        this.b = Math.floor(this.b);
+        return this;
+    }
+
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
+    
+    clone() {
+        return new IndexedColor(this.r, this.g, this.b);
+    }
+
 }
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
@@ -1452,6 +1509,25 @@ export class Helpers {
         return Math.round(pos1.distance(pos2) / delta * 360) / 100;
     }
 
+}
+
+export class ArrayHelpers {
+    static fastDelete(arr, index) {
+        arr[index] = arr[arr.length - 1];
+        --arr.length;
+    }
+
+    static filterSelf(arr, predicate) {
+        var src = 0;
+        var dst = 0;
+        while (src < arr.length) {
+            if (predicate(arr[src])) {
+                arr[dst++] = arr[src];
+            }
+            ++src;
+        }
+        arr.length = dst;
+    }
 }
 
 // Make fetch functions

@@ -389,7 +389,6 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
-        this.propsID++;
     }
 
     markDirtyMesh() {

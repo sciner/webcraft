@@ -67,8 +67,7 @@ export class WorldPortal {
     }
 
     //
-    static suitablePortalFloorBlock(b) {
-        const mat = b.material;
+    static suitablePortalFloorMaterial(mat) {
         return (mat.passable == 0) &&
             (!mat.transparent) &&
             ['default', 'cube'].includes(mat.style) &&
@@ -90,7 +89,7 @@ export class WorldPortal {
                         return false;
                     }
                     if(b_pos.y == pos.y) {
-                        if(!WorldPortal.suitablePortalFloorBlock(b)) {
+                        if(!WorldPortal.suitablePortalFloorMaterial(b.material)) {
                             return false;
                         }
                     } else if((b.id != bm.AIR.id) && !b.material.is_grass) {

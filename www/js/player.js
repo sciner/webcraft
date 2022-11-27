@@ -21,6 +21,12 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
+export const PLAYER_STATUS_DEAD         = 0;
+/* A player with this status is alive, but doesn't move or interat with the world
+until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
+export const PLAYER_STATUS_WAITING_DATA = 1;
+export const PLAYER_STATUS_ALIVE        = 2;
+
 // Creates a new local player manager.
 export class Player {
 
@@ -38,6 +44,7 @@ export class Player {
             ping:               0
         };
         this.effects = {effects:[]}
+        this.status = PLAYER_STATUS_WAITING_DATA;
 
         this.headBlock = null;
     }
@@ -67,6 +74,7 @@ export class Player {
         //
         this.session                = data.session;
         this.state                  = data.state;
+        this.status                 = data.status;
         this.indicators             = data.state.indicators;
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
@@ -129,8 +137,17 @@ export class Player {
         this.chat                   = new Chat(this);
         this.controls               = new PlayerControl(this.options);
         this.windows                = new PlayerWindowManager(this);
+        if (this.status === PLAYER_STATUS_DEAD) {
+            this.setDie();            
+        }
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_WAITING_DATA], (cmd) => {
+            this.status = PLAYER_STATUS_WAITING_DATA;
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_ALIVE], (cmd) => {
+            this.status = PLAYER_STATUS_ALIVE;
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
@@ -355,7 +372,13 @@ export class Player {
                 const cur_mat_id = this.inventory.current_item?.id;
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
-                    if(this.startItemUse(cur_mat)) {
+                    // putting items into a pot takes priority over using them
+                    var canPutIntoPot = false;
+                    if (cur_mat.tags.includes("can_put_info_pot")) {
+                        const targetBlock = this.pickAt.getTargetBlock(this);
+                        canPutIntoPot = targetBlock && targetBlock.material.tags.includes("pot");
+                    }
+                    if(!canPutIntoPot && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -500,8 +523,8 @@ export class Player {
     }
 
     // Teleport
-    teleport(place_id, pos) {
-        this.world.server.Teleport(place_id, pos);
+    teleport(place_id, pos, safe) {
+        this.world.server.Teleport(place_id, pos, safe);
     }
 
     // Returns the position of the eyes of the player for rendering.
@@ -547,7 +570,25 @@ export class Player {
 
     setFlying(value) {
         let pc = this.getPlayerControl();
+        pc.mul = 1;
         pc.player_state.flying = value;
+    }
+
+    //
+    changeSpectatorSpeed(value) {
+        if(!this.game_mode.isSpectator()) {
+            return false;
+        }
+        const pc = this.pr_spectator;
+        let mul = pc.mul ?? 1;
+        const multiplyer = 1.05;
+        if(value > 0) {
+            mul = Math.min(mul * multiplyer, 16);
+        } else {
+            mul = Math.max(mul / multiplyer, 0.05);
+        }
+        pc.mul = mul;
+        return true;
     }
 
     //
@@ -562,7 +603,7 @@ export class Player {
     update(delta) {
 
         // View
-        if(this.lastUpdate) {
+        if(this.lastUpdate && this.status !== PLAYER_STATUS_WAITING_DATA) {
 
             // for compatibility with renderHandsWithItems
             this.yBobO = this.yBob;
@@ -748,6 +789,7 @@ export class Player {
             }
             case 'legs_enter_to_water': {
                 Qubatch.sounds.play('madcraft:environment', 'water_splash');
+                Qubatch.render.addParticles({type: 'bubble', pos: this.pos});
                 break;
             }
             case 'swim_under_water': {
@@ -836,6 +878,7 @@ export class Player {
     }
 
     setDie() {
+        this.status = PLAYER_STATUS_DEAD;
         this.moving = false;
         this.running = false;
         this.controls.reset();

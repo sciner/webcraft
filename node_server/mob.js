@@ -1,6 +1,7 @@
 import { MOUSE } from "../www/js/constant.js";
 import { getChunkAddr, Vector } from "../www/js/helpers.js";
 import { ServerClient } from "../www/js/server_client.js";
+import {PLAYER_STATUS_ALIVE} from "../www/js/player.js";
 
 //
 export class MobState {
@@ -195,7 +196,7 @@ export class Mob {
 
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать
     playerCanBeAtacked(player) {
-        return !player || player.is_dead || !player.game_mode.getCurrent().can_take_damage;
+        return !player || player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
     //

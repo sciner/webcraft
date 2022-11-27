@@ -1957,7 +1957,8 @@
             "tags": [
                 "layering",
                 "is_solid_for_fluid",
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_drop"
             ]
         },
         {
@@ -4068,6 +4069,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/carrot.png",
             "food": {
                 "amount": 3,
@@ -4083,6 +4087,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.3
@@ -4409,6 +4416,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/wheat.png"
         },
         {
@@ -4420,6 +4430,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -5149,7 +5162,10 @@
             "item": {"name": "bone_meal"},
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 1421,
@@ -5161,6 +5177,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.1
@@ -5176,6 +5195,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.1
@@ -5190,7 +5212,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 1424,
@@ -5302,6 +5327,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.3
@@ -5328,6 +5356,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.1
@@ -5343,6 +5374,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 6,
                 "saturation": 0.6
@@ -5359,6 +5393,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.3
@@ -5374,6 +5411,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 6,
                 "saturation": 0.8
@@ -5390,6 +5430,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5405,6 +5448,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -5421,6 +5467,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5436,6 +5485,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.8
@@ -5452,6 +5504,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5467,6 +5522,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.8
@@ -5521,6 +5579,9 @@
             "material": {
                 "id": "plant"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.3
@@ -6729,7 +6790,10 @@
             },
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 33,
@@ -6960,6 +7024,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 1,
                 "saturation": 0.3
@@ -6975,6 +7042,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -7388,6 +7458,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/beetroot.png"
         },
         {
@@ -7399,6 +7472,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.3

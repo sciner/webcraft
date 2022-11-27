@@ -1,11 +1,12 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector} from "../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
+import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { MobGenerator } from "./mob/generator.js";
 
 export const CHUNK_STATE_NEW               = 0;
@@ -101,7 +102,11 @@ class TickingBlockManager {
             }
             const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
             if(Array.isArray(upd_blocks)) {
-                updated_blocks.push(...upd_blocks);
+                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
+                ArrayHelpers.filterSelf(upd_blocks, v => v != null);
+                if (upd_blocks.length > 0) {
+                    updated_blocks.push(...upd_blocks);
+                }
             }
         }
 
@@ -146,6 +151,18 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_NEW);
         this.dataChunk      = null;
         this.fluid          = null;
+    }
+
+    get maxBlockX() {
+        return this.coord.x + (CHUNK_SIZE_X - 1);
+    }
+    
+    get maxBlockY() {
+        return this.coord.y + (CHUNK_SIZE_Y - 1);
+    }
+    
+    get maxBlockZ() {
+        return this.coord.z + (CHUNK_SIZE_Z - 1);
     }
 
     // Set chunk init state
@@ -268,6 +285,7 @@ export class ServerChunk {
 
     // Add drop item
     addDropItem(drop_item) {
+        drop_item.setPrevChunkAddr(this.addr);
         this.drop_items.set(drop_item.entity_id, drop_item);
         let packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,
@@ -462,33 +480,94 @@ export class ServerChunk {
         return this.world.chunks;
     }
 
+    // It's slightly faster than getBlock().
+    getMaterial(pos, y, z, fromOtherChunks = false) {
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
+            return this.getChunkManager().DUMMY.material;
+        }
+
+        if (typeof pos == 'number') {
+            pos = tmp_posVector.set(pos, y, z);
+        } else {
+            // We expect (typeof pos == 'object') here.
+            pos = tmp_posVector.initFrom(pos);
+            fromOtherChunks = y;
+        }
+        pos.flooredSelf().subSelf(this.coord);
+
+        if (pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            if (fromOtherChunks) {
+                pos.addSelf(this.coord);
+                const otherChunk = this.world.chunks.getReadyByPos(pos);
+                if (otherChunk) {
+                    // this recursion it doesn't affect tmp_posVector
+                    return otherChunk.getMaterial(pos);
+                }
+            }
+            return this.getChunkManager().DUMMY.material;
+        }
+        return this.tblocks.getMaterial(pos);
+    }
+
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(pos, y, z) {
+    // If the argument after the coordiantes (y or fromOtherChunks) is true,
+    // it can return blocks from chunks outside its boundary.
+    getBlock(pos, y, z, resultBlock = null, fromOtherChunks = false) {
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
             return this.getChunkManager().DUMMY;
         }
 
         if (typeof pos == 'number') {
-            pos = new Vector(pos, y, z).flooredSelf().subSelf(this.coord);
-        } else if (typeof pos == 'Vector') {
-            pos = pos.floored().subSelf(this.coord);
-        } else if (typeof pos == 'object') {
-            pos = new Vector(pos).flooredSelf().subSelf(this.coord);
+            pos = tmp_posVector.set(pos, y, z);
+        } else {
+            // We expect (typeof pos == 'object') here.
+            pos = tmp_posVector.initFrom(pos);
+            resultBlock = y;
+            fromOtherChunks = z;
         }
+        pos.flooredSelf().subSelf(this.coord);
 
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            if (fromOtherChunks) {
+                pos.addSelf(this.coord);
+                const otherChunk = this.world.chunks.getReadyByPos(pos);
+                if (otherChunk) {
+                    // this recursion it doesn't affect tmp_posVector
+                    return otherChunk.getBlock(pos, resultBlock);
+                }
+            }
             return this.getChunkManager().DUMMY;
         }
-        const block = this.tblocks.get(pos);
-        return block;
+        return this.tblocks.get(pos.clone(), resultBlock);
     }
 
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
         return BLOCK.convertItemToDBItem(block);
+    }
+
+    getFluidValue(pos, y, z) {
+        if (typeof pos == 'object') {
+            y = pos.y;
+            z = pos.z;
+            pos = pos.x;
+        }
+        return this.fluid.uint8View[FLUID_STRIDE * this.dataChunk.indexByWorld(pos, y, z) + OFFSET_FLUID];
+    }
+
+    isLava(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_LAVA_ID;
+    }
+
+    isWater(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+    }
+
+    isFluid(pos, y, z) {
+        return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
     // onBlockSet
@@ -542,15 +621,17 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour) {
 
         const world = this.world;
-
+        
         //
         function createDrop(tblock) {
             const pos = tblock.posworld;
             const actions = new WorldAction(null, world, false, true);
             actions.addBlocks([
                 {pos: pos.clone(), item: BLOCK.AIR}
-            ])
-            actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+            ]);
+            if (!tblock.material.tags.includes('no_drop')) {
+                actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+            }
             world.actions_queue.add(null, actions);
         }
 
@@ -561,6 +642,10 @@ export class ServerChunk {
 
         //
         if(neighbour.id == 0) {
+            
+            if (tblock.id == BLOCK.SNOW.id && neighbour.posworld.y < pos.y) {
+                return createDrop(tblock);
+            }
 
             switch(tblock.material.style) {
                 case 'rails':
@@ -743,3 +828,5 @@ export class ServerChunk {
     }
 
 }
+
+const tmp_posVector         = new Vector();

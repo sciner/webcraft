@@ -11,6 +11,8 @@ let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
 // let world               = null;
 
+const RAF_MS = 20; //ms per one world update
+
 const worker = globalThis.worker = {
 
     init: function() {
@@ -102,6 +104,19 @@ async function initWorld(
     globalThis.world = await worlds.add(generator, world_seed, world_guid);
     // Worker inited
     worker.postMessage(['world_inited', null]);
+
+    setTimeout(run, 0);
+}
+
+function run() {
+    const now = performance.now();
+    try {
+        worlds.process({maxMs: RAF_MS});
+    } catch (e) {
+        console.error(e);
+    }
+    const passed = Math.ceil(performance.now() - now);
+    setTimeout(run, Math.max(0, RAF_MS - passed));
 }
 
 // On message callback function
@@ -144,19 +159,10 @@ async function onMessageFunc(e) {
                         uniqId:         item.uniqId,
                         tblocks:        non_zero > 0 ? chunk.tblocks.saveState() : null,
                         ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
-                        map:            chunk.map
+                        packedCells:    chunk.packCells()
                     }]);
                 } else {
-                    const ci = world.createChunk(item);
-                    const non_zero = ci.tblocks.refreshNonZero();
-                    const ci2 = {
-                        addr: ci.addr,
-                        uniqId: item.uniqId,
-                        // key: ci.key,
-                        tblocks: non_zero > 0 ? ci.tblocks.saveState() : null,
-                        ticking_blocks: ci.ticking_blocks
-                    }
-                    worker.postMessage(['blocks_generated', ci2]);
+                    world.createChunk(item);
                 }
             }
             break;
@@ -175,50 +181,23 @@ async function onMessageFunc(e) {
             break;
         }
         case 'buildVertices': {
-            const results = [];
             for(let ind = 0; ind < args.addrs.length; ind++) {
                 const addr = args.addrs[ind];
                 const dataOffset = args.offsets[ind];
                 const chunk = world.chunks.get(addr);
                 if(chunk) {
                     chunk.dataOffset = dataOffset;
-                    // 4. Rebuild vertices list
-                    const item = buildVertices(chunk, false);
-                    if(item) {
-                        item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
-                        let index = 0;
-                        for(let z = 0; z < chunk.size.z; z++) {
-                            for(let x = 0; x < chunk.size.x; x++) {
-                                item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.r;
-                                item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.g;
-                            }
-                        }
-                        results.push(item);
-                        chunk.vertices = null;
+
+                    if (!chunk.buildVerticesInProgress) {
+                        world.chunks.buildQueue?.push(chunk);
                     }
                 }
             }
-            worker.postMessage(['vertices_generated', results]);
             break;
         }
         case 'setBlock': {
-            let chunks = new VectorCollector();
             const chunk_addr = new Vector(0, 0, 0);
             const pos_world = new Vector(0, 0, 0);
-            //
-            const neighbour_chunk_addr = new Vector(0, 0, 0);
-            const addNeighbourChunk = (chunk, vec_add) => {
-                // console.log(chunk.tblocks.getNeightboursChunks());
-                neighbour_chunk_addr.copyFrom(chunk.addr).addSelf(vec_add);
-                if(chunks.has(neighbour_chunk_addr)) {
-                    return false;
-                }
-                const neighbour = world.getChunk(neighbour_chunk_addr);
-                if(neighbour) {
-                    chunks.set(neighbour.addr, neighbour);
-                }
-            };
-            //
             for(let i = 0; i < args.length; i++) {
                 const m = args[i];
                 // 1. Get chunk
@@ -230,33 +209,11 @@ async function onMessageFunc(e) {
                         chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
                     pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z);
-                    //
-                    if(pos_world.x == CHUNK_SIZE_X - 1) addNeighbourChunk(chunk, Vector.XP);
-                    if(pos_world.x == 0) addNeighbourChunk(chunk, Vector.XN);
-                    if(pos_world.y == CHUNK_SIZE_Y - 1) addNeighbourChunk(chunk, Vector.YP);
-                    if(pos_world.y == 0) addNeighbourChunk(chunk, Vector.YN);
-                    if(pos_world.z == CHUNK_SIZE_Z - 1) addNeighbourChunk(chunk, Vector.ZP);
-                    if(pos_world.z == 0) addNeighbourChunk(chunk, Vector.ZN);
-                    // 3. Clear vertices for block and around near
                     chunk.setDirtyBlocks(pos_world);
-                    chunks.set(chunk_addr, chunk);
                 } else {
                     console.error('worker.setBlock: chunk not found at addr: ', m.addr);
                 }
             }
-            // 4. Rebuild vertices list
-            const result = [];
-            for(let chunk of chunks) {
-                const item = buildVertices(chunk, false);
-                if(item) {
-                    result.push(item);
-                    chunk.vertices = null;
-                } else {
-                    chunk.dirty = true;
-                }
-            }
-            // 5. Send result to chunk manager
-            worker.postMessage(['vertices_generated', result]);
             break;
         }
         case 'stat': {
@@ -306,6 +263,13 @@ async function onMessageFunc(e) {
             */
             break;
         }
+        case 'setPotentialCenter': {
+            if (args.pos) {
+                world.ensureBuildQueue();
+                world.checkPotential(new Vector().copyFrom(args.pos).round());
+            }
+            break;
+        }
     }
 }
 
@@ -313,33 +277,4 @@ if(typeof process !== 'undefined') {
     import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
 } else {
     onmessage = onMessageFunc
-}
-
-const buildSettings = {
-    enableCache : true,
-}
-// Rebuild vertices list
-function buildVertices(chunk, return_map) {
-    let prev_dirty = chunk.dirty;
-    let pm = performance.now();
-    chunk.dirty = true;
-    let is_builded = chunk.buildVertices(buildSettings);
-    if(!is_builded) {
-        chunk.dirty = prev_dirty;
-        return null;
-    }
-    chunk.timers.build_vertices = Math.round((performance.now() - pm) * 1000) / 1000;
-    let resp = {
-        key:                    chunk.key,
-        addr:                   chunk.addr,
-        vertices:               chunk.serializedVertices,
-        gravity_blocks:         chunk.gravity_blocks,
-        fluid_blocks:           chunk.fluid_blocks,
-        timers:                 chunk.timers,
-        tm:                     chunk.tm,
-    };
-    if(return_map) {
-        resp.map = chunk.map;
-    }
-    return resp;
 }

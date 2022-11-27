@@ -29,9 +29,11 @@ export class Default_Terrain_Map {
 //
 export class Default_Terrain_Generator {
 
-    constructor(seed, world_id, options) {
+    constructor(seed, world_id, options, noise2d, noise3d) {
         this.voxel_buildings = [];
         this.setSeed(seed);
+        this.noise2d        = noise2d ?? noise.simplex2;
+        this.noise3d        = noise3d ?? noise.simplex3;
         this.world_id       = world_id;
         this.options        = options;
         this.x              = 0;
@@ -46,8 +48,13 @@ export class Default_Terrain_Generator {
         };
     }
 
+    async init() {
+        return true;
+    }
+
     async setSeed(seed) {
         this.seed = seed;
+        this.seed_int = parseInt(this.seed);
         noise.seed(this.seed);
         this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
     }
@@ -162,6 +169,11 @@ export class Default_Terrain_Generator {
             // mushroom
             case 'mushroom': {
                 this.plantMushroom(options, chunk, x, y, z)
+                break;
+            }
+            // brown_mushroom
+            case 'brown_mushroom': {
+                this.plantBrownMushroom(options, chunk, x, y, z)
                 break;
             }
             // акация
@@ -389,6 +401,62 @@ export class Default_Terrain_Generator {
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                             this.temp_block.id = options.type.leaves;
                             this.setTreeBlock(options, chunk, i, py, j, this.temp_block, false);
+                        }
+                    }
+                }
+            }
+            py--;
+        }
+    }
+
+    // Brown mushroom
+    plantBrownMushroom(options, chunk, x, y, z) {
+        let ystart = y + options.height;
+        // ствол
+        for(let p = y; p < ystart; p++) {
+            this.temp_block.id = options.type.trunk;
+            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+        }
+        // листва
+        let py = y + options.height;
+        let b = null;
+        for(let rad of [1, 3]) {
+            for(let i = -rad; i <= rad; i++) {
+                for(let j = -rad; j <= rad; j++) {
+                    if(py < y + options.height) {
+                        if(Math.abs(i) < 2 && Math.abs(j) < 2) {
+                            continue;
+                        }
+                    }
+                    if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
+                        let m = (i == -rad && j == -rad) ||
+                            (i == rad && j == rad) ||
+                            (i == -rad && j == rad) ||
+                            (i == rad && j == -rad);
+                        if(m && py < y + options.height) {
+                            continue;
+                        }
+                        this.xyz_temp_find.set(i + x, py, j + z);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
+                        let b_id = b.id;
+                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                            this.temp_block.id = options.type.leaves;
+                            // determining which side to cover with which texture
+                            let t = 0;
+                            if(py >= y + options.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                            if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                            if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                            if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                            if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            //
+                            if(py < y + options.height) {
+                                if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                                if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                                if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                                if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            }
+                            const extra_data = t ? {t: t} : null;
+                            this.setTreeBlock(options, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                         }
                     }
                 }

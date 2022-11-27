@@ -10,15 +10,26 @@ export function compressNearby(nearby, use_start_vec = true) {
     const mid = Math.floor(BINARY_ALPHABET.length / 2);
     const nb = [];
     const start_vec = new Vector(0, 0, 0);
+    var end_vec = start_vec; // used for deleted; if end_vec === start_vec, it's not saved
     const _temp_vec = new Vector(0, 0, 0);
     if(nearby.added.length) {
         start_vec.copyFrom(nearby.added[0].addr);
+        // a big distance between start_vec and end_vec is possible when teleporting
+        if (nearby.deleted.length && nearby.deleted[0].distanceSqr(nearby.added[0].addr) > 3) {
+            end_vec = new Vector(0, 0, 0);
+            end_vec.copyFrom(nearby.deleted[0]);
+        }
     } else {
         start_vec.copyFrom(nearby.deleted[0]);
     }
     //
     nb.push(nearby.chunk_render_dist);
-    nb.push(use_start_vec ? start_vec.toHash() : '');
+    if (use_start_vec) {
+        nb.push(start_vec.toHash());
+        nb.push(end_vec !== start_vec ? end_vec.toHash() : '');
+    } else {
+        nb.push('');
+    }
     const getSymbol = (num) => {
         return BINARY_ALPHABET[mid + num];
     };
@@ -45,7 +56,7 @@ export function compressNearby(nearby, use_start_vec = true) {
     for(let i = 0; i < nearby.deleted.length; i++) {
         const addr = nearby.deleted[i];
         if(use_start_vec) {
-            _temp_vec.copyFrom(addr).subSelf(start_vec);
+            _temp_vec.copyFrom(addr).subSelf(end_vec);
             const m = getSymbol(_temp_vec.x) + getSymbol(_temp_vec.y) + getSymbol(_temp_vec.z);
             if(m.length > 4) {
                 return compressNearby(nearby, false);
@@ -75,11 +86,18 @@ export function decompressNearby(str) {
         deleted: []
     };
     // start_vec
-    const sdfgh = arr.shift();
-    const use_start_vec = sdfgh.length > 0;
+    const star_vec_string = arr.shift();
+    const use_start_vec = star_vec_string.length > 0;
     const start_vec = new Vector(0, 0, 0);
+    var end_vec = start_vec;
     if(use_start_vec) {
-        start_vec.set(sdfgh.split(',').map(x => parseInt(x)));
+        start_vec.set(star_vec_string.split(',').map(x => parseInt(x)));
+        // end vec
+        const end_vec_string = arr.shift();
+        if(end_vec_string.length > 0) {
+            end_vec = new Vector(0, 0, 0);
+            end_vec.set(end_vec_string.split(',').map(x => parseInt(x)));
+        }
     }
     // added
     let added = arr.shift();
@@ -114,7 +132,7 @@ export function decompressNearby(str) {
             let x = BINARY_ALPHABET.indexOf(deleted[i + 0]) - mid;
             let y = BINARY_ALPHABET.indexOf(deleted[i + 1]) - mid;
             let z = BINARY_ALPHABET.indexOf(deleted[i + 2]) - mid;
-            const addr = new Vector(x, y, z).addSelf(start_vec);
+            const addr = new Vector(x, y, z).addSelf(end_vec);
             nearby.deleted.push(addr)
         }
     } else {
