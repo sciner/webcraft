@@ -113,6 +113,8 @@ export class TerrainMapManager2 {
         }
         this.rnd_presets = new alea(seed);
         this.presets.sort(() => .5 - this.rnd_presets.double());
+
+        this.noise3d.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
     }
 
     // Delete map for unused chunk
@@ -259,6 +261,11 @@ export class TerrainMapManager2 {
         return Math.abs(value); // Helpers.clamp(value, -1, 1)
     }
 
+    getMaxY(cell) {
+        const {relief, mid_level} = cell.preset;
+        return Math.max(0, (1 - 0.6) * relief + mid_level * 2) + WATER_LEVEL;
+    }
+
     calcDensity(xyz, cell) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
@@ -302,10 +309,10 @@ export class TerrainMapManager2 {
             return ZeroDensity;
         }
 
-        const d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-        const d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-        const d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-        const d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
+        const d1 = this.noise3d.getGlobalAt(0, xyz);
+        const d2 = this.noise3d.getGlobalAt(1, xyz);
+        const d3 = this.noise3d.getGlobalAt(2, xyz);
+        const d4 = this.noise3d.getGlobalAt(3, xyz);
 
         let density = (
             // 64/120 + 32/120 + 16/120 + 8/120
@@ -413,6 +420,7 @@ export class TerrainMapManager2 {
             debugger
         }
 
+        const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
         // 1. Fill cells
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -444,6 +452,9 @@ export class TerrainMapManager2 {
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
+
+                    xyz.y = map.cluster.y_base;
+                    this.noise3d.generate4(xyz, doorSearchSize);
                     for(let i = 0; i < 2; i++) {
                         if(building.door_bottom.y != Infinity) {
                             break;

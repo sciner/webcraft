@@ -96,7 +96,7 @@ export class TerrainMap2 extends TerrainMap {
         const aleaRandom = new alea('trees_' + seed + '_' + chunk.coord.toString());
         const xyz = new Vector(0, 0, 0);
         const map = this;
-
+        const treeSearchSize = new Vector(1, CHUNK_SIZE_Y, 1);
         for(let i = 0; i < 8; i++) {
 
             // generate coord exclude near chunk borders
@@ -113,6 +113,8 @@ export class TerrainMap2 extends TerrainMap {
 
             if(rnd <= biome.trees.frequency) {
                 let free_height = 0;
+                xyz.y = map.cluster.y_base;
+                manager.noise3d.generate4(xyz, treeSearchSize);
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = map.cluster.y_base + y;
                     const preset = manager.getPreset(xyz);

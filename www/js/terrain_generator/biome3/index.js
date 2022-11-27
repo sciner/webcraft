@@ -4,11 +4,12 @@ import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
-import { GENERATOR_OPTIONS, TerrainMapManager2 } from "./terrain/manager.js";
+import {GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 import { Chunk } from "../../worker/chunk.js";
+import {NoiseFactory} from "./NoiseFactory.js";
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -33,9 +34,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const al = new alea(seed);
         const noise2d = createNoise2D(al.double);
-        const noise3d = createNoise3D(al.double);
 
-        super(seed, world_id, options, noise2d, noise3d);
+        super(seed, world_id, options, noise2d, null);
+        this.tempAlea = al;
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
         // this._createBlockAABB = new AABB();
@@ -48,7 +49,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     async init() {
+        const noiseFactory = new NoiseFactory();
         await super.init();
+        await noiseFactory.init({outputSize: 32 * 32 * 48});
+
+        this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double });
+
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
         this.maps           = new TerrainMapManager2(this.seed, this.world_id, this.noise2d, this.noise3d);
     }
@@ -160,7 +166,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             return 0;
         };
 
-        //
+        let maxY = WATER_LEVEL;
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
+                const cell = map.cells[z * CHUNK_SIZE_X + x];
+                maxY = Math.max(maxY, this.maps.getMaxY(cell));
+            }
+        }
+        maxY = Math.ceil(maxY + 1e-3);
+        const sz = chunk.size.clone();
+        sz.y = Math.min(sz.y, Math.max(1, maxY - chunk.coord.y));
+        sz.y++;
+        //TODO: for air, ignore this all?
+        this.noise3d.generate4(chunk.coord, sz);
+
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
