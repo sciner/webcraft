@@ -398,6 +398,7 @@ export class FluidChunk {
     applyDelta(deltaBuf, usePortals) {
         const {cw, outerSize, pos, safeAABB, portals } = this.dataChunk;
 
+        this.updateID++;
         this.markDirtyMesh();
         for (let i = 0; i < deltaBuf.length; i += 3) {
             let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
