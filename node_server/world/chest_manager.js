@@ -5,7 +5,7 @@ import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../../www/js/constant.js";
 import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
-    INVENTORY_CHANGE_CLEAR_DRAG_ITEM } from "../../www/js/inventory.js";
+    INVENTORY_CHANGE_CLEAR_DRAG_ITEM, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
 const CHANGE_RESULT_FLAG_INVENTORY = 2;
@@ -70,10 +70,6 @@ export class WorldChestManager {
                 player.inventory.items, params.inventory_slots);
 
         if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
-            // For INVENTORY_CHANGE_CLEAR_DRAG_ITEM, invemtory.increment() may or may not 
-            // have already called inventory.refresh(). It doesn't mater, just send it again.
-            // TODO optimization: don't call refresh() again if INVENTORY_CHANGE_CLEAR_DRAG_ITEM already called it.
-            //
             // Notify the player only if the inventory change result differs from expected.
             player.inventory.refresh(!inventoryEqual);
             // Check if new quest items were added. It triggers for the dragged item too.
@@ -117,7 +113,9 @@ export class WorldChestManager {
     // Validates the client change to a chest/inventory, and tries to apply on the server
     applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player) {
 
-        function updateSlot(slot, index, inChest, delta, similarSlot) {
+        const that = this
+
+        function updateSlot(slot, index, inChest, delta = 0, similarSlot = null) {
             if (delta > 0) {
                 if (slot == null) {
                     slot = { 
@@ -150,6 +148,39 @@ export class WorldChestManager {
             return a.id === b.id && a.count === b.count;
         }
 
+        function spreadToList(slot, isChest) {
+            const list = isChest ? srvChest : srvInv;
+            const id = slot.id;
+            const maxStatck = that.world.block_manager.fromId(id)?.max_in_stack;
+            if (!maxStatck) {
+                return false;
+            }
+            var changed = false;
+            // add to existing slots
+            for(var key in list) {
+                const s = list[key];
+                if (s && s.id == id && s.count < maxStatck) {
+                    const c = Math.min(maxStatck - s.count, slot.count);
+                    s.count += c;
+                    slot.count -= c;
+                    changed = true;
+                    if (slot.count == 0) {
+                        return true;
+                    }
+                }
+            }
+            // move to a new slot
+            const maxIndex = isChest ? DEFAULT_CHEST_SLOT_COUNT : INVENTORY_VISIBLE_SLOT_COUNT;
+            for(var i = 0; i < maxIndex; i++) {
+                if (list[i] == null) {
+                    list[i] = { ...slot };
+                    slot.count = 0;
+                    return true;
+                }
+            }
+            return changed;
+        }
+
         const srvDrag = srvInv[INVENTORY_DRAG_SLOT_INDEX];
         const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
 
@@ -158,9 +189,12 @@ export class WorldChestManager {
             if (!srvDrag) {
                 return 0;
             }
-            // clear it before increment(), so increment() sends the comlete change
-            srvInv[INVENTORY_DRAG_SLOT_INDEX] = null;             
-            player.inventory.increment(srvDrag, true);
+            spreadToList(srvDrag, false);
+            if (srvDrag.count) {
+                player.inventory.dropFromDragSlot();
+            } else {
+                srvInv[INVENTORY_DRAG_SLOT_INDEX] = null;
+            }
             return CHANGE_RESULT_FLAG_INVENTORY;
         }
 
@@ -255,6 +289,20 @@ export class WorldChestManager {
                 }
             }
             return resultFlags;
+        }
+        // The same result as in client PlayerInventory.clearDragItem()
+        if (change.type === INVENTORY_CHANGE_SHIFT_SPREAD) {
+            if (!prevCliSlot) {
+                return 0; // incorrect change
+            }
+            if (!srvSlot || prevCliSlot.id != srvSlot.id) {
+                return 0; // it can't be applied on server
+            }
+            if (!spreadToList(srvSlot, !change.slotInChest)) {
+                return 0;
+            }
+            updateSlot(srvSlot, change.slotIndex, change.slotInChest);
+            return CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY;
         }
         if (change.type !== INVENTORY_CHANGE_SLOTS) {
             return 0;

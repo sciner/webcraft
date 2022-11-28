@@ -7,6 +7,7 @@ export const INVENTORY_CHANGE_NONE = 0;
 export const INVENTORY_CHANGE_SLOTS = 1;
 export const INVENTORY_CHANGE_MERGE_SMALL_STACKS = 2;
 export const INVENTORY_CHANGE_CLEAR_DRAG_ITEM = 3;
+export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
 
