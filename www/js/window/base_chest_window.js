@@ -65,7 +65,7 @@ export class BaseChestWindow extends Window {
 
         // Обработчик закрытия формы
         this.onHide = function() {
-            resetLastChange();
+            this.lastChange.noChange = true;
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
             // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             this.inventory.clearDragItem(true);

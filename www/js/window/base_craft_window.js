@@ -362,23 +362,14 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         let need_count = max_stack_count - dropData.item.count;
                         // проверить крафт слоты
                         let slots = this.parent.getSlots();
+                        const list = [];
                         for(let i in slots) {
-                            if(need_count == 0) {
-                                break;
-                            }
                             const item = slots[i]?.item;
                             if(item && !item.entity_id && !item.extra_data &&
                                 item.id == dropData.item.id &&
                                 item.count != max_stack_count
                             ) {
-                                let minus_count = item.count < need_count ? item.count : need_count;
-                                need_count -= minus_count;
-                                dropData.item.count += minus_count;
-                                item.count -= minus_count;
-                                if(item.count < 1) {
-                                    slots[i].setItem(null, e);
-                                }
-                                this.parent.lastChange.mergeSmallStacks = true;
+                                list.push({chest: 1, index: i, item: item});
                             }
                         }
                         // проверить слоты инвентаря
@@ -392,15 +383,33 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                 item.id == dropData.item.id &&
                                 item.count != max_stack_count
                             ) {
-                                let minus_count = item.count < need_count ? item.count : need_count;
-                                need_count -= minus_count;
-                                dropData.item.count += minus_count;
-                                item.count -= minus_count;
-                                if(item.count < 1) {
-                                    player.inventory.setItem(i, null);
-                                }
-                                this.parent.lastChange.mergeSmallStacks = true;
+                                list.push({chest: 0, index: i, item: item});
                             }
+                        }
+                        list.sort(function(a, b){
+                            var t = a.item.count - b.item.count;
+                            if (t != 0) {
+                                return t;
+                            }
+                            return (a.index - b.index) - 1000 * (a.chest - b.chest);
+                        });
+                        for (var v of list) {
+                            if (need_count == 0) {
+                                break;
+                            }
+                            const item = v.item;
+                            let minus_count = item.count < need_count ? item.count : need_count;
+                            need_count -= minus_count;
+                            dropData.item.count += minus_count;
+                            item.count -= minus_count;                            
+                            if (item.count < 1) {
+                                if (v.chest) {
+                                    slots[v.index].setItem(null, e);
+                                } else {
+                                    player.inventory.setItem(v.index, null);
+                                }
+                            }
+                            this.parent.lastChange.mergeSmallStacks = true;
                         }
                         this.parent.lastChange.noChange = !this.parent.lastChange.mergeSmallStacks;
                         return;

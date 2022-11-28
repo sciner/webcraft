@@ -37,13 +37,6 @@ export class WorldChestManager {
     //
     async confirmPlayerAction(player, pos, params) {
 
-        // Compares the server state and the new state from the player
-        async function serverAndClientEqual() {
-            const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.slots))];
-            const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
-            return await InventoryComparator.checkEqual(old_items, new_items, []);
-        }
-
         const tblock_chest = await this.get(pos);
         const is_ender_chest = tblock_chest.material.name == 'ENDER_CHEST';
 
@@ -69,28 +62,48 @@ export class WorldChestManager {
             }
         }
 
-        // if the player was editing chest/inventory using chest UI
+        // if the player was editing chest/inventory using the chest UI
         if (params.change) {
             const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
                     player.inventory.items, params.inventory_slots, params.change);
             if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
-                const equal = await serverAndClientEqual();
+                const inventoryEqual = InventoryComparator.listsExactEqual(
+                    player.inventory.items, params.inventory_slots);
                 // Save the invenory to DB.
-                // Notify the player if the result differs from expected.
+                // Notify the player if the inventory change result differs from expected.
                 // Send the inventory to other players.
-                player.inventory.refresh(!equal);
+                player.inventory.refresh(!inventoryEqual);
             } else {
-                // Notify the player if inventory the change failed
+                // Notify the player that the inventory change failed.
+                // Every existing change is expected to affect inventory, so
+                // there is no need to compare results.
                 player.inventory.send();
             }
-            // Notify the other players about the chest change
-            if ((changeApplied & CHANGE_RESULT_FLAG_CHEST) && !is_ender_chest) {
+            // Notify the player if the chest change result differs from expected.
+            if (!InventoryComparator.listsExactEqual(chest.slots, new_chest_slots)) {
+                this.sendContentToPlayers([player], pos);
+            }
+            if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
+                // Notify the other players about the chest change
                 this.sendChestToPlayers(pos, [player.session.user_id]);
+                // Save to DB
+                if (is_ender_chest) {
+                    await player.saveEnderChest(chest);
+                } else {
+                    // Save chest slots to DB
+                    await this.world.db.saveChestSlots({
+                        pos: pos,
+                        slots: chest.slots
+                    });
+                }
             }
             return;
         }
 
-        const equal = await serverAndClientEqual();
+        // Compares the server state and the new state from the player
+        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.slots))];
+        const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
+        const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
 
         //
         if(equal) {
@@ -212,43 +225,58 @@ export class WorldChestManager {
             }
             var resultFlags = 0;
             const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
-            let need_count = maxStatck - srvDrag.count;
+            if (!maxStatck) {
+                return 0;
+            }
+            var need_count = maxStatck - srvDrag.count;
+            if (need_count <= 0) {
+                return 0;
+            }
+            const list = [];
             for(let i in srvChest) {
-                if (need_count == 0) {
-                    break;
-                }
                 const item = srvChest[i];
                 if (!item.entity_id && !item.extra_data &&
                     item.id === id &&
                     item.count < maxStatck
                 ) {
-                    let minus_count = item.count < need_count ? item.count : need_count;
-                    need_count -= minus_count;
-                    srvDrag.count += minus_count;
-                    item.count -= minus_count;
-                    if (item.count < 1) {
-                        delete srvChest[i];
-                    }
-                    resultFlags |= (CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY);
+                    list.push({chest: 1, index: i, item: item});
                 }
             }
             for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; ++i) {
-                if (need_count == 0) {
-                    break;
-                }
                 const item = srvInv[i];
                 if (item && !item.entity_id && !item.extra_data &&
                     item.id === id &&
                     item.count < maxStatck
                 ) {
-                    let minus_count = item.count < need_count ? item.count : need_count;
-                    need_count -= minus_count;
-                    srvDrag.count += minus_count;
-                    item.count -= minus_count;
+                    list.push({chest: 0, index: i, item: item});
+                }
+            }
+            list.sort(function(a, b){
+                var t = a.item.count - b.item.count;
+                if (t != 0) {
+                    return t;
+                }
+                return (a.index - b.index) - 1000 * (a.chest - b.chest);
+            });
+            for (var v of list) {
+                if (need_count == 0) {
+                    break;
+                }
+                const item = v.item;
+                let minus_count = item.count < need_count ? item.count : need_count;
+                need_count -= minus_count;
+                srvDrag.count += minus_count;
+                item.count -= minus_count;
+                if (v.chest) {
+                    resultFlags |= (CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY);
                     if (item.count < 1) {
-                        srvInv[i] = null;
+                        delete srvChest[v.index];
                     }
+                } else {
                     resultFlags |= CHANGE_RESULT_FLAG_INVENTORY;
+                    if (item.count < 1) {
+                        srvInv[v.index] = null;
+                    }
                 }
             }
             return resultFlags;
