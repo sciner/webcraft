@@ -192,7 +192,7 @@ export class PlayerInventory extends Inventory {
         if(move_to_inventory) {
             let dragItem = drag.getItem();
             if(dragItem) {
-                this.increment(dragItem.item);
+                this.increment(dragItem.item, true);
             }
         }
         this.items[INVENTORY_DRAG_SLOT_INDEX] = null;
