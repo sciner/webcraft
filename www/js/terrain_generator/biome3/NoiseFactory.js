@@ -1,5 +1,5 @@
 import { alea } from "../default.js";
-import { createNoise3D } from '../../../vendors/simplex-noise.js';
+import { createNoise3DOpt } from './optimizedNoise.js';
 import { Vector } from "../../helpers.js";
 
 const oneVector = new Vector(1, 1, 1);
@@ -22,10 +22,10 @@ export class Noise3d {
 
         if (randomFunc) {
             this.alea = null;
-            this.noise3d = createNoise3D(randomFunc);
+            this.noise3d = createNoise3DOpt(randomFunc);
         } else {
             this.alea = new alea(seed);
-            this.noise3d = createNoise3D(this.alea.double);
+            this.noise3d = createNoise3DOpt(this.alea.double);
         }
     }
 
@@ -42,11 +42,10 @@ export class Noise3d {
 
         let ind = genNum * this.cgen;
         for (let z = 0; z < size.z; z++)
-            for (let y = 0; y < size.y; y++)
-                for (let x = 0; x < size.x; x++)
-                {
-                    result[ind++] = this.noise3d((pos.x + x) * scale, (pos.y + y) * scale, (pos.z + z) * scale);
-                }
+            for (let y = 0; y < size.y; y++) {
+                this.noise3d((pos.x + x) * scale, (pos.y + y) * scale, (pos.z + z) * scale, scale, size.x, result, ind);
+                ind += size.x;
+            }
     }
 
     setScale4(scale1, scale2, scale3, scale4) {
