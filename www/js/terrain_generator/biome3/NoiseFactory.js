@@ -43,7 +43,7 @@ export class Noise3d {
         let ind = genNum * this.cgen;
         for (let z = 0; z < size.z; z++)
             for (let y = 0; y < size.y; y++) {
-                this.noise3d((pos.x + x) * scale, (pos.y + y) * scale, (pos.z + z) * scale, scale, size.x, result, ind);
+                this.noise3d(pos.x * scale, (pos.y + y) * scale, (pos.z + z) * scale, scale, size.x, result, ind);
                 ind += size.x;
             }
     }

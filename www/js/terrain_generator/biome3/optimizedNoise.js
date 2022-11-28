@@ -35,12 +35,12 @@ export function createNoise3DOpt(random = Math.random) {
         let i = 0, j = 0, k = 0, t = 0, X0 = 0, Y0 = 0, Z0 = 0;
         for (let ind = 0; ind < xCount; ind++) {
             x = xStart + xStep * ind;
-            if (lastX - (1e-3) < x) {
-                t = (i + j + k) * G3;
+            //if (lastX - (1e-3) < x) {
                 const s = (y + z) * F3; // Very nice and simple skew factor for 3D
                 i = fastFloor(x * (1.0 + F3) + s);
                 j = fastFloor(y + x * F3 + s);
                 k = fastFloor(z + x * F3 + s);
+                t = (i + j + k) * G3;
                 X0 = i - t; // Unskew the cell origin back to (x,y,z) space
                 Y0 = j - t;
                 Z0 = k - t;
@@ -50,7 +50,7 @@ export function createNoise3DOpt(random = Math.random) {
                     (j + 1 - s) / F3,
                     (k + 1 - s) / F3,
                     );
-            }
+            //}
             let n0, n1, n2, n3; // Noise contributions from the four corners
             // Skew the input space to determine which simplex cell we're in
             const x0 = x - X0; // The x,y,z distances from the cell origin
