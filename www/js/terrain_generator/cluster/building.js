@@ -68,10 +68,19 @@ export class Building {
         const dir = door_direction;
         shift_entrance_value = shift_entrance_value | 0;
         let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
-        const max_size = {
-            x: max_sizes[max_sizes.length * seed | 0],
-            z: max_sizes[max_sizes.length * (seed * 10 % 1) | 0]
-        };
+
+        // detect size
+        let x = max_sizes[max_sizes.length * seed | 0];
+        let max_size = null;
+        if(isNaN(x)) {
+            max_size = x;
+        } else {
+            max_size = {
+                x: x,
+                z: max_sizes[max_sizes.length * (seed * 10 % 1) | 0]
+            };
+        }
+
         //
         if(size.x > max_size.x) {
             size.x = max_size.x;
@@ -839,7 +848,7 @@ export class Church extends Building {
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         size.y = 2;
-        Building.limitSize([16], seed, coord, size, entrance, door_bottom, door_direction);
+        Building.limitSize([{x: 18, z: 9}, {x: 9, z: 18}], seed, coord, size, entrance, door_bottom, door_direction);
         //
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.draw_entrance = false;
