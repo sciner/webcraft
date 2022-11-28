@@ -3,6 +3,7 @@ import { Helpers } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE 
 } from "../constant.js";
+import { INVENTORY_CHANGE_MERGE_SMALL_STACKS} from "../inventory.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
@@ -365,7 +366,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const list = [];
                         for(let i in slots) {
                             const item = slots[i]?.item;
-                            if(item && !item.entity_id && !item.extra_data &&
+                            if (item && !item.entity_id && !item.extra_data &&
                                 item.id == dropData.item.id &&
                                 item.count != max_stack_count
                             ) {
@@ -374,12 +375,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                         // проверить слоты инвентаря
                         const inventory_items = player.inventory.items;
-                        for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; ++i) {
-                            if(need_count == 0) {
-                                break;
-                            }
+                        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                             const item = inventory_items[i];
-                            if(item && !item.entity_id && !item.extra_data &&
+                            if (item && !item.entity_id && !item.extra_data &&
                                 item.id == dropData.item.id &&
                                 item.count != max_stack_count
                             ) {
@@ -409,9 +407,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                     player.inventory.setItem(v.index, null);
                                 }
                             }
-                            this.parent.lastChange.mergeSmallStacks = true;
+                            this.parent.lastChange.type = INVENTORY_CHANGE_MERGE_SMALL_STACKS;
                         }
-                        this.parent.lastChange.noChange = !this.parent.lastChange.mergeSmallStacks;
                         return;
                     }
                 }

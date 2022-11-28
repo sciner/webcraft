@@ -186,6 +186,7 @@ export class PlayerInventory extends Inventory {
         }
     }
 
+    // The same result as in chest_manager.js: applyClientChange()
     clearDragItem(move_to_inventory) {
         const drag = Qubatch.hud.wm.drag;
         if(move_to_inventory) {

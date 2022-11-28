@@ -5,6 +5,8 @@ import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX 
 } from "../constant.js";
+import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
+    INVENTORY_CHANGE_CLEAR_DRAG_ITEM } from "../inventory.js";
 
 export class BaseChestWindow extends Window {
 
@@ -38,24 +40,17 @@ export class BaseChestWindow extends Window {
         this.createInventorySlots(this.cell_size);
         
         this.lastChange = {
-            slotIndex: -1, // if it's -1, slotInChest and slotPrevItem are ignored
+            type: INVENTORY_CHANGE_NONE,
+            // the slots are ignored when (type == INVENTORY_CHANGE_CLEAR_DRAG_ITEM)
+            slotIndex: -1,
             slotInChest: false,
             slotPrevItem: null,
-            dargPrevItem: null,
-            mergeSmallStacks: false,
-            noChange: false // if it's true, the confirmation requst won't be sent
-        }
-
-        var that = this;
-        function resetLastChange() {
-            that.lastChange.slotIndex = - 1;
-            that.lastChange.mergeSmallStacks = false;
-            that.lastChange.noChange = false;
+            dragPrevItem: null
         }
 
         // Обработчик открытия формы
         this.onShow = function() {
-            resetLastChange();
+            this.lastChange.type = INVENTORY_CHANGE_NONE;
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
             if(options.sound.open) {
@@ -65,7 +60,7 @@ export class BaseChestWindow extends Window {
 
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.lastChange.noChange = true;
+            this.lastChange.type = INVENTORY_CHANGE_CLEAR_DRAG_ITEM;
             // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
             // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             this.inventory.clearDragItem(true);
@@ -141,26 +136,27 @@ export class BaseChestWindow extends Window {
     // Catch action
     catchActions() {
 
-        function updateLastChange(craftSlot) {
-            const lastChange = craftSlot.parent.lastChange
+        // Remembers two affected slots before a user action is executed.
+        function updateLastChangeSlots(craftSlot) {
+            const lastChange = craftSlot.parent.lastChange;
+            lastChange.type = INVENTORY_CHANGE_SLOTS;
             lastChange.slotIndex = craftSlot.getIndex();
             lastChange.slotInChest = craftSlot.is_chest_slot;
             const item = craftSlot.getItem();
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
-            lastChange.dargPrevItem = dargItem ? { ...dargItem } : null;
-            lastChange.mergeSmallStacks = false;
+            lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
         }
 
         //
         const handlerMouseDown = function(e) {
-            updateLastChange(this);
+            updateLastChangeSlots(this);
             this._originalMouseDown(e);
             this.parent.confirmAction();
         };
         //
         const handlerOnDrop = function(e) {
-            updateLastChange(this);
+            updateLastChangeSlots(this);
             this._originalOnDrop(e);
             this.parent.confirmAction();
         };
@@ -179,7 +175,7 @@ export class BaseChestWindow extends Window {
 
     // Confirm action
     confirmAction() {
-        if (this.lastChange.noChange) {
+        if (this.lastChange.type === INVENTORY_CHANGE_NONE) {
             // We know that there is no change - a user action was analyzed and it does nothing.
             return;
         }
@@ -187,8 +183,7 @@ export class BaseChestWindow extends Window {
         const params = {
             chest:           {pos: this.info.pos, slots: {}},
             inventory_slots: new Array(this.inventory.items.length),
-            change:          this.lastChange.slotIndex >= 0 || this.lastChange.mergeSmallStacks 
-                                ? { ...this.lastChange } : null
+            change:          { ...this.lastChange }
         };
         // chest
         for(let k in this.chest.slots) {

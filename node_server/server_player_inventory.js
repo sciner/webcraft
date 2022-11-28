@@ -16,7 +16,8 @@ export class ServerPlayerInventory extends Inventory {
         ], [this.player.session.user_id], []);
     }
 
-    // Refresh
+    // Saves the invenory to DB, updates hands, sends the inventory to other players,
+    // and optionally sends it to the owner.
     refresh(send_state) {
         // Update hands
         this.current.index = isNaN(this.current.index) ? 0 : this.current.index;

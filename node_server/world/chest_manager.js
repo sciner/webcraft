@@ -3,7 +3,9 @@ import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../../www/js/constant.js";
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../../www/js/constant.js";
+import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
+    INVENTORY_CHANGE_CLEAR_DRAG_ITEM } from "../../www/js/inventory.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
 const CHANGE_RESULT_FLAG_INVENTORY = 2;
@@ -65,19 +67,21 @@ export class WorldChestManager {
         // if the player was editing chest/inventory using the chest UI
         if (params.change) {
             const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
-                    player.inventory.items, params.inventory_slots, params.change);
+                    player.inventory.items, params.inventory_slots, params.change, player);
+            const inventoryEqual = InventoryComparator.listsExactEqual(
+                player.inventory.items, params.inventory_slots);
             if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
-                const inventoryEqual = InventoryComparator.listsExactEqual(
-                    player.inventory.items, params.inventory_slots);
-                // Save the invenory to DB.
-                // Notify the player if the inventory change result differs from expected.
-                // Send the inventory to other players.
+                // For INVENTORY_CHANGE_CLEAR_DRAG_ITEM, invemtory.increment() may or may not 
+                // have already called inventory.refresh(). It doesn't mater, just send it again.
+                // TODO optimization: don't call refresh() again if INVENTORY_CHANGE_CLEAR_DRAG_ITEM already called it.
+                //
+                // Notify the player only if the inventory change result differs from expected.
                 player.inventory.refresh(!inventoryEqual);
             } else {
                 // Notify the player that the inventory change failed.
-                // Every existing change is expected to affect inventory, so
-                // there is no need to compare results.
-                player.inventory.send();
+                if (!inventoryEqual) {
+                    player.inventory.send();
+                }
             }
             // Notify the player if the chest change result differs from expected.
             if (!InventoryComparator.listsExactEqual(chest.slots, new_chest_slots)) {
@@ -152,7 +156,7 @@ export class WorldChestManager {
     }
 
     // Validates the client change to a chest/inventory, and tries to apply on the server
-    applyClientChange(srvChest, cliChest, srvInv, cliInv, change) {
+    applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player) {
 
         function updateSlot(slot, index, inChest, delta, similarSlot) {
             if (delta > 0) {
@@ -187,13 +191,25 @@ export class WorldChestManager {
             return a.id === b.id && a.count === b.count;
         }
 
+        const srvDrag = srvInv[INVENTORY_DRAG_SLOT_INDEX];
+        const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
+
+        // The same result as in client PlayerInventory.clearDragItem()
+        if (change.type === INVENTORY_CHANGE_CLEAR_DRAG_ITEM) {
+            if (!srvDrag) {
+                return 0;
+            }
+            // clear it before increment(), so increment() sends the comlete change
+            srvInv[INVENTORY_DRAG_SLOT_INDEX] = null;             
+            player.inventory.increment(srvDrag, true);
+            return CHANGE_RESULT_FLAG_INVENTORY;
+        }
+
         // a result for successful changes except merging small stacks
         const defaultResult = change.slotInChest
             ? CHANGE_RESULT_FLAG_CHEST | CHANGE_RESULT_FLAG_INVENTORY
             : CHANGE_RESULT_FLAG_INVENTORY;
 
-        const srvDrag = srvInv[INVENTORY_DRAG_SLOT_INDEX];
-        const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
         var srvSlot;
         var cliSlot;
         if (change.slotInChest) {
@@ -204,7 +220,7 @@ export class WorldChestManager {
             cliSlot = cliInv[change.slotIndex];
         }
         const prevCliSlot = change.slotPrevItem;
-        const prevCliDrag = change.dargPrevItem;
+        const prevCliDrag = change.dragPrevItem;
 
         const cliSlotCount = cliSlot?.count || 0;
         const srvSlotCount = srvSlot?.count || 0;
@@ -215,7 +231,7 @@ export class WorldChestManager {
         const slotDelta = cliSlotCount - prevCliSlotCount;
         const dragDelta = cliDragCount - prevCliDragCount;
 
-        if (change.mergeSmallStacks) { // Gives the same result as in base_craft_window.js: this.onDrop = function(e)
+        if (change.type === INVENTORY_CHANGE_MERGE_SMALL_STACKS) { // Gives the same result as in base_craft_window.js: this.onDrop = function(e)
             if (!cliDrag || !prevCliDrag || cliDrag.id != prevCliDrag.id || cliDragCount <= prevCliDragCount) {
                 return 0; // incorrect change
             }
@@ -242,7 +258,7 @@ export class WorldChestManager {
                     list.push({chest: 1, index: i, item: item});
                 }
             }
-            for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; ++i) {
+            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                 const item = srvInv[i];
                 if (item && !item.entity_id && !item.extra_data &&
                     item.id === id &&
@@ -280,7 +296,11 @@ export class WorldChestManager {
                 }
             }
             return resultFlags;
-        } else if  (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
+        }
+        if (change.type !== INVENTORY_CHANGE_SLOTS) {
+            return 0;
+        }
+        if (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
             if (!slotsEqual(prevCliSlot, cliDrag) || !slotsEqual(prevCliDrag, cliSlot)) {
                 return 0; // incorrect change
             }
@@ -346,8 +366,7 @@ export class WorldChestManager {
             updateSlot(srvDrag, INVENTORY_DRAG_SLOT_INDEX, false, -delta, srvDrag);
             return defaultResult;
         }
-        // some unknown case
-        return 0;
+        return 0; // some incorrect case of INVENTORY_CHANGE_SLOTS
     }
 
     // Send block item
