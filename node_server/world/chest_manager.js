@@ -43,7 +43,6 @@ export class WorldChestManager {
         const is_ender_chest = tblock_chest.material.name == 'ENDER_CHEST';
 
         let chest = null;
-
         if(is_ender_chest) {
             chest = await player.loadEnderChest();
         } else {
@@ -64,94 +63,54 @@ export class WorldChestManager {
             }
         }
 
-        // if the player was editing chest/inventory using the chest UI
-        if (params.change) {
-            const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
-                    player.inventory.items, params.inventory_slots, params.change, player);
-            const inventoryEqual = InventoryComparator.listsExactEqual(
+        const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
+        const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
+                player.inventory.items, params.inventory_slots, params.change, player);
+        const inventoryEqual = InventoryComparator.listsExactEqual(
                 player.inventory.items, params.inventory_slots);
-            if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
-                // For INVENTORY_CHANGE_CLEAR_DRAG_ITEM, invemtory.increment() may or may not 
-                // have already called inventory.refresh(). It doesn't mater, just send it again.
-                // TODO optimization: don't call refresh() again if INVENTORY_CHANGE_CLEAR_DRAG_ITEM already called it.
-                //
-                // Notify the player only if the inventory change result differs from expected.
-                player.inventory.refresh(!inventoryEqual);
-            } else {
-                // Notify the player that the inventory change failed.
-                if (!inventoryEqual) {
-                    player.inventory.send();
+
+        if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
+            // For INVENTORY_CHANGE_CLEAR_DRAG_ITEM, invemtory.increment() may or may not 
+            // have already called inventory.refresh(). It doesn't mater, just send it again.
+            // TODO optimization: don't call refresh() again if INVENTORY_CHANGE_CLEAR_DRAG_ITEM already called it.
+            //
+            // Notify the player only if the inventory change result differs from expected.
+            player.inventory.refresh(!inventoryEqual);
+            // Check if new quest items were added. It triggers for the dragged item too.
+            const newSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
+            const put_items = [];
+            for(let [key, item] of newSimpleInventory) {
+                if (!oldSimpleInventory.get(key)) {
+                    put_items.push(item);
                 }
             }
-            // Notify the player if the chest change result differs from expected.
-            if (!InventoryComparator.listsExactEqual(chest.slots, new_chest_slots)) {
-                this.sendContentToPlayers([player], pos);
+            for(let item of put_items) {
+                player.onPutInventoryItems({block_id: item.id});
             }
-            if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
-                // Notify the other players about the chest change
-                this.sendChestToPlayers(pos, [player.session.user_id]);
-                // Save to DB
-                if (is_ender_chest) {
-                    await player.saveEnderChest(chest);
-                } else {
-                    // Save chest slots to DB
-                    await this.world.db.saveChestSlots({
-                        pos: pos,
-                        slots: chest.slots
-                    });
-                }
+        } else {
+            // Notify the player that the inventory change failed.
+            if (!inventoryEqual) {
+                player.inventory.send();
             }
-            return;
         }
 
-        // Compares the server state and the new state from the player
-        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.slots))];
-        const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
-        const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
-
-        //
-        if(equal) {
-            // учёт появления новых элементов в инвентаре (для квестов)
-            if(player.onPutInventoryItems) {
-                const old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
-                const new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
-                const put_items = [];
-                for(let [key, item] of new_simple) {
-                    const old_item = old_simple.get(key);
-                    if(!old_item) {
-                        put_items.push(item);
-                    }
-                }
-                for(let item of put_items) {
-                    player.onPutInventoryItems({block_id: item.id});
-                }
-            }
-            // update chest slots
-            chest.slots = new_chest_slots;
-            // update player inventory
-            player.inventory.applyNewItems(params.inventory_slots, false);
-            player.inventory.refresh(false);
-            if(is_ender_chest) {
+        // Notify the player if the chest change result differs from expected.
+        if (!InventoryComparator.listsExactEqual(chest.slots, new_chest_slots)) {
+            this.sendContentToPlayers([player], pos);
+        }
+        if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
+            // Notify the other players about the chest change
+            this.sendChestToPlayers(pos, [player.session.user_id]);
+            // Save to DB
+            if (is_ender_chest) {
                 await player.saveEnderChest(chest);
-                // Send new chest state to players
-                this.sendChestToPlayers(pos, [player.session.user_id]);
             } else {
-                // Send new chest state to players
-                this.sendChestToPlayers(pos, [player.session.user_id]);
                 // Save chest slots to DB
                 await this.world.db.saveChestSlots({
                     pos: pos,
                     slots: chest.slots
                 });
-                //
-                this.sendItem(pos, tblock_chest);
             }
-        } else {
-            if(!is_ender_chest) {
-                this.sendContentToPlayers([player], pos);
-            }
-            // @todo
-            player.inventory.refresh(true);
         }
     }
 
