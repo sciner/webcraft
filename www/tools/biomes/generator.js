@@ -60,7 +60,7 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
 
     const al = new alea(seed);
     const noise2d = createNoise2D(al.double);
-    const noise3d = createNoise3D(al.double);
+    const noise3d = null; // createNoise3D(al.double);
 
     const world_id = al.double();
 

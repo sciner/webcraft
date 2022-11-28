@@ -115,7 +115,7 @@ export class TerrainMapManager2 {
         this.rnd_presets = new alea(seed);
         this.presets.sort(() => .5 - this.rnd_presets.double());
 
-        this.noise3d.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
+        this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
     }
 
     // Delete map for unused chunk
