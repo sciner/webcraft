@@ -833,3 +833,144 @@ export class BuildingS extends Building {
     }
 
 }
+
+// Farmland
+export class Church extends Building {
+
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        size.y = 2;
+        Building.limitSize([16], seed, coord, size, entrance, door_bottom, door_direction);
+        //
+        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        this.draw_entrance = false;
+        
+        this.blocks = {
+            mirror_x:       false,
+            mirror_z:       false,
+            list:           []
+        }
+        
+        // Основание
+        for (let y = 0; y < 5; y++) {
+            for (let z = 1; z < 16; z++) {
+                this.blocks.list.push(...[
+                    {move: new Vector(1, y, z), block_id: BLOCK.STONE_BRICKS.id},
+                    {move: new Vector(9, y, z), block_id: BLOCK.STONE_BRICKS.id},
+                ]);
+            }
+            
+            for (let x = 2; x < 9; x++) {
+                this.blocks.list.push(...[
+                    {move: new Vector(x, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                    {move: new Vector(x, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                ]);
+            }
+        }
+        
+        // декор
+        this.blocks.list.push(...[
+            {move: new Vector(0, 0, 3), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 6), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 10), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 14), block_id: BLOCK.LODESTONE.id},
+            
+            {move: new Vector(0, 1, 3), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 6), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 10), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 14), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(0, 2, 3), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 3, y: 0, z: 0}},
+            {move: new Vector(0, 2, 6), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 3, y: 0, z: 0}},
+            {move: new Vector(0, 2, 10), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 3, y: 0, z: 0}},
+            {move: new Vector(0, 2, 14), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 3, y: 0, z: 0}},
+            
+            {move: new Vector(10, 0, 3), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 6), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 10), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 14), block_id: BLOCK.LODESTONE.id},
+            
+            {move: new Vector(10, 1, 3), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 6), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 10), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 14), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(10, 2, 3), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 1, y: 0, z: 0}},
+            {move: new Vector(10, 2, 6), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 1, y: 0, z: 0}},
+            {move: new Vector(10, 2, 10), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 1, y: 0, z: 0}},
+            {move: new Vector(10, 2, 14), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: 1, y: 0, z: 0}},
+        ]);
+        
+        /*this.blocks.list.push(...[
+            {move: new Vector(0, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 2), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 3), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 4), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 5), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 0, 6), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(1, 0, 0), block_id: BLOCK.STONE_BRICKS.id},
+        ]);*/
+    }
+
+    draw(cluster, chunk) {
+        // super.draw(cluster, chunk);
+        //this.drawBasement(cluster, chunk, 4, BLOCK.DIRT.id);
+        const building = this;
+        
+        
+        //cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size.add(new Vector(0, 5, 0)), BLOCK.AIR);
+        //const pos = building.coord;
+        //cluster.setBlock(chunk, pos.x, pos.y, pos.z,2, null);
+        //cluster.setBlock(chunk, pos.x, pos.y+1, pos.z, 199, null);
+       // cluster.setBlock(chunk, pos.x, pos.y+2, pos.z, 199, null);
+        //cluster.setBlock(chunk, pos.x, pos.y+3, pos.z, 199, null);
+        
+        //cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_LOG);
+        //let inner_size = building.size.clone().addSelf(new Vector(-2, -1, -2));
+        //let pos = building.coord.clone().addSelf(new Vector(1, 0, 1));
+        //cluster.drawQuboid(chunk, pos, inner_size, BLOCK.FARMLAND_WET);
+        
+        this.drawBlocks(cluster, chunk);
+        //
+        //pos.addSelf(new Vector(0, 1, 0));
+       /* cluster.drawQuboid(chunk, pos, inner_size, this.seeds, null, {stage: 7, complete: true});
+        // water
+        for(let axe of ['x', 'z']) {
+            if(building.size[axe] >= 7) {
+                const sz = building.size[axe];
+                if((sz - 7) % 3 == 0) {
+                    const water_pos = building.coord.clone();
+                    const water_size = inner_size.clone();
+                    if(axe == 'x') {
+                        water_pos.z++;
+                        water_size.x = 1;
+                    } else {
+                        water_pos.x++;
+                        water_size.z = 1;
+                    }
+                    water_size.y = 1;
+                    for(let i = 3; i < building.size[axe] - 1; i += 3) {
+                        water_pos[axe] += 3;
+                        // fix. because water not replace FARMLAND_WET
+                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);
+                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.STILL_WATER);
+                        water_pos.y++;
+                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);
+                        water_pos.y--;
+                    }
+                    break;
+                }
+            }
+        }
+        */
+    }
+
+}

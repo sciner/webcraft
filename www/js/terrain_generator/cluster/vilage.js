@@ -3,7 +3,7 @@ import {DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js
 import { AABB } from '../../core/AABB.js';
 import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.js";
 import {VilageSchema} from "./vilage_schema.js";
-import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell} from "./building.js";
+import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell, Church} from "./building.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 
@@ -51,10 +51,10 @@ export class ClusterVilage extends ClusterBase {
                     {class: Farmland, max_count: 1, chance: 1}
                 ],
                 others: [
-                    {class: WaterWell, max_count: 2, chance: 0.12},
-                    {class: Farmland, max_count: Infinity, chance: 0.285},
-                    {class: Building1, max_count: Infinity, chance: 0.7025},
-                    {class: BuildingS, max_count: Infinity, chance: 1}
+                   // {class: WaterWell, max_count: 2, chance: 0.12},
+                   // {class: Farmland, max_count: Infinity, chance: 0.285},
+                   // {class: Building1, max_count: Infinity, chance: 0.7025},
+                    {class: Church, max_count: Infinity, chance: 1}
                 ],
             });
             //
