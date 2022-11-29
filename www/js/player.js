@@ -376,7 +376,7 @@ export class Player {
                     // putting items into a pot or a chest takes priority over using them
                     const canPutIntoTarget = targetMaterial &&
                         (targetMaterial.tags.includes("pot") && cur_mat.tags.includes("can_put_info_pot") ||
-                        targetMaterial.is_chest);
+                        targetMaterial.window);
                     if(!canPutIntoTarget && this.startItemUse(cur_mat)) {
                         return false;
                     }
