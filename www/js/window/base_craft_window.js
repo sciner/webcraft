@@ -479,11 +479,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             // 1. проход в поисках подобного
             for(let slot of target_list) {
                 if(slot instanceof CraftTableInventorySlot) {
-                    if (slot.readonly) {
-                        continue;
-                    }
                     const item = slot.getItem();
-                    if(item && item.id == srcItem.id) {
+                    if(!slot.readonly && item && item.id == srcItem.id) {
                         let free_count = max_stack_count - item.count;
                         if(free_count > 0) {
                             let count = Math.min(free_count, srcItem.count);
@@ -503,10 +500,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             for(let index in target_list) {
                 const slot = target_list[index];
                 if(slot instanceof CraftTableInventorySlot) {
-                    if (slot.readonly) {
-                        continue;
-                    }
-                    if(!slot.getItem()) {
+                    if(!slot.readonly && !slot.getItem()) {
                         let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
                         srcList[slot_index].setItem({...srcItem});
                         srcItem.count = 0;
