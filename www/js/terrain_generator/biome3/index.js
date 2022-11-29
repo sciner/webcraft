@@ -4,12 +4,14 @@ import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
-import {DENSITY_THRESHOLD, GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
+import {DensityParams, DENSITY_THRESHOLD, GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 import { Chunk } from "../../worker/chunk.js";
 import {NoiseFactory} from "./NoiseFactory.js";
+import { TerrainMapCell } from "./terrain/map_cell.js";
+import { TerrainMap2 } from "./terrain/map.js";
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -150,8 +152,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     generateChunkData(chunk, seed, rnd) {
         
         const cluster                   = chunk.cluster;
+        /**
+         * @type {TerrainMap2}
+         */
         const map                       = chunk.map;
         const xyz                       = new Vector(0, 0, 0);
+        const density_params            = new DensityParams(0, 0, 0, 0, 0);
+        const over_density_params       = new DensityParams(0, 0, 0, 0, 0);
 
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
@@ -187,11 +194,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
+                /**
+                 * @type {TerrainMapCell}
+                 */
                 const cell                  = map.cells[z * CHUNK_SIZE_X + x];
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.y, xyz.z) : null;
                 const big_stone_density     = calcBigStoneDensity(xyz, has_cluster);
-                
+
                 const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
                 let cluster_drawed = false;
@@ -213,7 +223,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     xyz.y = chunk.coord.y + y;
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
-                    const density_params = this.maps.calcDensity(xyz, cell);
+                    this.maps.calcDensity(xyz, cell, density_params);
                     const {d1, d2, d3, d4, density} = density_params;
 
                     //
@@ -222,7 +232,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
                             xyz.y++
-                            const over_density_params = this.maps.calcDensity(xyz, cell);
+                            this.maps.calcDensity(xyz, cell, over_density_params);
                             xyz.y--
                             if(over_density_params.density > DENSITY_THRESHOLD) {
                                 not_air_count = 100;

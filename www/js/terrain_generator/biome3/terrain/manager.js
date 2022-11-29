@@ -42,12 +42,37 @@ class RiverPoint {
 //
 export class DensityParams {
 
+    /**
+     * @param {float} d1 
+     * @param {float} d2 
+     * @param {float} d3 
+     * @param {float} d4 
+     * @param {float} density 
+     */
     constructor(d1, d2, d3, d4, density) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
+        // if(!globalThis.dfghj) globalThis.dfghj=0
+        //if(globalThis.dfghj++%1000==0) console.log(globalThis.dfghj)
+    }
+
+    /**
+     * @param {float} d1 
+     * @param {float} d2 
+     * @param {float} d3 
+     * @param {float} d4 
+     * @param {float} density 
+     */
+    set(d1, d2, d3, d4, density) {
+        this.d1 = d1;
+        this.d2 = d2;
+        this.d3 = d3;
+        this.d4 = d4;
+        this.density = density;
+        return this;
     }
 
 }
@@ -278,7 +303,14 @@ export class TerrainMapManager2 {
         return Math.max(0, (1 - DENSITY_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
     }
 
-    calcDensity(xyz, cell) {
+    /**
+     * 
+     * @param {Vector} xyz 
+     * @param {*} cell 
+     * @param {?DensityParams} density_params 
+     * @returns 
+     */
+    calcDensity(xyz, cell, density_params = null) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
@@ -340,6 +372,10 @@ export class TerrainMapManager2 {
             density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
         }
 
+        if(density_params) {
+            return density_params.set(d1, d2, d3, d4, density);
+        }
+
         return new DensityParams(d1, d2, d3, d4, density);
 
     }
@@ -371,8 +407,8 @@ export class TerrainMapManager2 {
 
         let block_id = null;
 
-        if(cell.biome.title == 'Пустыня' && cell.preset.op.id == 'high_noise' && cell.preset.dist_percent + density_params.d3 * .25 > .5 ) {
-            const v = (density_params.d3 + 1) / 2;
+        if(cell.biome.title == 'Пустыня' && cell.preset.op.id == 'high_noise' && cell.preset.dist_percent + d3 * .25 > .5 ) {
+            const v = (d3 + 1) / 2;
             const index = xyz.y % mountain_desert_mats.length
             const dd = Math.floor(index * v);
             block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
