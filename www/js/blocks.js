@@ -680,6 +680,9 @@ export class BLOCK {
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style == 'banner';
+        // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
+        block.is_chest          = block.chest_slots > 0;
+        block.readonly_chest_slots = block.readonly_chest_slots || 0;
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent));
         // не переносить!
         if(block.is_leaves) {
