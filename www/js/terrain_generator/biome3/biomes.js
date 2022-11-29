@@ -12,6 +12,25 @@ const GRASS_FREQUENCY       = 0.015;
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
 const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 
+export class Biome {
+
+    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap) {
+        this.id = id;
+        this.title = title;
+        this.temperature = temperature;
+        this.temp = temperature;
+        this.humidity = humidity;
+        this.dirt_layers = dirt_layers;
+        this.trees = trees;
+        this.plants = plants;
+        this.grass = grass;
+        this.dirt_color = dirt_color;
+        this.water_color = water_color;
+        this.no_smooth_heightmap = no_smooth_heightmap;
+    }
+
+}
+
 export class Biomes {
 
     constructor(noise2d) {
@@ -91,7 +110,7 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        const biome = {id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap};
+        const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, temp);
         this.list.push(biome);
         this.byName.set(title, biome);
     }

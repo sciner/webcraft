@@ -461,7 +461,7 @@ export class TerrainMapManager2 {
         const humidity = this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2);
         const biome = this.biomes.getBiome(temperature, humidity);
 
-        return {biome, temperature, humidity};
+        return biome; // {biome, temperature, humidity};
 
     }
 
@@ -492,10 +492,9 @@ export class TerrainMapManager2 {
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
                 // Create map cell
-                const {temperature, humidity, biome} = this.calcBiome(xyz);
-
+                const biome = this.calcBiome(xyz);
                 const dirt_block_id = biome.dirt_layers[0];
-                const cell = new TerrainMapCell(value, humidity, temperature, biome, dirt_block_id);
+                const cell = new TerrainMapCell(value, biome.humidity, biome.temperature, biome, dirt_block_id);
                 cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
                 cell.preset = this.getPreset(xyz);
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
@@ -523,7 +522,7 @@ export class TerrainMapManager2 {
                         if(building.door_bottom.y != Infinity) {
                             break;
                         }
-                        const {biome, temperature, humidity} = this.calcBiome(xyz);
+                        const biome = this.calcBiome(xyz);
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
                             const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params);
@@ -534,7 +533,7 @@ export class TerrainMapManager2 {
                                     // set building cell for biome info
                                     // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
                                     // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                                    building.setBiome(biome, temperature, humidity);
+                                    building.setBiome(biome, biome.temperature, biome.humidity);
                                     break;
                                 }
                                 free_height = 0;
