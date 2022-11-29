@@ -15,6 +15,17 @@ export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число �
 export const WATER_LEVEL            = 80;
 export const DENSITY_THRESHOLD      = .6;
 
+const mountain_desert_mats = [
+    BLOCK.ORANGE_TERRACOTTA.id,
+    BLOCK.LIGHT_GRAY_TERRACOTTA.id,
+    BLOCK.BROWN_TERRACOTTA.id,
+    BLOCK.TERRACOTTA.id,
+    BLOCK.WHITE_TERRACOTTA.id,
+    BLOCK.WHITE_TERRACOTTA.id,
+    // BLOCK.PINK_TERRACOTTA.id,
+    // BLOCK.YELLOW_TERRACOTTA.id,
+];
+
 //
 class RiverPoint {
 
@@ -358,23 +369,35 @@ export class TerrainMapManager2 {
             }
         }
 
-        // 2. select block in dirt layer
-        let block_id = dirt_layer.blocks[0];
-        if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
-            block_id = dirt_layer.blocks[1];
-        }
-        const dirt_layer_blocks_count = dirt_layer.blocks.length;
-        if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
-            switch(dirt_layer_blocks_count) {
-                case 2: {
-                    block_id = dirt_layer.blocks[1];
-                    break;
-                }
-                case 3: {
-                    block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
-                    break;
+        let block_id = null;
+
+        if(cell.biome.title == 'Пустыня' && cell.preset.op.id == 'high_noise' && cell.preset.dist_percent + density_params.d3 * .25 > .5 ) {
+            const v = (density_params.d3 + 1) / 2;
+            const index = xyz.y % mountain_desert_mats.length
+            const dd = Math.floor(index * v);
+            block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
+            debugger
+
+        } else {
+            // 2. select block in dirt layer
+            block_id = dirt_layer.blocks[0];
+            if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
+                block_id = dirt_layer.blocks[1];
+            }
+            const dirt_layer_blocks_count = dirt_layer.blocks.length;
+            if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
+                switch(dirt_layer_blocks_count) {
+                    case 2: {
+                        block_id = dirt_layer.blocks[1];
+                        break;
+                    }
+                    case 3: {
+                        block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
+                        break;
+                    }
                 }
             }
+
         }
 
         return {dirt_layer, block_id};
