@@ -8,11 +8,11 @@
     <script type="module">
         import {showCoordInfo} from "/tools/biomes/generator.js";
         globalThis.showCoordInfo = showCoordInfo;
+        document.body.innerHTML += '<canvas id="canvas3D" width="1072" height="1072" onmousemove="showCoordInfo(event.offsetX, event.offsetY)">Ваш браузер не поддерживает элемент canvas</canvas>';
     </script>
 </head>
 <body>
 
-    <canvas id="canvas3D" width="1072" height="1072" onmousemove="showCoordInfo(event.offsetX, event.offsetY)">Ваш браузер не поддерживает элемент canvas</canvas>
     <div id="timer"></div>
     <div id="dbg"></div>
     <img id="axis" src="/tools/biomes/axis.png" />

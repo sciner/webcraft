@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK } from "./manager.js";
+import { TREE_MARGIN, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_THRESHOLD, DensityParams } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
 
 export class TerrainMap2 extends TerrainMap {
@@ -85,7 +85,7 @@ export class TerrainMap2 extends TerrainMap {
      * @param {*} seed 
      * @param {TerrainMapManager2} manager 
      */
-     generateTrees(real_chunk, seed, manager) {
+    generateTrees(real_chunk, seed, manager) {
 
         const chunk = this.chunk;
         const cluster = this.cluster;
@@ -96,6 +96,8 @@ export class TerrainMap2 extends TerrainMap {
         const aleaRandom = new alea('trees_' + seed + '_' + chunk.coord.toString());
         const xyz = new Vector(0, 0, 0);
         const map = this;
+        const treeSearchSize = new Vector(1, CHUNK_SIZE_Y, 1);
+        const density_params = new DensityParams(0, 0, 0, 0, 0);
 
         for(let i = 0; i < 8; i++) {
 
@@ -113,11 +115,13 @@ export class TerrainMap2 extends TerrainMap {
 
             if(rnd <= biome.trees.frequency) {
                 let free_height = 0;
+                xyz.y = map.cluster.y_base;
+                manager.noise3d.generate4(xyz, treeSearchSize);
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = map.cluster.y_base + y;
                     const preset = manager.getPreset(xyz);
-                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset});
-                    if(density > .6) {
+                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset}, density_params);
+                    if(density > DENSITY_THRESHOLD) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
                             if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y + 1, z, biome)) {
                                 if(this.trees.length == MAX_TREES_PER_CHUNK) {

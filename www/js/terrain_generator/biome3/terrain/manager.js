@@ -13,6 +13,18 @@ export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число
 export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
 export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
 export const WATER_LEVEL            = 80;
+export const DENSITY_THRESHOLD      = .6;
+
+const mountain_desert_mats = [
+    BLOCK.ORANGE_TERRACOTTA.id,
+    BLOCK.LIGHT_GRAY_TERRACOTTA.id,
+    BLOCK.BROWN_TERRACOTTA.id,
+    BLOCK.TERRACOTTA.id,
+    BLOCK.WHITE_TERRACOTTA.id,
+    BLOCK.WHITE_TERRACOTTA.id,
+    // BLOCK.PINK_TERRACOTTA.id,
+    // BLOCK.YELLOW_TERRACOTTA.id,
+];
 
 //
 class RiverPoint {
@@ -30,12 +42,35 @@ class RiverPoint {
 //
 export class DensityParams {
 
+    /**
+     * @param {float} d1 
+     * @param {float} d2 
+     * @param {float} d3 
+     * @param {float} d4 
+     * @param {float} density 
+     */
     constructor(d1, d2, d3, d4, density) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
+    }
+
+    /**
+     * @param {float} d1 
+     * @param {float} d2 
+     * @param {float} d3 
+     * @param {float} d4 
+     * @param {float} density 
+     */
+    set(d1, d2, d3, d4, density) {
+        this.d1 = d1;
+        this.d2 = d2;
+        this.d3 = d3;
+        this.d4 = d4;
+        this.density = density;
+        return this;
     }
 
 }
@@ -113,6 +148,8 @@ export class TerrainMapManager2 {
         }
         this.rnd_presets = new alea(seed);
         this.presets.sort(() => .5 - this.rnd_presets.double());
+
+        this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
     }
 
     // Delete map for unused chunk
@@ -259,7 +296,19 @@ export class TerrainMapManager2 {
         return Math.abs(value); // Helpers.clamp(value, -1, 1)
     }
 
-    calcDensity(xyz, cell) {
+    getMaxY(cell) {
+        const {relief, mid_level} = cell.preset;
+        return Math.max(0, (1 - DENSITY_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
+    }
+
+    /**
+     * 
+     * @param {Vector} xyz 
+     * @param {*} cell 
+     * @param {?DensityParams} density_params 
+     * @returns 
+     */
+    calcDensity(xyz, cell, density_params = null) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
@@ -298,14 +347,17 @@ export class TerrainMapManager2 {
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        if(h < 0.6) {
+        if(h < DENSITY_THRESHOLD) {
+            if(density_params) {
+                return density_params.set(0, 0, 0, 0, 0);
+            }
             return ZeroDensity;
         }
 
-        const d1 = this.noise3d(xyz.x/100, xyz.y / 100, xyz.z/100);
-        const d2 = this.noise3d(xyz.x/50, xyz.y / 50, xyz.z/50);
-        const d3 = this.noise3d(xyz.x/25, xyz.y / 25, xyz.z/25);
-        const d4 = this.noise3d(xyz.x/12.5, xyz.y / 12.5, xyz.z/12.5);
+        const d1 = this.noise3d.getGlobalAt(0, xyz);
+        const d2 = this.noise3d.getGlobalAt(1, xyz);
+        const d3 = this.noise3d.getGlobalAt(2, xyz);
+        const d4 = this.noise3d.getGlobalAt(3, xyz);
 
         let density = (
             // 64/120 + 32/120 + 16/120 + 8/120
@@ -318,7 +370,11 @@ export class TerrainMapManager2 {
             const {value, percent, percent_sqrt, river_percent, waterfront_percent} = cell.river_point;
             const river_vert_dist = WATER_LEVEL - xyz.y;
             const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
-            density = Math.min(density, density * river_density);
+            density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
+        }
+
+        if(density_params) {
+            return density_params.set(d1, d2, d3, d4, density);
         }
 
         return new DensityParams(d1, d2, d3, d4, density);
@@ -350,23 +406,35 @@ export class TerrainMapManager2 {
             }
         }
 
-        // 2. select block in dirt layer
-        let block_id = dirt_layer.blocks[0];
-        if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
-            block_id = dirt_layer.blocks[1];
-        }
-        const dirt_layer_blocks_count = dirt_layer.blocks.length;
-        if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
-            switch(dirt_layer_blocks_count) {
-                case 2: {
-                    block_id = dirt_layer.blocks[1];
-                    break;
-                }
-                case 3: {
-                    block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
-                    break;
+        let block_id = null;
+
+        if(cell.biome.title == 'Пустыня' && cell.preset.op.id == 'high_noise' && cell.preset.dist_percent + d3 * .25 > .5 ) {
+            const v = (d3 + 1) / 2;
+            const index = xyz.y % mountain_desert_mats.length
+            const dd = Math.floor(index * v);
+            block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
+            debugger
+
+        } else {
+            // 2. select block in dirt layer
+            block_id = dirt_layer.blocks[0];
+            if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
+                block_id = dirt_layer.blocks[1];
+            }
+            const dirt_layer_blocks_count = dirt_layer.blocks.length;
+            if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
+                switch(dirt_layer_blocks_count) {
+                    case 2: {
+                        block_id = dirt_layer.blocks[1];
+                        break;
+                    }
+                    case 3: {
+                        block_id = not_air_count <= cell.dirt_level ? dirt_layer.blocks[1] : dirt_layer.blocks[2];
+                        break;
+                    }
                 }
             }
+
         }
 
         return {dirt_layer, block_id};
@@ -389,8 +457,8 @@ export class TerrainMapManager2 {
     calcBiome(xz) {
 
         // Create map cell
-        const temperature = this.biomes.calcNoise(xz.x, xz.z, 3);
-        const humidity = this.biomes.calcNoise(xz.x, xz.z, 2);
+        const temperature = this.biomes.calcNoise(xz.x / 1.15, xz.z / 1.15, 3, .9);
+        const humidity = this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2);
         const biome = this.biomes.getBiome(temperature, humidity);
 
         return {biome, temperature, humidity};
@@ -400,18 +468,22 @@ export class TerrainMapManager2 {
     // generateMap
     generateMap(real_chunk, chunk, noisefn) {
 
-        const value = 85;
-        const xyz = new Vector(0, 0, 0);
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
+
+        const value = 85;
+        const xyz = new Vector(0, 0, 0);
+        const _density_params = new DensityParams(0, 0, 0, 0, 0);
 
         // Result map
         const map = new TerrainMap2(chunk, GENERATOR_OPTIONS);
         if(!real_chunk.chunkManager) {
             debugger
         }
+
+        const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
 
         // 1. Fill cells
         for(let x = 0; x < chunk.size.x; x++) {
@@ -431,7 +503,7 @@ export class TerrainMapManager2 {
 
             }
         }
-        
+
         // 2. Create cluster
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
 
@@ -444,21 +516,24 @@ export class TerrainMapManager2 {
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
+
+                    xyz.y = map.cluster.y_base;
+                    this.noise3d.generate4(xyz, doorSearchSize);
                     for(let i = 0; i < 2; i++) {
                         if(building.door_bottom.y != Infinity) {
                             break;
                         }
+                        const {biome, temperature, humidity} = this.calcBiome(xyz);
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
-                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell);
-                            if(density > .6) {
+                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params);
+                            if(density > DENSITY_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
                                     building.setY(xyz.y + 1);
                                     // set building cell for biome info
-                                    const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-                                    const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                                    const {biome, temperature, humidity} = this.calcBiome(xyz);
+                                    // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+                                    // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
                                     building.setBiome(biome, temperature, humidity);
                                     break;
                                 }

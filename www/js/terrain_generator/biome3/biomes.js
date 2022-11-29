@@ -21,7 +21,7 @@ export class Biomes {
         this.initBiomes();
         this.calcPalette();
         //
-        this.octaves = 5;
+        this.octaves = 6;
         this.max_pow = Math.pow(2, this.octaves);
         this.pows = [];
         for(let i = 0; i < this.octaves; i++) {
@@ -30,7 +30,7 @@ export class Biomes {
         }
     }
 
-    calcNoise(px, pz, t) {
+    calcNoise(px, pz, t, div = 1.2) {
         const s = 1 * 40;
         let resp = 0;
         for(let i = 0; i < this.octaves; i++) {
@@ -39,7 +39,7 @@ export class Biomes {
             const h = this.noise2d((px + shift) / (d * s), (pz + shift) / (d * s));
             resp += h * (d / this.max_pow);
         }
-        return (resp / 2 + .5) / 1.2;
+        return (resp / 2 + .5) / div;
     }
 
     addBiome(title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color) {
@@ -91,11 +91,14 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap});
+        const biome = {id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap};
+        this.list.push(biome);
+        this.byName.set(title, biome);
     }
 
     initBiomes() {
 
+        this.byName = new Map();
         this.list = [];
     
         // Снежные биомы
@@ -378,6 +381,8 @@ export class Biomes {
         }
         return biome;
         */
+
+        // return this.byName.get('Холмистая пустыня')
 
         let x = Math.floor(this.scale * temperature);
         let z = Math.floor(this.scale * humidity);

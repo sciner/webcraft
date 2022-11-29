@@ -94,6 +94,7 @@ export class Chunk {
         this.fluid = null;
         this.inQueue = false;
         this.queueDist = -1; // 0 and more means its in queue (build or gen
+        this.genValue = 0;
     }
 
     init() {
