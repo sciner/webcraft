@@ -523,6 +523,7 @@ export class TerrainMapManager2 {
                         if(building.door_bottom.y != Infinity) {
                             break;
                         }
+                        const {biome, temperature, humidity} = this.calcBiome(xyz);
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
                             const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params);
@@ -533,7 +534,6 @@ export class TerrainMapManager2 {
                                     // set building cell for biome info
                                     // const x = xyz.x - Math.floor(xyz.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
                                     // const z = xyz.z - Math.floor(xyz.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-                                    const {biome, temperature, humidity} = this.calcBiome(xyz);
                                     building.setBiome(biome, temperature, humidity);
                                     break;
                                 }
