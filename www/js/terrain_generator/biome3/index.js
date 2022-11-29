@@ -110,19 +110,27 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.generateChunkData(chunk, seed, rnd);
 
         // Mines
+        chunk.timers.generate_mines = performance.now();
         if(chunk.addr.y == 0) {
             const mine = MineGenerator.getForCoord(this, chunk.coord);
             mine.fillBlocks(chunk);
         }
+        chunk.timers.generate_mines = performance.now() - chunk.timers.generate_mines;
 
         // Dungeon
+        chunk.timers.generate_dungeon = performance.now();
         this.dungeon.add(chunk);
+        chunk.timers.generate_dungeon = performance.now() - chunk.timers.generate_dungeon;
 
         // Cluster
+        chunk.timers.generate_cluster = performance.now();
         cluster.fillBlocks(this.maps, chunk, map, false, false);
+        chunk.timers.generate_cluster = performance.now() - chunk.timers.generate_cluster;
 
         // Plant trees
+        chunk.timers.generate_trees = performance.now();
         this.plantTrees(maps, chunk);
+        chunk.timers.generate_trees = performance.now() - chunk.timers.generate_trees;
 
         chunk.genValue = this.noise3d.scoreCounter;
 
@@ -195,8 +203,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const sz = chunk.size.clone();
         sz.y = Math.min(sz.y, Math.max(1, maxY - chunk.coord.y));
         sz.y++;
+
+        chunk.timers.generate_noise3d = performance.now();
         //TODO: for air, ignore this all?
         this.noise3d.generate4(chunk.coord, sz);
+        chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
