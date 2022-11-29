@@ -98,6 +98,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
         */
 
+        this.noise3d.scoreCounter = 0;
+
         const seed                      = this.seed + chunk.id;
         const rnd                       = new alea(seed);
         const cluster                   = chunk.cluster;
@@ -143,6 +145,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             }
         }
+
+        chunk.genValue = this.noise3d.scoreCounter;
 
         return map;
 

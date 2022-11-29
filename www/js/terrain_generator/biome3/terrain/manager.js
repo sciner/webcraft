@@ -503,7 +503,7 @@ export class TerrainMapManager2 {
 
             }
         }
-        
+
         // 2. Create cluster
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
 

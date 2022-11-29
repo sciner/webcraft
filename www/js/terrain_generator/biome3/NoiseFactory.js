@@ -27,6 +27,8 @@ export class Noise3d {
             this.alea = new alea(seed);
             this.noise3d = createNoise3DOpt(this.alea.double);
         }
+
+        this.scoreCounter = 0;
     }
 
     generate(pos, size = oneVector, scale = 1.0, genNum = 0) {
@@ -58,6 +60,7 @@ export class Noise3d {
         this.generate(pos, size, scales[1], 1);
         this.generate(pos, size, scales[2], 2);
         this.generate(pos, size, scales[3], 3);
+        this.scoreCounter += size.x * size.y * size.z;
     }
 
     getLocalAt(gen, vec) {
