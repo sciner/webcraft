@@ -55,8 +55,6 @@ export class DensityParams {
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
-        // if(!globalThis.dfghj) globalThis.dfghj=0
-        //if(globalThis.dfghj++%1000==0) console.log(globalThis.dfghj)
     }
 
     /**
@@ -350,6 +348,9 @@ export class TerrainMapManager2 {
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
         if(h < DENSITY_THRESHOLD) {
+            if(density_params) {
+                return density_params.set(0, 0, 0, 0, 0);
+            }
             return ZeroDensity;
         }
 
@@ -467,12 +468,14 @@ export class TerrainMapManager2 {
     // generateMap
     generateMap(real_chunk, chunk, noisefn) {
 
-        const value = 85;
-        const xyz = new Vector(0, 0, 0);
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
+
+        const value = 85;
+        const xyz = new Vector(0, 0, 0);
+        const _density_params = new DensityParams(0, 0, 0, 0, 0);
 
         // Result map
         const map = new TerrainMap2(chunk, GENERATOR_OPTIONS);
@@ -481,6 +484,7 @@ export class TerrainMapManager2 {
         }
 
         const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
+
         // 1. Fill cells
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -521,7 +525,7 @@ export class TerrainMapManager2 {
                         }
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
-                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell);
+                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params);
                             if(density > DENSITY_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
