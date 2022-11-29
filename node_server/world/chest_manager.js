@@ -51,13 +51,15 @@ export class WorldChestManager {
                 chest.slots = {};
             }
         }
+        const chestSlotsCount = tblock_chest.properties.chest_slots;
+        const inputChestSlotsCount = chestSlotsCount - tblock_chest.properties.readonly_chest_slots;
 
         // Валидация ключей слотов сундука,
         // а также самих айтемов путем их привидения к строгому формату.
         // Вдруг нам клиент прислал хрень
         const new_chest_slots = {};
         for(let k in params.chest.slots) {
-            if(!isNaN(k) && k >= 0 && k < DEFAULT_CHEST_SLOT_COUNT) {
+            if(!isNaN(k) && k >= 0 && k < chestSlotsCount) {
                 let item = params.chest.slots[k];
                 new_chest_slots[k] = BLOCK.convertItemToInventoryItem(item);
             }
@@ -65,7 +67,7 @@ export class WorldChestManager {
 
         const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
         const changeApplied = this.applyClientChange(chest.slots, new_chest_slots, 
-                player.inventory.items, params.inventory_slots, params.change, player);
+                player.inventory.items, params.inventory_slots, params.change, player, inputChestSlotsCount);
         const inventoryEqual = InventoryComparator.listsExactEqual(
                 player.inventory.items, params.inventory_slots);
 
@@ -111,7 +113,7 @@ export class WorldChestManager {
     }
 
     // Validates the client change to a chest/inventory, and tries to apply on the server
-    applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player) {
+    applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player, inputChestSlotsCount) {
 
         const that = this
 
@@ -150,15 +152,16 @@ export class WorldChestManager {
 
         function spreadToList(slot, isChest) {
             const list = isChest ? srvChest : srvInv;
+            const slotsCount = isChest ? inputChestSlotsCount : INVENTORY_VISIBLE_SLOT_COUNT;
             const id = slot.id;
             const maxStatck = that.world.block_manager.fromId(id)?.max_in_stack;
             if (!maxStatck) {
                 return false;
             }
             var changed = false;
-            // add to existing slots
-            for(var key in list) {
-                const s = list[key];
+            // add to existing input slots
+            for(var i = 0; i < slotsCount; i++) {
+                const s = list[i];
                 if (s && s.id == id && s.count < maxStatck) {
                     const c = Math.min(maxStatck - s.count, slot.count);
                     s.count += c;
@@ -170,8 +173,7 @@ export class WorldChestManager {
                 }
             }
             // move to a new slot
-            const maxIndex = isChest ? DEFAULT_CHEST_SLOT_COUNT : INVENTORY_VISIBLE_SLOT_COUNT;
-            for(var i = 0; i < maxIndex; i++) {
+            for(var i = 0; i < slotsCount; i++) {
                 if (list[i] == null) {
                     list[i] = { ...slot };
                     slot.count = 0;
@@ -308,7 +310,9 @@ export class WorldChestManager {
             return 0;
         }
         if (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
-            if (!slotsEqual(prevCliSlot, cliDrag) || !slotsEqual(prevCliDrag, cliSlot)) {
+            if (!slotsEqual(prevCliSlot, cliDrag) || !slotsEqual(prevCliDrag, cliSlot) ||
+                change.slotInChest && change.slotIndex >= inputChestSlotsCount
+            ) {
                 return 0; // incorrect change
             }
             // we can swap if the ids on the server are the same, regardless of the quantity
@@ -357,7 +361,8 @@ export class WorldChestManager {
                 cliDrag && cliDrag.id !== id ||
                 prevCliDrag.id !== id ||
                 slotDelta !== -dragDelta ||
-                cliSlot.count > maxStatck
+                cliSlot.count > maxStatck ||
+                change.slotInChest && change.slotIndex >= inputChestSlotsCount
             ) {
                 return 0; // incorrect change
             }

@@ -255,6 +255,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
 
+        this.readonly = readonly;
+
         // Custom drawing
         this.onMouseEnter = function() {
             this.style.background.color = '#ffffff55';
@@ -477,6 +479,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             // 1. проход в поисках подобного
             for(let slot of target_list) {
                 if(slot instanceof CraftTableInventorySlot) {
+                    if (slot.readonly) {
+                        continue;
+                    }
                     const item = slot.getItem();
                     if(item && item.id == srcItem.id) {
                         let free_count = max_stack_count - item.count;
@@ -498,6 +503,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             for(let index in target_list) {
                 const slot = target_list[index];
                 if(slot instanceof CraftTableInventorySlot) {
+                    if (slot.readonly) {
+                        continue;
+                    }
                     if(!slot.getItem()) {
                         let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
                         srcList[slot_index].setItem({...srcItem});
