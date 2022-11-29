@@ -58,7 +58,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double });
 
         this.options        = {...GENERATOR_OPTIONS, ...this.options};
-        this.maps           = new TerrainMapManager2(this.seed, this.world_id, this.noise2d, this.noise3d);
+        this.maps    = new TerrainMapManager2(this.seed, this.world_id, this.noise2d, this.noise3d);
     }
 
     /*
@@ -122,6 +122,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         cluster.fillBlocks(this.maps, chunk, map, false, false);
 
         // Plant trees
+        this.plantTrees(maps, chunk);
+
+        chunk.genValue = this.noise3d.scoreCounter;
+
+        return map;
+
+    }
+
+    /**
+     * Plant chunk trees
+     * @param {[]TerrainMap2} maps 
+     */
+    plantTrees(maps, chunk) {
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];
             for(let j = 0; j < m.trees.length; j++) {
@@ -145,11 +158,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             }
         }
-
-        chunk.genValue = this.noise3d.scoreCounter;
-
-        return map;
-
     }
 
     //
