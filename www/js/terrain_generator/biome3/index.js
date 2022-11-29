@@ -103,11 +103,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const seed                      = this.seed + chunk.id;
         const rnd                       = new alea(seed);
         const cluster                   = chunk.cluster;
+
+        chunk.timers.generate_maps = performance.now();
         const maps                      = this.maps.generateAround(chunk, chunk.addr, true, true);
+        chunk.timers.generate_maps = performance.now() - chunk.timers.generate_maps;
 
         const map = chunk.map = maps[4];
 
+        chunk.timers.generate_chunk_data = performance.now();
         this.generateChunkData(chunk, seed, rnd);
+        chunk.timers.generate_chunk_data = performance.now() - chunk.timers.generate_chunk_data;
 
         // Mines
         chunk.timers.generate_mines = performance.now();
