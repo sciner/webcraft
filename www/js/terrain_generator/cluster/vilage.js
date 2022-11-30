@@ -47,8 +47,8 @@ export class ClusterVilage extends ClusterBase {
                     {class: StreetLight, max_count: Infinity, chance: 1}
                 ],
                 required: [
-                    {class: WaterWell, max_count: 1, chance: 1},
-                    {class: Farmland, max_count: 1, chance: 1}
+                    //{class: WaterWell, max_count: 1, chance: 1},
+                    //{class: Farmland, max_count: 1, chance: 1}
                 ],
                 others: [
                    // {class: WaterWell, max_count: 2, chance: 0.12},

@@ -852,7 +852,7 @@ export class Church extends Building {
         //
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         const dir                = this.door_direction;
-        console.log(door_direction);
+
         //this.draw_entrance = false;
         
         this.blocks = {
@@ -892,21 +892,23 @@ export class Church extends Building {
         }
         this.blocks.list.push(...[
             {move: new Vector(6, 1, 17), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.NORTH, dir), y: 0, z: 0}},
-            {move: new Vector(6, 1, 18), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 2, 18), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(5, 2, 18), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
-            {move: new Vector(4, 2, 18), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(4, 3, 18), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(4, 3, 17), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
-            {move: new Vector(4, 3, 16), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(4, 4, 16), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(5, 4, 16), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
-            {move: new Vector(6, 4, 16), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 5, 16), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(6, 5, 17), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.NORTH, dir), y: 0, z: 0}},
-            {move: new Vector(6, 5, 18), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 6, 18), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(5, 6, 18), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
-            {move: new Vector(4, 6, 18), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(4, 7, 18), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(4, 7, 17), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
-            {move: new Vector(4, 7, 16), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(4, 8, 16), block_id: BLOCK.DARK_OAK_SLAB.id},
             {move: new Vector(5, 8, 16), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
-            {move: new Vector(6, 8, 16), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 9, 16), block_id: BLOCK.DARK_OAK_SLAB.id},
+            {move: new Vector(6, 9, 17), block_id: BLOCK.DARK_OAK_SLAB.id},
+            {move: new Vector(6, 9, 18), block_id: BLOCK.DARK_OAK_SLAB.id},
             
             {move: new Vector(3, 13, 16), block_id: BLOCK.DEEPSLATE_TILE_WALL.id},
             {move: new Vector(3, 13, 18), block_id: BLOCK.DEEPSLATE_TILE_WALL.id},
@@ -1004,6 +1006,18 @@ export class Church extends Building {
             {move: new Vector(6, 20, 17), block_id: BLOCK.DEEPSLATE_TILE_WALL.id},
             {move: new Vector(5, 20, 17), block_id: BLOCK.DEEPSLATE_BRICKS.id},
             {move: new Vector(5, 21, 17), block_id: BLOCK.DEEPSLATE_BRICKS.id},
+            
+            // реликвия
+            {move: new Vector(5, 19, 17), block_id: BLOCK.CHAIN.id},
+            {move: new Vector(5, 18, 17), block_id: BLOCK.CHAIN.id},
+            {move: new Vector(5, 17, 17), block_id: BLOCK.CHAIN.id},
+            {move: new Vector(5, 16, 17), block_id: BLOCK.CHAIN.id},
+            {move: new Vector(5, 15, 17), block_id: BLOCK.AMETHYST_CLUSTER.id},
+            {move: new Vector(5, 14, 17), block_id: BLOCK.AMETHYST_BLOCK.id},
+            {move: new Vector(5, 13, 17), block_id: BLOCK.AMETHYST_CLUSTER.id, rotate:{x:0, y: -1, z: 0}},
+            //{move: new Vector(6, 14, 17), block_id: BLOCK.AMETHYST_CLUSTER.id, rotate:{x:6, y: 0, z: 0}},
+            //CubeSym.add(blockSym, homeSym)
+            
         ]);
         
         
@@ -1072,25 +1086,40 @@ export class Church extends Building {
             {move: new Vector(8, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(9, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
             
+            {move: new Vector(1, 6, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(2, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(3, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
-            {move: new Vector(4, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 1}},
-            {move: new Vector(6, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 1}},
+            {move: new Vector(4, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}, extra_data: {point: {x:0, y:0.6, z:0}}},
+            {move: new Vector(6, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0},  extra_data: {point: {x:0, y:0.6, z:0}}},
             {move: new Vector(7, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(8, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(9, 6, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
+            {move: new Vector(4, 3, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(5, 3, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(6, 3, 1), block_id: BLOCK.STONE_BRICKS.id},
             
+            {move: new Vector(4, 2, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}, extra_data: {point: {x:0, y:0.6, z:0}}},
+            {move: new Vector(6, 2, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0},  extra_data: {point: {x:0, y:0.6, z:0}}},
+            
+            {move: new Vector(2, 7, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(3, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(4, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(5, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(6, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(7, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 7, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
+            {move: new Vector(3, 8, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(4, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(5, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(6, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 8, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
+            {move: new Vector(4, 9, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(5, 9, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(6, 9, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
+            {move: new Vector(5, 10, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             
             {move: new Vector(1, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
@@ -1100,13 +1129,20 @@ export class Church extends Building {
             {move: new Vector(8, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(9, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
             
+            {move: new Vector(1, 6, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(2, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(3, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(7, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(8, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(9, 6, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
             
+            {move: new Vector(2, 7, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(3, 7, 15), block_id: BLOCK.STONE_BRICKS.id},
             {move: new Vector(7, 7, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 7, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
+            
+            {move: new Vector(3, 8, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
+            {move: new Vector(7, 8, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
         ]);
         for (let z = 2; z < 15; z++) {
             this.blocks.list.push(...[
@@ -1114,7 +1150,7 @@ export class Church extends Building {
                 {move: new Vector(2, 6, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
                 {move: new Vector(3, 7, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
                 {move: new Vector(4, 8, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
-                {move: new Vector(5, 9, z), block_id: BLOCK.DEEPSLATE_BRICK_SLAB.id},
+                {move: new Vector(5, 9, z), block_id: (z%2 == 0) ? BLOCK.DEEPSLATE_BRICK_SLAB.id : BLOCK.DEEPSLATE_BRICKS.id},
                 {move: new Vector(6, 8, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
                 {move: new Vector(7, 7, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
                 {move: new Vector(8, 6, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
@@ -1148,12 +1184,33 @@ export class Church extends Building {
             {move: new Vector(8, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
             {move: new Vector(2, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
             {move: new Vector(4, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
-            {move: new Vector(5, 1, 13), block_id: BLOCK.LECTERN.id, rotate: {x: this.wrapRotation(2, dir), y: 0, z: 0}},
+            {move: new Vector(4, 2, 13), block_id: BLOCK.BLUE_CANDLE.id},
+            {move: new Vector(5, 1, 13), block_id: BLOCK.LECTERN.id, 
+                rotate: {x: this.wrapRotation(2, dir), y: 0, z: 0},
+                extra_data: {
+                    page: 0,
+                    book: {
+                        id: 'church_book',
+                        pages: [
+                            {
+                                text: 'Церковь построена 2022 году'
+                            },
+                            {
+                                text: 'Страница #2'
+                            }
+                        ],
+                        author: 'Username',
+                        title: 'Test book',
+                        resolved: 1
+                    }
+                }
+            },
             {move: new Vector(6, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(6, 2, 13), block_id: BLOCK.RED_CANDLE.id},
             {move: new Vector(8, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
             {move: new Vector(2, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
-            {move: new Vector(4, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
-            {move: new Vector(6, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            //{move: new Vector(4, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            //{move: new Vector(6, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
             {move: new Vector(8, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
             {move: new Vector(2, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
             {move: new Vector(3, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
@@ -1206,7 +1263,7 @@ export class Church extends Building {
         
         //Лавочки
         this.blocks.list.push(...[
-            {move: new Vector(4, 0, 3), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(2, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(3, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(7, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(8, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
@@ -1224,7 +1281,148 @@ export class Church extends Building {
             {move: new Vector(8, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
         ]);
         
-        // Дверь
+        // Дверь входная
+        this.blocks.list.push(...[
+            {move: new Vector(3, 0, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 1, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 2, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 3, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 4, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 5, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 6, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 0, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 1, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 2, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 3, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 4, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 5, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(7, 6, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            
+            {move: new Vector(4, 3, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(5, 3, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(6, 3, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            
+            {move: new Vector(4, 7, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(5, 7, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(6, 7, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            
+            {move: new Vector(4, 4, 2), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
+            {move: new Vector(5, 4, 2), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
+            {move: new Vector(6, 4, 2), block_id: BLOCK.ORANGE_STAINED_GLASS_PANE.id},
+            {move: new Vector(4, 5, 2), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
+            {move: new Vector(5, 5, 2), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(6, 5, 2), block_id: BLOCK.PINK_STAINED_GLASS_PANE.id},
+            {move: new Vector(4, 6, 2), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
+            {move: new Vector(5, 6, 2), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(6, 6, 2), block_id: BLOCK.GRAY_STAINED_GLASS_PANE.id},
+        ]);
+        
+        // Ковер
+        for (let x = 4; x < 7; x++) {
+            for (let z = 2; z < 12; z++) {
+                this.blocks.list.push(...[
+                    {move: new Vector(x, 0, z), block_id: BLOCK.RED_CARPET.id}
+                ]);
+            }
+        }
+        
+        // Освещение
+        this.blocks.list.push(...[
+            {move: new Vector(2, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(3, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(4, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(5, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(6, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(7, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(8, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(3, 4, 5), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}},
+            {move: new Vector(7, 4, 5), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}},
+            
+            {move: new Vector(2, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(3, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(4, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(5, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(6, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(7, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(8, 5, 10), block_id: BLOCK.BIRCH_SLAB.id},
+            {move: new Vector(3, 4, 10), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}},
+            {move: new Vector(7, 4, 10), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}},
+            
+            {move: new Vector(6, 3, 17), block_id: BLOCK.TORCH.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(4, 5, 17), block_id: BLOCK.TORCH.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(6, 7, 17), block_id: BLOCK.TORCH.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+        ]);
+        
+        // Декор
+        this.blocks.list.push(...[
+            {move: new Vector(4, 1, 17), block_id: BLOCK.NOTE_BLOCK.id}, // бочка / свеча
+            {move: new Vector(4, 2, 17), block_id: BLOCK.WHITE_CANDLE.id},
+            
+            // Банеры
+            {move: new Vector(2, 3, 6), block_id: BLOCK.RED_BANNER.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(2, 3, 10), block_id: BLOCK.RED_BANNER.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(8, 3, 6), block_id: BLOCK.RED_BANNER.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(8, 3, 10), block_id: BLOCK.RED_BANNER.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            
+            // столбы
+            {move: new Vector(3, 0, 0), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(7, 0, 0), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 2), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 2), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 6), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 10), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(0, 0, 14), block_id: BLOCK.LODESTONE.id},
+            
+            {move: new Vector(10, 0, 2), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 6), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 10), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(10, 0, 14), block_id: BLOCK.LODESTONE.id},
+            
+            {move: new Vector(2, 0, 17), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(5, 0, 20), block_id: BLOCK.LODESTONE.id},
+            {move: new Vector(8, 0, 17), block_id: BLOCK.LODESTONE.id},
+            
+            {move: new Vector(3, 1, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 1, 0), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 2), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 2), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 6), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 10), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(0, 1, 14), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(10, 1, 2), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 2), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 6), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 10), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(10, 1, 14), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(2, 1, 17), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(5, 1, 20), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 1, 17), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(2, 2, 17), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(5, 2, 20), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 2, 17), block_id: BLOCK.STONE_BRICKS.id},
+
+            {move: new Vector(3, 2, 0), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.NORTH, dir), 0, 0)},
+            {move: new Vector(7, 2, 0), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.NORTH, dir), 0, 0)},
+            
+            {move: new Vector(0, 2, 2), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(0, 2, 6), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(0, 2, 10), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(0, 2, 14), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            {move: new Vector(2, 3, 17), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
+            
+            {move: new Vector(10, 2, 2), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(10, 2, 6), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(10, 2, 10), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(10, 2, 14), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            {move: new Vector(8, 3, 17), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
+            
+             {move: new Vector(5, 3, 20), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.SOUTH, dir), 0, 0)},
+        ]);
+        
+        
         
         
         
