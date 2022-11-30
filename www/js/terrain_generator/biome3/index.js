@@ -248,25 +248,25 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
-                // Caves
+                // Calculate caves
                 const cave_middle_level = 70;
-                const cave_amplitude = 24
-                const cave_width = .1
-                const cave_rad = 4
-                let cave_density = Math.abs(
-                    (this.noise2d(xyz.x / 256, xyz.z / 256)) * 1
-                );
-
-                const has_cave = cave_density < cave_width;
-
-                let cave_y_density = 0;
-                let cave_y_pos = 0;
-                if(has_cave) {
-                    cave_y_density = this.noise2d((xyz.x + 10000) / 128, (xyz.z + 10000) / 128);
-                    cave_y_pos = cave_middle_level + cave_y_density * cave_amplitude;
+                const cave_amplitude = 16;
+                const cave_width = .25;
+                const cave_rad = 4;
+                const caves = [];
+                for(let i = 0; i < 2; i++) {
+                    const shift = 10000 * i;
+                    const cave_x = xyz.x + shift;
+                    const cave_z = xyz.z + shift;
+                    const cave_density = Math.abs((this.noise2d(cave_x / 48, cave_z / 48)));
+                    if(cave_density < cave_width) {
+                        const cave_y_density = this.noise2d((cave_x + 10000) / 64, (cave_z + 10000) / 64);
+                        const cave_y_pos = cave_middle_level - (cave_amplitude * 1.5 * i) + cave_y_density * cave_amplitude;
+                        caves.push({cave_y_pos, cave_density});
+                    }
                 }
 
-                // y
+                // Each y-column
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
@@ -278,12 +278,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     //
                     if(density > DENSITY_THRESHOLD) {
 
-                        //
-                        if(has_cave) {
-                            if(cave_density < cave_width * (1 - d4 * .7)) {
-                                const cave_height = (1 - cave_density / cave_width) * cave_rad;
-                                if(Math.abs(xyz.y - cave_y_pos) < cave_height) {
-                                    density = 0;
+                        // Remove caves
+                        if(density > DENSITY_THRESHOLD * (xyz.y <= WATER_LEVEL ? 1.25 : 1)) {
+                            for(let cave of caves) {
+                                if(cave.cave_density < cave_width) {
+                                    const cave_height = (1 - cave.cave_density / cave_width) * cave_rad;
+                                    const y_diff = xyz.y - cave.cave_y_pos;
+                                    const dynamic_cave_height = y_diff > 0 ? d4 * 15 : 0;
+                                    if(Math.abs(y_diff) < cave_height + dynamic_cave_height) {
+                                        density = 0;
+                                    }
                                 }
                             }
                         }
