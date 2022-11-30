@@ -354,10 +354,10 @@ export class TerrainMapManager2 {
             return ZeroDensity;
         }
 
-        const d1 = this.noise3d.getGlobalAt(0, xyz);
-        const d2 = this.noise3d.getGlobalAt(1, xyz);
-        const d3 = this.noise3d.getGlobalAt(2, xyz);
-        const d4 = this.noise3d.getGlobalAt(3, xyz);
+        const res = density_params || new DensityParams(0, 0, 0, 0, 0);
+
+        this.noise3d.fetchGlobal4(xyz, res);
+        const {d1, d2, d3, d4} = res;
 
         let density = (
             // 64/120 + 32/120 + 16/120 + 8/120
@@ -373,12 +373,8 @@ export class TerrainMapManager2 {
             density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
         }
 
-        if(density_params) {
-            return density_params.set(d1, d2, d3, d4, density);
-        }
-
-        return new DensityParams(d1, d2, d3, d4, density);
-
+        res.density = density;
+        return res;
     }
 
     /**

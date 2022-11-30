@@ -74,6 +74,15 @@ export class Noise3d {
         const ind = gen * cgen + cx * vec.x + cy * vec.y + cz * vec.z + shiftCoord;
         return result[ind];
     }
+
+    fetchGlobal4(vec, out) {
+        const {cx, cy, cz, shiftCoord, cgen, result} = this;
+        const ind = cx * vec.x + cy * vec.y + cz * vec.z + shiftCoord;
+        out.d1 = result[ind];
+        out.d2 = result[ind + cgen];
+        out.d3 = result[ind + cgen * 2];
+        out.d4 = result[ind + cgen * 3];
+    }
 }
 
 export class NoiseFactory {
