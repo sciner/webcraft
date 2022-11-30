@@ -1034,6 +1034,19 @@ export class Church extends Building {
                 {move: new Vector(9, y, 13), block_id: BLOCK.STONE_BRICKS.id},
                 {move: new Vector(9, y, 14), block_id: BLOCK.STONE_BRICKS.id},
                 {move: new Vector(9, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                
+                {move: new Vector(1, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(2, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(3, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(7, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(8, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(9, y, 1), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(1, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(2, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(3, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(7, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(8, y, 15), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(9, y, 15), block_id: BLOCK.STONE_BRICKS.id},
             ]);
             if (y == 0 || y == 4) {
                 this.blocks.list.push(...[
@@ -1047,6 +1060,171 @@ export class Church extends Building {
             }
         }
         
+        // крыша
+        this.blocks.list.push(...[
+            {move: new Vector(4, 4, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
+            {move: new Vector(6, 4, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
+        
+            {move: new Vector(1, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(2, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(3, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(9, 5, 1), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(2, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(3, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(4, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 1}},
+            {move: new Vector(6, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 1}},
+            {move: new Vector(7, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 6, 1), block_id: BLOCK.STONE_BRICKS.id},
+            
+            
+            {move: new Vector(3, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(4, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(5, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(6, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 7, 1), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(4, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(5, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(6, 8, 1), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(5, 9, 1), block_id: BLOCK.STONE_BRICKS.id},
+            
+            
+            {move: new Vector(1, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(2, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(3, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(9, 5, 15), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(2, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(3, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(8, 6, 15), block_id: BLOCK.STONE_BRICKS.id},
+            
+            {move: new Vector(3, 7, 15), block_id: BLOCK.STONE_BRICKS.id},
+            {move: new Vector(7, 7, 15), block_id: BLOCK.STONE_BRICKS.id},
+        ]);
+        for (let z = 2; z < 15; z++) {
+            this.blocks.list.push(...[
+                {move: new Vector(1, 5, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
+                {move: new Vector(2, 6, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
+                {move: new Vector(3, 7, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
+                {move: new Vector(4, 8, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
+                {move: new Vector(5, 9, z), block_id: BLOCK.DEEPSLATE_BRICK_SLAB.id},
+                {move: new Vector(6, 8, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
+                {move: new Vector(7, 7, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
+                {move: new Vector(8, 6, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
+                {move: new Vector(9, 5, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
+                
+                {move: new Vector(1, 0, z), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(9, 0, z), block_id: BLOCK.STONE_BRICKS.id},
+                
+                {move: new Vector(1, 4, z), block_id: BLOCK.STONE_BRICKS.id},
+                {move: new Vector(9, 4, z), block_id: BLOCK.STONE_BRICKS.id},
+            ]);
+        }
+        
+        // Полы
+        for (let x = 2; x < 9; x++) {
+            for (let z = 2; z < 13; z++) {
+                this.blocks.list.push(...[
+                    {move: new Vector(x, -1, z), block_id: BLOCK.BIRCH_PLANKS.id}
+                ]);
+            }
+        }
+        
+        // алтарь
+        this.blocks.list.push(...[
+            {move: new Vector(2, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(4, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(3, 0, 13), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(0, dir), y: 0, z: 0}},
+            {move: new Vector(7, 0, 13), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(0, dir), y: 0, z: 0}},
+            {move: new Vector(5, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(6, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(8, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(2, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(4, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(5, 1, 13), block_id: BLOCK.LECTERN.id, rotate: {x: this.wrapRotation(2, dir), y: 0, z: 0}},
+            {move: new Vector(6, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(8, 1, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
+            {move: new Vector(2, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            {move: new Vector(4, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            {move: new Vector(6, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            {move: new Vector(8, 2, 13), block_id: BLOCK.SPRUCE_SLAB.id},
+            {move: new Vector(2, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(3, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(4, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(5, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(7, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(8, 0, 14), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            
+            {move: new Vector(4, 1, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(4, 2, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(5, 1, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(5, 2, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(5, 3, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(6, 2, 15), block_id: BLOCK.AIR.id},
+            {move: new Vector(6, 1, 15), block_id: BLOCK.AIR.id},
+            
+            {move: new Vector(4, 0, 15), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(5, 0, 15), block_id: BLOCK.DARK_OAK_PLANKS.id},
+            {move: new Vector(6, 0, 15), block_id: BLOCK.DARK_OAK_PLANKS.id},
+        ]);
+        
+        
+        // стекла
+        this.blocks.list.push(...[
+            {move: new Vector(1, 1, 4), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 2, 4), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 3, 4), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(1, 1, 8), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 2, 8), block_id: BLOCK.ORANGE_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 3, 8), block_id: BLOCK.MAGENTA_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(1, 1, 12), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 2, 12), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 3, 12), block_id: BLOCK.PINK_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(9, 1, 4), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 2, 4), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 3, 4), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(9, 1, 8), block_id: BLOCK.CYAN_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 2, 8), block_id: BLOCK.ORANGE_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 3, 8), block_id: BLOCK.MAGENTA_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(9, 1, 12), block_id: BLOCK.LIGHT_GRAY_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 2, 12), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 3, 12), block_id: BLOCK.GRAY_STAINED_GLASS_PANE.id},
+        ]);
+        
+        //Лавочки
+        this.blocks.list.push(...[
+            {move: new Vector(4, 0, 3), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(3, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(7, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(8, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(2, 0, 6), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(3, 0, 6), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(7, 0, 6), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(8, 0, 6), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(2, 0, 8), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(3, 0, 8), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(7, 0, 8), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(8, 0, 8), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(2, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(3, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(7, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(8, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+        ]);
+        
+        // Дверь
         
         
         
