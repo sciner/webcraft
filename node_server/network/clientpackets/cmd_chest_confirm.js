@@ -23,7 +23,7 @@ export default class packet_reader {
         const chest = await chests.get(pos);
         if (chest) {
             // console.log('Chest state from ' + player.session.username, packet.data);
-            await chests.confirmPlayerAction(player, pos, packet.data);
+            await chests.confirmPlayerAction(player, packet.data);
         } else {
             player.inventory.refresh(true);
             const pos_hash = pos.toHash();

@@ -1252,10 +1252,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
 
 export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front
-    ROTATE.W = CubeSym.ROT_Y; // left
-    ROTATE.N = CubeSym.ID; // back
-    ROTATE.E = CubeSym.ROT_Y3; // right
+    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
+    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
+    ROTATE.N = CubeSym.ID; // back, z increases
+    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
 
 export let NORMALS = {};
     NORMALS.FORWARD          = new Vector(0, 0, 1);
