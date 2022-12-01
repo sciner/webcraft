@@ -32,7 +32,10 @@ export default class style {
             return;
         }
 
-        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
+        var texName = block?.extra_data?.type || 'side';
+        const tex = block.material.texture[texName];
+        const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, null, tex);
+
         const flag = 0;
         const cd = block.getCardinalDirection();
         const rot = cd * -(Math.PI / 2)
@@ -50,57 +53,144 @@ export default class style {
         matrix = mat4.create();
         mat4.rotateY(matrix, matrix, rot);
 
-        // бокс
-        const box = {
-            "size": {"x": 14, "y": 10, "z": 14},
-            "translate": {"x":0, "y": -3, "z": 0},
-            "faces": {
-                "up": {"uv": [70/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                "down": {"uv": [42/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                "north": {"uv": [98/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
-                "south": {"uv": [42/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                "west":  {"uv": [70/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+        var box;
+        var lid;
+        switch(texName) {
+            case 'side': {
+                box = {
+                    "size": {"x": 14, "y": 10, "z": 14},
+                    "translate": {"x": 0, "y": -3, "z": 0},
+                    "faces": {
+                        "up": {"uv": [70/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "down": {"uv": [42/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "north": {"uv": [98/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                        "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        "south": {"uv": [42/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                        "west":  {"uv": [70/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                    }
+                };
+                lid = [
+                    // крышка
+                    {
+                        "size": {"x": 14, "y": 4, "z": 14},
+                        "translate": {"x": 0, "y": 4, "z": 0},
+                        "faces": {
+                            "up": {"uv": [70/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [42/2, 14/2], "flag": flag, "texture": c},
+                            "north": {"uv": [98/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]}, // спереди
+                            "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], c[3]]},
+                            "south": {"uv": [42/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], c[3]]},
+                            "west":  {"uv": [70/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]} // справа
+                        }
+                    },
+                    // замок
+                    {
+                        "size": {"x": 2, "y": 4, "z": 1},
+                        "translate": {"x": 0, "y": 1, "z": 7.5},
+                        "faces": {
+                            "up": {"uv": [8/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [4/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "north": {"uv": [10/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
+                            "east":  {"uv": [1/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                            "south": {"uv": [4/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                            "west":  {"uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                        }
+                    }
+                ];
+                break;
             }
-        };
+            case 'left': {
+                box = {
+                    "size": {"x": 15, "y": 10, "z": 14},
+                    "translate": {"x": 0.5, "y": -3, "z": 0},
+                    "faces": {
+                        "up": {"uv": [(58+88)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "down": {"uv": [(28+58)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "north": {"uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                        "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        "south": {"uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                        "west":  {"uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                    }
+                };
+                lid = [
+                    // крышка
+                    {
+                        "size": {"x": 15, "y": 4, "z": 14},
+                        "translate": {"x": 0.5, "y": 4, "z": 0},
+                        "faces": {
+                            "up": {"uv": [(58+88)/2/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [(28+58)/2/2, 14/2], "flag": flag, "texture": c},
+                            "north": {"uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
+                            "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "south": {"uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                            "west":  {"uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
+                        }
+                    },
+                    // замок
+                    {
+                        "size": {"x": 1, "y": 4, "z": 1},
+                        "translate": {"x": 7.5, "y": 1, "z": 7.5},
+                        "faces": {
+                            "up": {"uv": [5/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [3/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "north": {"uv": [5/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
+                            "south": {"uv": [5/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "west":  {"uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // слева
+                        }
+                    }
+                ];
+                break;
+            }
+            default: { // case 'right':
+                box = {
+                    "size": {"x": 15, "y": 10, "z": 14},
+                    "translate": {"x": -0.5, "y": -3, "z": 0},
+                    "faces": {
+                        "up": {"uv": [(58+88)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "down": {"uv": [(28+58)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                        "north": {"uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                        "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        "south": {"uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                        "west":  {"uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                    }
+                };
+                lid = [
+                    // крышка
+                    {
+                        "size": {"x": 15, "y": 4, "z": 14},
+                        "translate": {"x": -0.5, "y": 4, "z": 0},
+                        "faces": {
+                            "up": {"uv": [(58+88)/2/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [(28+58)/2/2, 14/2], "flag": flag, "texture": c},
+                            "north": {"uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
+                            "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "south": {"uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
+                            "west":  {"uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
+                        }
+                    },
+                    // замок
+                    {
+                        "size": {"x": 1, "y": 4, "z": 1},
+                        "translate": {"x":-7.5, "y": 1, "z": 7.5},
+                        "faces": {
+                            "up": {"uv": [5/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "down": {"uv": [3/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
+                            "north": {"uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
+                            "east":  {"uv": [1/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // справа
+                            "south": {"uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}
+                        }
+                    }
+                ];
+                break;
+            }
+        }
+
         default_style.pushPART(vertices, {
             ...box,
             lm:         lm,
             pos:        pos,
             matrix:     matrix
         });
-
-        // mat4.rotateX(matrix, matrix, Math.PI / 4);
-
-        // крышка
-        const lid = [
-            {
-                "size": {"x": 14, "y": 4, "z": 14},
-                "translate": {"x":0, "y": 4, "z": 0},
-                "faces": {
-                    "up": {"uv": [70/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                    "down": {"uv": [42/2, 14/2], "flag": flag, "texture": c},
-                    "north": {"uv": [98/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // спереди
-                    "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                    "south": {"uv": [42/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                    "west":  {"uv": [70/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
-                }
-            },
-            // замок
-            {
-                "size": {"x": 2, "y": 4, "z": 1},
-                "translate": {"x":0, "y": 1, "z": 7.5},
-                "faces": {
-                    "up": {"uv": [8/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                    "down": {"uv": [4/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                    "north": {"uv": [10/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
-                    "east":  {"uv": [1/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
-                    "south": {"uv": [4/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                    "west":  {"uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
-                }
-            }
-        ];
-
         for(let part of lid) {
             default_style.pushPART(vertices, {
                 ...part,

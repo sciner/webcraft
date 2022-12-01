@@ -12,8 +12,8 @@ export class ChestHelpers {
         const dir = BLOCK.getCardinalDirection(block.rotate);
         const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
         switch (block.extra_data?.type) {
-            case 'left':    return block.posworld.clone().addSelf(dxz);
-            case 'right':   return block.posworld.clone().subSelf(dxz);
+            case 'left':    return block.posworld.clone().subSelf(dxz);
+            case 'right':   return block.posworld.clone().addSelf(dxz);
             default:        return null;
         }
     }

@@ -773,13 +773,13 @@ export class ServerChunk {
                     const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
                     const expectedNeighbourPos = pos.clone().addSelf(dxz);
                     if (expectedNeighbourPos.equal(neighbourPos)) {
-                        newType = 'left';
-                        newNeighbourType = 'right';
+                        newType = 'right';
+                        newNeighbourType = 'left';
                     } else {
                         expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
                         if (expectedNeighbourPos.equal(neighbourPos)) {
-                            newType = 'right';
-                            newNeighbourType = 'left';
+                            newType = 'left';
+                            newNeighbourType = 'right';
                         } else {
                             break;
                         }

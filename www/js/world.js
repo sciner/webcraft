@@ -234,7 +234,7 @@ export class World {
                 secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
                 if (secondInfo) {
                     window = 'frmDoubleChest';
-                    if (secondInfo.extra_data.type === 'left') {
+                    if (secondInfo.extra_data.type === 'right') {
                         const t = info;
                         info = secondInfo;
                         secondInfo = t;
