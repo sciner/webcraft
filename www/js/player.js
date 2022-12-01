@@ -374,10 +374,12 @@ export class Player {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
                     // putting items into a pot or a chest takes priority over using them
-                    const canPutIntoTarget = targetMaterial &&
-                        (targetMaterial.tags.includes("pot") && cur_mat.tags.includes("can_put_info_pot") ||
-                        targetMaterial.window);
-                    if(!canPutIntoTarget && this.startItemUse(cur_mat)) {
+                    const canInteractWithBlock = (
+                        targetMaterial &&
+                        targetMaterial.tags.includes('pot') &&
+                        cur_mat.tags.includes("can_put_info_pot")
+                    ) || targetMaterial.can_interact_with_hand;
+                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }

@@ -709,6 +709,7 @@ export class BLOCK {
                                     ['wall', 'pane'].includes(block.style);
 
         block.is_simple_qube    = this.isSimpleQube(block);
+        block.can_interact_with_hand = this.canInteractWithHand(block);
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
@@ -778,6 +779,17 @@ export class BLOCK {
         if(block.id > this.max_id) {
             this.max_id = block.id;
         }
+    }
+
+    // Return true if block can intaract with hand
+    static canInteractWithHand(block) {
+        return block.tags.includes('door') ||
+            block.tags.includes('trapdoor') ||
+            block.tags.includes('pot') ||
+            block.is_button ||
+            block.is_jukebox ||
+            block.window ||
+            ['stool', 'chair'].includes(block.style);
     }
 
     // Make material key
