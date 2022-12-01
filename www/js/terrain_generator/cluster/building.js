@@ -856,6 +856,10 @@ export class Church extends Building {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         const dir                = this.door_direction;
         
+        console.log(dir);
+        const dir2 = CubeSym.dirAdd(dir, DIRECTION.WEST);
+        console.log("dir " + dir + ' dir2: ' + dir2 + ' wrap: ' + this.wrapRotation(DIRECTION.WEST, dir));
+        
         this.blocks = {
             mirror_x:       false,
             mirror_z:       false,
@@ -1021,9 +1025,6 @@ export class Church extends Building {
             {move: new Vector(5, 15, 17), block_id: BLOCK.AMETHYST_CLUSTER.id},
             {move: new Vector(5, 14, 17), block_id: BLOCK.AMETHYST_BLOCK.id},
             {move: new Vector(5, 13, 17), block_id: BLOCK.AMETHYST_CLUSTER.id, rotate:{x:0, y: -1, z: 0}},
-            //{move: new Vector(6, 14, 17), block_id: BLOCK.AMETHYST_CLUSTER.id, rotate:{x:6, y: 0, z: 0}},
-            //CubeSym.add(blockSym, homeSym)
-            
         ]);
         
         
@@ -1242,29 +1243,29 @@ export class Church extends Building {
         
         // стекла
         this.blocks.list.push(...[
-            {move: new Vector(1, 1, 4), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 2, 4), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 3, 4), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 1, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 2, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 3, 4), block_id: this.getRandomWindow()},
             
-            {move: new Vector(1, 1, 8), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 2, 8), block_id: BLOCK.ORANGE_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 3, 8), block_id: BLOCK.MAGENTA_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 1, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 2, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 3, 8), block_id: this.getRandomWindow()},
             
-            {move: new Vector(1, 1, 12), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 2, 12), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
-            {move: new Vector(1, 3, 12), block_id: BLOCK.PINK_STAINED_GLASS_PANE.id},
+            {move: new Vector(1, 1, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 2, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 3, 12), block_id: this.getRandomWindow()},
             
-            {move: new Vector(9, 1, 4), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 2, 4), block_id: BLOCK.LIME_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 3, 4), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 1, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 2, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 3, 4), block_id: this.getRandomWindow()},
             
-            {move: new Vector(9, 1, 8), block_id: BLOCK.CYAN_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 2, 8), block_id: BLOCK.ORANGE_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 3, 8), block_id: BLOCK.MAGENTA_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 1, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 2, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 3, 8), block_id: this.getRandomWindow()},
             
-            {move: new Vector(9, 1, 12), block_id: BLOCK.LIGHT_GRAY_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 2, 12), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
-            {move: new Vector(9, 3, 12), block_id: BLOCK.GRAY_STAINED_GLASS_PANE.id},
+            {move: new Vector(9, 1, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 2, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 3, 12), block_id: this.getRandomWindow()},
         ]);
         
         //Лавочки
@@ -1499,16 +1500,8 @@ export class Church extends Building {
         */
     }
     
-    wrapRotation(dir, angle) {
-        let new_dir = dir + angle;
-        if (new_dir == 4) {
-            new_dir = 0;
-        } else if (new_dir == 5) {
-            new_dir = 1;
-        } else if (new_dir == 6) {
-            new_dir = 2;
-        }
-        return new_dir;
+    wrapRotation(angle, dir) {
+        return CubeSym.dirAdd(dir, angle);
     }
     
     getRandomBricks() {
@@ -1523,6 +1516,24 @@ export class Church extends Building {
             return BLOCK.MOSSY_COBBLESTONE.id;
         }
         return BLOCK.STONE_BRICKS.id;
+    }
+    
+    getRandomWindow() {
+        const rnd = this.randoms.double() * 11 | 0;
+        switch(rnd) {
+            case 0: return BLOCK.ORANGE_STAINED_GLASS_PANE.id;
+            case 1: return BLOCK.MAGENTA_STAINED_GLASS_PANE.id;
+            case 2: return BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id;
+            case 3: return BLOCK.YELLOW_STAINED_GLASS_PANE.id;
+            case 4: return BLOCK.LIME_STAINED_GLASS_PANE.id;
+            case 5: return BLOCK.PINK_STAINED_GLASS_PANE.id;
+            case 6: return BLOCK.CYAN_STAINED_GLASS_PANE.id;
+            case 7: return BLOCK.PURPLE_STAINED_GLASS_PANE.id;
+            case 8: return BLOCK.BLUE_STAINED_GLASS_PANE.id;
+            case 9: return BLOCK.BROWN_STAINED_GLASS_PANE.id;
+            case 10: return BLOCK.GREEN_STAINED_GLASS_PANE.id;
+            case 11: return BLOCK.RED_STAINED_GLASS_PANE.id;
+        }
     }
 
 }
