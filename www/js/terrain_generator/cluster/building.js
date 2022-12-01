@@ -446,7 +446,11 @@ export class WaterWell extends Building {
         }
     }
 
-    //
+    /**
+     * 
+     * @param {ClusterBase} cluster 
+     * @param {*} chunk 
+     */
     draw(cluster, chunk) {
         const building = this;
         // 4 walls

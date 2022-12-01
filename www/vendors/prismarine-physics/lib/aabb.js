@@ -102,4 +102,14 @@ export class AABB {
            this.minY < other.maxY && this.maxY > other.minY &&
            this.minZ < other.maxZ && this.maxZ > other.minZ
   }
+
+  copyFrom (other) {
+    this.minX = other.minX
+    this.minY = other.minY
+    this.minZ = other.minZ
+    this.maxX = other.maxX
+    this.maxY = other.maxY
+    this.maxZ = other.maxZ
+    return this
+  }
 }

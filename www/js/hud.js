@@ -47,6 +47,7 @@ export class HUD {
             loading:    true,
             image:      null,
             hud:        null,
+            generate_terrain_time: 0,
             init: function(hud) {
                 this.hud = hud;
             },
@@ -55,10 +56,16 @@ export class HUD {
                 let nc = 45;
                 let player_chunk_loaded = false;
                 const player_chunk_addr = Qubatch.player?.chunkAddr;
+                this.generate_terrain_time = 0;
+                this.generate_terrain_count = 0;
                 // const chunk_render_dist = Qubatch.player?.player?.state?.chunk_render_dist || 0;
                 if(Qubatch.world && Qubatch.world.chunkManager) {
                     for(let chunk of Qubatch.world.chunkManager.chunks) {
                         if(chunk.inited) {
+                            if(chunk.timers) {
+                                this.generate_terrain_time += chunk.timers.generate_terrain;
+                                this.generate_terrain_count++;
+                            }
                             cl++;
                             if(player_chunk_addr) {
                                 if(player_chunk_addr.equal(chunk.addr)) {
@@ -67,6 +74,9 @@ export class HUD {
                             }
                         }
                     }
+                }
+                if(this.generate_terrain_count > 0) {
+                    this.generate_terrain_time = Math.round(this.generate_terrain_time / this.generate_terrain_count * 100) / 100;
                 }
                 this.loading = cl < nc || !player_chunk_loaded;
                 if(!this.loading) {
@@ -378,7 +388,7 @@ export class HUD {
             }
 
             // Chunks inited
-            this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
+            this.text += '\nChunks drawn: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ') ' + this.splash?.generate_terrain_time;
             
             // Quads and Lightmap
             let quads_length_total = world.chunkManager.vertices_length_total;

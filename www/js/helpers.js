@@ -1917,6 +1917,64 @@ function toType(a) {
     return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
 }
 
+// Deep compares own properties of the two objects
+export function deepEqual(a, b) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+        // but for real game objects it seems unnecesssary.
+        if (a.hasOwnProperty(key) && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects.
+// The filter affects only top-level properties.
+export function deepEqualProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (props.indexOf(key) >= 0 && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (props.indexOf(key) >= 0 && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects, but for level-2 properties,
+// only the selected are compared. Useful for comparing lists of items.
+export function deepEqualNestedProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (a.hasOwnProperty(key) && !deepEqualProps(a[key], b[key], props)) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function isDeepObject(obj) {
     return "Object" === toType(obj);
 }

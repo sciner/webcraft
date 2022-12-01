@@ -638,17 +638,18 @@ export class GameClass {
 
     // Draw chunks perf stat in console
     drawPerf() {
-        var timers = [
-            {name: 'init', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
-        ];
+        const timers = {};
         var cnt = 0;
         for(let chunk of this.world.chunkManager.chunks) {
             if(chunk.timers) {
+                for(let name in chunk.timers) {
+                    if(!(name in timers)) {
+                        timers[name] = {name, min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0};
+                    }
+                }
                 cnt++;
-                for(var tim of timers) {
+                for(var name in timers) {
+                    const tim = timers[name];
                     var t = chunk.timers[tim.name];
                     if(t < tim.min) tim.min = t;
                     if(t > tim.max) tim.max = t;
@@ -659,7 +660,8 @@ export class GameClass {
                 }
             }
         }
-        for(var tim of timers) {
+        for(var name in timers) {
+            const tim = timers[name];
             tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1;
             tim.total = Math.round(tim.total * 100) / 100;
             tim.cnt = cnt;

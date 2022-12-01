@@ -268,7 +268,7 @@ export class ChunkManager {
         if(chunk instanceof Chunk) {
             chunk.setFluid(fluid);
         } else {
-            console.error('no_chunk');
+            console.debug('no_chunk');
         }
     }
 

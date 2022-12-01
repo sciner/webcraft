@@ -94,6 +94,7 @@ export class Chunk {
         this.fluid = null;
         this.inQueue = false;
         this.queueDist = -1; // 0 and more means its in queue (build or gen
+        this.genValue = 0;
     }
 
     init() {
@@ -106,6 +107,7 @@ export class Chunk {
         this.timers             = {
             init:               null,
             generate_terrain:   null,
+            generate_noise3d:   null,
             apply_modify:       null,
             build_vertices:     null
         };

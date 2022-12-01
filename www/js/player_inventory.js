@@ -37,6 +37,8 @@ export class PlayerInventory extends Inventory {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
         this.refresh();
+        // update drag UI if the dragged item changed
+        Qubatch.hud.wm.getVisibleWindowOrNull('frmChest')?.onInventorySetState();
     }
 
     get inventory_window() {
@@ -184,12 +186,13 @@ export class PlayerInventory extends Inventory {
         }
     }
 
+    // The same result as in chest_manager.js: applyClientChange()
     clearDragItem(move_to_inventory) {
         const drag = Qubatch.hud.wm.drag;
         if(move_to_inventory) {
             let dragItem = drag.getItem();
             if(dragItem) {
-                this.increment(dragItem.item);
+                this.increment(dragItem.item, true);
             }
         }
         this.items[INVENTORY_DRAG_SLOT_INDEX] = null;
