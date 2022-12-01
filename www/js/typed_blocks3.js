@@ -564,6 +564,32 @@ export class TypedBlocks3 {
                 }
     }
 
+    makeBedrockEdge() {
+        const {id} = this;
+        const {outerSize, cx, cy, cz} = this.dataChunk;
+        let rest = (outerSize.z - 1) * cz;
+        for (let x = 0; x < outerSize.x; x++)
+            for (let y = 0; y < outerSize.y; y++) {
+                let ind = x * cx + y * cy;
+                id[ind] = 1;
+                id[ind + rest] = 1;
+            }
+        rest = (outerSize.y - 1) * cy;
+        for (let x = 0; x < outerSize.x; x++)
+            for (let z = 0; z < outerSize.z; z++) {
+                let ind = x * cx + z * cz;
+                id[ind] = 1;
+                id[ind + rest] = 1;
+            }
+        rest = (outerSize.x - 1) * cx;
+        for (let z = 0; z < outerSize.z; z++)
+            for (let y = 0; y < outerSize.y; y++) {
+                let ind = z * cz + y * cy;
+                id[ind] = 1;
+                id[ind + rest] = 1;
+            }
+    }
+
     getInterpolatedLightValue(localVec) {
         let totalW = 0, totalCave = 0, totalDay = 0;
 
@@ -690,11 +716,7 @@ export class DataWorld {
                     for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
                         const ind = x * cx + y * cy + z * cz + cw;
                         const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
-                        const val = uint16View[ind];
-                        if (val !== 0) {
-                            otherDirtyMesh |= 1;
-                        }
-                        otherView[ind2] = val;
+                        otherView[ind2] = uint16View[ind];
                         if (otherFluid[ind2] !== fluid[ind]) {
                             otherFluid[ind2] = fluid[ind];
                             otherDirtyFluid = true;
@@ -716,7 +738,7 @@ export class DataWorld {
             if (otherDirtyFluid) {
                 other.rev.fluid.markDirtyMesh();
             }
-            if (otherDirtyMesh === 3) {
+            if (otherDirtyMesh === 2) {
                 const tb = otherChunk.tblocks;
                 if (tb.vertices) {
                     tb.setDirtyAABB(tempAABB);
