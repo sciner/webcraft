@@ -119,6 +119,7 @@ export class Chunk {
     }
 
     doGen() {
+        this.tblocks.makeBedrockEdge();
         this.chunkManager.dataWorld.addChunk(this);
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
@@ -443,7 +444,7 @@ export class Chunk {
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
                         // blockIsClosed from typedBlocks
-                        if ((this.isFilled(id) || this.isWater(id))
+                        if (this.isFilled(id)
                             && this.isFilled(neib0) && this.isFilled(neib1)
                             && this.isFilled(neib2) && this.isFilled(neib3)
                             && this.isFilled(neib4) && this.isFilled(neib5)) {
@@ -451,7 +452,7 @@ export class Chunk {
                         } else {
                             // getNeighbours from typedBlocks
                             material = BLOCK_BY_ID[id];
-                            let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
+                            let pcnt = 6;
                             // inlining neighbours
                             // direction of CC from TypedBlocks
                             neibMat[0] = BLOCK_BY_ID[neib0];
@@ -462,14 +463,11 @@ export class Chunk {
                             neibMat[5] = BLOCK_BY_ID[neib5];
                             for (let i = 0; i < 6; i++) {
                                 const properties = neibMat[i];
-                                if (!properties || properties.transparent || properties.fluid) {
+                                if (!properties || properties.transparent) {
                                     pcnt--;
                                 }
-                                if (waterCount > 0 && properties && properties.is_water) {
-                                    waterCount++;
-                                }
                             }
-                            empty = pcnt === 6 || waterCount === 7;
+                            empty = pcnt === 6;
                         }
                     }
 
