@@ -13,7 +13,7 @@ import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 10;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 

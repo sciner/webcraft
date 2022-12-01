@@ -83,6 +83,9 @@ export class WorkerWorld {
     }
 
     ensureBuildQueue() {
+        if (this.buildQueue) {
+            return;
+        }
         this.buildQueue = new ChunkWorkQueue(this);
         for (let chunk of this.chunks.values()) {
             if (chunk.inited) {
