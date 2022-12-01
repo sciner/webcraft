@@ -852,7 +852,7 @@ export class BuildingS extends Building {
 export class Church extends Building {
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
-        Building.limitSize([{x: 20, z: 10}, {x: 10, z: 20}], seed, coord, size, entrance, door_bottom, door_direction);
+        Building.limitSize([{x: 21, z: 11}, {x: 11, z: 21}], seed, coord, size, entrance, door_bottom, door_direction);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         const dir                = this.door_direction;
         
@@ -866,6 +866,17 @@ export class Church extends Building {
             list:           []
         }
         
+        for (let y = 0; y < 13; y++) {
+            for (let x = 0; x < 11; x++) {
+                for (let z = 0; z < 20; z++) {
+                    this.blocks.list.push(...[
+                        {move: new Vector(x, y, z), block_id: BLOCK.AIR.id}
+                    ]);
+                }
+            }
+        }
+        
+
         // Часовня
         for (let y = 0; y < 13; y++) {
             this.blocks.list.push(...[
@@ -1322,11 +1333,19 @@ export class Church extends Building {
             {move: new Vector(4, 6, 2), block_id: BLOCK.YELLOW_STAINED_GLASS_PANE.id},
             {move: new Vector(5, 6, 2), block_id: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id},
             {move: new Vector(6, 6, 2), block_id: BLOCK.GRAY_STAINED_GLASS_PANE.id},
+            
+            {move: new Vector(4, 0, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(4, 1, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(4, 2, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(6, 0, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(6, 1, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(6, 2, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
+            {move: new Vector(5, 2, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
         ]);
         
         // Ковер
         for (let x = 4; x < 7; x++) {
-            for (let z = 2; z < 12; z++) {
+            for (let z = 3; z < 12; z++) {
                 this.blocks.list.push(...[
                     {move: new Vector(x, 0, z), block_id: BLOCK.RED_CARPET.id}
                 ]);
@@ -1462,10 +1481,14 @@ export class Church extends Building {
     }
 
     draw(cluster, chunk) {
-        // super.draw(cluster, chunk);
-        //this.drawBasement(cluster, chunk, 4, BLOCK.DIRT.id);
-        const building = this;
+        //super.draw(cluster, chunk);
+
+        
+        cluster.drawDoor(chunk, this.door_bottom, BLOCK.SPRUCE_DOOR.id, DIRECTION.SOUTH, 1 > .5, true);
+        
         this.drawBlocks(cluster, chunk);
+        
+        
         //
         //pos.addSelf(new Vector(0, 1, 0));
        /* cluster.drawQuboid(chunk, pos, inner_size, this.seeds, null, {stage: 7, complete: true});
