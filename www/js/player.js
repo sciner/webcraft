@@ -802,7 +802,7 @@ export class Player {
                 // turn on 'Underwater_Ambience' sound
                 if(!this.underwater_track_id) {
                     Qubatch.sounds.play('madcraft:environment', 'entering_water');
-                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);
                 }
                 break;
             }
