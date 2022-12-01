@@ -1,4 +1,5 @@
-import { Helpers } from "../helpers.js";
+import { AABB } from "../core/AABB.js";
+import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
 
 // MeshManager
@@ -54,9 +55,21 @@ export class MeshManager {
         return mesh;
     }
 
-    //
-    removeForChunk(chunk_addr) {
-        const chunk_addr_hash = chunk_addr.toHash();
+    /**
+     * 
+     * @param {Vector} addr 
+     * @param {AABB} aabb 
+     * @returns 
+     */
+    removeForChunk(addr, aabb) {
+
+        // 1.
+        const PARTICLE_EFFECTS_ID = makeChunkEffectID(addr, null);
+        this.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
+        this.effects.destroyAllInAABB(aabb); // Delete emitters
+
+        // TODO: возможно тут происходят одинаковые действия с первым пунктом
+        const chunk_addr_hash = addr.toHash();
         const chunk = this.chunks.get(chunk_addr_hash);
         if(!chunk) {
             return false;

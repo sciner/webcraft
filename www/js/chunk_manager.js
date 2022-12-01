@@ -531,14 +531,10 @@ export class ChunkManager {
     // Remove chunk
     removeChunk(addr) {
         this.chunks_prepare.delete(addr);
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
-            // 1. Delete emitters
-            Qubatch.render.meshes.effects.destroyAllInAABB(chunk.aabb);
-            // 2. Destroy playing discs
-            TrackerPlayer.destroyAllInAABB(chunk.aabb);
-            // 3. Call chunk destructor
+            // Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;

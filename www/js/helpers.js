@@ -280,6 +280,9 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
