@@ -3,18 +3,34 @@ import { ROTATE, Vector } from "./helpers.js";
 
 export class ChestHelpers {
 
-    // TODO left/right in extra_data
-    static findSecondHalf(world, pos) {
-        const block = world.getBlock(pos);
-        if (!block || block.material.name != "CHEST" || !block.extra_data) {
+    // If block is a half-chest, it returns the expected position of the other half.
+    // Otherwise it returns null.
+    static getSecondHalfPos(block) {
+        if (!block || block.material.name !== "CHEST") {
             return null;
         }
         const dir = BLOCK.getCardinalDirection(block.rotate);
         const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
-        const secondPos = pos.clone().addSelf(dxz);
+        switch (block.extra_data?.type) {
+            case 'left':    return block.posworld.clone().addSelf(dxz);
+            case 'right':   return block.posworld.clone().subSelf(dxz);
+            default:        return null;
+        }
+    }
+
+    // If there are two valid half-chests, and one of them has position pos,
+    // it returns a descriptor of the other half. Otherwise it returns null.
+    static getSecondHalf(world, pos) {
+        const block = world.getBlock(pos);
+        const secondPos = ChestHelpers.getSecondHalfPos(block);
+        if (!secondPos) {
+            return null;
+        }
         const secondBlock = world.getBlock(secondPos);
-        if (!secondBlock || secondBlock.material.name != "CHEST" || !secondBlock.extra_data ||
-            BLOCK.getCardinalDirection(secondBlock.rotate) !== dir
+        if (!secondBlock ||
+            secondBlock.material.name !== "CHEST" ||
+            secondBlock.extra_data?.type !== CHEST_HALF_OTHER_TYPE[block.extra_data.type] ||
+            BLOCK.getCardinalDirection(secondBlock.rotate) !== BLOCK.getCardinalDirection(block.rotate)
         ) {
             return null;
         }
@@ -40,7 +56,12 @@ export class ChestHelpers {
     }
 }
 
-const RIGHT_NEIGBOUR_BY_DIRECTION = {};
+const CHEST_HALF_OTHER_TYPE = {
+    'left': 'right',
+    'right': 'left',
+};
+
+export const RIGHT_NEIGBOUR_BY_DIRECTION = {};
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.S] = new Vector(1, 0, 0);
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.W] = new Vector(0, 0, -1);
 RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.N] = new Vector(-1, 0, 0);

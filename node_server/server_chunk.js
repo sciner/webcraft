@@ -2,6 +2,7 @@ import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/
 import { ServerClient } from "../www/js/server_client.js";
 import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
+import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
@@ -650,11 +651,12 @@ export class ServerChunk {
         const rot = tblock.rotate;
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
+        const neighbourPos = neighbour.posworld;
 
         //
         if(neighbour.id == 0) {
             
-            if (tblock.id == BLOCK.SNOW.id && neighbour.posworld.y < pos.y) {
+            if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
                 return createDrop(tblock);
             }
 
@@ -662,16 +664,16 @@ export class ServerChunk {
                 case 'rails':
                 case 'candle': {
                     // only bottom
-                    if(neighbour.posworld.y < pos.y) {
+                    if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
                     }
                     break;
                 }
                 case 'lantern': {
                     // top and bottom
-                    if(neighbour.posworld.y < pos.y && roty == 1) {
+                    if(neighbourPos.y < pos.y && roty == 1) {
                         return createDrop(tblock);
-                    } else if(neighbour.posworld.y > pos.y && roty == -1) {
+                    } else if(neighbourPos.y > pos.y && roty == -1) {
                         return createDrop(tblock);
                     }
                     break;
@@ -680,15 +682,15 @@ export class ServerChunk {
                 case 'torch': {
                     // nesw + bottom
                     let drop = false;
-                    if(rotx == 0 && neighbour.posworld.z < pos.z) {
+                    if(rotx == 0 && neighbourPos.z < pos.z) {
                         drop = true;
-                    } else if(rotx == 1 && neighbour.posworld.x > pos.x) {
+                    } else if(rotx == 1 && neighbourPos.x > pos.x) {
                         drop = true;
-                    } else if(rotx == 2 && neighbour.posworld.z > pos.z) {
+                    } else if(rotx == 2 && neighbourPos.z > pos.z) {
                         drop = true;
-                    } else if(rotx == 3 && neighbour.posworld.x < pos.x) {
+                    } else if(rotx == 3 && neighbourPos.x < pos.x) {
                         drop = true;
-                    } else if(neighbour.posworld.y < pos.y && roty == 1) {
+                    } else if(neighbourPos.y < pos.y && roty == 1) {
                         drop = true;
                     }
                     if(drop) {
@@ -699,18 +701,18 @@ export class ServerChunk {
                 case 'item_frame': {
                     // 6 sides
                     let drop = false;
-                    console.log(neighbour.posworld.z > pos.z, SIX_VECS.north, rot);
-                    if(neighbour.posworld.z > pos.z && SIX_VECS.south.equal(rot)) {
+                    console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
+                    if(neighbourPos.z > pos.z && SIX_VECS.south.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.z < pos.z && SIX_VECS.north.equal(rot)) {
+                    } else if(neighbourPos.z < pos.z && SIX_VECS.north.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.x > pos.x && SIX_VECS.west.equal(rot)) {
+                    } else if(neighbourPos.x > pos.x && SIX_VECS.west.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.x < pos.x && SIX_VECS.east.equal(rot)) {
+                    } else if(neighbourPos.x < pos.x && SIX_VECS.east.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.y > pos.y && rot.y == -1) {
+                    } else if(neighbourPos.y > pos.y && rot.y == -1) {
                         drop = true;
-                    } else if(neighbour.posworld.y < pos.y && rot.y == 1) {
+                    } else if(neighbourPos.y < pos.y && rot.y == 1) {
                         drop = true;
                     }
                     if(drop) {
@@ -720,8 +722,26 @@ export class ServerChunk {
                 }
                 case 'redstone':
                 case 'cactus': {
-                    if(neighbour.posworld.y < pos.y) {
+                    if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
+                    }
+                }
+                case 'chest': {
+                    // if a chest half is missing the other half, convert it to a normal chest
+                    if (neighbourPos.y === pos.y && // a fast redundant check to eliminate 2 out of 6 slower checks
+                        ChestHelpers.getSecondHalfPos(tblock)?.equal(neighbourPos)
+                    ) {
+                        const newTblock = tblock.clonePOJO();
+                        delete newTblock.extra_data.type;
+                        const actions = new WorldAction();
+                        actions.addBlocks([
+                            {
+                                pos: pos.clone(),
+                                item: newTblock,
+                                action_id: ServerClient.BLOCK_ACTION_MODIFY
+                            }
+                        ]);
+                        world.actions_queue.add(null, actions);
                     }
                 }
             }
@@ -729,10 +749,61 @@ export class ServerChunk {
             switch(tblock.material.style) {
                 case 'cactus': {
                     // nesw only
-                    if(neighbour.posworld.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
+                    if(neighbourPos.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
                         return createDrop(tblock);
                     }
                     break;
+                }
+                case 'chest': {
+                    // check if we can combine two halves into a double chest
+                    if (neighbourPos.y !== pos.y ||
+                        tblock.material.name !== 'CHEST' ||
+                        tblock.extra_data?.type ||
+                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.extra_data?.type
+                    ) {
+                        break;
+                    }
+                    const dir = BLOCK.getCardinalDirection(rot);
+                    if (dir !== BLOCK.getCardinalDirection(neighbour.rotate)) {
+                        break;
+                    }
+                    var newType = null;
+                    var newNeighbourType = null;
+                    const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
+                    const expectedNeighbourPos = pos.clone().addSelf(dxz);
+                    if (expectedNeighbourPos.equal(neighbourPos)) {
+                        newType = 'left';
+                        newNeighbourType = 'right';
+                    } else {
+                        expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
+                        if (expectedNeighbourPos.equal(neighbourPos)) {
+                            newType = 'right';
+                            newNeighbourType = 'left';
+                        } else {
+                            break;
+                        }
+                    }
+                    const newTblock                 = tblock.clonePOJO();
+                    newTblock.extra_data            = newTblock.extra_data || {};
+                    newTblock.extra_data.type       = newType;
+                    const newNeighbour              = neighbour.clonePOJO();
+                    newNeighbour.extra_data         = newNeighbour.extra_data || {};
+                    newNeighbour.extra_data.type    = newNeighbourType;
+                    const actions = new WorldAction();
+                    actions.addBlocks([
+                        {
+                            pos: pos.clone(),
+                            item: newTblock,
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        },
+                        {
+                            pos: neighbourPos.clone(),
+                            item: newNeighbour,
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        }
+                    ]);
+                    world.actions_queue.add(null, actions);
                 }
             }
         }

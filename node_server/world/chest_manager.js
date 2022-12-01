@@ -75,20 +75,25 @@ export class WorldChestManager {
 
         // load both chests at the same time
         const pos = params.chest.pos;
-        const tblock_chest_promise = this.getOrNull(pos);
+        const tblockPromise = this.getOrNull(pos);
         var secondPos = null;
-        var tblock_secondChest = null;
+        var secondTblock = null;
         if (params.secondChest) {
             secondPos = params.secondChest.pos;
-            tblock_secondChest = await this.getOrNull(secondPos);
-            incorrectParams |= tblock_secondChest == null || 
-                tblock_secondChest.material.name !== 'CHEST';
+            secondTblock = await this.getOrNull(secondPos);
+            incorrectParams |= secondTblock == null || 
+                secondTblock.material.name !== 'CHEST';
         }            
-        const tblock_chest = await tblock_chest_promise;
-        incorrectParams |= tblock_chest == null ||
-            params.secondChest && tblock_chest.material.name !== 'CHEST';
+        const tblock = await tblockPromise;
+        incorrectParams |= tblock == null;
 
-        // TODO validate position and direction of halves
+        if (secondPos) {
+            // We don't check if the halves match, because even if they don't, there
+            // is no reason to cancel the action. We only theck that they're both
+            // non-ender chests near each other.
+            incorrectParams |= tblock.material.name !== 'CHEST' || 
+                new Vector(pos).distanceSqr(secondPos) !== 1;
+        }
 
         if (incorrectParams) {
             return;
@@ -96,25 +101,25 @@ export class WorldChestManager {
             // the correct state to the player
         }
         
-        const is_ender_chest = tblock_chest.material.name == 'ENDER_CHEST';
+        const is_ender_chest = tblock.material.name == 'ENDER_CHEST';
         let chest = null;
         if(is_ender_chest) {
             chest = await player.loadEnderChest();
         } else {
-            chest = tblock_chest.extra_data;
+            chest = tblock.extra_data;
             chest.slots = chest.slots || {};
         }
 
         let secondChest = null;
         if (secondPos) {
-            secondChest = tblock_secondChest.extra_data;
+            secondChest = secondTblock.extra_data;
             secondChest.slots = secondChest.slots || {};
         }
 
-        const chestSlotsCount = tblock_secondChest
+        const chestSlotsCount = secondTblock
             ? 2 * DEFAULT_CHEST_SLOT_COUNT
-            : tblock_chest.properties.chest_slots;
-        const inputChestSlotsCount = chestSlotsCount - tblock_chest.properties.readonly_chest_slots;
+            : tblock.properties.chest_slots;
+        const inputChestSlotsCount = chestSlotsCount - tblock.properties.readonly_chest_slots;
 
         var srvCombinedChestSlots = combineChests(chest, secondChest);
         var cliCombinedChestSlots = combineChests(params.chest, params.secondChest);

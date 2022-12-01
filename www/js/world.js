@@ -231,7 +231,7 @@ export class World {
             var window = info.window;
             var secondInfo = null;
             if (window === 'frmChest') {
-                secondInfo = ChestHelpers.findSecondHalf(this, info.pos);
+                secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
                 if (secondInfo) {
                     window = 'frmDoubleChest';
                     if (secondInfo.extra_data.type === 'left') {
