@@ -35,8 +35,8 @@ export class ClusterVilage extends ClusterBase {
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createPalette(this.flat ? [
                 {value: BLOCK.DIRT_PATH, chance: 1}
-                // {value: BLOCK.ANDESITE, chance: .5},
-                // {value: BLOCK.STONE, chance: 1}
+               // {value: BLOCK.ANDESITE, chance: .5},
+               // {value: BLOCK.STONE, chance: 1}
             ] : [
                 {value: BLOCK.DIRT_PATH, chance: 1}
             ]);
@@ -47,14 +47,14 @@ export class ClusterVilage extends ClusterBase {
                     {class: StreetLight, max_count: Infinity, chance: 1}
                 ],
                 required: [
-                    //{class: WaterWell, max_count: 1, chance: 1},
-                    //{class: Farmland, max_count: 1, chance: 1}
+                    {class: WaterWell, max_count: 1, chance: 1},
+                    {class: Farmland, max_count: 1, chance: 1},
+                    {class: Church, max_count: 1, chance: 1}
                 ],
                 others: [
-                   // {class: WaterWell, max_count: 2, chance: 0.12},
-                   // {class: Farmland, max_count: Infinity, chance: 0.285},
-                   // {class: Building1, max_count: Infinity, chance: 0.7025},
-                    {class: Church, max_count: Infinity, chance: 1}
+                    {class: WaterWell, max_count: 2, chance: 0.12},
+                    {class: Farmland, max_count: Infinity, chance: 0.285},
+                    {class: Building1, max_count: Infinity, chance: 0.7025},
                 ],
             });
             //

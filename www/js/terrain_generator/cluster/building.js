@@ -856,10 +856,6 @@ export class Church extends Building {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         const dir                = this.door_direction;
         
-        console.log(dir);
-        const dir2 = CubeSym.dirAdd(dir, DIRECTION.WEST);
-        console.log("dir " + dir + ' dir2: ' + dir2 + ' wrap: ' + this.wrapRotation(DIRECTION.WEST, dir));
-        
         this.blocks = {
             mirror_x:       false,
             mirror_z:       false,
@@ -1477,50 +1473,23 @@ export class Church extends Building {
             {move: new Vector(8, 0, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},
             {move: new Vector(8, 1, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},
         ]);
-        
     }
+    
+    
 
     draw(cluster, chunk) {
-        //super.draw(cluster, chunk);
-
-        
-        cluster.drawDoor(chunk, this.door_bottom, BLOCK.SPRUCE_DOOR.id, DIRECTION.SOUTH, 1 > .5, true);
-        
+        const dir = this.door_direction;
         this.drawBlocks(cluster, chunk);
         
-        
-        //
-        //pos.addSelf(new Vector(0, 1, 0));
-       /* cluster.drawQuboid(chunk, pos, inner_size, this.seeds, null, {stage: 7, complete: true});
-        // water
-        for(let axe of ['x', 'z']) {
-            if(building.size[axe] >= 7) {
-                const sz = building.size[axe];
-                if((sz - 7) % 3 == 0) {
-                    const water_pos = building.coord.clone();
-                    const water_size = inner_size.clone();
-                    if(axe == 'x') {
-                        water_pos.z++;
-                        water_size.x = 1;
-                    } else {
-                        water_pos.x++;
-                        water_size.z = 1;
-                    }
-                    water_size.y = 1;
-                    for(let i = 3; i < building.size[axe] - 1; i += 3) {
-                        water_pos[axe] += 3;
-                        // fix. because water not replace FARMLAND_WET
-                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);
-                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.STILL_WATER);
-                        water_pos.y++;
-                        cluster.drawQuboid(chunk, water_pos, water_size, BLOCK.AIR);
-                        water_pos.y--;
-                    }
-                    break;
-                }
-            }
+        if (dir == DIRECTION.EAST) {
+            cluster.drawDoor(chunk, this.door_bottom.offset(-2, 0, 5), BLOCK.SPRUCE_DOOR, DIRECTION.NORTH, true, true);
+        } else if (dir == DIRECTION.WEST) {
+            cluster.drawDoor(chunk, this.door_bottom.offset(2, 0, -5), BLOCK.SPRUCE_DOOR, DIRECTION.SOUTH, true, true);
+        } else if (dir == DIRECTION.NORTH) {
+            cluster.drawDoor(chunk, this.door_bottom.offset(-5, 0, -2), BLOCK.SPRUCE_DOOR, DIRECTION.WEST, true, true);
+        } else {
+            cluster.drawDoor(chunk, this.door_bottom.offset(5, 0, 2), BLOCK.SPRUCE_DOOR, DIRECTION.EAST, true, true);
         }
-        */
     }
     
     wrapRotation(angle, dir) {
