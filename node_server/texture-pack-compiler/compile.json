@@ -3055,7 +3055,6 @@
             "texture": {
                 "id": "entity",
                 "side": "entity/chest/normal.png",
-                "left": "entity/chest/normal_left.png",
                 "right": "entity/chest/normal_right.png"
             }
         },
