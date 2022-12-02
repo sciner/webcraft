@@ -63,15 +63,22 @@ export class Building {
     }
 
     // Limit building size
-    static limitSize(max_sizes, seed, coord, size, entrance, door_bottom, door_direction, shift_entrance_value = 0) {
+    static selectSize(size_list, seed, coord, size, entrance, door_bottom, door_direction, shift_entrance_value = 0, has_door = true) {
+
         const orig_coord = coord.clone();
         const orig_size = size.clone();
         const dir = door_direction;
-        shift_entrance_value = shift_entrance_value | 0;
-        let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
+        const sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
 
-        // detect size
-        let x = max_sizes[max_sizes.length * seed | 0];
+        shift_entrance_value = shift_entrance_value | 0;
+
+        // select random size
+        const random_size = size_list[size_list.length * seed | 0];
+
+        size.x = random_size.x
+        size.z = random_size.z
+
+        /*
         let max_size = null;
         if(isNaN(x)) {
             max_size = x;
@@ -82,58 +89,68 @@ export class Building {
             };
         }
 
-        //
-        if(size.x > max_size.x) {
-            size.x = max_size.x;
+        // fix for max size
+        if(size.x > random_size.x) {
+            size.x = random_size.x;
         }
-        if(door_direction == DIRECTION.NORTH) {
-            coord.x = entrance.x - Math.ceil(size.x / 2);
-        } else if(door_direction == DIRECTION.SOUTH) {
-            coord.x = entrance.x - (Math.floor(size.x / 2) - 1) * sign;
-        } else if(door_direction == DIRECTION.EAST) {
-            coord.x = entrance.x - (size.x - 1);
-        } else {
-            coord.x = entrance.x;
+        if(size.z > random_size.z) {
+            size.z = random_size.z;
         }
-        //
-        if(size.z > max_size.z) {
-            size.z = max_size.z;
-        }
-        if(door_direction == DIRECTION.NORTH) {
-            coord.z = entrance.z - (size.z - 1);
-        } else if(door_direction == DIRECTION.SOUTH) {
-            // do nothing
-        } else if(door_direction == DIRECTION.EAST) {
-            coord.z = entrance.z - Math.ceil(size.z / 2)
-        } else {
-            coord.z = entrance.z - (Math.floor(size.z / 2) - 1) * sign;
-        }
-        // Fix exit ouside first area 
-        if(door_direction == DIRECTION.NORTH || door_direction == DIRECTION.SOUTH) {
-            const shift_start = orig_coord.x - coord.x;
-            const shift_end = (coord.x + size.x) - (orig_coord.x + orig_size.x);
-            if(shift_start < 0) {
-                coord.x += shift_start;
-                entrance.x += shift_start + shift_entrance_value;
-                door_bottom.x += shift_start + shift_entrance_value;
-            } else if(shift_end < 0) {
-                coord.x -= shift_end;
-                entrance.x -= shift_end + shift_entrance_value;
-                door_bottom.x -= shift_end + shift_entrance_value;
+        */
+
+        // If building has door
+        if(has_door) {
+
+            //
+            if(door_direction == DIRECTION.NORTH) {
+                coord.x = entrance.x - Math.ceil(size.x / 2);
+            } else if(door_direction == DIRECTION.SOUTH) {
+                coord.x = entrance.x - (Math.floor(size.x / 2) - 1) * sign;
+            } else if(door_direction == DIRECTION.EAST) {
+                coord.x = entrance.x - (size.x - 1);
+            } else {
+                coord.x = entrance.x;
             }
-        } else {
-            const shift_start = orig_coord.z - coord.z;
-            const shift_end = (coord.z + size.z) - (orig_coord.z + orig_size.z);
-            if(shift_start < 0) {
-                coord.z += shift_start;
-                entrance.z += shift_start + shift_entrance_value;
-                door_bottom.z += shift_start + shift_entrance_value;
-            } else if(shift_end < 0) {
-                coord.z -= shift_end;
-                entrance.z -= shift_end + shift_entrance_value;
-                door_bottom.z -= shift_end + shift_entrance_value;
+
+            //
+            if(door_direction == DIRECTION.NORTH) {
+                coord.z = entrance.z - (size.z - 1);
+            } else if(door_direction == DIRECTION.SOUTH) {
+                // do nothing
+            } else if(door_direction == DIRECTION.EAST) {
+                coord.z = entrance.z - Math.ceil(size.z / 2)
+            } else {
+                coord.z = entrance.z - (Math.floor(size.z / 2) - 1) * sign;
+            }
+
+            // Fix exit ouside first area 
+            if(door_direction == DIRECTION.NORTH || door_direction == DIRECTION.SOUTH) {
+                const shift_start = orig_coord.x - coord.x;
+                const shift_end = (coord.x + size.x) - (orig_coord.x + orig_size.x);
+                if(shift_start < 0) {
+                    coord.x += shift_start;
+                    entrance.x += shift_start + shift_entrance_value;
+                    door_bottom.x += shift_start + shift_entrance_value;
+                } else if(shift_end < 0) {
+                    coord.x -= shift_end;
+                    entrance.x -= shift_end + shift_entrance_value;
+                    door_bottom.x -= shift_end + shift_entrance_value;
+                }
+            } else {
+                const shift_start = orig_coord.z - coord.z;
+                const shift_end = (coord.z + size.z) - (orig_coord.z + orig_size.z);
+                if(shift_start < 0) {
+                    coord.z += shift_start;
+                    entrance.z += shift_start + shift_entrance_value;
+                    door_bottom.z += shift_start + shift_entrance_value;
+                } else if(shift_end < 0) {
+                    coord.z -= shift_end;
+                    entrance.z -= shift_end + shift_entrance_value;
+                    door_bottom.z -= shift_end + shift_entrance_value;
+                }
             }
         }
+
     }
 
     addHays(dx, dz) {
@@ -260,17 +277,32 @@ export class Building {
         this.aabb.y_max        = this.aabb.y_min + this.size.y * 3;
     }
 
+    /**
+     * @param {int[]} sizes 
+     */
+    static makeRandomSizeList(sizes) {
+        const resp = [];
+        for(let i = 0; i < sizes.length; i++) {
+            const x = sizes[i]
+            for(let j = 0; j < sizes.length; j++) {
+                const z = sizes[j]
+                resp.push({x, z})
+            }
+        }
+        return resp;
+    }
+
 }
 
 // Farmland
 export class Farmland extends Building {
 
+    static SIZE_LIST = Building.makeRandomSizeList([3, 5, 7, 7, 10, 10, 10, 13, 13, 13, 16, 16, 16]);
+
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         size.y = 2;
-        Building.limitSize([3, 5, 7, 7, 10, 10, 10, 13, 13, 13, 16, 16, 16], seed, coord, size, entrance, door_bottom, door_direction);
-        //
+        Building.selectSize(Farmland.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 0, false);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
-        //
         this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
         this.draw_entrance = false;
     }
@@ -322,11 +354,14 @@ export class Farmland extends Building {
 // Street light
 export class StreetLight extends Building {
 
+    static SIZE_LIST = [{x: 1, z: 1}];
+
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        Building.selectSize(StreetLight.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 0, false);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.draw_entrance = false;
         // Blocks
-        const mirror_x           = door_direction % 2 == 1;
+        const mirror_x = door_direction % 2 == 1;
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
@@ -375,10 +410,12 @@ export class StreetLight extends Building {
 // Water well
 export class WaterWell extends Building {
 
+    static SIZE_LIST = [{x: 3, z: 3}];
+
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         coord.y = -14;
         size.y = 21;
-        Building.limitSize([3], seed, coord, size, entrance, door_bottom, door_direction);
+        Building.selectSize(WaterWell.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         //
         cluster.road_block.reset();
@@ -469,7 +506,7 @@ export class WaterWell extends Building {
 // Building1
 export class Building1 extends Building {
 
-    static MAX_SIZES = [7];
+    static SIZE_LIST = [{x: 7, z: 7}];
 
     /**
      * 
@@ -485,7 +522,7 @@ export class Building1 extends Building {
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         const orig_coord = coord.clone();
         const orig_size = size.clone();
-        Building.limitSize(Building1.MAX_SIZES, seed, coord, size, entrance, door_bottom, door_direction);
+        Building.selectSize(Building1.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
@@ -720,12 +757,12 @@ export class Building1 extends Building {
 // BuildingS (small)
 export class BuildingS extends Building {
 
-    static MAX_SIZES = [5];
+    static SIZE_LIST = [{x: 5, z: 5}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         const orig_coord = coord.clone();
         const orig_size = size.clone();
-        Building.limitSize(BuildingS.MAX_SIZES, seed, coord, size, entrance, door_bottom, door_direction, 1);
+        Building.selectSize(BuildingS.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 1);
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
@@ -851,10 +888,15 @@ export class BuildingS extends Building {
 // Farmland
 export class Church extends Building {
 
+    static SIZE_LIST = [{x: 11, z: 21, door_pos: {x: 5, z: 2}}];
+
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
-        Building.limitSize([{x: 21, z: 11}, {x: 11, z: 21}], seed, coord, size, entrance, door_bottom, door_direction);
+
+        Building.selectSize(Church.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
+
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
-        const dir                = this.door_direction;
+
+        const dir = this.door_direction;
         
         this.blocks = {
             mirror_x:       false,
@@ -871,7 +913,6 @@ export class Church extends Building {
                 }
             }
         }
-        
 
         // Часовня
         for (let y = 0; y < 13; y++) {
@@ -1033,8 +1074,7 @@ export class Church extends Building {
             {move: new Vector(5, 14, 17), block_id: BLOCK.AMETHYST_BLOCK.id},
             {move: new Vector(5, 13, 17), block_id: BLOCK.AMETHYST_CLUSTER.id, rotate:{x:0, y: -1, z: 0}},
         ]);
-        
-        
+
         // стены
         for (let y = 0; y < 5; y++) {
             this.blocks.list.push(...[
@@ -1087,7 +1127,7 @@ export class Church extends Building {
                 ]);
             }
         }
-        
+
         // крыша
         this.blocks.list.push(...[
             {move: new Vector(4, 4, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
@@ -1177,7 +1217,7 @@ export class Church extends Building {
                 {move: new Vector(9, 4, z), block_id: this.getRandomBricks()},
             ]);
         }
-        
+
         // Полы
         for (let x = 2; x < 9; x++) {
             for (let z = 2; z < 13; z++) {
@@ -1186,7 +1226,7 @@ export class Church extends Building {
                 ]);
             }
         }
-        
+
         // алтарь
         this.blocks.list.push(...[
             {move: new Vector(2, 0, 13), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
@@ -1246,8 +1286,7 @@ export class Church extends Building {
             {move: new Vector(5, 0, 15), block_id: BLOCK.DARK_OAK_PLANKS.id},
             {move: new Vector(6, 0, 15), block_id: BLOCK.DARK_OAK_PLANKS.id},
         ]);
-        
-        
+
         // стекла
         this.blocks.list.push(...[
             {move: new Vector(1, 1, 4), block_id: this.getRandomWindow()},
@@ -1274,7 +1313,7 @@ export class Church extends Building {
             {move: new Vector(9, 2, 12), block_id: this.getRandomWindow()},
             {move: new Vector(9, 3, 12), block_id: this.getRandomWindow()},
         ]);
-        
+
         //Лавочки
         this.blocks.list.push(...[
             {move: new Vector(2, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
@@ -1294,7 +1333,7 @@ export class Church extends Building {
             {move: new Vector(7, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(8, 0, 10), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
         ]);
-        
+
         // Дверь входная
         this.blocks.list.push(...[
             {move: new Vector(3, 0, 2), block_id: BLOCK.STRIPPED_BIRCH_WOOD.id},
@@ -1338,7 +1377,7 @@ export class Church extends Building {
             {move: new Vector(6, 2, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(5, 2, 2), block_id: BLOCK.BIRCH_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
         ]);
-        
+
         // Ковер
         for (let x = 4; x < 7; x++) {
             for (let z = 3; z < 12; z++) {
@@ -1347,7 +1386,7 @@ export class Church extends Building {
                 ]);
             }
         }
-        
+
         // Освещение
         this.blocks.list.push(...[
             {move: new Vector(2, 5, 5), block_id: BLOCK.BIRCH_SLAB.id},
@@ -1374,7 +1413,7 @@ export class Church extends Building {
             {move: new Vector(4, 5, 17), block_id: BLOCK.TORCH.id, rotate: new Vector(this.wrapRotation(DIRECTION.EAST, dir), 0, 0)},
             {move: new Vector(6, 7, 17), block_id: BLOCK.TORCH.id, rotate: new Vector(this.wrapRotation(DIRECTION.WEST, dir), 0, 0)},
         ]);
-        
+
         // Декор
         this.blocks.list.push(...[
             {move: new Vector(4, 1, 17), block_id: BLOCK.NOTE_BLOCK.id}, // бочка / свеча
@@ -1462,7 +1501,7 @@ export class Church extends Building {
             {move: new Vector(8, 1, 2), block_id: BLOCK.BIRCH_PLANKS.id}, // бочка / свеча
             {move: new Vector(8, 2, 2), block_id: BLOCK.GREEN_CANDLE.id},
         ]);
-        
+
         // растительность
         this.blocks.list.push(...[
             {move: new Vector(0, 0, 1), block_id: BLOCK.ROSE_BUSH.id},
@@ -1473,14 +1512,12 @@ export class Church extends Building {
             {move: new Vector(8, 0, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},
             {move: new Vector(8, 1, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},
         ]);
+
     }
-    
-    
 
     draw(cluster, chunk) {
         const dir = this.door_direction;
         this.drawBlocks(cluster, chunk);
-        
         if (dir == DIRECTION.EAST) {
             cluster.drawDoor(chunk, this.door_bottom.offset(-2, 0, 5), BLOCK.SPRUCE_DOOR, DIRECTION.NORTH, true, true);
         } else if (dir == DIRECTION.WEST) {

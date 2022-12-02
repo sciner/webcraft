@@ -39,8 +39,13 @@ for(let b of blocks) {
 import {Vector} from '../../js/helpers.js';
 import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
 
-let cnv = document.getElementById('sandbox_canvas');
-let ctx = cnv.getContext('2d', { alpha: false });
+//
+const WORLD_SEED = 2091212290;
+const START_CLUSTER_ADDR = new Vector(921, 0, 498); // new Vector(240, 0, 807)
+
+//
+const cnv = document.getElementById('sandbox_canvas');
+const ctx = cnv.getContext('2d', { alpha: false });
 
 class Sandbox {
 
@@ -48,13 +53,13 @@ class Sandbox {
         let attempts = 0;
         while(true) {
             attempts++;
-            let addr = vec ? vec : new Vector(
+            const addr = vec ? vec : new Vector(
                 (Math.random() * 999) | 0,
                 0,
                 (Math.random() * 999) | 0
             );
             let tm = performance.now();
-            this.cluster = new ClusterVilage({}, addr);
+            this.cluster = new ClusterVilage({seed: WORLD_SEED}, addr);
             if(this.cluster.is_empty) {
                 vec = null;
             } else {
@@ -80,7 +85,7 @@ class Sandbox {
             for(var z = 0; z < this.settings.size; z++) {
                 const dist = this.cluster.near_mask[z * this.settings.size + x];
                 ctx.fillStyle = "rgba(255,15,0," + (1-Math.round(dist/max_dist*100)/100) + ")";
-                ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
             }
         }
         //
@@ -100,7 +105,7 @@ class Sandbox {
                     }
                     ctx.fillStyle = "#00000011";
                 }
-                ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
             }
         }
         //
@@ -119,4 +124,4 @@ class Sandbox {
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(new Vector(240, 0, 807));
+sandbox.generate(START_CLUSTER_ADDR);

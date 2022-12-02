@@ -327,6 +327,10 @@ export class ClusterBase {
                     const y = by + k;
                     const z = bz + j;
                     _vec.set(x, y, z);
+
+                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIAMOND_BLOCK.id);
+                    continue;
+
                     const dist = center.distance(_vec);
                     if(dist < Math.max(size.x, size.z) * rad_coef) {
                         const block_id = this.getBlock(chunk, x, y, z);

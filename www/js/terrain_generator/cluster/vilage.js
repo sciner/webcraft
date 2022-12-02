@@ -42,6 +42,7 @@ export class ClusterVilage extends ClusterBase {
             ]);
             this.road_block.reset();
             this.basement_block     = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
+            // Building palettes
             this.building_palette   = this.createBuildingPalette({
                 crossroad: [
                     {class: StreetLight, max_count: Infinity, chance: 1}
@@ -55,7 +56,8 @@ export class ClusterVilage extends ClusterBase {
                     {class: WaterWell, max_count: 2, chance: 0.12},
                     {class: Farmland, max_count: Infinity, chance: 0.285},
                     {class: Building1, max_count: Infinity, chance: 0.7025},
-                ],
+                    {class: BuildingS, max_count: Infinity, chance: 1}
+                ]
             });
             //
             this.timers = {
