@@ -36,7 +36,7 @@ export class ClusterBase {
         this.size           = CLUSTER_SIZE.clone();
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
-        this.is_empty       = false; // this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.is_empty       = (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
