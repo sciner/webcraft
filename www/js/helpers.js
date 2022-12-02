@@ -1517,6 +1517,19 @@ export class ArrayHelpers {
         --arr.length;
     }
 
+    static fastDeleteValue(arr, value) {
+        var i = 0;
+        var len = arr.length;
+        while (i < len) {
+            if (arr[i] == value) {
+                arr[i] = arr[--len];
+            } else {
+                i++;
+            }
+        }
+        arr.length = len;
+    }
+
     static filterSelf(arr, predicate) {
         var src = 0;
         var dst = 0;

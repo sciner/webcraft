@@ -36,6 +36,7 @@ export class ChestHelpers {
         }
         return {
             pos: secondPos,
+            block_id: secondBlock.id,
             extra_data: secondBlock.extra_data
         };
     }

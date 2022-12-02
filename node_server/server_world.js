@@ -20,7 +20,7 @@ import { ServerClient } from "../www/js/server_client.js";
 import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -317,21 +317,8 @@ export class ServerWorld {
         // 6. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
-        const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
-        if(drag_item) {
-            let saved = false;
-            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
-                if(!player.inventory.items[i]) {
-                    player.inventory.items[i] = drag_item;
-                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
-                    await player.inventory.save();
-                    saved = true;
-                    break;
-                }
-            }
-            if(!saved) {
-                player.inventory.dropFromDragSlot();
-            }
+        if (player.inventory.moveOrDropFromDragSlot()) {
+            await player.inventory.save();
         }
         // 8. Send CMD_CONNECTED
         player.sendPackets([{

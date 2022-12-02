@@ -81,24 +81,24 @@ export class WorldChestManager {
         if (params.secondChest) {
             secondPos = params.secondChest.pos;
             secondTblock = await this.getOrNull(secondPos);
-            incorrectParams |= secondTblock == null || 
-                secondTblock.material.name !== 'CHEST';
+            incorrectParams |= secondTblock == null || secondTblock.material.name !== 'CHEST';
         }            
         const tblock = await tblockPromise;
         incorrectParams |= tblock == null;
-
-        if (secondPos) {
+        if (tblock && secondPos) {
             // We don't check if the halves match, because even if they don't, there
             // is no reason to cancel the action. We only theck that they're both
             // non-ender chests near each other.
             incorrectParams |= tblock.material.name !== 'CHEST' || 
-                new Vector(pos).distanceSqr(secondPos) !== 1;
+                tblock.posworld.distanceSqr(secondPos) !== 1;
         }
 
         if (incorrectParams) {
-            return;
-            // TODO even if one of the chests is mising, try to process the other and send 
-            // the correct state to the player
+            player.inventory.moveOrDropFromDragSlot();
+            await player.inventory.refresh(true);
+            // Don't send the chests content. We expect the window to close when a block modifier comes.
+            // Closing if the form also takes care of dragged item.
+            throw 'error_chest_not_found';
         }
         
         const is_ender_chest = tblock.material.name == 'ENDER_CHEST';

@@ -1,4 +1,4 @@
-import { Vector } from "../helpers.js";
+import { ArrayHelpers, Vector } from "../helpers.js";
 import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
@@ -20,7 +20,8 @@ export class BaseChestWindow extends Window {
         this.height *= this.zoom;
         this.style.background = {...this.style.background, ...options.background}
 
-        this.server     = inventory.player.world.server;
+        this.world      = inventory.player.world;
+        this.server     = this.world.server;
         this.inventory  = inventory;
         this.loading    = false;
         this.secondLoading = false;
@@ -50,6 +51,16 @@ export class BaseChestWindow extends Window {
             dragPrevItem: null
         }
 
+        this.blockModifierListener = (tblock) => {
+            // If a chest was removed by the server
+            if (this.info.pos.equal(tblock.posworld) && tblock.id !== this.info.block_id ||
+                this.secondInfo && this.secondInfo.pos.equal(tblock.posworld) && 
+                tblock.id !== this.secondInfo.block_id
+            ) {
+                this.hide(); // It also takes care of the dragged item.
+            }
+        };
+
         // Обработчик открытия формы
         this.onShow = function() {
             this.lastChange.type = INVENTORY_CHANGE_NONE;
@@ -58,6 +69,7 @@ export class BaseChestWindow extends Window {
             if(options.sound.open) {
                 Qubatch.sounds.play(options.sound.open.tag, options.sound.open.action);
             }
+            this.world.blockModifierListeners.push(this.blockModifierListener);
         }
 
         // Обработчик закрытия формы
@@ -70,6 +82,8 @@ export class BaseChestWindow extends Window {
             if(options.sound.close) {
                 Qubatch.sounds.play(options.sound.close.tag, options.sound.close.action);
             }
+            this.info = null; // disables AddCmdListener listeners 
+            ArrayHelpers.fastDeleteValue(this.world.blockModifierListeners, this.blockModifierListener);
         }
 
         // Add labels to window
