@@ -14,18 +14,25 @@ const {mat4} = glMatrix;
 
 // Leaves
 const leaves_planes = [
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 2], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}}
 ];
+const tmp_leaves_planes = [...leaves_planes];
+const matrix_leaves_2 = mat4.create();
+mat4.scale(matrix_leaves_2, matrix_leaves_2, [2, 2, 2]);
+const matrix_leaves_sqrt2 = mat4.create();
+mat4.scale(matrix_leaves_sqrt2, matrix_leaves_sqrt2, [1.4, 1.4, 1.4]);
+const leaves_matrices = [matrix_leaves_sqrt2, matrix_leaves_2, matrix_leaves_2, matrix_leaves_sqrt2, matrix_leaves_sqrt2];
+
+const EXTRA_BEAUTIFUL_LEAVES = 0; // 1 -show, 0 - don't
 
 const _lm_grass = new IndexedColor(0, 0, 0);
 const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
-const matrix_leaves = mat4.create();
-mat4.scale(matrix_leaves, matrix_leaves, [2, 2, 2]);
 
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
@@ -260,13 +267,15 @@ export default class style {
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
             // _lm_leaves.g += (Math.random() - Math.random()) * 24;
             _lm_leaves.b = leaves_tex[3] * TX_CNT;
-            const r1 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0) / 100;
-            const r2 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] | 0) / 100;
-            // let count = leaves_planes.length
-            const rv = r1;
-            let count = 2 + Math.floor(rv / 50);
-            for(let i = 0; i < count; i++) {
-                const plane = leaves_planes[i];
+            const r1_100 = randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0;
+            const r1 = r1_100 / 100;
+            const r2_100 = randoms[(z * 11 + x * 37 + y) % randoms.length] | 0;
+            const r2 = r2_100 / 100;
+            // randomly show one of the last 2 planes
+            tmp_leaves_planes[3] = leaves_planes[3 + r1_100 % 2];
+            const showCount = 3 + EXTRA_BEAUTIFUL_LEAVES;
+            for(let i = 0; i < showCount; i++) {
+                const plane = tmp_leaves_planes[i];
                 // fill object
                 _pl.size     = plane.size;
                 _pl.uv       = plane.uv;
@@ -277,7 +286,17 @@ export default class style {
                     y + (plane.move?.y || 0),
                     z + (plane.move?.z || 0)
                 );
-                _pl.matrix   = matrix_leaves;
+                // shift axis-aligned planes randomly, to prevent visible big planes
+                if (i === 0) {
+                    _pl.pos.y += (r1 - 0.5) * 0.7;
+                } else if (i === 3) {
+                    if (plane.rot[1]) {
+                        _pl.pos.z += (r2 - 0.5) * 0.5;
+                    } else {
+                        _pl.pos.x += (r2 - 0.5) * 0.5;
+                    }
+                }
+                _pl.matrix   = leaves_matrices[i];
                 _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
                 _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
