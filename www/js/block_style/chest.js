@@ -20,6 +20,15 @@ export default class style {
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(1/16, 0, 1/16, 15/16, 14/16, 15/16);
+        const type = block.extra_data?.type;
+        if (type) {
+            const dir = BLOCK.getCardinalDirection(block.rotate);
+            const sign = type === 'left' ? 1 : -1;
+            const len = for_physic ? 1/16 : 1;
+            tmp_vec.set(len * sign, 0, 0);
+            tmp_vec.rotateByCardinalDirectionSelf(dir);
+            aabb.addSelfTranslatedByVec(tmp_vec);
+        }
         if(!for_physic) {
             aabb.pad(1/500);
         }
@@ -32,7 +41,8 @@ export default class style {
             return;
         }
 
-        var texName = block?.extra_data?.type || 'side';
+        var texName = block.extra_data?.type || 'side';
+        
         const tex = block.material.texture[texName];
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, null, tex);
 
@@ -99,6 +109,8 @@ export default class style {
                 ];
                 break;
             }
+            // We add invisible inner sides to halves because when one half is destroyed by the client,
+            // the other is temporarily visible from all sides.
             case 'left': {
                 box = {
                     "size": {"x": 15, "y": 10, "z": 14},
@@ -107,7 +119,8 @@ export default class style {
                         "up": {"uv": [(58+88)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                         "down": {"uv": [(28+58)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                         "north": {"uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                        "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        // invisible east - the same as west - there is no east in the skin
+                        "east":  {"uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                         "south": {"uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
                         "west":  {"uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
                     }
@@ -121,7 +134,8 @@ export default class style {
                             "up": {"uv": [(58+88)/2/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                             "down": {"uv": [(28+58)/2/2, 14/2], "flag": flag, "texture": c},
                             "north": {"uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
-                            "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            // invisible east - the same as west - there is no east in the skin
+                            "east":  {"uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
                             "south": {"uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
                             "west":  {"uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
                         }
@@ -151,7 +165,8 @@ export default class style {
                         "north": {"uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                         "east":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
                         "south": {"uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                        "west":  {"uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                        // invisible west - the same as east - there is no west in the skin
+                        "west":  {"uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
                     }
                 };
                 lid = [
@@ -165,7 +180,8 @@ export default class style {
                             "north": {"uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
                             "east":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                             "south": {"uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                            "west":  {"uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
+                            // invisible west - the same as east - there is no west in the skin
+                            "west":  {"uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}
                         }
                     },
                     // замок
@@ -212,3 +228,5 @@ export default class style {
     }
     
 }
+
+const tmp_vec = new Vector();

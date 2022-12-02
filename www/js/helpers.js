@@ -1056,6 +1056,30 @@ export class Vector {
         return this;
     }
 
+    // Rotates self from 0 to 3 times around Y, by 90 degrees each time
+    rotateByCardinalDirectionSelf(dir) {
+        const x = this.x;
+        const z = this.z;
+        switch(dir) {
+            // case 0: do nothing
+            case 1: { // DIRECTION.WEST
+                this.x = -z;
+                this.z = x;
+                break;
+            }
+            case 2: { // DIRECTION.SOUTH
+                this.x = -x;
+                this.z = -z;
+                break;
+            }
+            case 3: { // DIRECTION.EAST
+                this.x = z;
+                this.z = -x;
+                break;
+            }
+        }
+    }
+
     addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
