@@ -126,3 +126,11 @@ export class BaseTerrainShader extends BaseShader {
     updatePos(pos, modelMatrix) {
     }
 }
+
+export class BaseLineShader extends BaseShader {
+    constructor(context, options) {
+        super(context, options);
+
+        this.globalUniforms = context.globalUniforms;
+    }
+}
