@@ -1190,9 +1190,9 @@ export class Renderer {
             target_fov = FOV_ZOOM;
         } else {
             if(running) {
-                target_fov *= FOV_WIDE_FACTOR;
+                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_WIDE_FACTOR - 1);
             } else if(flying) {
-                target_fov *= FOV_FLYING_FACTOR;
+                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_FLYING_FACTOR - 1);
             }
         }
         if(this.camera.fov < target_fov) {
