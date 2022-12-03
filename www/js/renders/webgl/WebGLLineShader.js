@@ -38,6 +38,7 @@ export class WebGLLineShader extends BaseLineShader {
     locateUniforms() {
         const { program } = this;
         const { gl } = this.context;
+        this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
     }
 
     bind(force = false) {
@@ -97,5 +98,15 @@ export class WebGLLineShader extends BaseLineShader {
         this.updateGlobalUniforms();
 
         this.resetMatUniforms();
+    }
+
+    updatePos(pos) {
+        const { gl } = this.context;
+        const {camPos} = this.globalUniforms;
+        if (pos) {
+            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.z - camPos.z, pos.y - camPos.y);
+        } else {
+            gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);
+        }
     }
 }

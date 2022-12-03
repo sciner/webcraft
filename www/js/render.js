@@ -275,7 +275,7 @@ export class Renderer {
         this.maskColorTex.bind(1);
 
         this.debugGeom = new LineGeometry();
-        this.debugGeom.camPos = this.camPos;
+        this.debugGeom.pos = this.camPos;
     }
 
     // Generate drop item vertices

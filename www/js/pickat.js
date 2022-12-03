@@ -6,6 +6,7 @@ import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
+import {AABB} from "./core/AABB.js";
 
 const {mat4} = glMatrix;
 
@@ -154,6 +155,7 @@ export class PickAt {
             if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
                 // 1. Target block
                 target_block.pos = bPos;
+                this.createTargetLines(bPos, target_block.geom);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
@@ -214,14 +216,9 @@ export class PickAt {
         let damage_block = this.damage_block;
         // 1. Target block
         if(target_block.geom && target_block.visible) {
-            target_block.camPos = this.render.camPos;
-            target_block.reset();
-            // 12 lines
-            target_block.addLine();
-            const a_pos = half.add(this.target_block.pos);
-            render.renderBackend.drawMesh(target_block.mesh, this.material_target, a_pos, this.modelMatrix);
+            target_block.geom.draw(render.renderBackend);
         }
-        // 2. Damage block
+        // 2. Damage bl ock
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
 
             const matrix = mat4.create();
@@ -247,6 +244,23 @@ export class PickAt {
 
             render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, matrix || this.modelMatrix);
         }
+    }
+
+    createTargetLines(pos, geom) {
+        const aabbConfig = {isLocal: true};
+        let vertices    = [];
+        geom.clear();
+        geom.pos.copyFrom(pos);
+        let pp = 0;
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
+        let aabb = new AABB();
+        for (let i = 0; i < shapes.length; i++) {
+            aabb.set(...shapes[i]);
+            geom.addAABB(aabb, aabbConfig);
+        }
+        return new GeometryTerrain(vertices);
     }
 
     // createTargetBuffer...

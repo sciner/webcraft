@@ -14,7 +14,7 @@ export class LineGeometry {
         /**
          * @type {Float32Array}
          */
-        this.resize(128);
+        this.resize(12);
         /**
          *
          * @type {BaseBuffer}
@@ -36,7 +36,8 @@ export class LineGeometry {
 
         this.pos = new Vector();
 
-        this.defColor = 0xFF00FF00;
+        this.defAABBColor = 0xFF0000FF; // AARRGGBB
+        this.defLineColor = 0xFFFFFFFF;
 
         this.defWidth = 2;
     }
@@ -65,8 +66,8 @@ export class LineGeometry {
         this.buffer.bind();
         gl.vertexAttribPointer(attribs.a_point1, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_point2, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribIPointer(attribs.a_lineWidth,  1, gl.FLOAT, stride, 6 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 7 * 4);
+        gl.vertexAttribPointer(attribs.a_lineWidth,  1, gl.FLOAT, false, stride, 6 * 4);
+        gl.vertexAttribPointer(attribs.a_color, 1, gl.UNSIGNED_BYTE, true, stride, 7 * 4);
 
         gl.vertexAttribDivisor(attribs.a_point1, 1);
         gl.vertexAttribDivisor(attribs.a_point2, 1);
@@ -91,7 +92,7 @@ export class LineGeometry {
                 usage: 'static',
             });
             // this.data = null;
-            this.quad = GeometryTerrain.bindQuad(this.context, true);
+            this.quad = LineGeometry.bindQuad(this.context, true);
             this.buffers = [
                 this.buffer,
                 this.quad
@@ -128,8 +129,15 @@ export class LineGeometry {
         this.updateID++;
     }
 
-    drawLine(x1, y1, z1, x2, y2, z2, isLocal = false, lineWidth = this.defWidth, colorBGRA = this.defColor) {
-        const {data, uint32View, strideFloats, camPos} = this;
+    ensureCapacity(extraInstances) {
+        while (this.instances + extraInstances > this.size) {
+            this.resize(this.size * 2);
+        }
+    }
+
+    addLineInner(x1, y1, z1, x2, y2, z2, isLocal = false, lineWidth = this.defWidth,
+             colorBGRA = this.defLineColor) {
+        const {data, uint32View, strideFloats, pos} = this;
         let ind = (this.instances++) * strideFloats;
         if (isLocal) {
             data[ind++] = x1;
@@ -139,20 +147,46 @@ export class LineGeometry {
             data[ind++] = y2;
             data[ind++] = z2;
         } else {
-            data[ind++] = x1 - camPos.x;
-            data[ind++] = y1 - camPos.y;
-            data[ind++] = z1 - camPos.z;
-            data[ind++] = x2 - camPos.x;
-            data[ind++] = y2 - camPos.y;
-            data[ind++] = z2 - camPos.z;
+            data[ind++] = x1 - pos.x;
+            data[ind++] = y1 - pos.y;
+            data[ind++] = z1 - pos.z;
+            data[ind++] = x2 - pos.x;
+            data[ind++] = y2 - pos.y;
+            data[ind++] = z2 - pos.z;
         }
         data[ind++] = lineWidth;
         uint32View[ind++] = colorBGRA;
         this.updateID++;
     }
 
-    drawAABB(aabb) {
-
+    addAABB(aabb, {
+        isLocal = false,
+         lineWidth = this.defWidth,
+         colorBGRA = this.defAABBColor }) {
+        this.ensureCapacity(12);
+        for (let d1 = 0; d1 <= 1; d1++) {
+            for (let d2 = 0; d2 <= 1; d2++) {
+                let x1 = d1 ? aabb.x_max : aabb.x_min;
+                let y2 = d2 ? aabb.y_max : aabb.y_min;
+                this.addLineInner(
+                    x1, y2, aabb.z_min,
+                    x1, y2, aabb.z_max,
+                    isLocal, lineWidth, colorBGRA
+                );
+                let z2 = d2 ? aabb.z_max : aabb.z_min;
+                this.addLineInner(
+                    x1, aabb.y_min, z2,
+                    x1, aabb.y_max, z2,
+                    isLocal, lineWidth, colorBGRA
+                );
+                let y1 = d1 ? aabb.y_max : aabb.y_min;
+                this.addLineInner(
+                    aabb.x_min, y1, z2,
+                    aabb.x_max, y1, z2,
+                    isLocal, lineWidth, colorBGRA
+                );
+            }
+        }
     }
 
     destroy() {
@@ -168,6 +202,11 @@ export class LineGeometry {
             this.gl.deleteVertexArray(this.vao);
             this.vao = null;
         }
+    }
+
+    draw(render) {
+        render.batch.setObjectDrawer(render.line);
+        render.line.draw(this);
     }
 
     static quadBuf = null;

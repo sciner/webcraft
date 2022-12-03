@@ -6,6 +6,7 @@ precision highp float;
 
 uniform mat4 uProjMatrix;
 uniform mat4 uViewMatrix;
+uniform vec3 u_add_pos;
 
 uniform vec2 u_resolution;
 uniform float u_time;
@@ -20,8 +21,8 @@ out vec2 vLine1;
 out vec4 vColor;
 
 void main() {
-    vec4 screenPos1 = uProjMatrix * uViewMatrix * vec4(aPoint1, 1.0);
-    vec4 screenPos2 = uProjMatrix * uViewMatrix * vec4(aPoint2, 1.0);
+    vec4 screenPos1 = uProjMatrix * uViewMatrix * vec4(aPoint1 + u_add_pos, 1.0);
+    vec4 screenPos2 = uProjMatrix * uViewMatrix * vec4(aPoint2 + u_add_pos, 1.0);
     vec2 pixelPos1 = (screenPos1.xy / screenPos1.w + 1.0) * 0.5 * u_resolution;
     vec2 pixelPos2 = (screenPos2.xy / screenPos2.w + 1.0) * 0.5 * u_resolution;
     vec2 line = screenPos2.xy - screenPos1.xy;
@@ -76,10 +77,9 @@ export class GLLineDrawer extends ObjectDrawer {
             return;
         }
         this.shader.bind();
-        lineGeom.bind();
-        gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
-        // stat
-        context.stat.drawquads += geom.size;
-        context.stat.drawcalls++;
+        lineGeom.bind(this.shader);
+        this.shader.updatePos(lineGeom.pos);
+        const { gl } = this.context;
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, lineGeom.instances);
     }
 }
