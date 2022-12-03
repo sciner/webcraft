@@ -247,7 +247,7 @@ export class PickAt {
     }
 
     createTargetLines(pos, geom) {
-        const aabbConfig = {isLocal: true};
+        const aabbConfig = {isLocal: true, lineWidth: -1, colorBGRA: 0xFF000000};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);

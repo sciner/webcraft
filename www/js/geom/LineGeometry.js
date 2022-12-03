@@ -141,18 +141,18 @@ export class LineGeometry {
         let ind = (this.instances++) * strideFloats;
         if (isLocal) {
             data[ind++] = x1;
-            data[ind++] = y1;
             data[ind++] = z1;
+            data[ind++] = y1;
             data[ind++] = x2;
-            data[ind++] = y2;
             data[ind++] = z2;
+            data[ind++] = y2;
         } else {
             data[ind++] = x1 - pos.x;
-            data[ind++] = y1 - pos.y;
             data[ind++] = z1 - pos.z;
+            data[ind++] = y1 - pos.y;
             data[ind++] = x2 - pos.x;
-            data[ind++] = y2 - pos.y;
             data[ind++] = z2 - pos.z;
+            data[ind++] = y2 - pos.y;
         }
         data[ind++] = lineWidth;
         uint32View[ind++] = colorBGRA;
@@ -162,7 +162,7 @@ export class LineGeometry {
     addAABB(aabb, {
         isLocal = false,
          lineWidth = this.defWidth,
-         colorBGRA = this.defAABBColor }) {
+         colorBGRA = this.defAABBColor}) {
         this.ensureCapacity(12);
         for (let d1 = 0; d1 <= 1; d1++) {
             for (let d2 = 0; d2 <= 1; d2++) {

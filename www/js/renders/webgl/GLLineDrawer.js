@@ -27,10 +27,14 @@ void main() {
     vec2 pixelPos2 = (screenPos2.xy / screenPos2.w + 1.0) * 0.5 * u_resolution;
     vec2 line = pixelPos2.xy - pixelPos1.xy;
     vec2 norm = normalize(vec2(-line.y, line.x));
-    float normOffset = aQuad.y * (aLineWidth + 1.0);
+    
+    float pixelLineWidth = aLineWidth < 0.0 ? (-aLineWidth * u_resolution.y / 100.0) : aLineWidth;
+    pixelLineWidth *= 0.5;
+    
+    float normOffset = aQuad.y * (pixelLineWidth + 1.0);
     vec2 pos = (pixelPos1.xy + line * aQuad.x) + norm * normOffset;
     
-    vLine1 = vec2(normOffset, aLineWidth);
+    vLine1 = vec2(normOffset, pixelLineWidth);
     vColor = aColor;
     
     vec2 screenPos = (pos / u_resolution) * 2.0 - 1.0;
