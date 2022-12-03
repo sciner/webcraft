@@ -8,7 +8,6 @@ import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { MobGenerator } from "./mob/generator.js";
-import { BrowserBuffer } from "./compatibility.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -17,8 +16,6 @@ export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 export const CHUNK_STATE_UNLOADED          = 4;
 
 const _rnd_check_pos = new Vector(0, 0, 0);
-
-var Buffer = Buffer || BrowserBuffer;
 
 // Ticking block
 class TickingBlock {
