@@ -17,6 +17,8 @@ export class BuildingS extends Building {
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        
+        // Set materials
         this.materials  = {
             wall:           BLOCK.COBBLESTONE,
             door:           BLOCK.SPRUCE_DOOR,
@@ -52,6 +54,7 @@ export class BuildingS extends Building {
         const has_chandelier     = this.randoms.double() <= .8;
         const has_bed            = this.randoms.double() <= .6;
 
+        //
         if(this.seed < .7) {
             this.blocks.list.push(...[
                 {move: new Vector(0, 0, 3), block_id: BLOCK.SPRUCE_FENCE.id},

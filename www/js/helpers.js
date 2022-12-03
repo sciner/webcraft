@@ -722,6 +722,13 @@ export class Vector {
     }
 
     /**
+     * @return {Vector}
+     */
+    swapXZSelf() {
+        return this.set(this.z, this.y, this.x);
+    }
+
+    /**
      * @return {number}
      */
     length() {

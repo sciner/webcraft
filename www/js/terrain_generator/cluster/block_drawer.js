@@ -33,8 +33,9 @@ export class BlockDrawer {
      * @param {boolean} left 
      */
     appendDoorBlocks(pos, block_id, dir, opened, left) {
-        this.list.push({move: pos, block_id: block_id, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: false}});
-        this.list.push({move: pos.add(new Vector(0, 1, 0)), block_id: block_id, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: true}});
+        const rotate = new Vector(dir, 0, 0);
+        this.list.push({move: pos, block_id, rotate, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: false}});
+        this.list.push({move: pos.add(new Vector(0, 1, 0)), block_id, rotate, extra_data: {point: new Vector(0, 0, 0), opened, left, is_head: true}});
     }
 
     /**

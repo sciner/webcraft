@@ -471,20 +471,6 @@ export class ClusterBase {
         }
     }
 
-    // Draw door
-    drawDoor(chunk, pos, block, dir, opened, left) {
-        const door_blocks = [block.id, block.id];
-        for(let k of [0, 1]) {
-            const x = pos.x - chunk.coord.x;
-            const y = pos.y - chunk.coord.y + k;
-            const z = pos.z - chunk.coord.z;
-            if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                let rot = {x: dir, y: 0, z: 0};
-                this.setBlock(chunk, x, y, z, door_blocks[k], rot, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left, is_head: k == 1});
-            }
-        }
-    }
-
     // Return extra data for block MOB_SPAWN
     generateNPCSpawnExtraData() {
         return {

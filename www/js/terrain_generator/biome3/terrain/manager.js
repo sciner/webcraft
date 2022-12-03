@@ -505,14 +505,17 @@ export class TerrainMapManager2 {
         if(!map.cluster.is_empty && map.cluster.buildings) {
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.door_bottom && building.door_bottom.y == Infinity) {
-                    xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
+
+                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction))
+
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
-
+ 
                     xyz.y = map.cluster.y_base;
                     this.noise3d.generate4(xyz, doorSearchSize);
+
                     for(let i = 0; i < 2; i++) {
                         if(building.door_bottom.y != Infinity) {
                             break;

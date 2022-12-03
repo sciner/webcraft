@@ -33,7 +33,7 @@ export class Building {
     }
 
     get pos() {
-        return this.door_bottom;
+        return this.entrance.add(Vector.YP);
     }
 
     get direction() {
@@ -209,35 +209,72 @@ export class Building {
      */
     static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction) {
 
-        const door_pos = random_size?.door_pos ?? DEFAULT_DOOR_POS;
+        const door_pos = new Vector(random_size?.door_pos ?? DEFAULT_DOOR_POS);
 
-        if(door_direction == DIRECTION.NORTH) {
-            coord.z += (size.z - random_size.z)
-            size.x = random_size.x
-            size.z = random_size.z
-            entrance.x = /*random_size.right ? (coord.x + door_pos.x) :*/ (coord.x + random_size.x - door_pos.x - 1) 
+        random_size = new Vector(random_size);
 
-        } else if(door_direction == DIRECTION.SOUTH) {
-            // coord.z += (size.z - random_size.z)
-            size.x = random_size.x
-            size.z = random_size.z
-            entrance.x = coord.x + door_pos.x
+        // swap X and Z
+        if(door_direction % 2 == 1) {
+            random_size.swapXZSelf();
+            door_pos.swapXZSelf();
+        }
 
-        } else if(door_direction == DIRECTION.WEST) {
-            // coord.x += (size.x - random_size.x)
-            size.x = random_size.x
-            size.z = random_size.z
-            entrance.z = random_size.right ? (coord.z + door_pos.z) : (coord.z + random_size.z - door_pos.z - 1)
-
-        } else if(door_direction == DIRECTION.EAST) {
-            coord.x += (size.x - random_size.x)
-            size.x = random_size.x
-            size.z = random_size.z
-            entrance.z = random_size.right ? (coord.z + random_size.z - door_pos.z - 1) : (coord.z + door_pos.z);
+        //
+        switch(door_direction) {
+            case DIRECTION.NORTH: {
+                coord.z += (size.z - random_size.z)
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.x = coord.x + random_size.x - 1
+                entrance.x -= door_pos.x
+                break;
+            }
+            case DIRECTION.SOUTH: {
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.x = coord.x
+                entrance.x += door_pos.x
+                break;
+            }
+            case DIRECTION.WEST: {
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.z = coord.z + random_size.z - 1
+                entrance.z -= door_pos.z
+                break;
+            }
+            case DIRECTION.EAST: {
+                coord.x += size.x - random_size.x
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.z = coord.z
+                entrance.z += door_pos.z
+                break;
+            }
         }
 
         door_bottom.x = entrance.x
         door_bottom.z = entrance.z
+
+        //
+        switch(door_direction) {
+            case DIRECTION.NORTH: {
+                door_bottom.x -= door_pos.x
+                break;
+            }
+            case DIRECTION.SOUTH: {
+                door_bottom.x += door_pos.x
+                break;
+            }
+            case DIRECTION.WEST: {
+                door_bottom.z += door_pos.z
+                break;
+            }
+            case DIRECTION.EAST: {
+                door_bottom.z -= door_pos.z
+                break;
+            }
+        }
 
     }
 
