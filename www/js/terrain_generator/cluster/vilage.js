@@ -3,9 +3,17 @@ import {DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js
 import { AABB } from '../../core/AABB.js';
 import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.js";
 import {VilageSchema} from "./vilage_schema.js";
-import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell, Church, Building} from "./building.js";
+import {BUILDING_AABB_MARGIN, Building} from "./building.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
+
+// Buildings
+import { BuildingS } from "./building/buildings.js";
+import { Building1 } from "./building/building1.js";
+import { Farmland } from "./building/farmland.js";
+import { WaterWell } from "./building/waterwell.js";
+import { Church } from "./building/church.js";
+import { StreetLight } from "./building/streetlight.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
@@ -138,10 +146,8 @@ export class ClusterVilage extends ClusterBase {
                                     this.list.splice(i, 1);
                                 }
 
-                                const shift_entrance_value = 0;
-        
                                 // calculate correct door position
-                                Building.selectSize(random_size, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction, shift_entrance_value);
+                                Building.selectSize(random_size, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction);
 
                                 // create object by pre-calculated arguments
                                 return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, args.door_direction, args.size, random_size);
@@ -197,6 +203,7 @@ export class ClusterVilage extends ClusterBase {
 
         //
         this.buildings.set(building.coord, building);
+
         // 1. building mask
         dx = building.coord.x - this.coord.x;
         dz = building.coord.z - this.coord.z;
@@ -208,6 +215,7 @@ export class ClusterVilage extends ClusterBase {
                 this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
             }
         }
+
         // 2. entrance mask
         if(building.draw_entrance) {
             let ahead = getAheadMove(building.door_direction);
@@ -215,7 +223,9 @@ export class ClusterVilage extends ClusterBase {
             const ez = building.entrance.z - this.coord.z + ahead.z;
             this.mask[ez * CLUSTER_SIZE.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
         }
+
         return true;
+
     }
 
     // Fill chunk blocks
@@ -255,6 +265,9 @@ export class ClusterVilage extends ClusterBase {
                         }
                     }
                     if(value2 > 0) {
+                        if(!b.biome) {
+                            b.setBiome({}, 0, 0);
+                        }
                         b.setY(value2);
                     }
                 }

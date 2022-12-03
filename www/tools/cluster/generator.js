@@ -41,7 +41,8 @@ import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
 
 //
 const WORLD_SEED = 2091212290;
-const START_CLUSTER_ADDR = new Vector(921, 0, 498); // new Vector(240, 0, 807)
+// const START_CLUSTER_ADDR = new Vector(921, 0, 498); // new Vector(240, 0, 807)
+const START_CLUSTER_ADDR = new Vector(-5485, 0, 6640);
 
 //
 const cnv = document.getElementById('sandbox_canvas');
