@@ -44,7 +44,7 @@ export class WorldAdminManager {
     // Remove
     async remove(player, username) {
         if(!this.checkIsAdmin(player)) {
-            throw 'Not permitted';
+            throw 'error_not_permitted';
         }
         const user = await this.world.db.findPlayer(this.world.info.id, username);
         if (!user) {

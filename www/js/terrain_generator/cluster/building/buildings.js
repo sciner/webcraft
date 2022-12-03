@@ -108,6 +108,8 @@ export class BuildingS extends Building {
     //
     draw(cluster, chunk) {
 
+        super.draw(cluster, chunk);
+
         const dir       = this.door_direction;
         const coord     = this.coord;
         const mat       = this.materials;

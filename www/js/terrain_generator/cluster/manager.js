@@ -29,8 +29,7 @@ export class ClusterManager {
         } else {
             const r = rand.double();
             if(r <= .1) {
-                // cluster = new ClusterPyramid(this, addr.clone());
-                cluster = new ClusterVilage(this, addr.clone());
+                cluster = new ClusterPyramid(this, addr.clone());
             } else if(r < .6) {
                 cluster = new ClusterEmpty(this, addr.clone());
             } else {

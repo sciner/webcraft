@@ -76,10 +76,14 @@ export class ClusterVilage extends ClusterBase {
             };
             // generate schema
             let t = performance.now();
-            let vs = this.schema = new VilageSchema(this, {
+            const settings = {
                 margin: CLUSTER_PADDING,
                 road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-            });
+            };
+            if(clusterManager.version == 2) {
+                settings.quant = 16;
+            }
+            let vs = this.schema = new VilageSchema(this, settings);
             let resp = vs.generate(this.id);
             this.timers.generate = performance.now() - t; t = performance.now();
             // work with schema

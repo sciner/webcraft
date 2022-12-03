@@ -11,6 +11,7 @@ export class WaterWell extends Building {
 
         coord.y = -14;
         size.y = 21;
+
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
 
         //
@@ -25,9 +26,11 @@ export class WaterWell extends Building {
         const mirror_x = false; // door_direction % 2 == 1;
 
         if(seed < .75) {
+
             this.wallBlocks = this.cluster.createPalette([
                 {value: BLOCK.OAK_PLANKS, chance: 1}
             ]);
+
             this.blocks.list.push(...[
                 {move: new Vector(0, 1, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
                 {move: new Vector(2, 1, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
@@ -36,19 +39,22 @@ export class WaterWell extends Building {
                 //
                 {move: new Vector(0, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
                 {move: new Vector(1, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
-                {move: new Vector(2, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
-                {move: new Vector(2, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(2, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1) % 4, 0, 0)},
+                {move: new Vector(2, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1) % 4, 0, 0)},
                 {move: new Vector(2, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
                 {move: new Vector(1, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
-                {move: new Vector(0, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
-                {move: new Vector(0, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(0, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3) % 4, 0, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3) % 4, 0, 0)},
                 //
                 {move: new Vector(1, 4, 1), block_id: BLOCK.OAK_SLAB.id},
             ]);
+
         } else {
+
             this.wallBlocks = this.cluster.createPalette([
                 {value: BLOCK.COBBLESTONE, chance: 1}
             ]);
+
             this.blocks.list.push(...[
                 {move: new Vector(0, 1, 0), block_id: BLOCK.OAK_FENCE.id},
                 {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
@@ -75,7 +81,9 @@ export class WaterWell extends Building {
                 {move: new Vector(1, 0, 2), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
                 {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
             ]);
+
         }
+
     }
 
     /**
@@ -84,15 +92,22 @@ export class WaterWell extends Building {
      * @param {*} chunk 
      */
     draw(cluster, chunk) {
-        const building = this;
+
+        super.draw(cluster, chunk)
+
         // 4 walls
-        cluster.drawQuboid(chunk, building.coord, building.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
-        const walls_size = building.size.clone().addSelf(new Vector(0, -4, 0));
-        cluster.draw4Walls(chunk, building.coord, walls_size, this.wallBlocks);
-        const q_pos = building.coord.add(new Vector(1, 1, 1));
+        cluster.drawQuboid(chunk, this.coord, this.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
+        
+        const walls_size = this.size.clone().addSelf(new Vector(0, -4, 0));
+        cluster.draw4Walls(chunk, this.coord, walls_size, this.wallBlocks);
+
+        const q_pos = this.coord.add(new Vector(1, 1, 1));
         const q_size = walls_size.add(new Vector(-2, -2, -2));
         cluster.drawQuboid(chunk, q_pos, q_size, BLOCK.STILL_WATER);
+
+        // Draw blocks
         this.blocks.draw(cluster, chunk);
+
     }
 
 }

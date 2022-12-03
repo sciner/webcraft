@@ -65,17 +65,12 @@ export class BlockDrawer {
      * @param {int} block_id 
      */
     appendBasementBlocks(pos, size, block_id) {
-        
+
         // floor
         const floor_pos = pos.clone().addSelf(new Vector(0, -size.y + 1, 0))
-
         const floor_size = size.clone();
-        this.appendQuboidBlocks(floor_pos, floor_size, block_id);
 
-        // natural basement
-        // const coord = this.coord.clone().addSelf(new Vector(0, -height - 4, 0));
-        // const size = this.size.clone().addSelf(new Vector(0, -this.size.y + 7, 0));
-        // cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
+        this.appendQuboidBlocks(floor_pos, floor_size, block_id);
 
     }
 
@@ -83,13 +78,18 @@ export class BlockDrawer {
      * @param {Vector} pos 
      * @param {Vector} size 
      * @param {int} block_id 
+     * @param {*} extra_data 
      */
-    appendQuboidBlocks(pos, size, block_id) {
+    appendQuboidBlocks(pos, size, block_id, extra_data = null) {
         for(let y = 0; y < size.y - 1; y++) {
             for(let x = 0; x < size.x; x++) {
                 for(let z = 0; z < size.z; z++) {
                     const move = new Vector(pos.x + x, pos.y + y, pos.z + z);
-                    this.list.push({move, block_id});
+                    const block = {move, block_id};
+                    if(extra_data) {
+                        block.extra_data = extra_data;
+                    }
+                    this.list.push(block);
                 }
             }
         }

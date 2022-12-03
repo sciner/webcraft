@@ -10,6 +10,8 @@ export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw
 export const ROOF_TYPE_PITCHED = 'pitched';
 export const ROOF_TYPE_FLAT = 'flat';
 
+const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
+
 // Base building
 export class Building {
 
@@ -54,8 +56,15 @@ export class Building {
 
     //
     draw(cluster, chunk) {
-        // 4 walls
-        cluster.drawQuboid(chunk, this.coord, this.size, BLOCK.TEST);
+
+        const height = this.size.y;
+
+        // natural basement
+        const coord = this.coord.clone().subSelf(new Vector(0, height + 6, 0));
+        const size = this.size.clone().addSelf(new Vector(0, -this.size.y + 7, 0));
+
+        cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
+
     }
 
     // Стоги сена
@@ -200,44 +209,35 @@ export class Building {
      */
     static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction) {
 
-        // If building has door
-        if('door_pos' in random_size) {
+        const door_pos = random_size?.door_pos ?? DEFAULT_DOOR_POS;
 
-            if(door_direction == DIRECTION.NORTH) {
-                coord.z += (size.z - random_size.z)
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.x = /*random_size.right ? (coord.x + random_size.door_pos.x) :*/ (coord.x + random_size.x - random_size.door_pos.x - 1) 
-
-            } else if(door_direction == DIRECTION.SOUTH) {
-                // coord.z += (size.z - random_size.z)
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.x = coord.x + random_size.door_pos.x
-
-            } else if(door_direction == DIRECTION.WEST) {
-                // coord.x += (size.x - random_size.x)
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.z = random_size.right ? (coord.z + random_size.door_pos.z) : (coord.z + random_size.z - random_size.door_pos.z - 1)
-
-            } else if(door_direction == DIRECTION.EAST) {
-                coord.x += (size.x - random_size.x)
-                size.x = random_size.x
-                size.z = random_size.z
-                entrance.z = random_size.right ? (coord.z + random_size.z - random_size.door_pos.z - 1) : (coord.z + random_size.door_pos.z);
-            }
-
-            door_bottom.x = entrance.x
-            door_bottom.z = entrance.z
-
-        } else {            
+        if(door_direction == DIRECTION.NORTH) {
+            coord.z += (size.z - random_size.z)
             size.x = random_size.x
             size.z = random_size.z
-            door_bottom.x = entrance.x
-            door_bottom.z = entrance.z
+            entrance.x = /*random_size.right ? (coord.x + door_pos.x) :*/ (coord.x + random_size.x - door_pos.x - 1) 
 
+        } else if(door_direction == DIRECTION.SOUTH) {
+            // coord.z += (size.z - random_size.z)
+            size.x = random_size.x
+            size.z = random_size.z
+            entrance.x = coord.x + door_pos.x
+
+        } else if(door_direction == DIRECTION.WEST) {
+            // coord.x += (size.x - random_size.x)
+            size.x = random_size.x
+            size.z = random_size.z
+            entrance.z = random_size.right ? (coord.z + door_pos.z) : (coord.z + random_size.z - door_pos.z - 1)
+
+        } else if(door_direction == DIRECTION.EAST) {
+            coord.x += (size.x - random_size.x)
+            size.x = random_size.x
+            size.z = random_size.z
+            entrance.z = random_size.right ? (coord.z + random_size.z - door_pos.z - 1) : (coord.z + door_pos.z);
         }
+
+        door_bottom.x = entrance.x
+        door_bottom.z = entrance.z
 
     }
 

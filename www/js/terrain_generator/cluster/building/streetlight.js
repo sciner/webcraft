@@ -45,7 +45,7 @@ export class StreetLight extends Building {
 
     //
     draw(cluster, chunk) {
-        // draw blocks
+        super.draw(cluster, chunk)
         this.blocks.draw(cluster, chunk);
     }
 

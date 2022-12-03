@@ -1,5 +1,7 @@
 import { Building } from "../building.js";
-import { DIRECTION } from "../../../helpers.js";
+import { DIRECTION, Vector } from "../../../helpers.js";
+import { CubeSym } from "../../../core/CubeSym.js";
+import { BLOCK } from "../../../blocks.js";
 
 // Church
 export class Church extends Building {
@@ -628,6 +630,9 @@ export class Church extends Building {
      * @param {*} chunk 
      */
     draw(cluster, chunk) {
+
+        super.draw(cluster, chunk);
+
         const dir = this.door_direction;
         this.blocks.draw(cluster, chunk);
         if (dir == DIRECTION.EAST) {

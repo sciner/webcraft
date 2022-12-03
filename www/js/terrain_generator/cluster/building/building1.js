@@ -39,6 +39,7 @@ export class Building1 extends Building {
         this.roof_type = ROOF_TYPE_PITCHED;
         this.random_size = random_size;
         this.x_sign = x_sign;
+        this.is_right = is_right;
 
         //
         this.selectMaterials();
@@ -49,14 +50,20 @@ export class Building1 extends Building {
         ]);
 
         // Blocks
-        const dir                = this.door_direction;
         const add_hays           = this.randoms.double() <= .75;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
         const has_bed            = this.randoms.double() <= .6;
         const has_bookshelfs     = this.randoms.double();
-        const mat                = this.materials;
+
+        this.options = {
+            has_crafting_table,
+            has_chandelier,
+            has_chest,
+            has_bed,
+            has_bookshelfs
+        };
 
         //
         if(this.is_big_building) {
@@ -71,7 +78,18 @@ export class Building1 extends Building {
             }
         }
 
+    }
+
+    //
+    addBlocks() {
+
+        const x_sign = this.x_sign;
+        const is_right = this.is_right;
+        const random_size = this.random_size;
+        const dir = this.door_direction;
+        const mat = this.materials;
         const offset_x = is_right ? -4 : -2;
+        const {has_crafting_table, has_chandelier, has_chest, has_bed, has_bookshelfs} = this.options;
 
         // 4 walls
         this.blocks.append4WallsBlocks(new Vector(offset_x, 0, 0), this.size, this.wallBlocks);
@@ -138,6 +156,8 @@ export class Building1 extends Building {
 
     //
     draw(cluster, chunk) {
+
+        super.draw(cluster, chunk)
 
         const dir       = this.door_direction;
         const coord     = this.coord;
@@ -240,7 +260,9 @@ export class Building1 extends Building {
     }
 
     setBiome(biome, temperature, humidity) {
+        
         super.setBiome(biome, temperature, humidity);
+
         // this.selectMaterials();
         if(['Заснеженный пляж', 'Пустыня'].includes(biome.title)) {
             this.materials = {...this.materials,
@@ -258,6 +280,9 @@ export class Building1 extends Building {
         } else {
             this.addSecondFloor();
         }
+
+        this.addBlocks();
+        
     }
 
 }
