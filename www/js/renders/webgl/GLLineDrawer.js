@@ -25,15 +25,16 @@ void main() {
     vec4 screenPos2 = uProjMatrix * uViewMatrix * vec4(aPoint2 + u_add_pos, 1.0);
     vec2 pixelPos1 = (screenPos1.xy / screenPos1.w + 1.0) * 0.5 * u_resolution;
     vec2 pixelPos2 = (screenPos2.xy / screenPos2.w + 1.0) * 0.5 * u_resolution;
-    vec2 line = screenPos2.xy - screenPos1.xy;
+    vec2 line = pixelPos2.xy - pixelPos1.xy;
     vec2 norm = normalize(vec2(-line.y, line.x));
-    vec2 pos = (screenPos1.xy + line * aQuad.x) + norm * aQuad.y * (aLineWidth + 1.0);
+    float normOffset = aQuad.y * (aLineWidth + 1.0);
+    vec2 pos = (pixelPos1.xy + line * aQuad.x) + norm * normOffset;
     
-    vLine1 = vec2(aQuad.y, aLineWidth);
+    vLine1 = vec2(normOffset, aLineWidth);
     vColor = aColor;
     
-    vec2 screenPos = (pos / u_resolution) * 0.5 - 1.0;
-    vec2 projPos = mix(screenPos1.wz, screenPos2.wz, aQuad.x);
+    vec2 screenPos = (pos / u_resolution) * 2.0 - 1.0;
+    vec2 projPos = mix(screenPos1.zw, screenPos2.zw, aQuad.x);
     gl_Position = vec4(screenPos * projPos.y, projPos);
 }
 `;
