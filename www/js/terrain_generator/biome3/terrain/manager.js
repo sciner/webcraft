@@ -409,7 +409,6 @@ export class TerrainMapManager2 {
             const index = xyz.y % mountain_desert_mats.length
             const dd = Math.floor(index * v);
             block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
-            debugger
 
         } else {
             // 2. select block in dirt layer

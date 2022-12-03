@@ -63,8 +63,9 @@ export class Building {
     }
 
     // Limit building size
-    static selectSize(size_list, seed, coord, size, entrance, door_bottom, door_direction, shift_entrance_value = 0, has_door = true) {
+    static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction, shift_entrance_value = 0) {
 
+        const has_door = 'door_pos' in random_size;
         const orig_coord = coord.clone();
         const orig_size = size.clone();
         const dir = door_direction;
@@ -72,13 +73,14 @@ export class Building {
 
         shift_entrance_value = shift_entrance_value | 0;
 
+        /*
+
         // select random size
         const random_size = size_list[size_list.length * seed | 0];
 
         size.x = random_size.x
         size.z = random_size.z
 
-        /*
         let max_size = null;
         if(isNaN(x)) {
             max_size = x;
@@ -101,6 +103,34 @@ export class Building {
         // If building has door
         if(has_door) {
 
+            if(door_direction == DIRECTION.NORTH) {
+                coord.z += (size.z - random_size.z)
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.x = /*random_size.right ? (coord.x + random_size.door_pos.x) :*/ (coord.x + random_size.x - random_size.door_pos.x - 1) 
+
+            } else if(door_direction == DIRECTION.SOUTH) {
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.x = coord.x + random_size.door_pos.x
+
+            } else if(door_direction == DIRECTION.WEST) {
+                coord.x += (size.x - random_size.x)
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.z = coord.z + random_size.door_pos.z
+
+            } else if(door_direction == DIRECTION.EAST) {
+                coord.x += (size.x - random_size.x)
+                size.x = random_size.x
+                size.z = random_size.z
+                entrance.z = random_size.right ? (coord.z + random_size.z - random_size.door_pos.z - 1) : (coord.z + random_size.door_pos.z);
+            }
+
+            door_bottom.x = entrance.x
+            door_bottom.z = entrance.z
+
+            /*
             //
             if(door_direction == DIRECTION.NORTH) {
                 coord.x = entrance.x - Math.ceil(size.x / 2);
@@ -149,6 +179,14 @@ export class Building {
                     door_bottom.z -= shift_end + shift_entrance_value;
                 }
             }
+            */
+
+        } else {            
+            size.x = random_size.x
+            size.z = random_size.z
+            door_bottom.x = entrance.x
+            door_bottom.z = entrance.z
+
         }
 
     }
@@ -173,13 +211,13 @@ export class Building {
         const vec = new Vector(0, 0, 0);
         const block_coord = this.door_bottom.clone().subSelf(chunk.coord);
         const dir = this.door_direction;
-        for (let i = 0; i < this.blocks.list.length; i++) {
+        for(let i = 0; i < this.blocks.list.length; i++) {
             const item = this.blocks.list[i];
             vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
             cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
         }
     }
-    
+
     //
     drawPitchedRoof(chunk, coord, size, dir, roof_block, roof_ridge_block, roof_gable_block) {
         const cluster = this.cluster;
@@ -301,7 +339,6 @@ export class Farmland extends Building {
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         size.y = 2;
-        Building.selectSize(Farmland.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 0, false);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
         this.draw_entrance = false;
@@ -357,7 +394,6 @@ export class StreetLight extends Building {
     static SIZE_LIST = [{x: 1, z: 1}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
-        Building.selectSize(StreetLight.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 0, false);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.draw_entrance = false;
         // Blocks
@@ -415,7 +451,6 @@ export class WaterWell extends Building {
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         coord.y = -14;
         size.y = 21;
-        Building.selectSize(WaterWell.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         //
         cluster.road_block.reset();
@@ -506,7 +541,10 @@ export class WaterWell extends Building {
 // Building1
 export class Building1 extends Building {
 
-    static SIZE_LIST = [{x: 7, z: 7}];
+    static SIZE_LIST = [
+        {x: 7, z: 7, door_pos: {x: 2, z: 2}, right: false},
+        {x: 7, z: 7, door_pos: {x: 4, z: 2}, right: true}
+    ];
 
     /**
      * 
@@ -517,38 +555,46 @@ export class Building1 extends Building {
      * @param {Vector} entrance 
      * @param {Vector} door_bottom 
      * @param {Vector} door_direction 
-     * @param {Vector} size 
+     * @param {Vector} area_size 
      */
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, area_size, random_size) {
+
         const orig_coord = coord.clone();
-        const orig_size = size.clone();
-        Building.selectSize(Building1.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
+        const orig_size = area_size.clone();
+
         //
-        aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        aabb = new AABB().set(0, 0, 0, area_size.x, area_size.y, area_size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
+        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, area_size);
         this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
         this.roof_type = ROOF_TYPE_PITCHED;
+        this.random_size = random_size;
+
         //
         this.selectMaterials();
+
         //
         this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: 1}
         ]);
+
         // Blocks
         const dir                = this.door_direction;
-        const mirror_x           = dir % 2 == 1;
+        const x_sign             = random_size?.right ? -1 : 1;
         const add_hays           = this.randoms.double() <= .75;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_chest          = this.randoms.double() <= .5;
         const has_bed            = this.randoms.double() <= .6;
-        const has_bookshelfs      = this.randoms.double();
+        const has_bookshelfs     = this.randoms.double();
+        const mat                = this.materials;
 
         this.blocks = {
-            mirror_x:       mirror_x,
+            x_sign:         x_sign,
+            mirror_x:       false,
             mirror_z:       false,
             list:           []
         }
+
         //
         if(this.is_big_building) {
             // draw fence
@@ -561,30 +607,33 @@ export class Building1 extends Building {
                 this.addHays(dx, dz);
             }
         }
+
         if(has_chest) {
             this.blocks.list.push({
-                move: new Vector(-1, 3, 5),
+                move: new Vector(-1 * x_sign, 3, 5),
                 block_id: BLOCK.CHEST.id,
-                rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0},
+                rotate: {x: (dir + 1 + (random_size?.right ? 2 : 0)) % 4, y: 1, z: 0},
                 extra_data: {generate: true, params: {source: 'village_house'}}
             });
         }
+
         // Bed
         if(has_bed) {
             const color_index = ((this.randoms.double() * 4) | 0);
             const bed_block_id = 1210 + color_index;
             const carpet_block_id = 810 + color_index;
-            this.blocks.list.push({move: new Vector(1, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}});
-            this.blocks.list.push({move: new Vector(2, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1 + (mirror_x ? 0 : 2)) % 4, y: -1, z: 0}, extra_data: {is_head: true}});
-            this.blocks.list.push({move: new Vector(1, 0, 4), block_id: carpet_block_id, rotate: {x: 0, y: 1, z: 0}});
+            this.blocks.list.push({move: new Vector(1 * x_sign, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1) % 4, y: -1, z: 0}});
+            this.blocks.list.push({move: new Vector(2 * x_sign, 0, 5), block_id: bed_block_id, rotate: {x: (dir + 1) % 4, y: -1, z: 0}, extra_data: {is_head: true}});
+            this.blocks.list.push({move: new Vector(1 * x_sign, 0, 4), block_id: carpet_block_id, rotate: {x: 0, y: 1, z: 0}});
         }
+
         // Book cases
         if(has_bookshelfs < .6) {
             let bc_start_pos = null;
             if(has_bookshelfs < .2) {
-                bc_start_pos = new Vector(3, 0, 4);
+                bc_start_pos = new Vector(3 * x_sign, 0, 4);
             } else if(has_bookshelfs < .4) {
-                bc_start_pos = new Vector(-1, 0, 1);
+                bc_start_pos = new Vector(-1 * x_sign, 0, 1);
             }
             if(bc_start_pos) {
                 this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 0, 0)), block_id: BLOCK.BOOKSHELF.id});
@@ -593,6 +642,23 @@ export class Building1 extends Building {
                 this.blocks.list.push({move: bc_start_pos.add(new Vector(0, 1, 1)), block_id: BLOCK.BOOKSHELF.id});
             }
         }
+
+        // Front window
+        this.blocks.list.push({move: new Vector(2 * x_sign, 1, 0), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
+
+        // Back windows
+        this.blocks.list.push({move: new Vector(0 * x_sign, 1, random_size.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
+        this.blocks.list.push({move: new Vector(2 * x_sign, 1, random_size.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
+
+        // Light
+        if(mat.light) {
+            if(mat.light.id == BLOCK.LANTERN.id) {
+                this.blocks.list.push({move: new Vector(1 * x_sign, 4, -1), block_id: BLOCK.LANTERN.id, rotate: new Vector(0, -1, 0)});
+            } else {
+                this.blocks.list.push({move: new Vector(1 * x_sign, 1, -1), block_id: mat.light.id, rotate: new Vector(dir, 0, 0)});
+            }
+        }
+
     }
 
     selectMaterials() {
@@ -638,24 +704,32 @@ export class Building1 extends Building {
     }
 
     addSecondFloor() {
+
         const dir = this.door_direction;
+        const {x_sign} = this.blocks;
+
+        const a = (v) => {
+            return v * x_sign
+        }
+
         this.blocks.list.push(...[
-            {move: new Vector(-1, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(-1, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(0, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(0, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(1, 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(1, 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
-            {move: new Vector(2, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
-            {move: new Vector(2, 2, 4), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
-            {move: new Vector(3, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
-            {move: new Vector(3, 2, 4), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
-            {move: new Vector(2, 1, 3), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
-            {move: new Vector(2, 0, 2), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
-            {move: new Vector(-1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
-            {move: new Vector(0, 3, 4), block_id: BLOCK.OAK_FENCE.id},
-            {move: new Vector(1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
+            {move: new Vector(a(-1), 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(-1), 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(0), 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(0), 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(1), 2, 5), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(1), 2, 4), block_id: BLOCK.SPRUCE_PLANKS.id},
+            {move: new Vector(a(2), 2, 5), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
+            {move: new Vector(a(2), 2, 4), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
+            {move: new Vector(a(3), 2, 5), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
+            {move: new Vector(a(3), 2, 4), block_id: BLOCK.SPRUCE_SLAB.id, extra_data: {point: {x: 0, y: 0, z: 0}}},
+            {move: new Vector(a(2), 1, 3), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
+            {move: new Vector(a(2), 0, 2), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
+            {move: new Vector(a(-1), 3, 4), block_id: BLOCK.OAK_FENCE.id},
+            {move: new Vector(a(0), 3, 4), block_id: BLOCK.OAK_FENCE.id},
+            {move: new Vector(a(1), 3, 4), block_id: BLOCK.OAK_FENCE.id},
         ]);
+
     }
 
     setBiome(biome, temperature, humidity) {
@@ -685,8 +759,10 @@ export class Building1 extends Building {
         const dir       = this.door_direction;
         const coord     = this.coord;
         const mat       = this.materials;
+        const mirror_x  = this.blocks.mirror_x;
+        const mirror_z  = this.blocks.mirror_z;
 
-        let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST) ? -1 : 1;
+        // let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.SOUTH) ? (mirror_x ? -1 : 1) : (mirror_z ? -1 : 1);
 
         this.drawBasement(cluster, chunk, 4);
 
@@ -701,36 +777,6 @@ export class Building1 extends Building {
         // npc
         const npc_pos = new Vector(bx + Math.round(this.size.x/2) + chunk.coord.x, by + chunk.coord.y, bz + Math.round(this.size.z/2) + chunk.coord.z);
         cluster.addNPC(chunk, npc_pos);
-
-        // window
-        const window_rot = {x: dir, y: 0, z: 0};
-        if(dir == DIRECTION.EAST || dir == DIRECTION.WEST) {
-            let w_pos = this.door_bottom.clone().add(new Vector(0, 1, 2 * sign));
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.x += (this.size.x - 1) * sign;
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.z -= 2 * sign;
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-        } else if(dir == DIRECTION.NORTH || dir == DIRECTION.SOUTH) {
-            let w_pos = this.door_bottom.clone().add(new Vector(2 * sign, 1, 0));
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.z += (this.size.z - 1) * sign;
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.x -= 2 * sign;
-            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-        }
-
-        // light
-        if(mat.light) {
-            const light_rot = {x: dir, y: 0, z: 0};
-            const l_pos = this.door_bottom.clone().subSelf(chunk.coord);
-            l_pos.addByCardinalDirectionSelf(new Vector(dir % 2 == 0 ? 1 : -1, 1, -1), dir + 2);
-            if(mat.light.id == BLOCK.LANTERN.id) {
-                light_rot.y = -1;
-                l_pos.y += 3;
-            }
-            cluster.setBlock(chunk, l_pos.x, l_pos.y, l_pos.z, mat.light.id, light_rot);
-        }
 
         // door
         const door_random = new alea(this.door_bottom.toHash());
@@ -757,12 +803,11 @@ export class Building1 extends Building {
 // BuildingS (small)
 export class BuildingS extends Building {
 
-    static SIZE_LIST = [{x: 5, z: 5}];
+    static SIZE_LIST = [{x: 5, z: 5, door_pos: {x: 2, z: 2, right: false}}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         const orig_coord = coord.clone();
         const orig_size = size.clone();
-        Building.selectSize(BuildingS.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction, 1);
         //
         aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
@@ -794,7 +839,7 @@ export class BuildingS extends Building {
         }
         // Blocks
         const dir                = this.door_direction;
-        const mirror_x           = dir % 2 == 1;
+        const mirror_x           = false; // dir % 2 == 1;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
         const has_bed            = this.randoms.double() <= .6;
@@ -891,8 +936,6 @@ export class Church extends Building {
     static SIZE_LIST = [{x: 11, z: 21, door_pos: {x: 5, z: 2}}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
-
-        Building.selectSize(Church.SIZE_LIST, seed, coord, size, entrance, door_bottom, door_direction);
 
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
 

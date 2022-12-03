@@ -25,7 +25,7 @@ export class VilageSchema {
             size:               128,
             road_dist:          2,
             margin:             8,
-            quant:              16,
+            quant:              12,
             init_depth:         2,
             road_margin:        1,
             house_margin:       5,

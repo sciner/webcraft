@@ -1061,7 +1061,7 @@ export class Vector {
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
         if(dir !== null) {
-            dir = dir % 4;
+            dir = (dir + 4) % 4;
             if(dir == DIRECTION.SOUTH) {
                 this.x -= vec.x * x_sign;
                 this.z -= vec.z * z_sign;
