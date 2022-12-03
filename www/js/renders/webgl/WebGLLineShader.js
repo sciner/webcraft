@@ -30,8 +30,8 @@ export class WebGLLineShader extends BaseLineShader {
         const { gl } = this.context;
         this.a_point1           = gl.getAttribLocation(program, 'aPoint1');
         this.a_point2           = gl.getAttribLocation(program, 'aPoint2');
-        this.a_color            = gl.getAttribLocation(program, 'aColor');
         this.a_lineWidth        = gl.getAttribLocation(program, 'aLineWidth');
+        this.a_color            = gl.getAttribLocation(program, 'aColor');
         this.a_quad             = gl.getAttribLocation(program, 'aQuad');
     }
 

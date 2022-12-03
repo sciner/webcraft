@@ -72,5 +72,14 @@ export class GLLineDrawer extends ObjectDrawer {
     }
 
     draw(lineGeom) {
+        if (lineGeom.instances === 0) {
+            return;
+        }
+        this.shader.bind();
+        lineGeom.bind();
+        gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
+        // stat
+        context.stat.drawquads += geom.size;
+        context.stat.drawcalls++;
     }
 }

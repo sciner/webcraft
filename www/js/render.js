@@ -27,6 +27,7 @@ import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import {LineGeometry} from "./geom/LineGeometry.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -273,6 +274,8 @@ export class Renderer {
         // Restore binding
         this.maskColorTex.bind(1);
 
+        this.debugGeom = new LineGeometry();
+        this.debugGeom.camPos = this.camPos;
     }
 
     // Generate drop item vertices
@@ -707,6 +710,8 @@ export class Renderer {
 
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.update();
+
+        this.debugGeom.clear();
 
         renderBackend.beginPass({
             fogColor : this.env.interpolatedClearValue

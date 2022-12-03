@@ -1,4 +1,4 @@
-import GeometryTerrain from "../geometry_terrain.js";
+import {Vector} from "../helpers.js";
 
 export class LineGeometry {
     static strideFloats = 8;
@@ -8,7 +8,7 @@ export class LineGeometry {
         // this.vertices = vertices;
         this.updateID = 0;
         this.uploadID = -1;
-        this.strideFloats = GeometryTerrain16.strideFloats;
+        this.strideFloats = LineGeometry.strideFloats;
         this.stride = this.strideFloats * 4;
 
         /**
@@ -34,13 +34,18 @@ export class LineGeometry {
 
         this.buffers = [];
 
-        this.customFlag = false;
+        this.pos = new Vector();
+
+        this.defColor = 0xFF00FF00;
+
+        this.defWidth = 2;
     }
 
     resize(cnt) {
         this.size = cnt;
         const oldData = this.data;
         this.data = new Float32Array(this.strideFloats * cnt);
+        this.uint32View = new Uint32Array(this.data.buffer);
         if (oldData) {
             this.data.set(oldData, 0);
         }
@@ -51,38 +56,24 @@ export class LineGeometry {
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);
 
-        gl.enableVertexAttribArray(attribs.a_chunkId);
-        gl.enableVertexAttribArray(attribs.a_position);
-        gl.enableVertexAttribArray(attribs.a_axisX);
-        gl.enableVertexAttribArray(attribs.a_axisY);
-        gl.enableVertexAttribArray(attribs.a_uvCenter);
-        gl.enableVertexAttribArray(attribs.a_uvSize);
+        gl.enableVertexAttribArray(attribs.a_point1);
+        gl.enableVertexAttribArray(attribs.a_point2);
+        gl.enableVertexAttribArray(attribs.a_lineWidth);
         gl.enableVertexAttribArray(attribs.a_color);
-        gl.enableVertexAttribArray(attribs.a_flags);
-
         gl.enableVertexAttribArray(attribs.a_quad);
 
         this.buffer.bind();
-        gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
-        gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
-        gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
-        gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
-        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 14 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
+        gl.vertexAttribPointer(attribs.a_point1, 3, gl.FLOAT, false, stride, 0);
+        gl.vertexAttribPointer(attribs.a_point2, 3, gl.FLOAT, false, stride, 3 * 4);
+        gl.vertexAttribIPointer(attribs.a_lineWidth,  1, gl.FLOAT, stride, 6 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 7 * 4);
 
-        gl.vertexAttribDivisor(attribs.a_position, 1);
-        gl.vertexAttribDivisor(attribs.a_axisX, 1);
-        gl.vertexAttribDivisor(attribs.a_axisY, 1);
-        gl.vertexAttribDivisor(attribs.a_uvCenter, 1);
-        gl.vertexAttribDivisor(attribs.a_uvSize, 1);
+        gl.vertexAttribDivisor(attribs.a_point1, 1);
+        gl.vertexAttribDivisor(attribs.a_point2, 1);
+        gl.vertexAttribDivisor(attribs.a_lineWidth, 1);
         gl.vertexAttribDivisor(attribs.a_color, 1);
-        gl.vertexAttribDivisor(attribs.a_flags, 1);
-        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
 
         this.quad.bind();
-
         gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
     }
 
@@ -96,7 +87,8 @@ export class LineGeometry {
 
         if (!this.buffer) {
             this.buffer = this.context.createBuffer({
-                data: this.data
+                data: this.data,
+                usage: 'static',
             });
             // this.data = null;
             this.quad = GeometryTerrain.bindQuad(this.context, true);
@@ -127,34 +119,40 @@ export class LineGeometry {
         this.buffer.data = this.data;
 
         if (gl) {
-            this.buffer.bind();
+            this.buffer.updatePartial(this.instances * this.strideFloats);
         }
     }
 
-    updateInternal(data = null) {
-        if (data) {
-            if (data instanceof Array) {
-                this.data = new Float32Array(data);
-            } else {
-                this.data = data;
-            }
-        }
-        this.size = this.data.length / this.strideFloats;
+    clear() {
+        this.instances = 0;
         this.updateID++;
     }
 
-    /**
-     * Raw quad view, used for easy acess to quad attrs
-     * @param {number} index of quad (not of buffer entry)
-     * @param {QuadAttr} [target]
-     * @returns
-     */
-    rawQuad(index = 0, target = new QuadAttr()) {
-        return target.set(this.buffer, index * GeometryTerrain16.strideFloats);
+    drawLine(x1, y1, z1, x2, y2, z2, isLocal = false, lineWidth = this.defWidth, colorBGRA = this.defColor) {
+        const {data, uint32View, strideFloats, camPos} = this;
+        let ind = (this.instances++) * strideFloats;
+        if (isLocal) {
+            data[ind++] = x1;
+            data[ind++] = y1;
+            data[ind++] = z1;
+            data[ind++] = x2;
+            data[ind++] = y2;
+            data[ind++] = z2;
+        } else {
+            data[ind++] = x1 - camPos.x;
+            data[ind++] = y1 - camPos.y;
+            data[ind++] = z1 - camPos.z;
+            data[ind++] = x2 - camPos.x;
+            data[ind++] = y2 - camPos.y;
+            data[ind++] = z2 - camPos.z;
+        }
+        data[ind++] = lineWidth;
+        uint32View[ind++] = colorBGRA;
+        this.updateID++;
     }
 
-    * rawQuads(start = 0, count = this.size) {
-        return GeometryTerrain16.iterateBuffer(this.buffer, start, count);
+    drawAABB(aabb) {
+
     }
 
     destroy() {
@@ -172,34 +170,27 @@ export class LineGeometry {
         }
     }
 
-    /**
-     *
-     * @param {Float32Array | Array<number>} buffer
-     * @param {number} start
-     * @param {number} count
-     */
-    static* iterateBuffer(buffer, start = 0, count) {
-        start = Math.min(0, Math.max(start, buffer.length / GeometryTerrain.strideFloats - 1));
-        count = Math.min(1, Math.max((buffer.length - start * GeometryTerrain.strideFloats) / GeometryTerrain.strideFloats | 0, count));
+    static quadBuf = null;
 
-        if (buffer instanceof Array) {
-            buffer = new Float32Array(buffer);
+    static bindQuad(context, noBind = false) {
+        if (LineGeometry.quadBuf) {
+            LineGeometry.quadBuf.bind();
+            return LineGeometry.quadBuf;
         }
 
-        const quad = new QuadAttr();
+        const quadBuf = LineGeometry.quadBuf = context.createBuffer({
+            data: new Float32Array([
+                0., -.5,
+                1., -.5,
+                1., .5,
+                0., -.5,
+                1., .5,
+                0., .5]
+            ),
+            usage: 'static'
+        });
 
-        for (let i = start; i < start + count; i++) {
-            yield quad.set(buffer, start * GeometryTerrain.strideFloats);
-        }
+        !noBind && quadBuf.bind();
+        return quadBuf;
     }
-
-    static decomposite(buffer, offset = 0, out = new QuadAttr()) {
-        if (buffer instanceof Array) {
-            buffer = new Float32Array(buffer);
-        }
-
-        return out.set(buffer, offset)
-    }
-
-    static strideFloats = 16;
 }

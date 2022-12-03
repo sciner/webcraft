@@ -5,6 +5,7 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
+import {LineGeometry} from "./geom/LineGeometry.js";
 
 const {mat4} = glMatrix;
 
@@ -21,7 +22,7 @@ export class PickAt {
         this.target_block       = {
             pos:                null,
             visible:            false,
-            mesh:               null
+            geom:               new LineGeometry()
         }
         //
         this.damage_block       = {
@@ -44,6 +45,8 @@ export class PickAt {
         this.empty_matrix = mat4.create();
         this.raycaster = new Raycaster(this.world);
         this._temp_pos = new Vector(0, 0, 0);
+
+        this.target_block.geom.defColor = 0xFF000000;
     }
 
     get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid) {
@@ -150,12 +153,7 @@ export class PickAt {
             let tbp = target_block.pos;
             if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
                 // 1. Target block
-                if(target_block.mesh) {
-                    target_block.mesh.destroy();
-                    target_block.mesh = null;
-                }
                 target_block.pos = bPos;
-                target_block.mesh = this.createTargetBuffer(bPos, TARGET_TEXTURES);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
@@ -215,7 +213,11 @@ export class PickAt {
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         // 1. Target block
-        if(target_block.mesh && target_block.visible) {
+        if(target_block.geom && target_block.visible) {
+            target_block.camPos = this.render.camPos;
+            target_block.reset();
+            // 12 lines
+            target_block.addLine();
             const a_pos = half.add(this.target_block.pos);
             render.renderBackend.drawMesh(target_block.mesh, this.material_target, a_pos, this.modelMatrix);
         }
