@@ -1493,6 +1493,15 @@
             "inventory_style": "extruder",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
             "texture": "block/grass.png",
+            "texture_variants2": [
+                "block/grass/grass1.png",
+                "block/grass/grass2.png",
+                "block/grass/grass3.png",
+                "block/grass/grass4.png",
+                "block/grass/grass5.png",
+                "block/grass/grass6.png",
+                "block/grass/grass7.png"
+            ],
             "material": {
                 "id": "plant"
             },
@@ -3525,6 +3534,28 @@
                 "up": "block/tall_grass_top.png",
                 "down": "block/tall_grass_bottom.png"
             },
+            "texture_variants2": [
+                {
+                    "up": "block/tall_grass/tall_grass1_top.png",
+                    "down": "block/tall_grass/tall_grass1_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass2_top.png",
+                    "down": "block/tall_grass/tall_grass2_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass3_top.png",
+                    "down": "block/tall_grass/tall_grass3_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass4_top.png",
+                    "down": "block/tall_grass/tall_grass4_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass5_top.png",
+                    "down": "block/tall_grass/tall_grass5_bottom.png"
+                }
+            ],
             "material": {
                 "id": "plant"
             },

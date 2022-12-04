@@ -846,9 +846,15 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height, block, force_tex) {
+    static calcMaterialTexture(material, dir, width, height, block, force_tex, random_double) {
+
+        let mat_texture = material?.texture
+        if(material?.texture_variants && (random_double != undefined)) {
+            mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
+        }
+
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
-        let texture = force_tex || material.texture;
+        let texture = force_tex || mat_texture;
         // Stages
         if(block && material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
@@ -862,20 +868,20 @@ export class BLOCK {
         if(material.is_mushroom_block) {
             let t = block?.extra_data?.t;
             if(block && t) {
-                texture = material.texture.down;
-                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = material.texture.side;
+                texture = mat_texture.down;
+                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = mat_texture.side;
             } else {
-                texture = material.texture.down;
+                texture = mat_texture.down;
             }
         }
         // @todo (BEE NEST) убрать отсюда куда нибудь
         if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data && 'pollen' in block.extra_data && block.extra_data.pollen >= 4) {
-            texture = material.texture.north_honey;
+            texture = mat_texture.north_honey;
         }
         let c = this.calcTexture(texture, dir, tx_cnt);
         if(width && width < 1) {
