@@ -2,13 +2,11 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
-import { MAX_PORTAL_SEARCH_DIST } from "../../constant.js";
 import { AABB } from "../../core/AABB.js";
 
 export const NEAR_MASK_MAX_DIST = 10;
-export const CLUSTER_SIZE       = new Vector(128, 128, 128);
+export const CLUSTER_SIZE       = new Vector(128, 256, 128);
 export const CLUSTER_PADDING    = 8;
-const temp_vec2                 = new Vector(0, 0, 0);
 
 export class ClusterPoint {
 

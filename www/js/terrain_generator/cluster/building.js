@@ -288,4 +288,43 @@ export class Building {
 
     }
 
+    /**
+     * For old style generators
+     * @param {*} chunk 
+     * @deprecated
+     */
+    findYOld(chunk) {
+        if(this.entrance.y != Infinity) {
+            return false;
+        }
+        // забираем карту того участка, где дверь, чтобы определить точный уровень пола
+        let value2 = 0;
+        for(let entrance of [this.entrance, this.entrance.clone().addSelf(getAheadMove(this.door_direction))]) {
+            const map_addr = getChunkAddr(entrance);
+            map_addr.y = 0;
+            let entrance_map = maps.get(map_addr);
+            if(entrance_map) {
+                // if map not smoothed
+                if(!entrance_map.smoothed) {
+                    // generate around maps and smooth current
+                    entrance_map = maps.generateAround(chunk, map_addr, true, false)[4];
+                }
+                const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
+                const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
+                const cell          = entrance_map.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
+                if(cell.value2 > value2) {
+                    value2 = cell.value2;
+                }
+            }
+        }
+        if(value2 > 0) {
+            if(!this.biome) {
+                this.setBiome({}, 0, 0);
+            }
+            this.setY(value2);
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -54,7 +54,7 @@ export class Church extends Building {
         };
 
         // Clear area
-        this.blocks.appendQuboidBlocks(new Vector(-door_pos.x - 1, 0, door_pos.z - 1), new Vector(random_size.x + 2, random_size.height, random_size.z + 2), BLOCK.AIR.id, null, 8)
+        this.blocks.appendQuboidBlocks(new Vector(-door_pos.x - 1, 0, door_pos.z - 1), new Vector(random_size.x + 2, random_size.height + 1, random_size.z + 2), BLOCK.AIR.id, null, 8)
 
         // Часовня
         for(let y = 0; y < 13; y++) {

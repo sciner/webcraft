@@ -236,62 +236,39 @@ export class ClusterVilage extends ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(maps, chunk, map, fill_blocks = true, call_building_y = true) {
+    fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
+
         if(this.is_empty) {
             return false;
         }
+
         let t = performance.now();
+
         // each all buildings
         for(let b of this.buildings.values()) {
-            if(b.entrance.y == Infinity) {
+
+            if(calc_building_y && b.entrance.y == Infinity) {
                 b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
                 b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
+                if(b.aabb.intersect(chunk.aabb)) {
+                    b.findYOld(chunk);
+                }
             }
+            
             // если строение частично или полностью находится в этом чанке
-            if(b.aabb.intersect(chunk.aabb)) {
-                // у строения до этого момента нет точной информации о вертикальной позиции двери (а значит и пола)
-                if(b.entrance.y == Infinity && call_building_y) {
-                    // забираем карту того участка, где дверь, чтобы определить точный уровень пола
-                    let value2 = 0;
-                    for(let entrance of [b.entrance, b.entrance.clone().addSelf(getAheadMove(b.door_direction))]) {
-                        const map_addr = getChunkAddr(entrance);
-                        map_addr.y = 0;
-                        let entrance_map = maps.get(map_addr);
-                        if(entrance_map) {
-                            // if map not smoothed
-                            if(!entrance_map.smoothed) {
-                                // generate around maps and smooth current
-                                entrance_map = maps.generateAround(chunk, map_addr, true, false)[4];
-                            }
-                            const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
-                            const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
-                            const cell          = entrance_map.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
-                            if(cell.value2 > value2) {
-                                value2 = cell.value2;
-                            }
-                        }
-                    }
-                    if(value2 > 0) {
-                        if(!b.biome) {
-                            b.setBiome({}, 0, 0);
-                        }
-                        b.setY(value2);
-                    }
-                }
-                if(b.entrance.y == Infinity) {
-                    // console.error('Invalid building y');
-                } else if(b.aabb.intersect(chunk.aabb)) {
-                    this.drawBulding(chunk, maps, b);
-                }
+            if(b.entrance.y != Infinity && b.aabb.intersect(chunk.aabb)) {
+                this.drawBulding(chunk, maps, b);
             }
         }
+
         if(fill_blocks) {
             super.fillBlocks(maps, chunk, map);
         }
+
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;
-        // console.log(this.addr.toHash(), this.timers)
+
     }
 
     // Draw part of building on map
