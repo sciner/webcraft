@@ -6,11 +6,11 @@ import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../../fluid/F
 export default class emitter {
 
     static textures = [
-        [2, 6]
+        [1, 7]
     ];
 
     constructor(pos, args) {
-        this.max_distance   = 64;
+        this.max_distance   = 5;
         this.pp             = IndexedColor.WHITE.clone().pack();
         this.pos            = pos;
         this.chunk_addr     = getChunkAddr(this.pos);
@@ -46,20 +46,20 @@ export default class emitter {
         }
         const {texture, texture_index} = getEffectTexture(emitter.textures);
         const particle = new Mesh_Effect_Particle({
-                life:           10,
-                texture:        texture,
-                scale:          10,
-                size:           10,
-                has_physics:    false,
-                ag:             new Vector(0, 0, 0),
-                pp:             this.pp,
-                material_key:   this.material_key,
-                material:       this.material,
-                velocity:       new Vector(0, -0.001, 0),
-                pos:            pos
-            });
+            life:           15,
+            texture:        texture,
+            scale:          10,
+            size:           10,
+            has_physics:    false,
+            ag:             new Vector(0, 0, 0),
+            pp:             this.pp,
+            material_key:   this.material_key,
+            material:       this.material,
+            velocity:       new Vector(0, 0, 0),
+            pos:            pos
+        });
 
-            return [particle];
+        return [particle];
     }
 
 }
