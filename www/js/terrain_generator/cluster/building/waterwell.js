@@ -95,9 +95,9 @@ export class WaterWell extends Building {
 
         super.draw(cluster, chunk)
 
-        // 4 walls
         cluster.drawQuboid(chunk, this.coord, this.size.add(new Vector(0, -1, 0)), BLOCK.AIR);
-        
+
+        // 4 walls
         const walls_size = this.size.clone().addSelf(new Vector(0, -4, 0));
         cluster.draw4Walls(chunk, this.coord, walls_size, this.wallBlocks);
 

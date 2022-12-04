@@ -54,15 +54,16 @@ export class Building {
         this.door_bottom.addSelf(vec);
     }
 
-    //
+    /**
+     * @param { import("./base.js").ClusterBase } cluster
+     * @param {*} chunk 
+     */
     draw(cluster, chunk) {
 
-        const height = this.size.y;
-
         // natural basement
-        const coord = this.coord.clone().subSelf(new Vector(0, height + 6, 0));
-        const size = this.size.clone().addSelf(new Vector(0, -this.size.y + 7, 0));
-
+        const height = 7;
+        const coord = new Vector(this.coord.x, this.coord.y - height - 1, this.coord.z);
+        const size = new Vector(this.size.x, height, this.size.z);
         cluster.drawNaturalBasement(chunk, coord, size, BLOCK.STONE);
 
     }

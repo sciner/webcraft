@@ -26,15 +26,7 @@ export class Church extends Building {
         };
 
         // Clear area
-        for(let y = 0; y < 13; y++) {
-            for(let x = 0; x < 11; x++) {
-                for(let z = 0; z < 21; z++) {
-                    pushBlocks([
-                        {move: new Vector(x, y, z), block_id: BLOCK.AIR.id}
-                    ]);
-                }
-            }
-        }
+        this.blocks.appendQuboidBlocks(new Vector(-door_pos.x - 1, 0, door_pos.z - 1), new Vector(random_size.x + 2, 27, random_size.z + 2), BLOCK.AIR.id, null, 8)
 
         // Часовня
         for(let y = 0; y < 13; y++) {
@@ -369,7 +361,7 @@ export class Church extends Building {
                         id: 'church_book',
                         pages: [
                             {
-                                text: 'Церковь построена 2022 году'
+                                text: 'Церковь построена в 2022 году'
                             },
                             {
                                 text: 'Страница #2'
@@ -436,7 +428,7 @@ export class Church extends Building {
             {move: new Vector(9, 3, 12), block_id: this.getRandomWindow()},
         ]);
 
-        //Лавочки
+        // Лавочки
         pushBlocks([
             {move: new Vector(2, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
             {move: new Vector(3, 0, 4), block_id: BLOCK.DARK_OAK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.SOUTH, dir), y: 0, z: 0}},
@@ -626,8 +618,8 @@ export class Church extends Building {
 
         // растительность
         pushBlocks([
-            {move: new Vector(0, 0, 1), block_id: BLOCK.ROSE_BUSH.id},
-            {move: new Vector(10, 0, 8), block_id: BLOCK.ROSE_BUSH.id},
+            // {move: new Vector(0, 0, 1), block_id: BLOCK.ROSE_BUSH.id},
+            // {move: new Vector(10, 0, 8), block_id: BLOCK.ROSE_BUSH.id},
             
             {move: new Vector(2, 0, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},
             {move: new Vector(2, 1, 0), block_id: BLOCK.FLOWERING_AZALEA_LEAVES.id},

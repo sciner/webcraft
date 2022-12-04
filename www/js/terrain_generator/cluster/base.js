@@ -3,6 +3,7 @@ import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
 import { MAX_PORTAL_SEARCH_DIST } from "../../constant.js";
+import { AABB } from "../../core/AABB.js";
 
 export const NEAR_MASK_MAX_DIST = 10;
 export const CLUSTER_SIZE       = new Vector(128, 128, 128);
@@ -312,13 +313,19 @@ export class ClusterBase {
 
     //
     drawNaturalBasement(chunk, pos, size, block) {
+
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z)
+        if(!chunk.aabb.intersect(aabb)) return false
+
         let bx = pos.x - chunk.coord.x;
         let by = pos.y - chunk.coord.y;
         let bz = pos.z - chunk.coord.z;
+
         const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
         const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)
         const _vec = new Vector(0, 0, 0);
         const margin = 2;
+
         for(let k = size.y; k > 0; k--) {
             const rad_coef = Math.sqrt(k / (size.y / 2.2)) * .6 * (1 - randoms.double() / 4.5);
             for(let i = -margin; i < size.x + margin; i++) {
@@ -327,7 +334,6 @@ export class ClusterBase {
                     const y = by + k;
                     const z = bz + j;
                     _vec.set(x, y, z);
-
                     const dist = center.distance(_vec);
                     if(dist < Math.max(size.x, size.z) * rad_coef) {
                         const block_id = this.getBlock(chunk, x, y, z);
@@ -341,18 +347,14 @@ export class ClusterBase {
                                     if(k < size.y && cell.dirt_layer.blocks.length > 1) {
                                         block_id = cell.dirt_layer.blocks[1];
                                     }
+                                } else {
+                                    const l = cell.biome.dirt_layers[0]
+                                    block_id = l.blocks[Math.min(k, l.blocks.length - 1)];
+                                    if(l.cap_block_id && k == 0) {
+                                        this.setBlock(chunk, x, y + 1, z, l.cap_block_id);
+                                    }
                                 }
                             }
-                            /*
-                            // bid = k == size.y ? BLOCK.GRASS_BLOCK.id : BLOCK.DIRT.id;
-                            if(y > 0) {
-                                const under_block_id = this.getBlock(chunk, x, y - 1, z);
-                                if(under_block_id == BLOCK.GRASS_BLOCK.id || under_block_id == BLOCK.DIRT.id) {
-                                    bid = BLOCK.GRASS_BLOCK.id;
-                                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
-                                }
-                            }
-                            */
                             this.setBlock(chunk, x, y, z, block_id);
                             if(y > 0) {
                                 let under_block_id = this.getBlock(chunk, x, y - 1, z);

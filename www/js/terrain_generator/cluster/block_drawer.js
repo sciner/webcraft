@@ -80,11 +80,13 @@ export class BlockDrawer {
      * @param {Vector} size 
      * @param {int} block_id 
      * @param {*} extra_data 
+     * @param {int} extend_area 
      */
-    appendQuboidBlocks(pos, size, block_id, extra_data = null) {
+    appendQuboidBlocks(pos, size, block_id, extra_data = null, extend_area = 0) {
         for(let y = 0; y < size.y - 1; y++) {
-            for(let x = 0; x < size.x; x++) {
-                for(let z = 0; z < size.z; z++) {
+            const ea = Math.floor(extend_area * (y / size.y));
+            for(let x = -ea; x < size.x + ea; x++) {
+                for(let z = -ea; z < size.z + ea; z++) {
                     const move = new Vector(pos.x + x, pos.y + y, pos.z + z);
                     const block = {move, block_id};
                     if(extra_data) {
