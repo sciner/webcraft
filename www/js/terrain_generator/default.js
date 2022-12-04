@@ -793,33 +793,33 @@ export class Default_Terrain_Generator {
             if (rad > 1) {
                 let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + sign * rad, y + h + 4, z + 4);
-                //generateLeaves(x + sign * rad, y + h + 4, z + 4, rad * 2, rnd);
+                generateLeaves(x + sign * rad, y + h + 4, z + 4, rad * 2, rnd);
             }
             h += 1;
             rad = ((random >> 1) & 7) + bonus;
             if (rad > 1) {
                 let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + sign * rad, y + h + 4, z - 4);
-                //generateLeaves(x + sign * rad, y + h + 4, z - 4, rad * 2, rnd);
+                generateLeaves(x + sign * rad, y + h + 4, z - 4, rad * 2, rnd);
             }
             h += 1;
             rad = ((random >> 2) & 7) + bonus;
             if (rad > 1) {
                 let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + 4, y + h + 4, z + sign * rad);
-                //generateLeaves(x + 4, y + h + 4, z + sign * rad, rad * 2, rnd);
+                generateLeaves(x + 4, y + h + 4, z + sign * rad, rad * 2, rnd);
             }
             h += 1;
             rad = ((random >> 3) & 7) + bonus;
             if (rad > 1) {
                 let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x - 4, y + h + 4, z + sign * rad);
-                //generateLeaves(x - 4, y + h + 4, z + sign * rad, rad * 2, rnd);
+                generateLeaves(x - 4, y + h + 4, z + sign * rad, rad * 2, rnd);
             }
         }
         
         //LineBresenham3D(x, 1, z, 16, 5, 5);
-        const height = options.height * 4; // рандомная высота дерева, переданная из генератора
+        const height = 40;//options.height * 4; // рандомная высота дерева, переданная из генератора
         
         const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
         const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58));
@@ -852,137 +852,8 @@ export class Default_Terrain_Generator {
         if (height > 24) {
             genOldRing(random >> 4, 20, Math.floor(height / 10));
         }
-        //const xyz = chunk.coord.add(new Vector(x, y, z));
-        //const al = new alea('tree_big' + xyz.toHash());
-        
-       // const random = cnt / 10;
-        //    genOldRing(al, 4, Math.floor(height / 10));
-
-       // if (height > 20) {
-       //     genOldRing(al, 12, Math.floor((height - 20) / 10));
-       // }
-       // if (height > 30) {
-       //     genOldRing(al, 18, Math.floor((height - 20) / 10));
-            
-       // }
-        
-        //genOldRing(random >> 4, 8);
-        
-        //genOldRing(random >> 8, 12);
-        
-        //genOldRing(random >> 12, 16);
-        
-        /*
-        let rad = random & 4;
-        if (rad > 1) {
-            let sign = (rad >> 1) & 1 == 0 ? -1 : 1;
-            LineBresenham3D(x, y + 6 , z, x + sign * rad, y + 10, z + 4);
-            generateLeaves(x + sign * rad, y + 10, z + 4, rad * 2, rnd);
+        if (height > 31) {
+            genOldRing(random >> 4, 28, Math.floor(height / 10));
         }
-        
-        rad = (random >> 1) & 4;
-        if (rad > 1) {
-            let sign = ((rad >> 1) & 1) == 0 ? -1 : 1;
-            LineBresenham3D(x, y + 7 , z, x + 4, y + 11, z + sign * rad);
-            generateLeaves(x + 4, y + 11, z + sign * rad, rad * 2, rnd);
-        }
-        
-        rad = (random >> 2) & 4;
-        if (rad > 1) {
-            let sign = ((rad >> 1) & 1) == 0 ? -1 : 1;
-            LineBresenham3D(x, y + 8 , z, x + sign * rad, y + 12, z - 4);
-            generateLeaves(x + sign * rad, y + 12, z - 4, rad * 2, rnd);
-        }
-        
-        rad = (random >> 3) & 4;
-        if (rad > 1) {
-            let sign = ((rad >> 1) & 1) == 0 ? -1 : 1;
-            LineBresenham3D(x, y + 8 , z, x - sign * rad, y + 12, z - 4);
-            generateLeaves(x - sign * rad, y + 12, z - 4, rad * 2, rnd);
-        }
-        
-        //const xyz = chunk.coord.add(new Vector(x, y, z));
-        //const random = new alea('big_tree' + xyz.toHash());
-        /*let random = cnt / 10;
-        
-        let rad = random & 7;
-        if (rad > 4) {
-            LineBresenham3D(x, y + 6 , z, x  + rad, y + 12, z);
-            generateLeaves(x  + rad, y + 12, z, rad, rnd);
-        }
-        rad = (random >> 1) & 7;
-        if (rad > 4) {
-            LineBresenham3D(x, y + 6 , z, x, y + 12, z  + rad);
-            generateLeaves(x, y + 12, z  + rad, rad, rnd);
-        }
-        rad = (random >> 2) & 7;
-        if (rad > 4) {
-            LineBresenham3D(x, y + 6 , z, x - rad, y + 12, z);
-            generateLeaves(x - rad, y + 12, z, rad, rnd);
-        }
-        
-        if (height > 28) {
-            let rad = rrr & 15;
-            if (rad > 8) {
-                LineBresenham3D(x, y + height - 16, z, x  + rad, height + y - 4, z);
-            }
-            rad = (rrr >> 1) & 15;
-            if (rad > 8) {
-                LineBresenham3D(x, y + height - 16, z, x, height + y-4, z  + rad);
-            }
-            
-            rad = (rrr >> 2) & 15;
-            if (rad > 8) {
-                LineBresenham3D(x, y + height - 16, z, x - rad, height + y-4, z);
-            }
-            
-            rad = (rrr >> 3) & 15;
-            if (rad > 8) {
-                LineBresenham3D(x, y + height - 16, z, x, height + y-4, z - rad);
-            }
-            
-            for(let i = 0; i < height - 15; i++) {
-                this.setTreeBlock(options, chunk, x, y + i, z, BLOCK.TEST, true);
-            }
-        }/
-        
-        /*
-        generateLeaves(x, y + height, z, 18, rnd);
-        let d = null, d2 = null;
-        let rnd_x = random.double() * 4 | 0 + 4;
-        let rnd_z = random.double() * 4 | 0 + 4;
-        rnd_x = random.double() > 0.5 ? rnd_x : -rnd_x;
-        rnd_z = random.double() > 0.5 ? rnd_z : -rnd_z;
-        this.xyz_temp_find.set(rnd_x + x, y + height, rnd_z + z);
-        d = chunk.tblocks.get(this.xyz_temp_find, d);
-        
-        console.log('x'+ rnd_x + ' z ' + rnd_z + ' ' + d.id);
-        
-        if (d && d.id == 0) {
-            LineBresenham3D(x, y + height - 4, z, rnd_x + x, height+y-2, z + rnd_z);  
-        }
-        */
-        //LineBresenham3D(x, y + 8, z, rnd_x + x, y + 10, rnd_z + z);
-        //generateLeaves(rnd_x + x, y + 10, rnd_z + z, 6, rnd);
-        //console.log(xs + ' ' + ys)
-        /*const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
-        const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58));
-        const dy = Math.floor(cnt / 2 ** 32)
-        // преобразование числа в массив байт
-        const rnd = [
-            cnt << 24,
-            cnt << 16,
-            cnt << 8,
-            cnt,
-            dy << 24,
-            dy << 16,
-            dy << 8,
-            dy,
-        ].map((z) => z >>> 24)
-        //console.log(rnd);
-        // Отклонение главного ствола
-        const nx = Math.floor(rnd[0] * height / 2040 );
-        LineBresenham3D(x, y, z, nx + x, height+y, z);
-        generateLeaves(nx + x, y+height, z, 15, rnd)*/
     }
 }
