@@ -756,6 +756,17 @@ export class Renderer {
                 }
             }
         }
+
+        if (player.overChunk) {
+            this.debugGeom.addBlockGrid({
+                pos: player.overChunk.coord,
+                size: player.overChunk.size,
+                lineWidth: -.5,
+                colorBGRA: 0xFF00FF00,
+            })
+        }
+        this.debugGeom.draw(renderBackend);
+
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {

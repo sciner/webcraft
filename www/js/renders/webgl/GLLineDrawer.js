@@ -32,6 +32,7 @@ void main() {
     pixelLineWidth *= 0.5;
     
     float normOffset = aQuad.y * (pixelLineWidth + 1.0);
+    
     vec2 pos = (pixelPos1.xy + line * aQuad.x) + norm * normOffset;
     
     vLine1 = vec2(normOffset, pixelLineWidth);

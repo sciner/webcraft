@@ -38,6 +38,7 @@ export class LineGeometry {
 
         this.defAABBColor = 0xFF0000FF; // AARRGGBB
         this.defLineColor = 0xFFFFFFFF;
+        this.defGridColor = 0xFF00FF00;
 
         this.defWidth = 2;
     }
@@ -67,7 +68,7 @@ export class LineGeometry {
         gl.vertexAttribPointer(attribs.a_point1, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_point2, 3, gl.FLOAT, false, stride, 3 * 4);
         gl.vertexAttribPointer(attribs.a_lineWidth,  1, gl.FLOAT, false, stride, 6 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 1, gl.UNSIGNED_BYTE, true, stride, 7 * 4);
+        gl.vertexAttribPointer(attribs.a_color, 4, gl.UNSIGNED_BYTE, true, stride, 7 * 4);
 
         gl.vertexAttribDivisor(attribs.a_point1, 1);
         gl.vertexAttribDivisor(attribs.a_point2, 1);
@@ -185,6 +186,65 @@ export class LineGeometry {
                     aabb.x_max, y1, z2,
                     isLocal, lineWidth, colorBGRA
                 );
+            }
+        }
+    }
+
+    addBlockGrid({pos, size, isLocal = false,
+                     lineWidth = this.defWidth, colorBGRA = this.defGridColor}) {
+        this.ensureCapacity((size.x * size.y + size.x * size.z + size.y * size.z) * 2);
+        let x_min = pos.x, y_min = pos.y, z_min = pos.z;
+        let x_max = pos.x + size.x, y_max = pos.y + size.y, z_max = pos.z + size.z;
+        for (let d1 = 0; d1 <= 1; d1++) {
+            for (let d2 = 0; d2 <= size.y; d2++) {
+                let x1 = pos.x + d1 * size.x;
+                let y2 = pos.y + d2;
+                this.addLineInner(
+                    x1, y2, z_min,
+                    x1, y2, z_max,
+                    isLocal, lineWidth, colorBGRA
+                )
+
+                let z1 = pos.z + d1 * size.z;
+                this.addLineInner(
+                    x_min, y2, z1,
+                    x_max, y2, z1,
+                    isLocal, lineWidth, colorBGRA
+                )
+            }
+
+            for (let d2 = 0; d2 <= size.x; d2++) {
+                let y1 = pos.y + d1 * size.y;
+                let x2 = pos.x + d2;
+                this.addLineInner(
+                    x2, y1, z_min,
+                    x2, y1, z_max,
+                    isLocal, lineWidth, colorBGRA
+                )
+
+                let z1 = pos.z + d1 * size.z;
+                this.addLineInner(
+                    x2, y_min, z1,
+                    x2, y_max, z1,
+                    isLocal, lineWidth, colorBGRA
+                )
+            }
+
+            for (let d2 = 0; d2 <= size.z; d2++) {
+                let y1 = pos.y + d1 * size.y;
+                let z2 = pos.z + d2;
+                this.addLineInner(
+                    x_min, y1, z2,
+                    x_max, y1, z2,
+                    isLocal, lineWidth, colorBGRA
+                )
+
+                let x2 = pos.x + d1 * size.x;
+                this.addLineInner(
+                    x2, y_min, z2,
+                    x2, y_max, z2,
+                    isLocal, lineWidth, colorBGRA
+                )
             }
         }
     }
