@@ -598,7 +598,7 @@ export class Renderer {
                 const p = FOG_PRESETS[preset];
                 const cm = this.world.chunkManager;
                 const chunk = cm.getChunk(player.chunkAddr);
-                if(chunk) {
+                if(chunk?.inited) {
                     const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
                     const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
                     const cell_index = z * CHUNK_SIZE_X + x;

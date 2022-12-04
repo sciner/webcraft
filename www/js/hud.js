@@ -416,7 +416,7 @@ export class HUD {
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
 
         if(!short_info) {
-            const chunk = player.overChunk;
+            const chunk = player.getOverChunk();
             if(chunk) {
                 /*let biome = null;
                 if(chunk.map) {
