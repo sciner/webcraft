@@ -212,6 +212,7 @@ export class WorkerWorld {
                 }
                 minBuildDist = Math.min(minBuildDist, chunk.queueDist);
                 chunk.buildVerticesInProgress = false;
+                const CHUNK_SIZE_X = chunk.size.x;
                 const item = buildVertices(chunk, false);
                 pages += chunk.totalPages + 4; // 4 is const for build value generation
                 if(item) {
