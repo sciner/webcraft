@@ -757,14 +757,15 @@ export class Renderer {
             }
         }
 
-        if (player.overChunk) {
-            /*this.debugGeom.addBlockGrid({
+        /*if (player.overChunk) {
+            this.debugGeom.addLine(player.blockPos, player.overChunk.coord, {});
+            this.debugGeom.addBlockGrid({
                 pos: player.overChunk.coord,
                 size: player.overChunk.size,
                 lineWidth: .15,
                 colorBGRA: 0xFF00FF00,
-            })*/
-        }
+            })
+        }*/
         this.debugGeom.draw(renderBackend);
 
         // @todo и тут тоже не должно быть
