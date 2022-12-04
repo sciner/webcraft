@@ -846,7 +846,12 @@ export class Default_Terrain_Generator {
         //setBranch(0, DIRECTION.SOUTH);
         const random = cnt / 10;
         genOldRing(random, 4, Math.floor(height / 10));
-        genOldRing(random >> 4, 12, Math.floor(height / 10));
+        if (height > 16) {
+            genOldRing(random >> 4, 12, Math.floor(height / 10));
+        }
+        if (height > 24) {
+            genOldRing(random >> 4, 20, Math.floor(height / 10));
+        }
         //const xyz = chunk.coord.add(new Vector(x, y, z));
         //const al = new alea('tree_big' + xyz.toHash());
         
