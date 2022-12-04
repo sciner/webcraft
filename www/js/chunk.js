@@ -202,6 +202,7 @@ export class Chunk {
             {
                 addr: this.addr,
                 size: this.size,
+                uniqId: this.uniqId,
                 light_buffer: this.genLightSourceBuf().buffer,
                 dataId: this.getDataTextureOffset()
             }]);

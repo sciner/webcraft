@@ -242,6 +242,7 @@ export class ChunkManager {
                         if (!chunk.inited) {
                             // This happens occasionally after quick F8.
                             // Remember the date & apply it when initialied.
+                            console.log(`deferred chunkId=${chunk.uniqId} lightId=${args.uniqId}`);
                             chunk.deferredLightArgs = args;
                             break;
                         }
