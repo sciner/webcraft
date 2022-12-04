@@ -27,10 +27,10 @@ class FakeWorld {
             },
             blocksByName: {
                 ice:            BLOCK.ICE,
-                packed_ice:     BLOCK.ICE, // 2
+                packed_ice:     BLOCK.PACKED_ICE, // 2
                 air:            BLOCK.AIR,
-                frosted_ice:    BLOCK.ICE, // 3
-                blue_ice:       BLOCK.ICE, // 3
+                frosted_ice:    BLOCK.FROSTED_ICE || BLOCK.ICE, // 3
+                blue_ice:       BLOCK.BLUE_ICE, // 3
                 soul_sand:      BLOCK.SOUL_SAND,
                 cobweb:         [BLOCK.COBWEB, BLOCK.SWEET_BERRY_BUSH],
                 water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
