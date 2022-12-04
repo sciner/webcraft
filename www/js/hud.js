@@ -2,7 +2,7 @@ import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser } from "./helpers.js";
+import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
@@ -29,11 +29,13 @@ export class HUD {
         this.ctx.imageSmoothingEnabled  = false;
         this.active                     = true;
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
+        this.draw_block_info            = !isMobileBrowser();
         this.texture                    = null;
         this.buffer                     = null;
         this.width                      = 0;
         this.height                     = 0;
         this.text                       = null;
+        this.block_text                 = null;
         this.items                      = [];
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
@@ -175,6 +177,10 @@ export class HUD {
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu);
+    }
+
+    isDrawingBlockInfo() {
+        return this.active && this.draw_info && this.draw_block_info;
     }
 
     //
@@ -409,6 +415,30 @@ export class HUD {
                 }
             }
 
+            const desc = Qubatch.player.pickAt.targetDescription;
+            this.block_text = null;
+            if (this.draw_block_info && desc) {
+                this.block_text = 'Targeted block Id: ' + desc.block.id +
+                    '\nName: ' + desc.material.name +
+                    '\nWorld pos.: ' + desc.worldPos.toString() +
+                    '\nPos. in chunk: ' + desc.posInChunk.toString() +
+                    '\nChunk addr.: ' + desc.chunkAddr.toString();
+                if (desc.block.rotate) {
+                    this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
+                }
+                if (desc.block.entity_id) {
+                    this.block_text += '\nentiry_id: ' + desc.block.entity_id;
+                }
+                if (desc.block.power) {
+                    this.block_text += '\npower: ' + desc.block.power;
+                }
+                if (desc.block.extra_data) {
+                    this.block_text += '\nextra_data: ' + JSON.stringify(desc.block.extra_data);
+                }
+                if (desc.fluid) { // maybe unpack it
+                    this.block_text += '\nfluid: ' + desc.fluid;
+                }
+            }
         }
 
         // My XYZ
@@ -467,6 +497,12 @@ export class HUD {
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Qubatch.averageClockTimer.avg);
         this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
+        //
+        if (this.block_text) {
+            const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
+            const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom;
+            this.drawText('block_info', this.block_text, this.width * 0.65, y);
+        }
         //
         this.drawActiveQuest();
         //

@@ -532,6 +532,8 @@ export class GameClass {
         // Picking target
         if (player.pickAt && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
+        } else {
+            player.pickAt.targetDescription = null;
         }
 
         // change camera location

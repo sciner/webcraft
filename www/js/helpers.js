@@ -551,6 +551,11 @@ export class Vector {
         this.set(x, y, z);
     }
 
+    // returns v or a new Vector based on it
+    static vectorify(v) {
+        return v instanceof Vector ? v : new Vector(v);
+    }
+
     //Array like proxy for usign it in gl-matrix
     get [0]() {
         return this.x;
