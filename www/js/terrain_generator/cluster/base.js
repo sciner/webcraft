@@ -141,14 +141,24 @@ export class ClusterBase {
     }
 
     //
-    createPalette(list) {
+    createPalette(list, auto_chance = false) {
         let that = this;
+        if(auto_chance) {
+            const cnt = list.length
+            let i = 0;
+            for(let item of list) {
+                item.chance = ++i / cnt;
+            }
+        }
         let resp = {
             list: list,
             reset: function() {
                 this.randoms = new alea(that.id);
             },
             next: function() {
+                if(!this.randoms) {
+                    this.reset();
+                }
                 const r = this.randoms.double();
                 for(let item of this.list) {
                     if (r <= item.chance) {

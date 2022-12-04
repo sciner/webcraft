@@ -151,7 +151,7 @@ export class ClusterVilage extends ClusterBase {
                                 }
 
                                 // calculate correct door position
-                                Building.selectSize(random_size, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction);
+                                Building.selectSize(random_size, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction, args.aabb);
 
                                 // create object by pre-calculated arguments
                                 return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, args.door_direction, args.size, random_size);
@@ -184,7 +184,10 @@ export class ClusterVilage extends ClusterBase {
             door_direction: door_direction,
             size:           size,
             coord:          coord.clone(),
-            aabb:           new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
+            aabb:           new AABB()
+                                .set(0, 0, 0, size.x, size.y, size.z)
+                                .translate(coord.x, coord.y, coord.z)
+                                .pad(BUILDING_AABB_MARGIN),
             entrance:       entrance.addSelf(this.coord),
             door_bottom:    door_bottom.addSelf(this.coord)
         };

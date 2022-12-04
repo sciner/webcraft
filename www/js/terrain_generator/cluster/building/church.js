@@ -7,14 +7,42 @@ import { impl as alea } from "../../../../vendors/alea.js";
 // Church
 export class Church extends Building {
 
-    static SIZE_LIST = [{x: 11, z: 21, door_pos: {x: 5, z: 0}}];
+    static SIZE_LIST = [{x: 11, z: 21, door_pos: {x: 5, z: 0}, height: 27}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_size) {
+        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_size);
+    }
 
-        super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+    //
+    addBlocks() {
 
+        const random_size = this.random_size;
         const door_pos = random_size.door_pos;
         const dir = this.door_direction;
+
+        // Bricks palette
+        const bricks_palette = this.cluster.createPalette([
+            {value: BLOCK.MOSSY_STONE_BRICKS, chance: .3},
+            {value: BLOCK.COBBLESTONE, chance: .4},
+            {value: BLOCK.MOSSY_COBBLESTONE, chance: .5},
+            {value: BLOCK.STONE_BRICKS, chance: 1},
+        ]);
+
+        // Windows palette
+        const windows_palette = this.cluster.createPalette([
+            {value: BLOCK.ORANGE_STAINED_GLASS_PANE},
+            {value: BLOCK.MAGENTA_STAINED_GLASS_PANE},
+            {value: BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE},
+            {value: BLOCK.YELLOW_STAINED_GLASS_PANE},
+            {value: BLOCK.LIME_STAINED_GLASS_PANE},
+            {value: BLOCK.PINK_STAINED_GLASS_PANE},
+            {value: BLOCK.CYAN_STAINED_GLASS_PANE},
+            {value: BLOCK.PURPLE_STAINED_GLASS_PANE},
+            {value: BLOCK.BLUE_STAINED_GLASS_PANE},
+            {value: BLOCK.BROWN_STAINED_GLASS_PANE},
+            {value: BLOCK.GREEN_STAINED_GLASS_PANE},
+            {value: BLOCK.RED_STAINED_GLASS_PANE},
+        ], true);
 
         //
         const pushBlocks = (blocks) => {
@@ -26,23 +54,23 @@ export class Church extends Building {
         };
 
         // Clear area
-        this.blocks.appendQuboidBlocks(new Vector(-door_pos.x - 1, 0, door_pos.z - 1), new Vector(random_size.x + 2, 27, random_size.z + 2), BLOCK.AIR.id, null, 8)
+        this.blocks.appendQuboidBlocks(new Vector(-door_pos.x - 1, 0, door_pos.z - 1), new Vector(random_size.x + 2, random_size.height, random_size.z + 2), BLOCK.AIR.id, null, 8)
 
         // Часовня
         for(let y = 0; y < 13; y++) {
             pushBlocks([
-                {move: new Vector(4, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(5, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(6, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(4, y, 19), block_id: this.getRandomBricks()},
-                {move: new Vector(5, y, 19), block_id: this.getRandomBricks()},
-                {move: new Vector(6, y, 19), block_id: this.getRandomBricks()},
-                {move: new Vector(3, y, 16), block_id: this.getRandomBricks()},
-                {move: new Vector(3, y, 17), block_id: this.getRandomBricks()},
-                {move: new Vector(3, y, 18), block_id: this.getRandomBricks()},
-                {move: new Vector(7, y, 16), block_id: this.getRandomBricks()},
-                {move: new Vector(7, y, 17), block_id: this.getRandomBricks()},
-                {move: new Vector(7, y, 18), block_id: this.getRandomBricks()},
+                {move: new Vector(4, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(5, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(6, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(4, y, 19), block_id: bricks_palette.next().id},
+                {move: new Vector(5, y, 19), block_id: bricks_palette.next().id},
+                {move: new Vector(6, y, 19), block_id: bricks_palette.next().id},
+                {move: new Vector(3, y, 16), block_id: bricks_palette.next().id},
+                {move: new Vector(3, y, 17), block_id: bricks_palette.next().id},
+                {move: new Vector(3, y, 18), block_id: bricks_palette.next().id},
+                {move: new Vector(7, y, 16), block_id: bricks_palette.next().id},
+                {move: new Vector(7, y, 17), block_id: bricks_palette.next().id},
+                {move: new Vector(7, y, 18), block_id: bricks_palette.next().id},
             ]);
             for (let x = 4; x < 7; x++) {
                 for (let z = 16; z < 19; z++) {
@@ -110,18 +138,18 @@ export class Church extends Building {
             {move: new Vector(6, 15, 15), block_id: BLOCK.DEEPSLATE_TILE_WALL.id},
             
             // Крыша
-            {move: new Vector(4, 16, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 16, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(6, 16, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(4, 16, 19), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 16, 19), block_id: this.getRandomBricks()},
-            {move: new Vector(6, 16, 19), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 16, 16), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 16, 17), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 16, 18), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 16, 16), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 16, 17), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 16, 18), block_id: this.getRandomBricks()},
+            {move: new Vector(4, 16, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 16, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(6, 16, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(4, 16, 19), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 16, 19), block_id: bricks_palette.next().id},
+            {move: new Vector(6, 16, 19), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 16, 16), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 16, 17), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 16, 18), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 16, 16), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 16, 17), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 16, 18), block_id: bricks_palette.next().id},
             
             {move: new Vector(4, 17, 15), block_id: BLOCK.DEEPSLATE_BRICKS.id},
             {move: new Vector(5, 17, 15), block_id: BLOCK.DEEPSLATE_BRICKS.id},
@@ -192,52 +220,52 @@ export class Church extends Building {
         // стены
         for (let y = 0; y < 5; y++) {
             pushBlocks([
-                {move: new Vector(1, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 2), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 3), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 5), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 6), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 7), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 9), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 10), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 11), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 13), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 14), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 2), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 3), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 5), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 6), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 7), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 9), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 10), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 11), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 13), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 14), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 15), block_id: this.getRandomBricks()},
+                {move: new Vector(1, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 2), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 3), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 5), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 6), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 7), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 9), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 10), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 11), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 13), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 14), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 2), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 3), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 5), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 6), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 7), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 9), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 10), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 11), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 13), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 14), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 15), block_id: bricks_palette.next().id},
                 
-                {move: new Vector(1, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(2, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(3, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(7, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(8, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 1), block_id: this.getRandomBricks()},
-                {move: new Vector(1, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(2, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(3, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(7, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(8, y, 15), block_id: this.getRandomBricks()},
-                {move: new Vector(9, y, 15), block_id: this.getRandomBricks()},
+                {move: new Vector(1, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(2, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(3, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(7, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(8, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 1), block_id: bricks_palette.next().id},
+                {move: new Vector(1, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(2, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(3, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(7, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(8, y, 15), block_id: bricks_palette.next().id},
+                {move: new Vector(9, y, 15), block_id: bricks_palette.next().id},
             ]);
             if (y == 0 || y == 4) {
                 pushBlocks([
-                    {move: new Vector(1, y, 4), block_id: this.getRandomBricks()},
-                    {move: new Vector(1, y, 8), block_id: this.getRandomBricks()},
-                    {move: new Vector(1, y, 12), block_id: this.getRandomBricks()},
-                    {move: new Vector(9, y, 4), block_id: this.getRandomBricks()},
-                    {move: new Vector(9, y, 8), block_id: this.getRandomBricks()},
-                    {move: new Vector(9, y, 12), block_id: this.getRandomBricks()},
+                    {move: new Vector(1, y, 4), block_id: bricks_palette.next().id},
+                    {move: new Vector(1, y, 8), block_id: bricks_palette.next().id},
+                    {move: new Vector(1, y, 12), block_id: bricks_palette.next().id},
+                    {move: new Vector(9, y, 4), block_id: bricks_palette.next().id},
+                    {move: new Vector(9, y, 8), block_id: bricks_palette.next().id},
+                    {move: new Vector(9, y, 12), block_id: bricks_palette.next().id},
                 ]);
             }
         }
@@ -247,66 +275,66 @@ export class Church extends Building {
             {move: new Vector(4, 4, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
             {move: new Vector(6, 4, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0}},
         
-            {move: new Vector(1, 5, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(2, 5, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 5, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 5, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 5, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(9, 5, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(1, 5, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(2, 5, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 5, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 5, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 5, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(9, 5, 1), block_id: bricks_palette.next().id},
             
             {move: new Vector(1, 6, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(2, 6, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 6, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(2, 6, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 6, 1), block_id: bricks_palette.next().id},
             {move: new Vector(4, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}, extra_data: {point: {x:0, y:0.6, z:0}}},
             {move: new Vector(6, 6, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0},  extra_data: {point: {x:0, y:0.6, z:0}}},
-            {move: new Vector(7, 6, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 6, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(7, 6, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 6, 1), block_id: bricks_palette.next().id},
             {move: new Vector(9, 6, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
-            {move: new Vector(4, 3, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 3, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(6, 3, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(4, 3, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 3, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(6, 3, 1), block_id: bricks_palette.next().id},
             
             {move: new Vector(4, 2, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}, extra_data: {point: {x:0, y:0.6, z:0}}},
             {move: new Vector(6, 2, 1), block_id: BLOCK.STONE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.EAST, dir), y: 0, z: 0},  extra_data: {point: {x:0, y:0.6, z:0}}},
             
             {move: new Vector(2, 7, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(3, 7, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(4, 7, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 7, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(6, 7, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 7, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(3, 7, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(4, 7, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 7, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(6, 7, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 7, 1), block_id: bricks_palette.next().id},
             {move: new Vector(8, 7, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             {move: new Vector(3, 8, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(4, 8, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 8, 1), block_id: this.getRandomBricks()},
-            {move: new Vector(6, 8, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(4, 8, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 8, 1), block_id: bricks_palette.next().id},
+            {move: new Vector(6, 8, 1), block_id: bricks_palette.next().id},
             {move: new Vector(7, 8, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             {move: new Vector(4, 9, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(5, 9, 1), block_id: this.getRandomBricks()},
+            {move: new Vector(5, 9, 1), block_id: bricks_palette.next().id},
             {move: new Vector(6, 9, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             {move: new Vector(5, 10, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             
-            {move: new Vector(1, 5, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(2, 5, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 5, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 5, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 5, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(9, 5, 15), block_id: this.getRandomBricks()},
+            {move: new Vector(1, 5, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(2, 5, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 5, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 5, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 5, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(9, 5, 15), block_id: bricks_palette.next().id},
             
             {move: new Vector(1, 6, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(2, 6, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(3, 6, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 6, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 6, 15), block_id: this.getRandomBricks()},
+            {move: new Vector(2, 6, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(3, 6, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 6, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 6, 15), block_id: bricks_palette.next().id},
             {move: new Vector(9, 6, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             {move: new Vector(2, 7, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
-            {move: new Vector(3, 7, 15), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 7, 15), block_id: this.getRandomBricks()},
+            {move: new Vector(3, 7, 15), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 7, 15), block_id: bricks_palette.next().id},
             {move: new Vector(8, 7, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
             
             {move: new Vector(3, 8, 15), block_id: BLOCK.COBBLESTONE_WALL.id},
@@ -324,11 +352,11 @@ export class Church extends Building {
                 {move: new Vector(8, 6, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
                 {move: new Vector(9, 5, z), block_id: BLOCK.DEEPSLATE_BRICK_STAIRS.id, rotate: {x: this.wrapRotation(DIRECTION.WEST, dir), y: 0, z: 0}},
                 
-                {move: new Vector(1, 0, z), block_id: this.getRandomBricks()},
-                {move: new Vector(9, 0, z), block_id: this.getRandomBricks()},
+                {move: new Vector(1, 0, z), block_id: bricks_palette.next().id},
+                {move: new Vector(9, 0, z), block_id: bricks_palette.next().id},
                 
-                {move: new Vector(1, 4, z), block_id: this.getRandomBricks()},
-                {move: new Vector(9, 4, z), block_id: this.getRandomBricks()},
+                {move: new Vector(1, 4, z), block_id: bricks_palette.next().id},
+                {move: new Vector(9, 4, z), block_id: bricks_palette.next().id},
             ]);
         }
 
@@ -403,29 +431,29 @@ export class Church extends Building {
 
         // стекла
         pushBlocks([
-            {move: new Vector(1, 1, 4), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 2, 4), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 3, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 1, 4), block_id: windows_palette.next().id},
+            {move: new Vector(1, 2, 4), block_id: windows_palette.next().id},
+            {move: new Vector(1, 3, 4), block_id: windows_palette.next().id},
             
-            {move: new Vector(1, 1, 8), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 2, 8), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 3, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 1, 8), block_id: windows_palette.next().id},
+            {move: new Vector(1, 2, 8), block_id: windows_palette.next().id},
+            {move: new Vector(1, 3, 8), block_id: windows_palette.next().id},
             
-            {move: new Vector(1, 1, 12), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 2, 12), block_id: this.getRandomWindow()},
-            {move: new Vector(1, 3, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(1, 1, 12), block_id: windows_palette.next().id},
+            {move: new Vector(1, 2, 12), block_id: windows_palette.next().id},
+            {move: new Vector(1, 3, 12), block_id: windows_palette.next().id},
             
-            {move: new Vector(9, 1, 4), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 2, 4), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 3, 4), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 1, 4), block_id: windows_palette.next().id},
+            {move: new Vector(9, 2, 4), block_id: windows_palette.next().id},
+            {move: new Vector(9, 3, 4), block_id: windows_palette.next().id},
             
-            {move: new Vector(9, 1, 8), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 2, 8), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 3, 8), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 1, 8), block_id: windows_palette.next().id},
+            {move: new Vector(9, 2, 8), block_id: windows_palette.next().id},
+            {move: new Vector(9, 3, 8), block_id: windows_palette.next().id},
             
-            {move: new Vector(9, 1, 12), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 2, 12), block_id: this.getRandomWindow()},
-            {move: new Vector(9, 3, 12), block_id: this.getRandomWindow()},
+            {move: new Vector(9, 1, 12), block_id: windows_palette.next().id},
+            {move: new Vector(9, 2, 12), block_id: windows_palette.next().id},
+            {move: new Vector(9, 3, 12), block_id: windows_palette.next().id},
         ]);
 
         // Лавочки
@@ -557,27 +585,27 @@ export class Church extends Building {
             {move: new Vector(5, 0, 20), block_id: BLOCK.LODESTONE.id},
             {move: new Vector(8, 0, 17), block_id: BLOCK.LODESTONE.id},
             
-            {move: new Vector(3, 1, 0), block_id: this.getRandomBricks()},
-            {move: new Vector(7, 1, 0), block_id: this.getRandomBricks()},
-            {move: new Vector(0, 1, 2), block_id: this.getRandomBricks()},
-            {move: new Vector(0, 1, 2), block_id: this.getRandomBricks()},
-            {move: new Vector(0, 1, 6), block_id: this.getRandomBricks()},
-            {move: new Vector(0, 1, 10), block_id: this.getRandomBricks()},
-            {move: new Vector(0, 1, 14), block_id: this.getRandomBricks()},
+            {move: new Vector(3, 1, 0), block_id: bricks_palette.next().id},
+            {move: new Vector(7, 1, 0), block_id: bricks_palette.next().id},
+            {move: new Vector(0, 1, 2), block_id: bricks_palette.next().id},
+            {move: new Vector(0, 1, 2), block_id: bricks_palette.next().id},
+            {move: new Vector(0, 1, 6), block_id: bricks_palette.next().id},
+            {move: new Vector(0, 1, 10), block_id: bricks_palette.next().id},
+            {move: new Vector(0, 1, 14), block_id: bricks_palette.next().id},
             
-            {move: new Vector(10, 1, 2), block_id: this.getRandomBricks()},
-            {move: new Vector(10, 1, 2), block_id: this.getRandomBricks()},
-            {move: new Vector(10, 1, 6), block_id: this.getRandomBricks()},
-            {move: new Vector(10, 1, 10), block_id: this.getRandomBricks()},
-            {move: new Vector(10, 1, 14), block_id: this.getRandomBricks()},
+            {move: new Vector(10, 1, 2), block_id: bricks_palette.next().id},
+            {move: new Vector(10, 1, 2), block_id: bricks_palette.next().id},
+            {move: new Vector(10, 1, 6), block_id: bricks_palette.next().id},
+            {move: new Vector(10, 1, 10), block_id: bricks_palette.next().id},
+            {move: new Vector(10, 1, 14), block_id: bricks_palette.next().id},
             
-            {move: new Vector(2, 1, 17), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 1, 20), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 1, 17), block_id: this.getRandomBricks()},
+            {move: new Vector(2, 1, 17), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 1, 20), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 1, 17), block_id: bricks_palette.next().id},
             
-            {move: new Vector(2, 2, 17), block_id: this.getRandomBricks()},
-            {move: new Vector(5, 2, 20), block_id: this.getRandomBricks()},
-            {move: new Vector(8, 2, 17), block_id: this.getRandomBricks()},
+            {move: new Vector(2, 2, 17), block_id: bricks_palette.next().id},
+            {move: new Vector(5, 2, 20), block_id: bricks_palette.next().id},
+            {move: new Vector(8, 2, 17), block_id: bricks_palette.next().id},
 
             {move: new Vector(3, 2, 0), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.NORTH, dir), 0, 0)},
             {move: new Vector(7, 2, 0), block_id: BLOCK.STONE_STAIRS.id, rotate: new Vector(this.wrapRotation(DIRECTION.NORTH, dir), 0, 0)},
@@ -638,47 +666,12 @@ export class Church extends Building {
      * @param {*} chunk 
      */
     draw(cluster, chunk) {
-
         super.draw(cluster, chunk);
-
         this.blocks.draw(cluster, chunk);
-
     }
     
     wrapRotation(angle, dir) {
         return CubeSym.dirAdd(dir, angle);
-    }
-    
-    getRandomBricks() {
-        const rnd = this.randoms.double();
-        if (rnd < 0.3) {
-            return BLOCK.MOSSY_STONE_BRICKS.id;
-        }
-        if (rnd < 0.4) {
-            return BLOCK.COBBLESTONE.id;
-        }
-        if (rnd < 0.5) {
-            return BLOCK.MOSSY_COBBLESTONE.id;
-        }
-        return BLOCK.STONE_BRICKS.id;
-    }
-    
-    getRandomWindow() {
-        const rnd = this.randoms.double() * 11 | 0;
-        switch(rnd) {
-            case 0: return BLOCK.ORANGE_STAINED_GLASS_PANE.id;
-            case 1: return BLOCK.MAGENTA_STAINED_GLASS_PANE.id;
-            case 2: return BLOCK.LIGHT_BLUE_STAINED_GLASS_PANE.id;
-            case 3: return BLOCK.YELLOW_STAINED_GLASS_PANE.id;
-            case 4: return BLOCK.LIME_STAINED_GLASS_PANE.id;
-            case 5: return BLOCK.PINK_STAINED_GLASS_PANE.id;
-            case 6: return BLOCK.CYAN_STAINED_GLASS_PANE.id;
-            case 7: return BLOCK.PURPLE_STAINED_GLASS_PANE.id;
-            case 8: return BLOCK.BLUE_STAINED_GLASS_PANE.id;
-            case 9: return BLOCK.BROWN_STAINED_GLASS_PANE.id;
-            case 10: return BLOCK.GREEN_STAINED_GLASS_PANE.id;
-            case 11: return BLOCK.RED_STAINED_GLASS_PANE.id;
-        }
     }
 
 }

@@ -15,7 +15,7 @@ const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
 // Base building
 export class Building {
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_size) {
         this.randoms        = new alea(coord.toHash());
         this.cluster        = cluster;
         this.id             = coord.toHash();
@@ -26,6 +26,7 @@ export class Building {
         this.door_bottom    = door_bottom;
         this.door_direction = door_direction;
         this.size           = size;
+        this.random_size    = random_size;
         this.materials      = null;
         this.draw_entrance  = true;
         // blocks
@@ -40,10 +41,13 @@ export class Building {
         return this.door_direction;
     }
 
+    addBlocks() {}
+
     setBiome(biome, temperature, humidity) {
         this.biome = biome;
         this.temperature = temperature;
         this.humidity = humidity;
+        this.addBlocks()
     }
 
     // Translate position
@@ -178,8 +182,9 @@ export class Building {
         this.door_bottom.y     = y;
         this.entrance.y        = y - 1;
         this.coord.y           = this.entrance.y + this.coord.y;
+        const height           = this.aabb.height
         this.aabb.y_min        = this.entrance.y - BUILDING_AABB_MARGIN;
-        this.aabb.y_max        = this.aabb.y_min + this.size.y * 3;
+        this.aabb.y_max        = this.aabb.y_min + height;
     }
 
     /**
@@ -208,9 +213,13 @@ export class Building {
      * @param {Vector} door_bottom 
      * @param {int} door_direction 
      */
-    static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction) {
+    static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction, aabb) {
 
         const door_pos = new Vector(random_size?.door_pos ?? DEFAULT_DOOR_POS);
+
+        if('height' in random_size) {
+            aabb.y_max = aabb.y_min + random_size.height + BUILDING_AABB_MARGIN;
+        }
 
         random_size = new Vector(random_size);
 
