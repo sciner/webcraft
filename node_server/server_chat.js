@@ -79,6 +79,9 @@ export class ServerChat {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
                 }
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
                 switch (args[1]) {
                     case 'list': {
                         const admin_list = this.world.admins.getList().join(', ');
@@ -112,9 +115,9 @@ export class ServerChat {
                 break;
             }
             case '/give':
-                //if(!player.game_mode.isCreative()) {
-                //  throw 'error_command_not_working_in_this_game_mode';
-                //}
+                if(!player.game_mode.isCreative()) {
+                  throw 'error_command_not_working_in_this_game_mode';
+                }
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;
                 let cnt = 1;
