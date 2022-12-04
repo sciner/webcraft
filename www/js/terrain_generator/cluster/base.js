@@ -347,7 +347,7 @@ export class ClusterBase {
                                     if(k < size.y && cell.dirt_layer.blocks.length > 1) {
                                         block_id = cell.dirt_layer.blocks[1];
                                     }
-                                } else {
+                                } else if(cell.biome.dirt_layers) {
                                     const l = cell.biome.dirt_layers[0]
                                     block_id = l.blocks[Math.min(k, l.blocks.length - 1)];
                                     if(l.cap_block_id && k == 0) {
