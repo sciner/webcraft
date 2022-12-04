@@ -301,8 +301,17 @@ export class GameClass {
                         }
                         return true;
                     }
+                    case KEY.B: { // show/hide block info in HUD
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                Qubatch.hud.draw_block_info = !Qubatch.hud.draw_block_info;
+                                this.f3_used = true
+                            }
+                        }
+                        break;
+                    }
                     // show mobs AABB
-                    case KEY.B: {
+                    case KEY.M: {
                         if(e.down) {
                             if (kb.keys[KEY.F3]) {
                                 this.world.mobs.toggleDebugGrid();
