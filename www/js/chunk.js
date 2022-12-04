@@ -525,6 +525,7 @@ export class Chunk {
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
+        const blockModifierListeners = chunkManager.getWorld().blockModifierListeners;
         const use_light = this.inited && chunkManager.use_light;
         const tblock_pos = new Vector(Infinity, Infinity, Infinity);
         let material = null;
@@ -570,6 +571,9 @@ export class Chunk {
                     lightList.push(tblock_pos.x, tblock_pos.y, tblock_pos.z, light);
                     // updating light here
                 }
+            }
+            for(let listener of blockModifierListeners) {
+                listener(tblock);
             }
         }
         if (lightList.length > 0) {

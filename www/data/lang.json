@@ -106,6 +106,7 @@
         "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0","hind":""},
         "loading": {"en": "Loading...", "ru": "Загрузка...", "fr": "", "es": "","man":""},
         "video": {"en": "Video", "ru": "Видео", "fr": "", "es": "", "man": ""},
+        "field_of_view": {"en": "Field of view", "ru": "Угол обзора","fr": "", "es":"", "man":"", "hind":""},
         "language": {"en": "Language", "ru": "Язык", "fr": "", "es": "", "man": ""},
         "main": {"en": "Main", "ru": "Основное", "fr": "", "es": "", "man": ""},
         "servers": {"en": "Servers", "ru": "Серверы", "fr": "", "es": "", "man": ""},

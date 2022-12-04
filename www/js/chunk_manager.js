@@ -44,6 +44,7 @@ export class ChunkManager {
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
+        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -180,6 +181,10 @@ export class ChunkManager {
                     const chunk = that.chunks.get(args.addr);
                     if(chunk) {
                         chunk.onBlocksGenerated(args);
+                        if (chunk.deferredLightArgs) {
+                            chunk.onLightGenerated(chunk.deferredLightArgs);
+                            chunk.deferredLightArgs = null;
+                        }
                     }
                     break;
                 }
@@ -234,6 +239,12 @@ export class ChunkManager {
                 case 'light_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
+                        if (!chunk.inited) {
+                            // This happens occasionally after quick F8.
+                            // Remember the date & apply it when initialied.
+                            chunk.deferredLightArgs = args;
+                            break;
+                        }
                         chunk.onLightGenerated(args);
                     }
                     break;
@@ -760,6 +771,18 @@ export class ChunkManager {
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }

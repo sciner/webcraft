@@ -3054,7 +3054,8 @@
             },
             "texture": {
                 "id": "entity",
-                "side": "entity/chest/normal.png"
+                "side": "entity/chest/normal.png",
+                "right": "entity/chest/normal_right.png"
             }
         },
         {

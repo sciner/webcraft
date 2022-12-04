@@ -1,4 +1,5 @@
 import { Helpers, isMobileBrowser, Vector } from '../helpers.js';
+import { DEFAULT_FOV_NORMAL } from '../render.js';
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
@@ -288,11 +289,14 @@ let gameCtrl = async function($scope, $timeout) {
     // Settings
     $scope.settings = {
         form: {
+            fov: DEFAULT_FOV_NORMAL,
             texture_pack: 'base',
             render_distance: 4,
             use_light: 1,
             beautiful_leaves: true,
-            mipmap: false
+            mipmap: false,
+            mobs_draw_debug_grid: false,
+            chunks_draw_debug_grid: false
         },
         lightMode: {
             list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
@@ -332,6 +336,7 @@ let gameCtrl = async function($scope, $timeout) {
             if(!('mouse_sensitivity' in this.form)) {
                 this.form.mouse_sensitivity = 100;
             }
+            this.form.fov = this.form.fov || DEFAULT_FOV_NORMAL;
         },
         updateSlider: function (inputId) {
             const slider = document.getElementById(inputId);

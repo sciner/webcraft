@@ -689,9 +689,10 @@ export class MobModel extends NetworkPhysicObject {
      * @param {Vector} camPos 
      * @param {float} delta 
      * @param {float} speed 
+     * @param {boolean} draw_debug_grid
      * @returns 
      */
-    draw(render, camPos, delta, speed) {
+    draw(render, camPos, delta, speed, draw_debug_grid = false) {
 
         this.lazyInit(render);
         this.update(render, camPos, delta, speed);
@@ -777,9 +778,10 @@ export class MobModel extends NetworkPhysicObject {
         this.renderer.drawLayer(render, this, ignore_roots);
 
         // Draw AABB wireframe
-        //if(this.aabb) {
-        //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
-        //}
+        if(this.aabb && draw_debug_grid) {
+            this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+        }
+
     }
 
     /**
