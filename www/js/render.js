@@ -27,6 +27,7 @@ import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import {LineGeometry} from "./geom/LineGeometry.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -254,6 +255,8 @@ export class Renderer {
         // Restore binding
         this.maskColorTex.bind(1);
 
+        this.debugGeom = new LineGeometry();
+        this.debugGeom.pos = this.camPos;
     }
 
     // Generate drop item vertices
@@ -689,6 +692,8 @@ export class Renderer {
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.update();
 
+        this.debugGeom.clear();
+
         renderBackend.beginPass({
             fogColor : this.env.interpolatedClearValue
         });
@@ -732,6 +737,18 @@ export class Renderer {
                 }
             }
         }
+
+        if (player.overChunk && this.world.chunkManager.draw_debug_grid) {
+            // this.debugGeom.addLine(player.blockPos, player.overChunk.coord, {});
+            this.debugGeom.addBlockGrid({
+                pos: player.overChunk.coord,
+                size: player.overChunk.size,
+                lineWidth: .15,
+                colorBGRA: 0xFF00FF00,
+            })
+        }
+        this.debugGeom.draw(renderBackend);
+
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
@@ -849,7 +866,7 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.in_frustum) {
-                mob.draw(this, pos_of_interest, delta);
+                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
             }
         }
     }

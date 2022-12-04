@@ -1,7 +1,6 @@
-import { SOUND_MAX_DIST } from "./constant.js";
 import { Vector } from "./helpers.js";
-import {MobModel} from "./mob_model.js";
-import {ServerClient} from "./server_client.js";
+import { MobModel } from "./mob_model.js";
+import { ServerClient } from "./server_client.js";
 
 export class MobManager {
 
@@ -10,6 +9,7 @@ export class MobManager {
     constructor(world) {
         this.#world = world;
         this.list = new Map();
+        this.draw_debug_grid = world.settings.mobs_draw_debug_grid;
         // Interval functions
         this.sendStateInterval = setInterval(() => {
             this.playSounds();
@@ -122,6 +122,18 @@ export class MobManager {
                 }
             }
         }
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('mobs_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }

@@ -9,7 +9,7 @@ import { Sounds } from "./sounds.js";
 import { Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { MAGIC_ROTATE_DIV, MOUSE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 
@@ -31,6 +31,7 @@ export class GameClass {
         this.render                     = new Renderer('qubatchRenderSurface');
         this.onControlsEnabledChanged   = (value) => {};
         this.onStarted                  = () => {};
+        this.f3_used                    = false;
         // Local server client
         this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
     }
@@ -212,18 +213,21 @@ export class GameClass {
                     }
                     // [F3] Toggle info
                     case KEY.F3: {
-                        if(!e.down) {
-                            if (hud.wm.getWindow('frmMode').visible) {
-                                hud.wm.getWindow('frmMode').hide();
-                                this.setupMousePointer(false);
-                            } else {
-                                hud.toggleInfo();
-                            }
-                            kb.keys[KEY.F3] = false;
-                            kb.keys[KEY.F4] = false;
-                            freezeF4Up = true;
-                        } else  {
+                        if(e.down) {
                             kb.keys[KEY.F3] = performance.now();
+                            this.f3_used = false
+                        } else {
+                            if(!this.f3_used) {
+                                if (hud.wm.getWindow('frmMode').visible) {
+                                    hud.wm.getWindow('frmMode').hide();
+                                    this.setupMousePointer(false);
+                                } else {
+                                    hud.toggleInfo();
+                                }
+                                kb.keys[KEY.F3] = false;
+                                kb.keys[KEY.F4] = false;
+                                freezeF4Up = true;
+                            }
                         }
                         return true;
                     }
@@ -296,6 +300,26 @@ export class GameClass {
                             }
                         }
                         return true;
+                    }
+                    // show mobs AABB
+                    case KEY.B: {
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                this.world.mobs.toggleDebugGrid();
+                                this.f3_used = true
+                            }
+                        }
+                        break;
+                    }
+                    // show over player chunk grid
+                    case KEY.G: {
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                this.world.chunkManager.toggleDebugGrid();
+                                this.f3_used = true
+                            }
+                        }
+                        break;
                     }
                     // [F4] set spawnpoint
                     case KEY.F4: {
@@ -693,6 +717,13 @@ export class GameClass {
         pc.player_state.yaw    = player.rotate.z;
         pc.tick(delta / 1000 * 3., player.scale);
         return pc.player.entity.position;
+    }
+
+    //
+    setSetting(name, value) {
+        const form = this.world.settings
+        form[name] = value;
+        localStorage.setItem('settings', JSON.stringify(form));
     }
 
     exit() {
