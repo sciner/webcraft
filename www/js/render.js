@@ -758,12 +758,12 @@ export class Renderer {
         }
 
         if (player.overChunk) {
-            this.debugGeom.addBlockGrid({
+            /*this.debugGeom.addBlockGrid({
                 pos: player.overChunk.coord,
                 size: player.overChunk.size,
                 lineWidth: .15,
                 colorBGRA: 0xFF00FF00,
-            })
+            })*/
         }
         this.debugGeom.draw(renderBackend);
 
