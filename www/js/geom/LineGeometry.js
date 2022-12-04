@@ -279,12 +279,12 @@ export class LineGeometry {
 
         const quadBuf = LineGeometry.quadBuf = context.createBuffer({
             data: new Float32Array([
-                0., -.5,
-                1., -.5,
-                1., .5,
-                0., -.5,
-                1., .5,
-                0., .5]
+                0., -1.,
+                1., -1.,
+                1., 1.,
+                0., -1.,
+                1., 1.,
+                0., 1.]
             ),
             usage: 'static'
         });

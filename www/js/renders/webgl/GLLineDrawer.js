@@ -75,7 +75,7 @@ void main() {
     float left = pixelLine(-vLine1.y - vLine1.x);
     float right = pixelLine(vLine1.y - vLine1.x);
     float alpha = right - left;
-    outColor = vColor * alpha;
+    outColor = vec4(vColor.rgb, vColor.a * alpha);
 }
 `;
 
