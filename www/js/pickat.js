@@ -341,8 +341,9 @@ export class PickAt {
         }
         pos = Vector.vectorify(pos);
         const block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        if (block.id == BLOCK.DUMMY.id) {
+        if (block.id === BLOCK.DUMMY.id || block.id === BLOCK.AIR.id) {
             this.targetDescription = null;
+            return;
         }
         this.targetDescription = {
             worldPos: pos,
