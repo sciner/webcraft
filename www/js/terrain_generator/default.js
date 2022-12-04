@@ -765,30 +765,6 @@ export class Default_Terrain_Generator {
         }
         
         const genOldRing = (random, h, bonus = 0) => {
-            /*
-               111 111 1 1
-            
-            const sector = [false, false, false, false];
-            let rnd = random;
-            for (let n = 0; n < 8; n++) {
-                let sign_x = (rnd.double() < 0.5) ? -1 : 1;
-                let sign_z = (rnd.double() < 0.5) ? -1 : 1;
-                
-                let rnd_x = (((rnd.double() * 4) | 0 ) + 3) * sign_x;
-                let rnd_z = (((rnd.double() * 4) | 0 ) + 3) * sign_z;
-                
-                let ns = getSector(sign_x, sign_z);
-                
-                if (ns && !sector[ns] && (rnd_x > 0 || rnd_z > 0)) {
-                    LineBresenham3D(x, y + h, z, x + rnd_x, y + h + 4, z + rnd_z);
-                    sector[ns] = true;
-                    console.log(rnd_x + ' ' + rnd_z + ' ' + rnd.double());
-                }
-            }
-            
-            */
-             
-            bonus = 0;
             let rad = (random & 7) + bonus;
             if (rad > 1) {
                 let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
@@ -818,8 +794,7 @@ export class Default_Terrain_Generator {
             }
         }
         
-        //LineBresenham3D(x, 1, z, 16, 5, 5);
-        const height = 40;//options.height * 4; // рандомная высота дерева, переданная из генератора
+        const height = options.height * 4; // рандомная высота дерева, переданная из генератора
         
         const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
         const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58));
@@ -842,18 +817,16 @@ export class Default_Terrain_Generator {
         
         generateLeaves(x, y + height, z, 16, rnd);
         
-       // setBranch(0);
-        //setBranch(0, DIRECTION.SOUTH);
         const random = cnt / 10;
-        genOldRing(random, 4, Math.floor(height / 10));
+        genOldRing(random, 4);
         if (height > 16) {
-            genOldRing(random >> 4, 12, Math.floor(height / 10));
+            genOldRing(random >> 4, 12);
         }
         if (height > 24) {
-            genOldRing(random >> 4, 20, Math.floor(height / 10));
+            genOldRing(random >> 8, 20);
         }
         if (height > 31) {
-            genOldRing(random >> 4, 28, Math.floor(height / 10));
+            genOldRing(random >> 12, 28);
         }
     }
 }
