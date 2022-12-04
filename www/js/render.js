@@ -761,7 +761,7 @@ export class Renderer {
             this.debugGeom.addBlockGrid({
                 pos: player.overChunk.coord,
                 size: player.overChunk.size,
-                lineWidth: -.5,
+                lineWidth: -.3,
                 colorBGRA: 0xFF00FF00,
             })
         }

@@ -23,6 +23,21 @@ out vec4 vColor;
 void main() {
     vec4 screenPos1 = uProjMatrix * uViewMatrix * vec4(aPoint1 + u_add_pos, 1.0);
     vec4 screenPos2 = uProjMatrix * uViewMatrix * vec4(aPoint2 + u_add_pos, 1.0);
+    
+    // culling to frustrum
+    float dz = screenPos2.z - screenPos1.z;
+    if (abs(dz) > 0.01) {
+        float t = (0.0 - screenPos1.z) / dz;
+        if (t > 0.0 && t < 1.0) {
+            vec4 zeroPoint = (screenPos2 - screenPos1) * t + screenPos1;
+            if (screenPos1.z < 0.0) {
+                screenPos1 = zeroPoint;
+            } else {
+                screenPos2 = zeroPoint;
+            }
+        }
+    }
+    
     vec2 pixelPos1 = (screenPos1.xy / screenPos1.w + 1.0) * 0.5 * u_resolution;
     vec2 pixelPos2 = (screenPos2.xy / screenPos2.w + 1.0) * 0.5 * u_resolution;
     vec2 line = pixelPos2.xy - pixelPos1.xy;
