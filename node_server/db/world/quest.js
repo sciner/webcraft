@@ -1,3 +1,5 @@
+import { unixTime } from "../../../www/js/helpers.js";
+
 export class DBWorldQuest {
 
     constructor(db, world) {
@@ -138,7 +140,7 @@ export class DBWorldQuest {
             });
         } else {
             await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, in_progress, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :in_progress, :actions)', {
-                ':dt':              ~~(Date.now() / 1000),
+                ':dt':              unixTime(),
                 ':user_id':         player.session.user_id,
                 ':quest_id':        quest.id,
                 ':is_completed':    quest.is_completed ? 1 : 0,

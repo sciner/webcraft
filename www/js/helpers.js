@@ -1707,6 +1707,10 @@ export class AverageClockTimer {
 
 }
 
+export function unixTime() {
+    return ~~(Date.now() / 1000);
+}
+
 // FastRandom...
 export class FastRandom {
 
