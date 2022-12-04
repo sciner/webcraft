@@ -17,7 +17,7 @@ in vec4 aColor;
 in float aLineWidth;
 in vec2 aQuad;
 
-out vec2 vLine1;
+out vec3 vLine1;
 out vec4 vColor;
 
 void main() {
@@ -50,19 +50,19 @@ void main() {
     
     vec2 pos = (pixelPos1.xy + line * aQuad.x) + norm * normOffset;
     
-    vLine1 = vec2(normOffset, pixelLineWidth);
-    vColor = aColor;
-    
     vec2 screenPos = (pos / u_resolution) * 2.0 - 1.0;
     vec2 projPos = mix(screenPos1.zw, screenPos2.zw, aQuad.x);
     gl_Position = vec4(screenPos * projPos.y, projPos);
+    
+    vLine1 = vec3(normOffset * projPos.y, pixelLineWidth, projPos.y);
+    vColor = aColor;
 }
 `;
 
 const fragment = `#version 300 es
 precision highp float;
 
-in vec2 vLine1;
+in vec3 vLine1;
 in vec4 vColor;
 
 out vec4 outColor;
@@ -72,8 +72,9 @@ float pixelLine(float x) {
 }
 
 void main() {
-    float left = pixelLine(-vLine1.y - vLine1.x);
-    float right = pixelLine(vLine1.y - vLine1.x);
+    float dist = vLine1.x / vLine1.z;
+    float left = pixelLine(-vLine1.y - dist);
+    float right = pixelLine(vLine1.y - dist);
     float alpha = right - left;
     outColor = vec4(vColor.rgb, vColor.a * alpha);
 }
