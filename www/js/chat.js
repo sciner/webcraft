@@ -196,6 +196,18 @@ export class Chat extends TextBox {
                     no_send = true;
                     break;
                 }
+                case '/blockinfo': {
+                    if(temp.length && temp[0].trim().length > 0) {
+                        const value = temp[0].toLowerCase();
+                        if(['true', 'false'].includes(value)) { 
+                            Qubatch.hud.draw_block_info = value == 'true';
+                        }
+                    } else {
+                        Qubatch.hud.draw_block_info = !Qubatch.hud.draw_block_info;
+                    }
+                    no_send = true;
+                    break;
+                }
                 case '/bb': {
                     let bbname = null;
                     let animation_name = null;

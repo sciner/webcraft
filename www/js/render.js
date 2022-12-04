@@ -738,13 +738,14 @@ export class Renderer {
             }
         }
 
-        if (player.overChunk && this.world.chunkManager.draw_debug_grid) {
-            // this.debugGeom.addLine(player.blockPos, player.overChunk.coord, {});
+        const overChunk = player.getOverChunk();
+        if (overChunk && this.world.chunkManager.draw_debug_grid) {
+            // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
             this.debugGeom.addBlockGrid({
-                pos: player.overChunk.coord,
-                size: player.overChunk.size,
-                lineWidth: .15,
-                colorBGRA: 0xFF00FF00,
+                pos:        overChunk.coord,
+                size:       overChunk.size,
+                lineWidth:  .15,
+                colorBGRA:  0xFF00FF00,
             })
         }
         this.debugGeom.draw(renderBackend);

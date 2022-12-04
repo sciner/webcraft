@@ -36,6 +36,8 @@ export class PickAt {
             prev_time:  null, // точное время, когда в последний раз было воздействие на блок
             start:      null
         }
+        this.targetDescription  = null;
+        this.visibleBlockHUD    = null;
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
         this.onInterractMob     = onInterractMob;
         this.onInteractFluid    = onInteractFluid;
@@ -126,6 +128,8 @@ export class PickAt {
         // Get actual pick-at block
         let bPos = this.get(pos, null, pickat_distance, view_vector, false);
 
+        this.updateTargetDescription(bPos);
+
         // Detect interact with fluid
         if(bPos && bPos.fluidLeftTop) {
             if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
@@ -150,9 +154,13 @@ export class PickAt {
                 return;
             }
             damage_block.pos = bPos;
-            // Check if pick-at block changed
+            // Check if pick-at block changed, or HUD info visibility changed
             let tbp = target_block.pos;
-            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
+            const newVisibleBlockHUD = Qubatch.hud.isDrawingBlockInfo();
+            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z) ||
+                this.visibleBlockHUD !== newVisibleBlockHUD
+            ) {
+                this.visibleBlockHUD = newVisibleBlockHUD;
                 // 1. Target block
                 target_block.pos = bPos;
                 this.createTargetLines(bPos, target_block.geom);
@@ -323,6 +331,27 @@ export class PickAt {
                 pp, flags | sideFlags);
         }
         return new GeometryTerrain(vertices);
+    }
+
+    // for HUD
+    updateTargetDescription(pos) {
+        if (!Qubatch.hud.isDrawingBlockInfo()) {
+            this.targetDescription =null;
+            return;
+        }
+        pos = Vector.vectorify(pos);
+        const block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        if (block.id == BLOCK.DUMMY.id) {
+            this.targetDescription = null;
+        }
+        this.targetDescription = {
+            worldPos: pos,
+            posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
+            chunkAddr: getChunkAddr(pos),
+            block: block.clonePOJO(),
+            material: block.material,
+            fluid: block.fluid
+        };
     }
 
     // createDamageBuffer...
