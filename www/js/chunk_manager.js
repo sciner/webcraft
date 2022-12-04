@@ -181,10 +181,6 @@ export class ChunkManager {
                     const chunk = that.chunks.get(args.addr);
                     if(chunk) {
                         chunk.onBlocksGenerated(args);
-                        if (chunk.deferredLightArgs) {
-                            chunk.onLightGenerated(chunk.deferredLightArgs);
-                            chunk.deferredLightArgs = null;
-                        }
                     }
                     break;
                 }
@@ -239,11 +235,9 @@ export class ChunkManager {
                 case 'light_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
-                        if (!chunk.inited) {
+                        if (chunk.uniqId !== args.uniqId) {
                             // This happens occasionally after quick F8.
-                            // Remember the date & apply it when initialied.
                             console.log(`deferred chunkId=${chunk.uniqId} lightId=${args.uniqId}`);
-                            chunk.deferredLightArgs = args;
                             break;
                         }
                         chunk.onLightGenerated(args);
