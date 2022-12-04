@@ -757,13 +757,13 @@ export class Renderer {
             }
         }
 
-        if (player.overChunk) {
-            /*this.debugGeom.addBlockGrid({
+        if (player.overChunk && this.world.chunkManager.draw_debug_grid) {
+            this.debugGeom.addBlockGrid({
                 pos: player.overChunk.coord,
                 size: player.overChunk.size,
                 lineWidth: .15,
                 colorBGRA: 0xFF00FF00,
-            })*/
+            })
         }
         this.debugGeom.draw(renderBackend);
 
@@ -884,7 +884,7 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.in_frustum) {
-                mob.draw(this, pos_of_interest, delta);
+                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
             }
         }
     }

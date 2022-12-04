@@ -44,6 +44,7 @@ export class ChunkManager {
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
+        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -760,6 +761,18 @@ export class ChunkManager {
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }
