@@ -255,7 +255,7 @@ export class PickAt {
     }
 
     createTargetLines(pos, geom) {
-        const aabbConfig = {isLocal: true, lineWidth: .5, colorBGRA: 0xFF000000};
+        const aabbConfig = {isLocal: true, lineWidth: .25, colorBGRA: 0xFF000000};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);
@@ -341,8 +341,9 @@ export class PickAt {
         }
         pos = Vector.vectorify(pos);
         const block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        if (block.id == BLOCK.DUMMY.id) {
+        if (block.id === BLOCK.DUMMY.id || block.id === BLOCK.AIR.id) {
             this.targetDescription = null;
+            return;
         }
         this.targetDescription = {
             worldPos: pos,
