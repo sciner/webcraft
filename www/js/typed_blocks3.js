@@ -786,6 +786,25 @@ export class TBlock {
         return this;
     }
 
+    // Clones essential data as POJO.
+    // The result can be used in WorldAction.addBlocks() to create/modify the same block
+    clonePOJO() {
+        var res = { id: this.id };
+        if (this.rotate && this.material.can_rotate) {
+            res.rotate = { ...this.rotate };
+        }
+        if (this.extra_data) {
+            res.extra_data = { ...this.extra_data };
+        }
+        if (this.entity_id) {
+            res.entity_id = this.entity_id;
+        }
+        if (this.power) {
+            res.power = this.power;
+        }
+        return res;
+    }
+
     get posworld() {
         return this.vec.add(this.tb.coord);
     }

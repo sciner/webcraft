@@ -251,6 +251,11 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
 export class CraftTableInventorySlot extends CraftTableSlot {
 
+    /**
+     * @param {Float} x - screen poition x
+     * @param {Float} y - screen poition y
+     * @param {BaseChestWindow} ct - parent window
+     */
     constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
@@ -301,6 +306,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                         case 'frmBarrel':
                         case 'frmChest':
+                        case 'frmDoubleChest':
                         case 'frmEnderChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
