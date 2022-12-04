@@ -149,7 +149,7 @@ export class Brain extends FSMBrain {
             return;
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack) {
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
             this.stack.replaceState(this.doCatch);
             return;
         }
@@ -199,5 +199,5 @@ export class Brain extends FSMBrain {
     onPanic() {
         
     }
-    
+
 }

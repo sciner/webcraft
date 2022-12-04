@@ -280,6 +280,9 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
@@ -546,6 +549,11 @@ export class Vector {
         this.z = 0;
 
         this.set(x, y, z);
+    }
+
+    // returns v or a new Vector based on it
+    static vectorify(v) {
+        return v instanceof Vector ? v : new Vector(v);
     }
 
     //Array like proxy for usign it in gl-matrix
@@ -1063,6 +1071,30 @@ export class Vector {
         return this;
     }
 
+    // Rotates self from 0 to 3 times around Y, by 90 degrees each time
+    rotateByCardinalDirectionSelf(dir) {
+        const x = this.x;
+        const z = this.z;
+        switch(dir) {
+            // case 0: do nothing
+            case 1: { // DIRECTION.WEST
+                this.x = -z;
+                this.z = x;
+                break;
+            }
+            case 2: { // DIRECTION.SOUTH
+                this.x = -x;
+                this.z = -z;
+                break;
+            }
+            case 3: { // DIRECTION.EAST
+                this.x = z;
+                this.z = -x;
+                break;
+            }
+        }
+    }
+
     addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
@@ -1259,10 +1291,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
 
 export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front
-    ROTATE.W = CubeSym.ROT_Y; // left
-    ROTATE.N = CubeSym.ID; // back
-    ROTATE.E = CubeSym.ROT_Y3; // right
+    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
+    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
+    ROTATE.N = CubeSym.ID; // back, z increases
+    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
 
 export let NORMALS = {};
     NORMALS.FORWARD          = new Vector(0, 0, 1);
@@ -1524,6 +1556,19 @@ export class ArrayHelpers {
         --arr.length;
     }
 
+    static fastDeleteValue(arr, value) {
+        var i = 0;
+        var len = arr.length;
+        while (i < len) {
+            if (arr[i] == value) {
+                arr[i] = arr[--len];
+            } else {
+                i++;
+            }
+        }
+        arr.length = len;
+    }
+
     static filterSelf(arr, predicate) {
         var src = 0;
         var dst = 0;
@@ -1709,6 +1754,10 @@ export class AverageClockTimer {
         this.avg = (this.sum / this.history.length) || 0;
     }
 
+}
+
+export function unixTime() {
+    return ~~(Date.now() / 1000);
 }
 
 // FastRandom...

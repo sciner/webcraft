@@ -5,6 +5,7 @@ import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
+import { ChestHelpers } from "./block_helpers.js";
 
 /**
  * World generation unfo passed from server
@@ -42,6 +43,7 @@ export class World {
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
+        this.blockModifierListeners = [];
     }
 
     get serverTimeWithLatency() {
@@ -226,7 +228,21 @@ export class World {
         }
         if(actions.load_chest) {
             player.stopAllActivity();
-            Qubatch.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
+            var info = actions.load_chest
+            var window = info.window;
+            var secondInfo = null;
+            if (window === 'frmChest') {
+                secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
+                if (secondInfo) {
+                    window = 'frmDoubleChest';
+                    if (secondInfo.extra_data.type === 'right') {
+                        const t = info;
+                        info = secondInfo;
+                        secondInfo = t;
+                    }
+                }
+            }
+            Qubatch.hud.wm.getWindow(window).load(info, secondInfo);
         }
         if(actions.play_sound) {
             for(let item of actions.play_sound) {

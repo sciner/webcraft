@@ -83,6 +83,9 @@ export class WorkerWorld {
     }
 
     ensureBuildQueue() {
+        if (this.buildQueue) {
+            return;
+        }
         this.buildQueue = new ChunkWorkQueue(this);
         for (let chunk of this.chunks.values()) {
             if (chunk.inited) {
@@ -209,6 +212,7 @@ export class WorkerWorld {
                 }
                 minBuildDist = Math.min(minBuildDist, chunk.queueDist);
                 chunk.buildVerticesInProgress = false;
+                const CHUNK_SIZE_X = chunk.size.x;
                 const item = buildVertices(chunk, false);
                 pages += chunk.totalPages + 4; // 4 is const for build value generation
                 if(item) {

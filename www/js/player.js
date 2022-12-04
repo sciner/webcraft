@@ -123,7 +123,6 @@ export class Player {
         this.walkDistO              = 0;
         this.bob                    = 0;
         this.oBob                   = 0;
-        this.overChunk              = null;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
         this.body_rotate            = 0;
@@ -227,6 +226,20 @@ export class Player {
         //}, 10);
 
         return true;
+    }
+
+    getOverChunk() {
+        var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        
+        // legacy code, maybe not needed anymore:
+        if (!overChunk) {
+            // some kind of race F8+R
+            const blockPos = this.getBlockPos();
+            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        }
+
+        return overChunk;
     }
 
     get isAlive() {
@@ -374,10 +387,12 @@ export class Player {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
                     // putting items into a pot or a chest takes priority over using them
-                    const canPutIntoTarget = targetMaterial &&
-                        (targetMaterial.tags.includes("pot") && cur_mat.tags.includes("can_put_info_pot") ||
-                        targetMaterial.window);
-                    if(!canPutIntoTarget && this.startItemUse(cur_mat)) {
+                    const canInteractWithBlock = (
+                        targetMaterial &&
+                        targetMaterial.tags.includes('pot') &&
+                        cur_mat.tags.includes("can_put_info_pot")
+                    ) || targetMaterial.can_interact_with_hand;
+                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -610,16 +625,8 @@ export class Player {
             this.xBob += (this.getXRot() - this.xBob) * 0.5;
             this.yBob += (this.getYRot() - this.yBob) * 0.5;
 
-            if(!this.overChunk) {
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if (!this.overChunk) {
-                // some kind of race F8+R
-                const blockPos = this.getBlockPos();
-                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if(!this.overChunk?.inited) {
+            const overChunk = this.getOverChunk();
+            if(!overChunk?.inited) {
                 return;
             }
             let isSpectator = this.game_mode.isSpectator();
@@ -709,7 +716,6 @@ export class Player {
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = this.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
@@ -802,7 +808,7 @@ export class Player {
                 // turn on 'Underwater_Ambience' sound
                 if(!this.underwater_track_id) {
                     Qubatch.sounds.play('madcraft:environment', 'entering_water');
-                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);
                 }
                 break;
             }
