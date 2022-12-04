@@ -40,7 +40,9 @@ export class LineGeometry {
         this.defLineColor = 0xFFFFFFFF;
         this.defGridColor = 0xFF00FF00;
 
-        this.defWidth = 2;
+        this.defLineWidth = .5;
+        this.defAABBWidth = .5;
+        this.defGridWidth = .3;
     }
 
     resize(cnt) {
@@ -136,8 +138,7 @@ export class LineGeometry {
         }
     }
 
-    addLineInner(x1, y1, z1, x2, y2, z2, isLocal = false, lineWidth = this.defWidth,
-             colorBGRA = this.defLineColor) {
+    addLineInner(x1, y1, z1, x2, y2, z2, isLocal, lineWidth, colorBGRA) {
         const {data, uint32View, strideFloats, pos} = this;
         let ind = (this.instances++) * strideFloats;
         if (isLocal) {
@@ -160,9 +161,17 @@ export class LineGeometry {
         this.updateID++;
     }
 
+    addLine(vec1, vec2, {
+        isLocal = false,
+        lineWidth = this.defLineWidth,
+        colorBGRA = this.defLineColor
+    }) {
+        this.addLineInner(vec1.x, vec1.y, vec1.z, vec2.x, vec2.y, vec2.z, isLocal, lineWidth, colorBGRA)
+    }
+
     addAABB(aabb, {
         isLocal = false,
-         lineWidth = this.defWidth,
+         lineWidth = this.defAABBWidth,
          colorBGRA = this.defAABBColor}) {
         this.ensureCapacity(12);
         for (let d1 = 0; d1 <= 1; d1++) {
@@ -191,7 +200,7 @@ export class LineGeometry {
     }
 
     addBlockGrid({pos, size, isLocal = false,
-                     lineWidth = this.defWidth, colorBGRA = this.defGridColor}) {
+                     lineWidth = this.defGridWidth, colorBGRA = this.defGridColor}) {
         this.ensureCapacity((size.x * size.y + size.x * size.z + size.y * size.z) * 2);
         let x_min = pos.x, y_min = pos.y, z_min = pos.z;
         let x_max = pos.x + size.x, y_max = pos.y + size.y, z_max = pos.z + size.z;

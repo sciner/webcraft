@@ -758,6 +758,7 @@ export class Renderer {
         }
 
         if (player.overChunk && this.world.chunkManager.draw_debug_grid) {
+            // this.debugGeom.addLine(player.blockPos, player.overChunk.coord, {});
             this.debugGeom.addBlockGrid({
                 pos: player.overChunk.coord,
                 size: player.overChunk.size,
