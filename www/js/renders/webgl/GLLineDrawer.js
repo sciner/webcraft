@@ -43,7 +43,7 @@ void main() {
     vec2 line = pixelPos2.xy - pixelPos1.xy;
     vec2 norm = normalize(vec2(-line.y, line.x));
     
-    float pixelLineWidth = aLineWidth < 0.0 ? (-aLineWidth * u_resolution.y / 100.0) : aLineWidth;
+    float pixelLineWidth = aLineWidth > 0.0 ? (aLineWidth * u_resolution.y / 100.0) : -aLineWidth;
     pixelLineWidth *= 0.5;
     
     float normOffset = aQuad.y * (pixelLineWidth + 1.0);
