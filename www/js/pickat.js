@@ -1,4 +1,4 @@
-import {Color, getChunkAddr, Vector} from "./helpers.js";
+import {Color, getChunkAddr, Vector, unixTime} from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
@@ -188,7 +188,7 @@ export class PickAt {
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
             let event = {...damage_block.event};
-            event.id = ~~(Date.now() / 1000);
+            event.id = unixTime();
             event.pos = {...damage_block.pos};
             event.pos.n = event.pos.n.clone();
             event.pos.point = event.pos.point.clone();
