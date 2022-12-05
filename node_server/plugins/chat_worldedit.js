@@ -4,6 +4,7 @@ import {WorldAction} from "../../www/js/world_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
+import { WorldEditBuilding } from "./worldedit/building.js";
 
 const MAX_SET_BLOCK         = 250000;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -18,6 +19,9 @@ export default class WorldEdit {
 
     onChat(chat) {
 
+        this.building = new WorldEditBuilding(this);
+
+        //
         this.commands = new Map();
         this.commands.set('/desel', this.cmd_desel);
         this.commands.set('/pos1', this.cmd_pos1);
@@ -33,6 +37,7 @@ export default class WorldEdit {
         this.commands.set('/schem', this.cmd_schematic);
         this.commands.set('/schematic', this.cmd_schematic);
         this.commands.set('/clearclipboard', this.cmd_clearclipboard);
+        this.commands.set('/building', this.cmd_building);
         // this.commands.set('//line', this.);
         // this.commands.set('//flora', this.);
         // this.commands.set('//undo', this.);
@@ -190,12 +195,22 @@ export default class WorldEdit {
      */
     async cmd_copy(chat, player, cmd, args) {
         const qi = this.getCuboidInfo(player);
+        const player_pos = player.state.pos.floored();
+        player._world_edit_copy = await this.copy(qi, player_pos, chat.world);
+        const msg = `${player._world_edit_copy.blocks.size} block(s) copied`;
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+    }
+
+    /**
+     * @param {*} qi 
+     * @param {Vector} pos
+     */
+    async copy(qi, pos, world) {
         let blocks = new VectorCollector();
         let chunk_addr = new Vector(0, 0, 0);
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         let bpos = new Vector(0, 0, 0);
         let chunk = null;
-        const player_pos = player.state.pos.floored();
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -207,7 +222,7 @@ export default class WorldEdit {
                     chunk_addr = getChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
-                        chunk = chat.world.chunks.get(chunk_addr);
+                        chunk = world.chunks.get(chunk_addr);
                         if(!chunk) {
                             throw 'error_chunk_not_loaded';
                         }
@@ -232,19 +247,23 @@ export default class WorldEdit {
                             item.rotate = block.rotate;
                         }
                     }
-                    bpos.subSelf(player_pos);
+                    bpos.subSelf(pos);
                     blocks.set(bpos, item);
                 }
             }
         }
-        player._world_edit_copy = {
+        return {
             quboid: qi,
             blocks: blocks,
-            player_pos: player_pos
-            //TODO: fluids
+            player_pos: pos.clone()
+            // TODO: fluids
         };
-        let msg = `${blocks.size} block(s) copied`;
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+    }
+
+    //
+    async cmd_building(chat, player, cmd, args) {
+        args = chat.parseCMD(args, ['string', 'string', 'string']);
+        this.building.onCmd(chat, player, cmd, args);
     }
 
     /**
@@ -253,9 +272,10 @@ export default class WorldEdit {
      * @param {*} player
      * @param {*} cmd
      * @param {*} args
+     * @param {*} copy_data
      */
-    async cmd_paste(chat, player, cmd, args) {
-        if(!player._world_edit_copy) {
+    async cmd_paste(chat, player, cmd, args, copy_data = null) {
+        if(!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
         const pn_set = performance.now();
@@ -269,7 +289,7 @@ export default class WorldEdit {
         const player_pos = player.state.pos.floored();
         let affected_count = 0;
         //
-        const data = player._world_edit_copy;
+        const data = copy_data ?? player._world_edit_copy;
         const blockIter = data.blocks.entries();
         let chunk_addr = null;
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
@@ -497,26 +517,26 @@ export default class WorldEdit {
     }
 
     // Return quboid info
-    getCuboidInfo(player) {
-        if(!player.pos1) {
+    getCuboidInfo(obj) {
+        if(!obj.pos1) {
             throw 'error_pos1_not_defined';
         }
-        if(!player.pos2) {
+        if(!obj.pos2) {
             throw 'error_pos2_not_defined';
         }
-        const volume = player.pos1.volume(player.pos2);
+        const volume = obj.pos1.volume(obj.pos2);
         if(volume < 1) {
             throw 'error_volume_0';
         }
         return {
-            pos1: player.pos1.clone(),
+            pos1: obj.pos1.clone(),
             volume: volume,
-            volx: Math.abs(player.pos1.x - player.pos2.x) + 1,
-            voly: Math.abs(player.pos1.y - player.pos2.y) + 1,
-            volz: Math.abs(player.pos1.z - player.pos2.z) + 1,
-            signx: player.pos1.x > player.pos2.x ? -1 : 1,
-            signy: player.pos1.y > player.pos2.y ? -1 : 1,
-            signz: player.pos1.z > player.pos2.z ? -1 : 1
+            volx: Math.abs(obj.pos1.x - obj.pos2.x) + 1,
+            voly: Math.abs(obj.pos1.y - obj.pos2.y) + 1,
+            volz: Math.abs(obj.pos1.z - obj.pos2.z) + 1,
+            signx: obj.pos1.x > obj.pos2.x ? -1 : 1,
+            signy: obj.pos1.y > obj.pos2.y ? -1 : 1,
+            signz: obj.pos1.z > obj.pos2.z ? -1 : 1
         };
     }
 

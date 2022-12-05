@@ -192,6 +192,7 @@ export class BLOCK {
     static max_id                   = 0;
     static MASK_BIOME_BLOCKS        = [];
     static MASK_COLOR_BLOCKS        = [];
+    static SOLID_BLOCK_ID           = [];
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -592,6 +593,15 @@ export class BLOCK {
             !('height' in block);
     }
 
+    /**
+     * @param {int} block_id 
+     * @returns {boolean}
+     */
+    static isSolidID(block_id) {
+        if(block_id == 0) return false
+        return this.SOLID_BLOCK_ID.includes(block_id)
+    }
+
     static isSimpleQube(block) {
         return block.is_solid &&
             !block.can_rotate &&
@@ -713,6 +723,9 @@ export class BLOCK {
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
+        }
+        if(block.is_solid) {
+            BLOCK.SOLID_BLOCK_ID.push(block.id)
         }
         // Set default properties
         let default_properties = {

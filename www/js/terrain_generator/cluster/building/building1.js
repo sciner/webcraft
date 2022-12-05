@@ -8,8 +8,8 @@ import { Vector } from "../../../helpers.js";
 export class Building1 extends Building {
 
     static SIZE_LIST = [
-        {x: 7, z: 7, door_pos: {x: 2, z: 2}, right: false},
-        {x: 7, z: 7, door_pos: {x: 4, z: 2}, right: true}
+        {size: {x: 7, z: 7}, door_pos: {x: 2, z: 2}, right: false},
+        {size: {x: 7, z: 7}, door_pos: {x: 4, z: 2}, right: true}
     ];
 
     /**
@@ -23,7 +23,7 @@ export class Building1 extends Building {
      * @param {Vector} door_direction 
      * @param {Vector} area_size 
      */
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, area_size, random_size) {
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, area_size, random_building) {
 
         const orig_coord = coord.clone();
         const orig_size = area_size.clone();
@@ -32,12 +32,12 @@ export class Building1 extends Building {
         aabb = new AABB().set(0, 0, 0, area_size.x, area_size.y, area_size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, area_size);
 
-        const is_right           = !!random_size?.right;
+        const is_right           = !!random_building?.right;
         const x_sign             = is_right ? -1 : 1;
 
         this.is_big_building = orig_size.x > 11 && orig_size.z > 11;
         this.roof_type = ROOF_TYPE_PITCHED;
-        this.random_size = random_size;
+        this.random_building = random_building;
         this.x_sign = x_sign;
         this.is_right = is_right;
 
@@ -45,7 +45,7 @@ export class Building1 extends Building {
         this.selectMaterials();
 
         //
-        this.wallBlocks = this.cluster.createPalette([
+        this.wallBlocks = this.cluster.createBlockPalette([
             {value: this.materials.wall, chance: 1}
         ]);
 
@@ -83,9 +83,9 @@ export class Building1 extends Building {
     //
     addBlocks() {
 
+        const random_building = this.random_building;
         const x_sign = this.x_sign;
         const is_right = this.is_right;
-        const random_size = this.random_size;
         const dir = this.door_direction;
         const mat = this.materials;
         const offset_x = is_right ? -4 : -2;
@@ -101,7 +101,7 @@ export class Building1 extends Building {
             this.blocks.list.push({
                 move: new Vector(-1 * x_sign, 3, 5),
                 block_id: BLOCK.CHEST.id,
-                rotate: {x: (dir + 1 + (random_size?.right ? 2 : 0)) % 4, y: 1, z: 0},
+                rotate: {x: (dir + 1 + (random_building?.right ? 2 : 0)) % 4, y: 1, z: 0},
                 extra_data: {generate: true, params: {source: 'village_house'}}
             });
         }
@@ -136,8 +136,8 @@ export class Building1 extends Building {
         this.blocks.list.push({move: new Vector(2 * x_sign, 1, 0), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
 
         // Back windows
-        this.blocks.list.push({move: new Vector(0 * x_sign, 1, random_size.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
-        this.blocks.list.push({move: new Vector(2 * x_sign, 1, random_size.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
+        this.blocks.list.push({move: new Vector(0 * x_sign, 1, random_building.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
+        this.blocks.list.push({move: new Vector(2 * x_sign, 1, random_building.z - 1), block_id: BLOCK.GLASS_PANE.id, rotate: new Vector(dir, 0, 0)});
 
         // Light
         if(mat.light) {
@@ -272,7 +272,7 @@ export class Building1 extends Building {
                 roof_block: BLOCK.CUT_SANDSTONE,
                 light: null
             };
-            this.wallBlocks = this.cluster.createPalette([
+            this.wallBlocks = this.cluster.createBlockPalette([
                 {value: this.materials.wall, chance: 1}
             ]);
             this.roof_type = ROOF_TYPE_FLAT;

@@ -545,6 +545,7 @@ export class TerrainMapManager2 {
                             free_height++;
                         }
                     }
+
                 }
             }
         }

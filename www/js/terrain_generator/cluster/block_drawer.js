@@ -15,13 +15,13 @@ export class BlockDrawer {
      * @param {*} chunk 
      */
     draw(cluster, chunk) {
-        const vec = new Vector(0, 0, 0);
+        const pos = new Vector(0, 0, 0);
         const block_coord = this.object.pos.clone().subSelf(chunk.coord);
         const dir = this.object.direction;
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
-            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z);
-            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
+            pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z);
+            cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, item.check_is_solid);
         }
     }
 
@@ -95,6 +95,37 @@ export class BlockDrawer {
                     this.list.push(block);
                 }
             }
+        }
+    }
+
+    /**
+     * @deprecated
+     * @param {*} bm 
+     * @param {*} direction 
+     * @param {*} blocks 
+     */
+    appendOwnBlocks(bm, direction, blocks) {
+        const rotn = [18, 22, 7, 13];
+        for(let block of blocks) {
+            const b = bm.fromId(block.block_id);
+            if(b.tags.includes('rotate_by_pos_n')) {
+                if(block.rotate.y == 0) {
+                    block.rotate.x = rotn[(rotn.indexOf(block.rotate.x) + direction) % 4];
+                } else {
+                    block.rotate.x = (block.rotate.x + direction) % 4;
+                }
+            } else if(
+                b.tags.includes('stairs') ||
+                b.tags.includes('ladder') ||
+                b.tags.includes('bed') ||
+                b.tags.includes('trapdoor') ||
+                ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door'].includes(b.style)
+            ) {
+                block.rotate.x = (block.rotate.x + direction) % 4;
+            } else if(['sign', 'armor_stand'].includes(b.style)) {
+                block.rotate.x = (block.rotate.x + direction + 2) % 4;
+            }
+            this.list.push(block)
         }
     }
 
