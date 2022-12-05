@@ -1,10 +1,10 @@
-import { Queue } from "../www/js/helpers.js"
+import { SimpleQueue } from "../www/js/helpers.js"
 
 export class GameLog {
 
     constructor(db) {
         this.db = db;
-        this.items = new Queue();
+        this.items = new SimpleQueue();
         setInterval(() => {
                 this.write();
             }, 

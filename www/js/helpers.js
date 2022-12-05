@@ -2177,7 +2177,7 @@ export let md5 = (function() {
 
 // A queue backed by an array that wraps around.
 // push()/shift()/length are compatible with that of Array.
-export class Queue {
+export class SimpleQueue {
     constructor() {
         this.arr = [null]; // a single element to prevent division by 0
         this.left = 0;

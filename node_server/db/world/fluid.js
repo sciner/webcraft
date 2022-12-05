@@ -1,4 +1,4 @@
-import {getChunkAddr, Queue, Vector, VectorCollector} from "../../../www/js/helpers.js";
+import {getChunkAddr, SimpleQueue, Vector, VectorCollector} from "../../../www/js/helpers.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../www/js/chunk_const.js";
 import {FluidChunk} from "../../../www/js/fluid/FluidChunk.js";
 import {BaseChunk} from "../../../www/js/core/BaseChunk.js";
@@ -10,7 +10,7 @@ export class DBWorldFluid {
 
         this.knownFluidChunks = new VectorCollector();
 
-        this.dirtyChunks = new Queue();
+        this.dirtyChunks = new SimpleQueue();
     }
 
     async restoreFluidChunks() {
