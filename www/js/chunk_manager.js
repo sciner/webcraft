@@ -237,7 +237,6 @@ export class ChunkManager {
                     if(chunk) {
                         if (chunk.uniqId !== args.uniqId) {
                             // This happens occasionally after quick F8.
-                            console.log(`deferred chunkId=${chunk.uniqId} lightId=${args.uniqId}`);
                             break;
                         }
                         chunk.onLightGenerated(args);
