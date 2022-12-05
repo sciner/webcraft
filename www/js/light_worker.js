@@ -65,7 +65,8 @@ function run() {
                 worker.postMessage(['light_generated', {
                     addr: chunk.addr,
                     lightmap_buffer: chunk.lightResult.buffer,
-                    lightID: chunk.lastID
+                    lightID: chunk.lastID,
+                    uniqId: chunk.uniqId,
                 }]);
             }
         }

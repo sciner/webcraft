@@ -432,8 +432,13 @@ export class HUD {
                 if (desc.block.power) {
                     this.block_text += '\npower: ' + desc.block.power;
                 }
-                if (desc.block.extra_data) {
-                    this.block_text += '\nextra_data: ' + JSON.stringify(desc.block.extra_data);
+                const ed = desc.block.extra_data
+                if (ed) {
+                    var s = '';
+                    for(let key in ed) {
+                        s += '\n    ' + key + ': ' + JSON.stringify(ed[key])
+                    }
+                    this.block_text += '\nextra_data: {' + s + '\n}';
                 }
                 if (desc.fluid) { // maybe unpack it
                     this.block_text += '\nfluid: ' + desc.fluid;
@@ -456,7 +461,8 @@ export class HUD {
                         //
                     }
                 }*/
-                this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n'; // + ' / ' + biome + '\n';
+                this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z; // + ' / ' + biome + '\n';
+                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/128) + ', ' + Math.floor(chunk.coord.z/128) + '\n'; // + ' / ' + biome + '\n';
             }
         }
 
@@ -501,7 +507,8 @@ export class HUD {
         if (this.block_text) {
             const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
             const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom;
-            this.drawText('block_info', this.block_text, this.width * 0.65, y);
+            const x = Math.max(this.width * 0.55, this.width - 400 * this.zoom);
+            this.drawText('block_info', this.block_text, x, y);
         }
         //
         this.drawActiveQuest();

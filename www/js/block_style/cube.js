@@ -135,7 +135,7 @@ export default class style {
 
     static isOnCeil(block) {
         // на верхней части блока (перевернутая ступенька, слэб)
-        return block.extra_data && block.extra_data.point.y >= .5;
+        return block.extra_data?.point?.y >= .5 ?? false;
     }
 
     //

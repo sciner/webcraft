@@ -112,7 +112,13 @@ export default class style {
             }
         }
 
-        let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block);
+        //
+        const is_flower = block.hasTag('flower');
+        const is_agriculture = block.hasTag('agriculture');
+        const is_grass = material.is_grass;
+        const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+
+        let texture = BLOCK.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms[random_index]);
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
@@ -135,10 +141,6 @@ export default class style {
             }
         }
 
-        //
-        const is_flower = block.hasTag('flower');
-        const is_agriculture = block.hasTag('agriculture');
-        const is_grass = material.is_grass;
         if(is_grass) {
             dy -= .15;
             flag |= QUAD_FLAGS.FLAG_LEAVES;
@@ -148,14 +150,13 @@ export default class style {
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
             if(is_grass || is_flower) {
-                let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
-                dx = randoms[index] * 12/16 - 6/16;
-                dz = randoms[RANDOMS_COUNT - index] * 12/16 - 6/16;
-                dy -= .2 * randoms[index];
+                dx = randoms[random_index] * 12/16 - 6/16;
+                dz = randoms[RANDOMS_COUNT - random_index] * 12/16 - 6/16;
+                dy -= .2 * randoms[random_index];
                 if(!matrix) {
                     matrix = mat4.create();
                 }
-                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms[index]);
+                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms[random_index]);
             }
         }
 
