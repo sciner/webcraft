@@ -160,9 +160,10 @@ export class Default_Terrain_Generator {
                 break;
             }
             // дуб, берёза
-            case 'birch':
-            case 'oak':
-            case 'wood': {
+            //case 'birch':
+            //case 'oak':
+            case 'wood': 
+            {
                 this.plantBigOak(options, chunk, x, y, z, check_chunk_size)
                 break;
             }
@@ -654,88 +655,47 @@ export class Default_Terrain_Generator {
     
     // Тропическое дерево
     plantBigOak(options, chunk, x, y, z, check_chunk_size = true) {
+        // рисуем корни
+        const generateRoots = (x, y, z) => {
+            let d = null;
+            for(let n of [[0,1],[0,-1],[1,0],[-1,0]]) {
+                for(let k = 0; k < 3; k++) {
+                    this.xyz_temp_find.set(x + n[0], y - k, z + n[1]);
+                    d = chunk.tblocks.get(this.xyz_temp_find, d);
+                    if(!d || (d.id == 0)) {
+                        this.setTreeBlock(options, chunk, x + n[0], y - k, z + n[1], BLOCK.OAK_LOG, true);
+                    }
+                }
+            }
+        };
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
-            rad = Math.max(rad * 2, 8) ;
-            for(let h = 0; h <= 4; h++) {
-                let w = Math.max(rad - h * 2, 5 - h)
-                let dx = Math.floor(x - w / 2)
-                let dz = Math.floor(z - w / 2)
-                let d = null
-                for(let a = dx; a <= dx + w; a++) {
-                    for(let b = dz; b <= dz + w; b++) {
-                        if(check_chunk_size && (a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z)) {
-                            continue;
-                        }
-                        const l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
-                        if(l <= w / 3) {
-                            this.xyz_temp_find.set(a, y + h, b)
-                            d = chunk.tblocks.get(this.xyz_temp_find, d)
-                            const d_id = d.id
-                            if(!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
-                                this.temp_block.id = options.type.leaves;
-                                this.setTreeBlock(options, chunk, a, y + h, b, this.temp_block, false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        const generateLeaves2 = (x, y, z, rad) => {
-            console.log(rad);
-            // листва
-            let py = y;
-            let rads = [];
-            switch (rad) {
-                case 2:
-                case 3:
-                case 4:
-                case 5: {
-                    rads = [1, 2, 2]; 
-                    break;
-                }
-                case 6: {
-                    rads = [1, 2, 3, 3, 2]; 
-                    break;
-                }
-                case 7: {
-                    rads = [1, 3, 4, 3, 2]; 
-                    break;
-                }
-                case 16: {
-                    py += 4;
-                    rads = [2, 3, 4, 5, 6, 6, 7, 7, 6]; 
-                    break;
-                }
-            }
-            let b = null;
-            for(let rad of rads) {
+            rad = 4;
+            let d = null;
+            for(let k = y - 1; k <= y + 3; k++) {
                 for(let i = x - rad; i <= x + rad; i++) {
                     for(let j = z - rad; j <= z + rad; j++) {
-                        if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
-                            let m = (i == x - rad && j == z - rad) ||
-                                (i == x + rad && j == z + rad) ||
-                                (i == x - rad && j == z + rad) ||
-                                (i == x + rad && j == z - rad);
-                                let m2 = (py == y + options.height) ||
-                                (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                            if(m && m2) {
-                                continue;
-                            }
-                            this.xyz_temp_find.set(i, py, j);
-                            b = chunk.tblocks.get(this.xyz_temp_find, b);
-                            let b_id = b.id;
-                            if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                        if((j < 0 || j >= chunk.size.x || i < 0 || i >= chunk.size.z)) {
+                            continue;
+                        }
+                        this.xyz_temp_find.set(i, k, j);
+                        d = chunk.tblocks.get(this.xyz_temp_find, d)
+                        if(!d || (d.id == 0)) {
+                            const m1 = (j == z - rad || j == z + rad) ? 0.2 : 0;
+                            const m2 = (i == x - rad || i == x + rad) ? 0.2 : 0;
+                            const m3 = (k == y + 3) ? 0.3 : 0;
+                            if (random_alea.double() > (0.4 + m1 + m2 + m3)) {
                                 this.temp_block.id = options.type.leaves;
-                                this.setTreeBlock(options, chunk, i, py, j, this.temp_block, false);
+                                this.setTreeBlock(options, chunk, i, k, j, this.temp_block, false);
                             }
                         }
                     }
                 }
-                py--;
+
             }
         }
-       
+        
+        // рисуем линии веток
         const LineBresenham3D = (sx, sy, sz, ex, ey, ez) => {
             let x = sx;
             let y = sy;
@@ -763,57 +723,65 @@ export class Default_Terrain_Generator {
             }
         }
         
-        const genOldRing = (random, h, bonus = 0) => {
-            const MIN_RADIUS = 5;
-            let rad = (random & 7) + bonus;
+        // Ветки с вероятностью
+        const genOldRing = (h, bonus = 0) => {
+            const MIN_RADIUS = 4;
+            let rad = (random_alea.double() * 7 | 0) + bonus;
             if (rad > 1) {
-                let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
+                let sign = (random_alea.double() > 0.5) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + sign * rad, y + h + 4, z + MIN_RADIUS);
                 generateLeaves(x + sign * rad, y + h + 3, z + MIN_RADIUS, rad);
             }
             h += 1;
-            rad = ((random >> 1) & 7) + bonus;
+            rad = (random_alea.double() * 7 | 0) + bonus;
             if (rad > 1) {
-                let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
+                let sign = (random_alea.double() > 0.5) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + sign * rad, y + h + 4, z - MIN_RADIUS);
                 generateLeaves(x + sign * rad, y + h + 3, z - MIN_RADIUS, rad);
             }
             h += 1;
-            rad = ((random >> 2) & 7) + bonus;
+            rad = (random_alea.double() * 7 | 0) + bonus;
             if (rad > 1) {
-                let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
+                let sign = (random_alea.double() > 0.5) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x + MIN_RADIUS, y + h + 4, z + sign * rad);
                 generateLeaves(x + MIN_RADIUS, y + h + 3, z + sign * rad, rad);
             }
             h += 1;
-            rad = ((random >> 3) & 7) + bonus;
+            rad = (random_alea.double() * 7 | 0) + bonus;
             if (rad > 1) {
-                let sign = (((rad >> 1) & 1) == 0) ? -1 : 1;
+                let sign = (random_alea.double() > 0.5) ? -1 : 1;
                 LineBresenham3D(x, y + h , z, x - MIN_RADIUS, y + h + 4, z + sign * rad);
                 generateLeaves(x - MIN_RADIUS, y + h + 3, z + sign * rad, rad);
             }
         }
         
-        const height = options.height * 5; // рандомная высота дерева, переданная из генератора
-        const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
-        const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58));
+        const height = options.height * 5; // рандомная высота дерева, переданная из генератор
+        const xyz = chunk.coord.add(new Vector(x, y, z));
+        const random_alea = new alea('tree_big' + xyz.toHash());
   
+        // основной ствол
         for(let i = 0; i < height; i++) {
             this.setTreeBlock(options, chunk, x, y + i, z, BLOCK.OAK_LOG, true);
         }
         
-        generateLeaves(x, y + height, z, 16);
+        // листва основной кроны
+        generateLeaves(x, y + height, z, 10);
         
-        const random = cnt / 10;
-        genOldRing(random, 4);
+        // ветки на разных уровнях
+        if (height > 10) {
+            genOldRing(4);
+        }
         if (height > 16) {
-            genOldRing(random >> 4, 12);
+            genOldRing(12);
         }
         if (height > 24) {
-            genOldRing(random >> 8, 20);
+            genOldRing( 20);
         }
         if (height > 32) {
-            genOldRing(random >> 12, 28);
+            genOldRing(28);
         }
+        
+        //корни дерева
+        generateRoots(x, y, z);
     }
 }
