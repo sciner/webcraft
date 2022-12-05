@@ -195,6 +195,7 @@ export default class WorldEdit {
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         let bpos = new Vector(0, 0, 0);
         let chunk = null;
+        const fluids = [];
         const player_pos = player.state.pos.floored();
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
@@ -233,6 +234,12 @@ export default class WorldEdit {
                         }
                     }
                     bpos.subSelf(player_pos);
+                    if (block.fluid != 0) {
+                        fluids.push(bpos.x);
+                        fluids.push(bpos.y);
+                        fluids.push(bpos.z);
+                        fluids.push(block.fluid);
+                    }
                     blocks.set(bpos, item);
                 }
             }
@@ -240,8 +247,8 @@ export default class WorldEdit {
         player._world_edit_copy = {
             quboid: qi,
             blocks: blocks,
-            player_pos: player_pos
-            //TODO: fluids
+            player_pos: player_pos,
+            fluids: fluids
         };
         let msg = `${blocks.size} block(s) copied`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
