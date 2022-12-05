@@ -675,7 +675,7 @@ export class Default_Terrain_Generator {
             for(let k = y - 1; k <= y + 3; k++) {
                 for(let i = x - rad; i <= x + rad; i++) {
                     for(let j = z - rad; j <= z + rad; j++) {
-                        if((j < 0 || j >= chunk.size.x || i < 0 || i >= chunk.size.z)) {
+                        if(check_chunk_size && (i < 0 || i >= chunk.size.x || j < 0 || j >= chunk.size.z)) {
                             continue;
                         }
                         this.xyz_temp_find.set(i, k, j);
