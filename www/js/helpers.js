@@ -1551,11 +1551,14 @@ export class Helpers {
 }
 
 export class ArrayHelpers {
+
+    // elements order is not preserved
     static fastDelete(arr, index) {
         arr[index] = arr[arr.length - 1];
         --arr.length;
     }
 
+    // elements order is not preserved
     static fastDeleteValue(arr, value) {
         var i = 0;
         var len = arr.length;
@@ -1570,8 +1573,17 @@ export class ArrayHelpers {
     }
 
     static filterSelf(arr, predicate) {
+        // fast skip elements that don't change
         var src = 0;
-        var dst = 0;
+        while (src < arr.length && predicate(arr[src])) {
+            src++;
+        }
+        if (src === arr.length) {
+            return;
+        }
+        // move elements
+        var dst = src;
+        src++;
         while (src < arr.length) {
             if (predicate(arr[src])) {
                 arr[dst++] = arr[src];

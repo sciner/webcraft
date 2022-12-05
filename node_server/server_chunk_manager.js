@@ -152,6 +152,10 @@ export class ServerChunkManager {
             this.postWorkerMessage(['destructChunk', this.unloaded_chunk_addrs]);
             this.unloaded_chunk_addrs = [];
         }
+        // TODO: not all chunks
+        for(var chunk of this.all) {
+            chunk.executeDelayedCalls();
+        }
     }
 
     // random chunk tick

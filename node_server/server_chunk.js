@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -8,7 +8,9 @@ import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
+import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
+import { TickerHelpers } from "./ticker/ticker_helpers.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -102,22 +104,9 @@ class TickingBlockManager {
                 continue;
             }
             const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
-            if(Array.isArray(upd_blocks)) {
-                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
-                ArrayHelpers.filterSelf(upd_blocks, v => v != null);
-                if (upd_blocks.length > 0) {
-                    updated_blocks.push(...upd_blocks);
-                }
-            }
+            TickerHelpers.pushBlockUpdates(updated_blocks, upd_blocks);
         }
-
-        //
-        if(updated_blocks.length > 0) {
-            const actions = new WorldAction(null, this.#chunk.world, false, true);
-            actions.addBlocks(updated_blocks);
-            world.actions_queue.add(null, actions);
-        }
-
+        world.addUpdatedBlocksActions(updated_blocks);
     }
 
 }
@@ -152,6 +141,8 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_NEW);
         this.dataChunk      = null;
         this.fluid          = null;
+        this.delayedCalls   = new DelayedCalls(world.blockCallees);
+        this.blocksUpdatedByDelayedCalls = [];
     }
 
     get maxBlockX() {
@@ -879,6 +870,13 @@ export class ServerChunk {
 
         return true;
 
+    }
+
+    executeDelayedCalls() {
+        this.delayedCalls.execute(this);
+        this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
+        this.blocksUpdatedByDelayedCalls.length = 0;
+        return this.delayedCalls.length > 0;
     }
 
     // Before unload chunk

@@ -42,6 +42,14 @@
     "random_tickers": [
         "grass_block"
     ],
+    "before_block_change_listeners": {
+        "soul_sand": "remove_bubbles_above",
+        "bubble_column": ["remove_bubbles_above", "restore_bubbles"]
+    },
+    "after_block_change_listeners": {
+        "soul_sand": "add_bubbles_above",
+        "bubble_column": "add_bubbles_above"
+    },
     "chat_plugins": [
         "chat_teleport",
         "chat_time",
