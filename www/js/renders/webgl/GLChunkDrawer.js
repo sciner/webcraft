@@ -18,6 +18,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         this.arrSixes = new Int32Array(sz);
         this.counts = new Int32Array(sz);
         this.offsets = new Uint32Array(sz);
+        this.offsetsInt = new Int32Array(this.offsets.buffer);
         for (let i = 0; i < sz; i++) {
             this.arrSixes[i] = 6;
         }
@@ -62,7 +63,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         if (this.count === 0) {
             return;
         }
-        let {elements, context, offsets, counts} = this;
+        let {elements, context, offsets, offsetsInt, counts} = this;
         let sz = 0;
         let baseGeom = elements[0].baseGeometry;
         for (let i = 0; i < this.count; i++) {
@@ -124,13 +125,13 @@ export class GLChunkDrawer extends ChunkDrawer {
                         gl.TRIANGLES,
                         counts, 0,
                         gl.UNSIGNED_INT,
-                        offsets, 0,
+                        offsetsInt, 0,
                         sz,
                     );
                 } else {
                     md.multiDrawArraysWEBGL(
                         gl.TRIANGLES,
-                        offsets, 0,
+                        offsetsInt, 0,
                         counts, 0,
                         sz,
                     );

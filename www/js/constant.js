@@ -2,7 +2,7 @@ export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
 export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
-export const DEFAULT_CLOUD_HEIGHT           = 128.1;
+export const DEFAULT_CLOUD_HEIGHT           = 164.1;
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const SOUND_MAX_DIST                 = 16;
@@ -70,9 +70,11 @@ export const KEY = {
     ARROW_DOWN: 40,
     DEL: 46,
     A: 65,
+    B: 66,
     C: 67,
     D: 68,
     E: 69,
+    G: 71,
     Q: 81,
     R: 82,
     S: 83,

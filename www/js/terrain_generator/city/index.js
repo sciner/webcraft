@@ -2,9 +2,12 @@ import {IndexedColor, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell} from "../default.js";
 
+const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
+const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id, options) {
+    constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(seed);
         // Init palette blocks
@@ -263,8 +266,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        const cell = {dirt_color: new IndexedColor(82, 450, 0), biome: new Default_Terrain_Map_Cell({
-            code: 'City'
+        const cell = {
+            dirt_color: DEFAULT_DIRT_COLOR,
+            water_color: DEFAULT_WATER_COLOR,
+            biome: new Default_Terrain_Map_Cell({
+            code: 'city'
         })};
 
         return new Default_Terrain_Map(

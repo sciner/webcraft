@@ -23,7 +23,8 @@ export class SchematicReader {
             LAVA:       'STILL_LAVA',
             WATER:      'STILL_WATER',
             WHEAT:      'WHEAT_SEEDS',
-            COCOA:      'COCOA_BEANS'
+            COCOA:      'COCOA_BEANS',
+            SIGN:       'BIRCH_SIGN'
         };
     }
 
@@ -234,7 +235,7 @@ export class SchematicReader {
             return null;
         }
         if(b.is_chest) {
-            new_block.extra_data = { can_destroy: true, slots: {} };
+            new_block.extra_data = this.parseChestPropsExtraData(props);
         } else if(b.tags.includes('sign')) {
             new_block.extra_data = new_block.extra_data || null;
         }
@@ -251,7 +252,7 @@ export class SchematicReader {
         // block entities
         if(block.entities) {
             if(b.is_chest) {
-                const chest_extra_data = this.parseChestExtraData(block.entities);
+                const chest_extra_data = this.parseChestExtraData(block.entities, props);
                 if(chest_extra_data) {
                     new_block.extra_data = chest_extra_data;
                 }
@@ -263,7 +264,12 @@ export class SchematicReader {
                 for(let i in text_names) {
                     const t = text_names[i];
                     if(t in block.entities) {
-                        const temp = JSON.parse(block.entities[t]);
+                        var temp;
+                        try {
+                            temp = JSON.parse(block.entities[t]);
+                        } catch(e) {
+                            temp = { text: block.entities[t] };
+                        }
                         texts[i] = temp?.text || '';
                         formatted_text[i] = temp;
                     }
@@ -544,14 +550,19 @@ export class SchematicReader {
         return new_block;
     }
 
-    parseChestExtraData(entities) {
+    parseChestPropsExtraData(props) {
+        const res = { can_destroy: true, slots: {} };
+        if (props.type) {
+            res.type = props.type;
+        }
+        return res;
+    }
+
+    parseChestExtraData(entities, props) {
         if(!entities || !entities.Items) {
             return null;
         }
-        const chest_extra_data = {
-            can_destroy: true,
-            slots: {}
-        };
+        const chest_extra_data = this.parseChestPropsExtraData(props);
         for(let i = 0; i < entities.Items.length; i++)  {
             const item = entities.Items[i];
             let chest_item_name = item.id.split(':').pop();

@@ -21,6 +21,12 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
+export const PLAYER_STATUS_DEAD         = 0;
+/* A player with this status is alive, but doesn't move or interat with the world
+until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
+export const PLAYER_STATUS_WAITING_DATA = 1;
+export const PLAYER_STATUS_ALIVE        = 2;
+
 // Creates a new local player manager.
 export class Player {
 
@@ -38,6 +44,7 @@ export class Player {
             ping:               0
         };
         this.effects = {effects:[]}
+        this.status = PLAYER_STATUS_WAITING_DATA;
 
         this.headBlock = null;
     }
@@ -67,6 +74,7 @@ export class Player {
         //
         this.session                = data.session;
         this.state                  = data.state;
+        this.status                 = data.status;
         this.indicators             = data.state.indicators;
         // Game mode
         this.game_mode              = new GameMode(this, data.state.game_mode);
@@ -115,7 +123,6 @@ export class Player {
         this.walkDistO              = 0;
         this.bob                    = 0;
         this.oBob                   = 0;
-        this.overChunk              = null;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
         this.body_rotate            = 0;
@@ -129,8 +136,17 @@ export class Player {
         this.chat                   = new Chat(this);
         this.controls               = new PlayerControl(this.options);
         this.windows                = new PlayerWindowManager(this);
+        if (this.status === PLAYER_STATUS_DEAD) {
+            this.setDie();            
+        }
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_DIE], (cmd) => {this.setDie();});
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_WAITING_DATA], (cmd) => {
+            this.status = PLAYER_STATUS_WAITING_DATA;
+        });
+        this.world.server.AddCmdListener([ServerClient.CMD_SET_STATUS_ALIVE], (cmd) => {
+            this.status = PLAYER_STATUS_ALIVE;
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
@@ -210,6 +226,20 @@ export class Player {
         //}, 10);
 
         return true;
+    }
+
+    getOverChunk() {
+        var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        
+        // legacy code, maybe not needed anymore:
+        if (!overChunk) {
+            // some kind of race F8+R
+            const blockPos = this.getBlockPos();
+            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        }
+
+        return overChunk;
     }
 
     get isAlive() {
@@ -355,7 +385,14 @@ export class Player {
                 const cur_mat_id = this.inventory.current_item?.id;
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
-                    if(this.startItemUse(cur_mat)) {
+                    const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
+                    // putting items into a pot or a chest takes priority over using them
+                    const canInteractWithBlock = (
+                        targetMaterial &&
+                        targetMaterial.tags.includes('pot') &&
+                        cur_mat.tags.includes("can_put_info_pot")
+                    ) || targetMaterial.can_interact_with_hand;
+                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -500,8 +537,8 @@ export class Player {
     }
 
     // Teleport
-    teleport(place_id, pos) {
-        this.world.server.Teleport(place_id, pos);
+    teleport(place_id, pos, safe) {
+        this.world.server.Teleport(place_id, pos, safe);
     }
 
     // Returns the position of the eyes of the player for rendering.
@@ -547,7 +584,25 @@ export class Player {
 
     setFlying(value) {
         let pc = this.getPlayerControl();
+        pc.mul = 1;
         pc.player_state.flying = value;
+    }
+
+    //
+    changeSpectatorSpeed(value) {
+        if(!this.game_mode.isSpectator()) {
+            return false;
+        }
+        const pc = this.pr_spectator;
+        let mul = pc.mul ?? 1;
+        const multiplyer = 1.05;
+        if(value > 0) {
+            mul = Math.min(mul * multiplyer, 16);
+        } else {
+            mul = Math.max(mul / multiplyer, 0.05);
+        }
+        pc.mul = mul;
+        return true;
     }
 
     //
@@ -562,7 +617,7 @@ export class Player {
     update(delta) {
 
         // View
-        if(this.lastUpdate) {
+        if(this.lastUpdate && this.status !== PLAYER_STATUS_WAITING_DATA) {
 
             // for compatibility with renderHandsWithItems
             this.yBobO = this.yBob;
@@ -570,16 +625,8 @@ export class Player {
             this.xBob += (this.getXRot() - this.xBob) * 0.5;
             this.yBob += (this.getYRot() - this.yBob) * 0.5;
 
-            if(!this.overChunk) {
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if (!this.overChunk) {
-                // some kind of race F8+R
-                const blockPos = this.getBlockPos();
-                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if(!this.overChunk?.inited) {
+            const overChunk = this.getOverChunk();
+            if(!overChunk?.inited) {
                 return;
             }
             let isSpectator = this.game_mode.isSpectator();
@@ -669,7 +716,6 @@ export class Player {
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = this.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
@@ -748,6 +794,7 @@ export class Player {
             }
             case 'legs_enter_to_water': {
                 Qubatch.sounds.play('madcraft:environment', 'water_splash');
+                Qubatch.render.addParticles({type: 'bubble', pos: this.pos});
                 break;
             }
             case 'swim_under_water': {
@@ -761,7 +808,7 @@ export class Player {
                 // turn on 'Underwater_Ambience' sound
                 if(!this.underwater_track_id) {
                     Qubatch.sounds.play('madcraft:environment', 'entering_water');
-                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);
                 }
                 break;
             }
@@ -836,6 +883,7 @@ export class Player {
     }
 
     setDie() {
+        this.status = PLAYER_STATUS_DEAD;
         this.moving = false;
         this.running = false;
         this.controls.reset();

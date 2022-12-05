@@ -44,6 +44,8 @@ export class FluidChunk {
         this.databaseID = 0;
         this.inSaveQueue = false;
         this.queue = null;
+
+        this.lastSavedSize = 16384;
     }
 
     setValue(x, y, z, value) {
@@ -191,6 +193,7 @@ export class FluidChunk {
             arr.unshift(2);
             arr = new Uint8Array(arr);
         }
+        this.lastSavedSize = arr.length;
 
         this.savedID = this.updateID;
         return this.savedBuffer = arr;
@@ -242,6 +245,7 @@ export class FluidChunk {
         } else {
             //new version!
             arr = stateArr.subarray(1, uint8View.length);
+            this.lastSavedSize = arr.length;
             if (encodeType === 3) {
                 arr = ungzip(arr);
             }
@@ -389,7 +393,47 @@ export class FluidChunk {
                     }
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
-        this.propsID++;
+    }
+
+    applyDelta(deltaBuf, usePortals) {
+        const {cw, outerSize, pos, safeAABB, portals } = this.dataChunk;
+
+        this.updateID++;
+        this.markDirtyMesh();
+        for (let i = 0; i < deltaBuf.length; i += 3) {
+            let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
+            let val = deltaBuf[i + 2];
+            this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
+
+            if (!usePortals) {
+                continue;
+            }
+            let tmp = ind - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+
+            const wx = x + pos.x;
+            const wy = y + pos.y;
+            const wz = z + pos.z;
+
+            if (safeAABB.contains(wx, wy, wz)) {
+                continue;
+            }
+            let pcnt = 0;
+            for (let i = 0; i < portals.length; i++) {
+                if (portals[i].aabb.contains(wx, wy, wz)) {
+                    const other = portals[i].toRegion;
+                    other.rev.fluid.uint8View[other.indexByWorld(wx, wy, wz) * FLUID_STRIDE + OFFSET_FLUID] = val;
+                    other.rev.fluid.markDirtyMesh();
+                    pcnt++;
+                }
+            }
+        }
     }
 
     markDirtyMesh() {

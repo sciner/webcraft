@@ -1,10 +1,12 @@
-import {Color, getChunkAddr, Vector} from "./helpers.js";
+import {Color, getChunkAddr, Vector, unixTime} from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
+import {LineGeometry} from "./geom/LineGeometry.js";
+import {AABB} from "./core/AABB.js";
 
 const {mat4} = glMatrix;
 
@@ -21,7 +23,7 @@ export class PickAt {
         this.target_block       = {
             pos:                null,
             visible:            false,
-            mesh:               null
+            geom:               new LineGeometry()
         }
         //
         this.damage_block       = {
@@ -34,6 +36,8 @@ export class PickAt {
             prev_time:  null, // точное время, когда в последний раз было воздействие на блок
             start:      null
         }
+        this.targetDescription  = null;
+        this.visibleBlockHUD    = null;
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
         this.onInterractMob     = onInterractMob;
         this.onInteractFluid    = onInteractFluid;
@@ -44,6 +48,8 @@ export class PickAt {
         this.empty_matrix = mat4.create();
         this.raycaster = new Raycaster(this.world);
         this._temp_pos = new Vector(0, 0, 0);
+
+        this.target_block.geom.defColor = 0xFF000000;
     }
 
     get(pos, callback, pickat_distance, view_vector, ignore_transparent, return_fluid) {
@@ -55,6 +61,17 @@ export class PickAt {
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
+    }
+
+    // Used by other classes
+    getTargetBlock(player) {
+        if (!player.game_mode.canBlockAction()) {
+            return null;
+        }
+        // Get actual pick-at block
+        let pos = this.get(player.getEyePos(), null, 
+                player.game_mode.getPickatDistance(), player.forward, false);
+        return this.world.getBlock(pos);
     }
 
     // setEvent...
@@ -111,6 +128,8 @@ export class PickAt {
         // Get actual pick-at block
         let bPos = this.get(pos, null, pickat_distance, view_vector, false);
 
+        this.updateTargetDescription(bPos);
+
         // Detect interact with fluid
         if(bPos && bPos.fluidLeftTop) {
             if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
@@ -135,16 +154,16 @@ export class PickAt {
                 return;
             }
             damage_block.pos = bPos;
-            // Check if pick-at block changed
+            // Check if pick-at block changed, or HUD info visibility changed
             let tbp = target_block.pos;
-            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
+            const newVisibleBlockHUD = Qubatch.hud.isDrawingBlockInfo();
+            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z) ||
+                this.visibleBlockHUD !== newVisibleBlockHUD
+            ) {
+                this.visibleBlockHUD = newVisibleBlockHUD;
                 // 1. Target block
-                if(target_block.mesh) {
-                    target_block.mesh.destroy();
-                    target_block.mesh = null;
-                }
                 target_block.pos = bPos;
-                target_block.mesh = this.createTargetBuffer(bPos, TARGET_TEXTURES);
+                this.createTargetLines(bPos, target_block.geom);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
@@ -177,7 +196,7 @@ export class PickAt {
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
             let event = {...damage_block.event};
-            event.id = ~~(Date.now() / 1000);
+            event.id = unixTime();
             event.pos = {...damage_block.pos};
             event.pos.n = event.pos.n.clone();
             event.pos.point = event.pos.point.clone();
@@ -204,11 +223,10 @@ export class PickAt {
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         // 1. Target block
-        if(target_block.mesh && target_block.visible) {
-            const a_pos = half.add(this.target_block.pos);
-            render.renderBackend.drawMesh(target_block.mesh, this.material_target, a_pos, this.modelMatrix);
+        if(target_block.geom && target_block.visible) {
+            target_block.geom.draw(render.renderBackend);
         }
-        // 2. Damage block
+        // 2. Damage bl ock
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
 
             const matrix = mat4.create();
@@ -234,6 +252,23 @@ export class PickAt {
 
             render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, matrix || this.modelMatrix);
         }
+    }
+
+    createTargetLines(pos, geom) {
+        const aabbConfig = {isLocal: true, lineWidth: .25, colorBGRA: 0xFF000000};
+        let vertices    = [];
+        geom.clear();
+        geom.pos.copyFrom(pos);
+        let pp = 0;
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
+        let aabb = new AABB();
+        for (let i = 0; i < shapes.length; i++) {
+            aabb.set(...shapes[i]);
+            geom.addAABB(aabb, aabbConfig);
+        }
+        return new GeometryTerrain(vertices);
     }
 
     // createTargetBuffer...
@@ -296,6 +331,28 @@ export class PickAt {
                 pp, flags | sideFlags);
         }
         return new GeometryTerrain(vertices);
+    }
+
+    // for HUD
+    updateTargetDescription(pos) {
+        if (!Qubatch.hud.isDrawingBlockInfo()) {
+            this.targetDescription =null;
+            return;
+        }
+        pos = Vector.vectorify(pos);
+        const block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        if (block.id === BLOCK.DUMMY.id || block.id === BLOCK.AIR.id) {
+            this.targetDescription = null;
+            return;
+        }
+        this.targetDescription = {
+            worldPos: pos,
+            posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
+            chunkAddr: getChunkAddr(pos),
+            block: block.clonePOJO(),
+            material: block.material,
+            fluid: block.fluid
+        };
     }
 
     // createDamageBuffer...

@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../../www/js/chunk_const.js';
-import { getChunkAddr, Vector, VectorCollector } from '../../../www/js/helpers.js';
+import { getChunkAddr, Vector, VectorCollector, unixTime } from '../../../www/js/helpers.js';
 import { Mob } from "../../mob.js";
 
 export class DBWorldMob {
@@ -125,7 +125,7 @@ export class DBWorldMob {
             throw 'error_no_mob_pos';
         }
         const result = await this.conn.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn, extra_data) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn, :extra_data)', {
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':entity_id':       entity_id,
             ':type':            params.type,
             ':skin':            params.skin,
@@ -197,7 +197,7 @@ export class DBWorldMob {
             });
         } else {
             await this.conn.run('INSERT INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
-                ':dt':                  ~~(Date.now() / 1000),
+                ':dt':                  unixTime(),
                 ':addr':                chunk_addr_hash,
                 ':mobs_is_generated':   mobs_is_generated
             });

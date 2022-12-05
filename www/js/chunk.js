@@ -1,4 +1,4 @@
-import {getChunkAddr, makeChunkEffectID, Vector, VectorCollector} from "./helpers.js";
+import { Vector } from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
@@ -36,6 +36,7 @@ export class Chunk {
 
         // Fluid
         this.fluid_buf = null;
+        this.fluid_deltas = [];
 
         // Objects & variables
         this.inited = false;
@@ -75,6 +76,10 @@ export class Chunk {
                 dataId: this.getDataTextureOffset()
             }
         ]]);
+
+        this.packedCells = null;
+        this.firstTimeBuilt = false;
+        this.need_apply_vertices = false;
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -87,6 +92,7 @@ export class Chunk {
             return;
         }
         this.tblocks = newTypedBlocks(this.coord, this.size);
+        this.packedCells = args.packedCells || null;
         chunkManager.dataWorld.addChunk(this);
         if (args.tblocks) {
             this.tblocks.restoreState(args.tblocks);
@@ -95,6 +101,10 @@ export class Chunk {
             this.fluid.loadDbBuffer(this.fluid_buf);
             this.fluid_buf = null;
         }
+        for (let i = 0; i < this.fluid_deltas.length; i++) {
+            this.fluid.applyDelta(this.fluid_deltas[i]);
+        }
+        this.fluid_deltas = null;
         //
         const mods_arr = chunkManager.chunk_modifiers.get(this.addr);
         if (mods_arr) {
@@ -112,11 +122,16 @@ export class Chunk {
     onVerticesGenerated(args) {
         this.vertices_args = args;
         this.need_apply_vertices = true;
+
+        if (!this.firstTimeBuilt && this.fluid) {
+            this.firstTimeBuilt = true;
+            if (this.fluid) {
+                this.chunkManager.fluidWorld.startMeshing(this.fluid);
+            }
+        }
+
         if (!this.dirt_colors) {
             this.dirt_colors = args.dirt_colors;
-        }
-        if (!this.map) {
-            this.map = args.map;
         }
     }
 
@@ -187,6 +202,7 @@ export class Chunk {
             {
                 addr: this.addr,
                 size: this.size,
+                uniqId: this.uniqId,
                 light_buffer: this.genLightSourceBuf().buffer,
                 dataId: this.getDataTextureOffset()
             }]);
@@ -374,9 +390,9 @@ export class Chunk {
         // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
         // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
-        const PARTICLE_EFFECTS_ID = makeChunkEffectID(this.addr, null);
-        Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
-        Qubatch.render.meshes.removeForChunk(this.addr);
+        Qubatch.render.meshes.removeForChunk(this.addr, this.aabb);
+        // Destroy playing discs
+        TrackerPlayer.destroyAllInAABB(this.aabb);
     }
 
     // Build vertices
@@ -484,46 +500,6 @@ export class Chunk {
                 rotate: rotate,
                 extra_data: extra_data
             });
-            // Принудительная перерисовка соседних чанков
-            let update_neighbours = [];
-            if (x == 0) update_neighbours.push(new Vector(-1, 0, 0));
-            if (x == this.size.x - 1) update_neighbours.push(new Vector(1, 0, 0));
-            if (y == 0) update_neighbours.push(new Vector(0, -1, 0));
-            if (y == this.size.y - 1) update_neighbours.push(new Vector(0, 1, 0));
-            if (z == 0) update_neighbours.push(new Vector(0, 0, -1));
-            if (z == this.size.z - 1) update_neighbours.push(new Vector(0, 0, 1));
-            // diagonal
-            if (x == 0 && z == 0) update_neighbours.push(new Vector(-1, 0, -1));
-            if (x == this.size.x - 1 && z == 0) update_neighbours.push(new Vector(1, 0, -1));
-            if (x == 0 && z == this.size.z - 1) update_neighbours.push(new Vector(-1, 0, 1));
-            if (x == this.size.x - 1 && z == this.size.z - 1) update_neighbours.push(new Vector(1, 0, 1));
-            // Добавляем выше и ниже
-            let update_neighbours2 = [];
-            for (let i = 0; i < update_neighbours.length; i++) {
-                const update_neighbour = update_neighbours[i];
-                update_neighbours2.push(update_neighbour.add(new Vector(0, -1, 0)));
-                update_neighbours2.push(update_neighbour.add(new Vector(0, 1, 0)));
-            }
-            update_neighbours.push(...update_neighbours2);
-            let updated_chunks = new VectorCollector();
-            updated_chunks.set(this.addr, true);
-            let _chunk_addr = new Vector(0, 0, 0);
-            for (let i = 0; i < update_neighbours.length; i++) {
-                const update_neighbour = update_neighbours[i];
-                let pos = new Vector(x, y, z).addSelf(this.coord).addSelf(update_neighbour);
-                _chunk_addr = getChunkAddr(pos, _chunk_addr);
-                // чтобы не обновлять один и тот же чанк дважды
-                if (!updated_chunks.has(_chunk_addr)) {
-                    updated_chunks.set(_chunk_addr);
-                    set_block_list.push({
-                        pos,
-                        type: null,
-                        is_modify: is_modify,
-                        power: power,
-                        rotate: rotate
-                    });
-                }
-            }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }
@@ -550,6 +526,7 @@ export class Chunk {
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
+        const blockModifierListeners = chunkManager.getWorld().blockModifierListeners;
         const use_light = this.inited && chunkManager.use_light;
         const tblock_pos = new Vector(Infinity, Infinity, Infinity);
         let material = null;
@@ -595,6 +572,9 @@ export class Chunk {
                     lightList.push(tblock_pos.x, tblock_pos.y, tblock_pos.z, light);
                     // updating light here
                 }
+            }
+            for(let listener of blockModifierListeners) {
+                listener(tblock);
             }
         }
         if (lightList.length > 0) {
@@ -643,12 +623,22 @@ export class Chunk {
         if (this.inited) {
             this.fluid.markDirtyMesh();
             this.beginLightChanges();
-            //TODO: make it diff!
             this.fluid.loadDbBuffer(buf, false);
             this.endLightChanges();
             this.chunkManager.dataWorld.syncOuter(this);
         } else {
             this.fluid_buf = buf;
+        }
+    }
+
+    setFluidDelta(buf) {
+        if (this.inited) {
+            this.beginLightChanges();
+            //TODO: make it diff!
+            this.fluid.applyDelta(buf, true);
+            this.endLightChanges();
+        } else {
+            this.fluid_deltas.push(buf);
         }
     }
 }

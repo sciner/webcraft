@@ -317,7 +317,7 @@ export class GlobalUniformGroup {
         this.useNormalMap = false;
 
         this.localLigthRadius = 0;
-        this.lightOverride = 0;
+        this.lightOverride = -1;
     }
 
     update() {
@@ -712,6 +712,10 @@ export default class BaseRenderer {
     }
 
     createShader(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createLineShader(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 

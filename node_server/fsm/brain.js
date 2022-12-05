@@ -180,6 +180,7 @@ export class FSMBrain {
         this.is_fire = (alegs.id == BLOCK.FIRE.id || alegs.id == BLOCK.CAMPFIRE.id);
         this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
         this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        this.is_gate = ahead.id != BLOCK.AIR.id;
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {

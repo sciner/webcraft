@@ -1,5 +1,6 @@
 import {BLOCK, ITEM_INVENTORY_PROPS, ITEM_INVENTORY_KEY_PROPS} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
+import {deepEqualProps, deepEqualNestedProps} from "./helpers.js"
 
 export class InventoryComparator {
 
@@ -56,6 +57,13 @@ export class InventoryComparator {
         return true;
     }
 
+    /** Compares lists exactly - item stacks must match. */
+    static listsExactEqual(listA, listB) {
+        return deepEqualNestedProps(listA, listB, ITEM_INVENTORY_PROPS);
+    }
+
+    /* Compares total quantities of each item, regardless of their invetory positions
+    and split between stacks. */
     static async checkEqual(old_items, new_items, used_recipes) {
 
         const rm = await InventoryComparator.getRecipeManager();
@@ -128,7 +136,7 @@ export class InventoryComparator {
                     equal = false;
                     break;
                 }
-                if(!InventoryComparator.itemsIsEqual(old_item, item)) {
+                if(!deepEqualProps(old_item, item, ITEM_INVENTORY_PROPS)) {
                     console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                     equal = false;
                     break;
@@ -146,31 +154,6 @@ export class InventoryComparator {
         InventoryComparator.rm = new RecipeManager();
         await InventoryComparator.rm.load(() => {});
         return InventoryComparator.rm;
-    }
-
-    //
-    static itemsIsEqual(old_item, new_item) {
-        //
-        function isObject(object) {
-            return object != null && typeof object === 'object';
-        }
-        //
-        function deepEqual(object1, object2) {
-            const keys1 = Object.keys(object1);
-            for (const key of keys1) {
-                if(ITEM_INVENTORY_PROPS.indexOf(key) < 0) {
-                    continue;
-                }
-                const val1 = object1[key];
-                const val2 = object2[key];
-                const areObjects = isObject(val1) && isObject(val2);
-                if (areObjects && !deepEqual(val1, val2) || !areObjects && val1 !== val2) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return deepEqual(new_item, old_item);
     }
 
     //

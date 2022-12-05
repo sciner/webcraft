@@ -1493,6 +1493,15 @@
             "inventory_style": "extruder",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
             "texture": "block/grass.png",
+            "texture_variants2": [
+                "block/grass/grass1.png",
+                "block/grass/grass2.png",
+                "block/grass/grass3.png",
+                "block/grass/grass4.png",
+                "block/grass/grass5.png",
+                "block/grass/grass6.png",
+                "block/grass/grass7.png"
+            ],
             "material": {
                 "id": "plant"
             },
@@ -1957,7 +1966,8 @@
             "tags": [
                 "layering",
                 "is_solid_for_fluid",
-                "no_drop_ao"
+                "no_drop_ao",
+                "no_drop"
             ]
         },
         {
@@ -2948,7 +2958,8 @@
             "sound": "madcraft:block.stone",
             "window": "frmFurnace",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 3,
+            "readonly_chest_slots": 1,
             "is_dynamic_light": true,
             "ticking": {
                 "type": "furnace"
@@ -2977,7 +2988,7 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 9,
             "material": {
                 "id": "stone"
             },
@@ -2995,7 +3006,7 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 9,
             "material": {
                 "id": "stone"
             },
@@ -3042,7 +3053,7 @@
             "width": 0.875,
             "height": 0.875,
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 27,
             "transparent": true,
             "style": "chest",
             "sound": "madcraft:block.chest",
@@ -3052,7 +3063,8 @@
             },
             "texture": {
                 "id": "entity",
-                "side": "entity/chest/normal.png"
+                "side": "entity/chest/normal.png",
+                "right": "entity/chest/normal_right.png"
             }
         },
         {
@@ -3060,7 +3072,7 @@
             "name": "ENDER_CHEST",
             "window": "frmEnderChest",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 27,
             "style": "chest",
             "transparent": true,
             "sound": "madcraft:block.ender_chest",
@@ -3084,7 +3096,7 @@
             "name": "BARREL",
             "window": "frmBarrel",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 27,
             "transparent": true,
             "sound": "madcraft:block.barrel",
             "can_rotate": true,
@@ -3522,6 +3534,28 @@
                 "up": "block/tall_grass_top.png",
                 "down": "block/tall_grass_bottom.png"
             },
+            "texture_variants2": [
+                {
+                    "up": "block/tall_grass/tall_grass1_top.png",
+                    "down": "block/tall_grass/tall_grass1_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass2_top.png",
+                    "down": "block/tall_grass/tall_grass2_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass3_top.png",
+                    "down": "block/tall_grass/tall_grass3_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass4_top.png",
+                    "down": "block/tall_grass/tall_grass4_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass5_top.png",
+                    "down": "block/tall_grass/tall_grass5_bottom.png"
+                }
+            ],
             "material": {
                 "id": "plant"
             },
@@ -4068,6 +4102,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/carrot.png",
             "food": {
                 "amount": 3,
@@ -4083,6 +4120,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.3
@@ -4409,6 +4449,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/wheat.png"
         },
         {
@@ -4420,6 +4463,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -4848,7 +4894,8 @@
             "sound": "madcraft:block.stone",
             "window": "frmNotImplemented",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 3,
+            "readonly_chest_slots": 1,
             "can_rotate": true,
             "material": {
                 "id": "stone"
@@ -5078,7 +5125,7 @@
             "window": "frmChargingStation",
             "sound": "madcraft:block.charging_station",
             "is_entity": true,
-            "is_chest": true,
+            "chest_slots": 7,
             "can_rotate": true,
             "material": {
                 "id": "iron"
@@ -5149,7 +5196,10 @@
             "item": {"name": "bone_meal"},
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 1421,
@@ -5161,6 +5211,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.1
@@ -5176,6 +5229,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.1
@@ -5190,7 +5246,10 @@
             "item": {"name": "food"},
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 1424,
@@ -5302,6 +5361,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.3
@@ -5328,6 +5390,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.1
@@ -5343,6 +5408,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 6,
                 "saturation": 0.6
@@ -5359,6 +5427,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.3
@@ -5374,6 +5445,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 6,
                 "saturation": 0.8
@@ -5390,6 +5464,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5405,6 +5482,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -5421,6 +5501,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5436,6 +5519,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.8
@@ -5452,6 +5538,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 3,
                 "saturation": 0.3
@@ -5467,6 +5556,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 8,
                 "saturation": 0.8
@@ -5521,6 +5613,9 @@
             "material": {
                 "id": "plant"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 2,
                 "saturation": 0.3
@@ -6729,7 +6824,10 @@
             },
             "material": {
                 "id": "food"
-            }
+            },
+            "tags": [
+                "can_put_info_pot"
+            ]
         },
         {
             "id": 33,
@@ -6960,6 +7058,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 1,
                 "saturation": 0.3
@@ -6975,6 +7076,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 5,
                 "saturation": 0.6
@@ -7388,6 +7492,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "texture": "item/beetroot.png"
         },
         {
@@ -7399,6 +7506,9 @@
             "material": {
                 "id": "food"
             },
+            "tags": [
+                "can_put_info_pot"
+            ],
             "food": {
                 "amount": 4,
                 "saturation": 0.3

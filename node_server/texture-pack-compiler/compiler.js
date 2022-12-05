@@ -137,173 +137,191 @@ export class Compiler {
             //
             block.tags = block.tags ?? [];
 
+            block.flammable = this.flammable_blocks.get(block.name) ?? false;
+
+            // Auto add tags
+            const tags = block.tags = block.tags || [];
+            if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
+                block.tags.push('no_drop_ao');
+            }
+            if(tags.includes('log') && !block.coocked_item) {
+                block.coocked_item = {name: 'CHARCOAL', count: 1};
+            }
+
             //
             if('texture' in block) {
+
                 console.log(++num_blocks, block.name);
-                block.flammable = this.flammable_blocks.get(block.name) ?? false;
+                
                 if(Array.isArray(block.texture)) {
                     throw 'error_invalid_texture_declaration1';
                 }
+
                 const spritesheet_id = block.texture?.id ?? 'default';
                 const spritesheet = this.getSpritesheet(spritesheet_id);
-                if(typeof block.texture === 'string' || block.texture instanceof String) {
-                    block.texture = {side: block.texture};
-                }
-                // Auto add tags
-                const tags = block.tags = block.tags || [];
-                if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
-                    block.tags.push('no_drop_ao');
-                }
-                if(tags.includes('log') && !block.coocked_item) {
-                    block.coocked_item = {name: 'CHARCOAL', count: 1};
-                }
-                //
-                for(let tid in block.texture) {
-                    const value = block.texture[tid];
-                    if(Array.isArray(value)) {
-                        throw 'error_invalid_texture_declaration2';
-                    }
-                    if(tid == 'id') {
-                        continue
-                    }
-                    if(!tmpContext) {
-                        tmpCnv = new skiaCanvas.Canvas(spritesheet.tx_sz, spritesheet.tx_sz);
-                        tmpContext = tmpCnv.getContext('2d');
-                        tmpContext.imageSmoothingEnabled = false;
+
+                const opTextures = async (obj, texture_key) => {
+                    
+                    if(typeof obj[texture_key] === 'string' || obj[texture_key] instanceof String) {
+                        obj[texture_key] = {side: obj[texture_key]};
                     }
 
-                    let tex = spritesheet.textures.get(value);
-                    if(value.indexOf('|') >= 0) {
-                        const pos_arr = value.split('|');
-                        tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
-                    }
-                    let x_size = 1;
-                    let y_size = 1;
-                    const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
-                    const compile = block.compile;
-                    if(!tex) {
-                        const img = await spritesheet.loadTex(value);
-                        //
-                        if(img.texture.width == 16) {
-                            const scale = 2;
-                            const temp = new skiaCanvas.Canvas(img.texture.width * scale, img.texture.height * scale);
-                            const ctx = temp.getContext('2d');
-                            ctx.imageSmoothingEnabled = false;
-                            ctx.drawImage(
-                                img.texture,
-                                0, 0, img.texture.width, img.texture.height,
-                                0, 0, img.texture.width * scale, img.texture.height * scale
-                            );
-                            img.texture = temp;
+                    //
+                    for(let tid in obj[texture_key]) {
+                        const value = obj[texture_key][tid];
+                        if(Array.isArray(value)) {
+                            throw 'error_invalid_texture_declaration2';
                         }
-                        //
-                        if(block.name == BLOCK_NAMES.DIRT) {
-                            dirt_image = img.texture;
+                        if(tid == 'id') {
+                            continue
                         }
-                        //
-                        x_size = Math.min(Math.ceil(img.texture.width / spritesheet.tx_sz), spritesheet.tx_cnt);
-                        y_size = Math.min(Math.ceil(img.texture.height / spritesheet.tx_sz), spritesheet.tx_cnt);
-                        //
-                        if(has_mask) {
-                            x_size *= 2;
+                        if(!tmpContext) {
+                            tmpCnv = new skiaCanvas.Canvas(spritesheet.tx_sz, spritesheet.tx_sz);
+                            tmpContext = tmpCnv.getContext('2d');
+                            tmpContext.imageSmoothingEnabled = false;
                         }
-                        if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                            y_size *= 2;
+    
+                        let tex = spritesheet.textures.get(value);
+                        if(value.indexOf('|') >= 0) {
+                            const pos_arr = value.split('|');
+                            tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
                         }
-                        //
-                        const pos = spritesheet.findPlace(block, x_size, y_size);
-                        tex = {
-                            img: img.texture,
-                            n: img.n || this.default_n,
-                            pos,
-                            has_mask,
-                            x_size,
-                            y_size
-                        };
-                        spritesheet.textures.set(value, tex);
-                        if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
-                            spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
-                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y);
-                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
-                            spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'source-over');
-                            spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'difference');
-                            spritesheet.drawTexture(tex.img, tex.pos.x + 1, tex.pos.y, false, 'source-over');
-                            // grass head shadow
-                            const canvas = new skiaCanvas.Canvas(tex.img.width, tex.img.height);
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(tex.img, 0, 0, tex.img.width, tex.img.height);
-                            spritesheet.ctx.globalCompositeOperation = 'source-over';
-                            spritesheet.ctx.fillStyle = '#00000065';
-                            for(let i = 0; i < tex.img.width; i++) {
-                                for(let j = 0; j < tex.img.height; j++) {
-                                    const pix = ctx.getImageData(i, j, 1, 1).data;
-                                    if(pix[3] == 0) {
-                                        const x = tex.pos.x * spritesheet.tx_sz + i;
-                                        const y = tex.pos.y * spritesheet.tx_sz + j;
-                                        spritesheet.ctx.fillRect(x, y, 1, 1);
-                                        spritesheet.ctx.fillRect(x, y + 1, 1, 1);
-                                        break;
+                        let x_size = 1;
+                        let y_size = 1;
+                        const has_mask = tags.includes('mask_biome') || tags.includes('mask_color');
+                        const compile = block.compile;
+                        if(!tex) {
+                            const img = await spritesheet.loadTex(value);
+                            //
+                            if(img.texture.width == 16) {
+                                const scale = 2;
+                                const temp = new skiaCanvas.Canvas(img.texture.width * scale, img.texture.height * scale);
+                                const ctx = temp.getContext('2d');
+                                ctx.imageSmoothingEnabled = false;
+                                ctx.drawImage(
+                                    img.texture,
+                                    0, 0, img.texture.width, img.texture.height,
+                                    0, 0, img.texture.width * scale, img.texture.height * scale
+                                );
+                                img.texture = temp;
+                            }
+                            //
+                            if(block.name == BLOCK_NAMES.DIRT) {
+                                dirt_image = img.texture;
+                            }
+                            //
+                            x_size = Math.min(Math.ceil(img.texture.width / spritesheet.tx_sz), spritesheet.tx_cnt);
+                            y_size = Math.min(Math.ceil(img.texture.height / spritesheet.tx_sz), spritesheet.tx_cnt);
+                            //
+                            if(has_mask) {
+                                x_size *= 2;
+                            }
+                            if(block.name == BLOCK_NAMES.MOB_SPAWN) {
+                                y_size *= 2;
+                            }
+                            //
+                            const pos = spritesheet.findPlace(block, x_size, y_size);
+                            tex = {
+                                img: img.texture,
+                                n: img.n || this.default_n,
+                                pos,
+                                has_mask,
+                                x_size,
+                                y_size
+                            };
+                            spritesheet.textures.set(value, tex);
+                            if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
+                                spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y);
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
+                                spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'source-over');
+                                spritesheet.drawTexture(dirt_image, tex.pos.x + 1, tex.pos.y, false, 'difference');
+                                spritesheet.drawTexture(tex.img, tex.pos.x + 1, tex.pos.y, false, 'source-over');
+                                // grass head shadow
+                                const canvas = new skiaCanvas.Canvas(tex.img.width, tex.img.height);
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(tex.img, 0, 0, tex.img.width, tex.img.height);
+                                spritesheet.ctx.globalCompositeOperation = 'source-over';
+                                spritesheet.ctx.fillStyle = '#00000065';
+                                for(let i = 0; i < tex.img.width; i++) {
+                                    for(let j = 0; j < tex.img.height; j++) {
+                                        const pix = ctx.getImageData(i, j, 1, 1).data;
+                                        if(pix[3] == 0) {
+                                            const x = tex.pos.x * spritesheet.tx_sz + i;
+                                            const y = tex.pos.y * spritesheet.tx_sz + j;
+                                            spritesheet.ctx.fillRect(x, y, 1, 1);
+                                            spritesheet.ctx.fillRect(x, y + 1, 1, 1);
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                        } else if(block.name == BLOCK_NAMES.MOB_SPAWN) {
-                            const img_glow = (await spritesheet.loadTex('block/spawner_glow.png')).texture;
-                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
-                            spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
-                            spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
-                        } else {
-                            await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null, null, compile);
-                            await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
-                        }
-                    }
-
-                    // calculate animation frames
-                    if(block.texture_animations && tex.img) {
-                        if(tid in block.texture_animations) {
-                            if(block.texture_animations[tid] === null) {
-                                block.texture_animations[tid] = Math.min(tex.img.height / spritesheet.tx_sz, spritesheet.tx_cnt);
+                            } else if(block.name == BLOCK_NAMES.MOB_SPAWN) {
+                                const img_glow = (await spritesheet.loadTex('block/spawner_glow.png')).texture;
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask);
+                                spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y + 1, has_mask);
+                                spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
+                            } else {
+                                await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null, null, compile);
+                                await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                             }
                         }
-                    }
-
-                    // check compile rules
-                    if(compile) {
-                        const ctx = spritesheet.ctx;
-                        const x = tex.pos.x * spritesheet.tx_sz;
-                        const y = tex.pos.y * spritesheet.tx_sz;
-                        const w = spritesheet.tx_sz;
-                        const h = spritesheet.tx_sz;
-                        // overlay color
-                        if(compile.overlay_color) {
-                            ctx.drawImage(this.imageOverlay(tex.img, compile.overlay_color, w, h), x, y, w, h);
+    
+                        // calculate animation frames
+                        if(block.texture_animations && tex.img) {
+                            if(tid in block.texture_animations) {
+                                if(block.texture_animations[tid] === null) {
+                                    block.texture_animations[tid] = Math.min(tex.img.height / spritesheet.tx_sz, spritesheet.tx_cnt);
+                                }
+                            }
+                        }
+    
+                        // check compile rules
+                        if(compile) {
+                            const ctx = spritesheet.ctx;
+                            const x = tex.pos.x * spritesheet.tx_sz;
+                            const y = tex.pos.y * spritesheet.tx_sz;
+                            const w = spritesheet.tx_sz;
+                            const h = spritesheet.tx_sz;
+                            // overlay color
+                            if(compile.overlay_color) {
+                                ctx.drawImage(this.imageOverlay(tex.img, compile.overlay_color, w, h), x, y, w, h);
+                            }
+                            //
+                            if(compile.layers) {
+                                for(let layer of compile.layers) {
+                                    const layer_img = await spritesheet.loadTex(layer.image);
+                                    ctx.drawImage(this.imageOverlay(layer_img.texture, layer.overlay_color, w, h), x, y, w, h);
+                                }
+                            }
                         }
                         //
-                        if(compile.layers) {
-                            for(let layer of compile.layers) {
-                                const layer_img = await spritesheet.loadTex(layer.image);
-                                ctx.drawImage(this.imageOverlay(layer_img.texture, layer.overlay_color, w, h), x, y, w, h);
+                        obj[texture_key][tid] = [tex.pos.x, tex.pos.y];
+                        // check big size textures
+                        const tex_slot_count = has_mask ? tex.x_size/2 : tex.x_size;
+                        if(tex_slot_count > 1) {
+                            if(obj[texture_key][tid].length == 2) obj[texture_key][tid].push(0);
+                            obj[texture_key][tid].push(tex_slot_count);
+                        }
+    
+                        // check compile rules
+                        if(block.compile) {
+                            const compile = block.compile;
+                            if(compile.add_3pos) {
+                                // add third part for texture position
+                                let param = compile.add_3pos[tid];
+                                if(typeof param != 'undefined') {
+                                    obj[texture_key][tid].push(param);
+                                }
                             }
                         }
                     }
-                    //
-                    block.texture[tid] = [tex.pos.x, tex.pos.y];
-                    // check big size textures
-                    const tex_slot_count = has_mask ? tex.x_size/2 : tex.x_size;
-                    if(tex_slot_count > 1) {
-                        if(block.texture[tid].length == 2) block.texture[tid].push(0);
-                        block.texture[tid].push(tex_slot_count);
-                    }
+                };
 
-                    // check compile rules
-                    if(block.compile) {
-                        const compile = block.compile;
-                        if(compile.add_3pos) {
-                            // add third part for texture position
-                            let param = compile.add_3pos[tid];
-                            if(typeof param != 'undefined') {
-                                block.texture[tid].push(param);
-                            }
-                        }
+                await opTextures(block, 'texture');
+
+                if('texture_variants' in block) {
+                    for(let k in block.texture_variants) {
+                        await opTextures(block.texture_variants, k);
                     }
                 }
 

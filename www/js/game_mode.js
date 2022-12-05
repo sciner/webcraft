@@ -32,6 +32,15 @@ export class GameMode {
         return this.current;
     }
 
+    getById(game_mode_id) {
+        for(let mode of this.modes) {
+            if (mode.id == game_mode_id) {
+                return mode;
+            }
+        }
+        return null;
+    }
+
     // Игрок может получить урон
     mayGetDamaged() {
         return [GAME_MODE.SURVIVAL, GAME_MODE.ADVENTURE].indexOf(this.getCurrent().id) >= 0;

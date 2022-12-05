@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color} from "./helpers.js";
-import {CHUNK_SIZE_X, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
+import {CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -18,7 +18,7 @@ import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 // import { InHandOverlay } from "./ui/inhand_overlay_old.js";
-import { Environment, PRESET_NAMES } from "./environment.js";
+import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -26,6 +26,8 @@ import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from 
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
+import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import {LineGeometry} from "./geom/LineGeometry.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -39,10 +41,10 @@ export const ZOOM_FACTOR        = 0.25;
 const BACKEND                   = 'webgl'; // disable webgpu temporary because require update to follow webgl
 const FOV_CHANGE_SPEED          = 75;
 const FOV_FLYING_CHANGE_SPEED   = 35;
-const FOV_NORMAL                = 70;
-const FOV_FLYING                = FOV_NORMAL * 1.075;
-const FOV_WIDE                  = FOV_NORMAL * 1.15;
-const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
+export const DEFAULT_FOV_NORMAL = 70;
+const FOV_FLYING_FACTOR         = 1.075;
+const FOV_WIDE_FACTOR           = 1.15;
+const FOV_ZOOM                  = DEFAULT_FOV_NORMAL * ZOOM_FACTOR;
 const NEAR_DISTANCE             = (2 / 16) * PLAYER_ZOOM;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
@@ -81,7 +83,7 @@ export class Renderer {
 
         this.camera = new Camera({
             type: Camera.PERSP_CAMERA,
-            fov: FOV_NORMAL,
+            fov: DEFAULT_FOV_NORMAL,
             min: NEAR_DISTANCE,
             max: RENDER_DISTANCE,
             scale: 0.05, // ortho scale
@@ -122,27 +124,6 @@ export class Renderer {
         return self.requestAnimationFrame(callback);
     }
 
-    /**
-     * @deprecated Use camera valies direcly
-     */
-    get fov() {
-        return this.camera.fov;
-    }
-
-    /**
-     * @deprecated Use camera valies direcly
-     */
-    get max() {
-        return this.camera.max;
-    }
-
-    /**
-     * @deprecated Use camera valies direcly
-     */
-    get min() {
-        return this.camera.min;
-    }
-
     get gl() {
         return this.renderBackend.gl;
     }
@@ -151,6 +132,7 @@ export class Renderer {
     // GO TO PROMISE
     async init(world, settings) {
         this.setWorld(world);
+        this.settings = settings;
 
         const {renderBackend} = this;
 
@@ -173,7 +155,7 @@ export class Renderer {
         this.env.init(this);
 
         this.videoCardInfoCache = null;
-        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
+        this.options            = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
 
         this.env.setBrightness(1);
         renderBackend.resize(this.canvas.width, this.canvas.height);
@@ -219,7 +201,8 @@ export class Renderer {
         this.viewMatrix         = this.globalUniforms.viewMatrix;
         this.camPos             = this.globalUniforms.camPos;
 
-        this.setPerspective(FOV_NORMAL, NEAR_DISTANCE, RENDER_DISTANCE);
+        settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
+        this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
         this.updateViewport();
 
         // HUD
@@ -272,6 +255,8 @@ export class Renderer {
         // Restore binding
         this.maskColorTex.bind(1);
 
+        this.debugGeom = new LineGeometry();
+        this.debugGeom.pos = this.camPos;
     }
 
     // Generate drop item vertices
@@ -611,7 +596,28 @@ export class Renderer {
         if(player.eyes_in_block) {
             if(player.eyes_in_block.is_water) {
                 preset = PRESET_NAMES.WATER;
-                blockDist = 8; //
+                blockDist = 8;
+
+                const p = FOG_PRESETS[preset];
+                const cm = this.world.chunkManager;
+                const chunk = cm.getChunk(player.chunkAddr);
+                if(chunk?.inited) {
+                    const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X;
+                    const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z;
+                    const cell_index = z * CHUNK_SIZE_X + x;
+                    const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 2];
+                    const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 3];
+                    const color = this.maskColorTex.getColorAt(x_pos, y_pos)
+                    p.color[0] = color.r / 255;
+                    p.color[1] = color.g / 255;
+                    p.color[2] = color.b / 255;
+                    p.addColor[0] = color.r / 255;
+                    p.addColor[1] = color.g / 255;
+                    p.addColor[2] = color.b / 255;
+                    this.env.presets[preset] = new FogPreset(p);
+                    this.env._fogDirty = true;
+                }
+
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;
                 blockDist = 6; //
@@ -686,6 +692,8 @@ export class Renderer {
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.update();
 
+        this.debugGeom.clear();
+
         renderBackend.beginPass({
             fogColor : this.env.interpolatedClearValue
         });
@@ -729,6 +737,19 @@ export class Renderer {
                 }
             }
         }
+
+        const overChunk = player.getOverChunk();
+        if (overChunk && this.world.chunkManager.draw_debug_grid) {
+            // this.debugGeom.addLine(player.blockPos, overChunk.coord, {});
+            this.debugGeom.addBlockGrid({
+                pos:        overChunk.coord,
+                size:       overChunk.size,
+                lineWidth:  .15,
+                colorBGRA:  0xFF00FF00,
+            })
+        }
+        this.debugGeom.draw(renderBackend);
+
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !Qubatch.free_cam) {
@@ -846,7 +867,7 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.in_frustum) {
-                mob.draw(this, pos_of_interest, delta);
+                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
             }
         }
     }
@@ -1028,7 +1049,7 @@ export class Renderer {
             this.viewportHeight = actual_height | 0;
 
             // Update perspective projection based on new w/h ratio
-            this.setPerspective(this.fov, this.min, this.max);
+            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max);
         }
     }
 
@@ -1180,23 +1201,23 @@ export class Renderer {
 
     // updateFOV...
     updateFOV(delta, zoom, running, flying) {
-        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED} = this.options;
-        let target_fov = FOV_NORMAL;
+        const {FOV_WIDE_FACTOR, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED} = this.options;
+        let target_fov = this.settings.fov;
         let new_fov = null;
         if(zoom) {
             target_fov = FOV_ZOOM;
         } else {
             if(running) {
-                target_fov = FOV_WIDE;
+                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_WIDE_FACTOR - 1);
             } else if(flying) {
-                target_fov = FOV_FLYING;
+                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_FLYING_FACTOR - 1);
             }
         }
-        if(this.fov < target_fov) {
-            new_fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, target_fov);
+        if(this.camera.fov < target_fov) {
+            new_fov = Math.min(this.camera.fov + FOV_CHANGE_SPEED * delta, target_fov);
         }
-        if(this.fov > target_fov) {
-            new_fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, target_fov);
+        if(this.camera.fov > target_fov) {
+            new_fov = Math.max(this.camera.fov - FOV_CHANGE_SPEED * delta, target_fov);
         }
         if(new_fov !== null) {
             this.setPerspective(new_fov, NEAR_DISTANCE, RENDER_DISTANCE);

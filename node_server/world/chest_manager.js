@@ -3,7 +3,13 @@ import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
-import { DEFAULT_CHEST_SLOT_COUNT } from "../../www/js/constant.js";
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../../www/js/constant.js";
+import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
+    INVENTORY_CHANGE_CLEAR_DRAG_ITEM, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
+
+const CHANGE_RESULT_FLAG_CHEST = 1;
+const CHANGE_RESULT_FLAG_SECOND_CHEST = 2;
+const CHANGE_RESULT_FLAG_INVENTORY = 4;
 
 export class WorldChestManager {
 
@@ -12,9 +18,9 @@ export class WorldChestManager {
     }
 
     /**
-     * Return chest by pos
+     * Returns a vaild chest by pos, or throws an exception
      * @param {Vector} pos
-     * @returns Chest|null
+     * @returns Chest
      */
     async get(pos) {
         const tblock = this.world.getBlock(pos);
@@ -24,7 +30,26 @@ export class WorldChestManager {
         if(!tblock.material?.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
-        if(tblock.extra_data?.generate) {
+        if(tblock.extra_data.generate) {
+            const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
+            tblock.extra_data = params.item.extra_data;
+        }
+        return tblock;
+    }
+
+    /**
+     * Returns a vaild chest by pos, or null
+     * @param {Vector} pos
+     * @returns Chest|null
+     */
+    async getOrNull(pos) {
+        const tblock = this.world.getBlock(pos);
+        if (!tblock || tblock.id < 1 ||
+            !tblock.material?.is_chest || !tblock.extra_data
+        ) {
+            return null;
+        }
+        if (tblock.extra_data.generate) {
             const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
             tblock.extra_data = params.item.extra_data;
         }
@@ -32,82 +57,434 @@ export class WorldChestManager {
     }
 
     //
-    async confirmPlayerAction(player, pos, params) {
+    async confirmPlayerAction(player, params) {
 
-        const tblock_chest = await this.get(pos);
-        const is_ender_chest = tblock_chest.material.name == 'ENDER_CHEST';
+        function combineChests(chest, secondChest) {
+            if (secondChest == null) {
+                return chest.slots;
+            }
+            var result = { ...chest.slots };
+            for(var k in secondChest.slots) {
+                k = parseFloat(k)
+                result[k + DEFAULT_CHEST_SLOT_COUNT] = secondChest.slots[k];
+            }
+            return result;
+        }
 
+        var incorrectParams = false;
+
+        // load both chests at the same time
+        const pos = params.chest.pos;
+        const tblockPromise = this.getOrNull(pos);
+        var secondPos = null;
+        var secondTblock = null;
+        if (params.secondChest) {
+            secondPos = params.secondChest.pos;
+            secondTblock = await this.getOrNull(secondPos);
+            incorrectParams |= secondTblock == null || secondTblock.material.name !== 'CHEST';
+        }            
+        const tblock = await tblockPromise;
+        incorrectParams |= tblock == null;
+        if (tblock && secondPos) {
+            // We don't check if the halves match, because even if they don't, there
+            // is no reason to cancel the action. We only theck that they're both
+            // non-ender chests near each other.
+            incorrectParams |= tblock.material.name !== 'CHEST' || 
+                tblock.posworld.distanceSqr(secondPos) !== 1;
+        }
+
+        if (incorrectParams) {
+            player.inventory.moveOrDropFromDragSlot();
+            await player.inventory.refresh(true);
+            // Don't send the chests content. We expect the window to close when a block modifier comes.
+            // Closing if the form also takes care of dragged item.
+            throw 'error_chest_not_found';
+        }
+        
+        const is_ender_chest = tblock.material.name == 'ENDER_CHEST';
         let chest = null;
-
         if(is_ender_chest) {
             chest = await player.loadEnderChest();
         } else {
-            chest = tblock_chest.extra_data;
-            if(!('slots' in chest)) {
+            chest = tblock.extra_data;
+            chest.slots = chest.slots || {};
+        }
+
+        let secondChest = null;
+        if (secondPos) {
+            secondChest = secondTblock.extra_data;
+            secondChest.slots = secondChest.slots || {};
+        }
+
+        const chestSlotsCount = secondTblock
+            ? 2 * DEFAULT_CHEST_SLOT_COUNT
+            : tblock.properties.chest_slots;
+        const inputChestSlotsCount = chestSlotsCount - tblock.properties.readonly_chest_slots;
+
+        var srvCombinedChestSlots = combineChests(chest, secondChest);
+        var cliCombinedChestSlots = combineChests(params.chest, params.secondChest);
+
+        const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
+        const changeApplied = this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
+                player.inventory.items, params.inventory_slots, params.change, player,
+                inputChestSlotsCount, secondPos != null);
+        const inventoryEqual = InventoryComparator.listsExactEqual(
+                player.inventory.items, params.inventory_slots);
+
+        if (changeApplied & CHANGE_RESULT_FLAG_INVENTORY) {
+            // Notify the player only if the inventory change result differs from expected.
+            player.inventory.refresh(!inventoryEqual);
+            // Check if new quest items were added. It triggers for the dragged item too.
+            const newSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
+            const put_items = [];
+            for(let [key, item] of newSimpleInventory) {
+                if (!oldSimpleInventory.get(key)) {
+                    put_items.push(item);
+                }
+            }
+            for(let item of put_items) {
+                player.onPutInventoryItems({block_id: item.id});
+            }
+        } else {
+            // Notify the player that the inventory change failed.
+            if (!inventoryEqual) {
+                player.inventory.send();
+            }
+        }
+
+        // Notify the player if the chest change result differs from expected.
+        if (!InventoryComparator.listsExactEqual(srvCombinedChestSlots, cliCombinedChestSlots)) {
+            this.sendContentToPlayers([player], pos);
+            // Send both chests, even if only one differs. It's rare and doesn't matter.
+            if (secondPos) {
+                this.sendContentToPlayers([player], secondPos);
+            }
+        }
+        if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
+            if (secondPos) {
+                // uncombine 1st chest
                 chest.slots = {};
-            }
-        }
-
-        // Валидация ключей слотов сундука,
-        // а также самих айтемов путем их привидения к строгому формату.
-        // Вдруг нам клиент прислал хрень
-        const new_chest_slots = {};
-        for(let k in params.chest.slots) {
-            if(!isNaN(k) && k >= 0 && k < DEFAULT_CHEST_SLOT_COUNT) {
-                let item = params.chest.slots[k];
-                new_chest_slots[k] = BLOCK.convertItemToInventoryItem(item);
-            }
-        }
-
-        // Compare server state and new state from player
-        const old_items = [...player.inventory.items, ...Array.from(Object.values(chest.slots))];
-        const new_items = [...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
-        const equal = await InventoryComparator.checkEqual(old_items, new_items, []);
-
-        //
-        if(equal) {
-            // учёт появления новых элементов в инвентаре (для квестов)
-            if(player.onPutInventoryItems) {
-                const old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
-                const new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
-                const put_items = [];
-                for(let [key, item] of new_simple) {
-                    const old_item = old_simple.get(key);
-                    if(!old_item) {
-                        put_items.push(item);
+                for(var i = 0; i < DEFAULT_CHEST_SLOT_COUNT; i++) {
+                    const item = srvCombinedChestSlots[i];
+                    if (item) {
+                        chest.slots[i] = item;
                     }
                 }
-                for(let item of put_items) {
-                    player.onPutInventoryItems({block_id: item.id});
-                }
             }
-            // update chest slots
-            chest.slots = new_chest_slots;
-            // update player inventory
-            player.inventory.applyNewItems(params.inventory_slots, false);
-            player.inventory.refresh(false);
-            if(is_ender_chest) {
+            // Notify the other players about the chest change
+            this.sendChestToPlayers(pos, [player.session.user_id]);
+            // Save to DB
+            if (is_ender_chest) {
                 await player.saveEnderChest(chest);
-                // Send new chest state to players
-                this.sendChestToPlayers(pos, [player.session.user_id]);
             } else {
-                // Send new chest state to players
-                this.sendChestToPlayers(pos, [player.session.user_id]);
                 // Save chest slots to DB
                 await this.world.db.saveChestSlots({
                     pos: pos,
                     slots: chest.slots
                 });
-                //
-                this.sendItem(pos, tblock_chest);
             }
-        } else {
-            if(!is_ender_chest) {
-                this.sendContentToPlayers([player], pos);
-            }
-            // @todo
-            player.inventory.refresh(true);
         }
+        if (changeApplied & CHANGE_RESULT_FLAG_SECOND_CHEST) {
+            // uncombine 2nd chest
+            secondChest.slots = {};
+            for(var i = 0; i < DEFAULT_CHEST_SLOT_COUNT; i++) {
+                const item = srvCombinedChestSlots[i + DEFAULT_CHEST_SLOT_COUNT];
+                if (item) {
+                    secondChest.slots[i] = item;
+                }
+            }
+            // Notify the other players about the chest change
+            this.sendChestToPlayers(secondPos, [player.session.user_id]);
+            // Save to DB
+            await this.world.db.saveChestSlots({
+                pos: secondPos,
+                slots: secondChest.slots
+            });
+        }
+    }
+
+    // Validates the client change to a chest/inventory, and tries to apply on the server
+    applyClientChange(srvChest, cliChest, srvInv, cliInv, change, player, inputChestSlotsCount, twoChests) {
+
+        const that = this
+
+        function chestResultFlag(index) {
+            return twoChests && index >= DEFAULT_CHEST_SLOT_COUNT
+                ? CHANGE_RESULT_FLAG_SECOND_CHEST
+                : CHANGE_RESULT_FLAG_CHEST;
+        }
+
+        function resultFlag(index, isChest) {
+            return isChest ? chestResultFlag(index) : CHANGE_RESULT_FLAG_INVENTORY;
+        }
+
+        function updateSlot(slot, index, inChest, delta = 0, similarSlot = null) {
+            if (delta > 0) {
+                if (slot == null) {
+                    slot = { 
+                        ...similarSlot,
+                        count: 0
+                    };
+                    if (inChest) {
+                        srvChest[index] = slot;
+                    } else {
+                        srvInv[index] = slot;
+                    }
+                }
+                slot.count += delta;
+            } else {
+                slot.count += delta;
+                if (slot.count <= 0) {
+                    if (inChest) {
+                        delete srvChest[index];
+                    } else {
+                        srvInv[index] = null;
+                    }
+                }
+            }
+        }
+
+        function slotsEqual(a, b) {
+            if (a == null || b == null) {
+                return a == null && b == null;
+            }
+            return a.id === b.id && a.count === b.count;
+        }
+
+        // Returns the result flags
+        function spreadToList(slot, isChest) {
+            const list = isChest ? srvChest : srvInv;
+            const slotsCount = isChest ? inputChestSlotsCount : INVENTORY_VISIBLE_SLOT_COUNT;
+            const id = slot.id;
+            const maxStatck = that.world.block_manager.fromId(id)?.max_in_stack;
+            if (!maxStatck) {
+                return 0;
+            }
+            var resultFlags = 0;
+            if(!slot.entity_id && !slot.extra_data) {
+                // add to existing input slots
+                for(var i = 0; i < slotsCount; i++) {
+                    const s = list[i];
+                    if (s && s.id == id && s.count < maxStatck) {
+                        const c = Math.min(maxStatck - s.count, slot.count);
+                        s.count += c;
+                        slot.count -= c;
+                        resultFlags |= resultFlag(i, isChest);
+                        if (slot.count == 0) {
+                            return resultFlags;
+                        }
+                    }
+                }
+            }
+            // move to a new slot
+            for(var i = 0; i < slotsCount; i++) {
+                if (list[i] == null) {
+                    list[i] = { ...slot };
+                    slot.count = 0;
+                    return resultFlags | resultFlag(i, isChest);
+                }
+            }
+            return resultFlags;
+        }
+
+        const srvDrag = srvInv[INVENTORY_DRAG_SLOT_INDEX];
+        const cliDrag = cliInv[INVENTORY_DRAG_SLOT_INDEX];
+
+        // The same result as in client PlayerInventory.clearDragItem()
+        if (change.type === INVENTORY_CHANGE_CLEAR_DRAG_ITEM) {
+            if (!srvDrag) {
+                return 0;
+            }
+            spreadToList(srvDrag, false);
+            if (srvDrag.count) {
+                player.inventory.dropFromDragSlot();
+            } else {
+                srvInv[INVENTORY_DRAG_SLOT_INDEX] = null;
+            }
+            return CHANGE_RESULT_FLAG_INVENTORY;
+        }
+
+        // a result for successful changes except merging small stacks
+        const defaultResult = change.slotInChest
+            ? chestResultFlag(change.slotIndex) | CHANGE_RESULT_FLAG_INVENTORY
+            : CHANGE_RESULT_FLAG_INVENTORY;
+
+        var srvSlot;
+        var cliSlot;
+        if (change.slotInChest) {
+            srvSlot = srvChest[change.slotIndex];
+            cliSlot = cliChest[change.slotIndex];
+        } else {
+            srvSlot = srvInv[change.slotIndex];
+            cliSlot = cliInv[change.slotIndex];
+        }
+        const prevCliSlot = change.slotPrevItem;
+        const prevCliDrag = change.dragPrevItem;
+
+        const cliSlotCount = cliSlot?.count || 0;
+        const srvSlotCount = srvSlot?.count || 0;
+        const cliDragCount = cliDrag?.count || 0;
+        const srvDragCount = srvDrag?.count || 0;
+        const prevCliSlotCount = prevCliSlot?.count || 0;
+        const prevCliDragCount = prevCliDrag?.count || 0;
+        const slotDelta = cliSlotCount - prevCliSlotCount;
+        const dragDelta = cliDragCount - prevCliDragCount;
+
+        if (change.type === INVENTORY_CHANGE_MERGE_SMALL_STACKS) { // Gives the same result as in base_craft_window.js: this.onDrop = function(e)
+            if (!cliDrag || !prevCliDrag || cliDrag.id != prevCliDrag.id || cliDragCount <= prevCliDragCount) {
+                return 0; // incorrect change
+            }
+            const id = cliDrag.id
+            if (!srvDrag || srvDrag.id !== id) {
+                return 0; // it can't be applied on server
+            }
+            var resultFlags = 0;
+            const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
+            if (!maxStatck) {
+                return 0;
+            }
+            var need_count = maxStatck - srvDrag.count;
+            if (need_count <= 0) {
+                return 0;
+            }
+            const list = [];
+            for(var i in srvChest) {
+                i = parseFloat(i);
+                const item = srvChest[i];
+                if (!item.entity_id && !item.extra_data &&
+                    item.id === id &&
+                    item.count < maxStatck
+                ) {
+                    list.push({chest: 1, index: i, item: item});
+                }
+            }
+            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
+                const item = srvInv[i];
+                if (item && !item.entity_id && !item.extra_data &&
+                    item.id === id &&
+                    item.count < maxStatck
+                ) {
+                    list.push({chest: 0, index: i, item: item});
+                }
+            }
+            list.sort(function(a, b){
+                var t = a.item.count - b.item.count;
+                if (t != 0) {
+                    return t;
+                }
+                return (a.index - b.index) - 1000 * (a.chest - b.chest);
+            });
+            for (var v of list) {
+                if (need_count == 0) {
+                    break;
+                }
+                const item = v.item;
+                let minus_count = item.count < need_count ? item.count : need_count;
+                need_count -= minus_count;
+                srvDrag.count += minus_count;
+                item.count -= minus_count;
+                if (v.chest) {
+                    resultFlags |= chestResultFlag(v.index) | CHANGE_RESULT_FLAG_INVENTORY;
+                    if (item.count < 1) {
+                        delete srvChest[v.index];
+                    }
+                } else {
+                    resultFlags |= CHANGE_RESULT_FLAG_INVENTORY;
+                    if (item.count < 1) {
+                        srvInv[v.index] = null;
+                    }
+                }
+            }
+            return resultFlags;
+        }
+        // The same result as in client PlayerInventory.clearDragItem()
+        if (change.type === INVENTORY_CHANGE_SHIFT_SPREAD) {
+            if (!prevCliSlot) {
+                return 0; // incorrect change
+            }
+            if (!srvSlot || prevCliSlot.id != srvSlot.id) {
+                return 0; // it can't be applied on server
+            }
+            var resultFlags = spreadToList(srvSlot, !change.slotInChest);
+            if (!resultFlags) {
+                return 0;
+            }
+            updateSlot(srvSlot, change.slotIndex, change.slotInChest);
+            return resultFlags | resultFlag(change.slotIndex, change.slotInChest);
+        }
+        if (change.type !== INVENTORY_CHANGE_SLOTS) {
+            return 0;
+        }
+        if (cliDrag && cliSlot && cliDrag.id !== cliSlot.id) { // swapped items
+            if (!slotsEqual(prevCliSlot, cliDrag) || !slotsEqual(prevCliDrag, cliSlot) ||
+                change.slotInChest && change.slotIndex >= inputChestSlotsCount
+            ) {
+                return 0; // incorrect change
+            }
+            // we can swap if the ids on the server are the same, regardless of the quantity
+            if (!srvSlot || srvSlot.id !== prevCliSlot.id || 
+                !srvDrag || srvDrag.id !== prevCliDrag.id
+            ) {
+                return 0; // it can't be applied on server
+            }
+            // swap
+            const srvContainer = change.slotInChest ? srvChest : srvInv;
+            srvContainer[change.slotIndex] = srvDrag;
+            srvInv[INVENTORY_DRAG_SLOT_INDEX] = srvSlot;
+            return defaultResult;
+        } else if (cliDrag && prevCliSlot && slotDelta < 0) { // take from a slot
+            const id = cliDrag.id
+            const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
+            if (!maxStatck) {
+                return 0;
+            }
+            if (cliSlot && cliSlot.id !== id ||
+                prevCliSlot.id !== id ||
+                prevCliDrag && prevCliDrag.id !== id ||
+                slotDelta !== -dragDelta ||
+                cliDrag.count > maxStatck
+            ) {
+                return 0; // incorrect change
+            }
+            if (!srvSlot || srvSlot.id !== id || srvDrag && srvDrag.id !== id) {
+                return 0; // it can't be applied on server
+            }
+            const delta = Math.min(Math.min(dragDelta, maxStatck - srvDragCount), srvSlotCount);
+            if (delta <= 0) {
+                return 0;
+            }
+            // apply on the server
+            updateSlot(srvDrag, INVENTORY_DRAG_SLOT_INDEX, false, delta, srvSlot);
+            updateSlot(srvSlot, change.slotIndex, change.slotInChest, -delta, srvSlot);
+            return defaultResult;
+        } else if (prevCliDrag && cliSlot && slotDelta > 0) { // put into a slot
+            const id = cliSlot.id
+            const maxStatck = this.world.block_manager.fromId(id)?.max_in_stack;
+            if (!maxStatck) {
+                return 0;
+            }
+            if (prevCliSlot && prevCliSlot.id !== id ||
+                cliDrag && cliDrag.id !== id ||
+                prevCliDrag.id !== id ||
+                slotDelta !== -dragDelta ||
+                cliSlot.count > maxStatck ||
+                change.slotInChest && change.slotIndex >= inputChestSlotsCount
+            ) {
+                return 0; // incorrect change
+            }
+            if (srvSlot && srvSlot.id !== id || !srvDrag || srvDrag.id !== id) {
+                return 0; // it can't be applied on server
+            }
+            const delta = Math.min(Math.min(slotDelta, maxStatck - srvSlotCount), srvDragCount);
+            if (delta <= 0) {
+                return 0;
+            }
+            // apply on the server
+            updateSlot(srvSlot, change.slotIndex, change.slotInChest, delta, srvDrag);
+            updateSlot(srvDrag, INVENTORY_DRAG_SLOT_INDEX, false, -delta, srvDrag);
+            return defaultResult;
+        }
+        return 0; // some incorrect case of INVENTORY_CHANGE_SLOTS
     }
 
     // Send block item

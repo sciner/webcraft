@@ -1,4 +1,4 @@
-import {Vector} from '../../www/js/helpers.js';
+import {Vector, unixTime} from '../../www/js/helpers.js';
 
 export class DBGame {
 
@@ -114,6 +114,10 @@ export class DBGame {
             `ALTER TABLE world ADD COLUMN "game_mode" TEXT`,
             `UPDATE world set game_mode = 'survival'`
         ]});
+
+        migrations.push({version: 10, queries: [
+            `ALTER TABLE world_player ADD COLUMN dt_last_visit INTEGER NOT NULL DEFAULT 0`
+        ]});
         
         for(let m of migrations) {
             if(m.version > version) {
@@ -134,7 +138,7 @@ export class DBGame {
 
     async LogAppend(event_name, data) {
         await this.conn.run('INSERT INTO log(dt, event_name, data) VALUES (:dt, :event_name, :data)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':event_name':  event_name,
             ':data':        data ? JSON.stringify(data, null, 2) : null
         });
@@ -155,7 +159,7 @@ export class DBGame {
         }
         const guid = randomUUID();
         const result = await this.conn.run('INSERT INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        guid,
             ':username':    username,
             ':password':    password
@@ -201,7 +205,7 @@ export class DBGame {
     async CreatePlayerSession(user_row) {
         const session_id = randomUUID();
         await this.conn.run('INSERT INTO user_session(dt, user_id, token) VALUES (:dt, :user_id, :session_id)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':user_id':     user_row.id,
             ':session_id':  session_id
         });
@@ -216,7 +220,7 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.play_count DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
@@ -276,7 +280,7 @@ export class DBGame {
             }
         }
         const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        guid,
             ':user_id':     user_id,
             ':title':       title,
@@ -308,10 +312,12 @@ export class DBGame {
         if(await this.PlayerExistsInWorld(world_id, user_id)) {
             throw 'error_player_exists_in_world';
         }
-        const result = await this.conn.run('INSERT INTO world_player(dt, world_id, user_id) VALUES (:dt, :world_id, :user_id)', {
-            ':dt':          ~~(Date.now() / 1000),
+        const dt = unixTime();
+        const result = await this.conn.run('INSERT INTO world_player(dt, world_id, user_id, dt_last_visit) VALUES (:dt, :world_id, :user_id, :dt_last_visit)', {
+            ':dt':          dt,
             ':world_id':    world_id,
-            ':user_id':     user_id
+            ':user_id':     user_id,
+            ':dt_last_visit': dt
         });
         // lastID
         let lastID = result.lastID;
@@ -383,9 +389,10 @@ export class DBGame {
     async IncreasePlayCount(world_id, session_id) {
         //
         const result = await this.conn.get(`UPDATE world_player
-        SET play_count = play_count + 1
+        SET play_count = play_count + 1, dt_last_visit = :dt_last_visit
         WHERE world_id = :world_id
         AND user_id = (SELECT user_id FROM user_session WHERE token = :session_id)`, {
+            ':dt_last_visit': unixTime(),
             ':world_id':      world_id,
             ':session_id':    session_id
         });
@@ -414,7 +421,7 @@ export class DBGame {
         }
         // Заносим в базу скриншот
         await this.conn.run('INSERT INTO screenshot (dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
-            ':dt':  ~~(Date.now() / 1000),
+            ':dt':  unixTime(),
             ':guid': guid,
             ':file': filename
         });

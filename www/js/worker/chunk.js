@@ -10,7 +10,7 @@ import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
-import {isFluidId} from "../fluid/FluidConst.js";
+import {isFluidId, PACKED_CELL_LENGTH} from "../fluid/FluidConst.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -20,7 +20,7 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
-        this.clusterManager = new ClusterManager(this, world.generator.seed);
+        this.destroyed = false;
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -74,7 +74,7 @@ export class Chunk {
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
-        this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
+        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord) ?? null;
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,
@@ -87,12 +87,14 @@ export class Chunk {
 
         this.vertexBuffers = new Map();
         this.serializedVertices = null;
-        this.inited = true;
+        this.inited = false;
+        this.buildVerticesInProgress = false;
+        this.totalPages = 0;
 
         this.fluid = null;
-        if (world.fluid) {
-            world.fluid.addChunk(this);
-        }
+        this.inQueue = false;
+        this.queueDist = -1; // 0 and more means its in queue (build or gen
+        this.genValue = 0;
     }
 
     init() {
@@ -105,6 +107,7 @@ export class Chunk {
         this.timers             = {
             init:               null,
             generate_terrain:   null,
+            generate_noise3d:   null,
             apply_modify:       null,
             build_vertices:     null
         };
@@ -112,25 +115,44 @@ export class Chunk {
         this.timers.init = performance.now();
 
         this.tblocks = newTypedBlocks(this.coord, this.size);
-        this.chunkManager.dataWorld.addChunk(this);
-        //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
+    }
+
+    doGen() {
+        this.tblocks.makeBedrockEdge();
+        this.chunkManager.dataWorld.addChunk(this);
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = this.chunkManager.world.generator.generate(this);
-        this.chunkManager.dataWorld.syncOuter(this);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
+        //TODO: mark neibs dirty in sync outer
+        this.chunkManager.dataWorld.syncOuter(this);
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
-        // 4. Result
+        this.inited = true;
         return {
             key:        this.key,
             addr:       this.addr,
             tblocks:    this.tblocks,
             map:        this.map
         };
+    }
+
+    packCells() {
+        const {cells} = this.map;
+        let len = cells.length;
+        let packed = new Int16Array(PACKED_CELL_LENGTH * len);
+        const eps = 1e-2;
+        for (let i = 0; i < len; i++) {
+            const cell = cells[i];
+            packed[i * PACKED_CELL_LENGTH + 0] = Math.floor(cell.dirt_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + 1] = Math.floor(cell.dirt_color.g + eps);
+            packed[i * PACKED_CELL_LENGTH + 2] = Math.floor(cell.water_color.r + eps);
+            packed[i * PACKED_CELL_LENGTH + 3] = Math.floor(cell.water_color.g + eps);
+        }
+        return packed;
     }
 
     addTickingBlock(pos) {
@@ -422,7 +444,7 @@ export class Chunk {
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
                         // blockIsClosed from typedBlocks
-                        if ((this.isFilled(id) || this.isWater(id))
+                        if (this.isFilled(id)
                             && this.isFilled(neib0) && this.isFilled(neib1)
                             && this.isFilled(neib2) && this.isFilled(neib3)
                             && this.isFilled(neib4) && this.isFilled(neib5)) {
@@ -430,7 +452,7 @@ export class Chunk {
                         } else {
                             // getNeighbours from typedBlocks
                             material = BLOCK_BY_ID[id];
-                            let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
+                            let pcnt = 6;
                             // inlining neighbours
                             // direction of CC from TypedBlocks
                             neibMat[0] = BLOCK_BY_ID[neib0];
@@ -441,14 +463,11 @@ export class Chunk {
                             neibMat[5] = BLOCK_BY_ID[neib5];
                             for (let i = 0; i < 6; i++) {
                                 const properties = neibMat[i];
-                                if (!properties || properties.transparent || properties.fluid) {
+                                if (!properties || properties.transparent) {
                                     pcnt--;
                                 }
-                                if (waterCount > 0 && properties && properties.is_water) {
-                                    waterCount++;
-                                }
                             }
-                            empty = pcnt === 6 || waterCount === 7;
+                            empty = pcnt === 6;
                         }
                     }
 
@@ -521,12 +540,15 @@ export class Chunk {
         const serializedVertices = this.serializedVertices = {}
         const removedEntries = Chunk.removedEntries;
 
+        this.totalPages = 0;
         for (let entry of this.vertexBuffers) {
             const vb = entry[1];
             if (vb.touched && (vb.vertices.filled + vb.cacheCopy > 0)) {
                 vb.skipCache(0);
                 serializedVertices[vb.material_key] = vb.getSerialized();
                 vb.markClear();
+
+                this.totalPages += vb.vertices.pages.length;
             } else {
                 removedEntries.push(entry[0]);
             }
@@ -551,6 +573,8 @@ export class Chunk {
 
     destroy() {
         this.chunkManager.dataWorld.removeChunk(this);
+        this.chunkManager = null;
+        this.destroyed = true;
         for (let entries of this.vertexBuffers) {
             entries[1].clear();
         }

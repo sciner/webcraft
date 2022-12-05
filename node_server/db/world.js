@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
-import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
@@ -14,6 +14,7 @@ import { DBWorldPortal } from "./world/portal.js";
 import { DBWorldFluid } from "./world/fluid.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../../www/js/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
+import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA } from "../../www/js/player.js";
 
 // World database provider
 export class DBWorld {
@@ -71,7 +72,7 @@ export class DBWorld {
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
         await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
@@ -87,6 +88,13 @@ export class DBWorld {
         await this.conn.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
             ':world_guid':  world_guid,
             ':add_time':    add_time
+        });
+    }
+
+    async setWorldGameMode(world_guid, game_mode) {
+        await this.conn.run('UPDATE world SET game_mode = :game_mode WHERE guid = :guid', {
+            ':game_mode':   game_mode,
+            ':guid':        world_guid
         });
     }
 
@@ -185,24 +193,26 @@ export class DBWorld {
             if(inventory.current.index2 === undefined) {
                 inventory.current.index2 = -1;
             }
+            const state = {
+                pos:                new Vector(JSON.parse(row.pos)),
+                pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
+                rotate:             new Vector(JSON.parse(row.rotate)),
+                indicators:         JSON.parse(row.indicators),
+                chunk_render_dist:  row.chunk_render_dist,
+                game_mode:          row.game_mode || world.info.game_mode,
+                stats:              JSON.parse(row.stats)
+            };
             return {
-                state: {
-                    pos:                new Vector(JSON.parse(row.pos)),
-                    pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),
-                    rotate:             new Vector(JSON.parse(row.rotate)),
-                    indicators:         JSON.parse(row.indicators),
-                    chunk_render_dist:  row.chunk_render_dist,
-                    game_mode:          row.game_mode || world.info.game_mode,
-                    stats:              JSON.parse(row.stats)
-                },
-                inventory: inventory
+                state: state,
+                inventory: inventory,
+                status: state.indicators.live.value ? PLAYER_STATUS_ALIVE : PLAYER_STATUS_DEAD
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
         // Insert to DB
         await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        player.session.user_guid,
             ':username':    player.session.username,
             ':pos':         JSON.stringify(default_pos_spawn),
@@ -213,14 +223,16 @@ export class DBWorld {
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0,
             ':stats':       JSON.stringify(this.getDefaultPlayerStats())
         });
-        return await this.registerPlayer(world, player);
+        player = await this.registerPlayer(world, player);
+        player.status = PLAYER_STATUS_WAITING_DATA;
+        return player;
     }
 
     // Добавление сообщения в чат
     async insertChatMessage(player, params) {
         await this.conn.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
             ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':text':            params.text,
             ':world_id':        this.world.info.id,
             ':user_session_id': 0
@@ -243,7 +255,7 @@ export class DBWorld {
             ':pos':             JSON.stringify(player.state.pos),
             ':rotate':          JSON.stringify(player.state.rotate),
             ':indicators':      JSON.stringify(player.state.indicators),
-            ':dt_moved':        ~~(Date.now() / 1000),
+            ':dt_moved':        unixTime(),
             ':stats':           JSON.stringify(player.state.stats),
         });
     }
@@ -324,7 +336,7 @@ export class DBWorld {
     // Create drop item
     async createDropItem(params) {
         const entity_id = randomUUID();
-        let dt = ~~(Date.now() / 1000);
+        let dt = unixTime();
         await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              dt,
             ':entity_id':       entity_id,
@@ -339,6 +351,16 @@ export class DBWorld {
         };
     }
 
+    async updateDropItem(params) {
+        await this.conn.run('UPDATE drop_item SET items = :items, x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
+            ':items':           JSON.stringify(params.items),            
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z,
+            ':entity_id':       params.entity_id
+        });
+    }
+
       // Delete drop item
       async removeDeadDrops(entity_id) {
         await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE dt < :dt', {
@@ -348,8 +370,7 @@ export class DBWorld {
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
-            ':is_deleted': 1,
+        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
     }
@@ -453,7 +474,7 @@ export class DBWorld {
         if(need_insert) {
             const run_data = {
                 ':user_id':     player?.session.user_id || null,
-                ':dt':          ~~(Date.now() / 1000),
+                ':dt':          unixTime(),
                 ':world_id':    world.info.id,
                 ':x':           params.pos.x,
                 ':y':           params.pos.y,
@@ -478,7 +499,7 @@ export class DBWorld {
     // Bulk block set
     async blockSetBulk(world, player, data) {
         const user_id = player?.session.user_id || null;
-        const dt =  ~~(Date.now() / 1000);
+        const dt =  unixTime();
         const world_id = world.info.id;
         for (var i = 0; i < data.length; i++) {
             const params = data[i];

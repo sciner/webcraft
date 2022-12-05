@@ -112,7 +112,8 @@ export class SpectatorPlayerControl {
             .mul(new Vector(p, 1, p));
         //
         let passable = 1;
-        const mul = ((this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8) * SPECTATOR_SPEED_MUL;
+        const mulx = SPECTATOR_SPEED_MUL * (this.mul ?? 1);
+        const mul = ((this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8) * mulx;
         this.player.entity.position.addScalarSelf(
             this.player_state.vel.x * delta * mul,
             this.player_state.vel.y * delta,

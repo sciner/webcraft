@@ -1,5 +1,13 @@
 import {getChunkAddr, Helpers, Vector} from "./helpers.js";
-import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
+import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, 
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
+
+export const INVENTORY_CHANGE_NONE = 0;
+// it may be adding or subtracting drag item from a slot, if slotIndex >= 0
+export const INVENTORY_CHANGE_SLOTS = 1;
+export const INVENTORY_CHANGE_MERGE_SMALL_STACKS = 2;
+export const INVENTORY_CHANGE_CLEAR_DRAG_ITEM = 3;
+export const INVENTORY_CHANGE_SHIFT_SPREAD = 4;
 
 export class Inventory {
 
@@ -88,7 +96,7 @@ export class Inventory {
         // 1. update cell if exists
         let need_refresh = false;
         if(!mat.entity_id) {
-            for(let i in this.items) {
+            for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
                 const item = this.items[i];
                 if(item) {
                     if(item.id == mat.id && item?.entity_id == null && item?.extra_data == null) {

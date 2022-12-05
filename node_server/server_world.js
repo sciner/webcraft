@@ -17,9 +17,10 @@ import { WorldChestManager } from "./world/chest_manager.js";
 import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
 import { ServerClient } from "../www/js/server_client.js";
+import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -126,7 +127,7 @@ export class ServerWorld {
         }
         // находим игроков
         for (const player of this.players.values()) {
-            if (!player.game_mode.isSpectator() && !player.is_dead) {
+            if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
                 if (mobs.length <= 4) {
@@ -144,20 +145,20 @@ export class ServerWorld {
                         // проверям что область для спауна это воздух или вода
                         if (body && head && body.id == 0 && head.id == 0) {
                             // не спавним рядом с игроком
-                            const players = this.getPlayersNear(spawn_pos, 8);
+                            const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
                                 const params = {
                                     type:       'zombie',
                                     skin:       'base',
                                     pos:        spawn_pos,
-                                    pos_spawn:  spawn_pos.clone(),
+                                    pos_spawn:  spawn_pos,
                                     rotate:     0,
                                 };
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);
-                                console.log('Auto spawn zombie');
+                                console.log('Auto spawn zombie pos spawn: ' + spawn_pos);
                             }
                         }
                     }
@@ -241,9 +242,7 @@ export class ServerWorld {
             await this.chunks.fluidWorld.queue.process();
             this.ticks_stat.add('fluid_queue');
             // 4.
-            for (let [_, drop_item] of this.all_drop_items) {
-                drop_item.tick(delta);
-            }
+            this.chunks.itemWorld.tick(delta);
             this.ticks_stat.add('drop_items');
             // 6.
             await this.packet_reader.queue.process();
@@ -296,6 +295,7 @@ export class ServerWorld {
         player.state.skin = skin;
         player.updateHands();
         await player.initQuests();
+        player.initWaitingDataForSpawn();
         // 3. Insert to array
         this.players.set(player.session.user_id, player);
         // 4. Send about all other players
@@ -317,34 +317,22 @@ export class ServerWorld {
         // 6. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
-        const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
-        if(drag_item) {
-            let saved = false;
-            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
-                if(!player.inventory.items[i]) {
-                    player.inventory.items[i] = drag_item;
-                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
-                    await player.inventory.save();
-                    saved = true;
-                    break;
-                }
-            }
-            if(!saved) {
-                player.inventory.dropFromDragSlot();
-            }
+        if (player.inventory.moveOrDropFromDragSlot()) {
+            await player.inventory.save();
         }
         // 8. Send CMD_CONNECTED
         player.sendPackets([{
             name: ServerClient.CMD_CONNECTED, data: {
                 session: player.session,
                 state: player.state,
+                status: player.status,
                 inventory: {
                     current: player.inventory.current,
                     items: player.inventory.items
                 }
             }
         }]);
-        // 8. Check player visible chunks
+        // 9. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
@@ -461,17 +449,18 @@ export class ServerWorld {
     }
 
     /**
-     * Return block on world pos
+     * Returns block on world pos, or null.
      * @param {Vector} pos 
      * @returns {object}
      */
-    getBlock(pos) {
-        const chunk_addr = getChunkAddr(pos);
-        const chunk = this.chunks.get(chunk_addr);
-        if (!chunk) {
-            return null;
-        }
-        return chunk.getBlock(pos);
+    getBlock(pos, resultBlock = null) {
+        const chunk = this.chunks.getByPos(pos);
+        return chunk ? chunk.getBlock(pos, resultBlock) : null;
+    }
+
+    getMaterial(pos) {
+        const chunk = this.chunks.getByPos(pos);
+        return chunk ? chunk.getMaterial(pos) : null;
     }
 
     /**
@@ -815,7 +804,7 @@ export class ServerWorld {
                 if(!player) {
                     continue
                 }
-                if(player.is_dead) {
+                if(player.status !== PLAYER_STATUS_ALIVE) {
                     continue;
                 }
                 if(!in_spectator && player.game_mode.isSpectator()) {

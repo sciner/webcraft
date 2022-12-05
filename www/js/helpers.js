@@ -280,6 +280,9 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
@@ -519,6 +522,21 @@ export class Vector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+
+    static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
+    
+    // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
+    static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
+    static {
+        for(var i = 1; i < 6; ++i) {
+            this.SIX_DIRECTIONS_CUMULATIVE.push(
+                this.SIX_DIRECTIONS[i].sub(this.SIX_DIRECTIONS[i - 1]));
+        }
+    }
+
+    static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
+    static ZERO_AND_SIX_DIRECTIONS_CUMULATIVE = [this.ZERO].concat(this.SIX_DIRECTIONS_CUMULATIVE);
+
     /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
@@ -531,6 +549,11 @@ export class Vector {
         this.z = 0;
 
         this.set(x, y, z);
+    }
+
+    // returns v or a new Vector based on it
+    static vectorify(v) {
+        return v instanceof Vector ? v : new Vector(v);
     }
 
     //Array like proxy for usign it in gl-matrix
@@ -571,6 +594,7 @@ export class Vector {
     }
 
     /**
+     * Much faster than set() if we know the soure type.
      * @param {Vector} vec
      */
     copyFrom(vec) {
@@ -706,6 +730,13 @@ export class Vector {
     }
 
     /**
+     * @return {Vector}
+     */
+    swapXZSelf() {
+        return this.set(this.z, this.y, this.x);
+    }
+
+    /**
      * @return {number}
      */
     length() {
@@ -725,6 +756,13 @@ export class Vector {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
+    distanceSqr(vec) {
+        let x = this.x - vec.x;
+        let y = this.y - vec.y;
+        let z = this.z - vec.z;
+        return x * x + y * y + z * z;
+    }
+
     /**
      * @param {Vector} vec
      * @return {number}
@@ -733,6 +771,12 @@ export class Vector {
         const x = this.x - vec.x;
         const z = this.z - vec.z;
         return Math.sqrt(x * x + z * z);
+    }
+
+    horizontalDistanceSqr(vec) {
+        const x = this.x - vec.x;
+        const z = this.z - vec.z;
+        return x * x + z * z;
     }
 
     // distancePointLine...
@@ -897,6 +941,22 @@ export class Vector {
     }
 
     /**
+     * Identical semantics to the constructor, but more optimized for Vector argument.
+     * Useful for safely replacing the constructor calls.
+     */
+    initFrom(x, y, z) {
+        if (x instanceof Vector) { // this optimization helps a lot
+            return this.copyFrom(x);
+        }
+
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.set(x, y, z);
+        return this;
+    }
+
+    /**
      *
      * @param {Vector | {x: number, y: number, z: number} | number[]} x
      * @param {number} [y]
@@ -1011,12 +1071,36 @@ export class Vector {
         return this;
     }
 
+    // Rotates self from 0 to 3 times around Y, by 90 degrees each time
+    rotateByCardinalDirectionSelf(dir) {
+        const x = this.x;
+        const z = this.z;
+        switch(dir) {
+            // case 0: do nothing
+            case 1: { // DIRECTION.WEST
+                this.x = -z;
+                this.z = x;
+                break;
+            }
+            case 2: { // DIRECTION.SOUTH
+                this.x = -x;
+                this.z = -z;
+                break;
+            }
+            case 3: { // DIRECTION.EAST
+                this.x = z;
+                this.z = -x;
+                break;
+            }
+        }
+    }
+
     addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
         if(dir !== null) {
-            dir = dir % 4;
+            dir = (dir + 4) % 4;
             if(dir == DIRECTION.SOUTH) {
                 this.x -= vec.x * x_sign;
                 this.z -= vec.z * z_sign;
@@ -1167,9 +1251,21 @@ export class IndexedColor {
         return this;
     }
 
+    flooredSelf() {
+        this.r = Math.floor(this.r);
+        this.g = Math.floor(this.g);
+        this.b = Math.floor(this.b);
+        return this;
+    }
+
     pack() {
         return this.packed = IndexedColor.packArg(this.r, this.g, this.b);
     }
+    
+    clone() {
+        return new IndexedColor(this.r, this.g, this.b);
+    }
+
 }
 
 IndexedColor.WHITE = new IndexedColor(48, 528, 0);
@@ -1195,10 +1291,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
 
 export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front
-    ROTATE.W = CubeSym.ROT_Y; // left
-    ROTATE.N = CubeSym.ID; // back
-    ROTATE.E = CubeSym.ROT_Y3; // right
+    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
+    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
+    ROTATE.N = CubeSym.ID; // back, z increases
+    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
 
 export let NORMALS = {};
     NORMALS.FORWARD          = new Vector(0, 0, 1);
@@ -1454,6 +1550,38 @@ export class Helpers {
 
 }
 
+export class ArrayHelpers {
+    static fastDelete(arr, index) {
+        arr[index] = arr[arr.length - 1];
+        --arr.length;
+    }
+
+    static fastDeleteValue(arr, value) {
+        var i = 0;
+        var len = arr.length;
+        while (i < len) {
+            if (arr[i] == value) {
+                arr[i] = arr[--len];
+            } else {
+                i++;
+            }
+        }
+        arr.length = len;
+    }
+
+    static filterSelf(arr, predicate) {
+        var src = 0;
+        var dst = 0;
+        while (src < arr.length) {
+            if (predicate(arr[src])) {
+                arr[dst++] = arr[src];
+            }
+            ++src;
+        }
+        arr.length = dst;
+    }
+}
+
 // Make fetch functions
 if(typeof fetch === 'undefined') {
     // Hello eval ;)
@@ -1626,6 +1754,10 @@ export class AverageClockTimer {
         this.avg = (this.sum / this.history.length) || 0;
     }
 
+}
+
+export function unixTime() {
+    return ~~(Date.now() / 1000);
 }
 
 // FastRandom...
@@ -1839,6 +1971,64 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
 function toType(a) {
     // Get fine type (object, array, function, null, error, date ...)
     return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
+}
+
+// Deep compares own properties of the two objects
+export function deepEqual(a, b) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+        // but for real game objects it seems unnecesssary.
+        if (a.hasOwnProperty(key) && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects.
+// The filter affects only top-level properties.
+export function deepEqualProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (props.indexOf(key) >= 0 && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (props.indexOf(key) >= 0 && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects, but for level-2 properties,
+// only the selected are compared. Useful for comparing lists of items.
+export function deepEqualNestedProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (a.hasOwnProperty(key) && !deepEqualProps(a[key], b[key], props)) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function isDeepObject(obj) {

@@ -97,11 +97,14 @@ void main() {
     int cubeSide = int(a_fluidId >> 2) & 7;
     int epsShift = int(a_fluidId >> 5) & 63;
     int blockIndex = int(a_blockId) & 0xffff;
+    int iSize = chunkData0.w;
+    ivec3 chunkSize = ivec3(iSize & 0xff, (iSize >> 8) & 0xff, (iSize >> 16) & 0xff);
+    ivec3 outerSize = chunkSize + 2;
     // TODO: write chunk size somewhere, not related to light!
     vec3 blockPos = vec3(
-        float(blockIndex % 18) - 1.0,
-        float((blockIndex / 18) % 18) - 1.0,
-        float(blockIndex / (18 * 18)) - 1.0
+        float(blockIndex % outerSize.x) - 1.0,
+        float((blockIndex / outerSize.x) % outerSize.y) - 1.0,
+        float(blockIndex / (outerSize.x * outerSize.y)) - 1.0
     );
 
     int flags = u_fluidFlags[fluidId];

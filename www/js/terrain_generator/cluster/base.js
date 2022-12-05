@@ -2,11 +2,11 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
+import { AABB } from "../../core/AABB.js";
 
 export const NEAR_MASK_MAX_DIST = 10;
-export const CLUSTER_SIZE       = new Vector(128, 128, 128);
+export const CLUSTER_SIZE       = new Vector(128, 256, 128);
 export const CLUSTER_PADDING    = 8;
-const temp_vec2                 = new Vector(0, 0, 0);
 
 export class ClusterPoint {
 
@@ -29,12 +29,13 @@ export class ClusterBase {
     // constructor
     constructor(clusterManager, addr) {
         this.clusterManager = clusterManager;
+        this.y_base         = 80;
         this.addr           = addr;
         this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
         this.size           = CLUSTER_SIZE.clone();
         this.id             = this.clusterManager.seed + '_' + addr.toHash();
         this.randoms        = new alea(`villages_${this.id}`);
-        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.is_empty       = (clusterManager.version == 2) ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height     = null;
         this.max_dist       = NEAR_MASK_MAX_DIST;
@@ -138,14 +139,24 @@ export class ClusterBase {
     }
 
     //
-    createPalette(list) {
+    createPalette(list, auto_chance = false) {
         let that = this;
+        if(auto_chance) {
+            const cnt = list.length
+            let i = 0;
+            for(let item of list) {
+                item.chance = ++i / cnt;
+            }
+        }
         let resp = {
             list: list,
             reset: function() {
                 this.randoms = new alea(that.id);
             },
             next: function() {
+                if(!this.randoms) {
+                    this.reset();
+                }
                 const r = this.randoms.double();
                 for(let item of this.list) {
                     if (r <= item.chance) {
@@ -228,6 +239,17 @@ export class ClusterBase {
         return this.near_mask[index] <= margin;
     }
 
+    //
+    getCell(x, y, z) {
+        if(this.is_empty) {
+            return false;
+        }
+        x -= this.coord.x;
+        z -= this.coord.z;
+        const index = z * CLUSTER_SIZE.x + x;
+        return this.mask[index];
+    }
+
     // Add NPC
     addNPC(chunk, pos) {
         // Auto generate mobs
@@ -292,6 +314,64 @@ export class ClusterBase {
                     const y = by + k;
                     const z = bz + j;
                     this.setBlock(chunk, x, y, z, block.id, rotate, extra_data);
+                }
+            }
+        }
+    }
+
+    //
+    drawNaturalBasement(chunk, pos, size, block) {
+
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z)
+        if(!chunk.aabb.intersect(aabb)) return false
+
+        let bx = pos.x - chunk.coord.x;
+        let by = pos.y - chunk.coord.y;
+        let bz = pos.z - chunk.coord.z;
+
+        const randoms = new alea(`natural_basement_${pos.x}_${pos.y}_${pos.z}`);
+        const center = new Vector(bx + size.x/2, by + size.y, bz + size.z/2)
+        const _vec = new Vector(0, 0, 0);
+        const margin = 2;
+
+        for(let k = size.y; k > 0; k--) {
+            const rad_coef = Math.sqrt(k / (size.y / 2.2)) * .6 * (1 - randoms.double() / 4.5);
+            for(let i = -margin; i < size.x + margin; i++) {
+                for(let j = -margin; j < size.z + margin; j++) {
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    _vec.set(x, y, z);
+                    const dist = center.distance(_vec);
+                    if(dist < Math.max(size.x, size.z) * rad_coef) {
+                        const block_id = this.getBlock(chunk, x, y, z);
+                        if(block_id == 0 || block_id > 0 && BLOCK.canReplace(block_id)) {
+                            let block_id = block.id;
+                            // blocks
+                            if(chunk.map && x >= 0 && z >= 0 && x < chunk.size.x && z < chunk.size.z) {
+                                const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
+                                if(cell?.dirt_layer) {
+                                    block_id = cell.dirt_layer.blocks[0];
+                                    if(k < size.y && cell.dirt_layer.blocks.length > 1) {
+                                        block_id = cell.dirt_layer.blocks[1];
+                                    }
+                                } else if(cell.biome.dirt_layers) {
+                                    const l = cell.biome.dirt_layers[0]
+                                    block_id = l.blocks[Math.min(k, l.blocks.length - 1)];
+                                    if(l.cap_block_id && k == 0) {
+                                        this.setBlock(chunk, x, y + 1, z, l.cap_block_id);
+                                    }
+                                }
+                            }
+                            this.setBlock(chunk, x, y, z, block_id);
+                            if(y > 0) {
+                                let under_block_id = this.getBlock(chunk, x, y - 1, z);
+                                if(under_block_id == BLOCK.GRASS_BLOCK.id) {
+                                    this.setBlock(chunk, x, y - 1, z, BLOCK.DIRT.id);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -376,16 +456,27 @@ export class ClusterBase {
         }
     }
 
-    // Draw door
-    drawDoor(chunk, pos, block, dir, opened, left) {
-        const door_blocks = [block.id, block.id];
-        for(let k of [0, 1]) {
-            const x = pos.x - chunk.coord.x;
-            const y = pos.y - chunk.coord.y + k;
-            const z = pos.z - chunk.coord.z;
-            if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                let rot = {x: dir, y: 0, z: 0};
-                this.setBlock(chunk, x, y, z, door_blocks[k], rot, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left, is_head: k == 1});
+    // Add flat roof
+    drawFlatRoof(chunk, pos, size, block) {
+        const bx = pos.x - chunk.coord.x;
+        const by = pos.y - chunk.coord.y;
+        const bz = pos.z - chunk.coord.z;
+        const xyz = new Vector(0, 0, 0);
+        // block_palette.reset();
+        for(let i = 0; i < size.x; i++) {
+            for(let j = 0; j < size.z; j++) {
+                for(let k = 0; k < size.y; k++) {
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    xyz.copyFrom(pos).add(i, k, j);
+                    const block_id = block.id; // block_palette.next().id;
+                    //if(i < 1 || j < 1 || k < 0 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
+                        this.setBlock(chunk, x, y, z, block_id, null);
+                    //} else {
+                    //    this.setBlock(chunk, x, y, z, 0, null);
+                    //}
+                }
             }
         }
     }

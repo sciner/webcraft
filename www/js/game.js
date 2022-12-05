@@ -9,7 +9,7 @@ import { Sounds } from "./sounds.js";
 import { Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { MAGIC_ROTATE_DIV, MOUSE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 
@@ -31,6 +31,7 @@ export class GameClass {
         this.render                     = new Renderer('qubatchRenderSurface');
         this.onControlsEnabledChanged   = (value) => {};
         this.onStarted                  = () => {};
+        this.f3_used                    = false;
         // Local server client
         this.local_server_client = (globalThis.LocalServerClient !== undefined) ? new LocalServerClient() : null;
     }
@@ -153,6 +154,7 @@ export class GameClass {
                     if(e.ctrlKey) return;
                     if(player) {
                         if(controls.enabled) {
+                            player.changeSpectatorSpeed(-e.deltaY);
                             player.onScroll(e.deltaY > 0);
                         }
                         if(that.hud.wm.hasVisibleWindow()) {
@@ -211,18 +213,21 @@ export class GameClass {
                     }
                     // [F3] Toggle info
                     case KEY.F3: {
-                        if(!e.down) {
-                            if (hud.wm.getWindow('frmMode').visible) {
-                                hud.wm.getWindow('frmMode').hide();
-                                this.setupMousePointer(false);
-                            } else {
-                                hud.toggleInfo();
-                            }
-                            kb.keys[KEY.F3] = false;
-                            kb.keys[KEY.F4] = false;
-                            freezeF4Up = true;
-                        } else  {
+                        if(e.down) {
                             kb.keys[KEY.F3] = performance.now();
+                            this.f3_used = false
+                        } else {
+                            if(!this.f3_used) {
+                                if (hud.wm.getWindow('frmMode').visible) {
+                                    hud.wm.getWindow('frmMode').hide();
+                                    this.setupMousePointer(false);
+                                } else {
+                                    hud.toggleInfo();
+                                }
+                                kb.keys[KEY.F3] = false;
+                                kb.keys[KEY.F4] = false;
+                                freezeF4Up = true;
+                            }
                         }
                         return true;
                     }
@@ -295,6 +300,26 @@ export class GameClass {
                             }
                         }
                         return true;
+                    }
+                    // show mobs AABB
+                    case KEY.B: {
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                this.world.mobs.toggleDebugGrid();
+                                this.f3_used = true
+                            }
+                        }
+                        break;
+                    }
+                    // show over player chunk grid
+                    case KEY.G: {
+                        if(e.down) {
+                            if (kb.keys[KEY.F3]) {
+                                this.world.chunkManager.toggleDebugGrid();
+                                this.f3_used = true
+                            }
+                        }
+                        break;
                     }
                     // [F4] set spawnpoint
                     case KEY.F4: {
@@ -377,7 +402,7 @@ export class GameClass {
                     // R (Respawn)
                     case KEY.R: {
                         if(!e.down) {
-                            this.player.world.server.Teleport('spawn');
+                            this.player.world.server.Teleport('spawn', null, true);
                         }
                         return true;
                     }
@@ -507,6 +532,8 @@ export class GameClass {
         // Picking target
         if (player.pickAt && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.getEyePos(), player.game_mode.getPickatDistance(), player.forward);
+        } else {
+            player.pickAt.targetDescription = null;
         }
 
         // change camera location
@@ -637,17 +664,18 @@ export class GameClass {
 
     // Draw chunks perf stat in console
     drawPerf() {
-        var timers = [
-            {name: 'init', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
-            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
-        ];
+        const timers = {};
         var cnt = 0;
         for(let chunk of this.world.chunkManager.chunks) {
             if(chunk.timers) {
+                for(let name in chunk.timers) {
+                    if(!(name in timers)) {
+                        timers[name] = {name, min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0};
+                    }
+                }
                 cnt++;
-                for(var tim of timers) {
+                for(var name in timers) {
+                    const tim = timers[name];
                     var t = chunk.timers[tim.name];
                     if(t < tim.min) tim.min = t;
                     if(t > tim.max) tim.max = t;
@@ -658,7 +686,8 @@ export class GameClass {
                 }
             }
         }
-        for(var tim of timers) {
+        for(var name in timers) {
+            const tim = timers[name];
             tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1;
             tim.total = Math.round(tim.total * 100) / 100;
             tim.cnt = cnt;
@@ -690,6 +719,13 @@ export class GameClass {
         pc.player_state.yaw    = player.rotate.z;
         pc.tick(delta / 1000 * 3., player.scale);
         return pc.player.entity.position;
+    }
+
+    //
+    setSetting(name, value) {
+        const form = this.world.settings
+        form[name] = value;
+        localStorage.setItem('settings', JSON.stringify(form));
     }
 
     exit() {

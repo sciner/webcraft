@@ -237,50 +237,66 @@ export function Physics(mcData, fake_world, options) {
             const queryBB = oldBB.clone().extend(oldVelX, dy, oldVelZ)
             const surroundingBBs = getSurroundingBBs(world, queryBB)
 
-            const BB1 = oldBB.clone()
+            const BB1 = oldBB.clone().extend(dx, 0, dz)
             const BB2 = oldBB.clone()
-            const BB_XZ = BB1.clone().extend(dx, 0, dz)
+            // the third case is used when we enter a 2-block-high tunnel where the floor rises slightly
+            const BB3 = oldBB.clone().extend(oldVelX, 0, oldVelZ)
 
             let dy1 = dy
             let dy2 = dy
+            let dy3 = dy
             for (const blockBB of surroundingBBs) {
-                dy1 = blockBB.computeOffsetY(BB_XZ, dy1)
+                dy1 = blockBB.computeOffsetY(BB1, dy1)
                 dy2 = blockBB.computeOffsetY(BB2, dy2)
+                dy3 = blockBB.computeOffsetY(BB3, dy3)
             }
-            BB1.offset(0, dy1, 0)
+            BB1.copyFrom(oldBB).offset(0, dy1, 0)
             BB2.offset(0, dy2, 0)
+            BB3.copyFrom(oldBB).offset(0, dy3, 0)
 
             let dx1 = oldVelX
             let dx2 = oldVelX
+            let dx3 = oldVelX
             for (const blockBB of surroundingBBs) {
                 dx1 = blockBB.computeOffsetX(BB1, dx1)
                 dx2 = blockBB.computeOffsetX(BB2, dx2)
+                dx3 = blockBB.computeOffsetX(BB3, dx3)
             }
             BB1.offset(dx1, 0, 0)
             BB2.offset(dx2, 0, 0)
+            BB3.offset(dx3, 0, 0)
 
             let dz1 = oldVelZ
             let dz2 = oldVelZ
+            let dz3 = oldVelZ
             for (const blockBB of surroundingBBs) {
                 dz1 = blockBB.computeOffsetZ(BB1, dz1)
                 dz2 = blockBB.computeOffsetZ(BB2, dz2)
+                dz3 = blockBB.computeOffsetZ(BB3, dz3)
             }
             BB1.offset(0, 0, dz1)
             BB2.offset(0, 0, dz2)
+            BB3.offset(0, 0, dz3)
 
             const norm1 = dx1 * dx1 + dz1 * dz1
             const norm2 = dx2 * dx2 + dz2 * dz2
+            const norm3 = dx3 * dx3 + dz3 * dz3
 
-            if (norm1 > norm2) {
+            if (norm1 >= norm2 && norm1 >= norm3) {
                 dx = dx1
                 dy = -dy1
                 dz = dz1
                 playerBB = BB1
-            } else {
+            } else if (norm2 >= norm1 && norm2 >= norm3) {
                 dx = dx2
                 dy = -dy2
                 dz = dz2
                 playerBB = BB2
+            } else {
+                dx = dx3
+                dy = -dy3
+                dz = dz3
+                playerBB = BB3
             }
 
             for (const blockBB of surroundingBBs) {

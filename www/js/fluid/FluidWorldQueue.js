@@ -62,7 +62,11 @@ export class FluidWorldQueue {
             const chunkQueue = deltaChunks[i];
             chunkQueue.deltaDirty = false;
             const fluidChunk = chunkQueue.fluidChunk;
-            fluidChunk.parentChunk.sendFluid(fluidChunk.saveDbBuffer());
+            if (chunkQueue.deltaPure) {
+                fluidChunk.parentChunk.sendFluidDelta(chunkQueue.packDelta());
+            } else {
+                fluidChunk.parentChunk.sendFluid(fluidChunk.saveDbBuffer());
+            }
         }
         deltaChunks.length = 0;
     }

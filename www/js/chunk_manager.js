@@ -13,7 +13,7 @@ import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 10;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -44,6 +44,7 @@ export class ChunkManager {
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
+        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -148,6 +149,9 @@ export class ChunkManager {
         world.server.AddCmdListener([ServerClient.CMD_FLUID_UPDATE], (cmd) => {
             this.setChunkFluid(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
+        world.server.AddCmdListener([ServerClient.CMD_FLUID_DELTA], (cmd) => {
+            this.setChunkFluidDelta(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
+        });
         //
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
@@ -188,6 +192,7 @@ export class ChunkManager {
                             chunk.onVerticesGenerated(result);
                         }
                     }
+                    // console.log(`got chunks count=${args.length}`);
                     break;
                 }
                 case 'play_disc': {
@@ -230,6 +235,11 @@ export class ChunkManager {
                 case 'light_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
+                        if (chunk.uniqId !== args.uniqId) {
+                            // This happens occasionally after quick F8.
+                            console.log(`deferred chunkId=${chunk.uniqId} lightId=${args.uniqId}`);
+                            break;
+                        }
                         chunk.onLightGenerated(args);
                     }
                     break;
@@ -264,7 +274,14 @@ export class ChunkManager {
         if(chunk instanceof Chunk) {
             chunk.setFluid(fluid);
         } else {
-            console.error('no_chunk');
+            console.debug('no_chunk');
+        }
+    }
+
+    setChunkFluidDelta(addr, fluidDelta) {
+        const chunk = this.getChunkForSetData(addr);
+        if(chunk instanceof Chunk) {
+            chunk.setFluidDelta(fluidDelta);
         }
     }
 
@@ -325,9 +342,11 @@ export class ChunkManager {
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
+            this.postWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
             this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
 
-            const pos               = this.poses_chunkPos = player_chunk_addr;
+            this.poses_chunkPos.copyFrom(player_chunk_addr);
+            const pos               = this.poses_chunkPos;
             const pos_temp          = pos.clone();
             let margin              = Math.max(chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
@@ -342,6 +361,8 @@ export class ChunkManager {
             }
         }
 
+        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
+
         /**
          * please dont re-assign renderList entries
          */
@@ -353,7 +374,6 @@ export class ChunkManager {
                 }
             }
         }
-
         //
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let i = 0; i < this.poses.length; i++) {
@@ -403,7 +423,6 @@ export class ChunkManager {
                 chunk.rendered = 0;
             }
         }
-        this.fluidWorld.mesher.buildDirtyChunks(MAX_APPLY_VERTICES_COUNT);
     }
 
     // Draw level chunks
@@ -518,14 +537,10 @@ export class ChunkManager {
     // Remove chunk
     removeChunk(addr) {
         this.chunks_prepare.delete(addr);
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
-            // 1. Delete emitters
-            Qubatch.render.meshes.effects.destroyAllInAABB(chunk.aabb);
-            // 2. Destroy playing discs
-            TrackerPlayer.destroyAllInAABB(chunk.aabb);
-            // 3. Call chunk destructor
+            // Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;
@@ -572,7 +587,7 @@ export class ChunkManager {
         // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
         // Build dirty chunks
-        this.buildDirtyChunks();
+        // this.buildDirtyChunks();
         // stat['Build dirty chunks'] = (performance.now() - p); p = performance.now();
 
         // Prepare render list
@@ -751,6 +766,18 @@ export class ChunkManager {
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }

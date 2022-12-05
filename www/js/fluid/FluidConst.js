@@ -20,6 +20,8 @@ export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
 export const FLUID_STRIDE = 2;
 
+export const PACKED_CELL_LENGTH = 4;
+
 export function isFluidId(blockId) {
     if (blockId == 200 || blockId == 202) {
         return FLUID_WATER_ID;

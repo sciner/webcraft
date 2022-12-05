@@ -1,15 +1,10 @@
 import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {ServerClient} from "../../www/js/server_client.js";
-import {Default_Terrain_Generator} from '../../www/js/terrain_generator/default.js';
 
 // TreeGenerator
-export class TreeGenerator extends Default_Terrain_Generator {
+export class TreeGenerator {
 
     static _instance = null;
-
-    constructor(seed, world_id) {
-        super(seed, world_id);
-    }
 
     static async getInstance() {
         if(TreeGenerator._instance) {

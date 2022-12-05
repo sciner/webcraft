@@ -79,6 +79,9 @@ export class ServerChat {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
                 }
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
                 switch (args[1]) {
                     case 'list': {
                         const admin_list = this.world.admins.getList().join(', ');
@@ -112,9 +115,9 @@ export class ServerChat {
                 break;
             }
             case '/give':
-                //if(!player.game_mode.isCreative()) {
-                //  throw 'error_command_not_working_in_this_game_mode';
-                //}
+                if(!player.game_mode.isCreative()) {
+                  throw 'error_command_not_working_in_this_game_mode';
+                }
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;
                 let cnt = 1;
@@ -143,8 +146,9 @@ export class ServerChat {
             case '/help':
                 let commands = [
                     '/weather (clear | rain)',
-                    '/gamemode (survival | creative | adventure | spectator)',
+                    '/gamemode [world] (survival | creative | adventure | spectator | get)',
                     '/tp -> teleport',
+                    '/stp -> safe teleport',
                     '/spawnpoint',
                     '/seed',
                     '/give <item> [<count>]',
@@ -155,27 +159,51 @@ export class ServerChat {
                 if(!this.world.admins.checkIsAdmin(player)) {
                     throw 'error_not_permitted';
                 }
-                args = this.parseCMD(args, ['string', 'string']);
-                let game_mode_id = args[1].toLowerCase();
-                for(let mode of player.game_mode.modes) {
-                    if(mode.id == game_mode_id) {
+                args = this.parseCMD(args, ['string', 'string', 'string']);
+                if (args.length < 2 || args.length > 3) {
+                    throw 'Invalid arguments count';
+                }
+                const target = args.length == 3 ? args[1] : '';
+                let game_mode_id = args[args.length - 1].toLowerCase();
+                if (game_mode_id != 'get') {
+                    const mode = player.game_mode.getById(game_mode_id);
+                    if (mode == null) {
+                        throw 'Invalid game mode';
+                    }
+                    if (target == '') {
                         player.game_mode.applyMode(game_mode_id, true);
+                    } else if (target == 'world') {
+                        this.world.info.game_mode = game_mode_id;
+                        await this.world.db.setWorldGameMode(this.world.info.guid, game_mode_id);
+                        this.sendSystemChatMessageToSelectedPlayers('Done', [player.session.user_id]);
+                    } else {
+                        throw 'Invalid target';
+                    }
+                } else {
+                    if (target == '') {
+                        this.sendSystemChatMessageToSelectedPlayers('Player game mode id: ' + player.game_mode.current.id, [player.session.user_id]);
+                    } else if (target == 'world') {
+                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + this.world.info.game_mode, [player.session.user_id]);
+                    } else {
+                        throw 'Invalid target';
                     }
                 }
                 break;
-            case '/tp': {
+            case '/tp': 
+            case '/stp': {
+                const safe = (args[0] == '/stp');
                 if(args.length == 4) {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
                     const pos = new Vector(args[1], args[2], args[3]);
-                    player.teleport({place_id: null, pos: pos});
+                    player.teleport({place_id: null, pos: pos, safe: safe});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
                     if(args[1].startsWith('@')) {
                         // teleport to another player
-                        player.teleport({p2p: {from: player.session.username, to: args[1].substring(1)}, pos: null});
+                        player.teleport({p2p: {from: player.session.username, to: args[1].substring(1)}, pos: null, safe: safe});
                     } else {
                         // teleport by place id or to another player
-                        player.teleport({place_id: args[1], pos: null});
+                        player.teleport({place_id: args[1], pos: null, safe: safe});
                     }
                 } else if (args.length == 3) {
                     // teleport to another player
@@ -184,7 +212,7 @@ export class ServerChat {
                     }
                     args = this.parseCMD(args, ['string', 'string', 'string']);
                     if(args[1].startsWith('@') && args[2].startsWith('@')) {
-                        player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null});
+                        player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null, safe: safe});
                     } else {
                         throw 'error_invalid_arguments';
                     }

@@ -6,6 +6,7 @@ import {
     FLUID_STRIDE,
     FLUID_TYPE_MASK,
     FLUID_WATER_ID,
+    FLUID_LAVA_ID,
     OFFSET_FLUID
 } from "./FluidConst.js";
 
@@ -29,10 +30,6 @@ export class FluidWorld {
         }
 
         chunk.tblocks.fluid = chunk.fluid;
-        if (this.mesher) {
-            this.mesher.dirtyChunks.push(chunk.fluid);
-        }
-        // fillOuter for water here!!!
     }
 
     removeChunk(chunk) {
@@ -44,6 +41,12 @@ export class FluidWorld {
         }
         chunk.fluid.dispose();
         chunk.fluid = null;
+    }
+
+    startMeshing(fluidChunk) {
+        if (this.mesher) {
+            this.mesher.dirtyChunks.push(fluidChunk);
+        }
     }
 
     applyWorldFluidsList(fluids) {
@@ -127,5 +130,21 @@ export class FluidWorld {
 
     isWater(x, y, z) {
         return (this.getValue(x, y, z) & FLUID_TYPE_MASK) === FLUID_WATER_ID;
+    }
+
+    isFluid(x, y, z) {
+        return (this.getValue(x, y, z) & FLUID_TYPE_MASK) !== 0;
+    }
+
+    isPosLava(pos) {
+        return this.isLava(pos.x, pos.y, pos.z);
+    }
+
+    isPosWater(pos) {
+        return this.isWater(pos.x, pos.y, pos.z);
+    }
+
+    isPosFluid(pos) {
+        return this.isFluid(pos.x, pos.y, pos.z);
     }
 }

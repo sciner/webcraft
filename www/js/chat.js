@@ -170,17 +170,51 @@ export class Chat extends TextBox {
             // Parse commands
             const temp      = text.replace(/  +/g, ' ').split(' ');
             const cmd       = temp.shift();
+            let no_send = false;
             switch(cmd.trim().toLowerCase()) {
+                case '/chunkborders': {
+                    if(temp.length && temp[0].trim().length > 0) {
+                        const value = temp[0].toLowerCase();
+                        if(['true', 'false'].includes(value)) { 
+                            Qubatch.world.chunkManager.setDebugGridVisibility(value == 'true');
+                        }
+                    } else {
+                        Qubatch.world.chunkManager.toggleDebugGrid()
+                    }
+                    no_send = true;
+                    break;
+                }
+                case '/mobborders': {
+                    if(temp.length && temp[0].trim().length > 0) {
+                        const value = temp[0].toLowerCase();
+                        if(['true', 'false'].includes(value)) { 
+                            Qubatch.world.mobs.setDebugGridVisibility(value == 'true');
+                        }
+                    } else {
+                        Qubatch.world.mobs.toggleDebugGrid()
+                    }
+                    no_send = true;
+                    break;
+                }
+                case '/blockinfo': {
+                    if(temp.length && temp[0].trim().length > 0) {
+                        const value = temp[0].toLowerCase();
+                        if(['true', 'false'].includes(value)) { 
+                            Qubatch.hud.draw_block_info = value == 'true';
+                        }
+                    } else {
+                        Qubatch.hud.draw_block_info = !Qubatch.hud.draw_block_info;
+                    }
+                    no_send = true;
+                    break;
+                }
                 case '/bb': {
                     let bbname = null;
                     let animation_name = null;
                     if(temp.length > 0) bbname = temp.shift().trim();
                     if(temp.length > 0) animation_name = temp.shift().trim();
                     Qubatch.render.addBBModel(player.lerpPos.clone(), bbname, Qubatch.player.rotate, animation_name);
-                    this.history.add(this.buffer);
-                    this.buffer = [];
-                    this.resetCarriage();
-                    return false;
+                    no_send = true;
                     break;
                 }
                 case '/clear': {
@@ -188,7 +222,9 @@ export class Chat extends TextBox {
                     break;
                 }
             }
-            this.messages.send(text);
+            if(!no_send) {
+                this.messages.send(text);
+            }
             this.history.add(this.buffer);
             this.buffer = [];
             this.resetCarriage();
