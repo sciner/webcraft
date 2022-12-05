@@ -1,9 +1,11 @@
+import { Queue } from "../../www/js/helpers.js";
+
 // Queue for actions
 export class WorldActionQueue {
 
     constructor(world) {
         this.world = world;
-        this.list = [];
+        this.list = new Queue();
     }
 
     add(actor, actions) {
