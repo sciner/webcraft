@@ -703,7 +703,10 @@ export class Default_Terrain_Generator {
             const sign_x = ex > sx ? 1 : -1;
             const sign_y = ey > sy ? 1 : -1;
             const sign_z = ez > sz ? 1 : -1;
-            for (let n = 0; n < 100; n++){
+            for (let n = 0; n < 10; n++){
+                if(check_chunk_size && (ex < 0 || ex >= chunk.size.x || ez < 0 || ez >= chunk.size.z)) {
+                    continue;
+                }
                 let dx = Math.abs(ex - x);
                 let dy = Math.abs(ey - y);
                 let dz = Math.abs(ez - z);
