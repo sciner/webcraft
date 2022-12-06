@@ -21,7 +21,7 @@ export class BlockDrawer {
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z);
-            cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, item.check_is_solid);
+            cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid);
         }
     }
 

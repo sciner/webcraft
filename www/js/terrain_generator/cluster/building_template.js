@@ -64,41 +64,126 @@ export class BuilgingTemplate {
             }
         }
 
+        const all_blocks = new VectorCollector()
+        const min = new Vector(Infinity, Infinity, Infinity)
 
         // Auto fill by air
-        const air_blocks = [];
         if('y' in this.size) {
-            let min_y = Infinity
+
             let two2map = new VectorCollector()
             for(let block of this.blocks) {
-                if(block.move.y < min_y) {
-                    min_y = block.move.y
+                if(block.move.x < min.x) min.x = block.move.x
+                if(block.move.y < min.y) min.y = block.move.y
+                if(block.move.z < min.z) min.z = block.move.z
+            }
+            if(min.y != Infinity) {
+                // строим 2D карту пола строения
+                for(let block of this.blocks) {
+                    if(block.move.y - min.y < 2) {
+                        const b = bm.fromId(block.block_id);
+                        // не учитываем неполные блоки у основания строения в качестве пола
+                        if(b.is_solid) {
+                            two2map.set(new Vector(block.move.x, 0, block.move.z), true);
+                        }
+                    }
+                }
+                // по 2D карте пола здания строим вертикальные столбы воздуха
+                for(const [vec, _] of two2map.entries()) {
+                    for(let y = 0; y < this.size.y; y++) {
+                        const air_pos = new Vector(vec.x, min.y + y, vec.z)
+                        all_blocks.set(air_pos, {block_id: 0, move: air_pos})
+                    }
                 }
             }
-            for(let block of this.blocks) {
-                if(block.move.y - min_y < 2) {
-                    two2map.set(new Vector(block.move.x, 0, block.move.z), true);
-                }
+
+        }
+
+        // добавляем все блоки из схемы, кроме блоков воздуха
+        for(let block of this.blocks) {
+            if(block.block_id > 0) {
+                block.mat = bm.fromId(block.block_id)
+                all_blocks.set(block.move, block)
             }
-            for(const [vec, _] of two2map.entries()) {
-                for(let y = 0; y < this.size.y; y++) {
-                    air_blocks.push({block_id: 0, move: new Vector(vec.x, min_y + y, vec.z)})
+        }
+
+        //
+        if('y' in this.size && min.y != Infinity) {
+
+            const obsidian = bm.fromId(90)
+            const _vec = new Vector(0, 0, 0)
+
+            const markAsCheckSolid = (pos) => {
+                const block = all_blocks.get(_vec)
+                if(block && block.block_id > 0) {
+                    if(!block.mat.is_solid && !['bed'].includes(block.mat.style)) {
+                        // если это не сплошной, то разрешаем его заменять сплошным блоком ландшафта
+                        // (если такой будет на этой позиции)
+                        block.check_is_solid = true
+                    }
+                    return true
+                }
+                return false;
+            }
+
+            const addObsidian = (pos) => {
+                const block = {block_id: obsidian.id, move: pos.clone()}
+                block.mat = obsidian
+                all_blocks.set(block.move, block)
+            }
+
+            for(let y = 0; y < this.size.y; y++) {
+                for(let x = 0; x < this.size.x; x++) {
+                    // от двери назад
+                    for(let z = 0; z < this.size.z; z++) {
+                        _vec.set(x, y, z).addSelf(min)
+                        if(markAsCheckSolid(_vec)) break
+                        // addObsidian(_vec)
+                    }
+                    // сзади к двери
+                    for(let z = this.size.z - 1; z >= 0; z--) {
+                        _vec.set(x, y, z).addSelf(min)
+                        if(markAsCheckSolid(_vec)) break
+                        // addObsidian(_vec)
+                    }
+                }
+                //
+                for(let z = 0; z < this.size.z; z++) {
+                    // слева направо
+                    for(let x = 0; x < this.size.x; x++) {
+                        _vec.set(x, y, z).addSelf(min)
+                        if(markAsCheckSolid(_vec)) break
+                        // addObsidian(_vec)
+                    }
+                    // справо налево
+                    for(let x = this.size.x - 1; x >= 0; x--) {
+                        _vec.set(x, y, z).addSelf(min)
+                        if(markAsCheckSolid(_vec)) break
+                        // addObsidian(_vec)
+                    }
                 }
             }
         }
 
         //
-        for(let block of [...air_blocks, ...this.blocks]) {
+        for(const [_, block] of all_blocks.entries()) {
 
-            const b = bm.fromId(block.block_id);
+            // если это воздух, то просто прописываем его во все измерения
+            if(block.block_id == 0) {
+                rot0(block);
+                continue
+            }
 
-            if(b.tags.includes('rotate_by_pos_n')) {
+            // получаем метариал
+            const mat = block.mat;
+            delete(block.mat);
+
+            if(mat.tags.includes('rotate_by_pos_n')) {
                 rot1(block);
 
-            } else if(b.tags.includes('stairs') || b.tags.includes('ladder') || b.tags.includes('bed') || b.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door'].includes(b.style)) {
+            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('bed') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door'].includes(mat.style)) {
                 rot2(block);
 
-            } else if(['sign', 'armor_stand'].includes(b.style)) {
+            } else if(['sign', 'armor_stand'].includes(mat.style)) {
                 rot3(block);
 
             } else {
