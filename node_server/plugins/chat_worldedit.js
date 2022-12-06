@@ -229,9 +229,9 @@ export default class WorldEdit {
                     }
                     let block = chunk.getBlock(bpos);
                     let mat = block.material;
-                    if(mat.is_entity) {
-                        continue;
-                    }
+                    //if(mat.is_entity) {
+                    //    continue;
+                    //}
                     if(block.id < 0) {
                         throw 'error_get_block';
                     }

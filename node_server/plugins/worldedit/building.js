@@ -1,9 +1,11 @@
 import { DIRECTION, Vector, VectorCollector } from "../../../www/js/helpers.js";
 
-// import church from "../../../www/js/terrain_generator/cluster/building/data/church.json" assert { type: "json" };
-// import nico from "../../../www/js/terrain_generator/cluster/building/data/nico.json" assert { type: "json" };
+import e3290 from "../../../www/js/terrain_generator/cluster/building/data/e3290.json" assert { type: "json" };
+
 
 import fs from "fs";
+import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
+import { BLOCK } from "../../../www/js/blocks.js";
 
 //
 export class WorldEditBuilding {
@@ -45,6 +47,48 @@ export class WorldEditBuilding {
                 pos1: new Vector(-17, 1, 1),
                 pos2: new Vector(-29, 8, -10),
                 door_bottom: new Vector(-24, 2, -2),
+            },
+            meta: null,
+            size: new Vector(0, 0, 0),
+            door_pos: new Vector(0, 0, 0),
+            blocks: [],
+            rot: []
+        })
+
+        insert({
+            name: 'e3290',
+            world: {
+                pos1: new Vector(-57, 0, 1),
+                pos2: new Vector(-70, 13, -13),
+                door_bottom: new Vector(-68, 1, 1),
+            },
+            meta: null,
+            size: new Vector(0, 0, 0),
+            door_pos: new Vector(0, 0, 0),
+            blocks: [],
+            rot: []
+        })
+
+        insert({
+            name: 'domikder',
+            world: {
+                pos1: new Vector(-78, 0, 0),
+                pos2: new Vector(-86, 6, -7),
+                door_bottom: new Vector(-82, 1, -1),
+            },
+            meta: null,
+            size: new Vector(0, 0, 0),
+            door_pos: new Vector(0, 0, 0),
+            blocks: [],
+            rot: []
+        })
+
+        insert({
+            name: 'domikkam',
+            world: {
+                pos1: new Vector(-89, 0, 0),
+                pos2: new Vector(-97, 5, -7),
+                door_bottom: new Vector(-93, 1, -1),
             },
             meta: null,
             size: new Vector(0, 0, 0),
@@ -104,7 +148,9 @@ export class WorldEditBuilding {
 
         // clear blocks
         building.blocks = [];
-        building.rot = [ [], [], [], [] ];
+        if('rot' in building.rot) {
+            delete(building.rot)
+        }
 
         // convert blocks to building blocks
         for(let [bpos, item] of copy_data.blocks.entries()) {
@@ -131,7 +177,7 @@ export class WorldEditBuilding {
         // export
         const file_name = `../www/js/terrain_generator/cluster/building/data/${building.name}.json`;
 
-        // const saved_json = JSON.stringify(building, null, 4);
+        // Calling gzip method
         fs.writeFileSync(file_name, JSON.stringify(building));
 
         // message to player chat
@@ -144,19 +190,21 @@ export class WorldEditBuilding {
     async paste(chat, player, cmd, args) {
 
         const we = this.worldedit_instance;
-        const name = args[2];
+        const name = args[1];
+        const direction = Math.abs((args[2] | 0)) % 4;
 
-        throw 'error_deprecated';
+        // throw 'error_deprecated';
 
         const copy_data = {
             blocks: new VectorCollector(),
             fluids: []
         };
 
-        const building = nico; // church;
-        const direction = DIRECTION.SOUTH;
-        const invert_x = true;
-        const invert_z = true;
+        // const building = e3290; // nico; // church;
+        const mirror_x = false;
+        const mirror_z = false;
+
+        const building = new BuilgingTemplate(e3290, BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {
@@ -167,12 +215,11 @@ export class WorldEditBuilding {
                     item[prop] = block[prop];
                 }
             }
-            const pos = new Vector(block.move);
-            if(invert_x) pos.x = building.size.x - pos.x - building.size.x;
-            if(invert_z) pos.z = building.size.z - pos.z - building.size.z;
+            const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(block.move, direction + 2, mirror_x, mirror_z);
             copy_data.blocks.set(pos, item);
         }
 
+        //
         await we.cmd_paste(chat, player, cmd, args, copy_data);
 
     }

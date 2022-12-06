@@ -23,6 +23,7 @@ export class BuilgingTemplate {
     rotateBuildingBlockVariants(bm) {
 
         const ROT_N = [18, 22, 7, 13];
+        const CHEST_ID = bm.CHEST.id;
 
         //
         const rot0 = (block) => {
@@ -177,14 +178,22 @@ export class BuilgingTemplate {
             const mat = block.mat;
             delete(block.mat);
 
+            if(mat.id == CHEST_ID) {
+                if(!block.extra_data) block.extra_data = {};
+                block.extra_data = {...block.extra_data, generate: true, params: {source: 'building'}}
+            }
+
             if(mat.tags.includes('rotate_by_pos_n')) {
                 rot1(block);
 
-            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('bed') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door'].includes(mat.style)) {
+            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('bed') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.style)) {
                 rot2(block);
 
             } else if(['sign', 'armor_stand'].includes(mat.style)) {
                 rot3(block);
+
+            } else if(mat.can_rotate && block.rotate) {
+                rot2(block);
 
             } else {
                 rot0(block);

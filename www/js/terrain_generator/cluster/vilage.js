@@ -82,7 +82,7 @@ export class ClusterVilage extends ClusterBase {
 
             // If generator version == 2
             if(clusterManager.version == 2) {
-                schema_options.quant = 18;
+                schema_options.quant = 20;
                 building_palette_options = {
                     crossroad: [
                         {class: StreetLight, max_count: Infinity, chance: 1}
