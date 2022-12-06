@@ -281,7 +281,7 @@ export class ClusterVilage extends ClusterBase {
                 b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
                 b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
                 if(b.aabb.intersect(chunk.aabb)) {
-                    b.findYOld(chunk);
+                    b.findYOld(chunk, maps);
                 }
             }
             
