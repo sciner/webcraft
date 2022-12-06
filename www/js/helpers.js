@@ -2176,7 +2176,8 @@ export let md5 = (function() {
 })();
 
 // A queue backed by an array that wraps around.
-// push()/shift()/length are compatible with that of Array.
+// shift() and length are compatible with that of Array.
+// push() is not fully compatible with Array: it doesn't support multiple arguments.
 export class SimpleQueue {
     constructor() {
         this.arr = [null]; // a single element to prevent division by 0
@@ -2199,7 +2200,7 @@ export class SimpleQueue {
         if (this.length === 0) {
             return;
         }
-        var v = this.arr[this.left];
+        const v = this.arr[this.left];
         this.left = (this.left + 1) % this.arr.length;
         this.length--;
         return v;
