@@ -136,6 +136,36 @@ export class Mth {
         return a + delta * Mth.clamp(t, 0, 1);
     }
 
+    // lut is an array containing pairs (amount, vaue), ordered by amount ascending.
+    static lerpLUT(amount, lut) {
+        if (amount <= lut[0]) {
+            return lut[1];
+        }
+        var i = 2;
+        while (i < lut.length && amount > lut[i]) {
+            i += 2;
+        }
+        if (i === lut.length) {
+            return lut[i - 1];
+        }
+        amount = (amount - lut[i - 2]) / (lut[i] - lut[i - 2]);
+        return Mth.lerp(amount, lut[i - 1], lut[i + 1]);
+    }
+
+    /**
+     * It transforms a uniformly distributed number from in 0..1 into
+     * a somewhat "normally-like" (but exactly normally) distributed
+     * number ceneterd around 0.
+     * @param {Number} unifirmRandom01 - a uniformly distributed random 
+     *  number from 0 to 1
+     * @param {Number} width - the maximum absolute value of results
+     * @param {Number} narrowness - the bigger the value, the narrower 
+     *  the distribution. From 0 to 10.
+     */
+    static toNarrowDistribution(unifirmRandom01, width, narrowness) {
+        const v = (unifirmRandom01 - 0.5) * 2;
+        return Math.pow(Math.abs(v), narrowness) * v * width;
+    }
 }
 
 export class IvanArray {
@@ -2107,21 +2137,6 @@ export function isMobileBrowser() {
 //
 export function isScalar(v) {
     return !(typeof v === 'object' && v !== null);
-}
-
-/**
- * It transforms a uniformly distributed number from in 0..1 into
- * a somewhat "normally-like" (but exactly normally) distributed
- * number ceneterd around 0.
- * @param {Number} unifirmRandom01 - a uniformly distributed random 
- *  number from 0 to 1
- * @param {Number} width - the maximum absolute value of results
- * @param {Number} narrowness - the bigger the value, the narrower 
- *  the distribution. From 0 to 10.
- */
-export function toNarrowDistribution(unifirmRandom01, width, narrowness) {
-    const v = (unifirmRandom01 - 0.5) * 2;
-    return Math.pow(Math.abs(v), narrowness) * v * width;
 }
 
 // md5
