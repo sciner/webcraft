@@ -635,7 +635,7 @@ export class ServerWorld {
                         let oldId = tblock.id;
                         // call block change listeners
                         if (on_block_set) {
-                            var listeners = this.beforeBlockChangeListeners.get(oldId);
+                            var listeners = this.beforeBlockChangeListeners[oldId];
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
@@ -659,7 +659,7 @@ export class ServerWorld {
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item);
-                            const listeners = this.afterBlockChangeListeners.get(tblock.id);
+                            const listeners = this.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];

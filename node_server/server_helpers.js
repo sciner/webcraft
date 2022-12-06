@@ -1,7 +1,11 @@
 import { BLOCK } from "../www/js/blocks.js";
+import { ArrayOrMap } from "../www/js/helpers.js";
 
-export async function loadListeners(conf, folder, nameToId = v => v, callees = null) {
-    const res = new Map();
+/**
+ * @param {Map, Array or Object} result
+ * @param {Object} callees
+ */
+export async function loadListeners(conf, folder, nameToId = v => v, result = new Map(), callees = null) {
     for (let key in conf) {
         const id = nameToId(key);
         var values = conf[key];
@@ -18,22 +22,22 @@ export async function loadListeners(conf, folder, nameToId = v => v, callees = n
                     // TODO validate that ids are not repeated
                     callees[listener.calleeId] = listener;
                 }
-                var list = res.get(id);
+                var list = ArrayOrMap.get(result, id);
                 if (list == null) {
                     list = [];
-                    res.set(id, list);
+                    ArrayOrMap.set(result, id, list);
                 }
                 list.push(listener);
             });
         }
     }
-    return res;
+    return result;
 }
 
 export async function loadBlockListeners(conf, folder, callees = null) {
     return await loadListeners(conf, folder, 
-        name => BLOCK.fromName(name.toUpperCase()).id, 
-        callees);
+        name => BLOCK.fromName(name.toUpperCase()).id,
+        [], callees);
 }
 
 export class DelayedCalls {

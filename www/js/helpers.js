@@ -1622,6 +1622,30 @@ export class ArrayHelpers {
         }
         arr.length = dst;
     }
+
+    static growAndSet(arr, index, value, filler = null) {
+        while (arr.length <= index) {
+            arr.push(filler);
+        }
+        arr[index] = value;
+    }
+}
+
+export class ArrayOrMap {
+    
+    static get(collection, key) {
+        return collection instanceof Map ? collection.get(key) : collection[key];
+    }
+
+    static set(collection, key, value) {
+        if (collection instanceof Map) {
+            collection.set(key, value);
+        } else if (Array.isArray(collection)) {
+            ArrayHelpers.growAndSet(collection, key, value);
+        } else {
+            collection[key] = value;
+        }
+    }
 }
 
 // Make fetch functions

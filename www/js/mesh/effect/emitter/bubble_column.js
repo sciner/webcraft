@@ -55,7 +55,7 @@ export default class emitter {
         // новая частица
         const particle = new Mesh_Effect_Particle({
             life:           max_life,
-            initial_life:   this.isBottom ? max_life * Math.random() : null,
+            initial_life:   this.isBottom ? max_life * (0.3 + 0.7 * Math.random()) : null,
             texture:        texture,
             size:           1/8,
             scale:          1,
