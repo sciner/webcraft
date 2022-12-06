@@ -2109,6 +2109,21 @@ export function isScalar(v) {
     return !(typeof v === 'object' && v !== null);
 }
 
+/**
+ * It transforms a uniformly distributed number from in 0..1 into
+ * a somewhat "normally-like" (but exactly normally) distributed
+ * number ceneterd around 0.
+ * @param {Number} unifirmRandom01 - a uniformly distributed random 
+ *  number from 0 to 1
+ * @param {Number} width - the maximum absolute value of results
+ * @param {Number} narrowness - the bigger the value, the narrower 
+ *  the distribution. From 0 to 10.
+ */
+export function toNarrowDistribution(unifirmRandom01, width, narrowness) {
+    const v = (unifirmRandom01 - 0.5) * 2;
+    return Math.pow(Math.abs(v), narrowness) * v * width;
+}
+
 // md5
 export let md5 = (function() {
     var MD5 = function (d) {

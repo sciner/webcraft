@@ -1,9 +1,11 @@
-import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
+import { getChunkAddr, IndexedColor, Vector, toNarrowDistribution } from "../../../helpers.js";
 import { getEffectTexture } from "../../effect.js";
 import { Mesh_Effect_Particle } from "../particle.js";
 
 const MATERIAL_KEY = 'extend/regular/terrain/effects';
 const living_blocks = [88, 415]; // [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id]
+const CHANCE = 0.1;
+const NARROWNESS = 5;
 
 export default class emitter {
 
@@ -36,8 +38,8 @@ export default class emitter {
      */
     emit() {
 
-        if(Math.random() > .03) {
-            return [];
+        if (Math.random() > CHANCE) {
+            return null;
         }
 
         const {texture, texture_index} = getEffectTexture(emitter.textures);
@@ -55,9 +57,9 @@ export default class emitter {
             material_key:   this.material_key,
             living_blocks:  living_blocks,
             pos:            this.pos.clone().addScalarSelf(
-                (Math.random() - Math.random()) * .3,
+                toNarrowDistribution(Math.random(), 0.5, NARROWNESS),
                 .35 + .25 * Math.random(),
-                (Math.random() - Math.random()) * .3
+                toNarrowDistribution(Math.random(), 0.5, NARROWNESS)
             ),
             material:       this.material
         });

@@ -53,6 +53,7 @@
             "id": 415,
             "name": "BUBBLE_COLUMN",
             "transparent": true,
+            "style": "invisible_cube",
             "passable": 0.4,
             "selflit": true,
             "is_fluid": true,
