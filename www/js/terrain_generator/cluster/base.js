@@ -41,14 +41,25 @@ export class ClusterBase {
         this.max_dist       = NEAR_MASK_MAX_DIST;
     }
 
-    // Set block
-    setBlock(chunk, x, y, z, block_id, rotate, extra_data) {
+    /**
+     * Set block
+     * @param {*} chunk 
+     * @param {int} x 
+     * @param {int} y 
+     * @param {int} z 
+     * @param {int} block_id 
+     * @param {*} rotate 
+     * @param {*} extra_data 
+     * @param {boolean} check_is_solid 
+     * @returns 
+     */
+    setBlock(chunk, x, y, z, block_id, rotate, extra_data, check_is_solid = false) {
         if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
             // ok
         } else {
             return false;
         }
-        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data);
+        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid);
         return true;
     }
 
@@ -139,7 +150,7 @@ export class ClusterBase {
     }
 
     //
-    createPalette(list, auto_chance = false) {
+    createBlockPalette(list, auto_chance = false) {
         let that = this;
         if(auto_chance) {
             const cnt = list.length
@@ -163,7 +174,7 @@ export class ClusterBase {
                         return item.value;
                     }
                 }
-                throw 'Proportional fill pattern';
+                throw 'Proportional fill pattern2';
             }
         };
         return resp;

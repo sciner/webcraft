@@ -276,8 +276,20 @@ export class Chunk {
         return uint16View[index];
     }
 
-    // Set block indirect
-    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power) {
+    /**
+     * Set block indirect
+     * @param {int} x 
+     * @param {int} y 
+     * @param {int} z 
+     * @param {int} block_id 
+     * @param {*} rotate 
+     * @param {*} extra_data 
+     * @param {*} entity_id 
+     * @param {*} power 
+     * @param {boolean} check_is_solid 
+     * @returns 
+     */
+    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false) {
         if (isFluidId(block_id)) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return;
@@ -285,6 +297,12 @@ export class Chunk {
 
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
+
+        //
+        if(check_is_solid && BLOCK.isSolidID(uint16View[index])) {
+            return
+        }
+
         uint16View[index] = block_id;
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power);

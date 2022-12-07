@@ -5,7 +5,7 @@ import { Building } from "../building.js";
 // Street light
 export class StreetLight extends Building {
 
-    static SIZE_LIST = [{x: 1, z: 1}];
+    static SIZE_LIST = [{size: {x: 1, z: 1}}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
