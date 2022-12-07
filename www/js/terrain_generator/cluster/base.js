@@ -174,7 +174,7 @@ export class ClusterBase {
                         return item.value;
                     }
                 }
-                throw 'Proportional fill pattern';
+                throw 'Proportional fill pattern2';
             }
         };
         return resp;

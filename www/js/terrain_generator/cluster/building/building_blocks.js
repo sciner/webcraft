@@ -1,11 +1,7 @@
 import { Building } from "../building.js";
 
-import church from "./data/church.json" assert { type: "json" };
-
-// Church
-export class Church extends Building {
-
-    static SIZE_LIST = [church];
+// 
+export class BuildingBlocks extends Building {
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_building) {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_building);

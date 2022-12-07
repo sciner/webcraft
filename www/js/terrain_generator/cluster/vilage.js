@@ -12,10 +12,9 @@ import { BuildingS } from "./building/buildings.js";
 import { Building1 } from "./building/building1.js";
 import { Farmland } from "./building/farmland.js";
 import { WaterWell } from "./building/waterwell.js";
-import { Church } from "./building/church.js";
 import { StreetLight } from "./building/streetlight.js";
-import { BuildingNico } from "./building/buildingnico.js";
 import { BuilgingTemplate } from "./building_template.js";
+import { BuildingBlocks } from "./building/building_blocks.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
@@ -58,27 +57,12 @@ export class ClusterVilage extends ClusterBase {
                 fill_blocks_count: 0
             };
 
-            let building_palette_options = {
-                crossroad: [
-                    {class: StreetLight, max_count: Infinity, chance: 1}
-                ],
-                required: [
-                    {class: WaterWell, max_count: 1, chance: 1},
-                    {class: Farmland, max_count: 1, chance: 1},
-                    {class: Church, max_count: 1, chance: 1}
-                ],
-                others: [
-                    {class: WaterWell, max_count: 2, chance: 0.12},
-                    {class: Farmland, max_count: Infinity, chance: 0.285},
-                    {class: Building1, max_count: Infinity, chance: 0.7025},
-                    {class: BuildingS, max_count: Infinity, chance: 1}
-                ]
-            };
-
             const schema_options = {
                 margin: CLUSTER_PADDING,
                 road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
             };
+
+            let building_palette_options = {};
 
             // If generator version == 2
             if(clusterManager.version == 2) {
@@ -90,14 +74,30 @@ export class ClusterVilage extends ClusterBase {
                     required: [
                         {class: WaterWell, max_count: 1, chance: 1},
                         {class: Farmland, max_count: 1, chance: 1},
-                        {class: Church, max_count: 1, chance: 1}
                     ],
                     others: [
                         {class: WaterWell, max_count: 2, chance: .1},
                         {class: Farmland, max_count: Infinity, chance: .2},
-                        {class: Building1, max_count: Infinity, chance: .6},
-                        {class: BuildingS, max_count: Infinity, chance: .8},
-                        {class: BuildingNico, max_count: Infinity, chance: 1}
+                        {class: BuildingBlocks, max_count: Infinity, chance: .5, block_templates: ['domikder']},
+                        {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikkam']},
+                        {class: BuildingBlocks, max_count: Infinity, chance: .85, block_templates: ['e3290', 'nico']},
+                        {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['church']} 
+                    ]
+                };
+            } else {
+                building_palette_options = {
+                    crossroad: [
+                        {class: StreetLight, max_count: Infinity, chance: 1}
+                    ],
+                    required: [
+                        {class: WaterWell, max_count: 1, chance: 1},
+                        {class: Farmland, max_count: 1, chance: 1}
+                    ],
+                    others: [
+                        {class: WaterWell, max_count: 2, chance: 0.12},
+                        {class: Farmland, max_count: Infinity, chance: 0.285},
+                        {class: Building1, max_count: Infinity, chance: 0.7025},
+                        {class: BuildingS, max_count: Infinity, chance: 1}
                     ]
                 };
             }
@@ -105,10 +105,10 @@ export class ClusterVilage extends ClusterBase {
             // Building palettes
             this.building_palette = this.createBuildingPalette(building_palette_options);
 
-            // generate schema
+            // Generate vilage schema
             let t = performance.now();
-            let vs = this.schema = new VilageSchema(this, schema_options);
-            let resp = vs.generate(this.id);
+            const vilage_schema = this.schema = new VilageSchema(this, schema_options);
+            const resp = vilage_schema.generate(this.id);
             this.timers.generate = performance.now() - t; t = performance.now();
             this.mask = resp.mask;
             for(let house of resp.houses.values()) {
@@ -129,15 +129,19 @@ export class ClusterVilage extends ClusterBase {
 
     // createBuildingPalette...
     createBuildingPalette(rules) {
-        let that = this;
-        let resp = {};
+
+        const that = this;
+        const resp = {};
+
         for(let k in rules) {
+
             resp[k] = {
                 list: rules[k],
                 next: function(args) {
 
                     const {size} = args;
                     const r = that.randoms.double();
+                    const bm = BLOCK;
 
                     // each all buildings in this palette
                     for(let i in this.list) {
@@ -146,23 +150,29 @@ export class ClusterVilage extends ClusterBase {
 
                         if (r <= b.chance) {
 
-                            let found = false;
-                            let random_building = null;
-
-                            // Prepare variants
                             if(!b.class.variants) {
                                 b.class.variants = [];
-                                for(let schema of b.class.SIZE_LIST) {
-                                    b.class.variants.push(new BuilgingTemplate(schema, BLOCK))
-                                }                    
+                                if(b.block_templates) {
+                                    // Prepare from JSON blocks
+                                    for(let name of b.block_templates) {
+                                        b.class.variants.push(new BuilgingTemplate(BuilgingTemplate.getSchema(name), bm))
+                                    }
+                                } else {
+                                    // Prepare variants from old format
+                                    for(let schema of b.class.SIZE_LIST) {
+                                        b.class.variants.push(new BuilgingTemplate(schema, bm))
+                                    }
+                                }
                             }
 
-                            const size_list = [...b.class.variants];
+                            let found = false;
+                            let random_building = null;
+                            const variants = [...b.class.variants];
 
                             // search random building size
-                            while(!found && size_list.length) {
-                                const index = size_list.length * args.seed | 0;
-                                random_building = size_list[index];
+                            while(!found && variants.length) {
+                                const index = variants.length * args.seed | 0;
+                                random_building = variants[index];
                                 if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(args.door_direction)) {
                                     // x
                                     found = random_building.size.x <= size.x && random_building.size.z <= size.z;
@@ -171,7 +181,7 @@ export class ClusterVilage extends ClusterBase {
                                     found = random_building.size.z <= size.x && random_building.size.x <= size.z;
                                 }
                                 if(!found) {
-                                    size_list.splice(index, 1);
+                                    variants.splice(index, 1);
                                 }
                             }
 
@@ -197,8 +207,11 @@ export class ClusterVilage extends ClusterBase {
                     return null;
                 }
             }
+
         }
+
         return resp;
+
     }
 
     // Add building
@@ -209,7 +222,7 @@ export class ClusterVilage extends ClusterBase {
         if(this.buildings.has(coord)) {
             return false;
         }
-        
+
         //
         const building_args = {
             cluster:        this,
@@ -235,7 +248,7 @@ export class ClusterVilage extends ClusterBase {
         }
 
         if(!building) {
-            throw 'Proportional fill pattern';
+            throw 'error_proportional_fill_pattern';
         }
 
         //

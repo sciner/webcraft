@@ -1,11 +1,20 @@
 import { Vector, VectorCollector } from "../../helpers.js";
 
+import e3290 from "./building/data/e3290.json" assert { type: "json" };
+import church from "./building/data/church.json" assert { type: "json" };
+import nico from "./building/data/nico.json" assert { type: "json" };
+import domikkam from "./building/data/domikkam.json" assert { type: "json" };
+import domikder from "./building/data/domikder.json" assert { type: "json" };
+
+//
 export class BuilgingTemplate {
 
     constructor(json, bm) {
 
+        if(!json) debugger
+
         for(let prop of ['name', 'world', 'meta', 'size', 'door_pos', 'blocks']) {
-            this[prop] = json[prop]
+            if(prop in json) this[prop] = json[prop]
         }
 
         if(this.blocks) {
@@ -13,6 +22,13 @@ export class BuilgingTemplate {
             this.rotateBuildingBlockVariants(bm);
         }
 
+    }
+
+    static getSchema(name) {
+        const _buildings = {church, e3290, nico, domikder, domikkam};
+        const resp = _buildings[name]
+        if(!resp) throw 'building_schema_not_found'
+        return resp
     }
 
     /**
