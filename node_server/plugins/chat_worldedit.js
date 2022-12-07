@@ -213,6 +213,7 @@ export default class WorldEdit {
         let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
         let bpos = new Vector(0, 0, 0);
         let chunk = null;
+        const fluids = [];
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -250,6 +251,12 @@ export default class WorldEdit {
                         }
                     }
                     bpos.subSelf(pos);
+                    if (block.fluid != 0) {
+                        fluids.push(bpos.x);
+                        fluids.push(bpos.y);
+                        fluids.push(bpos.z);
+                        fluids.push(block.fluid);
+                    }
                     blocks.set(bpos, item);
                 }
             }
@@ -257,8 +264,8 @@ export default class WorldEdit {
         return {
             quboid: qi,
             blocks: blocks,
-            player_pos: pos.clone()
-            // TODO: fluids
+            player_pos: pos.clone(),
+            fluids: fluids
         };
     }
 

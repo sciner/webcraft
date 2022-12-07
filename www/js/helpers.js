@@ -136,6 +136,42 @@ export class Mth {
         return a + delta * Mth.clamp(t, 0, 1);
     }
 
+    // lut is an array containing pairs (amount, vaue), ordered by amount ascending.
+    static lerpLUT(amount, lut) {
+        if (amount <= lut[0]) {
+            return lut[1];
+        }
+        var i = 2;
+        while (i < lut.length && amount > lut[i]) {
+            i += 2;
+        }
+        if (i === lut.length) {
+            return lut[i - 1];
+        }
+        amount = (amount - lut[i - 2]) / (lut[i] - lut[i - 2]);
+        return Mth.lerp(amount, lut[i - 1], lut[i + 1]);
+    }
+
+    /**
+     * It transforms a uniformly distributed number from in 0..1 into
+     * a somewhat "normally-like" (but exactly normally) distributed
+     * number ceneterd around 0.
+     * @param {Number} unifirmRandom01 - a uniformly distributed random 
+     *  number from 0 to 1
+     * @param {Number} width - the maximum absolute value of results
+     * @param {Number} narrowness - the bigger the value, the narrower 
+     *  the distribution. From 0 to 10.
+     * @param {Number} flatness - the bigger the value, the wider is the
+     * distribution, but it affects the central spike more than the borders. From 0 to 1.
+     * 
+     * {narrowness: 4, flatness: 0} and {narrowness: 8, flatness: 0.5} have similar
+     * density at the border, but the 1st one has a sharper cenral skike.
+     */
+    static toNarrowDistribution(unifirmRandom01, width, narrowness, flatness = 0) {
+        const v = (unifirmRandom01 - 0.5) * 2;
+        const vToPower = Math.pow(Math.abs(v), narrowness) * v;
+        return (vToPower + flatness * (v - vToPower)) * width;
+    }
 }
 
 export class IvanArray {
@@ -1550,12 +1586,26 @@ export class Helpers {
 
 }
 
+export class StringHelpers {
+
+    // Like String.split, but splits only on the 1st separator, i.e. maximum in 2 parts.
+    static splitFirst(str, separatpr) {
+        const ind = str.indexOf(separatpr);
+        return ind >= 0
+            ? [str.substring(0, ind), str.substring(ind + 1, str.length)]
+            : [str];
+    }
+}
+
 export class ArrayHelpers {
+
+    // elements order is not preserved
     static fastDelete(arr, index) {
         arr[index] = arr[arr.length - 1];
         --arr.length;
     }
 
+    // elements order is not preserved
     static fastDeleteValue(arr, value) {
         var i = 0;
         var len = arr.length;
@@ -1570,8 +1620,17 @@ export class ArrayHelpers {
     }
 
     static filterSelf(arr, predicate) {
+        // fast skip elements that don't change
         var src = 0;
-        var dst = 0;
+        while (src < arr.length && predicate(arr[src])) {
+            src++;
+        }
+        if (src === arr.length) {
+            return;
+        }
+        // move elements
+        var dst = src;
+        src++;
         while (src < arr.length) {
             if (predicate(arr[src])) {
                 arr[dst++] = arr[src];
@@ -1579,6 +1638,58 @@ export class ArrayHelpers {
             ++src;
         }
         arr.length = dst;
+    }
+
+    static growAndSet(arr, index, value, filler = undefined) {
+        while (arr.length <= index) {
+            arr.push(filler);
+        }
+        arr[index] = value;
+    }
+}
+
+// Helper methods for working with an object, an Array or a Map in the same way.
+export class ArrayOrMap {
+    
+    static get(collection, key) {
+        return collection instanceof Map ? collection.get(key) : collection[key];
+    }
+
+    static set(collection, key, value) {
+        if (value === undefined) {
+            throw new Error("value === undefined");
+        }
+        if (collection instanceof Map) {
+            collection.set(key, value);
+        } else if (Array.isArray(collection)) {
+            ArrayHelpers.growAndSet(collection, key, value);
+        } else {
+            collection[key] = value;
+        }
+    }
+
+    // Yields values expet undefined.
+    // We have to skip undefined because they're used in an array for mising entries.
+    static *valuesExceptUndefined(collection) {
+        if (collection instanceof Map) {
+            for(let v of collection.values()) {
+                if (v !== undefined) {
+                    yield v;
+                }
+            }
+        } else if (Array.isArray(collection)) {
+            for(var i = 0; i < collection.length; i++) {
+                if (collection[i] !== undefined) {
+                    yield collection[i];
+                }
+            }
+        } else {
+            for(let key in collection) {
+                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
+                    yield collection[key];
+                }
+            }
+        }
     }
 }
 
@@ -2174,3 +2285,41 @@ export let md5 = (function() {
 
     return MD5Unicode;
 })();
+
+// A queue backed by an array that wraps around.
+// shift() and length are compatible with that of Array.
+// push() is not fully compatible with Array: it doesn't support multiple arguments.
+export class SimpleQueue {
+    constructor() {
+        this.arr = [null]; // a single element to prevent division by 0
+        this.left = 0;
+        this.length = 0; // the number of actually used elements
+    }
+
+    push(v) {
+        if (this.length === this.arr.length) {
+            // grow: copy the beginning into the end; the beginning becomes empty
+            for(var i = 0; i < this.left; i++) {
+                this.arr.push(this.arr[i]);
+            }
+        }
+        this.arr[(this.left + this.length) % this.arr.length] = v;
+        this.length++;
+    }
+
+    shift() {
+        if (this.length === 0) {
+            return;
+        }
+        const v = this.arr[this.left];
+        this.left = (this.left + 1) % this.arr.length;
+        this.length--;
+        return v;
+    }
+
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.arr[(this.left + index) % this.arr.length];
+        }
+    }
+}

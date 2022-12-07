@@ -211,7 +211,9 @@ export class Raycaster {
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > this.BLOCK.AIR.id; // && !origin_block_pos.equal(leftTop);
-            if(ignore_transparent && b.material.invisible_for_cam) {
+            if(ignore_transparent && b.material.invisible_for_cam || 
+                b.material.material.id === 'water'
+            ) {
                 hitShape = false;
             }
 

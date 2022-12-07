@@ -80,7 +80,7 @@ export class MobGenerator {
                         if(poses.length >= t.count) {
                             for(let i = 0; i < t.count; i++) {
                                 const params = {
-                                    pos: poses.shift(),
+                                    pos: poses[i],
                                     rotate: new Vector(0, 0, this.random.double() * Math.PI * 2),
                                     ...t
                                 };
