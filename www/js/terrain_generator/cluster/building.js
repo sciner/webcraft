@@ -1,8 +1,10 @@
 import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
-import { DIRECTION, Vector } from "../../helpers.js";
+import { CHUNK_SIZE_X } from '../../chunk_const.js';
+import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
 import { CLUSTER_SIZE, ClusterPoint } from "./base.js";
 import { BlockDrawer } from './block_drawer.js';
+import { getAheadMove } from './vilage.js';
 
 export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
@@ -293,7 +295,7 @@ export class Building {
      * @param {*} chunk 
      * @deprecated
      */
-    findYOld(chunk) {
+    findYOld(chunk, maps) {
         if(this.entrance.y != Infinity) {
             return false;
         }
