@@ -22,7 +22,7 @@ export class ServerChunkManager {
         this.chunk_queue_load       = new VectorCollector();
         this.chunk_queue_gen_mobs   = new VectorCollector();
         this.ticking_chunks         = new VectorCollector();
-        this.chunks_with_delayed_calls = new VectorCollector();
+        this.chunks_with_delayed_calls = new Set();
         this.invalid_chunks_queue   = [];
         this.unloaded_chunk_addrs   = [];
         //
