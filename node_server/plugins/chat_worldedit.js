@@ -5,6 +5,7 @@ import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 import { WorldEditBuilding } from "./worldedit/building.js";
+import { BuilgingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
 
 const MAX_SET_BLOCK         = 250000;
 const MAX_BLOCKS_PER_PASTE  = 10000;
@@ -38,6 +39,7 @@ export default class WorldEdit {
         this.commands.set('/schematic', this.cmd_schematic);
         this.commands.set('/clearclipboard', this.cmd_clearclipboard);
         this.commands.set('/building', this.cmd_building);
+        this.commands.set('/rotate', this.cmd_rotate)
         // this.commands.set('//line', this.);
         // this.commands.set('//flora', this.);
         // this.commands.set('//undo', this.);
@@ -264,6 +266,58 @@ export default class WorldEdit {
     async cmd_building(chat, player, cmd, args) {
         args = chat.parseCMD(args, ['string', 'string', 'string']);
         this.building.onCmd(chat, player, cmd, args);
+    }
+
+    //
+    async cmd_rotate(chat, player, cmd, args, copy_data) {
+
+        if(!player._world_edit_copy && !copy_data) {
+            throw 'error_not_copied_blocks';
+        }
+
+        args = chat.parseCMD(args, ['string', 'int']);
+
+        // Detect direction
+        const dirs = {
+            270: 1,
+            180: 2,
+            90: 3
+        }
+        let angle = args[1];
+        const dir = dirs[angle]
+        if(!dir) {
+            throw 'error_no_interpolation';
+        }
+
+        //
+        const data = copy_data ?? player._world_edit_copy;
+        const new_blocks = new VectorCollector();
+
+        for(let [bpos, item] of data.blocks.entries()) {
+            const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(bpos, dir, false, false);
+            item.block_id = item.id;
+            item.pos = pos
+            new_blocks.set(pos, item);
+        }
+
+        const rot = [[], [], [], []];
+
+        // rotate blocks property
+        BuilgingTemplate.rotateBlocksProperty(new_blocks, rot, chat.world.block_manager, [dir])
+
+        for(let i = 0; i < rot[dir].length; i++) {
+            const item = rot[dir][i]
+            const pos = item.pos
+            delete(item.pos)
+            delete(item.block_id)
+            new_blocks.set(pos, item)
+        }
+
+        data.blocks = new_blocks;
+
+        const msg = `${data.blocks.size} block(s) rotated`;
+        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+
     }
 
     /**

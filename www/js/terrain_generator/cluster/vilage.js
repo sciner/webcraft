@@ -1,10 +1,11 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import {DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
+import { DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
-import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.js";
-import {VilageSchema} from "./vilage_schema.js";
-import {BUILDING_AABB_MARGIN, Building} from "./building.js";
-import {impl as alea} from '../../../vendors/alea.js';
+import { ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING } from "./base.js";
+import { VilageSchema } from "./vilage_schema.js";
+import { BUILDING_AABB_MARGIN } from "./building.js";
+import { BuildingPalettes } from "./building/palette.js";
+import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 
 // Buildings
@@ -13,7 +14,6 @@ import { Building1 } from "./building/building1.js";
 import { Farmland } from "./building/farmland.js";
 import { WaterWell } from "./building/waterwell.js";
 import { StreetLight } from "./building/streetlight.js";
-import { BuilgingTemplate } from "./building_template.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
@@ -30,12 +30,14 @@ export const getAheadMove = (dir) => {
     return entranceAhead;
 }
 
-//
+// Vilage cluster
 export class ClusterVilage extends ClusterBase {
 
+    //
     constructor(clusterManager, addr) {
 
         super(clusterManager, addr);
+
         this.buildings              = new VectorCollector();
         this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
@@ -47,7 +49,7 @@ export class ClusterVilage extends ClusterBase {
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
             this.road_block         = this.createBlockPalette([{value: BLOCK.DIRT_PATH, chance: 1}]);
             this.road_block.reset();
-            this.basement_block = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
+            this.basement_block     = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
 
             //
             this.timers = {
@@ -57,59 +59,19 @@ export class ClusterVilage extends ClusterBase {
                 fill_blocks_count: 0
             };
 
-            const schema_options = {
-                margin: CLUSTER_PADDING,
-                road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-            };
-
-            let building_palette_options = {};
-
-            // If generator version == 2
-            if(clusterManager.version == 2) {
-                schema_options.quant = 20;
-                building_palette_options = {
-                    crossroad: [
-                        {class: StreetLight, max_count: Infinity, chance: 1}
-                    ],
-                    required: [
-                        {class: WaterWell, max_count: 1, chance: 1},
-                        {class: Farmland, max_count: 1, chance: 1},
-                    ],
-                    others: [
-                        {class: WaterWell, max_count: 2, chance: .1},
-                        {class: Farmland, max_count: Infinity, chance: .2},
-                        {class: BuildingBlocks, max_count: Infinity, chance: .5, block_templates: ['domikder']},
-                        {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikkam']},
-                        {class: BuildingBlocks, max_count: Infinity, chance: .85, block_templates: ['e3290', 'nico']},
-                        {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['church']} 
-                    ]
-                };
-            } else {
-                building_palette_options = {
-                    crossroad: [
-                        {class: StreetLight, max_count: Infinity, chance: 1}
-                    ],
-                    required: [
-                        {class: WaterWell, max_count: 1, chance: 1},
-                        {class: Farmland, max_count: 1, chance: 1}
-                    ],
-                    others: [
-                        {class: WaterWell, max_count: 2, chance: 0.12},
-                        {class: Farmland, max_count: Infinity, chance: 0.285},
-                        {class: Building1, max_count: Infinity, chance: 0.7025},
-                        {class: BuildingS, max_count: Infinity, chance: 1}
-                    ]
-                };
-            }
+            const {schema_options, building_palette_options} = this.initVilageOptions()
 
             // Building palettes
-            this.building_palette = this.createBuildingPalette(building_palette_options);
+            this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
 
             // Generate vilage schema
             let t = performance.now();
-            const vilage_schema = this.schema = new VilageSchema(this, schema_options);
-            const resp = vilage_schema.generate(this.id);
-            this.timers.generate = performance.now() - t; t = performance.now();
+            this.schema = new VilageSchema(this, schema_options);
+            const resp = this.schema.generate(this.id);
+            this.timers.generate = performance.now() - t;
+
+            //
+            t = performance.now();
             this.mask = resp.mask;
             for(let house of resp.houses.values()) {
                 const size = new Vector(house.width, 5, house.depth);
@@ -120,136 +82,104 @@ export class ClusterVilage extends ClusterBase {
             this.timers.add_buildings = performance.now() - t; t = performance.now();
 
         }
+
         //
         const moving = this.moveToRandomCorner();
         for(let b of this.buildings) {
             b.translate(moving);
         }
+
     }
 
-    // createBuildingPalette...
-    createBuildingPalette(rules) {
+    //
+    initVilageOptions() {
 
-        const that = this;
-        const resp = {};
+        const clusterManager = this.clusterManager;
 
-        for(let k in rules) {
+        const schema_options = {
+            margin: CLUSTER_PADDING,
+            road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
+        };
 
-            resp[k] = {
-                list: rules[k],
-                next: function(args) {
+        let building_palette_options = {};
 
-                    const {size} = args;
-                    const r = that.randoms.double();
-                    const bm = BLOCK;
+        // If generator version == 2
+        if(clusterManager.version == 2) {
 
-                    // each all buildings in this palette
-                    for(let i in this.list) {
+            // ширина ячеек между улицами под дома
+            schema_options.quant = 20;
 
-                        const b = this.list[i];
+            // для каждой деревни по каким либо условиям можно генерировать собственный набор домов со своими правилами
+            // например взять несколько рандомно разбросанных координат и посмотреть там биомы
+            // затем выбрать свою схему для наиболее часто встречаемого биома
+            building_palette_options = {
+                crossroad: [
+                    {class: StreetLight, max_count: Infinity, chance: 1}
+                ],
+                required: [
+                    {class: WaterWell, max_count: 1, chance: 1},
+                    {class: Farmland, max_count: 1, chance: 1},
+                ],
+                others: [
+                    {class: WaterWell,      max_count: 2,        chance: .1},
+                    {class: Farmland,       max_count: Infinity, chance: .2},
+                    {class: BuildingBlocks, max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2']},
+                    // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
+                    {class: BuildingBlocks, max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house']},
+                ]
+            };
 
-                        if (r <= b.chance) {
+        } else {
 
-                            if(!b.class.variants) {
-                                b.class.variants = [];
-                                if(b.block_templates) {
-                                    // Prepare from JSON blocks
-                                    for(let name of b.block_templates) {
-                                        b.class.variants.push(new BuilgingTemplate(BuilgingTemplate.getSchema(name), bm))
-                                    }
-                                } else {
-                                    // Prepare variants from old format
-                                    for(let schema of b.class.SIZE_LIST) {
-                                        b.class.variants.push(new BuilgingTemplate(schema, bm))
-                                    }
-                                }
-                            }
-
-                            let found = false;
-                            let random_building = null;
-                            const variants = [...b.class.variants];
-
-                            // search random building size
-                            while(!found && variants.length) {
-                                const index = variants.length * args.seed | 0;
-                                random_building = variants[index];
-                                if([DIRECTION.NORTH, DIRECTION.SOUTH].includes(args.door_direction)) {
-                                    // x
-                                    found = random_building.size.x <= size.x && random_building.size.z <= size.z;
-                                } else {
-                                    // z
-                                    found = random_building.size.z <= size.x && random_building.size.x <= size.z;
-                                }
-                                if(!found) {
-                                    variants.splice(index, 1);
-                                }
-                            }
-
-                            // if random size founded
-                            if(found) {
-
-                                b.max_count--;
-                                if(b.max_count <= 0) {
-                                    this.list.splice(i, 1);
-                                }
-
-                                // calculate correct door position
-                                Building.selectSize(random_building, args.seed, args.coord, args.size, args.entrance, args.door_bottom, args.door_direction, args.aabb);
-
-                                // create object by pre-calculated arguments
-                                return new b.class(args.cluster, args.seed, args.coord, args.aabb, args.entrance, args.door_bottom, args.door_direction, args.size, random_building);
-
-                            }
-
-                        }
-                    }
-
-                    return null;
-                }
-            }
+            // для старых генераторов (biome2, ...)
+            building_palette_options = {
+                crossroad: [
+                    {class: StreetLight, max_count: Infinity, chance: 1}
+                ],
+                required: [
+                    {class: WaterWell, max_count: 1, chance: 1},
+                    {class: Farmland, max_count: 1, chance: 1}
+                ],
+                others: [
+                    {class: WaterWell, max_count: 2, chance: 0.12},
+                    {class: Farmland, max_count: Infinity, chance: 0.285},
+                    {class: Building1, max_count: Infinity, chance: 0.7025},
+                    // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
+                    {class: BuildingS, max_count: Infinity, chance: 1}
+                ]
+            };
 
         }
 
-        return resp;
+        return {
+            schema_options,
+            building_palette_options
+        }
 
     }
 
-    // Add building
+    /**
+     * Add building
+     * @param {*} seed 
+     * @param {int} dx 
+     * @param {int} dz 
+     * @param {Vector} size 
+     * @param {Vector} entrance 
+     * @param {Vector} door_bottom 
+     * @param {int} door_direction 
+     * @returns 
+     */
     addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
 
-        let dy = 1;
-        const coord = new Vector(dx + this.coord.x, dy, dz + this.coord.z);
+        const coord = new Vector(dx + this.coord.x, 1, dz + this.coord.z);
         if(this.buildings.has(coord)) {
             return false;
         }
 
-        //
-        const building_args = {
-            cluster:        this,
-            seed:           seed,
-            door_direction: door_direction,
-            size:           size,
-            coord:          coord.clone(),
-            aabb:           new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
-            entrance:       entrance.addSelf(this.coord),
-            door_bottom:    door_bottom.addSelf(this.coord)
-        };
-
-        // generate random building from palette
-        let building = null;
-        if(size.x == 1 && size.z == 1) {
-            building = this.building_palette.crossroad.next(building_args);
-        }        
-        if(!building && this.building_palette.required.list.length > 0) {
-            building = this.building_palette.required.next(building_args);
-        }
-        if(!building) {
-            building = this.building_palette.others.next(building_args);
-        }
-
-        if(!building) {
-            throw 'error_proportional_fill_pattern';
-        }
+        const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN)
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), aabb, entrance.addSelf(this.coord), door_bottom.addSelf(this.coord))
 
         //
         this.buildings.set(building.coord, building);

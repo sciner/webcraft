@@ -23,79 +23,33 @@ export class WorldEditBuilding {
 
         this.list = new Map();
 
-        const insert = (building) => {
+        const insert = (name, pos1, pos2, door_bottom) => {
+            const building = {
+                name: name,
+                world: {
+                    pos1: pos1,
+                    pos2: pos2,
+                    door_bottom: door_bottom
+                },
+                meta: null,
+                size: new Vector(0, 0, 0),
+                door_pos: new Vector(0, 0, 0),
+                blocks: [],
+                rot: []
+            }
             this.list.set(building.name, building);
         };
 
-        insert({
-            name: 'church',
-            world: {
-                pos1: new Vector(5, 0, 1),
-                pos2: new Vector(-5, 26, -19),
-                door_bottom: new Vector(0, 1, -1),
-            },
-            meta: null,
-            size: new Vector(0, 0, 0),
-            door_pos: new Vector(0, 0, 0),
-            blocks: [],
-            rot: []
-        })
-
-        insert({
-            name: 'nico',
-            world: {
-                pos1: new Vector(-17, 1, 1),
-                pos2: new Vector(-29, 8, -10),
-                door_bottom: new Vector(-24, 2, -2),
-            },
-            meta: null,
-            size: new Vector(0, 0, 0),
-            door_pos: new Vector(0, 0, 0),
-            blocks: [],
-            rot: []
-        })
-
-        insert({
-            name: 'e3290',
-            world: {
-                pos1: new Vector(-57, 0, 1),
-                pos2: new Vector(-70, 13, -13),
-                door_bottom: new Vector(-68, 1, 1),
-            },
-            meta: null,
-            size: new Vector(0, 0, 0),
-            door_pos: new Vector(0, 0, 0),
-            blocks: [],
-            rot: []
-        })
-
-        insert({
-            name: 'domikder',
-            world: {
-                pos1: new Vector(-78, 0, 0),
-                pos2: new Vector(-86, 6, -7),
-                door_bottom: new Vector(-82, 1, -1),
-            },
-            meta: null,
-            size: new Vector(0, 0, 0),
-            door_pos: new Vector(0, 0, 0),
-            blocks: [],
-            rot: []
-        })
-
-        insert({
-            name: 'domikkam',
-            world: {
-                pos1: new Vector(-89, 0, 0),
-                pos2: new Vector(-97, 5, -7),
-                door_bottom: new Vector(-93, 1, -1),
-            },
-            meta: null,
-            size: new Vector(0, 0, 0),
-            door_pos: new Vector(0, 0, 0),
-            blocks: [],
-            rot: []
-        })
+        insert('church', new Vector(5, 0, 1), new Vector(-5, 26, -19), new Vector(0, 1, -1))
+        insert('nico', new Vector(-17, 1, 1), new Vector(-29, 8, -10), new Vector(-24, 2, -2))
+        insert('e3290', new Vector(-57, 0, 1), new Vector(-70, 13, -13), new Vector(-68, 1, 1))
+        insert('domikder', new Vector(-78, 0, 0), new Vector(-86, 6, -7), new Vector(-82, 1, -1))
+        insert('domikkam', new Vector(-89, 0, 0), new Vector(-97, 5, -7), new Vector(-93, 1, -1))
+        insert('domikkam2', new Vector(-102, 0, 0), new Vector(-108, 5, -7), new Vector(-105, 1, -1),)
+        insert('domsmall', new Vector(-112, -1, 0), new Vector(-119, 5, -6), new Vector(-116, 1, -1))
+        insert('farmer_house', new Vector(-121, 0, 0), new Vector(-136, 8, -10), new Vector(-129, 1, -1))
+        insert('tiny_house', new Vector(-140, -1, 0), new Vector(-144, 6, -6), new Vector(-142, 1, -1))
+        insert('watch_tower', new Vector(-148, 1, 0), new Vector(-157, 24, -10), new Vector(-153, 4, -3))
 
     }
 
