@@ -4,7 +4,6 @@ import { Mesh_Effect_Particle } from "../particle.js";
 
 const MATERIAL_KEY = 'extend/regular/terrain/effects';
 const living_blocks = [88, 415]; // [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id]
-const NARROWNESS = 5;
 const CHANCE = 0.03;
 
 export default class emitter {
@@ -52,23 +51,25 @@ export default class emitter {
         const {texture, texture_index} = getEffectTexture(emitter.textures);
 
         const max_life = 1 + Math.random() * 5;
+        const scaleK = 0.5 + Math.random() * 0.5; // some of them are smaller
         // новая частица
         const particle = new Mesh_Effect_Particle({
             life:           max_life,
-            initial_life:   this.isBottom ? max_life * (0.3 + 0.7 * Math.random()) : null,
+            initial_life:   this.isBottom ? max_life * (0.5 + 0.5 * Math.random()) : null,
             texture:        texture,
             size:           1/8,
             scale:          1,
-            smart_scale:    [0,0,  0.3,0.5,  0.5,0.65,  1,0],
-            velocity:       new Vector(0, 1, 0),
+            smart_scale:    [0,0.1,  0.3,0.5 * scaleK, 0.5,0.65 * scaleK,
+                            1,0.65 * scaleK * (0.4 + 0.4 * Math.random())],
+            velocity:       new Vector(0, 1 + 0.2 * Math.random(), 0),
             ag:             new Vector(0, 0, 0),
             pp:             this.pp,
             material_key:   this.material_key,
             living_blocks:  living_blocks,
             pos:            this.pos.clone().addScalarSelf(
-                Mth.toNarrowDistribution(Math.random(), 0.5, NARROWNESS),
+                Mth.toNarrowDistribution(Math.random(), 0.5, 6, 0.1),
                 .35 + .25 * Math.random(),
-                Mth.toNarrowDistribution(Math.random(), 0.5, NARROWNESS)
+                Mth.toNarrowDistribution(Math.random(), 0.5, 6, 0.1)
             ),
             material:       this.material
         });

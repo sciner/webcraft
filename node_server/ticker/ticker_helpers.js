@@ -1,6 +1,6 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { TBlock } from "../../www/js/typed_blocks3.js";
-import { ArrayHelpers } from '../../www/js/helpers.js';
+import { ArrayHelpers, Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
 
 export class TickerHelpers {
@@ -23,24 +23,24 @@ export class TickerHelpers {
 }
 
 // A base class for all before- and after- change listeners that can be used in DelayedCalls
-export class DelayedChangeListener {
+export class DelayedBlockListener {
     
     // "After change" listners are called with newMaterial == block.material
     delayedCall(chunk, pos, newBlockId = null) {
-        const block = chunk.getBlock(pos, tmp_DelayedChangeListener_block);
+        const block = chunk.getBlock(pos, tmp_DelayedBlockListener_block);
         const otherMaterial = newBlockId != null
             ? BLOCK.BLOCK_BY_ID[newBlockId]
             : block.material;
-        const upd_blocks = this.func(chunk.world, chunk, block, otherMaterial, false);
+        const upd_blocks = this.func(chunk, block, otherMaterial, false);
         TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByDelayedCalls, upd_blocks);
     }
 
-    func(world, chunk, block, material, firstRun) {
+    func(chunk, block, material, firstRun) {
         // override it
     }
 }
 
-const tmp_DelayedChangeListener_block = new TBlock();
+const tmp_DelayedBlockListener_block = new TBlock();
 
 // helper methods and constructors for frequently used block updates
 export class BlockUpdates {

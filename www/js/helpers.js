@@ -161,10 +161,16 @@ export class Mth {
      * @param {Number} width - the maximum absolute value of results
      * @param {Number} narrowness - the bigger the value, the narrower 
      *  the distribution. From 0 to 10.
+     * @param {Number} flatness - the bigger the value, the wider is the
+     * distribution, but it affects the central spike more than the borders. From 0 to 1.
+     * 
+     * {narrowness: 4, flatness: 0} and {narrowness: 8, flatness: 0.5} have similar
+     * density at the border, but the 1st one has a sharper cenral skike.
      */
-    static toNarrowDistribution(unifirmRandom01, width, narrowness) {
+    static toNarrowDistribution(unifirmRandom01, width, narrowness, flatness = 0) {
         const v = (unifirmRandom01 - 0.5) * 2;
-        return Math.pow(Math.abs(v), narrowness) * v * width;
+        const vToPower = Math.pow(Math.abs(v), narrowness) * v;
+        return (vToPower + flatness * (v - vToPower)) * width;
     }
 }
 
@@ -1580,6 +1586,17 @@ export class Helpers {
 
 }
 
+export class StringHelpers {
+
+    // Like String.split, but splits only on the 1st separator, i.e. maximum in 2 parts.
+    static splitFirst(str, separatpr) {
+        const ind = str.indexOf(separatpr);
+        return ind >= 0
+            ? [str.substring(0, ind), str.substring(ind + 1, str.length)]
+            : [str];
+    }
+}
+
 export class ArrayHelpers {
 
     // elements order is not preserved
@@ -1623,7 +1640,7 @@ export class ArrayHelpers {
         arr.length = dst;
     }
 
-    static growAndSet(arr, index, value, filler = null) {
+    static growAndSet(arr, index, value, filler = undefined) {
         while (arr.length <= index) {
             arr.push(filler);
         }
@@ -1631,6 +1648,7 @@ export class ArrayHelpers {
     }
 }
 
+// Helper methods for working with an object, an Array or a Map in the same way.
 export class ArrayOrMap {
     
     static get(collection, key) {
@@ -1638,12 +1656,39 @@ export class ArrayOrMap {
     }
 
     static set(collection, key, value) {
+        if (value === undefined) {
+            throw new Error("value === undefined");
+        }
         if (collection instanceof Map) {
             collection.set(key, value);
         } else if (Array.isArray(collection)) {
             ArrayHelpers.growAndSet(collection, key, value);
         } else {
             collection[key] = value;
+        }
+    }
+
+    // Yields values expet undefined.
+    // We have to skip undefined because they're used in an array for mising entries.
+    static *valuesExceptUndefined(collection) {
+        if (collection instanceof Map) {
+            for(let v of collection.values()) {
+                if (v !== undefined) {
+                    yield v;
+                }
+            }
+        } else if (Array.isArray(collection)) {
+            for(var i = 0; i < collection.length; i++) {
+                if (collection[i] !== undefined) {
+                    yield collection[i];
+                }
+            }
+        } else {
+            for(let key in collection) {
+                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
+                    yield collection[key];
+                }
+            }
         }
     }
 }

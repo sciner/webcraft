@@ -407,9 +407,15 @@ export class ServerChunk {
                 this.randomTickingBlockCount++;
             }
         }
-        //
-        this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
-        this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // load various data in parallel
+        const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
+        const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
+        const serializedDelayedCalls = await this.world.db.loadChunkDelayedCalls(this.addr);
+        if (serializedDelayedCalls) {
+            this.delayedCalls.deserialize(serializedDelayedCalls);
+        }
+        this.mobs = await mobPrpmise;
+        this.drop_items = await drop_itemsPromise; 
         // fluid
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
@@ -891,18 +897,24 @@ export class ServerChunk {
             chunkManager.dataWorld.removeChunk(this);
         }
 
+        const promises = [];
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
-                await mob.onUnload();
+                promises.push(mob.onUnload());
             }
         }
         // Unload drop items
         if(this.drop_items.size > 0) {
             for(let [entity_id, drop_item] of this.drop_items) {
-                drop_item.onUnload();
+                promises.push(drop_item.onUnload());
             }
         }
+        if (this.delayedCalls.length) {
+            const str = this.delayedCalls.serialize();
+            promises.push(this.world.db.saveChunkDelayedCalls(this.addr, str));
+        }
+        await Promise.all(promises);
         // Need unload in worker
         this.world.chunks.chunkUnloaded(this.addr);
     }
