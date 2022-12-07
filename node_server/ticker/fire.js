@@ -1,7 +1,7 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
-import { BlockUpdates } from './blockUpdates.js'
+import { BlockUpdates } from './ticker_helpers.js'
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
 

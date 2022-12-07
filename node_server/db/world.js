@@ -428,6 +428,32 @@ export class DBWorld {
         return resp;
     }
 
+    async saveChunkDelayedCalls(addr, str) {
+        await this.conn.run('INSERT INTO chunk_delayed_calls (x, y, z, delayed_calls) VALUES (:x, :y, :z, :delayed_calls)', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z,
+            ':delayed_calls': str
+        });
+    }
+
+    async loadChunkDelayedCalls(addr) {
+        const rows = await this.conn.all('SELECT delayed_calls FROM chunk_delayed_calls WHERE x = :x AND y = :y AND z = :z', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z
+        });
+        if (rows.length === 0) {
+            return null;
+        }
+        await this.conn.run('DELETE FROM chunk_delayed_calls WHERE x = :x AND y = :y AND z = :z', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z
+        });
+        return rows[0].delayed_calls;
+    }
+
     // Block set
     async blockSet(world, player, params) {
         let item = params.item;

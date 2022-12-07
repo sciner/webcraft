@@ -132,6 +132,9 @@ export class Mesh_Effect_Manager {
             const emitter = this.emitters[i];
             if(!emitter.canDelete()) {
                 const particles = emitter.emit();
+                if (!particles) {
+                    continue;
+                }
                 for(let particle of particles) {
                     const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
                     mesh.add(particle);
@@ -144,6 +147,9 @@ export class Mesh_Effect_Manager {
         for(let emitter of this.block_emitters) {
             if(player_pos.distance(emitter.pos) < emitter.max_distance) {
                 const particles = emitter.emit();
+                if (!particles) {
+                    continue;
+                }
                 for(let particle of particles) {
                     const mesh = this.getChunkEffectMesh(emitter.chunk_addr, particle.material_key);
                     mesh.add(particle);
