@@ -134,16 +134,11 @@ export function importClassInstance(module, str) {
         args = EMPTY_ARRAY;
     }
     const obj = module[name];
-    if (obj == null) {
-        return;
+    if (typeof obj !== 'function') { // it's null or object
+        return obj;
     }
     if (isClass(obj)) {
-        // it's a class or a class instance
-        try {
-            return new obj(...args);
-        } catch { // assume it's an instance
-            return obj;
-        }
+        return new obj(...args);
     } else {
         // assume it's a factory function
         return obj(...args);
