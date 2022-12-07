@@ -22,6 +22,7 @@ export class ServerChunkManager {
         this.chunk_queue_load       = new VectorCollector();
         this.chunk_queue_gen_mobs   = new VectorCollector();
         this.ticking_chunks         = new VectorCollector();
+        this.chunks_with_delayed_calls = new VectorCollector();
         this.invalid_chunks_queue   = [];
         this.unloaded_chunk_addrs   = [];
         //
@@ -147,14 +148,13 @@ export class ServerChunkManager {
                 chunk.tick(tick_number);
             }
         }
+        for(let chunk of this.chunks_with_delayed_calls) {
+            chunk.executeDelayedCalls();
+        }
         // 4.
         if(this.unloaded_chunk_addrs.length > 0) {
             this.postWorkerMessage(['destructChunk', this.unloaded_chunk_addrs]);
             this.unloaded_chunk_addrs = [];
-        }
-        // TODO: not all chunks
-        for(var chunk of this.all) {
-            chunk.executeDelayedCalls();
         }
     }
 

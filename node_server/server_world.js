@@ -641,7 +641,7 @@ export class ServerWorld {
                                     const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
                                     var res = listener.func(chunk, tblock, newMaterial, true);
                                     if (typeof res === 'number') {
-                                        chunk.delayedCalls.add(listener.calleeId, res, [block_pos]);
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos]);
                                     } else {
                                         TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
                                     }
@@ -665,7 +665,7 @@ export class ServerWorld {
                                     const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
                                     var res = listener.func(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
-                                        chunk.delayedCalls.add(listener.calleeId, res, [block_pos, oldMaterial.id]);
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos, oldMaterial.id]);
                                     } else {
                                         TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
                                     }

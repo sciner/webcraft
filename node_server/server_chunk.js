@@ -433,6 +433,10 @@ export class ServerChunk {
                 this.sendDropItems(Array.from(this.connections.keys()));
             }
         }
+        // If some delayed calls have been loaded
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.set(this.addr, this);
+        }
     }
 
     //
@@ -878,11 +882,25 @@ export class ServerChunk {
 
     }
 
+    addDelayedCall(calleeId, delay, args) {
+        this.delayedCalls.add(calleeId, delay, args);
+        // If we just aded the 1st call, we know the chunk is not in the set
+        if (this.delayedCalls.length === 1) {
+            this.getChunkManager().chunks_with_delayed_calls.set(this.addr, this);
+        }
+    }
+
     executeDelayedCalls() {
+        if (this.delayedCalls.length === 0) {
+            return;
+        }
         this.delayedCalls.execute(this);
+        // If we just emptied the calls list, delete the chunk from the set
+        if (this.delayedCalls.length === 0) {
+            this.getChunkManager().chunks_with_delayed_calls.delete(this.addr);
+        }
         this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
         this.blocksUpdatedByDelayedCalls.length = 0;
-        return this.delayedCalls.length > 0;
     }
 
     // Before unload chunk
@@ -892,6 +910,9 @@ export class ServerChunk {
             return;
         }
         this.setState(CHUNK_STATE_UNLOADED);
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.delete(this.addr);
+        }
         if (this.dataChunk) {
             await this.world.db.fluid.flushChunk(this);
             chunkManager.dataWorld.removeChunk(this);
