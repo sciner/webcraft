@@ -1,8 +1,10 @@
+import { SimpleQueue } from "../www/js/helpers.js"
+
 export class GameLog {
 
     constructor(db) {
         this.db = db;
-        this.items = [];
+        this.items = new SimpleQueue();
         setInterval(() => {
                 this.write();
             }, 

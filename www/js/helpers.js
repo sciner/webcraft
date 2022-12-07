@@ -2174,3 +2174,41 @@ export let md5 = (function() {
 
     return MD5Unicode;
 })();
+
+// A queue backed by an array that wraps around.
+// shift() and length are compatible with that of Array.
+// push() is not fully compatible with Array: it doesn't support multiple arguments.
+export class SimpleQueue {
+    constructor() {
+        this.arr = [null]; // a single element to prevent division by 0
+        this.left = 0;
+        this.length = 0; // the number of actually used elements
+    }
+
+    push(v) {
+        if (this.length === this.arr.length) {
+            // grow: copy the beginning into the end; the beginning becomes empty
+            for(var i = 0; i < this.left; i++) {
+                this.arr.push(this.arr[i]);
+            }
+        }
+        this.arr[(this.left + this.length) % this.arr.length] = v;
+        this.length++;
+    }
+
+    shift() {
+        if (this.length === 0) {
+            return;
+        }
+        const v = this.arr[this.left];
+        this.left = (this.left + 1) % this.arr.length;
+        this.length--;
+        return v;
+    }
+
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.arr[(this.left + index) % this.arr.length];
+        }
+    }
+}
