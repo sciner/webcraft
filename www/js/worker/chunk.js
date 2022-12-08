@@ -290,6 +290,9 @@ export class Chunk {
      * @returns 
      */
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false) {
+
+        this.genValue++
+
         if (isFluidId(block_id)) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return;
@@ -307,6 +310,7 @@ export class Chunk {
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power);
         }
+
     }
 
     isFilled(id) {

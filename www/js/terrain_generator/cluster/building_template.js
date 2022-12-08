@@ -10,6 +10,7 @@ import domsmall from "./building/data/domsmall.json" assert { type: "json" };
 import farmer_house from "./building/data/farmer_house.json" assert { type: "json" };
 import tiny_house from "./building/data/tiny_house.json" assert { type: "json" };
 import watch_tower from "./building/data/watch_tower.json" assert { type: "json" };
+import medium_house from "./building/data/medium_house.json" assert { type: "json" };
 
 //
 export class BuilgingTemplate {
@@ -35,7 +36,7 @@ export class BuilgingTemplate {
     }
 
     static getSchema(name) {
-        const _buildings = {church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house, tiny_house, watch_tower};
+        const _buildings = {church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house, tiny_house, watch_tower, medium_house};
         const resp = _buildings[name]
         if(!resp) throw 'building_schema_not_found'
         return resp
@@ -215,6 +216,15 @@ export class BuilgingTemplate {
             }
         }
 
+        const rotx8= (block) => {
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i];
+                const rb = JSON.parse(JSON.stringify(block));
+                rb.rotate.x = (rb.rotate.x - direction * 90) % 360;
+                rot[direction].push(rb);
+            }
+        }
+
         for(const [_, block] of all_blocks.entries()) {
 
             // если это воздух, то просто прописываем его во все измерения
@@ -231,6 +241,9 @@ export class BuilgingTemplate {
 
             if(['bed'].includes(mat.style)) {
                 rot2(block);
+
+            } else if(mat.tags.includes('rotate_x8')) {
+                rotx8(block);
 
             } else if(['sign'].includes(mat.style)) {
                 rot4(block);

@@ -99,6 +99,7 @@ export default class Terrain_Generator extends Demo_Map {
         const cluster                   = chunk.cluster;
 
         chunk.map = map;
+        chunk.genValue = 0;
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {

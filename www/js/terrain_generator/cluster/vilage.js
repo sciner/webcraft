@@ -9,8 +9,8 @@ import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 
 // Buildings
-import { BuildingS } from "./building/buildings.js";
-import { Building1 } from "./building/building1.js";
+// import { BuildingS } from "./building/buildings.js";
+// import { Building1 } from "./building/building1.js";
 import { Farmland } from "./building/farmland.js";
 import { WaterWell } from "./building/waterwell.js";
 import { StreetLight } from "./building/streetlight.js";
@@ -124,7 +124,7 @@ export class ClusterVilage extends ClusterBase {
                     {class: WaterWell,      max_count: 2,        chance: .1},
                     {class: Farmland,       max_count: Infinity, chance: .2},
                     {class: BuildingBlocks, max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house', 'medium_house']},
                     {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2']},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
                     {class: BuildingBlocks, max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house']},
@@ -132,6 +132,9 @@ export class ClusterVilage extends ClusterBase {
             };
 
         } else {
+
+            // ширина ячеек между улицами под дома
+            schema_options.quant = 14;
 
             // для старых генераторов (biome2, ...)
             building_palette_options = {
@@ -145,9 +148,9 @@ export class ClusterVilage extends ClusterBase {
                 others: [
                     {class: WaterWell, max_count: 2, chance: 0.12},
                     {class: Farmland, max_count: Infinity, chance: 0.285},
-                    {class: Building1, max_count: Infinity, chance: 0.7025},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .7025, block_templates: ['medium_house']},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
-                    {class: BuildingS, max_count: Infinity, chance: 1}
+                    {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['domsmall']},
                 ]
             };
 
