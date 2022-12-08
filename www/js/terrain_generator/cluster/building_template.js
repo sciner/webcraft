@@ -11,6 +11,7 @@ import farmer_house from "./building/data/farmer_house.json" assert { type: "jso
 import tiny_house from "./building/data/tiny_house.json" assert { type: "json" };
 import watch_tower from "./building/data/watch_tower.json" assert { type: "json" };
 import medium_house from "./building/data/medium_house.json" assert { type: "json" };
+import tiny_house2 from "./building/data/tiny_house2.json" assert { type: "json" };
 
 //
 export class BuilgingTemplate {
@@ -36,7 +37,7 @@ export class BuilgingTemplate {
     }
 
     static getSchema(name) {
-        const _buildings = {church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house, tiny_house, watch_tower, medium_house};
+        const _buildings = {church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house, tiny_house, watch_tower, medium_house, tiny_house2};
         const resp = _buildings[name]
         if(!resp) throw 'building_schema_not_found'
         return resp

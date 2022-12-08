@@ -51,6 +51,7 @@ export class WorldEditBuilding {
         insert('tiny_house', new Vector(-140, -1, 0), new Vector(-144, 6, -6), new Vector(-142, 1, -1))
         insert('watch_tower', new Vector(-148, 1, 0), new Vector(-157, 24, -10), new Vector(-153, 4, -3))
         insert('medium_house', new Vector(-163, 0, 1), new Vector(-171, 7, -7), new Vector(-166, 1, 0))
+        insert('tiny_house2', new Vector(-176, 1, 2), new Vector(-182, 7, -6), new Vector(-179, 2, 0))
 
     }
 
