@@ -67,6 +67,9 @@ export const Lang = new Proxy(
             if(prop in target) {
                 return target[prop];
             }
+            if (prop.startsWith("!lang")) {
+                return prop.substr(5);
+            }
             const args = prop.split('|');
             const key = args.shift();
             const resp = target.strings[key];
@@ -76,6 +79,15 @@ export const Lang = new Proxy(
             //
             const fill = function(str, args) {
                 for(let i = 0; i < args.length; i++) {
+                    const transPlace = '%t' + i;
+                    if (str.indexOf(transPlace) >= 0) {
+                        var v = args[i];
+                        const list = target.strings[v];
+                        if (list) {
+                            v = list[target.code] || list[target.default_code] || v;
+                        }
+                        str = str.replace(transPlace, v);
+                    }
                     str = str.replace(`%${i}`, args[i]);
                 }
                 return str;

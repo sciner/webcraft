@@ -248,6 +248,7 @@ export class Chat extends TextBox {
     drawHUD(hud) {
 
         const margin            = 10 * this.zoom;
+        const multiLineMarginAdd= 10 * this.zoom; // additional left margin for multi-line messages
         const padding           = this.style.padding;
         const top               = 45 * this.zoom;
         const now               = performance.now();
@@ -286,22 +287,25 @@ export class Chat extends TextBox {
                     }
                 }
                 let texts = m.text.split('\n');
-                for(let i = 0; i < texts.length; i++) {
+                for(let i = texts.length - 1; i >= 0; i--) {
                     let text = texts[i];
+                    var leftMargin = margin;
                     if(i == 0) {
                         text = m.username + ': ' + text;
+                    } else {
+                        leftMargin += multiLineMarginAdd;
                     }
                     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, this.line_height);
+                    hud.ctx.fillRect(leftMargin, y - padding, hud.width - margin - leftMargin, this.line_height);
                     //
                     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillText(text, margin + padding, y + 4 * this.zoom);
+                    hud.ctx.fillText(text, leftMargin + padding, y + 4 * this.zoom);
                     //
                     aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#ffffff' + aa;
-                    hud.ctx.fillText(text, margin + padding + 2, y + 2 * this.zoom);
+                    hud.ctx.fillText(text, leftMargin + padding + 2, y + 2 * this.zoom);
                     //
                     y -= this.line_height;
                 }
