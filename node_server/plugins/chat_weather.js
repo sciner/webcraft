@@ -19,22 +19,10 @@ export default class Chat_Weather {
                     args = chat.parseCMD(args, ['string', 'string']);
                     if(args.length == 2) {
                         const name = args[1].trim().toLowerCase();
-                        switch (name) {
-                            case 'rain': {
-                                world.setWeather(Weather.RAIN);
-                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена дождливая погода', [player.session.user_id]);
-                                break;
-                            }
-                            case 'snow': {
-                                world.setWeather(Weather.SNOW);
-                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена снежная погода', [player.session.user_id]);
-                                break;
-                            }
-                            default: {
-                                world.setWeather(Weather.CLEAR);
-                                world.chat.sendSystemChatMessageToSelectedPlayers('Установлена ясная погода', [player.session.user_id]);
-                            }
-                        }
+                        var id = Weather.BY_NAME[name] || Weather.CLEAR;
+                        world.setWeather(id);
+                        world.chat.sendSystemChatMessageToSelectedPlayers(
+                            'weather_is_set|weather_' + Weather.NAMES[id], [player.session.user_id]);
                         return true;
                     }
                     break;

@@ -819,14 +819,19 @@ export class Renderer {
      */
     setWeather(weather, chunkManager) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != Weather.get(weather)) {
+        if(!rain || rain.type != Weather.getName(weather)) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, Weather.get(weather), chunkManager);
+            rain = new Mesh_Object_Rain(this, Weather.getName(weather), chunkManager);
             this.meshes.add(rain, 'weather');
         }
         rain.enabled = weather != Weather.CLEAR;
+    }
+
+    getWeather() {
+        const name = this.meshes.get('weather')?.type;
+        return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
     // drawPlayers
