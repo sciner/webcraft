@@ -55,7 +55,7 @@ export default class Mesh_Object_Rain {
         }));
         
         if (this.type == 'rain') {
-            this.sound_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);  
+            this.sound_id = Qubatch.sounds.play('madcraft:environment', 'rain', null, true);  
         }
 
     }

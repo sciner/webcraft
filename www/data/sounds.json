@@ -4,6 +4,9 @@
         "underwater_ambience": [
             "underwater_ambience"
         ],
+        "rain": [
+            "rain"
+        ],
         "entering_water": [
             "entering_water"
         ],
