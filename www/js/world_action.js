@@ -1354,7 +1354,7 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         if(on_ceil) sit_pos.y += .5;
     }
     //
-    if(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0) {
+    if((is_chair || is_stool) && player.pos.distance(sit_pos) < 2.0) {
         actions.reset_mouse_actions = true;
         actions.setSitting(
             sit_pos,
