@@ -1494,7 +1494,7 @@
             "inventory_style": "extruder",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
             "texture": "block/grass.png",
-            "texture_variants2": [
+            "texture_variants": [
                 "block/grass/grass1.png",
                 "block/grass/grass2.png",
                 "block/grass/grass3.png",
@@ -3535,7 +3535,7 @@
                 "up": "block/tall_grass_top.png",
                 "down": "block/tall_grass_bottom.png"
             },
-            "texture_variants2": [
+            "texture_variants": [
                 {
                     "up": "block/tall_grass/tall_grass1_top.png",
                     "down": "block/tall_grass/tall_grass1_bottom.png"

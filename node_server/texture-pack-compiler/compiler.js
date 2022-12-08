@@ -320,8 +320,13 @@ export class Compiler {
                 await opTextures(block, 'texture');
 
                 if('texture_variants' in block) {
-                    for(let k in block.texture_variants) {
-                        await opTextures(block.texture_variants, k);
+                    try {
+                        for(let k in block.texture_variants) {
+                            await opTextures(block.texture_variants, k);
+                        }
+                    } catch(e) {
+                        // TODO: это временно, пока мы полностью не создадим свой текстур пак
+                        delete(block.texture_variants)
                     }
                 }
 
