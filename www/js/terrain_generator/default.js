@@ -655,6 +655,33 @@ export class Default_Terrain_Generator {
     
     // Тропическое дерево
     plantBigOak(options, chunk, x, y, z, check_chunk_size = true) {
+
+        /*
+        const conus_rad = 16;
+        const xyz2 = chunk.coord.add(new Vector(x, y, z));
+        const random_alea2 = new alea('tree_big' + xyz2.toHash());
+        const blocks = [BLOCK.GREEN_CONCRETE, BLOCK.GREEN_CONCRETE_POWDER, BLOCK.GREEN_TERRACOTTA, BLOCK.MOSS_BLOCK, BLOCK.GREEN_WOOL];
+
+        for(let k = 0; k < conus_rad * 2; k++) {
+            const y2 = y + conus_rad * 2 - k - 1
+            for(let i = -conus_rad; i < conus_rad; i++) {
+                for(let j = -conus_rad; j < conus_rad; j++) {
+                    const dist = Math.sqrt(
+                        (x - (x+i)) * (x - (x+i)) +
+                        (y + conus_rad - (y2)) * (y + conus_rad- (y2)) +
+                        (z - (z+j)) * (z - (z+j))
+                    )
+                    if(dist < conus_rad * .8) {
+                        const block = blocks[(random_alea2.double() * blocks.length) | 0];
+                        this.setTreeBlock(options, chunk, x + i, y2, z + j, block, true);
+                    }
+                }
+            }
+        }
+
+        return
+        */
+
         // рисуем корни
         const generateRoots = (x, y, z) => {
             let d = null;
