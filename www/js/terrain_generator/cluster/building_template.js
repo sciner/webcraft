@@ -12,6 +12,8 @@ import tiny_house from "./building/data/tiny_house.json" assert { type: "json" }
 import watch_tower from "./building/data/watch_tower.json" assert { type: "json" };
 import medium_house from "./building/data/medium_house.json" assert { type: "json" };
 import tiny_house2 from "./building/data/tiny_house2.json" assert { type: "json" };
+import tiny_mart from "./building/data/tiny_mart.json" assert { type: "json" };
+import sand_house from "./building/data/sand_house.json" assert { type: "json" };
 
 //
 export class BuilgingTemplate {
@@ -37,7 +39,10 @@ export class BuilgingTemplate {
     }
 
     static getSchema(name) {
-        const _buildings = {church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house, tiny_house, watch_tower, medium_house, tiny_house2};
+        const _buildings = {
+            church, e3290, nico, domikder, domikkam, domikkam2, domsmall, farmer_house,
+            tiny_house, watch_tower, medium_house, tiny_house2, tiny_mart, sand_house
+        };
         const resp = _buildings[name]
         if(!resp) throw 'building_schema_not_found'
         return resp
@@ -68,7 +73,7 @@ export class BuilgingTemplate {
                     if(block.move.y - min.y < 2) {
                         const b = bm.fromId(block.block_id);
                         // не учитываем неполные блоки у основания строения в качестве пола
-                        if(b.is_solid) {
+                        if(b.is_solid || [468].includes(b.id)) {
                             two2map.set(new Vector(block.move.x, 0, block.move.z), true);
                         }
                     }
@@ -141,8 +146,10 @@ export class BuilgingTemplate {
 
         // Fill chest extra_data
         const CHEST_ID = bm.CHEST.id;
-        for(const [_, block] of all_blocks.entries()) {
-            if(block.block_id == CHEST_ID) {
+        for(const [pos, block] of all_blocks.entries()) {
+            if(block.block_id == 199) {
+                all_blocks.delete(pos)
+            } else if(block.block_id == CHEST_ID) {
                 if(!block.extra_data) block.extra_data = {};
                 block.extra_data = {...block.extra_data, generate: true, params: {source: 'building'}}
             }

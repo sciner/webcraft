@@ -107,7 +107,7 @@ export class ClusterVilage extends ClusterBase {
         if(clusterManager.version == 2) {
 
             // ширина ячеек между улицами под дома
-            schema_options.quant = 20;
+            schema_options.quant = 19;
 
             // для каждой деревни по каким либо условиям можно генерировать собственный набор домов со своими правилами
             // например взять несколько рандомно разбросанных координат и посмотреть там биомы
@@ -125,7 +125,8 @@ export class ClusterVilage extends ClusterBase {
                     {class: Farmland,       max_count: Infinity, chance: .2},
                     {class: BuildingBlocks, max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
                     {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house', 'medium_house']},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .42, block_templates: ['tiny_mart']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2', 'sand_house']},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
                     {class: BuildingBlocks, max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house', 'tiny_house2']},
                 ]

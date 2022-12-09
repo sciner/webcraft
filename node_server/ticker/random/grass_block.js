@@ -7,7 +7,7 @@ const _rnd_pos_up = new Vector(0, 0, 0);
 
 //
 function isLightOpacity(tblock) {
-    return tblock?.material?.transparent || false;
+    return tblock?.material?.transparent || false || tblock.id == BLOCK.TEST.id;
 }
 
 // tickerRandomGrassBlock

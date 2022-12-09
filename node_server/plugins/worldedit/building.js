@@ -52,6 +52,8 @@ export class WorldEditBuilding {
         insert('watch_tower', new Vector(-148, 1, 0), new Vector(-157, 24, -10), new Vector(-153, 4, -3))
         insert('medium_house', new Vector(-163, 0, 1), new Vector(-171, 7, -7), new Vector(-166, 1, 0))
         insert('tiny_house2', new Vector(-176, 1, 2), new Vector(-182, 7, -6), new Vector(-179, 2, 0))
+        insert('tiny_mart', new Vector(-187, 0, 1), new Vector(-201, 4, -10), new Vector(-194, 0, 0))
+        insert('sand_house', new Vector(-206, 0, 1), new Vector(-212, 4, -5), new Vector(-209, 1, 0))
 
     }
 
@@ -110,7 +112,7 @@ export class WorldEditBuilding {
 
         // convert blocks to building blocks
         for(let [bpos, item] of copy_data.blocks.entries()) {
-            if([199, 209, 210].includes(item.id)) continue;
+            if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
                 door_bottom.x - bpos.x,
