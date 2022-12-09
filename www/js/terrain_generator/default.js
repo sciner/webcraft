@@ -141,7 +141,19 @@ export class Default_Terrain_Generator {
         // if first time calling plant for this tree
         if(!tree.chunks) {
             tree.chunks = new VectorCollector()
+            //if(type.style == 'big_oak') {
+            //    let cnt = 100;
+            //    let p = performance.now()
+            //    for(let i = 0; i < cnt; i++) {
+            //        style_func(tree, chunk, x, y, z, this.setTreeBlock.bind(this));
+            //    }
+            //    if(!globalThis.sdfgbv) globalThis.sdfgbv = {count: 0, time: 0}
+            //    globalThis.sdfgbv.count += cnt
+            //    globalThis.sdfgbv.time += (performance.now() - p)
+            //    console.log(globalThis.sdfgbv.time / globalThis.sdfgbv.count)
+            //} else {
             style_func(tree, chunk, x, y, z, this.setTreeBlock.bind(this));
+            //}
         }
 
         const c = tree.chunks.get(chunk.addr)
@@ -437,36 +449,34 @@ export class Default_Terrain_Generator {
                             continue;
                         }
                     }
-                    if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
-                        let m = (i == -rad && j == -rad) ||
-                            (i == rad && j == rad) ||
-                            (i == -rad && j == rad) ||
-                            (i == rad && j == -rad);
-                        if(m && py < y + tree.height) {
-                            continue;
+                    let m = (i == -rad && j == -rad) ||
+                        (i == rad && j == rad) ||
+                        (i == -rad && j == rad) ||
+                        (i == rad && j == -rad);
+                    if(m && py < y + tree.height) {
+                        continue;
+                    }
+                    this.xyz_temp_find.set(i + x, py, j + z);
+                    b = chunk.tblocks.get(this.xyz_temp_find, b);
+                    let b_id = b.id;
+                    if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                        this.temp_block.id = tree.type.leaves;
+                        // determining which side to cover with which texture
+                        let t = 0;
+                        if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                        if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                        if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                        if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                        if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                        //
+                        if(py < y + tree.height) {
+                            if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                            if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                            if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                            if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                         }
-                        this.xyz_temp_find.set(i + x, py, j + z);
-                        b = chunk.tblocks.get(this.xyz_temp_find, b);
-                        let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
-                            this.temp_block.id = tree.type.leaves;
-                            // determining which side to cover with which texture
-                            let t = 0;
-                            if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
-                            if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                            if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                            if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                            if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                            //
-                            if(py < y + tree.height) {
-                                if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                                if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                                if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                                if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                            }
-                            const extra_data = t ? {t: t} : null;
-                            setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
-                        }
+                        const extra_data = t ? {t: t} : null;
+                        setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                     }
                 }
             }
@@ -496,36 +506,34 @@ export class Default_Terrain_Generator {
                             continue;
                         }
                     }
-                    if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
-                        let m = (i == -rad && j == -rad) ||
-                            (i == rad && j == rad) ||
-                            (i == -rad && j == rad) ||
-                            (i == rad && j == -rad);
-                        if(m && py < y + tree.height) {
-                            continue;
+                    let m = (i == -rad && j == -rad) ||
+                        (i == rad && j == rad) ||
+                        (i == -rad && j == rad) ||
+                        (i == rad && j == -rad);
+                    if(m && py < y + tree.height) {
+                        continue;
+                    }
+                    this.xyz_temp_find.set(i + x, py, j + z);
+                    b = chunk.tblocks.get(this.xyz_temp_find, b);
+                    let b_id = b.id;
+                    if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                        this.temp_block.id = tree.type.leaves;
+                        // determining which side to cover with which texture
+                        let t = 0;
+                        if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                        if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                        if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                        if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                        if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                        //
+                        if(py < y + tree.height) {
+                            if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                            if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                            if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                            if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                         }
-                        this.xyz_temp_find.set(i + x, py, j + z);
-                        b = chunk.tblocks.get(this.xyz_temp_find, b);
-                        let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
-                            this.temp_block.id = tree.type.leaves;
-                            // determining which side to cover with which texture
-                            let t = 0;
-                            if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
-                            if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                            if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                            if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                            if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                            //
-                            if(py < y + tree.height) {
-                                if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
-                                if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
-                                if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
-                                if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
-                            }
-                            let extra_data = t ? {t: t} : null;
-                            setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
-                        }
+                        let extra_data = t ? {t: t} : null;
+                        setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                     }
                 }
             }
@@ -687,30 +695,19 @@ export class Default_Terrain_Generator {
     // Большой дуб
     plantBigOak(tree, chunk, x, y, z, setTreeBlock) {
 
+        const orig_y = y;
+
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
         const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
-        //if(!options.x) {
-        //    options.x = 234
-        //    console.log(9)
-        //}
-
-        /*if(!globalThis.x) {
-            globalThis.x = {count: 1, vecs: new VectorCollector()}
-        } else {
-            globalThis.x.count++
-            globalThis.x.vecs.set(xyz, true)
-            console.log(globalThis.x, globalThis.x.vecs.size)
-        }
-        */
-
         // рисуем корни
         const generateRoots = (x, y, z) => {
             this.temp_block.id = tree.type.trunk;
+            const h = 0
             for(let n of [[0,1],[0,-1],[1,0],[-1,0]]) {
-                for(let k = 0; k < 3; k++) {
+                for(let k = -h; k < 3; k++) {
                     setTreeBlock(tree, chunk, x + n[0], y - k, z + n[1], this.temp_block, true);
                 }
             }
@@ -718,27 +715,36 @@ export class Default_Terrain_Generator {
 
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
+            
             const ROUND = 0;
             const MIN_RADIUS = 4;
-            rad = 4;//Math.max(rad, MIN_RADIUS);
+            const LEAVES_THRESHOLD = .5;
+            const LEAVES_THICNESS_MUL = (1 + 1.25 * getRandom()) // коэффициент сплющивания кроны
+
+            rad = 4 - Math.round(1 - (y - orig_y) / height); // чем ниже листва, тем радиус меньше
             this.temp_block.id = tree.type.leaves;
-            for(let k = -1; k <= 4; k++) {
+
+            for(let k = -rad; k <= rad; k++) {
                 for(let i = -rad; i <= rad; i++) {
                     for(let j = - rad; j <= rad; j++) {
-                        const sx = x + i;
-                        const sz = z + j;
-                        const sy = y + k;
+
                         const rnd = getRandom();
-                        const r = i*i + j*j + k*k;
-                        const m = (r > rad*rad) ? 0.8 : 0.3;
-                        const m2 = (i == -rad || j == -rad || i == rad || j == rad || k == -1 || k == 4) ? 0.2 : 0.0;
-                        if (rnd > (m + m2)) {
-                            setTreeBlock(tree, chunk, sx, sy, sz, this.temp_block, false);
+                        if(rnd > LEAVES_THRESHOLD) continue; // полностью отбрасываем часть листвы
+
+                        const dx = i
+                        const dy = k * LEAVES_THICNESS_MUL
+                        const dz = j
+                        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz)
+
+                        // расстояния до центра "шара" кроны
+                        if(dist <= rad) {
+                            setTreeBlock(tree, chunk, x + i, y + k, z + j, this.temp_block, false);
                         }
+
                     }
                 }
-
             }
+
         }
 
         // рисуем линии веток
