@@ -2317,7 +2317,7 @@ export class SimpleQueue {
     push(v) {
         if (this.length === this.arr.length) {
             // grow: copy the beginning into the end; the beginning becomes empty
-            for(var i = 0; i < this.left; i++) {
+            for(var i = 0; i < this.length; i++) {
                 this.arr.push(this.arr[i]);
             }
         }
