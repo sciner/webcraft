@@ -321,7 +321,8 @@ export class Biomes {
         this.addBiome('Саванна', 1.2, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                {percent: .9, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                {percent: .1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: 1}},
             ]
         }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome('Плато саванны', 1, 0, undefined, {
