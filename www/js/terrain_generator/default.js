@@ -692,7 +692,7 @@ export class Default_Terrain_Generator {
     plantBigOak(options, chunk, x, y, z, check_chunk_size = true) {
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CHUNK_SIZE_Y - 5, options.height); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(CHUNK_SIZE_Y - 12, options.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
@@ -711,25 +711,28 @@ export class Default_Terrain_Generator {
 
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
-            rad = 4;
+            const ROUND = 5;
+            const MIN_RADIUS = 4;
+            rad = Math.max(rad, MIN_RADIUS);
             this.temp_block.id = options.type.leaves;
-            for(let k = y - 1; k <= y + 3; k++) {
-                for(let i = x - rad; i <= x + rad; i++) {
-                    for(let j = z - rad; j <= z + rad; j++) {
+            for(let k = -1; k <= rad; k++) {
+                for(let i = -rad; i <= rad; i++) {
+                    for(let j = - rad; j <= rad; j++) {
+                        const sx = x + i;
+                        const sz = z + j;
+                        const sy = y + k;
                         const rnd = getRandom();
-                        if(check_chunk_size && (i < 0 || i >= chunk.size.x || j < 0 || j >= chunk.size.z)) {
+                        if(check_chunk_size && (sx < 0 || sx >= chunk.size.x || sz < 0 || sz >= chunk.size.z)) {
                             continue;
                         }
-                        const m1 = (j == z - rad || j == z + rad) ? 0.2 : 0;
-                        const m2 = (i == x - rad || i == x + rad) ? 0.2 : 0;
-                        const m3 = (k == y + 3) ? 0.3 : 0;
-                        if (rnd > (0.4 + m1 + m2 + m3)) {
-                            const block_id = chunk.tblocks.getBlockId(i, k, j)
+                        const r = i*i + j*j + k*k;
+                        if (r < rad*rad - ROUND && rnd > 0.3) {
+                            const block_id = chunk.tblocks.getBlockId(sx, sy, sz)
                             if(block_id == 0) {
                                 // TODO: нельзя трогать рандом, если выше была отсечка по чанку
                                 // (получается, что рандом будет вызываться по разному в зависимости от того, в каком он чанке)
                                 // if (random_alea.double() > (0.4 + m1 + m2 + m3)) {
-                                this.setTreeBlock(options, chunk, i, k, j, this.temp_block, false);
+                                this.setTreeBlock(options, chunk, sx, sy, sz, this.temp_block, false);
                             }
                         }
                     }
