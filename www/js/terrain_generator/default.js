@@ -160,22 +160,10 @@ export class Default_Terrain_Generator {
                 break;
             }
             // дуб, берёза
-            //case 'birch':
-            //case 'oak':
-            case 'wood': 
-            {
-                //let p = performance.now();
-                //let cnt = 100;
-                //for(let i = 0; i < cnt; i++) {
-                this.plantBigOak(options, chunk, x, y, z, check_chunk_size)
-                //}
-                //let elapsed = (performance.now() - p)
-                //if(!globalThis.calcTreeSpeed) {
-                //    globalThis.calcTreeSpeed = {e: 0, c: 0}
-                //}
-                //globalThis.calcTreeSpeed.e += elapsed
-                //globalThis.calcTreeSpeed.c += cnt
-                //console.log(globalThis.calcTreeSpeed.e / globalThis.calcTreeSpeed.c)
+            case 'birch':
+            case 'oak':
+            case 'wood': {
+                this.plantOak(options, chunk, x, y, z, check_chunk_size)
                 break;
             }
             // mushroom
@@ -204,8 +192,19 @@ export class Default_Terrain_Generator {
                 break;
             }
             // большое дерево
-            case 'bigoak': {
+            case 'big_oak': {
+                //let p = performance.now();
+                //let cnt = 100;
+                //for(let i = 0; i < cnt; i++) {
                 this.plantBigOak(options, chunk, x, y, z, check_chunk_size)
+                //}
+                //let elapsed = (performance.now() - p)
+                //if(!globalThis.calcTreeSpeed) {
+                //    globalThis.calcTreeSpeed = {e: 0, c: 0}
+                //}
+                //globalThis.calcTreeSpeed.e += elapsed
+                //globalThis.calcTreeSpeed.c += cnt
+                //console.log(globalThis.calcTreeSpeed.e / globalThis.calcTreeSpeed.c)
                 break;
             }
 
@@ -706,7 +705,8 @@ export class Default_Terrain_Generator {
                     this.xyz_temp_find.set(x + n[0], y - k, z + n[1]);
                     d = chunk.tblocks.get(this.xyz_temp_find, d);
                     if(!d || (d.id == 0)) {
-                        this.setTreeBlock(options, chunk, x + n[0], y - k, z + n[1], BLOCK.OAK_LOG, true);
+                        this.temp_block.id = options.type.trunk;
+                        this.setTreeBlock(options, chunk, x + n[0], y - k, z + n[1], this.temp_block, true);
                     }
                 }
             }
@@ -763,10 +763,12 @@ export class Default_Terrain_Generator {
                 }
                 if (dx >= dy && dx >= dz) {
                     x += sign_x;
-                    this.setTreeBlock(options, chunk, x, y, z, BLOCK.OAK_LOG, true);
+                    this.temp_block.id = options.type.trunk;
+                    this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
                 } else if (dz >= dx && dz >= dy) {
                     z += sign_z;
-                    this.setTreeBlock(options, chunk, x, y, z, BLOCK.OAK_LOG, true);
+                    this.temp_block.id = options.type.trunk;
+                    this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
                 }
                 else if (dy >= dx && dy >= dz) {
                     y++;
@@ -808,7 +810,8 @@ export class Default_Terrain_Generator {
 
         // основной ствол
         for(let i = 0; i < height; i++) {
-            this.setTreeBlock(options, chunk, x, y + i, z, BLOCK.OAK_LOG, true);
+            this.temp_block.id = options.type.trunk;
+            this.setTreeBlock(options, chunk, x, y + i, z, this.temp_block, true);
         }
 
         // листва основной кроны

@@ -168,7 +168,8 @@ export class Biomes {
         this.addBiome('Равнины', 0.8, 0.4, undefined, {
             frequency: TREE_FREQUENCY / 12,
             list: [
-                {percent: 1, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+                {percent: .95, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {percent: .05, ...TREES.BIG_OAK}
             ]
         });
         this.addBiome('Подсолнечниковые равнины', 0.8, 0.4);
@@ -179,7 +180,8 @@ export class Biomes {
             frequency: TREE_FREQUENCY * 1.2,
             list: [
                 {percent: 0.01, trunk: TREES.BIRCH.trunk, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+                {percent: 0.97, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {percent: .02, ...TREES.BIG_OAK, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
             ]
         });
         this.addBiome('Холмистый березняк', 0.6, 0.6);
@@ -190,7 +192,8 @@ export class Biomes {
         this.addBiome('Болото', 0.8, 0.9, undefined, {
             frequency: TREE_FREQUENCY * .25,
             list: [
-                {percent: 1, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
+                {percent: .95, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
+                {percent: .05, ...TREES.BIG_OAK}
             ]
         }, {
             frequency: PLANTS_FREQUENCY,
