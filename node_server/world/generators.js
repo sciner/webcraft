@@ -328,6 +328,14 @@ export class WorldGenerators {
             "rules": {
                 "portals": false
             }
+        },
+        {
+            "id": "test_trees",
+            "title": "test_trees",
+            "pos_spawn": {"x": 0, "y": 32, "z": 0},
+            "rules": {
+                "portals": false
+            }
         }
     ];
 
