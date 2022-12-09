@@ -138,7 +138,11 @@ export class Mob {
 
     // Save mob state to DB
     async save() {
-        await this.#world.db.mobs.save(this);
+        if (this.indicators.live.value > 0) {
+            await this.#world.db.mobs.save(this);
+        } else {
+            await this.#world.db.mobs.delete(this);
+        }
     }
 
     //

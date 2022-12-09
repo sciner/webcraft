@@ -119,6 +119,48 @@ export class DBGame {
             `ALTER TABLE world_player ADD COLUMN dt_last_visit INTEGER NOT NULL DEFAULT 0`
         ]});
         
+        migrations.push({version: 11, queries: [
+            // change user.username COLLATE NOCASE
+            `CREATE TABLE "user_copy" (
+                "id"	INTEGER,
+                "guid"	text NOT NULL,
+                "username"	TEXT COLLATE NOCASE,
+                "dt"	integer,
+                "skin"	TEXT,
+                "password"	TEXT,
+                "flags"	INTEGER DEFAULT 0,
+                PRIMARY KEY("id" AUTOINCREMENT))`,
+            `INSERT INTO user_copy (id, guid, username, dt, skin, password, flags)
+                SELECT id, guid, username, dt, skin, password, flags FROM user`,
+            'DROP TABLE user',
+            'ALTER TABLE user_copy RENAME TO user',
+            // change world.title COLLATE NOCASE
+            `CREATE TABLE "world_copy" (
+                "id"	INTEGER,
+                "guid"	text NOT NULL,
+                "title"	TEXT COLLATE NOCASE,
+                "user_id"	INTEGER,
+                "dt"	integer,
+                "seed"	TEXT,
+                "generator"	TEXT,
+                "pos_spawn"	TEXT,
+                "play_count"	integer NOT NULL DEFAULT 0,
+                "cover"	TEXT,
+                "game_mode"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT))`,
+            `INSERT INTO world_copy (id, guid, title, user_id, dt, seed, generator, pos_spawn, play_count, cover, game_mode)
+                SELECT id, guid, title, user_id, dt, seed, generator, pos_spawn, play_count, cover, game_mode FROM world`,
+            'DROP TABLE world',
+            'ALTER TABLE world_copy RENAME TO world',
+            // new indices
+            'CREATE UNIQUE INDEX user_username ON user (username)',
+            'CREATE INDEX user_guid ON user (guid)',
+            'CREATE INDEX user_session_token ON user_session (token)',
+            'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
+            'CREATE INDEX world_guid ON world (guid)',
+            'CREATE UNIQUE INDEX world_title ON world (title)'
+        ]});        
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -154,7 +196,7 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async Registration(username, password) {
-        if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE LOWER(username) = ?", [username.toLowerCase()])) {
+        if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
             throw 'error_player_exists';
         }
         const guid = randomUUID();
@@ -262,7 +304,7 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
+        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
         if (worldWithSameTitle != null) {
             throw 'error_world_with_same_title_already_exist';
         }
