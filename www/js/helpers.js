@@ -1880,13 +1880,13 @@ export function unixTime() {
 export function createFastRandom(seed, len = 512) {
     const random_alea = new alea(seed);
     // fast random
-    const randoms = new Float32Array(len)
-    for(let i = 0; i < randoms.length; i++) {
+    const randoms = new Array(len); // new Float32Array(len)
+    for(let i = 0; i < len; i++) {
         randoms[i] = random_alea.double();
     }
     let random_index = 0;
     // return random_alea.double
-    return () => randoms[random_index++ % randoms.length];
+    return () => randoms[random_index++ % len];
 }
 
 // FastRandom...

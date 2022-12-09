@@ -694,18 +694,15 @@ export class Default_Terrain_Generator {
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
         const height = Math.min(CHUNK_SIZE_Y - 5, options.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
-
-        const getRandom = createFastRandom('tree_big' + xyz.toHash())
+        const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни
         const generateRoots = (x, y, z) => {
-            let d = null;
+            this.temp_block.id = options.type.trunk;
             for(let n of [[0,1],[0,-1],[1,0],[-1,0]]) {
                 for(let k = 0; k < 3; k++) {
-                    this.xyz_temp_find.set(x + n[0], y - k, z + n[1]);
-                    d = chunk.tblocks.get(this.xyz_temp_find, d);
-                    if(!d || (d.id == 0)) {
-                        this.temp_block.id = options.type.trunk;
+                    const block_id = chunk.tblocks.getBlockId(x + n[0], y - k, z + n[1])
+                    if(block_id == 0) {
                         this.setTreeBlock(options, chunk, x + n[0], y - k, z + n[1], this.temp_block, true);
                     }
                 }
@@ -715,7 +712,7 @@ export class Default_Terrain_Generator {
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
             rad = 4;
-            let d = null;
+            this.temp_block.id = options.type.leaves;
             for(let k = y - 1; k <= y + 3; k++) {
                 for(let i = x - rad; i <= x + rad; i++) {
                     for(let j = z - rad; j <= z + rad; j++) {
@@ -723,17 +720,15 @@ export class Default_Terrain_Generator {
                         if(check_chunk_size && (i < 0 || i >= chunk.size.x || j < 0 || j >= chunk.size.z)) {
                             continue;
                         }
-                        this.xyz_temp_find.set(i, k, j);
-                        d = chunk.tblocks.get(this.xyz_temp_find, d)
-                        if(!d || (d.id == 0)) {
-                            const m1 = (j == z - rad || j == z + rad) ? 0.2 : 0;
-                            const m2 = (i == x - rad || i == x + rad) ? 0.2 : 0;
-                            const m3 = (k == y + 3) ? 0.3 : 0;
-                            // TODO: нельзя трогать рандом, если выше была отсечка по чанку
-                            // (получается, что рандом будет вызываться по разному в зависимости от того, в каком он чанке)
-                            // if (random_alea.double() > (0.4 + m1 + m2 + m3)) {
-                            if (rnd > (0.4 + m1 + m2 + m3)) {
-                                this.temp_block.id = options.type.leaves;
+                        const m1 = (j == z - rad || j == z + rad) ? 0.2 : 0;
+                        const m2 = (i == x - rad || i == x + rad) ? 0.2 : 0;
+                        const m3 = (k == y + 3) ? 0.3 : 0;
+                        if (rnd > (0.4 + m1 + m2 + m3)) {
+                            const block_id = chunk.tblocks.getBlockId(i, k, j)
+                            if(block_id == 0) {
+                                // TODO: нельзя трогать рандом, если выше была отсечка по чанку
+                                // (получается, что рандом будет вызываться по разному в зависимости от того, в каком он чанке)
+                                // if (random_alea.double() > (0.4 + m1 + m2 + m3)) {
                                 this.setTreeBlock(options, chunk, i, k, j, this.temp_block, false);
                             }
                         }
@@ -751,6 +746,7 @@ export class Default_Terrain_Generator {
             const sign_x = ex > sx ? 1 : -1;
             const sign_y = ey > sy ? 1 : -1;
             const sign_z = ez > sz ? 1 : -1;
+            this.temp_block.id = options.type.trunk;
             for (let n = 0; n < 10; n++){
                 if(check_chunk_size && (ex < 0 || ex >= chunk.size.x || ez < 0 || ez >= chunk.size.z)) {
                     continue;
@@ -763,14 +759,11 @@ export class Default_Terrain_Generator {
                 }
                 if (dx >= dy && dx >= dz) {
                     x += sign_x;
-                    this.temp_block.id = options.type.trunk;
                     this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
                 } else if (dz >= dx && dz >= dy) {
                     z += sign_z;
-                    this.temp_block.id = options.type.trunk;
                     this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
-                }
-                else if (dy >= dx && dy >= dz) {
+                } else if (dy >= dx && dy >= dz) {
                     y++;
                 }
             }
