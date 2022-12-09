@@ -2308,6 +2308,7 @@ export let md5 = (function() {
 // shift() and length are compatible with that of Array.
 // push() is not fully compatible with Array: it doesn't support multiple arguments.
 export class SimpleQueue {
+
     constructor() {
         this.arr = [null]; // a single element to prevent division by 0
         this.left = 0;
@@ -2340,4 +2341,5 @@ export class SimpleQueue {
             return this.arr[(this.left + index) % this.arr.length];
         }
     }
+
 }

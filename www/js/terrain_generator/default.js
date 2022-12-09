@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 
@@ -40,12 +40,28 @@ export class Default_Terrain_Generator {
         this.xyz_temp       = new Vector(0, 0, 0);
         this.xyz_temp_find  = new Vector(0, 0, 0);
         this.xyz_temp_coord = new Vector(0, 0, 0);
+        this._chunk_addr    = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
         this.maps = {
             delete: function() {},
             destroyAroundPlayers: function() {}
         };
+        // Tree styles
+        this.tree_styles = new Map()
+        this.tree_styles.set('cactus', this.plantCactus.bind(this)) // кактус
+        this.tree_styles.set('bamboo', this.plantBamboo.bind(this)) // бамбук
+        this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
+        this.tree_styles.set('tundra_stone', this.plantTundraStone.bind(this)) // камень тундры
+        this.tree_styles.set('birch', this.plantOak.bind(this)) // берёза
+        this.tree_styles.set('oak', this.plantOak.bind(this)) // дуб
+        this.tree_styles.set('wood', this.plantOak.bind(this)) // просто дерево
+        this.tree_styles.set('mushroom', this.plantMushroom.bind(this)) // гриб
+        this.tree_styles.set('brown_mushroom', this.plantBrownMushroom.bind(this)) // коричневый (плоский) гриб
+        this.tree_styles.set('acacia', this.plantAcacia.bind(this)) // акация
+        this.tree_styles.set('spruce', this.plantSpruce.bind(this)) // ель
+        this.tree_styles.set('jungle', this.plantJungle.bind(this)) // тропическое дерево
+        this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
     }
 
     async init() {
@@ -59,6 +75,7 @@ export class Default_Terrain_Generator {
         this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
     }
 
+    //
     generate(chunk) {
 
         let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
@@ -104,11 +121,74 @@ export class Default_Terrain_Generator {
         return null;
     }
 
+    // plantTree...
+    plantTree(tree, chunk, x, y, z, check_chunk_size) {
+        
+        const type = tree.type;
+        const style_func = this.tree_styles.get(type.style)
+
+        if(!style_func) {
+            throw 'error_undefined_tree_style';
+        }
+
+        // indirect write without seperate by chunks
+        if(!check_chunk_size) {
+            return style_func(tree, chunk, x, y, z, () => {
+                this.setBlock.bind(...arguments)
+            });
+        }
+
+        // if first time calling plant for this tree
+        if(!tree.chunks) {
+            tree.chunks = new VectorCollector()
+            style_func(tree, chunk, x, y, z, this.setTreeBlock.bind(this));
+        }
+
+        const c = tree.chunks.get(chunk.addr)
+        if(!c) {
+            return
+        }
+
+        // set blocks
+        const _temp_block = {id: 0}
+        for(let i = 0; i < c.blocks.length; i++) {
+            const b = c.blocks.get(i)
+            // TODO: check blocks if occupied
+            _temp_block.id = b.block_id
+            this.setBlock(chunk, b.cx, b.cy, b.cz, _temp_block, b.force_replace, b.rotate, b.extra_data);
+        }
+
+    }
+
     //
     setTreeBlock(tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
-        // if(!tree.aabb) tree.aabb = new AABB().reset();
-        // tree.aabb.addPoint(chunk.coord.x + x, chunk.coord.y + y, chunk.coord.z + z);
-        this.setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data);
+
+        const ax = chunk.coord.x + x
+        const ay = chunk.coord.y + y
+        const az = chunk.coord.z + z
+
+        this._chunk_addr = getChunkAddr(ax, ay, az, this._chunk_addr)
+        let c = tree.chunks.get(this._chunk_addr)
+        if(!c) {
+            c = {blocks: new SimpleQueue()}
+            tree.chunks.set(this._chunk_addr, c)
+        }
+
+        const cx = ax - Math.floor(ax / CHUNK_SIZE_X) * CHUNK_SIZE_X;
+        const cy = ay - Math.floor(ay / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
+        const cz = az - Math.floor(az / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+        const block_id = block_type.id
+
+        c.blocks.push({cx, cy, cz, block_id, force_replace, rotate, extra_data})
+
+    }
+
+    // Return block from chunk
+    getBlock(chunk, x, y, z) {
+        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
+            let xyz = new Vector(x, y, z);
+            return chunk.tblocks.get(xyz);
+        }
     }
 
     // setBlock
@@ -127,148 +207,64 @@ export class Default_Terrain_Generator {
         }
     }
 
-    getBlock(chunk, x, y, z) {
-        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            let xyz = new Vector(x, y, z);
-            return chunk.tblocks.get(xyz);
-        }
-    }
-
-    // plantTree...
-    plantTree(options, chunk, x, y, z, check_chunk_size) {
-        const type = options.type;
-        // листва над стволом
-        switch(type.style) {
-            // кактус
-            case 'cactus': {
-                this.plantCactus(options, chunk, x, y, z)
-                break;
-            }
-            // бамбук
-            case 'bamboo': {
-                this.plantBamboo(options, chunk, x, y, z)
-                break;
-            }
-            // пенёк
-            case 'stump': {
-                this.plantStump(options, chunk, x, y, z)
-                break;
-            }
-            // tundra_stone
-            case 'tundra_stone': {
-                this.plantTundraStone(options, chunk, x, y, z)
-                break;
-            }
-            // дуб, берёза
-            case 'birch':
-            case 'oak':
-            case 'wood': {
-                this.plantOak(options, chunk, x, y, z, check_chunk_size)
-                break;
-            }
-            // mushroom
-            case 'mushroom': {
-                this.plantMushroom(options, chunk, x, y, z)
-                break;
-            }
-            // brown_mushroom
-            case 'brown_mushroom': {
-                this.plantBrownMushroom(options, chunk, x, y, z)
-                break;
-            }
-            // акация
-            case 'acacia': {
-                this.plantAcacia(options, chunk, x, y, z, check_chunk_size)
-                break;
-            }
-            // ель
-            case 'spruce': {
-                this.plantSpruce(options, chunk, x, y, z, check_chunk_size)
-                break;
-            }
-            // тропическое дерево
-            case 'jungle': {
-                this.plantJungle(options, chunk, x, y, z, check_chunk_size)
-                break;
-            }
-            // большое дерево
-            case 'big_oak': {
-                //let p = performance.now();
-                //let cnt = 100;
-                //for(let i = 0; i < cnt; i++) {
-                this.plantBigOak(options, chunk, x, y, z, check_chunk_size)
-                //}
-                //let elapsed = (performance.now() - p)
-                //if(!globalThis.calcTreeSpeed) {
-                //    globalThis.calcTreeSpeed = {e: 0, c: 0}
-                //}
-                //globalThis.calcTreeSpeed.e += elapsed
-                //globalThis.calcTreeSpeed.c += cnt
-                //console.log(globalThis.calcTreeSpeed.e / globalThis.calcTreeSpeed.c)
-                break;
-            }
-
-        }
-    }
-
     // Кактус
-    plantCactus(options, chunk, x, y, z, block, force_replace) {
-        const ystart = y + options.height;
+    plantCactus(tree, chunk, x, y, z, setTreeBlock) {
+        const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = options.type.trunk;
+        this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
     }
 
     // Бамбук
-    plantBamboo(options, chunk, x, y, z, block, force_replace) {
-        const ystart = y + options.height;
+    plantBamboo(tree, chunk, x, y, z, setTreeBlock) {
+        const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = options.type.trunk;
+        this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             let extra_data = {stage: 3};
             if(p == ystart - 1) extra_data.stage = 2;
             if(p == ystart - 2) extra_data.stage = 1;
             if(p == ystart - 3) extra_data.stage = 1;
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true, null, extra_data);
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true, null, extra_data);
         }
     }
 
     // Пенёк
-    plantStump(options, chunk, x, y, z, block, force_replace) {
-        const ystart = y + options.height;
+    plantStump(tree, chunk, x, y, z, setTreeBlock) {
+        const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = options.type.trunk;
+        this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
-        if(options.type.leaves) {
-            this.temp_block.id = options.type.leaves;
-            this.setTreeBlock(options, chunk, x, ystart, z, this.temp_block, true);
+        if(tree.type.leaves) {
+            this.temp_block.id = tree.type.leaves;
+            setTreeBlock(tree, chunk, x, ystart, z, this.temp_block, true);
         }
     }
 
     // Tundra stone
-    plantTundraStone(options, chunk, x, y, z, block, force_replace) {
+    plantTundraStone(tree, chunk, x, y, z, setTreeBlock) {
         y--;
-        const ystart = y + options.height;
+        const ystart = y + tree.height;
         // ствол
-        this.temp_block.id = options.type.trunk;
+        this.temp_block.id = tree.type.trunk;
         for(let p = y; p < ystart; p++) {
             for(let dx = -1; dx <= 1; dx++) {
                 for(let dz = -1; dz <= 1; dz++) {
                     if(p != y && dx != 0 && dz != 0) {
                         continue;
                     }
-                    this.setTreeBlock(options, chunk, x + dx, p, z + dz, this.temp_block, true);
+                    setTreeBlock(tree, chunk, x + dx, p, z + dz, this.temp_block, true);
                 }
             }
         }
     }
 
     // Акация
-    plantAcacia(options, chunk, orig_x, orig_y, orig_z, check_chunk_size = true) {
+    plantAcacia(tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
         // let xyz = chunk.coord.add(new Vector(orig_x, orig_y, orig_z));
         // let random = new alea('tree' + xyz.toHash());
         let iterations = 0;
@@ -279,8 +275,8 @@ export class Default_Terrain_Generator {
             for(let p = y; p < ystart; p++) {
                 x += px;
                 z += pz;
-                that.temp_block.id = options.type.trunk;
-                that.setBlock(chunk, x, p, z, that.temp_block, true);
+                that.temp_block.id = tree.type.trunk;
+                setTreeBlock(tree, chunk, x, p, z, that.temp_block, true);
                 // let r = random.double();
                 let r = that.fastRandoms.double(x + p + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + height);
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
@@ -303,77 +299,75 @@ export class Default_Terrain_Generator {
             for(let rad of rads) {
                 for(let i = x - rad; i <= x + rad; i++) {
                     for(let j = z - rad; j <= z + rad; j++) {
-                        if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
-                            vec1.set(x, 0, z);
-                            vec2.set(i, 0, j);
-                            if(vec1.distance(vec2) > rad) {
-                                continue;
-                            }
-                            that.xyz_temp_find.set(i, py, j);
-                            let b = chunk.tblocks.get(that.xyz_temp_find);
-                            let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                            if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                                that.temp_block.id = options.type.leaves;
-                                that.setBlock(chunk, i, py, j, that.temp_block, false);
-                            }
+                        vec1.set(x, 0, z);
+                        vec2.set(i, 0, j);
+                        if(vec1.distance(vec2) > rad) {
+                            continue;
+                        }
+                        that.xyz_temp_find.set(i, py, j);
+                        let b = chunk.tblocks.get(that.xyz_temp_find);
+                        let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
+                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                            that.temp_block.id = tree.type.leaves;
+                            setTreeBlock(tree, chunk, i, py, j, that.temp_block, false);
                         }
                     }
                 }
                 py--;
             }
         };
-        plant(orig_x, orig_y, orig_z, options.height, 0, 0, [2, 3]);
+        plant(orig_x, orig_y, orig_z, tree.height, 0, 0, [2, 3]);
     }
 
     // Ель
-    plantSpruce(options, chunk, x, y, z, check_chunk_size = true) {
+    plantSpruce(tree, chunk, x, y, z, setTreeBlock) {
+
         let max_rad = 5;
-        let ystart = y + options.height;
+        let ystart = y + tree.height;
         let b = null;
+
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            this.temp_block.id = tree.type.trunk;
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
+
         // листва
         let r = 1;
         let rad = Math.round(r);
-        if(!check_chunk_size || (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z)) {
-            this.temp_block.id = options.type.leaves;
-            this.setTreeBlock(options, chunk, x, ystart, z, this.temp_block, false);
-            if(options.biome_code == 'SNOW') {
-                this.temp_block.id = BLOCK.SNOW.id;
-                this.setTreeBlock(options, chunk, x, ystart + 1, z, this.temp_block, false);
-            }
+        this.temp_block.id = tree.type.leaves;
+        setTreeBlock(tree, chunk, x, ystart, z, this.temp_block, false);
+        if(tree.biome_code == 'SNOW') {
+            this.temp_block.id = BLOCK.SNOW.id;
+            setTreeBlock(tree, chunk, x, ystart + 1, z, this.temp_block, false);
         }
+
         let step = 0;
         let temp_rad = 0;
-        for(let y = ystart - 1; y > ystart - (options.height - 1); y--) {
+        for(let y = ystart - 1; y > ystart - (tree.height - 1); y--) {
             step++
             if(step % 2 == 0) {
                 rad = Math.min(Math.round(r), max_rad);
                 temp_rad = rad;
             } else if(step == 1) {
-                rad = options.height % 2;
+                rad = tree.height % 2;
                 temp_rad = rad;
             } else {
                 rad = temp_rad - 1;
             }
             for(let i = x - rad; i <= x + rad; i++) {
                 for(let j = z - rad; j <= z + rad; j++) {
-                    if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
-                        if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
-                            this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
-                            b = chunk.tblocks.get(this.xyz_temp_find, b);
-                            let b_id = b.id;
-                            // options.aabb.addPoint(chunk.coord.x + i, chunk.coord.y + y, chunk.coord.z + j);
-                            if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                                this.temp_block.id = options.type.leaves;
-                                this.setTreeBlock(options, chunk, i, y, j, this.temp_block, false);
-                                if(options.biome_code == 'SNOW') {
-                                    this.temp_block.id = BLOCK.SNOW.id;
-                                    this.setTreeBlock(options, chunk, i, y + 1, j, this.temp_block, false);
-                                }
+                    if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
+                        this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
+                        let b_id = b.id;
+                        // options.aabb.addPoint(chunk.coord.x + i, chunk.coord.y + y, chunk.coord.z + j);
+                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                            this.temp_block.id = tree.type.leaves;
+                            setTreeBlock(tree, chunk, i, y, j, this.temp_block, false);
+                            if(tree.biome_code == 'SNOW') {
+                                this.temp_block.id = BLOCK.SNOW.id;
+                                setTreeBlock(tree, chunk, i, y + 1, j, this.temp_block, false);
                             }
                         }
                     }
@@ -381,43 +375,42 @@ export class Default_Terrain_Generator {
             }
             r = Math.sqrt(step);
             if(r < 1.5) {
-                this.temp_block.id = options.type.leaves;
-                this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
+                this.temp_block.id = tree.type.leaves;
+                setTreeBlock(tree, chunk, x, y, z, this.temp_block, true);
             }
         }
+
     }
 
     // Дуб, берёза
-    plantOak(options, chunk, x, y, z, check_chunk_size = true) {
-        let ystart = y + options.height;
+    plantOak(tree, chunk, x, y, z, setTreeBlock) {
+        let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            this.temp_block.id = tree.type.trunk;
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
         // листва
-        let py = y + options.height;
+        let py = y + tree.height;
         let b = null;
         for(let rad of [1, 1, 2, 2]) {
             for(let i = x - rad; i <= x + rad; i++) {
                 for(let j = z - rad; j <= z + rad; j++) {
-                    if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
-                        let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) ||
-                            (i == x - rad && j == z + rad) ||
-                            (i == x + rad && j == z - rad);
-                            let m2 = (py == y + options.height) ||
-                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                        if(m && m2) {
-                            continue;
-                        }
-                        this.xyz_temp_find.set(i, py, j);
-                        b = chunk.tblocks.get(this.xyz_temp_find, b);
-                        let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                            this.temp_block.id = options.type.leaves;
-                            this.setTreeBlock(options, chunk, i, py, j, this.temp_block, false);
-                        }
+                    let m = (i == x - rad && j == z - rad) ||
+                        (i == x + rad && j == z + rad) ||
+                        (i == x - rad && j == z + rad) ||
+                        (i == x + rad && j == z - rad);
+                        let m2 = (py == y + tree.height) ||
+                        (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
+                    if(m && m2) {
+                        continue;
+                    }
+                    this.xyz_temp_find.set(i, py, j);
+                    b = chunk.tblocks.get(this.xyz_temp_find, b);
+                    let b_id = b.id;
+                    if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                        this.temp_block.id = tree.type.leaves;
+                        setTreeBlock(tree, chunk, i, py, j, this.temp_block, false);
                     }
                 }
             }
@@ -426,20 +419,20 @@ export class Default_Terrain_Generator {
     }
 
     // Brown mushroom
-    plantBrownMushroom(options, chunk, x, y, z) {
-        let ystart = y + options.height;
+    plantBrownMushroom(tree, chunk, x, y, z, setTreeBlock) {
+        let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            this.temp_block.id = tree.type.trunk;
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
         // листва
-        let py = y + options.height;
+        let py = y + tree.height;
         let b = null;
         for(let rad of [1, 3]) {
             for(let i = -rad; i <= rad; i++) {
                 for(let j = -rad; j <= rad; j++) {
-                    if(py < y + options.height) {
+                    if(py < y + tree.height) {
                         if(Math.abs(i) < 2 && Math.abs(j) < 2) {
                             continue;
                         }
@@ -449,30 +442,30 @@ export class Default_Terrain_Generator {
                             (i == rad && j == rad) ||
                             (i == -rad && j == rad) ||
                             (i == rad && j == -rad);
-                        if(m && py < y + options.height) {
+                        if(m && py < y + tree.height) {
                             continue;
                         }
                         this.xyz_temp_find.set(i + x, py, j + z);
                         b = chunk.tblocks.get(this.xyz_temp_find, b);
                         let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                            this.temp_block.id = options.type.leaves;
+                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                            this.temp_block.id = tree.type.leaves;
                             // determining which side to cover with which texture
                             let t = 0;
-                            if(py >= y + options.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                            if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
                             if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
                             if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
                             if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
                             if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                             //
-                            if(py < y + options.height) {
+                            if(py < y + tree.height) {
                                 if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
                                 if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
                                 if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
                                 if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                             }
                             const extra_data = t ? {t: t} : null;
-                            this.setTreeBlock(options, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
+                            setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                         }
                     }
                 }
@@ -482,20 +475,23 @@ export class Default_Terrain_Generator {
     }
 
     // Mushroom
-    plantMushroom(options, chunk, x, y, z) {
-        let ystart = y + options.height;
+    plantMushroom(tree, chunk, x, y, z, setTreeBlock) {
+
+        let ystart = y + tree.height;
+
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            this.temp_block.id = tree.type.trunk;
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
         }
+
         // листва
-        let py = y + options.height;
+        let py = y + tree.height;
         let b = null;
         for(let rad of [1, 2, 2, 2]) {
             for(let i = -rad; i <= rad; i++) {
                 for(let j = -rad; j <= rad; j++) {
-                    if(py < y + options.height) {
+                    if(py < y + tree.height) {
                         if(Math.abs(i) < 2 && Math.abs(j) < 2) {
                             continue;
                         }
@@ -505,49 +501,50 @@ export class Default_Terrain_Generator {
                             (i == rad && j == rad) ||
                             (i == -rad && j == rad) ||
                             (i == rad && j == -rad);
-                        if(m && py < y + options.height) {
+                        if(m && py < y + tree.height) {
                             continue;
                         }
                         this.xyz_temp_find.set(i + x, py, j + z);
                         b = chunk.tblocks.get(this.xyz_temp_find, b);
                         let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                            this.temp_block.id = options.type.leaves;
+                        if(!b_id || b_id >= 0 && b_id != tree.type.trunk) {
+                            this.temp_block.id = tree.type.leaves;
                             // determining which side to cover with which texture
                             let t = 0;
-                            if(py >= y + options.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                            if(py >= y + tree.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
                             if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
                             if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
                             if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
                             if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                             //
-                            if(py < y + options.height) {
+                            if(py < y + tree.height) {
                                 if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
                                 if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
                                 if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
                                 if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
                             }
                             let extra_data = t ? {t: t} : null;
-                            this.setTreeBlock(options, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
+                            setTreeBlock(tree, chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                         }
                     }
                 }
             }
             py--;
         }
+
     }
 
     // Тропическое дерево
-    plantJungle(options, chunk, x, y, z, check_chunk_size = true) {
-        const TREE_HEIGHT = options.height - 2 // рандомная высота дерева, переданная из генератора
+    plantJungle(tree, chunk, x, y, z, setTreeBlock) {
+        const TREE_HEIGHT = tree.height - 2 // рандомная высота дерева, переданная из генератора
         let ystart = y + TREE_HEIGHT
         let maxW = Math.floor(TREE_HEIGHT / 2)
         let minW = Math.floor(TREE_HEIGHT / 3)
-        this.temp_block.id = options.type.trunk;
+        this.temp_block.id = tree.type.trunk;
         const mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y;
         const vine_block = { id: BLOCK.VINE.id };
         // получаю большое число
-        const cnt = Math.floor(this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58))
+        const cnt = Math.floor(this.fastRandoms.double(mainseed + tree.height) * Math.pow(2, 58))
         const dy = Math.floor(cnt / 2 ** 32)
         // преобразование числа в массив байт
         const arr = [
@@ -564,7 +561,7 @@ export class Default_Terrain_Generator {
         const xyz = chunk.coord.add(new Vector(x, y, z));
         const random = new alea('tree' + xyz.toHash());
         for(let p = y; p < ystart; p++) {
-            this.setTreeBlock(options, chunk, x, p, z, this.temp_block, true);
+            setTreeBlock(tree, chunk, x, p, z, this.temp_block, true);
             let block_id = vine_block.id;
             let extra_data = null;
             const makeCocoa = () => {
@@ -575,19 +572,19 @@ export class Default_Terrain_Generator {
             }
             if((p + arr[p % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x + 1, p, z, { id: block_id }, false, new Vector(3, 0, 0), extra_data)
+                setTreeBlock(tree, chunk, x + 1, p, z, { id: block_id }, false, new Vector(3, 0, 0), extra_data)
             }
             if((p + arr[(p + 1) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x - 1, p, z, { id: block_id }, false, new Vector(1, 0, 0), extra_data)
+                setTreeBlock(tree, chunk, x - 1, p, z, { id: block_id }, false, new Vector(1, 0, 0), extra_data)
             }
             if((p + arr[(p + 2) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x, p, z + 1, { id: block_id }, false, new Vector(0, 0, 3), extra_data)
+                setTreeBlock(tree, chunk, x, p, z + 1, { id: block_id }, false, new Vector(0, 0, 3), extra_data)
             }
             if((p + arr[(p + 3) % 7]) % 2 == 0) {
                 makeCocoa();
-                this.setTreeBlock(options, chunk, x, p, z - 1, { id: block_id }, false, new Vector(2, 0, 0), extra_data)
+                setTreeBlock(tree, chunk, x, p, z - 1, { id: block_id }, false, new Vector(2, 0, 0), extra_data)
             }
         }
         // рисование кроны дерева
@@ -599,25 +596,22 @@ export class Default_Terrain_Generator {
                 let d = null
                 for(let a = dx; a <= dx + w; a++) {
                     for(let b = dz; b <= dz + w; b++) {
-                        if(check_chunk_size && (a < 0 || a >= chunk.size.x || b < 0 || b >= chunk.size.z)) {
-                            continue;
-                        }
                         const l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
                         if(l <= w / 2) {
                             this.xyz_temp_find.set(a, y + h, b)
                             d = chunk.tblocks.get(this.xyz_temp_find, d)
                             const d_id = d.id
-                            if(!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
-                                this.temp_block.id = options.type.leaves;
-                                this.setTreeBlock(options, chunk, a, y + h, b, this.temp_block, false);
+                            if(!d_id || (d_id >= 0 && d_id != tree.type.trunk)) {
+                                this.temp_block.id = tree.type.leaves;
+                                setTreeBlock(tree, chunk, a, y + h, b, this.temp_block, false);
                                 if (
                                     rad % 2 == 0 &&
                                     h == 0 &&
                                     (a == dx || a == dx + w || b == dz || b == dz + w)
                                 ) {
                                     for(let t = 1; t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255)); t++) {
-                                        this.setTreeBlock(
-                                            options,
+                                        setTreeBlock(
+                                            tree,
                                             chunk,
                                             a, y + h - t, b,
                                             vine_block,
@@ -638,7 +632,7 @@ export class Default_Terrain_Generator {
         }
         // построение веток дерева
         for(let i = 0; i < arr[7]; i++) {
-            this.temp_block.id = options.type.trunk;
+            this.temp_block.id = tree.type.trunk;
             const pos = Math.floor(
                 TREE_HEIGHT / 2.5 + (TREE_HEIGHT / 2) * (arr[6 - i] / 255)
             );
@@ -653,18 +647,19 @@ export class Default_Terrain_Generator {
                 if(arr[k % 7] % 2 == 0) {
                     dy++
                 }
-                this.setTreeBlock(options, chunk, x1, y + pos + dy, z1, this.temp_block, true);
+                setTreeBlock(tree, chunk, x1, y + pos + dy, z1, this.temp_block, true);
             }
-            this.temp_block.id = options.type.leaves
+            this.temp_block.id = tree.type.leaves
             generateLeaves(x1, y + pos + dy + 1, z1, rad, arr)
         }
         // рисуем крону основного дерева
-        this.temp_block.id = options.type.leaves
+        this.temp_block.id = tree.type.leaves
         generateLeaves(x, ystart, z, Math.floor(minW + (maxW * arr[0]) / 255), arr)
     }
 
     // Тестовое дерево
-    plantTestTree(options, chunk, x, y, z, check_chunk_size = true) {
+    plantTestTree(tree, chunk, x, y, z, setTreeBlock) {
+
         const conus_rad = 16;
         const xyz2 = chunk.coord.add(new Vector(x, y, z));
         const random_alea2 = new alea('tree_big' + xyz2.toHash());
@@ -681,30 +676,42 @@ export class Default_Terrain_Generator {
                     )
                     if(dist <= conus_rad * .9) {
                         const block = blocks[(random_alea2.double() * blocks.length) | 0];
-                        this.setTreeBlock(options, chunk, x + i, y2, z + j, block, true);
+                        setTreeBlock(tree, chunk, x + i, y2, z + j, block, true);
                     }
                 }
             }
         }
+
     }
 
     // Большой дуб
-    plantBigOak(options, chunk, x, y, z, check_chunk_size = true) {
+    plantBigOak(tree, chunk, x, y, z, setTreeBlock) {
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CHUNK_SIZE_Y - 12, options.height); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
+        //if(!options.x) {
+        //    options.x = 234
+        //    console.log(9)
+        //}
+
+        /*if(!globalThis.x) {
+            globalThis.x = {count: 1, vecs: new VectorCollector()}
+        } else {
+            globalThis.x.count++
+            globalThis.x.vecs.set(xyz, true)
+            console.log(globalThis.x, globalThis.x.vecs.size)
+        }
+        */
+
         // рисуем корни
         const generateRoots = (x, y, z) => {
-            this.temp_block.id = options.type.trunk;
+            this.temp_block.id = tree.type.trunk;
             for(let n of [[0,1],[0,-1],[1,0],[-1,0]]) {
                 for(let k = 0; k < 3; k++) {
-                    const block_id = chunk.tblocks.getBlockId(x + n[0], y - k, z + n[1])
-                    if(block_id == 0) {
-                        this.setTreeBlock(options, chunk, x + n[0], y - k, z + n[1], this.temp_block, true);
-                    }
+                    setTreeBlock(tree, chunk, x + n[0], y - k, z + n[1], this.temp_block, true);
                 }
             }
         };
@@ -714,7 +721,7 @@ export class Default_Terrain_Generator {
             const ROUND = 5;
             const MIN_RADIUS = 4;
             rad = Math.max(rad, MIN_RADIUS);
-            this.temp_block.id = options.type.leaves;
+            this.temp_block.id = tree.type.leaves;
             for(let k = -1; k <= rad; k++) {
                 for(let i = -rad; i <= rad; i++) {
                     for(let j = - rad; j <= rad; j++) {
@@ -722,18 +729,9 @@ export class Default_Terrain_Generator {
                         const sz = z + j;
                         const sy = y + k;
                         const rnd = getRandom();
-                        if(check_chunk_size && (sx < 0 || sx >= chunk.size.x || sz < 0 || sz >= chunk.size.z)) {
-                            continue;
-                        }
                         const r = i*i + j*j + k*k;
                         if (r < rad*rad - ROUND && rnd > 0.3) {
-                            const block_id = chunk.tblocks.getBlockId(sx, sy, sz)
-                            if(block_id == 0) {
-                                // TODO: нельзя трогать рандом, если выше была отсечка по чанку
-                                // (получается, что рандом будет вызываться по разному в зависимости от того, в каком он чанке)
-                                // if (random_alea.double() > (0.4 + m1 + m2 + m3)) {
-                                this.setTreeBlock(options, chunk, sx, sy, sz, this.temp_block, false);
-                            }
+                            setTreeBlock(tree, chunk, sx, sy, sz, this.temp_block, false);
                         }
                     }
                 }
@@ -749,11 +747,8 @@ export class Default_Terrain_Generator {
             const sign_x = ex > sx ? 1 : -1;
             const sign_y = ey > sy ? 1 : -1;
             const sign_z = ez > sz ? 1 : -1;
-            this.temp_block.id = options.type.trunk;
-            for (let n = 0; n < 10; n++){
-                if(check_chunk_size && (ex < 0 || ex >= chunk.size.x || ez < 0 || ez >= chunk.size.z)) {
-                    continue;
-                }
+            this.temp_block.id = tree.type.trunk;
+            for (let n = 0; n < 10; n++) {
                 let dx = Math.abs(ex - x);
                 let dy = Math.abs(ey - y);
                 let dz = Math.abs(ez - z);
@@ -762,10 +757,10 @@ export class Default_Terrain_Generator {
                 }
                 if (dx >= dy && dx >= dz) {
                     x += sign_x;
-                    this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
+                    setTreeBlock(tree, chunk, x, y, z, this.temp_block, true);
                 } else if (dz >= dx && dz >= dy) {
                     z += sign_z;
-                    this.setTreeBlock(options, chunk, x, y, z, this.temp_block, true);
+                    setTreeBlock(tree, chunk, x, y, z, this.temp_block, true);
                 } else if (dy >= dx && dy >= dz) {
                     y++;
                 }
@@ -806,8 +801,8 @@ export class Default_Terrain_Generator {
 
         // основной ствол
         for(let i = 0; i < height; i++) {
-            this.temp_block.id = options.type.trunk;
-            this.setTreeBlock(options, chunk, x, y + i, z, this.temp_block, true);
+            this.temp_block.id = tree.type.trunk;
+            setTreeBlock(tree, chunk, x, y + i, z, this.temp_block, true);
         }
 
         // листва основной кроны
@@ -831,4 +826,5 @@ export class Default_Terrain_Generator {
         generateRoots(x, y, z);
 
     }
+
 }
