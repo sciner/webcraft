@@ -718,11 +718,11 @@ export class Default_Terrain_Generator {
 
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad) => {
-            const ROUND = 5;
+            const ROUND = 0;
             const MIN_RADIUS = 4;
-            rad = Math.max(rad, MIN_RADIUS);
+            rad = 4;//Math.max(rad, MIN_RADIUS);
             this.temp_block.id = tree.type.leaves;
-            for(let k = -1; k <= rad; k++) {
+            for(let k = -1; k <= 4; k++) {
                 for(let i = -rad; i <= rad; i++) {
                     for(let j = - rad; j <= rad; j++) {
                         const sx = x + i;
@@ -730,7 +730,9 @@ export class Default_Terrain_Generator {
                         const sy = y + k;
                         const rnd = getRandom();
                         const r = i*i + j*j + k*k;
-                        if (r < rad*rad - ROUND && rnd > 0.3) {
+                        const m = (r > rad*rad) ? 0.8 : 0.3;
+                        const m2 = (i == -rad || j == -rad || i == rad || j == rad || k == -1 || k == 4) ? 0.2 : 0.0;
+                        if (rnd > (m + m2)) {
                             setTreeBlock(tree, chunk, sx, sy, sz, this.temp_block, false);
                         }
                     }
