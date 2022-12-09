@@ -430,10 +430,9 @@ export class DBWorld {
 
     async saveChunkDelayedCalls(chunk) {
         const addr = chunk.addrHash;
-        const dt = unixTime();
-        const delayed_calls = this.delayedCalls.serialize();
+        const delayed_calls = chunk.delayedCalls.serialize();
         const result = this.conn.run('INSERT OR IGNORE INTO chunk (dt, addr, delayed_calls) VALUES (:dt, :addr, :delayed_calls)', {
-            ':dt': dt,
+            ':dt': unixTime(),
             ':addr': addr,
             ':delayed_calls': delayed_calls
         });
