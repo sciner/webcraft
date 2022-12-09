@@ -122,7 +122,7 @@ export class Default_Terrain_Generator {
     }
 
     // plantTree...
-    plantTree(tree, chunk, x, y, z, check_chunk_size) {
+    plantTree(tree, chunk, x, y, z, check_chunk_size = true) {
         
         const type = tree.type;
         const style_func = this.tree_styles.get(type.style)
