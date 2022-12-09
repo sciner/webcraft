@@ -692,7 +692,7 @@ export class Default_Terrain_Generator {
     plantBigOak(options, chunk, x, y, z, check_chunk_size = true) {
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CHUNK_SIZE_Y - 5, options.height * 5); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(CHUNK_SIZE_Y - 5, options.height); // рандомная высота дерева, переданная из генератор
         const xyz = chunk.coord.add(new Vector(x, y, z));
 
         const getRandom = createFastRandom('tree_big' + xyz.toHash())
