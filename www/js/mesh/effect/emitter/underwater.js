@@ -35,21 +35,22 @@ export default class emitter {
      * @returns {Mesh_Effect_Particle[]}
      */
     emit() {
-        const rnd = (Math.random() * 5) | 0;
-        if(this.ticks++ > 1 || rnd != 0) {
+        //const rnd = (Math.random() * 1) | 0;
+        if(this.ticks++ > 1) {
             return [];
         }
-        const pos = this.pos.offset(10 * (Math.random() - Math.random()), 10 * Math.random(), 10 * (Math.random() - Math.random()));
+        const pos = this.pos.offset(10 * (Math.random() - Math.random()), 5 * Math.random(), 10 * (Math.random() - Math.random()));
         const block = this.world.getBlock(pos.floored());
         if (block.id != 0 || (block.fluid & FLUID_TYPE_MASK) != FLUID_WATER_ID) {
             return [];
         }
         const {texture, texture_index} = getEffectTexture(emitter.textures);
         const particle = new Mesh_Effect_Particle({
-            life:           15,
+            life:           4,
             texture:        texture,
-            scale:          10,
-            size:           10,
+            size:           1/8,
+            scale:          1,
+            smart_scale:    {0: 0.1, 1: 0.1},
             has_physics:    false,
             ag:             new Vector(0, 0, 0),
             pp:             this.pp,
