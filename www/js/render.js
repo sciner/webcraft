@@ -560,7 +560,7 @@ export class Renderer {
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
      * chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
-     * @param {World} world
+     * @param { import("./world.js").World } world
      */
     setWorld(world) {
         this.world = world;

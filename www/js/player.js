@@ -588,13 +588,19 @@ export class Player {
         return pc.player_state.flying;
     }
 
+    /**
+     * @param {boolean} value 
+     */
     setFlying(value) {
         let pc = this.getPlayerControl();
         pc.mul = 1;
         pc.player_state.flying = value;
     }
 
-    //
+    /**
+     * @param {int} value 
+     * @returns 
+     */
     changeSpectatorSpeed(value) {
         if(!this.game_mode.isSpectator()) {
             return false;
@@ -619,7 +625,11 @@ export class Player {
         return this.pr;
     }
 
-    // Updates this local player (gravity, movement)
+    /**
+     * Updates this local player (gravity, movement)
+     * @param {float} delta 
+     * @returns 
+     */
     update(delta) {
 
         // View
@@ -772,7 +782,9 @@ export class Player {
         return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
-    //
+    /**
+     * @param {float} delta 
+     */
     checkBodyRot(delta) {
         const pc = this.getPlayerControl();
         const value = delta * this.body_rotate_speed;
@@ -791,7 +803,10 @@ export class Player {
         }
     }
 
-    //
+    /**
+     * @param {string} name 
+     * @param {*[]} args 
+     */
     triggerEvent(name, args) {
         switch(name) {
             case 'step': {
