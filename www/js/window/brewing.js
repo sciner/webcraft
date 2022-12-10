@@ -1,0 +1,98 @@
+import { Vector } from "../helpers.js";
+import { BaseChestWindow } from "./base_chest_window.js";
+
+export class BrewingWindow extends BaseChestWindow {
+
+    constructor(inventory) {
+
+        super(10, 10, 352, 332, 'frmBrewing', null, null, inventory, {
+            title: 'Furnace',
+            background: {
+                image: './media/gui/brewing_stand.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 0,
+                    y: 0,
+                    width: 352 * 2,
+                    height: 332 * 2
+                }
+            },
+            sound: {
+                open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
+                close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
+            }
+        });
+
+    }
+
+    //
+    prepareSlots() {
+        const resp = [];
+        //resp.push({pos: new Vector(111 * this.zoom, 32 * this.zoom, 0)});
+        //resp.push({pos: new Vector(111 * this.zoom, 105 * this.zoom, 0)});
+        resp.push({pos: new Vector(204 * this.zoom, 101 * this.zoom, 0)});
+        resp.push({pos: new Vector(157 * this.zoom, 115 * this.zoom, 0)});
+        resp.push({pos: new Vector(110 * this.zoom, 101 * this.zoom, 0)});
+        return resp;
+    }
+
+    // Draw
+    draw(ctx, ax, ay) {
+        super.draw(ctx, ax, ay);
+        if(this.state) {
+            if(typeof this.style.background.image == 'object') {
+                const fuel_percent = this.state.fuel_time / this.state.max_time;
+                // 1. fire
+                let x = ax + this.x;
+                let y = ay + this.y;
+                const fire = {
+                    x:      704,
+                    y:      0,
+                    width:  58,
+                    height: 58,
+                    tox:    113 * this.zoom,
+                    toy:    73 * this.zoom
+                };
+                const sub_height = Math.floor(fire.height * (1 - fuel_percent));
+                // (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+                ctx.drawImage(
+                    // image
+                    this.style.background.image,
+                    // sx, sy
+                    fire.x, fire.y + sub_height,
+                    // sWidth, sHeight
+                    fire.width, fire.height - sub_height,
+                    // dx, dy
+                    x + fire.tox,
+                    y + fire.toy + sub_height / 2 * this.zoom,
+                    // dWidth, dHeight
+                    fire.width / 2 * this.zoom,
+                    (fire.height - sub_height) / 2 * this.zoom
+                );
+                // 2. arrow
+                const arrow = {
+                    x:      704,
+                    y:      56,
+                    width:  96,
+                    height: 68,
+                    tox:    158 * this.zoom,
+                    toy:    69 * this.zoom
+                };
+                let arrow_width = Math.floor(arrow.width * this.state.result_percent);
+                ctx.drawImage(
+                    this.style.background.image,
+                    arrow.x,
+                    arrow.y,
+                    arrow_width,
+                    arrow.height,
+                    x + arrow.tox,
+                    y + arrow.toy,
+                    arrow_width / 2 * this.zoom,
+                    arrow.height / 2 * this.zoom
+                );
+            }
+        }
+    }
+
+}

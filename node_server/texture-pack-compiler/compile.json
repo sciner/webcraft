@@ -2407,6 +2407,7 @@
             "name": "BREWING_STAND",
             "inventory_style": "extruder",
             "transparent": true,
+            "window": "frmBrewing",
             "style": "planting",
             "material": {
                 "id": "stone"
