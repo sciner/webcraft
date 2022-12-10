@@ -14,6 +14,8 @@ import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -1077,6 +1079,16 @@ export class Player {
     // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
     getUsedItemHand() {
         return InteractionHand.MAIN_HAND;
+    }
+
+    //
+    getOverChunkBiomeId() {
+        const chunk = this.getOverChunk()
+        if(!chunk) return
+        const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
+        const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
     }
 
 }
