@@ -61,6 +61,10 @@ export class Player {
         return 0;
     }
 
+    /**
+     * @param { import("./world.js").World } world
+     * @param {*} cb 
+     */
     JoinToWorld(world, cb) {
         this.world = world;
         //
@@ -833,8 +837,11 @@ export class Player {
         }
     }
 
+    /**
+     * @returns { import("./player_model.js").PlayerModel }
+     */
     getModel() {
-        return Qubatch.world.players.get(this.session.user_id);
+        return this.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
@@ -857,7 +864,7 @@ export class Player {
             return;
         }
         if(!this.onGround) {
-            let bpos = this.getBlockPos().add({x: 0, y: -1, z: 0});
+            let bpos = this.getBlockPos().add(Vector.YN);
             let block = this.world.chunkManager.getBlock(bpos);
             // ignore damage if dropped into water
             if(block.material.is_fluid) {

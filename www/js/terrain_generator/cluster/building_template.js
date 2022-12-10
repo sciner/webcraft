@@ -224,7 +224,7 @@ export class BuilgingTemplate {
             }
         }
 
-        const rotx8= (block) => {
+        const rotx8 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
                 const rb = JSON.parse(JSON.stringify(block));

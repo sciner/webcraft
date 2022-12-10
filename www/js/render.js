@@ -1204,7 +1204,7 @@ export class Renderer {
         return resp;
     }
 
-    // updateFOV...
+    // Update FOV...
     updateFOV(delta, zoom, running, flying) {
         const {FOV_WIDE_FACTOR, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED} = this.options;
         let target_fov = this.settings.fov;
