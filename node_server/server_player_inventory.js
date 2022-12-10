@@ -1,5 +1,4 @@
-import { BLOCK } from "../www/js/blocks.js";
-import { INVENTORY_DRAG_SLOT_INDEX } from "../www/js/constant.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../www/js/constant.js";
 import { InventoryComparator } from "../www/js/inventory_comparator.js";
 import { Inventory } from "../www/js/inventory.js";
 import { ServerClient } from "../www/js/server_client.js";
@@ -16,7 +15,8 @@ export class ServerPlayerInventory extends Inventory {
         ], [this.player.session.user_id], []);
     }
 
-    // Refresh
+    // Saves the invenory to DB, updates hands, sends the inventory to other players,
+    // and optionally sends it to the owner.
     refresh(send_state) {
         // Update hands
         this.current.index = isNaN(this.current.index) ? 0 : this.current.index;
@@ -94,6 +94,22 @@ export class ServerPlayerInventory extends Inventory {
             this.decrement(null, true);
         }
         return true;
+    }
+
+    // returns true if changed
+    moveOrDropFromDragSlot() {
+        const drag_item = this.items[INVENTORY_DRAG_SLOT_INDEX];
+        if (!drag_item) {
+            return false;
+        }
+        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+            if (!this.items[i]) {
+                this.items[i] = drag_item;
+                this.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+                return true;
+            }
+        }
+        return this.dropFromDragSlot();
     }
 
     // Drop item from drag temporary slot

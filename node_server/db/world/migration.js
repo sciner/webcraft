@@ -788,6 +788,14 @@ export class DBWorldMigration {
         migrations.push({version: 86, queries: [
             `alter table user add column "ender_chest" TEXT DEFAULT '{"slots":{}}'`,
         ]});
+        migrations.push({version: 87, queries: [
+            `CREATE TABLE "chunk_delayed_calls" (
+                "x" integer NOT NULL,
+                "y" integer NOT NULL,
+                "z" integer NOT NULL,
+                "delayed_calls" TEXT NOT NULL,
+            PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

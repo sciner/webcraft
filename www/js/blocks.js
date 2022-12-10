@@ -192,6 +192,7 @@ export class BLOCK {
     static max_id                   = 0;
     static MASK_BIOME_BLOCKS        = [];
     static MASK_COLOR_BLOCKS        = [];
+    static SOLID_BLOCK_ID           = [];
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -592,6 +593,15 @@ export class BLOCK {
             !('height' in block);
     }
 
+    /**
+     * @param {int} block_id 
+     * @returns {boolean}
+     */
+    static isSolidID(block_id) {
+        if(block_id == 0) return false
+        return this.SOLID_BLOCK_ID.includes(block_id)
+    }
+
     static isSimpleQube(block) {
         return block.is_solid &&
             !block.can_rotate &&
@@ -680,6 +690,9 @@ export class BLOCK {
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.style == 'banner';
+        // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
+        block.is_chest          = block.chest_slots > 0;
+        block.readonly_chest_slots = block.readonly_chest_slots || 0;
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent));
         // не переносить!
         if(block.is_leaves) {
@@ -706,9 +719,13 @@ export class BLOCK {
                                     ['wall', 'pane'].includes(block.style);
 
         block.is_simple_qube    = this.isSimpleQube(block);
+        block.can_interact_with_hand = this.canInteractWithHand(block);
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
+        }
+        if(block.is_solid) {
+            BLOCK.SOLID_BLOCK_ID.push(block.id)
         }
         // Set default properties
         let default_properties = {
@@ -777,6 +794,17 @@ export class BLOCK {
         }
     }
 
+    // Return true if block can intaract with hand
+    static canInteractWithHand(block) {
+        return block.tags.includes('door') ||
+            block.tags.includes('trapdoor') ||
+            block.tags.includes('pot') ||
+            block.is_button ||
+            block.is_jukebox ||
+            block.window ||
+            ['stool', 'chair'].includes(block.style);
+    }
+
     // Make material key
     static makeBlockMaterialKey(resource_pack, material) {
         let mat_group = material.group;
@@ -831,9 +859,15 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height, block, force_tex) {
+    static calcMaterialTexture(material, dir, width, height, block, force_tex, random_double) {
+
+        let mat_texture = material?.texture
+        if(material?.texture_variants && (random_double != undefined)) {
+            mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
+        }
+
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
-        let texture = force_tex || material.texture;
+        let texture = force_tex || mat_texture;
         // Stages
         if(block && material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
@@ -847,20 +881,20 @@ export class BLOCK {
         if(material.is_mushroom_block) {
             let t = block?.extra_data?.t;
             if(block && t) {
-                texture = material.texture.down;
-                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = material.texture.side;
-                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = material.texture.side;
+                texture = mat_texture.down;
+                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = mat_texture.side;
+                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = mat_texture.side;
             } else {
-                texture = material.texture.down;
+                texture = mat_texture.down;
             }
         }
         // @todo (BEE NEST) убрать отсюда куда нибудь
         if(block && block.id == 1447 && dir == DIRECTION.FORWARD && block.extra_data && 'pollen' in block.extra_data && block.extra_data.pollen >= 4) {
-            texture = material.texture.north_honey;
+            texture = mat_texture.north_honey;
         }
         let c = this.calcTexture(texture, dir, tx_cnt);
         if(width && width < 1) {

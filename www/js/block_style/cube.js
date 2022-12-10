@@ -14,18 +14,20 @@ const {mat4} = glMatrix;
 
 // Leaves
 const leaves_planes = [
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI, 0], "move": {"x": 0, "y": 0, "z": 0}},
-    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 2, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 2], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0], "move": {"x": 0, "y": 0, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4 * 3, 0], "move": {"x": 0, "y": 0, "z": 0}}
 ];
+const matrix_leaves_2 = mat4.create();
+mat4.scale(matrix_leaves_2, matrix_leaves_2, [2, 2, 2]);
+const matrix_leaves_sqrt2 = mat4.create();
+mat4.scale(matrix_leaves_sqrt2, matrix_leaves_sqrt2, [1.4, 1.4, 1.4]);
+const leaves_matrices = [matrix_leaves_sqrt2, matrix_leaves_2, matrix_leaves_2];
 
 const _lm_grass = new IndexedColor(0, 0, 0);
 const _lm_leaves = new Color(0, 0, 0, 0);
 const _pl = {};
 const _vec = new Vector(0, 0, 0);
-const matrix_leaves = mat4.create();
-mat4.scale(matrix_leaves, matrix_leaves, [2, 2, 2]);
 
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
@@ -133,7 +135,7 @@ export default class style {
 
     static isOnCeil(block) {
         // на верхней части блока (перевернутая ступенька, слэб)
-        return block.extra_data && block.extra_data.point.y >= .5;
+        return block.extra_data?.point?.y >= .5 ?? false;
     }
 
     //
@@ -260,12 +262,12 @@ export default class style {
             // _lm_leaves.r += (Math.random() - Math.random()) * 24;
             // _lm_leaves.g += (Math.random() - Math.random()) * 24;
             _lm_leaves.b = leaves_tex[3] * TX_CNT;
-            const r1 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0) / 100;
-            const r2 = (randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) * 100 % randoms.length] | 0) / 100;
-            // let count = leaves_planes.length
-            const rv = r1;
-            let count = 2 + Math.floor(rv / 50);
-            for(let i = 0; i < count; i++) {
+            const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
+            const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
+            // Shift the horizontal plane randomly, to prevent a visible big plane.
+            // Alternate shift by 0.25 block up/down from the center + some random.
+            leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
+            for(let i = 0; i < leaves_planes.length; i++) {
                 const plane = leaves_planes[i];
                 // fill object
                 _pl.size     = plane.size;
@@ -277,7 +279,7 @@ export default class style {
                     y + (plane.move?.y || 0),
                     z + (plane.move?.z || 0)
                 );
-                _pl.matrix   = matrix_leaves;
+                _pl.matrix   = leaves_matrices[i];
                 _pl.flag     = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES;
                 _pl.texture  = leaves_tex;
                 default_style.pushPlane(vertices, _pl);
@@ -508,11 +510,12 @@ export default class style {
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
-        if(typeof worker != 'undefined' && block.id == BLOCK.BUBBLE_COLUMN.id || (block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id)) {
+        if(typeof worker != 'undefined' && block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id) {
             worker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: [block.posworld.add(new Vector(.5, .5, .5))],
-                type: 'bubble_column'
+                type: 'bubble_column',
+                isBottom: true
             }]);
         }
 

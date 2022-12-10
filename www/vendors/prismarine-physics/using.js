@@ -27,10 +27,10 @@ class FakeWorld {
             },
             blocksByName: {
                 ice:            BLOCK.ICE,
-                packed_ice:     BLOCK.ICE, // 2
+                packed_ice:     BLOCK.PACKED_ICE, // 2
                 air:            BLOCK.AIR,
-                frosted_ice:    BLOCK.ICE, // 3
-                blue_ice:       BLOCK.ICE, // 3
+                frosted_ice:    BLOCK.FROSTED_ICE || BLOCK.ICE, // 3
+                blue_ice:       BLOCK.BLUE_ICE, // 3
                 soul_sand:      BLOCK.SOUL_SAND,
                 cobweb:         [BLOCK.COBWEB, BLOCK.SWEET_BERRY_BUSH],
                 water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
@@ -92,14 +92,13 @@ class FakeBlock {
         this.material = fakeMat;
         this.metadata = 0;
         this.shapes = shapes;
-        if (fluid > 0) {
+        if (id === 0 && fluid > 0) {
             const tp = (fluid & FLUID_TYPE_MASK);
             if (tp === FLUID_WATER_ID) {
                 this.id = this.type = BLOCK.STILL_WATER.id;
                 this.metadata = fluid & FLUID_LEVEL_MASK;
                 this.material = fakeMatWater;
-            }
-            if (tp === FLUID_LAVA_ID) {
+            } else if (tp === FLUID_LAVA_ID) {
                 this.id = this.type = BLOCK.STILL_LAVA.id;
             }
         }

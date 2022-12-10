@@ -91,7 +91,7 @@ export class Mesh_Effect {
 
         const vertices = [
             // x, z, y
-            x+.5 - this.chunk_coord.x, z+.5 - this.chunk_coord.z, y+.5 - this.chunk_coord.y,
+            x - this.chunk_coord.x, z - this.chunk_coord.z, y - this.chunk_coord.y,
             -size_x, 0, 0,
             0, 0, -size_z,
             ...c,

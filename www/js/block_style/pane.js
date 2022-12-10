@@ -31,10 +31,10 @@ export default class style {
             ]);
             // Проверка сторон, для рисования кусков
             if (BLOCK.canPaneConnect(neighbours.EAST)) {
-                planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [3.5, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": -4.5}}]);
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [3.5, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": -4.5}}]);
             }
             if (BLOCK.canPaneConnect(neighbours.WEST)) {
-                planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [12.5, 8], "rot": [0, Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 4.5}}]);
+                planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [12.5, 8], "rot": [0, -Math.PI / 2, 0], "translate": {"x": 0, "y": 0, "z": 4.5}}]);
             }
             if (BLOCK.canPaneConnect(neighbours.SOUTH)) {
                 planes.push(...[{"size": {"x": 0, "y": 16, "z": 7}, "uv": [3.5, 8], "rot": [0, 0, 0], "translate": {"x": 0, "y": 0, "z": -4.5}}]);

@@ -8,7 +8,11 @@ import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;
-const models    = await Resources.loadBBModels();
+
+let models = null;
+Resources.loadBBModels().then((res) => {
+    models = res;
+})
 
 // Block model
 export default class style {
@@ -20,7 +24,7 @@ export default class style {
             aabb: this.computeAABB
         };
     }
-    
+
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
@@ -42,13 +46,13 @@ export default class style {
         matrix = mat4.create();
 
         switch(block.getCardinalDirection()) {
-            case DIRECTION.NORTH: 
+            case DIRECTION.NORTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
-            case DIRECTION.WEST: 
+            case DIRECTION.WEST:
                 mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
-            case DIRECTION.EAST: 
+            case DIRECTION.EAST:
                 mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
         }

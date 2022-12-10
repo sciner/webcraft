@@ -83,6 +83,9 @@ export class WorkerWorld {
     }
 
     ensureBuildQueue() {
+        if (this.buildQueue) {
+            return;
+        }
         this.buildQueue = new ChunkWorkQueue(this);
         for (let chunk of this.chunks.values()) {
             if (chunk.inited) {
@@ -139,7 +142,7 @@ export class WorkerWorld {
         this.genQueue.needSort = true;
     }
 
-    process({maxMs = 20, genPerIter = 3, buildPerIter = 40}) {
+    process({maxMs = 20, genPerIter = 16 * 16 * 40 * 2, buildPerIter = 40}) {
         const {buildQueue, genQueue} = this;
         genQueue.relaxEntries();
         const start = performance.now();
@@ -156,9 +159,9 @@ export class WorkerWorld {
                 if (!chunk) {
                     break;
                 }
-                times++;
 
                 chunk.doGen();
+                times += chunk.genValue || genPerIter;
                 minGenDist = Math.min(minGenDist, chunk.queueDist);
                 // Ticking blocks
                 let ticking_blocks = [];
@@ -209,8 +212,9 @@ export class WorkerWorld {
                 }
                 minBuildDist = Math.min(minBuildDist, chunk.queueDist);
                 chunk.buildVerticesInProgress = false;
+                const CHUNK_SIZE_X = chunk.size.x;
                 const item = buildVertices(chunk, false);
-                pages += chunk.totalPages;
+                pages += chunk.totalPages + 4; // 4 is const for build value generation
                 if(item) {
                     item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
                     let index = 0;

@@ -1,4 +1,4 @@
-import { Vector } from "../../../www/js/helpers.js";
+import { Vector, unixTime } from "../../../www/js/helpers.js";
 import { WorldPortal } from "../../../www/js/portal.js";
 
 export class DBWorldPortal {
@@ -15,7 +15,7 @@ export class DBWorldPortal {
      */
     async add(user_id, portal) {
         const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id, type, pair) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id, :type, :pair)', {
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':user_id':         user_id,
             ':x':               portal.pos.x,
             ':y':               portal.pos.y,

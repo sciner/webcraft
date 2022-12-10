@@ -136,6 +136,42 @@ export class Mth {
         return a + delta * Mth.clamp(t, 0, 1);
     }
 
+    // lut is an array containing pairs (amount, vaue), ordered by amount ascending.
+    static lerpLUT(amount, lut) {
+        if (amount <= lut[0]) {
+            return lut[1];
+        }
+        var i = 2;
+        while (i < lut.length && amount > lut[i]) {
+            i += 2;
+        }
+        if (i === lut.length) {
+            return lut[i - 1];
+        }
+        amount = (amount - lut[i - 2]) / (lut[i] - lut[i - 2]);
+        return Mth.lerp(amount, lut[i - 1], lut[i + 1]);
+    }
+
+    /**
+     * It transforms a uniformly distributed number from in 0..1 into
+     * a somewhat "normally-like" (but exactly normally) distributed
+     * number ceneterd around 0.
+     * @param {Number} unifirmRandom01 - a uniformly distributed random 
+     *  number from 0 to 1
+     * @param {Number} width - the maximum absolute value of results
+     * @param {Number} narrowness - the bigger the value, the narrower 
+     *  the distribution. From 0 to 10.
+     * @param {Number} flatness - the bigger the value, the wider is the
+     * distribution, but it affects the central spike more than the borders. From 0 to 1.
+     * 
+     * {narrowness: 4, flatness: 0} and {narrowness: 8, flatness: 0.5} have similar
+     * density at the border, but the 1st one has a sharper cenral skike.
+     */
+    static toNarrowDistribution(unifirmRandom01, width, narrowness, flatness = 0) {
+        const v = (unifirmRandom01 - 0.5) * 2;
+        const vToPower = Math.pow(Math.abs(v), narrowness) * v;
+        return (vToPower + flatness * (v - vToPower)) * width;
+    }
 }
 
 export class IvanArray {
@@ -280,6 +316,9 @@ export class VectorCollectorFlat {
         return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
     }
 
+    /**
+     * @param {Vector} vec 
+     */
     get(vec) {
         return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
     }
@@ -548,6 +587,11 @@ export class Vector {
         this.set(x, y, z);
     }
 
+    // returns v or a new Vector based on it
+    static vectorify(v) {
+        return v instanceof Vector ? v : new Vector(v);
+    }
+
     //Array like proxy for usign it in gl-matrix
     get [0]() {
         return this.x;
@@ -719,6 +763,13 @@ export class Vector {
      */
     swapYZ() {
         return new Vector(this.x, this.z, this.y);
+    }
+
+    /**
+     * @return {Vector}
+     */
+    swapXZSelf() {
+        return this.set(this.z, this.y, this.x);
     }
 
     /**
@@ -1056,12 +1107,36 @@ export class Vector {
         return this;
     }
 
+    // Rotates self from 0 to 3 times around Y, by 90 degrees each time
+    rotateByCardinalDirectionSelf(dir) {
+        const x = this.x;
+        const z = this.z;
+        switch(dir) {
+            // case 0: do nothing
+            case 1: { // DIRECTION.WEST
+                this.x = -z;
+                this.z = x;
+                break;
+            }
+            case 2: { // DIRECTION.SOUTH
+                this.x = -x;
+                this.z = -z;
+                break;
+            }
+            case 3: { // DIRECTION.EAST
+                this.x = z;
+                this.z = -x;
+                break;
+            }
+        }
+    }
+
     addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
         const x_sign = mirror_x ? -1 : 1;
         const z_sign = mirror_z ? -1 : 1;
         this.y += vec.y;
         if(dir !== null) {
-            dir = dir % 4;
+            dir = (dir + 4) % 4;
             if(dir == DIRECTION.SOUTH) {
                 this.x -= vec.x * x_sign;
                 this.z -= vec.z * z_sign;
@@ -1252,10 +1327,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.LOOK_AT_CAMERA_HOR = 1 << 15;
 
 export let ROTATE = {};
-    ROTATE.S = CubeSym.ROT_Y2; // front
-    ROTATE.W = CubeSym.ROT_Y; // left
-    ROTATE.N = CubeSym.ID; // back
-    ROTATE.E = CubeSym.ROT_Y3; // right
+    ROTATE.S = CubeSym.ROT_Y2; // front, z decreases
+    ROTATE.W = CubeSym.ROT_Y; // left, x decreases
+    ROTATE.N = CubeSym.ID; // back, z increases
+    ROTATE.E = CubeSym.ROT_Y3; // right, x increases
 
 export let NORMALS = {};
     NORMALS.FORWARD          = new Vector(0, 0, 1);
@@ -1511,15 +1586,51 @@ export class Helpers {
 
 }
 
+export class StringHelpers {
+
+    // Like String.split, but splits only on the 1st separator, i.e. maximum in 2 parts.
+    static splitFirst(str, separatpr) {
+        const ind = str.indexOf(separatpr);
+        return ind >= 0
+            ? [str.substring(0, ind), str.substring(ind + 1, str.length)]
+            : [str];
+    }
+}
+
 export class ArrayHelpers {
+
+    // elements order is not preserved
     static fastDelete(arr, index) {
         arr[index] = arr[arr.length - 1];
         --arr.length;
     }
 
+    // elements order is not preserved
+    static fastDeleteValue(arr, value) {
+        var i = 0;
+        var len = arr.length;
+        while (i < len) {
+            if (arr[i] == value) {
+                arr[i] = arr[--len];
+            } else {
+                i++;
+            }
+        }
+        arr.length = len;
+    }
+
     static filterSelf(arr, predicate) {
+        // fast skip elements that don't change
         var src = 0;
-        var dst = 0;
+        while (src < arr.length && predicate(arr[src])) {
+            src++;
+        }
+        if (src === arr.length) {
+            return;
+        }
+        // move elements
+        var dst = src;
+        src++;
         while (src < arr.length) {
             if (predicate(arr[src])) {
                 arr[dst++] = arr[src];
@@ -1527,6 +1638,58 @@ export class ArrayHelpers {
             ++src;
         }
         arr.length = dst;
+    }
+
+    static growAndSet(arr, index, value, filler = undefined) {
+        while (arr.length <= index) {
+            arr.push(filler);
+        }
+        arr[index] = value;
+    }
+}
+
+// Helper methods for working with an object, an Array or a Map in the same way.
+export class ArrayOrMap {
+    
+    static get(collection, key) {
+        return collection instanceof Map ? collection.get(key) : collection[key];
+    }
+
+    static set(collection, key, value) {
+        if (value === undefined) {
+            throw new Error("value === undefined");
+        }
+        if (collection instanceof Map) {
+            collection.set(key, value);
+        } else if (Array.isArray(collection)) {
+            ArrayHelpers.growAndSet(collection, key, value);
+        } else {
+            collection[key] = value;
+        }
+    }
+
+    // Yields values expet undefined.
+    // We have to skip undefined because they're used in an array for mising entries.
+    static *valuesExceptUndefined(collection) {
+        if (collection instanceof Map) {
+            for(let v of collection.values()) {
+                if (v !== undefined) {
+                    yield v;
+                }
+            }
+        } else if (Array.isArray(collection)) {
+            for(var i = 0; i < collection.length; i++) {
+                if (collection[i] !== undefined) {
+                    yield collection[i];
+                }
+            }
+        } else {
+            for(let key in collection) {
+                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
+                    yield collection[key];
+                }
+            }
+        }
     }
 }
 
@@ -1702,6 +1865,28 @@ export class AverageClockTimer {
         this.avg = (this.sum / this.history.length) || 0;
     }
 
+}
+
+export function unixTime() {
+    return ~~(Date.now() / 1000);
+}
+
+/**
+ * 
+ * @param {string} seed 
+ * @param {int} len 
+ * @returns 
+ */
+export function createFastRandom(seed, len = 512) {
+    const random_alea = new alea(seed);
+    // fast random
+    const randoms = new Array(len); // new Float32Array(len)
+    for(let i = 0; i < len; i++) {
+        randoms[i] = random_alea.double();
+    }
+    let random_index = 0;
+    // return random_alea.double
+    return () => randoms[random_index++ % len];
 }
 
 // FastRandom...
@@ -1917,6 +2102,64 @@ function toType(a) {
     return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
 }
 
+// Deep compares own properties of the two objects
+export function deepEqual(a, b) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+        // but for real game objects it seems unnecesssary.
+        if (a.hasOwnProperty(key) && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects.
+// The filter affects only top-level properties.
+export function deepEqualProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (props.indexOf(key) >= 0 && !deepEqual(a[key], b[key])) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (props.indexOf(key) >= 0 && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Deep compares selected properties of the two objects, but for level-2 properties,
+// only the selected are compared. Useful for comparing lists of items.
+export function deepEqualNestedProps(a, b, props) {
+    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+        return a === b;
+    }
+    for (var key in a) {
+        if (a.hasOwnProperty(key) && !deepEqualProps(a[key], b[key], props)) {
+            return false;
+        }
+    }
+    for (var key in b) {
+        if (b.hasOwnProperty(key) && !(key in a)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function isDeepObject(obj) {
     return "Object" === toType(obj);
 }
@@ -2060,3 +2303,41 @@ export let md5 = (function() {
 
     return MD5Unicode;
 })();
+
+// A queue backed by an array that wraps around.
+// shift() and length are compatible with that of Array.
+// push() is not fully compatible with Array: it doesn't support multiple arguments.
+export class SimpleQueue {
+    constructor() {
+        this.arr = [null]; // a single element to prevent division by 0
+        this.left = 0;
+        this.length = 0; // the number of actually used elements
+    }
+
+    push(v) {
+        if (this.length === this.arr.length) {
+            // grow: copy the beginning into the end; the beginning becomes empty
+            for(var i = 0; i < this.length; i++) {
+                this.arr.push(this.arr[i]);
+            }
+        }
+        this.arr[(this.left + this.length) % this.arr.length] = v;
+        this.length++;
+    }
+
+    shift() {
+        if (this.length === 0) {
+            return;
+        }
+        const v = this.arr[this.left];
+        this.left = (this.left + 1) % this.arr.length;
+        this.length--;
+        return v;
+    }
+
+    get(index) {
+        if (index >= 0 && index < this.length) {
+            return this.arr[(this.left + index) % this.arr.length];
+        }
+    }
+}

@@ -277,6 +277,13 @@ export class AABB {
         return this;
     }
 
+    addSelfTranslatedByVec(vec) {
+        if (vec.x > 0) this.x_max += vec.x; else this.x_min += vec.x;
+        if (vec.y > 0) this.y_max += vec.y; else this.y_min += vec.y;
+        if (vec.z > 0) this.z_max += vec.z; else this.z_min += vec.z;
+        return this;
+    }
+
     div(value) {
         this.x_min /= value;
         this.x_max /= value;

@@ -674,6 +674,7 @@ export class CompileData {
                     "move": {"x": 0, "y": 0, "z": 0.5}
                 },
                 "tags": [
+                    "banner",
                     "no_drop_ao",
                     "rotate_x16",
                     "mask_color"

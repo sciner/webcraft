@@ -1,4 +1,4 @@
-import {getChunkAddr, makeChunkEffectID, Vector, VectorCollector} from "./helpers.js";
+import { Vector } from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK, POWER_NO} from "./blocks.js";
@@ -202,6 +202,7 @@ export class Chunk {
             {
                 addr: this.addr,
                 size: this.size,
+                uniqId: this.uniqId,
                 light_buffer: this.genLightSourceBuf().buffer,
                 dataId: this.getDataTextureOffset()
             }]);
@@ -389,9 +390,9 @@ export class Chunk {
         // chunkManager.postWorkerMessage(['destructChunk', [this.addr]]);
         // chunkManager.postLightWorkerMessage(['destructChunk', [this.addr]]);
         // remove particles mesh
-        const PARTICLE_EFFECTS_ID = makeChunkEffectID(this.addr, null);
-        Qubatch.render.meshes.remove(PARTICLE_EFFECTS_ID, Qubatch.render);
-        Qubatch.render.meshes.removeForChunk(this.addr);
+        Qubatch.render.meshes.removeForChunk(this.addr, this.aabb);
+        // Destroy playing discs
+        TrackerPlayer.destroyAllInAABB(this.aabb);
     }
 
     // Build vertices
@@ -525,6 +526,7 @@ export class Chunk {
     //
     newModifiers(mods_arr, set_block_list) {
         const chunkManager = this.getChunkManager();
+        const blockModifierListeners = chunkManager.getWorld().blockModifierListeners;
         const use_light = this.inited && chunkManager.use_light;
         const tblock_pos = new Vector(Infinity, Infinity, Infinity);
         let material = null;
@@ -570,6 +572,9 @@ export class Chunk {
                     lightList.push(tblock_pos.x, tblock_pos.y, tblock_pos.z, light);
                     // updating light here
                 }
+            }
+            for(let listener of blockModifierListeners) {
+                listener(tblock);
             }
         }
         if (lightList.length > 0) {

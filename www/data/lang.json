@@ -106,6 +106,7 @@
         "game_mode_changed_to": {"en": "Game mode changed to %0", "ru": "Режим игры изменён на %0", "fr": "%0", "es": "%0","man":"%0","hind":""},
         "loading": {"en": "Loading...", "ru": "Загрузка...", "fr": "", "es": "","man":""},
         "video": {"en": "Video", "ru": "Видео", "fr": "", "es": "", "man": ""},
+        "field_of_view": {"en": "Field of view", "ru": "Угол обзора","fr": "", "es":"", "man":"", "hind":""},
         "language": {"en": "Language", "ru": "Язык", "fr": "", "es": "", "man": ""},
         "main": {"en": "Main", "ru": "Основное", "fr": "", "es": "", "man": ""},
         "servers": {"en": "Servers", "ru": "Серверы", "fr": "", "es": "", "man": ""},
@@ -134,6 +135,11 @@
         "gamemode_adventure": {"en": "Adventure", "ru": "Приключения", "fr": "", "es": "", "man": ""},
         "gamemode_spectator": {"en": "Spectator", "ru": "Наблюдатель", "fr": "", "es": "", "man": ""},
         "world_difficulty": {"en": "Difficulty", "ru": "Сложность", "fr": "", "es": "", "man": ""},
-        "world_game_mode": {"en": "Game mode", "ru": "Режим игры", "fr": "", "es": "", "man": ""}
+        "world_game_mode": {"en": "Game mode", "ru": "Режим игры", "fr": "", "es": "", "man": ""},
+        "weather_is_set": {"en": "The %t0 weather is set", "ru": "Установлена %t0 погода", "fr": "", "es": "", "man": ""},
+        "weather_clear": {"en": "clear", "ru": "ясная", "fr": "", "es": "", "man": ""},
+        "weather_rain": {"en": "rainy", "ru": "дождливая", "fr": "", "es": "", "man": ""},
+        "weather_snow": {"en": "snowy", "ru": "снежная", "fr": "", "es": "", "man": ""},
+        "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""}
     }
 }

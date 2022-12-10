@@ -13,7 +13,7 @@ import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 10;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -44,6 +44,7 @@ export class ChunkManager {
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
+        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -234,6 +235,10 @@ export class ChunkManager {
                 case 'light_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
+                        if (chunk.uniqId !== args.uniqId) {
+                            // This happens occasionally after quick F8.
+                            break;
+                        }
                         chunk.onLightGenerated(args);
                     }
                     break;
@@ -268,7 +273,7 @@ export class ChunkManager {
         if(chunk instanceof Chunk) {
             chunk.setFluid(fluid);
         } else {
-            console.error('no_chunk');
+            console.debug('no_chunk');
         }
     }
 
@@ -531,14 +536,10 @@ export class ChunkManager {
     // Remove chunk
     removeChunk(addr) {
         this.chunks_prepare.delete(addr);
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
-            // 1. Delete emitters
-            Qubatch.render.meshes.effects.destroyAllInAABB(chunk.aabb);
-            // 2. Destroy playing discs
-            TrackerPlayer.destroyAllInAABB(chunk.aabb);
-            // 3. Call chunk destructor
+            // Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;
@@ -764,6 +765,18 @@ export class ChunkManager {
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }

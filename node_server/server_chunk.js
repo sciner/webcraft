@@ -1,13 +1,16 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
+import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
+import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
+import { TickerHelpers } from "./ticker/ticker_helpers.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -101,22 +104,9 @@ class TickingBlockManager {
                 continue;
             }
             const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
-            if(Array.isArray(upd_blocks)) {
-                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
-                ArrayHelpers.filterSelf(upd_blocks, v => v != null);
-                if (upd_blocks.length > 0) {
-                    updated_blocks.push(...upd_blocks);
-                }
-            }
+            TickerHelpers.pushBlockUpdates(updated_blocks, upd_blocks);
         }
-
-        //
-        if(updated_blocks.length > 0) {
-            const actions = new WorldAction(null, this.#chunk.world, false, true);
-            actions.addBlocks(updated_blocks);
-            world.actions_queue.add(null, actions);
-        }
-
+        world.addUpdatedBlocksActions(updated_blocks);
     }
 
 }
@@ -151,6 +141,8 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_NEW);
         this.dataChunk      = null;
         this.fluid          = null;
+        this.delayedCalls   = new DelayedCalls(world.blockCallees);
+        this.blocksUpdatedByDelayedCalls = [];
     }
 
     get maxBlockX() {
@@ -415,9 +407,15 @@ export class ServerChunk {
                 this.randomTickingBlockCount++;
             }
         }
-        //
-        this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
-        this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // load various data in parallel
+        const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
+        const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
+        const serializedDelayedCalls = await this.world.db.loadChunkDelayedCalls(this.addr);
+        if (serializedDelayedCalls) {
+            this.delayedCalls.deserialize(serializedDelayedCalls);
+        }
+        this.mobs = await mobPrpmise;
+        this.drop_items = await drop_itemsPromise; 
         // fluid
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
@@ -434,6 +432,10 @@ export class ServerChunk {
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
             }
+        }
+        // If some delayed calls have been loaded
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.add(this);
         }
     }
 
@@ -650,11 +652,12 @@ export class ServerChunk {
         const rot = tblock.rotate;
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
+        const neighbourPos = neighbour.posworld;
 
         //
         if(neighbour.id == 0) {
             
-            if (tblock.id == BLOCK.SNOW.id && neighbour.posworld.y < pos.y) {
+            if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
                 return createDrop(tblock);
             }
 
@@ -662,16 +665,16 @@ export class ServerChunk {
                 case 'rails':
                 case 'candle': {
                     // only bottom
-                    if(neighbour.posworld.y < pos.y) {
+                    if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
                     }
                     break;
                 }
                 case 'lantern': {
                     // top and bottom
-                    if(neighbour.posworld.y < pos.y && roty == 1) {
+                    if(neighbourPos.y < pos.y && roty == 1) {
                         return createDrop(tblock);
-                    } else if(neighbour.posworld.y > pos.y && roty == -1) {
+                    } else if(neighbourPos.y > pos.y && roty == -1) {
                         return createDrop(tblock);
                     }
                     break;
@@ -680,15 +683,15 @@ export class ServerChunk {
                 case 'torch': {
                     // nesw + bottom
                     let drop = false;
-                    if(rotx == 0 && neighbour.posworld.z < pos.z) {
+                    if(rotx == 0 && neighbourPos.z < pos.z) {
                         drop = true;
-                    } else if(rotx == 1 && neighbour.posworld.x > pos.x) {
+                    } else if(rotx == 1 && neighbourPos.x > pos.x) {
                         drop = true;
-                    } else if(rotx == 2 && neighbour.posworld.z > pos.z) {
+                    } else if(rotx == 2 && neighbourPos.z > pos.z) {
                         drop = true;
-                    } else if(rotx == 3 && neighbour.posworld.x < pos.x) {
+                    } else if(rotx == 3 && neighbourPos.x < pos.x) {
                         drop = true;
-                    } else if(neighbour.posworld.y < pos.y && roty == 1) {
+                    } else if(neighbourPos.y < pos.y && roty == 1) {
                         drop = true;
                     }
                     if(drop) {
@@ -699,18 +702,18 @@ export class ServerChunk {
                 case 'item_frame': {
                     // 6 sides
                     let drop = false;
-                    console.log(neighbour.posworld.z > pos.z, SIX_VECS.north, rot);
-                    if(neighbour.posworld.z > pos.z && SIX_VECS.south.equal(rot)) {
+                    console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
+                    if(neighbourPos.z > pos.z && SIX_VECS.south.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.z < pos.z && SIX_VECS.north.equal(rot)) {
+                    } else if(neighbourPos.z < pos.z && SIX_VECS.north.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.x > pos.x && SIX_VECS.west.equal(rot)) {
+                    } else if(neighbourPos.x > pos.x && SIX_VECS.west.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.x < pos.x && SIX_VECS.east.equal(rot)) {
+                    } else if(neighbourPos.x < pos.x && SIX_VECS.east.equal(rot)) {
                         drop = true;
-                    } else if(neighbour.posworld.y > pos.y && rot.y == -1) {
+                    } else if(neighbourPos.y > pos.y && rot.y == -1) {
                         drop = true;
-                    } else if(neighbour.posworld.y < pos.y && rot.y == 1) {
+                    } else if(neighbourPos.y < pos.y && rot.y == 1) {
                         drop = true;
                     }
                     if(drop) {
@@ -720,8 +723,26 @@ export class ServerChunk {
                 }
                 case 'redstone':
                 case 'cactus': {
-                    if(neighbour.posworld.y < pos.y) {
+                    if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
+                    }
+                }
+                case 'chest': {
+                    // if a chest half is missing the other half, convert it to a normal chest
+                    if (neighbourPos.y === pos.y && // a fast redundant check to eliminate 2 out of 6 slower checks
+                        ChestHelpers.getSecondHalfPos(tblock)?.equal(neighbourPos)
+                    ) {
+                        const newTblock = tblock.clonePOJO();
+                        delete newTblock.extra_data.type;
+                        const actions = new WorldAction();
+                        actions.addBlocks([
+                            {
+                                pos: pos.clone(),
+                                item: newTblock,
+                                action_id: ServerClient.BLOCK_ACTION_MODIFY
+                            }
+                        ]);
+                        world.actions_queue.add(null, actions);
                     }
                 }
             }
@@ -729,10 +750,61 @@ export class ServerChunk {
             switch(tblock.material.style) {
                 case 'cactus': {
                     // nesw only
-                    if(neighbour.posworld.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
+                    if(neighbourPos.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
                         return createDrop(tblock);
                     }
                     break;
+                }
+                case 'chest': {
+                    // check if we can combine two halves into a double chest
+                    if (neighbourPos.y !== pos.y ||
+                        tblock.material.name !== 'CHEST' ||
+                        tblock.extra_data?.type ||
+                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.extra_data?.type
+                    ) {
+                        break;
+                    }
+                    const dir = BLOCK.getCardinalDirection(rot);
+                    if (dir !== BLOCK.getCardinalDirection(neighbour.rotate)) {
+                        break;
+                    }
+                    var newType = null;
+                    var newNeighbourType = null;
+                    const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
+                    const expectedNeighbourPos = pos.clone().addSelf(dxz);
+                    if (expectedNeighbourPos.equal(neighbourPos)) {
+                        newType = 'right';
+                        newNeighbourType = 'left';
+                    } else {
+                        expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
+                        if (expectedNeighbourPos.equal(neighbourPos)) {
+                            newType = 'left';
+                            newNeighbourType = 'right';
+                        } else {
+                            break;
+                        }
+                    }
+                    const newTblock                 = tblock.clonePOJO();
+                    newTblock.extra_data            = newTblock.extra_data || {};
+                    newTblock.extra_data.type       = newType;
+                    const newNeighbour              = neighbour.clonePOJO();
+                    newNeighbour.extra_data         = newNeighbour.extra_data || {};
+                    newNeighbour.extra_data.type    = newNeighbourType;
+                    const actions = new WorldAction();
+                    actions.addBlocks([
+                        {
+                            pos: pos.clone(),
+                            item: newTblock,
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        },
+                        {
+                            pos: neighbourPos.clone(),
+                            item: newNeighbour,
+                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        }
+                    ]);
+                    world.actions_queue.add(null, actions);
                 }
             }
         }
@@ -810,6 +882,27 @@ export class ServerChunk {
 
     }
 
+    addDelayedCall(calleeId, delay, args) {
+        this.delayedCalls.add(calleeId, delay, args);
+        // If we just aded the 1st call, we know the chunk is not in the set
+        if (this.delayedCalls.length === 1) {
+            this.getChunkManager().chunks_with_delayed_calls.add(this);
+        }
+    }
+
+    executeDelayedCalls() {
+        if (this.delayedCalls.length === 0) {
+            return;
+        }
+        this.delayedCalls.execute(this);
+        // If we just emptied the calls list, delete the chunk from the set
+        if (this.delayedCalls.length === 0) {
+            this.getChunkManager().chunks_with_delayed_calls.delete(this);
+        }
+        this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
+        this.blocksUpdatedByDelayedCalls.length = 0;
+    }
+
     // Before unload chunk
     async onUnload() {
         const chunkManager = this.getChunkManager();
@@ -817,23 +910,32 @@ export class ServerChunk {
             return;
         }
         this.setState(CHUNK_STATE_UNLOADED);
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.delete(this);
+        }
         if (this.dataChunk) {
             await this.world.db.fluid.flushChunk(this);
             chunkManager.dataWorld.removeChunk(this);
         }
 
+        const promises = [];
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
-                await mob.onUnload();
+                promises.push(mob.onUnload());
             }
         }
         // Unload drop items
         if(this.drop_items.size > 0) {
             for(let [entity_id, drop_item] of this.drop_items) {
-                drop_item.onUnload();
+                promises.push(drop_item.onUnload());
             }
         }
+        if (this.delayedCalls.length) {
+            const str = this.delayedCalls.serialize();
+            promises.push(this.world.db.saveChunkDelayedCalls(this.addr, str));
+        }
+        await Promise.all(promises);
         // Need unload in worker
         this.world.chunks.chunkUnloaded(this.addr);
     }

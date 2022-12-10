@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
-import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
@@ -72,7 +72,7 @@ export class DBWorld {
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
         await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
@@ -212,7 +212,7 @@ export class DBWorld {
         // Insert to DB
         await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        player.session.user_guid,
             ':username':    player.session.username,
             ':pos':         JSON.stringify(default_pos_spawn),
@@ -232,7 +232,7 @@ export class DBWorld {
     async insertChatMessage(player, params) {
         await this.conn.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
             ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':text':            params.text,
             ':world_id':        this.world.info.id,
             ':user_session_id': 0
@@ -255,7 +255,7 @@ export class DBWorld {
             ':pos':             JSON.stringify(player.state.pos),
             ':rotate':          JSON.stringify(player.state.rotate),
             ':indicators':      JSON.stringify(player.state.indicators),
-            ':dt_moved':        ~~(Date.now() / 1000),
+            ':dt_moved':        unixTime(),
             ':stats':           JSON.stringify(player.state.stats),
         });
     }
@@ -336,7 +336,7 @@ export class DBWorld {
     // Create drop item
     async createDropItem(params) {
         const entity_id = randomUUID();
-        let dt = ~~(Date.now() / 1000);
+        let dt = unixTime();
         await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              dt,
             ':entity_id':       entity_id,
@@ -428,6 +428,32 @@ export class DBWorld {
         return resp;
     }
 
+    async saveChunkDelayedCalls(addr, str) {
+        await this.conn.run('INSERT INTO chunk_delayed_calls (x, y, z, delayed_calls) VALUES (:x, :y, :z, :delayed_calls)', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z,
+            ':delayed_calls': str
+        });
+    }
+
+    async loadChunkDelayedCalls(addr) {
+        const rows = await this.conn.all('SELECT delayed_calls FROM chunk_delayed_calls WHERE x = :x AND y = :y AND z = :z', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z
+        });
+        if (rows.length === 0) {
+            return null;
+        }
+        await this.conn.run('DELETE FROM chunk_delayed_calls WHERE x = :x AND y = :y AND z = :z', {
+            ':x': addr.x,
+            ':y': addr.y,
+            ':z': addr.z
+        });
+        return rows[0].delayed_calls;
+    }
+
     // Block set
     async blockSet(world, player, params) {
         let item = params.item;
@@ -474,7 +500,7 @@ export class DBWorld {
         if(need_insert) {
             const run_data = {
                 ':user_id':     player?.session.user_id || null,
-                ':dt':          ~~(Date.now() / 1000),
+                ':dt':          unixTime(),
                 ':world_id':    world.info.id,
                 ':x':           params.pos.x,
                 ':y':           params.pos.y,
@@ -499,7 +525,7 @@ export class DBWorld {
     // Bulk block set
     async blockSetBulk(world, player, data) {
         const user_id = player?.session.user_id || null;
-        const dt =  ~~(Date.now() / 1000);
+        const dt =  unixTime();
         const world_id = world.info.id;
         for (var i = 0; i < data.length; i++) {
             const params = data[i];

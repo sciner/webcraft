@@ -1,11 +1,20 @@
 import { CHUNK_SIZE_X } from "../../chunk_const.js";
-import {DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
+import { DIRECTION, getChunkAddr, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
-import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.js";
-import {VilageSchema} from "./vilage_schema.js";
-import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell} from "./building.js";
-import {impl as alea} from '../../../vendors/alea.js';
+import { ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING } from "./base.js";
+import { VilageSchema } from "./vilage_schema.js";
+import { BUILDING_AABB_MARGIN } from "./building.js";
+import { BuildingPalettes } from "./building/palette.js";
+import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
+
+// Buildings
+// import { BuildingS } from "./building/buildings.js";
+// import { Building1 } from "./building/building1.js";
+import { Farmland } from "./building/farmland.js";
+import { WaterWell } from "./building/waterwell.js";
+import { StreetLight } from "./building/streetlight.js";
+import { BuildingBlocks } from "./building/building_blocks.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
@@ -21,28 +30,114 @@ export const getAheadMove = (dir) => {
     return entranceAhead;
 }
 
-//
+// Vilage cluster
 export class ClusterVilage extends ClusterBase {
 
+    //
     constructor(clusterManager, addr) {
+
         super(clusterManager, addr);
+
         this.buildings              = new VectorCollector();
         this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
+        
         if(!this.is_empty) {
+
             this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
             this.wall_block         = this.flat ? BLOCK.STONE_BRICKS.id : BLOCK.OAK_PLANKS.id;
-            this.road_block         = this.createPalette(this.flat ? [
-                {value: BLOCK.DIRT_PATH, chance: 1}
-                // {value: BLOCK.ANDESITE, chance: .5},
-                // {value: BLOCK.STONE, chance: 1}
-            ] : [
-                {value: BLOCK.DIRT_PATH, chance: 1}
-            ]);
+            this.road_block         = this.createBlockPalette([{value: BLOCK.DIRT_PATH, chance: 1}]);
             this.road_block.reset();
             this.basement_block     = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
-            this.building_palette   = this.createBuildingPalette({
+
+            //
+            this.timers = {
+                generate: 0,
+                fill_blocks: 0,
+                add_buildings: 0,
+                fill_blocks_count: 0
+            };
+
+            const {schema_options, building_palette_options} = this.initVilageOptions()
+
+            // Building palettes
+            this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
+
+            // Generate vilage schema
+            let t = performance.now();
+            this.schema = new VilageSchema(this, schema_options);
+            const resp = this.schema.generate(this.id);
+            this.timers.generate = performance.now() - t;
+
+            //
+            t = performance.now();
+            this.mask = resp.mask;
+            for(let house of resp.houses.values()) {
+                const size = new Vector(house.width, 5, house.depth);
+                const entrance_pos = new Vector(house.door.x, Infinity, house.door.z);
+                const door_bottom = new Vector(house.door.x, Infinity, house.door.z);
+                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, door_bottom, house.door.direction);
+            }
+            this.timers.add_buildings = performance.now() - t; t = performance.now();
+
+        }
+
+        //
+        const moving = this.moveToRandomCorner();
+        for(let b of this.buildings) {
+            b.translate(moving);
+        }
+
+    }
+
+    //
+    initVilageOptions() {
+
+        const clusterManager = this.clusterManager;
+
+        const schema_options = {
+            margin: CLUSTER_PADDING,
+            road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
+        };
+
+        let building_palette_options = {};
+
+        // If generator version == 2
+        if(clusterManager.version == 2) {
+
+            // ширина ячеек между улицами под дома
+            schema_options.quant = 20;
+
+            // для каждой деревни по каким либо условиям можно генерировать собственный набор домов со своими правилами
+            // например взять несколько рандомно разбросанных координат и посмотреть там биомы
+            // затем выбрать свою схему для наиболее часто встречаемого биома
+            building_palette_options = {
+                crossroad: [
+                    {class: StreetLight, max_count: Infinity, chance: 1}
+                ],
+                required: [
+                    {class: WaterWell, max_count: 1, chance: 1},
+                    {class: Farmland, max_count: 1, chance: 1},
+                ],
+                others: [
+                    {class: WaterWell,      max_count: 2,        chance: .1},
+                    {class: Farmland,       max_count: Infinity, chance: .2},
+                    {class: BuildingBlocks, max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house', 'medium_house']},
+                    {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2']},
+                    // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
+                    {class: BuildingBlocks, max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house', 'tiny_house2']},
+                ]
+            };
+
+        } else {
+
+            // ширина ячеек между улицами под дома
+            schema_options.quant = 14;
+
+            // для старых генераторов (biome2, ...)
+            building_palette_options = {
                 crossroad: [
                     {class: StreetLight, max_count: Infinity, chance: 1}
                 ],
@@ -53,97 +148,45 @@ export class ClusterVilage extends ClusterBase {
                 others: [
                     {class: WaterWell, max_count: 2, chance: 0.12},
                     {class: Farmland, max_count: Infinity, chance: 0.285},
-                    {class: Building1, max_count: Infinity, chance: 0.7025},
-                    {class: BuildingS, max_count: Infinity, chance: 1}
-                ],
-            });
-            //
-            this.timers = {
-                generate: 0,
-                fill_blocks: 0,
-                add_buildings: 0,
-                fill_blocks_count: 0
+                    {class: BuildingBlocks, max_count: Infinity, chance: .7025, block_templates: ['medium_house']},
+                    // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
+                    {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['domsmall']},
+                ]
             };
-            // generate schema
-            let t = performance.now();
-            let vs = this.schema = new VilageSchema(this, {
-                margin: CLUSTER_PADDING,
-                road_damage_factor: ROAD_DAMAGE_FACTOR // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-            });
-            let resp = vs.generate(this.id);
-            this.timers.generate = performance.now() - t; t = performance.now();
-            // work with schema
-            this.mask = resp.mask;
-            for(let house of resp.houses.values()) {
-                const size = new Vector(house.width, 5, house.depth);
-                const entrance_pos = new Vector(house.door.x, Infinity, house.door.z);
-                const door_bottom = new Vector(house.door.x, Infinity, house.door.z);
-                this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, door_bottom, house.door.direction);
-            }
-            this.timers.add_buildings = performance.now() - t; t = performance.now();
+
         }
-        //
-        const moving = this.moveToRandomCorner();
-        for(let b of this.buildings) {
-            b.translate(moving);
+
+        return {
+            schema_options,
+            building_palette_options
         }
+
     }
 
-    // createBuildingPalette...
-    createBuildingPalette(rules) {
-        let that = this;
-        let resp = {};
-        for(let k in rules) {
-            resp[k] = {
-                list: rules[k],
-                next: function(args) {
-                    const r = that.randoms.double();
-                    for(let i in this.list) {
-                        let b = this.list[i];
-                        if (r <= b.chance) {
-                            b.max_count--;
-                            if(b.max_count <= 0) {
-                                this.list.splice(i, 1);
-                            }
-                            return new b.class(...args);
-                        }
-                    }
-                    throw 'Proportional fill pattern';
-                }
-            }
-        }
-        return resp;
-    }
-
-    // Add building
+    /**
+     * Add building
+     * @param {*} seed 
+     * @param {int} dx 
+     * @param {int} dz 
+     * @param {Vector} size 
+     * @param {Vector} entrance 
+     * @param {Vector} door_bottom 
+     * @param {int} door_direction 
+     * @returns 
+     */
     addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
-        let dy = 1;
-        const coord = new Vector(dx + this.coord.x, dy, dz + this.coord.z);
+
+        const coord = new Vector(dx + this.coord.x, 1, dz + this.coord.z);
         if(this.buildings.has(coord)) {
             return false;
         }
-        //
-        let building_args = [
-            this,
-            seed,
-            coord.clone(),
-            new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
-            entrance.addSelf(this.coord),
-            door_bottom.addSelf(this.coord),
-            door_direction,
-            size
-        ];
-        // generate random building from palette
-        let building = null;
-        if(size.x == 1 && size.z == 1) {
-            building = this.building_palette.crossroad.next(building_args);
-        } else if(this.building_palette.required.list.length > 0) {
-            building = this.building_palette.required.next(building_args);
-        } else {
-            building = this.building_palette.others.next(building_args);
-        }
+
+        const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN)
+        const building = this.building_palettes.next(this, seed, door_direction, size, coord.clone(), aabb, entrance.addSelf(this.coord), door_bottom.addSelf(this.coord))
+
         //
         this.buildings.set(building.coord, building);
+
         // 1. building mask
         dx = building.coord.x - this.coord.x;
         dz = building.coord.z - this.coord.z;
@@ -155,6 +198,7 @@ export class ClusterVilage extends ClusterBase {
                 this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
             }
         }
+
         // 2. entrance mask
         if(building.draw_entrance) {
             let ahead = getAheadMove(building.door_direction);
@@ -162,63 +206,45 @@ export class ClusterVilage extends ClusterBase {
             const ez = building.entrance.z - this.coord.z + ahead.z;
             this.mask[ez * CLUSTER_SIZE.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
         }
+
         return true;
+
     }
 
     // Fill chunk blocks
-    fillBlocks(maps, chunk, map, fill_blocks = true, call_building_y = true) {
+    fillBlocks(maps, chunk, map, fill_blocks = true, calc_building_y = true) {
+
         if(this.is_empty) {
             return false;
         }
+
         let t = performance.now();
+
         // each all buildings
         for(let b of this.buildings.values()) {
-            if(b.entrance.y == Infinity) {
+
+            if(calc_building_y && b.entrance.y == Infinity) {
                 b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
                 b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
+                if(b.aabb.intersect(chunk.aabb)) {
+                    b.findYOld(chunk, maps);
+                }
             }
+            
             // если строение частично или полностью находится в этом чанке
-            if(b.aabb.intersect(chunk.aabb)) {
-                // у строения до этого момента нет точной информации о вертикальной позиции двери (а значит и пола)
-                if(b.entrance.y == Infinity && call_building_y) {
-                    // забираем карту того участка, где дверь, чтобы определить точный уровень пола
-                    let value2 = 0;
-                    for(let entrance of [b.entrance, b.entrance.clone().addSelf(getAheadMove(b.door_direction))]) {
-                        const map_addr = getChunkAddr(entrance);
-                        map_addr.y = 0;
-                        let entrance_map = maps.get(map_addr);
-                        if(entrance_map) {
-                            // if map not smoothed
-                            if(!entrance_map.smoothed) {
-                                // generate around maps and smooth current
-                                entrance_map = maps.generateAround(chunk, map_addr, true, false)[4];
-                            }
-                            const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
-                            const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
-                            const cell          = entrance_map.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
-                            if(cell.value2 > value2) {
-                                value2 = cell.value2;
-                            }
-                        }
-                    }
-                    if(value2 > 0) {
-                        b.setY(value2);
-                    }
-                }
-                if(b.entrance.y == Infinity) {
-                    // console.error('Invalid building y');
-                } else if(b.aabb.intersect(chunk.aabb)) {
-                    this.drawBulding(chunk, maps, b);
-                }
+            if(b.entrance.y != Infinity && b.aabb.intersect(chunk.aabb)) {
+                this.drawBulding(chunk, maps, b);
             }
         }
+
         if(fill_blocks) {
             super.fillBlocks(maps, chunk, map);
         }
+
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;
-        // console.log(this.addr.toHash(), this.timers)
+
     }
 
     // Draw part of building on map

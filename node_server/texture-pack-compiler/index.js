@@ -6,6 +6,7 @@ const options = {
     texture_pack_dir: [
         // '../../../resource-packs/faithfull_pbr',
         '../../../resource-packs/1',
+        '../../../resource-packs/2',
         '../../../resource-packs/depixel',
     ],
     output_dir: "../../www/resource_packs/base",

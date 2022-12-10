@@ -94,29 +94,29 @@ function plate(dir, vertices, texture, x, y, z, flags, lm, rot) {
     switch(dir) {
         case DIRECTION.DOWN:
             if (rot) {
-                vertices.push( x + 0.5, z + 0.5, y + 0.999, 0, 1, 0, 1, 0, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+                vertices.push( x + 0.5, z + 0.5, y + 0.98, 0, 1, 0, 1, 0, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             } else {
-                vertices.push( x + 0.5, z + 0.5, y + 0.999, 1, 0, 0, 0, -1, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+                vertices.push( x + 0.5, z + 0.5, y + 0.98, 1, 0, 0, 0, -1, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             }
             break;
         case DIRECTION.UP:
             if (rot) {
-                vertices.push( x + 0.5, z + 0.5, y + 0.001, 0, 1, 0, -1, 0, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+                vertices.push( x + 0.5, z + 0.5, y + 0.02, 0, 1, 0, -1, 0, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             } else {
-                vertices.push( x + 0.5, z + 0.5, y + 0.001, 1, 0, 0, 0, 1, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+                vertices.push( x + 0.5, z + 0.5, y + 0.02, 1, 0, 0, 0, 1, 0, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             }
             break;
         case DIRECTION.SOUTH: 
-            vertices.push( x + 0.5, z + 0.999, y + 0.5, 1, 0, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+            vertices.push( x + 0.5, z + 0.98, y + 0.5, 1, 0, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
         case DIRECTION.NORTH: 
-            vertices.push( x + 0.5, z + 0.001, y + 0.5, 1, 0, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+            vertices.push( x + 0.5, z + 0.02, y + 0.5, 1, 0, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
         case DIRECTION.EAST: 
-            vertices.push( x + 0.001, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+            vertices.push( x + 0.02, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, 1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
         case DIRECTION.WEST: 
-            vertices.push( x + 0.999, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
+            vertices.push( x + 0.98, z + 0.5, y + 0.5, 0, 1, 0, 0, 0, -1, texture[0], texture[1], texture[2], texture[3], lm.pack(), flags);
             break;
     }
 }

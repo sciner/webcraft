@@ -22,6 +22,11 @@ export class PluginManager {
         }
     }
 
+    /**
+     * @param {string} target 
+     * @param {object} instance 
+     * @returns 
+     */
     initPlugins(target, instance) {
         const resp = [];
         const targets = this.targets.get(target);

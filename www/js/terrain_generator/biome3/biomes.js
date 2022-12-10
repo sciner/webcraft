@@ -12,6 +12,25 @@ const GRASS_FREQUENCY       = 0.015;
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
 const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 
+export class Biome {
+
+    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap) {
+        this.id = id;
+        this.title = title;
+        this.temperature = temperature;
+        this.temp = temperature;
+        this.humidity = humidity;
+        this.dirt_layers = dirt_layers;
+        this.trees = trees;
+        this.plants = plants;
+        this.grass = grass;
+        this.dirt_color = dirt_color;
+        this.water_color = water_color;
+        this.no_smooth_heightmap = no_smooth_heightmap;
+    }
+
+}
+
 export class Biomes {
 
     constructor(noise2d) {
@@ -21,7 +40,7 @@ export class Biomes {
         this.initBiomes();
         this.calcPalette();
         //
-        this.octaves = 5;
+        this.octaves = 6;
         this.max_pow = Math.pow(2, this.octaves);
         this.pows = [];
         for(let i = 0; i < this.octaves; i++) {
@@ -30,7 +49,7 @@ export class Biomes {
         }
     }
 
-    calcNoise(px, pz, t) {
+    calcNoise(px, pz, t, div = 1.2) {
         const s = 1 * 40;
         let resp = 0;
         for(let i = 0; i < this.octaves; i++) {
@@ -39,7 +58,7 @@ export class Biomes {
             const h = this.noise2d((px + shift) / (d * s), (pz + shift) / (d * s));
             resp += h * (d / this.max_pow);
         }
-        return (resp / 2 + .5) / 1.2;
+        return (resp / 2 + .5) / div;
     }
 
     addBiome(title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color) {
@@ -91,11 +110,14 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        this.list.push({id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap});
+        const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, temp);
+        this.list.push(biome);
+        this.byName.set(title, biome);
     }
 
     initBiomes() {
 
+        this.byName = new Map();
         this.list = [];
     
         // Снежные биомы
@@ -146,7 +168,8 @@ export class Biomes {
         this.addBiome('Равнины', 0.8, 0.4, undefined, {
             frequency: TREE_FREQUENCY / 12,
             list: [
-                {percent: 1, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+                {percent: .95, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {percent: .05, ...TREES.BIG_OAK}
             ]
         });
         this.addBiome('Подсолнечниковые равнины', 0.8, 0.4);
@@ -157,7 +180,8 @@ export class Biomes {
             frequency: TREE_FREQUENCY * 1.2,
             list: [
                 {percent: 0.01, trunk: TREES.BIRCH.trunk, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+                {percent: 0.97, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+                {percent: .02, ...TREES.BIG_OAK, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
             ]
         });
         this.addBiome('Холмистый березняк', 0.6, 0.6);
@@ -168,7 +192,8 @@ export class Biomes {
         this.addBiome('Болото', 0.8, 0.9, undefined, {
             frequency: TREE_FREQUENCY * .25,
             list: [
-                {percent: 1, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
+                {percent: .95, trunk: TREES.OAK.trunk, leaves: BLOCK.OAK_LEAVES.id, style: 'acacia', height: {min: 3, max: 7}},
+                {percent: .05, ...TREES.BIG_OAK}
             ]
         }, {
             frequency: PLANTS_FREQUENCY,
@@ -378,6 +403,8 @@ export class Biomes {
         }
         return biome;
         */
+
+        // return this.byName.get('Холмистая пустыня')
 
         let x = Math.floor(this.scale * temperature);
         let z = Math.floor(this.scale * humidity);

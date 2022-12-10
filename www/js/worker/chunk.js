@@ -94,6 +94,7 @@ export class Chunk {
         this.fluid = null;
         this.inQueue = false;
         this.queueDist = -1; // 0 and more means its in queue (build or gen
+        this.genValue = 0;
     }
 
     init() {
@@ -106,6 +107,7 @@ export class Chunk {
         this.timers             = {
             init:               null,
             generate_terrain:   null,
+            generate_noise3d:   null,
             apply_modify:       null,
             build_vertices:     null
         };
@@ -117,6 +119,7 @@ export class Chunk {
     }
 
     doGen() {
+        this.tblocks.makeBedrockEdge();
         this.chunkManager.dataWorld.addChunk(this);
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
@@ -273,8 +276,23 @@ export class Chunk {
         return uint16View[index];
     }
 
-    // Set block indirect
-    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power) {
+    /**
+     * Set block indirect
+     * @param {int} x 
+     * @param {int} y 
+     * @param {int} z 
+     * @param {int} block_id 
+     * @param {*} rotate 
+     * @param {*} extra_data 
+     * @param {*} entity_id 
+     * @param {*} power 
+     * @param {boolean} check_is_solid 
+     * @returns 
+     */
+    setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false) {
+
+        this.genValue++
+
         if (isFluidId(block_id)) {
             this.fluid.setFluidIndirect(x, y, z, block_id);
             return;
@@ -282,10 +300,17 @@ export class Chunk {
 
         const { cx, cy, cz, cw, uint16View } = this.tblocks.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
+
+        //
+        if(check_is_solid && BLOCK.isSolidID(uint16View[index])) {
+            return
+        }
+
         uint16View[index] = block_id;
         if (rotate || extra_data) {
             this.tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data, entity_id, power);
         }
+
     }
 
     isFilled(id) {
@@ -441,7 +466,7 @@ export class Chunk {
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
                         // blockIsClosed from typedBlocks
-                        if ((this.isFilled(id) || this.isWater(id))
+                        if (this.isFilled(id)
                             && this.isFilled(neib0) && this.isFilled(neib1)
                             && this.isFilled(neib2) && this.isFilled(neib3)
                             && this.isFilled(neib4) && this.isFilled(neib5)) {
@@ -449,7 +474,7 @@ export class Chunk {
                         } else {
                             // getNeighbours from typedBlocks
                             material = BLOCK_BY_ID[id];
-                            let pcnt = 6, waterCount = material && material.is_water ? 1 : 0;
+                            let pcnt = 6;
                             // inlining neighbours
                             // direction of CC from TypedBlocks
                             neibMat[0] = BLOCK_BY_ID[neib0];
@@ -460,14 +485,11 @@ export class Chunk {
                             neibMat[5] = BLOCK_BY_ID[neib5];
                             for (let i = 0; i < 6; i++) {
                                 const properties = neibMat[i];
-                                if (!properties || properties.transparent || properties.fluid) {
+                                if (!properties || properties.transparent) {
                                     pcnt--;
                                 }
-                                if (waterCount > 0 && properties && properties.is_water) {
-                                    waterCount++;
-                                }
                             }
-                            empty = pcnt === 6 || waterCount === 7;
+                            empty = pcnt === 6;
                         }
                     }
 
