@@ -445,8 +445,8 @@ export class DBWorld {
     }
 
     async loadAndDeleteChunkDelayedCalls(chunk) {
-        const rows = await this.conn.all('SELECT delayed_calls FROM chunk WHERE addr = ?', [chunk.addrHash]);
-        const delayed_calls = rows[0]?.delayed_calls;
+        const row = await this.conn.get('SELECT delayed_calls FROM chunk WHERE addr = ?', [chunk.addrHash]);
+        const delayed_calls = row?.delayed_calls;
         if (!delayed_calls) {
             return null;
         }
