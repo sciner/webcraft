@@ -882,7 +882,7 @@ export class Player {
             let bpos = this.getBlockPos().add(Vector.YN);
             let block = this.world.chunkManager.getBlock(bpos);
             // ignore damage if dropped into water
-            if(block.material.is_fluid) {
+            if(block.fluid > 0) {
                 this.lastBlockPos = this.getBlockPos();
             } else {
                 let pos = this.getBlockPos();
