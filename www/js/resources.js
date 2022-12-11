@@ -1,6 +1,8 @@
 import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
 
+export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
+
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая - white_terracotta
     orange: [2, 1],     // Оранжевая - orange_terracotta
@@ -360,8 +362,8 @@ export class Resources {
                     for(let skin_id in json.assets[k].skins) {
                         resp.push({
                             id: skin_id,
-                            file: './media/models/player_skins/' + skin_id + '.png',
-                            preview: './media/models/player_skins/preview/' + skin_id + '.png'
+                            file: CLIENT_SKIN_ROOT + skin_id + '.png',
+                            preview: CLIENT_SKIN_ROOT + 'preview/' + skin_id + '.png'
                         });
                     }
                 }

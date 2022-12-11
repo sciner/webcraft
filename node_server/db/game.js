@@ -1,5 +1,5 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
-import {DBGameSkins} from './game/skin.js';
+import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 
 export class DBGame {
 
@@ -166,16 +166,18 @@ export class DBGame {
         migrations.push({version: 12, queries: [
             // hash
             `CREATE TABLE "skin" (
-                "id" INTEGER PRIMARY KEY,
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
                 "dt" INTEGER NOT NULL,
-                "url" TEXT NOT NULL,        /* a variable part of a URL, without '.png' or root dir.
-                                            It's unique to ensure new uploads are saved under different names. */
+                "file" TEXT NOT NULL,       -- the file name relative to SKIN_ROOT, without an extension
                 "is_slim" INTEGER NOT NULL,
                 "hash" TEXT,                -- base64url-encoded md5 of Buffer returned by Jimp bitmap.data
                 "uploader_user_id" INTEGER,
                 "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
             )`,
-            'CREATE UNIQUE INDEX skin_url ON skin (url)',
+            'CREATE UNIQUE INDEX skin_hash ON skin (hash)',
+            // Reserve lower IDs for manualy added skins.
+            // It's not a problem if we run out of low ids, just use the regular autoincrements
+            `INSERT INTO sqlite_sequence (name, seq) VALUES ("skin", ${UPLOAD_STARTING_ID})`,
             `CREATE TABLE "user_skin" (
                 "user_id" INTEGER NOT NULL,
                 "skin_id" INTEGER NOT NULL,

@@ -140,8 +140,12 @@ export class ServerAPI {
             case '/api/Skin/Upload': {
                 const session = await Qubatch.db.GetPlayerSession(session_id);
                 const params = req.body;
-                await Qubatch.db.skins.upload(params.data, params.name, params.isSlim, session.user_id);
-                return {'result':'ok'};
+                const skin_id = await Qubatch.db.skins.upload(params.data, params.name, params.isSlim, session.user_id);
+                return { 'skin_id': skin_id };
+            }
+            case '/api/Skin/GetOwned': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                return await Qubatch.db.skins.getOwned(session.user_id);
             }
             default: {
                 throw 'error_method_not_exists';

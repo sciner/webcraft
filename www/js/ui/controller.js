@@ -171,6 +171,9 @@ let gameCtrl = async function($scope, $timeout) {
                 id = 'not_supported_browser';
             }
             this.id = id;
+            if ($scope.onShow[id]) {
+                $scope.onShow[id]();
+            }
         },
         toggle(id) {
             if(this.id != id) {
@@ -195,7 +198,6 @@ let gameCtrl = async function($scope, $timeout) {
             }
         }
     };
-    $scope.current_window.show('main');
 
     // Login
     $scope.login = {
@@ -759,6 +761,9 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.Qubatch      = globalThis.Qubatch;
     $scope.skin         = new SkinManager($scope, $timeout);
     $scope.texture_pack = new TexturePackManager($scope);
+    $scope.onShow       = { 
+        'skin': () => { $scope.skin.onShow(); }
+    };
     $scope.newgame.init();
 
     $scope.texture_pack.init().then(() => {
@@ -773,6 +778,8 @@ let gameCtrl = async function($scope, $timeout) {
     //
     $scope.bg = new BgEffect();
 
+    // show the window after everything is initilized
+    $scope.current_window.show('main');
 }
 
 gameCtrl.$inject = injectParams;

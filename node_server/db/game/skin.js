@@ -3,10 +3,10 @@ import { Buffer } from 'node:buffer';
 import Jimp from 'jimp';
 import mkdirp from 'mkdirp';
 
-const UPLOAD_SKIN_DIR = '../www/media/models/player_skins/u/'; // a root folder for all uploaded skins
-const UPLOAD_SKIN_URL_PREFIX = 'u/';
-const UPLOAD_SKIN_DIR_NAME_LENGTH = 2;
-const UPLOAD_SKIN_FILE_NAME_LENGTH = 3; // only hash symbols, not counting .png extension
+const SKIN_ROOT = '../www/media/models/player_skins/'
+const UPLOAD_SKIN_DIR = 'u/'; // a dir in SKIN_ROOT for uploaded skins
+const UPLOAD_SKINS_PER_DIR = 1000; // How many skins are placed in each sub-dir of UPLOAD_SKIN_DIR
+export const UPLOAD_STARTING_ID = 10000;
 
 export class DBGameSkins {
 
@@ -42,35 +42,20 @@ export class DBGameSkins {
         const hash = md5(img.bitmap.data, 'base64url');
         const existingSkin = await this.conn.get("SELECT * FROM skin WHERE hash = ?", [hash]);
 
+        var skin_id;
         if (existingSkin) {
             // The same exact image was uploaded. TODO check ownership rights here
             this.addUserSkin(user_id, existingSkin.id);
+            skin_id = existingSkin.id;
         } else {
-            // Generate a unique "dir/filename"
-            const hashDir = hash.substring(0, UPLOAD_SKIN_DIR_NAME_LENGTH) + '/';
-            const hashFileNameBase = hash.substring(UPLOAD_SKIN_DIR_NAME_LENGTH, UPLOAD_SKIN_DIR_NAME_LENGTH + UPLOAD_SKIN_FILE_NAME_LENGTH);
-            const hashFileName = hashFileNameBase;
-            var url;
-            var tryN = 2;
-            while(true) {
-                url = UPLOAD_SKIN_URL_PREFIX + hashDir + hashFileName;
-                var row = await this.conn.get("SELECT id FROM skin WHERE url = ?", [url]);
-                if (!row) {
-                    break;
-                }
-                hashFileName = hashFileNameBase + '_' + tryN;
-                tryN++;
-            }
-
-            // add the skin to the db
+            // add the skin to the db, with '' file name
             if (originalName.endsWith('.png')) {
                 originalName = originalName.substring(0, originalName.length - 4);
             }
             const result = await this.conn.run(`INSERT OR IGNORE INTO skin
-                       (dt, url, is_slim, hash, uploader_user_id, original_name) 
-                VALUES (:dt, :url, :is_slim, :hash, :uploader_user_id, :original_name)`, {
+                        (dt, file, is_slim, hash, uploader_user_id, original_name) 
+                VALUES (:dt, '', :is_slim, :hash, :uploader_user_id, :original_name)`, {
                 ':dt':          unixTime(),
-                ':url':         url,
                 ':is_slim':     isSlim,
                 ':hash':        hash,
                 ':uploader_user_id': user_id,
@@ -80,16 +65,25 @@ export class DBGameSkins {
                 // Maybe a duplicate skin was inserted at the same time. Let the usr try it later.
                 throw 'server_error_try_later';
             }
-            const skin_id = result.lastID;
+            skin_id = result.lastID;
+
+            // set the file name based on skin_id
+            const dir = UPLOAD_SKIN_DIR + ((skin_id / UPLOAD_SKINS_PER_DIR) | 0) + '/'
+            const file = dir + (skin_id | 0);
+            await this.conn.run("UPDATE skin SET file = ? WHERE id = ?", [file, skin_id]);
 
             // Add the skin to the user
             this.addUserSkin(user_id, skin_id);
 
             // save the skin file
-            const dir = UPLOAD_SKIN_DIR + hashDir;
-            await mkdirp(dir);
-            const fileName = dir + hashFileName + '.png';
-            await fs.promises.writeFile(fileName, dataBuffer, 'binary');
+            await mkdirp(SKIN_ROOT + dir);
+            const fullFileName = SKIN_ROOT + file + '.png';
+            await fs.promises.writeFile(fullFileName, dataBuffer, 'binary');
         }
+        return skin_id;
+    }
+
+    async getOwned(user_id) {
+        return await this.conn.all("SELECT skin_id id, file FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ?", [user_id]);
     }
 }

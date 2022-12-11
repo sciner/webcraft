@@ -1,5 +1,5 @@
 import {Helpers} from '../helpers.js';
-import {Resources} from '../resources.js';
+import {Resources, CLIENT_SKIN_ROOT} from '../resources.js';
 
 export class SkinManager {
 
@@ -39,8 +39,12 @@ export class SkinManager {
         }
     }
 
+    saveSkinId(skin_id) {
+        localStorage.setItem('skin', skin_id);
+    }
+
     save() {
-        localStorage.setItem('skin', this.list[this.index].id);
+        this.saveSkinId(this.list[this.index].id);
         this.#controller.Qubatch.skin = this.list[this.index];
         this.close();
     }
@@ -54,21 +58,50 @@ export class SkinManager {
         return this.list[0];
     }
 
-    // Init
-    async init() {
-        let list = await Resources.loadSkins();
-        this.list = list;
+    async reloadSkins() {
+        // init() maybe called without a session. Don't ask for know skins then.
+        // They'll be loaded in onShow().
+        let ownListPromise = this.#controller.App.getSession()
+            ? this.#controller.App.GetOwnedSkins({})
+            : null;
+
+        this.staticList = this.staticList || await Resources.loadSkins();
+
+        var ownList = [];
+        if (ownListPromise) {
+            ownList = await ownListPromise || []; // on invalid session null is returned
+            for(let skin of ownList) {
+                skin.id = '' + skin.id;
+                skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+                skin.preview = skin.file;
+            }
+        }
+
+        this.list = [...ownList, ...this.staticList];
+
         let s = localStorage.getItem('skin');
         if(s) {
-            for(let i in list) {
-                if(list[i].id == s) {
+            for(let i in this.list) {
+                if(this.list[i].id == s) {
                     this.index = parseInt(i);
                     break;
                 }
             }
         }
+        this.#controller.$diggest(); // because we awaited above
+    }
+
+    onShow() {
+        // It's BAD: skins in the list may change after the player opened the list
+        // TODO show loading screen
+        this.reloadSkins();
+    }
+
+    // Init
+    async init() {
+        await this.reloadSkins();
         this.#controller.Qubatch.skins = this;
-        this.#controller.Qubatch.skin = list[this.index];
+        this.#controller.Qubatch.skin = this.list[this.index];
     }
 
     //
@@ -149,6 +182,8 @@ export class SkinManager {
             isSlim: this.newSkinSlim
         }, (resp) => {
             this.$timeout(() => {
+                this.saveSkinId(resp.skin_id);
+                this.reloadSkins();
                 this.#controller.current_window.show('skin');
             });
         });
