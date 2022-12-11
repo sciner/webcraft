@@ -58,27 +58,7 @@ export class SkinManager {
         return this.list[0];
     }
 
-    async reloadSkins() {
-        // init() maybe called without a session. Don't ask for know skins then.
-        // They'll be loaded in onShow().
-        let ownListPromise = this.#controller.App.getSession()
-            ? this.#controller.App.GetOwnedSkins({})
-            : null;
-
-        this.staticList = this.staticList || await Resources.loadSkins();
-
-        var ownList = [];
-        if (ownListPromise) {
-            ownList = await ownListPromise || []; // on invalid session null is returned
-            for(let skin of ownList) {
-                skin.id = '' + skin.id;
-                skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
-                skin.preview = skin.file;
-            }
-        }
-
-        this.list = [...ownList, ...this.staticList];
-
+    updateSkinIndex() {
         let s = localStorage.getItem('skin');
         if(s) {
             for(let i in this.list) {
@@ -88,7 +68,24 @@ export class SkinManager {
                 }
             }
         }
-        this.#controller.$diggest(); // because we awaited above
+    }
+
+    reloadSkins() {
+        if (!this.#controller.App.getSession()) {
+            return;
+        }
+        this.#controller.App.GetOwnedSkins({}, (resp) => {
+            this.$timeout(() => {
+                var ownList = resp || []; // on invalid session resp == null
+                for(let skin of resp) {
+                    skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+                    skin.preview = skin.file;
+                }
+                this.list = [...ownList, ...this.staticList];
+                this.updateSkinIndex();
+                this.initProfilePage();
+            }, 0, true);
+        });
     }
 
     onShow() {
@@ -99,7 +96,10 @@ export class SkinManager {
 
     // Init
     async init() {
-        await this.reloadSkins();
+        this.staticList = await Resources.loadSkins();
+        this.list = this.staticList;
+        this.updateSkinIndex();
+
         this.#controller.Qubatch.skins = this;
         this.#controller.Qubatch.skin = this.list[this.index];
     }
@@ -183,7 +183,6 @@ export class SkinManager {
         }, (resp) => {
             this.$timeout(() => {
                 this.saveSkinId(resp.skin_id);
-                this.reloadSkins();
                 this.#controller.current_window.show('skin');
             });
         });

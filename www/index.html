@@ -446,7 +446,7 @@
                     <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
                 </h1>
                 <div id="skins-slider" class="keen-slider zoom-out">
-                    <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list">
+                    <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list track by k.id">
                         <div>
                             <img ng-src="{{k.preview}}" alt="preview skin" />
                         </div>
@@ -457,7 +457,7 @@
                         <i class="icon-chevron-left"></i>
                     </button>
                     <div id="skins-preview-slider" class="keen-slider thumbnail">
-                        <div class="keen-slider__slide" ng-repeat="k in skin.list"><img ng-src="{{k.preview}}"/></div>
+                        <div class="keen-slider__slide" ng-repeat="k in skin.list track by k.id"><img ng-src="{{k.preview}}"/></div>
                     </div>
                     <button id="slider-next" class="slider-btn" onclick="sliderNext()">
                         <i class="icon-chevron-right"></i>
