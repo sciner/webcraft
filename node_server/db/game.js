@@ -1,9 +1,11 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
+import {DBGameSkins} from './game/skin.js';
 
 export class DBGame {
 
     constructor(conn) {
         this.conn = conn;
+        this.skins = new DBGameSkins(this);
     }
 
     // Open database and return provider
@@ -117,6 +119,28 @@ export class DBGame {
 
         migrations.push({version: 10, queries: [
             `ALTER TABLE world_player ADD COLUMN dt_last_visit INTEGER NOT NULL DEFAULT 0`
+        ]});
+
+        migrations.push({version: 11, queries: [
+            // hash
+            `CREATE TABLE "skin" (
+                "id" INTEGER PRIMARY KEY,
+                "dt" INTEGER NOT NULL,
+                "url" TEXT NOT NULL,        /* a variable part of a URL, without '.png' or root dir.
+                                            It's unique to ensure new uploads are saved under different names. */
+                "is_slim" INTEGER NOT NULL,
+                "hash" TEXT,                -- base64url-encoded md5 of Buffer returned by Jimp bitmap.data
+                "uploader_user_id" INTEGER,
+                "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
+            )`,
+            'CREATE UNIQUE INDEX skin_url ON skin (url)',
+            `CREATE TABLE "user_skin" (
+                "user_id" INTEGER NOT NULL,
+                "skin_id" INTEGER NOT NULL,
+                "dt" INTEGER NOT NULL,
+                PRIMARY KEY("user_id", "skin_id")
+            ) WITHOUT ROWID`,
+            'CREATE INDEX user_skin_skin_id ON user_skin (skin_id)',
         ]});
         
         migrations.push({version: 11, queries: [

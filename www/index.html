@@ -443,6 +443,7 @@
                     <p class="font-m m-0" style="color: #B7B2CC;">
                         <span id="skins-current"></span>/<span id="skins-length"></span>
                     </p>
+                    <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
                 </h1>
                 <div id="skins-slider" class="keen-slider zoom-out">
                     <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list">
@@ -489,6 +490,44 @@
                     <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
                 </div>
             </div> -->
+            <div class="social">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/discord.svg" alt="">
+                </a>
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/youtube.svg" alt="">
+                </a>
+            </div>
+        </div>
+        
+        <!-- New skin -->
+        <div class="profile-page" ng-if="current_window.id == 'new_skin'">
+            <div class="content items-center">
+                <h3 class="header">New skin</h3>
+                <div class="input-group">
+                    <div>
+                        <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/>
+                    </div>
+                    <div>&nbsp;</div>
+                    <div>
+                        <input type="file" id="new-skin-input" accept="image/png" ng-upload-change="skin.newSkinFileChanged($event)">
+                    </div>
+                    <div>&nbsp;</div>
+                    <div class="switcher-container">
+                        <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" />
+                        <div class="switcher">
+                            <small></small>
+                        </div>
+                        <label for="chk-new-skin-slim">{{Lang.slim}}</label>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="flex-row items-center">
+                    <button class="secondary flex-row" ng-click="skin.newSkinCancel()">{{Lang.cancel}}</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <button class="primary flex-row" ng-click="skin.newSkinOk()" ng-disabled="!skin.newSkinDataURL">{{Lang.apply}}</button>
+                </div>
+            </div>
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="style/img/discord.svg" alt="">

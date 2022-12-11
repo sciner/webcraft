@@ -26,4 +26,5 @@ www/resource_packs/bbmodel/textures/*.jpeg
 node_server/texture-pack-compiler/resource-packs/
 node_server/tmp
 www/data/bbmodel
+www/media/models/player_skins/u
 node_server/texture-pack-compiler/bbmodel/models

@@ -796,3 +796,22 @@ let directive = function($q) {
 };
 directive.$inject = myEnterInjectParams;
 app.directive('myEnter', directive);
+
+// from https://stackoverflow.com/questions/20146713/ng-change-on-input-type-file
+app.directive("ngUploadChange",function(){
+    return{
+        scope:{
+            ngUploadChange:"&"
+        },
+        link:function($scope, $element, $attrs){
+            $element.on("change",function(event){
+                $scope.$apply(function(){
+                    $scope.ngUploadChange({$event: event})
+                })
+            })
+            $scope.$on("$destroy",function(){
+                $element.off();
+            });
+        }
+    }
+});

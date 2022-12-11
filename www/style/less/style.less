@@ -64,6 +64,11 @@ button,
         &:active {
             background-color: darken(@color-yellow-active, 10%);
         }
+        
+        &:disabled {
+            background-color: @color-grey;
+            cursor: default;
+        }
     }
 
     &.secondary {
@@ -431,6 +436,11 @@ h1 {
 
 .flex {
     display: flex;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
 }
 
 .justify-between {
