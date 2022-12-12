@@ -703,4 +703,7 @@ export class DBWorld {
         return null;
     }
 
+    async setTitle(title)  {
+        await this.conn.run('UPDATE world SET title = ?', [title]);
+    }
 }
