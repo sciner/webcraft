@@ -41,10 +41,11 @@ export class ServerWorld {
         this.updatedBlocksByListeners = [];
     }
 
-    async initServer(world_guid, db_world) {
+    async initServer(world_guid, db_world, new_title) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
+        const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
         var t = performance.now();
         // Tickers
         this.tickers = new Map();
@@ -85,6 +86,7 @@ export class ServerWorld {
         //
         this.db             = db_world;
         this.db.removeDeadDrops();
+        await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
