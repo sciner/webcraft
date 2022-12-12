@@ -8,6 +8,7 @@ uniform float u_brightness;
 uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
 uniform vec3 u_sunDir; // global
+uniform bool u_crosshairOn;
 
 // used in crosshair_define_func
 uniform vec2 u_resolution; // global
