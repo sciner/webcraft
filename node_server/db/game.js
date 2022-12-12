@@ -1,10 +1,12 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
+import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 import { SQLiteServerConnector } from './connector/sqlite.js';
 
 export class DBGame {
 
     constructor(conn) {
         this.conn = conn;
+        this.skins = new DBGameSkins(this);
     }
 
     // Open database and return provider
@@ -198,7 +200,33 @@ export class DBGame {
             'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
             'CREATE INDEX world_guid ON world (guid)',
             'CREATE UNIQUE INDEX world_title ON world (title)'
-        ]});        
+        ]});
+
+        migrations.push({version: 12, queries: [
+            // hash
+            `CREATE TABLE "skin" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "dt" INTEGER NOT NULL,
+                "file" TEXT NOT NULL,       -- the file name relative to SKIN_ROOT, without an extension
+                "type" INTEGER NOT NULL,
+                "rights" INTEGER NOT NULL DEFAULT 0,
+                "hash" TEXT,                -- base64url-encoded md5 of Buffer returned by Jimp bitmap.data
+                "uploader_user_id" INTEGER,
+                "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
+            )`,
+            'CREATE UNIQUE INDEX skin_hash_type ON skin (hash, type)',
+            'CREATE INDEX skin_rights ON skin (rights)',
+            // Reserve lower IDs for manualy added skins.
+            // It's not a problem if we run out of low ids, just use the regular autoincrements
+            `INSERT INTO sqlite_sequence (name, seq) VALUES ("skin", ${UPLOAD_STARTING_ID})`,
+            `CREATE TABLE "user_skin" (
+                "user_id" INTEGER NOT NULL,
+                "skin_id" INTEGER NOT NULL,
+                "dt" INTEGER NOT NULL,
+                PRIMARY KEY("user_id", "skin_id")
+            ) WITHOUT ROWID`,
+            'CREATE INDEX user_skin_skin_id ON user_skin (skin_id)',
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

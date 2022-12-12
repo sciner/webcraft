@@ -140,6 +140,14 @@
         "weather_clear": {"en": "clear", "ru": "ясная", "fr": "", "es": "", "man": ""},
         "weather_rain": {"en": "rainy", "ru": "дождливая", "fr": "", "es": "", "man": ""},
         "weather_snow": {"en": "snowy", "ru": "снежная", "fr": "", "es": "", "man": ""},
-        "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""}
+        "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
+        "open_file": {"en": "Open file", "ru": "Отурыть файл", "fr": "", "es": "", "man": ""},
+        "new_skin": {"en": "New skin", "ru": "Новый скин", "fr": "", "es": "", "man": ""},
+        "delete": {"en": "Delete", "ru": "Удалить", "fr": "", "es": "", "man": ""},
+        "slim": {"en": "Slim", "ru": "Узкий", "fr": "", "es": "", "man": ""},
+        "error_incorrect_image_format": {"en": "Imcorrect image format", "ru": "Неправильный формат изобаржения", "fr": "", "es": "", "man": ""},
+        "error_skin_size_must_be_64": {"en": "The skin size must be 64x64", "ru": "Размер скина должен быть 64x64", "fr": "", "es": "", "man": ""},
+        "error_this_skin_already_exists": {"en": "This skin already exists and can't be added", "ru": "Этот скин уже существует и не может быть добавлен", "fr": "", "es": "", "man": ""},
+        "server_error_try_later": {"en": "Server error. Try again later.", "ru": "Ошибка сервера. Попробуйте позже.", "fr": "", "es": "", "man": ""}
     }
 }

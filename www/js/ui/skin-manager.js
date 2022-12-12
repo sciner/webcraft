@@ -1,17 +1,28 @@
 import {Helpers} from '../helpers.js';
 import {Resources} from '../resources.js';
+import {CLIENT_SKIN_ROOT} from '../constant.js';
 
 export class SkinManager {
 
     #controller;
 
-    constructor(controller, $timeout) {   
+    constructor($scope, $timeout) {   
         // https://ru.namemc.com/minecraft-skins/trending/top?page=5
-        this.#controller    = controller;
+        this.#controller    = $scope;
         this.$timeout       = $timeout;
         this.list           = [];
         this.index          = 0;
         this.loading        = true;
+        this.newSkinSlim    = false;
+        this.newSkinDataURL = '';
+        this.newSkinFileName = '';
+        this.currentSkinIsOwned = false;
+        // if it's not null, it'll be used once to set index, and then set to null again
+        this.restoreSkinIndex  = null;
+    }
+
+    get currentSkin() {
+        return this.list[this.index];
     }
 
     toggle() {
@@ -27,6 +38,7 @@ export class SkinManager {
         if(this.index == this.list.length) {
             this.index = 0;
         }
+        this.onCurrentSkinChange();
     }
 
     prev() {
@@ -34,11 +46,17 @@ export class SkinManager {
         if(this.index < 0) {
             this.index = this.list.length - 1;
         }
+        this.onCurrentSkinChange();
+    }
+
+    saveSkinId(skin_id) {
+        localStorage.setItem('skin', skin_id);
     }
 
     save() {
-        localStorage.setItem('skin', this.list[this.index].id);
-        this.#controller.Qubatch.skin = this.list[this.index];
+        const currentSkin = this.currentSkin;
+        this.saveSkinId(currentSkin.id);
+        this.#controller.Qubatch.skin = currentSkin;
         this.close();
     }
 
@@ -51,21 +69,67 @@ export class SkinManager {
         return this.list[0];
     }
 
-    // Init
-    async init() {
-        let list = await Resources.loadSkins();
-        this.list = list;
+    findSkinIndex() {
         let s = localStorage.getItem('skin');
+        if (this.restoreSkinIndex != null) {
+            this.index = this.restoreSkinIndex;
+            this.restoreSkinIndex = null;
+            s = null;
+        }
+        this.index = Math.min(this.index, this.list.length - 1);
         if(s) {
-            for(let i in list) {
-                if(list[i].id == s) {
+            for(let i in this.list) {
+                if(this.list[i].id == s) {
                     this.index = parseInt(i);
                     break;
                 }
             }
         }
+        this.onCurrentSkinChange();
+    }
+
+    onCurrentSkinChange() {
+        this.#controller.$apply(() => {
+            this.currentSkinIsOwned = this.currentSkin?.owned || false;
+        });
+    }
+
+    reloadSkins() {
+        if (!this.#controller.App.getSession()) {
+            return;
+        }
+        this.#controller.App.GetOwnedSkins({}, (resp) => {
+            this.$timeout(() => {
+                var ownList = resp || []; // on invalid session resp == null
+                for(let skin of resp) {
+                    skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+                    skin.preview = skin.file;
+                    skin.owned = true;
+                }
+                resp.sort((a, b) => a.id - b.id);
+                this.list = [...ownList, ...this.staticList];
+                this.findSkinIndex();
+                // A workaround: when elements are changed, sliders become messed up. Re-create them.
+                this.initProfilePage();
+            }, 0, true);
+        });
+    }
+
+    onShow() {
+        // It's BAD: skins in the list may change after the player opened the list
+        // TODO show loading screen
+        this.reloadSkins();
+    }
+
+    // Init
+    async init() {
+        this.staticList = await Resources.loadSkins();
+        this.list = this.staticList;
+        this.findSkinIndex();
+
         this.#controller.Qubatch.skins = this;
-        this.#controller.Qubatch.skin = list[this.index];
+        const skin_id = localStorage.getItem('skin');
+        this.#controller.Qubatch.skin = {id: skin_id};
     }
 
     //
@@ -83,7 +147,94 @@ export class SkinManager {
     catchSlider(slider) {
         slider.on('slideChanged', (e) => {
             this.index = e.track.details.abs;
+            this.onCurrentSkinChange();
+        });
+        // A workaround: when elements are added, the previously selected thumbnail remains highlighted.
+        const parentEl = document.getElementById('div-skin-preview-buttons');
+        const thumbs = parentEl.getElementsByClassName('keen-slider__slide');
+        for(var i = 0; i < thumbs.length; i++) {
+            if (i !== this.index) {
+                thumbs[i].classList.remove('active');
+            }
+        }
+    }
+
+    newSkin() {
+        this.newSkinClear();
+        this.#controller.current_window.show('new_skin');
+    }
+
+    deleteSkin() {
+        this.restoreSkinIndex = this.index;
+        this.#controller.App.DeleteSkin({
+            skin_id: this.currentSkin.id
+        }, (resp) => {
+            this.reloadSkins();
         });
     }
 
+    newSkinClear() {
+        this.newSkinDataURL = '';
+    }
+
+    newSkinFileChanged($event) {
+
+        function onSkinError(error) {
+            Qubatch.App.showError(error, 4000);
+            that.#controller.$apply(() => {
+                that.newSkinClear();
+            });
+            // a workaround: angularjs doesn't clear the image when that.newSkinDataURL is set null or ''
+            document.getElementById('new-skin-image').src = null;
+            // it's not bound to ng-model, it's ok to set it directly:
+            document.getElementById('new-skin-input').value = null;
+        }
+
+        var that = this;
+        var file = $event.target.files[0];
+        if (!file) {
+            // A weird Chrome behavior: when a user clicks Cancel in the open file dialogs, the file input clears.
+            // A workaround is complex and not angularjs-friendly: https://stackoverflow.com/questions/17798993/input-type-file-clearing-file-after-clicking-cancel-in-chrome
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = function () {
+            // Load it into an off-screen image to check the size.
+            const img = new Image();
+            img.onload = function () {
+                if (img.naturalWidth != 64 || img.naturalHeight != 64) {
+                    onSkinError('error_skin_size_must_be_64');
+                    return;
+                }
+                that.#controller.$apply(() => {
+                    // Set the actual image. Now it's ready to be uploaded.
+                    that.newSkinDataURL = reader.result;
+                    that.newSkinFileName = file.name;
+                });
+            };
+            img.onerror = function () {
+                onSkinError('error_incorrect_image_format');
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    newSkinOk() {
+        const data = this.newSkinDataURL.substring(22); // remove data:image/png;base64,
+        this.#controller.App.UploadSkin({
+            data: data,
+            name: this.newSkinFileName,
+            type: this.newSkinSlim ? 1 : 0
+        }, (resp) => {
+            this.$timeout(() => {
+                this.saveSkinId(resp.skin_id);
+                this.#controller.current_window.show('skin');
+            });
+        });
+    }
+
+    newSkinCancel() {
+        this.#controller.current_window.show('skin');
+    }
 }

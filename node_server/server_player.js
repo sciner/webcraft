@@ -125,17 +125,20 @@ export class ServerPlayer extends Player {
      * @param {WebSocket} conn 
      * @param {ServerWorld} world 
      */
-    async onJoin(session_id, skin, conn, world) {
+    async onJoin(session_id, skin_id, conn, world) {
         
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
         }
 
+        // TODO: Maybe set the session here, and not in cmd_connect? (to avoid redundant select)
+        const session = await Qubatch.db.GetPlayerSession(session_id);
+
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
         this.session_id         = session_id;
-        this.skin               = skin;
+        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id);
         //
         conn.player = this;
         conn.on('message', this.onMessage.bind(this));

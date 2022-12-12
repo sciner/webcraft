@@ -103,7 +103,7 @@ export class ServerGame {
             const onWorld = async () => {
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id, query.skin, conn, world);
+                player.onJoin(query.session_id, parseFloat(query.skin), conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };
