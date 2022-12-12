@@ -796,6 +796,61 @@ export class DBWorldMigration {
                 "delayed_calls" TEXT NOT NULL,
             PRIMARY KEY ("x", "y", "z") ON CONFLICT REPLACE);`,
         ]});
+        migrations.push({version: 88, queries: [
+            // reorder indices (x, y, z) -> (x, z, y)
+            'DROP INDEX portal_xyz',
+            'CREATE INDEX portal_xyz ON portal (x, z, y)',
+            'DROP INDEX world_modify_chunk_xyz',
+            'CREATE INDEX world_modify_chunk_xyz ON world_modify (chunk_x, chunk_z, chunk_y)',
+            'DROP INDEX world_modify_xyz',
+            'CREATE INDEX world_modify_xyz ON world_modify (x, z, y)',
+            // reorder index (x, y, z) -> (x, z, y) in world_modify_chunks
+            // note: _rowid_ is used in the code
+            `CREATE TABLE "world_modify_chunks_copy" (
+                "x"	integer NOT NULL DEFAULT 0,
+                "y"	integer NOT NULL DEFAULT 0,
+                "z"	integer NOT NULL DEFAULT 0,
+                "data" TEXT,
+                "data_blob"	BLOB,
+                "has_data_blob" INTEGER DEFAULT 0,
+                PRIMARY KEY("x","z","y") ON CONFLICT REPLACE)`,
+            `INSERT INTO world_modify_chunks_copy (x, y, z, data, data_blob)
+               SELECT x, y, z, data, data_blob FROM world_modify_chunks`,
+            'DROP TABLE world_modify_chunks',
+            'ALTER TABLE world_modify_chunks_copy RENAME TO world_modify_chunks',
+            // change chunk primary key; merge chunk with chunk_delayed_calls
+            'DROP TABLE chunk_delayed_calls',
+            `CREATE TABLE "chunk_copy" (
+                "addr"	TEXT,
+                "dt"	integer,
+                "mobs_is_generated"	integer NOT NULL DEFAULT 0,
+                "delayed_calls" TEXT,
+                PRIMARY KEY("addr")
+            ) WITHOUT ROWID`,
+            `INSERT INTO chunk_copy (addr, dt, mobs_is_generated)
+                SELECT addr, dt, mobs_is_generated FROM chunk`,
+            'DROP TABLE chunk',
+            'ALTER TABLE chunk_copy RENAME TO chunk',
+            // add new indices
+            'CREATE INDEX world_guid ON world (guid)',
+            'CREATE INDEX user_guid ON user (guid)',
+            'CREATE INDEX user_is_admin ON user (is_admin)',
+            'CREATE INDEX quest_action_quest_id ON quest_action (quest_id)',
+            'CREATE INDEX quest_reward_quest_id ON quest_reward (quest_id)',
+            'CREATE INDEX user_quest_user_id_quest_id ON user_quest (user_id, quest_id)',
+            'CREATE INDEX teleport_points_user_id ON teleport_points (user_id)',
+            'CREATE INDEX drop_item_entity_id ON drop_item (entity_id)',
+            'CREATE INDEX drop_item_dt ON drop_item (dt)',
+            'CREATE INDEX entity_xyz ON entity (x, z, y)',
+            'CREATE INDEX entity_entity_id ON entity (entity_id)',
+            'CREATE INDEX world_modify_chunks_has_data_blob ON world_modify_chunks (has_data_blob)',
+            'CREATE INDEX world_chunks_fluid_xyz ON world_chunks_fluid (x, z, y)',
+            // allow deletion in tables
+            'DELETE FROM entity WHERE is_dead = 1',
+            'ALTER TABLE entity DROP COLUMN is_dead',
+            'DELETE FROM drop_item WHERE is_deleted = 1',
+            'ALTER TABLE drop_item DROP COLUMN is_deleted',
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

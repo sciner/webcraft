@@ -145,6 +145,10 @@ export class ServerChunk {
         this.blocksUpdatedByDelayedCalls = [];
     }
 
+    get addrHash() { // maybe replace it with a computed string, if it's used often
+        return this.addr.toHash();
+    }
+
     get maxBlockX() {
         return this.coord.x + (CHUNK_SIZE_X - 1);
     }
@@ -410,7 +414,7 @@ export class ServerChunk {
         // load various data in parallel
         const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
         const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
-        const serializedDelayedCalls = await this.world.db.loadChunkDelayedCalls(this.addr);
+        const serializedDelayedCalls = await this.world.db.loadAndDeleteChunkDelayedCalls(this);
         if (serializedDelayedCalls) {
             this.delayedCalls.deserialize(serializedDelayedCalls);
         }
@@ -932,8 +936,7 @@ export class ServerChunk {
             }
         }
         if (this.delayedCalls.length) {
-            const str = this.delayedCalls.serialize();
-            promises.push(this.world.db.saveChunkDelayedCalls(this.addr, str));
+            promises.push(this.world.db.saveChunkDelayedCalls(this));
         }
         await Promise.all(promises);
         // Need unload in worker
