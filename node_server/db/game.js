@@ -153,12 +153,12 @@ export class DBGame {
             'DROP TABLE world',
             'ALTER TABLE world_copy RENAME TO world',
             // new indices
-            'CREATE UNIQUE INDEX user_username ON user (username)',
+            'CREATE INDEX user_username ON user (username)',
             'CREATE INDEX user_guid ON user (guid)',
             'CREATE INDEX user_session_token ON user_session (token)',
             'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
             'CREATE INDEX world_guid ON world (guid)',
-            'CREATE UNIQUE INDEX world_title ON world (title)'
+            'CREATE INDEX world_title ON world (title)'
         ]});        
 
         for(let m of migrations) {
