@@ -109,6 +109,7 @@ export class SkinManager {
                 resp.sort((a, b) => a.id - b.id);
                 this.list = [...ownList, ...this.staticList];
                 this.findSkinIndex();
+                // A workaround: when elements are changed, sliders become messed up. Re-create them.
                 this.initProfilePage();
             }, 0, true);
         });
@@ -148,6 +149,14 @@ export class SkinManager {
             this.index = e.track.details.abs;
             this.onCurrentSkinChange();
         });
+        // A workaround: when elements are added, the previously selected thumbnail remains highlighted.
+        const parentEl = document.getElementById('div-skin-preview-buttons');
+        const thumbs = parentEl.getElementsByClassName('keen-slider__slide');
+        for(var i = 0; i < thumbs.length; i++) {
+            if (i !== this.index) {
+                thumbs[i].classList.remove('active');
+            }
+        }
     }
 
     newSkin() {
