@@ -138,7 +138,7 @@ export class DBWorldMob {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) {
             const row = await this.conn.get('SELECT id AS lastID FROM entity WHERE entity_id = :entity_id', {
                 ':entity_id': entity_id
             });

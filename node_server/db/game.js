@@ -399,7 +399,7 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) {
             const row = await this.conn.get('SELECT id AS lastID FROM world_player WHERE user_id = :user_id', {
                 ':user_id': user_id
             });
