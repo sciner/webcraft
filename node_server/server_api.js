@@ -153,6 +153,11 @@ export class ServerAPI {
                 await Qubatch.db.skins.deleteFromUser(session.user_id, params.skin_id);
                 return {'result': 'ok'};
             }
+            case '/api/Skin/UpdateStatic': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                return await Qubatch.db.skins.updateStaticSkins();
+            }
             default: {
                 throw 'error_method_not_exists';
             }

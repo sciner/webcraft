@@ -15,11 +15,41 @@ export class DBGameSkins {
     constructor(db) {
         this.db = db;
         this.conn = db.conn;
+        this.loadStaticSkins();
+    }
+
+    loadStaticSkins() {
         // static list loads once, then we access it instantly when needed
-        // TODO add them to the database (we need their hashes)
         this.staticSkinsPromie = Helpers.fetchJSON('../../www/media/models/database.json').then(json => {
             return new Map(json.player_skins.map(it => [it.id, it]));
         });
+    }
+
+    // reloads the list, and adds misssing files to the DB
+    async updateStaticSkins() {
+        this.loadStaticSkins();
+        const staticSkinsById = await this.staticSkinsPromie;
+        var total = 0;
+        var added = 0;
+        for(var skin of staticSkinsById.values()) {
+            const fileName = SKIN_ROOT + skin.file + '.png';
+            const img = await Jimp.read(fileName);
+            const hash = md5(img.bitmap.data, 'base64url');
+            var result = await this.conn.run(`INSERT OR IGNORE INTO skin (id, dt, file, type, rights, hash) 
+                VALUES (:id, :dt, :file, :type, :rights, :hash)`, {
+                ':id':          skin.id,
+                ':dt':          unixTime(),
+                ':file':        skin.file,
+                ':type':        skin.type,
+                ':rights':      skin.rights,
+                ':hash':        hash
+            });
+            if (result.changes) {
+                added++;
+            }
+            total++
+        }
+        return {"total": total, "added": added};
     }
 
     async addUserSkin(user_id, skin_id) {
@@ -71,9 +101,13 @@ export class DBGameSkins {
                 ':uploader_user_id': user_id,
                 ':original_name': originalName
             });
-            if (!result.lastID) {
-                // Maybe a duplicate skin was inserted at the same time. Let the usr try it later.
-                throw 'server_error_try_later';
+            if (!result.changes) {
+                const row = await this.conn.get('SELECT id FROM skin WHERE hash = ?', [hash]);
+                if (!row) {
+                    // Maybe a duplicate skin was inserted at the same time. Let the usr try it later.
+                    throw 'server_error_try_later';
+                }
+                result.lastID = row.id;
             }
             skin_id = result.lastID;
 
