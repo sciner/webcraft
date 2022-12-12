@@ -52,6 +52,14 @@ export function parseManyToMany(conf, transformKey = v => v, result = new Map())
     return result;
 }
 
+async function rollupImport(dir, file) {
+    switch(dir) {
+        case './ticker/before_change/': return import(`./ticker/before_change/${file}.js`);
+        case './ticker/after_change/': return import(`./ticker/after_change/${file}.js`);
+    }
+    throw new Error('Unsupported directory: ' + dir);
+}
+
 /**
  * Parses many-to-many conf and impots objects from .js modules.
  * 
@@ -81,11 +89,11 @@ export async function loadMappedImports(conf, folder,
             if (imp == null) {
                 var [moduleName, importStr] = StringHelpers.splitFirst(rawValue, ':');
                 importStr = importStr || 'default';
-                moduleName = folder + moduleName + '.js'
                 // TODO amybe async, maybe cache modules
-                const module = await import(moduleName);
+                const module = await rollupImport(folder, moduleName);
                 imp = doImport(module, importStr);
                 if (imp == null) {
+                    moduleName = folder + moduleName + '.js'
                     throw new Error(`Can't import ${importStr} from ${moduleName}`);
                 }
                 uniqueImports[rawValue] = imp;

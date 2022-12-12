@@ -138,7 +138,7 @@ export class DBWorldMob {
         });
         // lastID
         let lastID = result.lastID;
-        if(!result.changes) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT id AS lastID FROM entity WHERE entity_id = :entity_id', {
                 ':entity_id': entity_id
             });
@@ -193,6 +193,7 @@ export class DBWorldMob {
             ':addr':                chunk_addr_hash,
             ':mobs_is_generated':   mobs_is_generated
         });
+        // It works both in single- and multi- player. In single, it always runs the update.
         if (!result.changes) {
             await this.conn.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
                 ':addr':                chunk_addr_hash,

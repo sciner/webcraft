@@ -251,8 +251,14 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!result.changes) {
-            throw 'error_player_exists';
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
+            const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
+                ':guid': guid
+            });
+            if (!row) {
+                throw 'error_player_exists';
+            }
+            lastID = row.lastID;
         }
         //
         await this.JoinWorld(lastID, "demo")
@@ -373,8 +379,14 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!result.changes) {
-            throw 'error_world_with_same_title_already_exist';
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
+            const row = await this.conn.get('SELECT id AS lastID FROM world WHERE guid = :guid', {
+                ':guid': guid
+            });
+            if (!row) {
+                throw 'error_world_with_same_title_already_exist';
+            }
+            lastID = row.lastID;
         }
         //
         await this.InsertWorldPlayer(lastID, user_id);
@@ -399,7 +411,7 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!result.changes) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT id AS lastID FROM world_player WHERE user_id = :user_id', {
                 ':user_id': user_id
             });
