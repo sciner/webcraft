@@ -18,9 +18,11 @@ export class DBGame {
         async function ranameWorldsUniqueTitle(conn) {
             const rows = await conn.all("SELECT id, title, LOWER(title) low, guid FROM world");
             const map = {};
+            const newMap = {};
             for(var row of rows) {
                 map[row.low] = map[row.low] || [];
                 map[row.low].push(row);
+                newMap[row.low] = true;
             }
             for(var low in map) {
                 const arr = map[low];
@@ -32,15 +34,16 @@ export class DBGame {
                     do {
                         newTitle = row.title + '_' + tryN;
                         tryN++;
-                    } while (map[newTitle.toLowerCase()]);
+                    } while (newMap[newTitle.toLowerCase()]);
+                    newMap[newTitle.toLowerCase()] = true;
                     // rename in the game DB
                     await conn.run("UPDATE world SET title = ? WHERE id = ?", [newTitle, row.id]);
                     // rename in the world DB
                     const fileName = `../world/${row.guid}/world.sqlite`;
                     try {
                         const worldConn = await SQLiteServerConnector.connect(fileName);
-                        worldConn.run("UPDATE world SET title = ?", newTitle);
-                        worldConn.close();
+                        await worldConn.run("UPDATE world SET title = ?", newTitle);
+                        await worldConn.close();
                         console.log(`Renamed world id=${row.id} ${row.guid} "${row.title}" -> "${newTitle}"`);
                     } catch {
                         console.error(`Can't rename world id=${row.id} in ${fileName} "${row.title}" -> "${newTitle}"`);
