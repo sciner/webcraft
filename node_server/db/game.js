@@ -169,12 +169,14 @@ export class DBGame {
                 "id" INTEGER PRIMARY KEY AUTOINCREMENT,
                 "dt" INTEGER NOT NULL,
                 "file" TEXT NOT NULL,       -- the file name relative to SKIN_ROOT, without an extension
-                "is_slim" INTEGER NOT NULL,
+                "type" INTEGER NOT NULL,
+                "rights" INTEGER NOT NULL DEFAULT 0,
                 "hash" TEXT,                -- base64url-encoded md5 of Buffer returned by Jimp bitmap.data
                 "uploader_user_id" INTEGER,
                 "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
             )`,
             'CREATE UNIQUE INDEX skin_hash ON skin (hash)',
+            'CREATE INDEX skin_rights ON skin (rights)',
             // Reserve lower IDs for manualy added skins.
             // It's not a problem if we run out of low ids, just use the regular autoincrements
             `INSERT INTO sqlite_sequence (name, seq) VALUES ("skin", ${UPLOAD_STARTING_ID})`,

@@ -85,25 +85,6 @@
             "geom": "json/steve.geo.json",
             "baseSkin": "1",
             "skins": {
-                "1": "player_skins/1.png",
-                "3": "player_skins/3.png",
-                "4": "player_skins/4.png",
-                "5": "player_skins/5.png",
-                "6": "player_skins/6.png",
-                "7": "player_skins/7.png",
-                "9": "player_skins/9.png",
-                "10": "player_skins/10.png",
-                "11": "player_skins/11.png",
-                "12": "player_skins/12.png",
-                "13": "player_skins/13.png",
-                "14": "player_skins/14.png",
-                "15": "player_skins/15.png",
-                "16": "player_skins/16.png",
-                "17": "player_skins/17.png",
-                "19": "player_skins/19.png",
-                "20": "player_skins/20.png",
-                "21": "player_skins/21.png",
-                "24": "player_skins/24.png"
             }
         },
         "player:alex": {
@@ -111,13 +92,6 @@
             "geom": "json/alex.geo.json",
             "baseSkin": "2",
             "skins": {
-                "2": "player_skins/2.png",
-                "8": "player_skins/8.png",
-                "18": "player_skins/18.png",
-                "22": "player_skins/22.png",
-                "23": "player_skins/23.png",
-                "25": "player_skins/25.png",
-                "26": "player_skins/26.png"
             }
         },
         "chicken": {
@@ -294,5 +268,34 @@
                 "yellow_blue": "textures/parrot/parrot_yellow_blue.png"
             }
         }
-    }
+    },
+    "player_skins": [
+        { "id": 1, "file": "1", "type": 0, "rights": 1 },
+        { "id": 3, "file": "3", "type": 0, "rights": 1 },
+        { "id": 4, "file": "4", "type": 0, "rights": 1 },
+        { "id": 5, "file": "5", "type": 0, "rights": 1 },
+        { "id": 6, "file": "6", "type": 0, "rights": 1 },
+        { "id": 7, "file": "7", "type": 0, "rights": 1 },
+        { "id": 9, "file": "9", "type": 0, "rights": 1 },
+        { "id": 10, "file": "10", "type": 0, "rights": 1 },
+        { "id": 11, "file": "11", "type": 0, "rights": 1 },
+        { "id": 12, "file": "12", "type": 0, "rights": 1 },
+        { "id": 13, "file": "13", "type": 0, "rights": 1 },
+        { "id": 14, "file": "14", "type": 0, "rights": 1 },
+        { "id": 15, "file": "15", "type": 0, "rights": 1 },
+        { "id": 16, "file": "16", "type": 0, "rights": 1 },
+        { "id": 17, "file": "17", "type": 0, "rights": 1 },
+        { "id": 19, "file": "19", "type": 0, "rights": 1 },
+        { "id": 20, "file": "20", "type": 0, "rights": 1 },
+        { "id": 21, "file": "21", "type": 0, "rights": 1 },
+        { "id": 24, "file": "24", "type": 0, "rights": 1 },
+
+        { "id": 2, "file": "2", "type": 1, "rights": 1 },
+        { "id": 8, "file": "8", "type": 1, "rights": 1 },
+        { "id": 18, "file": "18", "type": 1, "rights": 1 },
+        { "id": 22, "file": "22", "type": 1, "rights": 1 },
+        { "id": 23, "file": "23", "type": 1, "rights": 1 },
+        { "id": 25, "file": "25", "type": 1, "rights": 1 },
+        { "id": 26, "file": "26", "type": 1, "rights": 1 }
+    ]
 }

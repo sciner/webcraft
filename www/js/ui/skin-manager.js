@@ -1,5 +1,6 @@
 import {Helpers} from '../helpers.js';
-import {Resources, CLIENT_SKIN_ROOT} from '../resources.js';
+import {Resources} from '../resources.js';
+import {CLIENT_SKIN_ROOT} from '../constant.js';
 
 export class SkinManager {
 
@@ -15,6 +16,13 @@ export class SkinManager {
         this.newSkinSlim    = false;
         this.newSkinDataURL = '';
         this.newSkinFileName = '';
+        this.currentSkinIsOwned = false;
+        // if it's not null, it'll be used once to set index, and then set to null again
+        this.restoreSkinIndex  = null;
+    }
+
+    get currentSkin() {
+        return this.list[this.index];
     }
 
     toggle() {
@@ -30,6 +38,7 @@ export class SkinManager {
         if(this.index == this.list.length) {
             this.index = 0;
         }
+        this.onCurrentSkinChange();
     }
 
     prev() {
@@ -37,6 +46,7 @@ export class SkinManager {
         if(this.index < 0) {
             this.index = this.list.length - 1;
         }
+        this.onCurrentSkinChange();
     }
 
     saveSkinId(skin_id) {
@@ -44,8 +54,9 @@ export class SkinManager {
     }
 
     save() {
-        this.saveSkinId(this.list[this.index].id);
-        this.#controller.Qubatch.skin = this.list[this.index];
+        const currentSkin = this.currentSkin;
+        this.saveSkinId(currentSkin.id);
+        this.#controller.Qubatch.skin = currentSkin;
         this.close();
     }
 
@@ -58,8 +69,14 @@ export class SkinManager {
         return this.list[0];
     }
 
-    updateSkinIndex() {
+    findSkinIndex() {
         let s = localStorage.getItem('skin');
+        if (this.restoreSkinIndex != null) {
+            this.index = this.restoreSkinIndex;
+            this.restoreSkinIndex = null;
+            s = null;
+        }
+        this.index = Math.min(this.index, this.list.length - 1);
         if(s) {
             for(let i in this.list) {
                 if(this.list[i].id == s) {
@@ -68,6 +85,13 @@ export class SkinManager {
                 }
             }
         }
+        this.onCurrentSkinChange();
+    }
+
+    onCurrentSkinChange() {
+        this.#controller.$apply(() => {
+            this.currentSkinIsOwned = this.currentSkin?.owned || false;
+        });
     }
 
     reloadSkins() {
@@ -80,9 +104,11 @@ export class SkinManager {
                 for(let skin of resp) {
                     skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
                     skin.preview = skin.file;
+                    skin.owned = true;
                 }
+                resp.sort((a, b) => a.id - b.id);
                 this.list = [...ownList, ...this.staticList];
-                this.updateSkinIndex();
+                this.findSkinIndex();
                 this.initProfilePage();
             }, 0, true);
         });
@@ -98,10 +124,11 @@ export class SkinManager {
     async init() {
         this.staticList = await Resources.loadSkins();
         this.list = this.staticList;
-        this.updateSkinIndex();
+        this.findSkinIndex();
 
         this.#controller.Qubatch.skins = this;
-        this.#controller.Qubatch.skin = this.list[this.index];
+        const skin_id = localStorage.getItem('skin');
+        this.#controller.Qubatch.skin = {id: skin_id};
     }
 
     //
@@ -119,12 +146,22 @@ export class SkinManager {
     catchSlider(slider) {
         slider.on('slideChanged', (e) => {
             this.index = e.track.details.abs;
+            this.onCurrentSkinChange();
         });
     }
 
     newSkin() {
         this.newSkinClear();
         this.#controller.current_window.show('new_skin');
+    }
+
+    deleteSkin() {
+        this.restoreSkinIndex = this.index;
+        this.#controller.App.DeleteSkin({
+            skin_id: this.currentSkin.id
+        }, (resp) => {
+            this.reloadSkins();
+        });
     }
 
     newSkinClear() {
@@ -179,7 +216,7 @@ export class SkinManager {
         this.#controller.App.UploadSkin({
             data: data,
             name: this.newSkinFileName,
-            isSlim: this.newSkinSlim
+            type: this.newSkinSlim ? 1 : 0
         }, (resp) => {
             this.$timeout(() => {
                 this.saveSkinId(resp.skin_id);

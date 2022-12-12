@@ -1,7 +1,6 @@
 import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
-
-export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
+import { CLIENT_SKIN_ROOT } from "./constant.js";
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая - white_terracotta
@@ -316,6 +315,14 @@ export class Resources {
             return asset.skins[id] = image;
         }
 
+        asset.getPlayerSkin = async (url) => {
+            if (asset.skins[url]) {
+                return asset.skins[url];
+            }
+            const image = Resources.loadImage(url, !!self.createImageBitmap);
+            return asset.skins[url] = image;
+        }
+
         return asset;
     }
 
@@ -355,20 +362,12 @@ export class Resources {
 
     // Load skins
     static async loadSkins() {
-        const resp = [];
-        await Helpers.fetchJSON('../media/models/database.json').then(json => {
-            for(let k in json.assets) {
-                if(k.indexOf('player:') === 0) {
-                    for(let skin_id in json.assets[k].skins) {
-                        resp.push({
-                            id: skin_id,
-                            file: CLIENT_SKIN_ROOT + skin_id + '.png',
-                            preview: CLIENT_SKIN_ROOT + 'preview/' + skin_id + '.png'
-                        });
-                    }
-                }
-            }
-        });
+        const json = await Helpers.fetchJSON('../media/models/database.json');
+        const resp = json.player_skins;
+        for(var skin of resp) {
+            skin.preview = CLIENT_SKIN_ROOT + 'preview/' + skin.file + '.png';
+            skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+        }
         resp.sort((a, b) => a.id - b.id);
         return resp;
     }

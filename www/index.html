@@ -443,7 +443,11 @@
                     <p class="font-m m-0" style="color: #B7B2CC;">
                         <span id="skins-current"></span>/<span id="skins-length"></span>
                     </p>
-                    <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
+                    <div class="flex-row">
+                        <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
+                        &nbsp;
+                        <button class="secondary" ng-click="skin.deleteSkin()" ng-disabled="!skin.currentSkinIsOwned">{{Lang.delete}}</button>
+                    </div>
                 </h1>
                 <div id="skins-slider" class="keen-slider zoom-out">
                     <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list track by k.id">

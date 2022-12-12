@@ -215,6 +215,17 @@ export class UIApp {
         return result;
     }
 
+    async DeleteSkin(form, callback, callback_error, callback_progress, callback_final) {
+        let result = null;
+        await this.api.call(this, '/api/Skin/DeleteFromUser', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     //
     getSession() {
         return this.session;
