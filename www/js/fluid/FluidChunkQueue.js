@@ -1,4 +1,5 @@
 import {
+    FLUID_BLOCK_INTERACT, FLUID_INTERACT16, FLUID_INTERACT_TOP16,
     FLUID_LAVA_ID,
     FLUID_LEVEL_MASK, FLUID_SOLID16, FLUID_STRIDE,
     FLUID_TYPE_MASK, FLUID_WATER_ID, OFFSET_FLUID,
@@ -15,6 +16,7 @@ import {ServerClient} from "../server_client.js";
 let neib = [0, 0, 0, 0, 0, 0], neibDown = [0, 0, 0, 0, 0, 0], neibChunk = [null, null, null, null, null, null];
 const dx = [0, 0, 0, 0, 1, -1], dy = [1, -1, 0, 0, 0, 0], dz = [0, 0, -1, 1, 0, 0];
 const QUEUE_PROCESS = 128;
+const QUEUE_INTERACT = 256;
 const QUEUE_MASK_NUM = 127;
 const MAX_TICKS = 7;
 
@@ -130,6 +132,7 @@ export class FluidChunkQueue {
         }
         this.qplace = null;
         this.inQueue = false;
+        this.inQueueInteract = false;
         this.curList = 0;
         this.nextList = 1;
         this.curFlag = 1;
@@ -140,11 +143,14 @@ export class FluidChunkQueue {
         this.deltaDirty = false;
         this.deltaPure = true;
         this.deltaIndices = [];
+        this.interactQueue = new SingleQueue({
+            pagePool: this.fluidWorld.queue.pool,
+        });
     }
 
     ensurePlace() {
         if (!this.qplace) {
-            this.qplace = new Uint8Array(this.fluidChunk.uint16View.length);
+            this.qplace = new Uint16Array(this.fluidChunk.uint16View.length);
         }
         return this.qplace;
     }
@@ -220,6 +226,7 @@ export class FluidChunkQueue {
         fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
         this.markDeltaIndex(ind);
+        this.pushInteractCoord(ind, wx, wy, wz);
     }
 
     pushTickIndex(index, tick = 1) {
@@ -241,7 +248,7 @@ export class FluidChunkQueue {
     initInBounds(localBounds) {
         const {fluidChunk} = this;
         const {uint16View} = fluidChunk;
-        const {cx, cy, cz, cw} = fluidChunk.dataChunk;
+        const {cx, cy, cz, cw, pos} = fluidChunk.dataChunk;
         const {lavaLower} = this.fluidWorld.queue;
         for (let y = localBounds.y_min; y <= localBounds.y_max; y++) {
             for (let z = localBounds.z_min; z <= localBounds.z_max; z++)
@@ -255,6 +262,9 @@ export class FluidChunkQueue {
                     const lower = fluidType === FLUID_LAVA_ID ? lavaLower : 1;
                     if (shouldGoToQueue(uint16View, index, cx, cy, cz, lower)) {
                         this.pushNextIndex(index, 0);
+                    }
+                    if (fluidType === FLUID_WATER_ID) {
+                        this.pushInteractCoord(index, x + pos.x, y + pos.y, z + pos.z);
                     }
                 }
         }
@@ -519,6 +529,7 @@ export class FluidChunkQueue {
                     changed = true;
                     if (supportLvl === 16) {
                         emptied = true;
+                        this.pushInteractCoord(index, wx, wy, wz);
                     } else {
                         lvl = supportLvl;
                     }
@@ -605,6 +616,7 @@ export class FluidChunkQueue {
                             let nIndex = cx * nx + cy * ny + cz * nz + shiftCoord;
                             this.assign(nIndex, nx, ny, nz, asVal, portals, portals.length);
                             this.pushNextIndex(nIndex, ticks);
+                            this.pushInteractCoord(index, nz, ny, nz);
                         } else {
                             // force into neib chunk
                             neibChunk[dir]?.assignGlobal(nx, ny, nz, ticks, asVal);
@@ -645,6 +657,78 @@ export class FluidChunkQueue {
             actions.addBlocks([{pos, item: {id: block_id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
         }
         world.actions_queue.add(null, actions);
+    }
+
+
+    pushInteractCoord(index, wx, wy, wz) {
+        const qplace = this.ensurePlace();
+        const { uint16View } = this.fluidChunk;
+        const { cy } = this.fluidChunk.dataChunk;
+        if ((uint16View[index] & FLUID_INTERACT16) !== 0
+            && (qplace[index] & QUEUE_INTERACT) === 0) {
+            qplace[index] |= QUEUE_INTERACT;
+            this.interactQueue.push(index);
+            this.markDirtyInteract();
+        }
+        if ((uint16View[index - cy] & FLUID_INTERACT_TOP16) !== 0
+            && (qplace[index - cy] & QUEUE_INTERACT) === 0) {
+            const {facetPortals, aabb} = this.fluidChunk.dataChunk;
+            wy--;
+            if (wy >= aabb.y_min) {
+                qplace[index - cy] |= QUEUE_INTERACT;
+                this.interactQueue.push(index - cy);
+                this.markDirtyInteract();
+            } else {
+                for (let i = 0; i < facetPortals.length; i++) {
+                    const region = facetPortals[i].toRegion;
+                    if (region.aabb.contains(wx, wy, wz)) {
+                        region.rev.fluid.queue.pushInteractGlobal(wx, wy, wz);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    markDirtyInteract() {
+        if (!this.inQueueInteract) {
+            this.fluidWorld.queue.interactChunks.push(this);
+            this.inQueueInteract = true;
+        }
+    }
+
+    pushInteractGlobal(wx, wy, wz) {
+        const index = this.fluidChunk.dataChunk.indexByWorld(wx, wy, wz);
+        const qplace = this.ensurePlace();
+        if ((qplace[index] & QUEUE_INTERACT) !== 0) {
+            return;
+        }
+        qplace[index] |= QUEUE_INTERACT;
+        this.interactQueue.push(index);
+        this.markDirtyInteract();
+    }
+
+    processInteract() {
+        let {interactQueue, qplace} = this;
+        const {outerSize, pos, cw} = this.fluidChunk.dataChunk;
+        this.inQueueInteract = false;
+        cycle: while (interactQueue.head) {
+            const index = interactQueue.shift();
+
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+
+            qplace[index] &= ~QUEUE_INTERACT;
+
+            let wx = x + pos.x, wy = y + pos.y, wz = z + pos.z;
+            // index, wx, wy, wz
+        }
     }
 
     dispose() {

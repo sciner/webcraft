@@ -10,11 +10,12 @@ export const FLUID_GENERATED_FLAG = 128;
 
 export const FLUID_BLOCK_RESTRICT = 128;
 export const FLUID_BLOCK_OPAQUE = 196;
+export const FLUID_BLOCK_INTERACT = 32;
+export const FLUID_BLOCK_INTERACT_TOP = 16;
+export const FLUID_INTERACT16 = FLUID_BLOCK_INTERACT << 8;
+export const FLUID_INTERACT_TOP16 = FLUID_BLOCK_INTERACT_TOP << 8;
 export const FLUID_SOLID16 = FLUID_BLOCK_RESTRICT << 8;
 export const FLUID_OPAQUE16 = FLUID_BLOCK_OPAQUE << 8;
-export const FLUID_PROPS_MASK16 = FLUID_SOLID16 | FLUID_OPAQUE16;
-export const FLUID_MASK = FLUID_LEVEL_MASK | FLUID_TYPE_MASK;
-export const FLUID_BLOCK_INTERACT = 32;
 
 export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
@@ -56,6 +57,13 @@ export function fluidBlockProps(block) {
         return res;
     }
     const blockMat = block.material;
+    if (block.interact_water) {
+        if (block.is_solid) {
+            res |= FLUID_BLOCK_INTERACT_TOP;
+        } else {
+            res |= FLUID_BLOCK_INTERACT;
+        }
+    }
     if (block.is_solid || block.is_solid_for_fluid) {
         if (block.transparent) {
             res |= FLUID_BLOCK_RESTRICT;

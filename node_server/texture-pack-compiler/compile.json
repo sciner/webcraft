@@ -69,7 +69,8 @@
                 "side": "block/water_still.png"
             },
             "tags": [
-                "multiply_color"
+                "multiply_color",
+                "interact_water"
             ],
             "multiply_color": {"r": 129, "g": 194, "b": 0},
             "spawnable": false
@@ -2126,6 +2127,9 @@
             "material": {
                 "id": "sand"
             },
+            "tags": [
+                "interact_water"
+            ],
             "texture": "block/soul_sand.png"
         },
         {
@@ -6078,7 +6082,8 @@
             "name": "MAGMA_BLOCK",
             "sound": "madcraft:block.stone",
             "tags": [
-                "no_drop_ao"
+                "no_drop_ao",
+                "interact_water"
             ],
             "material": {
                 "id": "stone"

@@ -1,5 +1,6 @@
 import {QueuePagePool} from "../light/MultiQueue.js";
 import {FluidChunkQueue} from "./FluidChunkQueue.js";
+import {SimpleQueue} from "../helpers.js";
 
 export class FluidWorldQueue {
     constructor(fluidWorld) {
@@ -8,8 +9,9 @@ export class FluidWorldQueue {
             pageSize: 256,
             bytesPerElement: 2,
         });
-        this.dirtyChunks = [];
+        this.dirtyChunks = new SimpleQueue();
         this.deltaChunks = [];
+        this.interactChunks = new SimpleQueue();
 
         //ticker
         this.tick = 0;
@@ -31,7 +33,7 @@ export class FluidWorldQueue {
 
     async process(msLimit = 8) {
         const start = performance.now();
-        const {dirtyChunks} = this;
+        const {dirtyChunks, interactChunks} = this;
         this.preTick = (this.preTick + 1) % this.fluidTickRate;
         if (this.preTick !== 0) {
             return;
@@ -43,7 +45,7 @@ export class FluidWorldQueue {
         let i;
         let len = dirtyChunks.length;
         for (i = 0; i < len; i++) {
-            const chunkQueue = dirtyChunks[i];
+            const chunkQueue = dirtyChunks.shift();
             if (!chunkQueue.fluidChunk.parentChunk.fluid) {
                 continue;
             }
@@ -52,9 +54,6 @@ export class FluidWorldQueue {
             if (performance.now() - start >= msLimit) {
                 break;
             }
-        }
-        if (i > 0) {
-            dirtyChunks.splice(0, i);
         }
         const {deltaChunks} = this;
         for (let i = 0; i < deltaChunks.length; i++)
@@ -69,5 +68,17 @@ export class FluidWorldQueue {
             }
         }
         deltaChunks.length = 0;
+
+        len = interactChunks.length;
+        for (i = 0; i < len; i++) {
+            const chunkQueue = interactChunks.shift();
+            if (!chunkQueue.fluidChunk.parentChunk.fluid) {
+                continue;
+            }
+            chunkQueue.processInteract();
+            if (performance.now() - start >= msLimit) {
+                break;
+            }
+        }
     }
 }

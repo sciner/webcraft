@@ -66,6 +66,7 @@ export class FluidChunk {
         this.markDirtyMesh();
         if (this.queue) {
             this.queue.pushTickIndex(index);
+            this.queue.pushInteractCoord(index, wx, wy, wz);
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
@@ -351,7 +352,8 @@ export class FluidChunk {
             }
         }
         // 2. solid block on top of fluid
-        if ((this.uint16View[index] & FLUID_TYPE_MASK) > 0) {
+        let wasFluid = (this.uint16View[index] & FLUID_TYPE_MASK) > 0;
+        if (wasFluid) {
             if (isSolid) {
                 this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
                 if (!isPortal) {
