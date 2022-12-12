@@ -364,7 +364,7 @@ export class DBGame {
                 break;
             }
         }
-        const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':user_id':     user_id,
@@ -377,10 +377,7 @@ export class DBGame {
         // lastID
         let lastID = result.lastID;
         if(!lastID) {
-            const row = await this.conn.get('SELECT id AS lastID FROM world WHERE guid = :guid', {
-                ':guid': guid
-            });
-            lastID = row.lastID;
+            throw 'error_world_with_same_title_already_exist';
         }
         lastID = parseInt(lastID);
         //
