@@ -214,7 +214,7 @@ export class DBGame {
                 "uploader_user_id" INTEGER,
                 "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
             )`,
-            'CREATE UNIQUE INDEX skin_hash ON skin (hash)',
+            'CREATE UNIQUE INDEX skin_hash_type ON skin (hash, type)',
             'CREATE INDEX skin_rights ON skin (rights)',
             // Reserve lower IDs for manualy added skins.
             // It's not a problem if we run out of low ids, just use the regular autoincrements

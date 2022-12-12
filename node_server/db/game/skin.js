@@ -29,13 +29,12 @@ export class DBGameSkins {
     async updateStaticSkins() {
         this.loadStaticSkins();
         const staticSkinsById = await this.staticSkinsPromie;
-        var total = 0;
-        var added = 0;
+        const resp = {"total": 0, "added": 0, "errors": []};
         for(var skin of staticSkinsById.values()) {
             const fileName = SKIN_ROOT + skin.file + '.png';
             const img = await Jimp.read(fileName);
             const hash = md5(img.bitmap.data, 'base64url');
-            var result = await this.conn.run(`INSERT OR IGNORE INTO skin (id, dt, file, type, rights, hash) 
+            const result = await this.conn.run(`INSERT OR IGNORE INTO skin (id, dt, file, type, rights, hash) 
                 VALUES (:id, :dt, :file, :type, :rights, :hash)`, {
                 ':id':          skin.id,
                 ':dt':          unixTime(),
@@ -45,11 +44,28 @@ export class DBGameSkins {
                 ':hash':        hash
             });
             if (result.changes) {
-                added++;
+                resp.added++;
+            } else {
+                const id = (await this.getSkinByHashType(hash, skin.type))?.id;
+                if (id !== skin.id) {
+                    resp.errors.push(`Skin id=${skin.id} can't be added because skin id=${id} has the same hash and type.`);
+                } else {
+                    // we can't insert it because of id. So update it
+                    await this.conn.run('UPDATE OR IGNORE skin SET hash = :hash, file = :file, type = :type WHERE id = :id', {
+                        ':hash':        hash,
+                        ':file':        skin.file,
+                        ':type':        skin.type,
+                        ':id':          skin.id
+                    });
+                }
             }
-            total++
+            resp.total++;
         }
-        return {"total": total, "added": added};
+        return resp;
+    }
+
+    async getSkinByHashType(hash, type) {
+        return await this.conn.get("SELECT * FROM skin WHERE hash = ? AND type = ?", [hash, type]);
     }
 
     async addUserSkin(user_id, skin_id) {
@@ -80,11 +96,14 @@ export class DBGameSkins {
 
         // searh for a skin with the same hash
         const hash = md5(img.bitmap.data, 'base64url');
-        const existingSkin = await this.conn.get("SELECT * FROM skin WHERE hash = ?", [hash]);
+        const existingSkin = await this.getSkinByHashType(hash, type);
 
         var skin_id;
         if (existingSkin) {
             // The same exact image was uploaded. TODO check ownership rights here
+            if (existingSkin.rights !== SKIN_RIGHTS_UPLOADED) {
+                throw 'error_this_skin_already_exists';
+            }
             this.addUserSkin(user_id, existingSkin.id);
             skin_id = existingSkin.id;
         } else {
