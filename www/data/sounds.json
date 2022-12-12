@@ -2,46 +2,49 @@
     {
         "type": "madcraft:environment",
         "underwater_ambience": [
-            "Underwater_Ambience"
+            "underwater_ambience"
+        ],
+        "rain": [
+            "rain"
         ],
         "entering_water": [
-            "Entering_water"
+            "entering_water"
         ],
         "exiting_water": [
-            "Exiting_water"
+            "exiting_water"
         ],
         "water_splash": [
-            "Water_splash2"
+            "water_splash_2"
         ],
         "swim": [
-            "Swim1",
-            "Swim2",
-            "Swim3",
-            "Swim4"
+            "swim_1",
+            "swim_2",
+            "swim_3",
+            "swim_4"
         ]
     },
     {
         "type": "madcraft:fire",
         "extinguished": [
-            "Fizz"
+            "fizz"
         ],
         "crackles": [
-            "Fire"
+            "fire"
         ],
         "fireball_whooshes": [
-            "Ghast_fireball4"
+            "ghast_fireball_4"
         ],
         "flint_and_steel_click": [
-            "Flint_and_steel_click"
+            "flint_and_steel_click"
         ]
     },
     {
         "type": "madcraft:axe",
         "strip": [
-            "Axe_strip1",
-            "Axe_strip2",
-            "Axe_strip3",
-            "Axe_strip4"
+            "axe_strip_1",
+            "axe_strip_2",
+            "axe_strip_3",
+            "axe_strip_4"
         ]
     },
     {
@@ -50,19 +53,19 @@
             "hit3"
         ],
         "eat": [
-            "Eat1",
-            "Eat2",
-            "Eat3"
+            "eat_1",
+            "eat_2",
+            "eat_3"
         ],
         "strong_atack": [
-            "Strong_attack1",
-            "Strong_attack2",
-            "Strong_attack3",
-            "Strong_attack4",
-            "Strong_attack5"
+            "strong_attack_1",
+            "strong_attack_2",
+            "strong_attack_3",
+            "strong_attack_4",
+            "strong_attack_5"
         ],
         "burp": [
-            "Burp"
+            "burp"
         ],
         "break": [
             "break"
@@ -74,100 +77,100 @@
             "click"
         ],
         "explode": [
-            "explode1",
-            "explode2",
-            "explode3",
-            "explode4"
+            "explode_1",
+            "explode_2",
+            "explode_3",
+            "explode_4"
         ]
     },
     {
         "type": "madcraft:block.chicken",
         "hurt": [
-            "Chicken_hurt1",
-            "Chicken_hurt2"
+            "chicken_hurt_1",
+            "chicken_hurt_2"
         ],
         "idle": [
-            "ChickenIdle1",
-            "ChickenIdle2",
-            "ChickenIdle3"
+            "chicken_idle_1",
+            "chicken_idle_2",
+            "chicken_idle_3"
         ],
         "step": [
-            "ChickenStep1",
-            "ChickenStep2"
+            "chicken_step_1",
+            "chicken_step_2"
         ],
         "death": [
-            "Chicken_hurt1",
-            "Chicken_hurt2"
+            "chicken_hurt_1",
+            "chicken_hurt_2"
         ]
     },
     {
         "type": "madcraft:block.sheep",
         "hurt": [
-            "Sheep1",
-            "Sheep2",
-            "Sheep3"
+            "sheep_1",
+            "sheep_2",
+            "sheep_3"
         ],
         "idle": [
-            "SheepIdle1",
-            "SheepIdle2",
-            "SheepIdle3"
+            "sheep_idle_1",
+            "sheep_idle_2",
+            "sheep_idle_3"
         ],
         "step": [
-            "SheepStep1",
-            "SheepStep2",
-            "SheepStep3",
-            "SheepStep4",
-            "SheepStep5"
+            "sheep_step_1",
+            "sheep_step_2",
+            "sheep_step_3",
+            "sheep_step_4",
+            "sheep_step_5"
         ],
         "death": [
-            "Sheep1",
-            "Sheep2",
-            "Sheep3"
+            "sheep_1",
+            "sheep_2",
+            "sheep_3"
         ]
     },
     {
         "type": "madcraft:block.cow",
         "hurt": [
-            "Cow_hurt1",
-            "Cow_hurt2",
-            "Cow_hurt3"
+            "cow_hurt_1",
+            "cow_hurt_2",
+            "cow_hurt_3"
         ],
         "idle": [
-            "CowIdle1",
-            "CowIdle2",
-            "CowIdle3",
-            "CowIdle4"
+            "cow_idle_1",
+            "cow_idle_2",
+            "cow_idle_3",
+            "cow_idle_4"
         ],
         "step": [
-            "CowStep1",
-            "CowStep2",
-            "CowStep3",
-            "CowStep4"
+            "cow_step_1",
+            "cow_step_2",
+            "cow_step_3",
+            "cow_step_4"
         ],
         "death": [
-            "Cow_hurt1",
-            "Cow_hurt2",
-            "Cow_hurt3"
+            "cow_hurt_1",
+            "cow_hurt_2",
+            "cow_hurt_3"
         ]
     },
     {
         "type": "madcraft:block.pig",
         "hurt": [
-            "Pig_idle1",
-            "Pig_idle2",
-            "Pig_idle3"
+            "pig_idle_1",
+            "pig_idle_2",
+            "pig_idle_3"
         ],
         "idle": [
-            "Pig_idle1",
-            "Pig_idle2",
-            "Pig_idle3"
+            "pig_idle_1",
+            "pig_idle_2",
+            "pig_idle_3"
         ],
         "step": [
-            "PigStep1",
-            "PigStep2",
-            "PigStep3",
-            "PigStep4",
-            "PigStep5"
+            "pig_step_1",
+            "pig_step_2",
+            "pig_step_3",
+            "pig_step_4",
+            "pig_step_5"
         ],
         "death": [
             "PigDeath1"
@@ -176,542 +179,542 @@
     {
         "type": "madcraft:block.horse",
         "hurt": [
-            "Horse_hurt1",
-            "Horse_hurt2",
-            "Horse_hurt3",
-            "Horse_hurt4"
+            "horse_hurt_1",
+            "horse_hurt_2",
+            "horse_hurt_3",
+            "horse_hurt_4"
         ],
         "idle": [
-            "Horse_Idle"
+            "horse_idle"
         ],
         "step": [
         ],
         "death": [
-            "Horse_Death"
+            "horse_death"
         ]
     },
     {
         "type": "madcraft:block.fox",
         "hurt": [
-            "Fox_hurt1",
-            "Fox_hurt2",
-            "Fox_hurt3",
-            "Fox_hurt4"
+            "fox_hurt_1",
+            "fox_hurt_2",
+            "fox_hurt_3",
+            "fox_hurt_4"
         ],
         "idle": [
-            "Fox_idle1",
-            "Fox_idle2",
-            "Fox_idle3",
-            "Fox_idle4",
-            "Fox_idle5",
-            "Fox_idle6"
+            "fox_idle_1",
+            "fox_idle_2",
+            "fox_idle_3",
+            "fox_idle_4",
+            "fox_idle_5",
+            "fox_idle_6"
         ],
         "step": [
         ],
         "death": [
-            "Fox_death1",
-            "Fox_death2"
+            "fox_death_1",
+            "fox_death_2"
         ]
     },
     {
         "type": "madcraft:block.cat",
         "hurt": [
-            "Cat_hurt1",
-            "Cat_hurt2",
-            "Cat_hurt3"
+            "cat_hurt_1",
+            "cat_hurt_2",
+            "cat_hurt_3"
         ],
         "idle": [
-            "CatIdle1",
-            "CatIdle2",
-            "CatIdle3",
-            "CatIdle4"
+            "cat_idle_1",
+            "cat_idle_2",
+            "cat_idle_3",
+            "cat_idle_4"
         ],
         "step": [
         ],
         "death": [
-            "Cat_hurt1",
-            "Cat_hurt2",
-            "Cat_hurt3"
+            "cat_hurt_1",
+            "cat_hurt_2",
+            "cat_hurt_3"
         ]
     },
     {
         "type": "madcraft:block.creeper",
         "hurt": [
-            "Creeper_hurt1",
-            "Creeper_hurt2",
-            "Creeper_hurt3",
-            "Creeper_hurt4"
+            "creeper_hurt_1",
+            "creeper_hurt_2",
+            "creeper_hurt_3",
+            "creeper_hurt_4"
         ],
         "explode": [
-            "explode1",
-            "explode2",
-            "explode3",
-            "explode4"
+            "explode_1",
+            "explode_2",
+            "explode_3",
+            "explode_4"
         ],
         "idle": [
         ],
         "step": [
         ],
         "death": [
-            "CreeperDeath1"
+            "creeper_death_1"
         ]
     },
     {
         "type": "madcraft:block.chest",
         "dig": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "place": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "open": [
-            "Chest_open"
+            "chest_open"
         ],
         "close": [
-            "Chest_close"
+            "chest_close"
         ],
         "hit": [
-            "Wood_hit1",
-            "Wood_hit2",
-            "Wood_hit3",
-            "Wood_hit4",
-            "Wood_hit5",
-            "Wood_hit6"
+            "wood_hit_1",
+            "wood_hit_2",
+            "wood_hit_3",
+            "wood_hit_4",
+            "wood_hit_5",
+            "wood_hit_6"
         ]
     },
     {
         "type": "madcraft:block.ender_chest",
         "dig": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "place": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "open": [
-            "Ender_Chest_open"
+            "ender_chest_open"
         ],
         "close": [
-            "Ender_Chest_close"
+            "ender_chest_close"
         ],
         "hit": [
-            "Wood_hit1",
-            "Wood_hit2",
-            "Wood_hit3",
-            "Wood_hit4",
-            "Wood_hit5",
-            "Wood_hit6"
+            "wood_hit_1",
+            "wood_hit_2",
+            "wood_hit_3",
+            "wood_hit_4",
+            "wood_hit_5",
+            "wood_hit_6"
         ]
     },
     {
         "type": "madcraft:block.barrel",
         "dig": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "place": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "open": [
-            "Barrel_open1",
-            "Barrel_open2"
+            "barrel_open_1",
+            "barrel_open_2"
         ],
         "close": [
-            "Barrel_close"
+            "barrel_close"
         ],
         "hit": [
-            "Wood_hit1",
-            "Wood_hit2",
-            "Wood_hit3",
-            "Wood_hit4",
-            "Wood_hit5",
-            "Wood_hit6"
+            "wood_hit_1",
+            "wood_hit_2",
+            "wood_hit_3",
+            "wood_hit_4",
+            "wood_hit_5",
+            "wood_hit_6"
         ]
     },
     {
         "type": "madcraft:block.charging_station",
         "dig": [
-            "stone1",
-            "stone2",
-            "stone3",
-            "stone4"
+            "stone_1",
+            "stone_2",
+            "stone_3",
+            "stone_4"
         ],
         "place": [
-            "stone1",
-            "stone2",
-            "stone3",
-            "stone4"
+            "stone_1",
+            "stone_2",
+            "stone_3",
+            "stone_4"
         ],
         "hit": [
-            "Stone_hit1",
-            "Stone_hit2",
-            "Stone_hit3",
-            "Stone_hit4",
-            "Stone_hit5",
-            "Stone_hit6"
+            "stone_hit_1",
+            "stone_hit_2",
+            "stone_hit_3",
+            "stone_hit_4",
+            "stone_hit_5",
+            "stone_hit_6"
         ],
         "open": [
-            "Charging_station_open"
+            "charging_station_open"
         ],
         "close": [
-            "Charging_station_close"
+            "charging_station_close"
         ]
     },
     {
         "type": "madcraft:block.wood",
         "dig": [
-            "wood1|volume=1;pitch=.8",
-            "wood2|volume=1;pitch=.8",
-            "wood3|volume=1;pitch=.8",
-            "wood4|volume=1;pitch=.8"
+            "wood_1|volume=1;pitch=.8",
+            "wood_2|volume=1;pitch=.8",
+            "wood_3|volume=1;pitch=.8",
+            "wood_4|volume=1;pitch=.8"
         ],
         "place": [
-            "wood1|volume=1;pitch=.8",
-            "wood2|volume=1;pitch=.8",
-            "wood3|volume=1;pitch=.8",
-            "wood4|volume=1;pitch=.8"
+            "wood_1|volume=1;pitch=.8",
+            "wood_2|volume=1;pitch=.8",
+            "wood_3|volume=1;pitch=.8",
+            "wood_4|volume=1;pitch=.8"
         ],
         "hit": [
-            "Wood_hit1|volume=.25;pitch=.5",
-            "Wood_hit2|volume=.25;pitch=.5",
-            "Wood_hit3|volume=.25;pitch=.5",
-            "Wood_hit4|volume=.25;pitch=.5",
-            "Wood_hit5|volume=.25;pitch=.5",
-            "Wood_hit6|volume=.25;pitch=.5"
+            "wood_hit_1|volume=.25;pitch=.5",
+            "wood_hit_2|volume=.25;pitch=.5",
+            "wood_hit_3|volume=.25;pitch=.5",
+            "wood_hit_4|volume=.25;pitch=.5",
+            "wood_hit_5|volume=.25;pitch=.5",
+            "wood_hit_6|volume=.25;pitch=.5"
         ],
         "step": [
-            "Wood_hit1|volume=.15;pitch=1",
-            "Wood_hit2|volume=.15;pitch=1",
-            "Wood_hit3|volume=.15;pitch=1",
-            "Wood_hit4|volume=.15;pitch=1",
-            "Wood_hit5|volume=.15;pitch=1",
-            "Wood_hit6|volume=.15;pitch=1"
+            "wood_hit_1|volume=.15;pitch=1",
+            "wood_hit_2|volume=.15;pitch=1",
+            "wood_hit_3|volume=.15;pitch=1",
+            "wood_hit_4|volume=.15;pitch=1",
+            "wood_hit_5|volume=.15;pitch=1",
+            "wood_hit_6|volume=.15;pitch=1"
         ]
     },
     {
         "type": "madcraft:block.sand",
         "dig": [
-            "Sand_dig1",
-            "Sand_dig2",
-            "Sand_dig3",
-            "Sand_dig4"
+            "sand_dig_1",
+            "sand_dig_2",
+            "sand_dig_3",
+            "sand_dig_4"
         ],
         "place": [
-            "Sand_dig1",
-            "Sand_dig2",
-            "Sand_dig3",
-            "Sand_dig4"
+            "sand_dig_1",
+            "sand_dig_2",
+            "sand_dig_3",
+            "sand_dig_4"
         ],
         "hit": [
-            "Sand_hit1",
-            "Sand_hit2",
-            "Sand_hit3",
-            "Sand_hit4",
-            "Sand_hit5"
+            "sand_hit_1",
+            "sand_hit_2",
+            "sand_hit_3",
+            "sand_hit_4",
+            "sand_hit_5"
         ]
     },
     {
         "type": "madcraft:block.glass",
         "dig": [
-            "Glass_dig1",
-            "Glass_dig2",
-            "Glass_dig3"
+            "glass_dig_1",
+            "glass_dig_2",
+            "glass_dig_3"
         ],
         "place": [
-            "stone1",
-            "stone2",
-            "stone3",
-            "stone4"
+            "stone_1",
+            "stone_2",
+            "stone_3",
+            "stone_4"
         ],
         "hit": [
-            "Stone_hit1",
-            "Stone_hit2",
-            "Stone_hit3",
-            "Stone_hit4",
-            "Stone_hit5",
-            "Stone_hit6"
+            "stone_hit_1",
+            "stone_hit_2",
+            "stone_hit_3",
+            "stone_hit_4",
+            "stone_hit_5",
+            "stone_hit_6"
         ]
     },
     {
         "type": "madcraft:block.cloth",
         "dig": [
-            "Cloth_dig1",
-            "Cloth_dig2",
-            "Cloth_dig3",
-            "Cloth_dig4"
+            "cloth_dig_1",
+            "cloth_dig_2",
+            "cloth_dig_3",
+            "cloth_dig_4"
         ],
         "hit": [
-            "Cloth_dig1",
-            "Cloth_dig2",
-            "Cloth_dig3",
-            "Cloth_dig4"
+            "cloth_dig_1",
+            "cloth_dig_2",
+            "cloth_dig_3",
+            "cloth_dig_4"
         ],
         "place": [
-            "Cloth_dig1",
-            "Cloth_dig2",
-            "Cloth_dig3",
-            "Cloth_dig4"
+            "cloth_dig_1",
+            "cloth_dig_2",
+            "cloth_dig_3",
+            "cloth_dig_4"
         ]
     },
     {
         "type": "madcraft:block.bone_meal",
         "place": [
-            "Bonemeal1",
-            "Bonemeal2",
-            "Bonemeal3",
-            "Bonemeal4",
-            "Bonemeal5"
+            "bonemeal_1",
+            "bonemeal_2",
+            "bonemeal_3",
+            "bonemeal_4",
+            "bonemeal_5"
         ]
     },
     {
         "type": "madcraft:block.grass",
         "dig": [
-            "grass1|pitch=.8",
-            "grass2|pitch=.8",
-            "grass3|pitch=.8",
-            "grass4|pitch=.8"
+            "grass_1|pitch=.8",
+            "grass_2|pitch=.8",
+            "grass_3|pitch=.8",
+            "grass_4|pitch=.8"
         ],
         "place": [
-            "grass1|pitch=.8",
-            "grass2|pitch=.8",
-            "grass3|pitch=.8",
-            "grass4|pitch=.8"
+            "grass_1|pitch=.8",
+            "grass_2|pitch=.8",
+            "grass_3|pitch=.8",
+            "grass_4|pitch=.8"
         ],
         "hit": [
-            "Grass_hit1|volume=.25;pitch=.5",
-            "Grass_hit2|volume=.25;pitch=.5",
-            "Grass_hit3|volume=.25;pitch=.5",
-            "Grass_hit4|volume=.25;pitch=.5",
-            "Grass_hit5|volume=.25;pitch=.5",
-            "Grass_hit6|volume=.25;pitch=.5"
+            "grass_hit_1|volume=.25;pitch=.5",
+            "grass_hit_2|volume=.25;pitch=.5",
+            "grass_hit_3|volume=.25;pitch=.5",
+            "grass_hit_4|volume=.25;pitch=.5",
+            "grass_hit_5|volume=.25;pitch=.5",
+            "grass_hit_6|volume=.25;pitch=.5"
         ],
         "step": [
-            "Grass_hit1|volume=.15;pitch=1",
-            "Grass_hit2|volume=.15;pitch=1",
-            "Grass_hit3|volume=.15;pitch=1",
-            "Grass_hit4|volume=.15;pitch=1",
-            "Grass_hit5|volume=.15;pitch=1",
-            "Grass_hit6|volume=.15;pitch=1"
+            "grass_hit_1|volume=.15;pitch=1",
+            "grass_hit_2|volume=.15;pitch=1",
+            "grass_hit_3|volume=.15;pitch=1",
+            "grass_hit_4|volume=.15;pitch=1",
+            "grass_hit_5|volume=.15;pitch=1",
+            "grass_hit_6|volume=.15;pitch=1"
         ]
     },
     {
         "type": "madcraft:block.stone",
         "dig": [
-            "stone1|volume=1;pitch=.8",
-            "stone2|volume=1;pitch=.8",
-            "stone3|volume=1;pitch=.8",
-            "stone4|volume=1;pitch=.8"
+            "stone_1|volume=1;pitch=.8",
+            "stone_2|volume=1;pitch=.8",
+            "stone_3|volume=1;pitch=.8",
+            "stone_4|volume=1;pitch=.8"
         ],
         "place": [
-            "stone1|volume=1;pitch=.8",
-            "stone2|volume=1;pitch=.8",
-            "stone3|volume=1;pitch=.8",
-            "stone4|volume=1;pitch=.8"
+            "stone_1|volume=1;pitch=.8",
+            "stone_2|volume=1;pitch=.8",
+            "stone_3|volume=1;pitch=.8",
+            "stone_4|volume=1;pitch=.8"
         ],
         "hit": [
-            "Stone_hit1|volume=.25;pitch=.5",
-            "Stone_hit2|volume=.25;pitch=.5",
-            "Stone_hit3|volume=.25;pitch=.5",
-            "Stone_hit4|volume=.25;pitch=.5",
-            "Stone_hit5|volume=.25;pitch=.5",
-            "Stone_hit6|volume=.25;pitch=.5"
+            "stone_hit_1|volume=.25;pitch=.5",
+            "stone_hit_2|volume=.25;pitch=.5",
+            "stone_hit_3|volume=.25;pitch=.5",
+            "stone_hit_4|volume=.25;pitch=.5",
+            "stone_hit_5|volume=.25;pitch=.5",
+            "stone_hit_6|volume=.25;pitch=.5"
         ],
         "step": [
-            "Stone_hit1|volume=.15;pitch=1",
-            "Stone_hit2|volume=.15;pitch=1",
-            "Stone_hit3|volume=.15;pitch=1",
-            "Stone_hit4|volume=.15;pitch=1",
-            "Stone_hit5|volume=.25;pitch=1",
-            "Stone_hit6|volume=.15;pitch=1"
+            "stone_hit_1|volume=.15;pitch=1",
+            "stone_hit_2|volume=.15;pitch=1",
+            "stone_hit_3|volume=.15;pitch=1",
+            "stone_hit_4|volume=.15;pitch=1",
+            "stone_hit_5|volume=.25;pitch=1",
+            "stone_hit_6|volume=.15;pitch=1"
         ]
     },
     {
         "type": "madcraft:block.gravel",
         "dig": [
-            "gravel1"
+            "gravel_1"
         ],
         "place": [
-            "gravel1"
+            "gravel_1"
         ],
         "hit": [
-            "Gravel_hit1",
-            "Gravel_hit2",
-            "Gravel_hit3",
-            "Gravel_hit4"
+            "gravel_hit_1",
+            "gravel_hit_2",
+            "gravel_hit_3",
+            "gravel_hit_4"
         ]
     },
     {
         "type": "madcraft:block.wooden_trapdoor",
         "open": [
-            "Wooden_trapdoor_open1",
-            "Wooden_trapdoor_open2",
-            "Wooden_trapdoor_open3",
-            "Wooden_trapdoor_open4",
-            "Wooden_trapdoor_open5"
+            "wooden_trapdoor_1",
+            "wooden_trapdoor_2",
+            "wooden_trapdoor_3",
+            "wooden_trapdoor_4",
+            "wooden_trapdoor_5"
         ],
         "dig": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "place": [
-            "wood1",
-            "wood2",
-            "wood3",
-            "wood4"
+            "wood_1",
+            "wood_2",
+            "wood_3",
+            "wood_4"
         ],
         "hit": [
-            "Wood_hit1",
-            "Wood_hit2",
-            "Wood_hit3",
-            "Wood_hit4",
-            "Wood_hit5",
-            "Wood_hit6"
+            "wood_hit_1",
+            "wood_hit_2",
+            "wood_hit_3",
+            "wood_hit_4",
+            "wood_hit_5",
+            "wood_hit_6"
         ]
     },
     {
         "type": "madcraft:block.snow",
         "open": [
-            "Snow_dig1",
-            "Snow_dig2",
-            "Snow_dig3",
-            "Snow_dig4"
+            "snow_dig_1",
+            "snow_dig_2",
+            "snow_dig_3",
+            "snow_dig_4"
         ],
         "dig": [
-            "Snow_dig1",
-            "Snow_dig2",
-            "Snow_dig3",
-            "Snow_dig4"
+            "snow_dig_1",
+            "snow_dig_2",
+            "snow_dig_3",
+            "snow_dig_4"
         ],
         "place": [
-            "Snow_dig1",
-            "Snow_dig2",
-            "Snow_dig3",
-            "Snow_dig4"
+            "snow_dig_1",
+            "snow_dig_2",
+            "snow_dig_3",
+            "snow_dig_4"
         ],
         "hit": [
-            "Snow_dig1",
-            "Snow_dig2",
-            "Snow_dig3",
-            "Snow_dig4"
+            "snow_dig_1",
+            "snow_dig_2",
+            "snow_dig_3",
+            "snow_dig_4"
         ]
     },
     {
         "type": "madcraft:entity.item.pickup",
         "hit": [
-            "Pop"
+            "pop"
         ]
     },
     {
         "type": "madcraft:block.amethyst",
         "dig": [
-            "Amethyst_step1",
-            "Amethyst_step2",
-            "Amethyst_step3",
-            "Amethyst_step4",
-            "Amethyst_step5",
-            "Amethyst_step6",
-            "Amethyst_step7",
-            "Amethyst_step8",
-            "Amethyst_step9",
-            "Amethyst_step10",
-            "Amethyst_step11",
-            "Amethyst_step12"
+            "amethyst_step_1",
+            "amethyst_step_2",
+            "amethyst_step_3",
+            "amethyst_step_4",
+            "amethyst_step_5",
+            "amethyst_step_6",
+            "amethyst_step_7",
+            "amethyst_step_8",
+            "amethyst_step_9",
+            "amethyst_step_10",
+            "amethyst_step_11",
+            "amethyst_step_12"
         ],
         "place": [
-            "Amethyst_place1",
-            "Amethyst_place2",
-            "Amethyst_place3",
-            "Amethyst_place4"
+            "amethyst_place_1",
+            "amethyst_place_2",
+            "amethyst_place_3",
+            "amethyst_place_4"
         ],
         "hit": [
-            "Amethyst_step1",
-            "Amethyst_step2",
-            "Amethyst_step3",
-            "Amethyst_step4",
-            "Amethyst_step5",
-            "Amethyst_step6",
-            "Amethyst_step7",
-            "Amethyst_step8",
-            "Amethyst_step9",
-            "Amethyst_step10",
-            "Amethyst_step11",
-            "Amethyst_step12"
+            "amethyst_step_1",
+            "amethyst_step_2",
+            "amethyst_step_3",
+            "amethyst_step_4",
+            "amethyst_step_5",
+            "amethyst_step_6",
+            "amethyst_step_7",
+            "amethyst_step_8",
+            "amethyst_step_9",
+            "amethyst_step_10",
+            "amethyst_step_11",
+            "amethyst_step_12"
         ]
     },
     {
         "type": "madcraft:block.cave_vine",
         "dig": [
-            "Cave_Vines_break1",
-            "Cave_Vines_break2",
-            "Cave_Vines_break3",
-            "Cave_Vines_break4",
-            "Cave_Vines_break5"
+            "cave_vines_break_1",
+            "cave_vines_break_2",
+            "cave_vines_break_3",
+            "cave_vines_break_4",
+            "cave_vines_break_5"
         ],
         "place": [
-            "Cave_Vines_break1",
-            "Cave_Vines_break2",
-            "Cave_Vines_break3",
-            "Cave_Vines_break4",
-            "Cave_Vines_break5"
+            "cave_vines_break_1",
+            "cave_vines_break_2",
+            "cave_vines_break_3",
+            "cave_vines_break_4",
+            "cave_vines_break_5"
         ],
         "hit": [
-            "Cave_Vines_break1",
-            "Cave_Vines_break2",
-            "Cave_Vines_break3",
-            "Cave_Vines_break4",
-            "Cave_Vines_break5"
+            "cave_vines_break_1",
+            "cave_vines_break_2",
+            "cave_vines_break_3",
+            "cave_vines_break_4",
+            "cave_vines_break_5"
         ]
     },
     {
         "type": "madcraft:block.shovel",
         "place": [
-            "Shovel_flatten1",
-            "Shovel_flatten2",
-            "Shovel_flatten3",
-            "Shovel_flatten4"
+            "shovel_flatten_1",
+            "shovel_flatten_2",
+            "shovel_flatten_3",
+            "shovel_flatten_4"
         ],
         "break": [
-            "Random_break"
+            "random_break"
         ]
     },
     {
         "type": "madcraft:block.zombie",
         "idle": [
-            "ZombieIdle1",
-            "ZombieIdle2",
-            "ZombieIdle3"
+            "zombie_idle_1",
+            "zombie_idle_2",
+            "zombie_idle_3"
         ],
         "death": [
-            "ZombieDeath1"
+            "zombie_death_1"
         ],
         "hurt": [
-            "ZombieHurt1",
-            "ZombieHurt2"
+            "zombie_hurt_1",
+            "zombie_hurt_2"
         ],
         "step": [
-            "ZombieStep1",
-            "ZombieStep2",
-            "ZombieStep3",
-            "ZombieStep4",
-            "ZombieStep5"
+            "zombie_step_1",
+            "zombie_step_2",
+            "zombie_step_3",
+            "zombie_step_4",
+            "zombie_step_5"
         ]
     }
 ]
