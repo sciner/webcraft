@@ -436,7 +436,7 @@ export class DBWorld {
             ':addr': addr,
             ':delayed_calls': delayed_calls
         });
-        if (!result.lastID) {
+        if (!result.changes) {
             this.conn.run('UPDATE chunk SET delayed_calls = :delayed_calls WHERE addr = :addr', {
                 ':addr': addr,
                 ':delayed_calls': delayed_calls

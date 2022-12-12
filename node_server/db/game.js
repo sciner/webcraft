@@ -243,7 +243,7 @@ export class DBGame {
             throw 'error_player_exists';
         }
         const guid = randomUUID();
-        const result = await this.conn.run('INSERT INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':username':    username,
@@ -251,11 +251,8 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
-            const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
-                ':guid': guid
-            });
-            lastID = row.lastID;
+        if(!result.changes) {
+            throw 'error_player_exists';
         }
         //
         await this.JoinWorld(lastID, "demo")
@@ -347,10 +344,10 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
-        if (worldWithSameTitle != null) {
-            throw 'error_world_with_same_title_already_exist';
-        }
+        // let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
+        // if (worldWithSameTitle != null) {
+        //     throw 'error_world_with_same_title_already_exist';
+        // }
         const guid = randomUUID();
         let default_pos_spawn = generator.pos_spawn;
         switch(generator?.id) {
@@ -376,10 +373,9 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) {
             throw 'error_world_with_same_title_already_exist';
         }
-        lastID = parseInt(lastID);
         //
         await this.InsertWorldPlayer(lastID, user_id);
         return {

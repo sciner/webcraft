@@ -193,7 +193,7 @@ export class DBWorldMob {
             ':addr':                chunk_addr_hash,
             ':mobs_is_generated':   mobs_is_generated
         });
-        if (!result.lastID) {
+        if (!result.changes) {
             await this.conn.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
                 ':addr':                chunk_addr_hash,
                 ':mobs_is_generated':   mobs_is_generated
