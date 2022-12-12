@@ -38,10 +38,12 @@ export class ServerGame {
         for(const [world_guid, _] of this.worlds_loading.entries()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
+            const worldTitlePromise = this.db.getWorld(world_guid);
             const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
             const world = new ServerWorld(BLOCK);
             const db_world = await DBWorld.openDB(conn, world);
-            await world.initServer(world_guid, db_world);
+            const title = (await worldTitlePromise).title;
+            await world.initServer(world_guid, db_world, title);
             this.worlds.set(world_guid, world);
             this.worlds_loading.delete(world_guid);
             console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
