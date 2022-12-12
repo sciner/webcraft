@@ -1,4 +1,5 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
+import { SQLiteServerConnector } from './connector/sqlite.js';
 
 export class DBGame {
 
@@ -13,6 +14,40 @@ export class DBGame {
 
     // Migrations
     async applyMigrations() {
+
+        async function ranameWorldsUniqueTitle(conn) {
+            const rows = await conn.all("SELECT id, title, LOWER(title) low, guid FROM world");
+            const map = {};
+            for(var row of rows) {
+                map[row.low] = map[row.low] || [];
+                map[row.low].push(row);
+            }
+            for(var low in map) {
+                const arr = map[low];
+                for(var i = 1; i < arr.length; i++) {
+                    var row = arr[i];
+                    // choose a new title
+                    var tryN = 2;
+                    var newTitle;
+                    do {
+                        newTitle = row.title + '_' + tryN;
+                        tryN++;
+                    } while (map[newTitle.toLowerCase()]);
+                    // rename in the game DB
+                    await conn.run("UPDATE world SET title = ? WHERE id = ?", [newTitle, row.id]);
+                    // rename in the world DB
+                    const fileName = `../world/${row.guid}/world.sqlite`;
+                    try {
+                        const worldConn = await SQLiteServerConnector.connect(fileName);
+                        worldConn.run("UPDATE world SET title = ?", newTitle);
+                        worldConn.close();
+                        console.log(`Renamed world id=${row.id} ${row.guid} "${row.title}" -> "${newTitle}"`);
+                    } catch {
+                        console.error(`Can't rename world id=${row.id} in ${fileName} "${row.title}" -> "${newTitle}"`);
+                    }
+                }
+            }
+        }
 
         let version = 0;
         
@@ -135,6 +170,7 @@ export class DBGame {
             'DROP TABLE user',
             'ALTER TABLE user_copy RENAME TO user',
             // change world.title COLLATE NOCASE
+            ranameWorldsUniqueTitle,
             `CREATE TABLE "world_copy" (
                 "id"	INTEGER,
                 "guid"	text NOT NULL,
@@ -153,19 +189,23 @@ export class DBGame {
             'DROP TABLE world',
             'ALTER TABLE world_copy RENAME TO world',
             // new indices
-            'CREATE INDEX user_username ON user (username)',
+            'CREATE UNIQUE INDEX user_username ON user (username)',
             'CREATE INDEX user_guid ON user (guid)',
             'CREATE INDEX user_session_token ON user_session (token)',
             'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
             'CREATE INDEX world_guid ON world (guid)',
-            'CREATE INDEX world_title ON world (title)'
+            'CREATE UNIQUE INDEX world_title ON world (title)'
         ]});        
 
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
                 for(let query of m.queries) {
-                    await this.conn.get(query);
+                    if (typeof query === 'string') {
+                        await this.conn.get(query);
+                    } else {
+                        await query(this.conn);
+                    }
                 }
                 await this.conn.get('update options set version = ' + (++version));
                 await this.conn.get('commit');
