@@ -36,6 +36,9 @@ export class ChunkManager {
 
     #world;
 
+    /**
+     * @param { import("./world.js").World } world
+     */
     constructor(world) {
 
         ChunkManager.instance = this;
@@ -267,7 +270,11 @@ export class ChunkManager {
 
     }
 
-    // С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+    /**
+     * С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+     * @param {Vector} addr 
+     * @param {Uint8Array} fluid 
+     */
     setChunkFluid(addr, fluid) {
         const chunk = this.getChunkForSetData(addr);
         if(chunk instanceof Chunk) {
@@ -277,6 +284,10 @@ export class ChunkManager {
         }
     }
 
+    /**
+     * @param {Vector} addr 
+     * @param {Uint8Array} fluidDelta 
+     */
     setChunkFluidDelta(addr, fluidDelta) {
         const chunk = this.getChunkForSetData(addr);
         if(chunk instanceof Chunk) {
@@ -284,6 +295,10 @@ export class ChunkManager {
         }
     }
 
+    /**
+     * @param {Vector} addr 
+     * @returns 
+     */
     getChunkForSetData(addr) {
         const chunk = this.getChunk(addr);
         if(chunk) {
@@ -303,7 +318,9 @@ export class ChunkManager {
         return null;
     }
 
-    //
+    /**
+     * @param {int} value 
+     */
     setRenderDist(value) {
         this.#world.server.setRenderDist(value);
     }
@@ -321,7 +338,7 @@ export class ChunkManager {
 
     /**
      * highly optimized
-     * @param render
+     * @param { import("./render.js").Renderer } render
      */
     prepareRenderList(render) {
 
@@ -424,7 +441,13 @@ export class ChunkManager {
         }
     }
 
-    // Draw level chunks
+    /**
+     * Draw level chunks
+     * @param { import("./render.js").Renderer } render
+     * @param { import("./base_resource_pack.js").BaseResourcePack } resource_pack
+     * @param {boolean} transparent 
+     * @returns 
+     */
     draw(render, resource_pack, transparent) {
         if(!this.worker_inited || !this.nearby) {
             return;
@@ -473,7 +496,7 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {*} addr
+     * @param {Vector} addr
      * @returns Chunk
      */
     getChunk(addr) {

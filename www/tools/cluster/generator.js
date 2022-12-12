@@ -118,13 +118,13 @@ class Sandbox {
             ctx.fillStyle = "#0000ff55";
             ctx.fillRect((b.coord.z - cz) * scale, (b.coord.x - cx) * scale, b.size.z * scale, b.size.x * scale);
             //
-            if(b.random_size?.right) {
+            if(b.random_building?.right) {
                 ctx.fillStyle = "#00000055";
                 ctx.fillRect((b.coord.z - cz + 1) * scale, (b.coord.x - cx + 1) * scale, (b.size.z - 2) * scale, (b.size.x - 2) * scale);
             }
             //
             ctx.fillStyle = "#fff";
-            const right = b.random_size?.right ? ' R' : '';
+            const right = b.random_building?.right ? ' R' : '';
             const label = `${b.size.x}x${b.size.z}${right}`;
             ctx.fillText(label, (b.coord.z - cz) * scale + 1, (b.coord.x - cx) * scale + 1);
         }

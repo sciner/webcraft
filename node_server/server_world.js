@@ -1,11 +1,13 @@
 import config from "./config.js";
 
+import { loadBlockListeners } from "./server_helpers.js";
 import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
+import { TickerHelpers } from "./ticker/ticker_helpers.js";
 
 import { WorldTickStat } from "./world/tick_stat.js";
 import { WorldPacketQueue } from "./world/packet_queue.js";
@@ -14,8 +16,9 @@ import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
 
-import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
+import { BLOCK } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
@@ -35,12 +38,15 @@ export class ServerWorld {
     constructor(block_manager) {
         this.temp_vec = new Vector();
         this.block_manager = block_manager;
+        this.updatedBlocksByListeners = [];
     }
 
-    async initServer(world_guid, db_world) {
+    async initServer(world_guid, db_world, new_title) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
+        const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
+        var t = performance.now();
         // Tickers
         this.tickers = new Map();
         for(let fn of config.tickers) {
@@ -55,6 +61,17 @@ export class ServerWorld {
                 this.random_tickers.set(fn, module.default);
             });
         }
+        this.blockCallees = {};
+        // "Before change" listenes are called by the old (possibly to-be-removed) block id,
+        // before it's changed. Use it to listen for removal, and process extra_data of the removed block.
+        const beforeBlockChangeListenersPromise = loadBlockListeners(
+            config.before_block_change_listeners,
+            './ticker/before_change/', this.blockCallees);
+        // "After change" listenes are called by the new block id, after it's set.
+        this.afterBlockChangeListeners = await loadBlockListeners(
+            config.after_block_change_listeners,
+            './ticker/after_change/', this.blockCallees);
+        this.beforeBlockChangeListeners = await beforeBlockChangeListenersPromise;
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -62,9 +79,14 @@ export class ServerWorld {
                 this.brains.add(fn, module.Brain);
             });
         }
+        t = performance.now() - t;
+        if (t > 50) {
+            console.log('Importing tickers, listeners & brains: ' + t + ' ms');
+        }
         //
         this.db             = db_world;
         this.db.removeDeadDrops();
+        await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
         //
         this.packet_reader  = new PacketReader();
@@ -554,6 +576,7 @@ export class ServerWorld {
         }
         // Modify blocks
         if (actions.blocks && actions.blocks.list) {
+            this.updatedBlocksByListeners.length = 0;
             let chunk_addr = new Vector(0, 0, 0);
             let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
             let chunk = null;
@@ -610,9 +633,25 @@ export class ServerWorld {
                                 }
                             }
                         }
+                        const tblock = chunk.tblocks.get(block_pos_in_chunk);
+                        let oldId = tblock.id;
+                        // call block change listeners
+                        if (on_block_set) {
+                            var listeners = this.beforeBlockChangeListeners[oldId];
+                            if (listeners) {
+                                for(let listener of listeners) {
+                                    const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
+                                    var res = listener.func(chunk, tblock, newMaterial, true);
+                                    if (typeof res === 'number') {
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos]);
+                                    } else {
+                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
+                                    }
+                                }
+                            }
+                        }
                         // 3. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
-                        let tblock = chunk.tblocks.get(block_pos_in_chunk);
                         tblock.id = params.item.id;
                         tblock.extra_data = params.item?.extra_data || null;
                         tblock.entity_id = params.item?.entity_id || null;
@@ -621,7 +660,19 @@ export class ServerWorld {
                         // 1. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
-                            chunk.onBlockSet(block_pos.clone(), params.item)
+                            chunk.onBlockSet(block_pos.clone(), params.item);
+                            const listeners = this.afterBlockChangeListeners[tblock.id];
+                            if (listeners) {
+                                for(let listener of listeners) {
+                                    const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
+                                    var res = listener.func(chunk, tblock, oldMaterial, true);
+                                    if (typeof res === 'number') {
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos, oldMaterial.id]);
+                                    } else {
+                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
+                                    }
+                                }
+                            }
                         }
                         if (server_player) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
@@ -658,6 +709,7 @@ export class ServerWorld {
                 }
                 throw e;
             }
+            this.addUpdatedBlocksActions(this.updatedBlocksByListeners);
         }
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
@@ -911,4 +963,12 @@ export class ServerWorld {
         return 15;
     }
 
+    addUpdatedBlocksActions(updated_blocks) {
+        ArrayHelpers.filterSelf(updated_blocks, v => v != null);
+        if (updated_blocks.length) {
+            const action = new WorldAction(null, this, false, true);
+            action.addBlocks(updated_blocks);
+            this.actions_queue.add(null, action);
+        }
+    }
 }

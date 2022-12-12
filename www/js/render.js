@@ -560,7 +560,7 @@ export class Renderer {
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
      * chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
-     * @param {World} world
+     * @param { import("./world.js").World } world
      */
     setWorld(world) {
         this.world = world;
@@ -819,14 +819,19 @@ export class Renderer {
      */
     setWeather(weather, chunkManager) {
         let rain = this.meshes.get('weather');
-        if(!rain || rain.type != Weather.get(weather)) {
+        if(!rain || rain.type != Weather.getName(weather)) {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, Weather.get(weather), chunkManager);
+            rain = new Mesh_Object_Rain(this, Weather.getName(weather), chunkManager);
             this.meshes.add(rain, 'weather');
         }
         rain.enabled = weather != Weather.CLEAR;
+    }
+
+    getWeather() {
+        const name = this.meshes.get('weather')?.type;
+        return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
     // drawPlayers
@@ -1199,7 +1204,7 @@ export class Renderer {
         return resp;
     }
 
-    // updateFOV...
+    // Update FOV...
     updateFOV(delta, zoom, running, flying) {
         const {FOV_WIDE_FACTOR, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED} = this.options;
         let target_fov = this.settings.fov;

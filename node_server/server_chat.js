@@ -2,6 +2,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {WorldAction} from "../www/js/world_action.js";
+import { Weather } from "../www/js/block_type/weather.js";
 
 export class ServerChat {
 
@@ -145,7 +146,7 @@ export class ServerChat {
                 break;
             case '/help':
                 let commands = [
-                    '/weather (clear | rain)',
+                    '/weather (' + Weather.NAMES.join(' | ') + ')',
                     '/gamemode [world] (survival | creative | adventure | spectator | get)',
                     '/tp -> teleport',
                     '/stp -> safe teleport',
@@ -153,7 +154,7 @@ export class ServerChat {
                     '/seed',
                     '/give <item> [<count>]',
                 ];
-                this.sendSystemChatMessageToSelectedPlayers('\n' + commands.join('\n'), [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
                 break;
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {

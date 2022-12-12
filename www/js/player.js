@@ -14,6 +14,8 @@ import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -59,6 +61,10 @@ export class Player {
         return 0;
     }
 
+    /**
+     * @param { import("./world.js").World } world
+     * @param {*} cb 
+     */
     JoinToWorld(world, cb) {
         this.world = world;
         //
@@ -582,13 +588,19 @@ export class Player {
         return pc.player_state.flying;
     }
 
+    /**
+     * @param {boolean} value 
+     */
     setFlying(value) {
         let pc = this.getPlayerControl();
         pc.mul = 1;
         pc.player_state.flying = value;
     }
 
-    //
+    /**
+     * @param {int} value 
+     * @returns 
+     */
     changeSpectatorSpeed(value) {
         if(!this.game_mode.isSpectator()) {
             return false;
@@ -613,7 +625,11 @@ export class Player {
         return this.pr;
     }
 
-    // Updates this local player (gravity, movement)
+    /**
+     * Updates this local player (gravity, movement)
+     * @param {float} delta 
+     * @returns 
+     */
     update(delta) {
 
         // View
@@ -766,7 +782,9 @@ export class Player {
         return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
-    //
+    /**
+     * @param {float} delta 
+     */
     checkBodyRot(delta) {
         const pc = this.getPlayerControl();
         const value = delta * this.body_rotate_speed;
@@ -785,7 +803,10 @@ export class Player {
         }
     }
 
-    //
+    /**
+     * @param {string} name 
+     * @param {*[]} args 
+     */
     triggerEvent(name, args) {
         switch(name) {
             case 'step': {
@@ -831,8 +852,11 @@ export class Player {
         }
     }
 
+    /**
+     * @returns { import("./player_model.js").PlayerModel }
+     */
     getModel() {
-        return Qubatch.world.players.get(this.session.user_id);
+        return this.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
@@ -855,10 +879,10 @@ export class Player {
             return;
         }
         if(!this.onGround) {
-            let bpos = this.getBlockPos().add({x: 0, y: -1, z: 0});
+            let bpos = this.getBlockPos().add(Vector.YN);
             let block = this.world.chunkManager.getBlock(bpos);
             // ignore damage if dropped into water
-            if(block.material.is_fluid) {
+            if(block.fluid > 0) {
                 this.lastBlockPos = this.getBlockPos();
             } else {
                 let pos = this.getBlockPos();
@@ -1077,6 +1101,16 @@ export class Player {
     // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
     getUsedItemHand() {
         return InteractionHand.MAIN_HAND;
+    }
+
+    //
+    getOverChunkBiomeId() {
+        const chunk = this.getOverChunk()
+        if(!chunk) return
+        const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
+        const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
     }
 
 }

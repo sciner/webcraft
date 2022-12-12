@@ -5,7 +5,7 @@ import { Building } from "../building.js";
 // Water well
 export class WaterWell extends Building {
 
-    static SIZE_LIST = [{x: 3, z: 3}];
+    static SIZE_LIST = [{size: {x: 3, z: 3}}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
 
@@ -27,7 +27,7 @@ export class WaterWell extends Building {
 
         if(seed < .75) {
 
-            this.wallBlocks = this.cluster.createPalette([
+            this.wallBlocks = this.cluster.createBlockPalette([
                 {value: BLOCK.OAK_PLANKS, chance: 1}
             ]);
 
@@ -51,7 +51,7 @@ export class WaterWell extends Building {
 
         } else {
 
-            this.wallBlocks = this.cluster.createPalette([
+            this.wallBlocks = this.cluster.createBlockPalette([
                 {value: BLOCK.COBBLESTONE, chance: 1}
             ]);
 

@@ -1,6 +1,6 @@
 import { BLOCK } from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
-import { Vector } from "../../helpers.js";
+import { Mth, Vector } from "../../helpers.js";
 
 // physics
 const Cd                = 0.47; // dimensionless
@@ -33,9 +33,11 @@ export class Mesh_Effect_Particle {
         this.ag             = args.ag ?? ag;
         this.size           = args.size,
         this.mass           = args.mass ?? (0.05 * args.scale); // kg
-        this.life           = args.life ?? (1 + Math.random());
-        this.start_life     = this.life;
-        this.life_precent   = 1;
+        // max_life was formerly start_life. Renamed to avoid conusion with
+        // the new feature: partially depleted life with which a particle starts.
+        this.max_life       = args.life ?? (1 + Math.random());
+        this.life           = args.initial_life ?? this.max_life;
+        this.life_precent   = 1. - Math.max(this.life / this.max_life, 0);
         this.pos            = args.pos;
         this.pos_o          = args.pos.clone();
         this.velocity       = args.velocity;
@@ -58,6 +60,9 @@ export class Mesh_Effect_Particle {
      * @returns {float}
      */
     getCurrentSmartScale() {
+        if (Array.isArray(this.smart_scale)) {
+            return Mth.lerpLUT(this.life_precent, this.smart_scale);
+        }
         const min = Math.max(this.smart_scale[0], 0);
         const max = Math.min(this.smart_scale[1], 1);
         const diff = max - min;
@@ -74,7 +79,7 @@ export class Mesh_Effect_Particle {
         delta /= 1000;
 
         this.life -= delta;
-        this.life_precent = 1. - Math.max(this.life / this.start_life, 0);
+        this.life_precent = 1. - Math.max(this.life / this.max_life, 0);
 
         if(this.freezed || !this.visible) {
             return;

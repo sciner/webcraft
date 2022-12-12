@@ -22,7 +22,7 @@ export class FPSCounter {
 
         // Speed
         if(!this.player_pos) {
-            this.player_pos = JSON.parse(JSON.stringify(Qubatch.player.lerpPos));
+            this.player_pos = player.lerpPos.clone()
             this.speed_time = performance.now();
         }
 
@@ -36,7 +36,7 @@ export class FPSCounter {
             this.avg    = PERIOD / Qubatch.averageClockTimer.avg;
             this.t      = now;
             this.speed = Helpers.calcSpeed(player.lerpPos, this.player_pos, diff / PERIOD);
-            this.player_pos = JSON.parse(JSON.stringify(Qubatch.player.lerpPos));
+            this.player_pos.copyFrom(player.lerpPos)
             this.speed_time = performance.now();
             //
             this.walkDistO = player.walkDist;

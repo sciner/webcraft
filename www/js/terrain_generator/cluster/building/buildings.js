@@ -1,13 +1,13 @@
 import { AABB } from "../../../core/AABB.js";
 import { Building, BUILDING_AABB_MARGIN } from "../building.js";
 import { Vec3, Vector } from "../../../helpers.js";
-import { impl as alea } from "../../../../vendors/alea.js";
 import { BLOCK } from "../../../blocks.js";
+import { impl as alea } from "../../../../vendors/alea.js";
 
 // BuildingS (small)
 export class BuildingS extends Building {
 
-    static SIZE_LIST = [{x: 5, z: 5, door_pos: {x: 2, z: 2, right: false}}];
+    static SIZE_LIST = [{size: {x: 5, z: 5}, door_pos: {x: 2, z: 2}}];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
 
@@ -29,7 +29,7 @@ export class BuildingS extends Building {
         };
 
         //
-        this.wallBlocks = this.cluster.createPalette([
+        this.wallBlocks = this.cluster.createBlockPalette([
             {value: this.materials.wall, chance: .33},
             {value: BLOCK.ANDESITE, chance: .66},
             {value: BLOCK.STONE, chance: 1},

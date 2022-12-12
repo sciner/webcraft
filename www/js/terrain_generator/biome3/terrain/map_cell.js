@@ -21,6 +21,7 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         
         const biome = this.biome;
         let resp = false;
+        const FLOWERS_THRESHOLD = .3
 
         if((biome.plants || biome.grass) && [BLOCK.GRASS_BLOCK.id, BLOCK.SNOW_DIRT.id, BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.MOSS_BLOCK.id].includes(block_id)) {
 
@@ -46,6 +47,10 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
             
             if(density_params.d4 < .05 && biome.plants) {
                 resp = calcSet(biome.plants);
+            }
+
+            if(!resp && biome.plants && density_params.d2 > .85 && r < FLOWERS_THRESHOLD) {
+                resp = biome.plants.list[((r/FLOWERS_THRESHOLD) * biome.plants.list.length) | 0].blocks
             }
 
             if(!resp && biome.grass) {

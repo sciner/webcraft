@@ -126,7 +126,7 @@ export class DBWorldQuest {
 
     // savePlayerQuest...
     async savePlayerQuest(player, quest) {
-        const exist_row = await this.db.get('SELECT * FROM user_quest WHERE user_id = :user_id AND quest_id = :quest_id', {
+        const exist_row = await this.db.get('SELECT id FROM user_quest WHERE user_id = :user_id AND quest_id = :quest_id', {
             ':user_id':             player.session.user_id,
             ':quest_id':            quest.id
         });

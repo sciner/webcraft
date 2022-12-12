@@ -1,4 +1,5 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
+import { SQLiteServerConnector } from './connector/sqlite.js';
 
 export class DBGame {
 
@@ -13,6 +14,43 @@ export class DBGame {
 
     // Migrations
     async applyMigrations() {
+
+        async function ranameWorldsUniqueTitle(conn) {
+            const rows = await conn.all("SELECT id, title, LOWER(title) low, guid FROM world");
+            const map = {};
+            const newMap = {};
+            for(var row of rows) {
+                map[row.low] = map[row.low] || [];
+                map[row.low].push(row);
+                newMap[row.low] = true;
+            }
+            for(var low in map) {
+                const arr = map[low];
+                for(var i = 1; i < arr.length; i++) {
+                    var row = arr[i];
+                    // choose a new title
+                    var tryN = 2;
+                    var newTitle;
+                    do {
+                        newTitle = row.title + '_' + tryN;
+                        tryN++;
+                    } while (newMap[newTitle.toLowerCase()]);
+                    newMap[newTitle.toLowerCase()] = true;
+                    // rename in the game DB
+                    await conn.run("UPDATE world SET title = ? WHERE id = ?", [newTitle, row.id]);
+                    // rename in the world DB
+                    const fileName = `../world/${row.guid}/world.sqlite`;
+                    try {
+                        const worldConn = await SQLiteServerConnector.connect(fileName);
+                        await worldConn.run("UPDATE world SET title = ?", newTitle);
+                        await worldConn.close();
+                        console.log(`Renamed world id=${row.id} ${row.guid} "${row.title}" -> "${newTitle}"`);
+                    } catch {
+                        console.error(`Can't rename world id=${row.id} in ${fileName} "${row.title}" -> "${newTitle}"`);
+                    }
+                }
+            }
+        }
 
         let version = 0;
         
@@ -119,11 +157,58 @@ export class DBGame {
             `ALTER TABLE world_player ADD COLUMN dt_last_visit INTEGER NOT NULL DEFAULT 0`
         ]});
         
+        migrations.push({version: 11, queries: [
+            // change user.username COLLATE NOCASE
+            `CREATE TABLE "user_copy" (
+                "id"	INTEGER,
+                "guid"	text NOT NULL,
+                "username"	TEXT COLLATE NOCASE,
+                "dt"	integer,
+                "skin"	TEXT,
+                "password"	TEXT,
+                "flags"	INTEGER DEFAULT 0,
+                PRIMARY KEY("id" AUTOINCREMENT))`,
+            `INSERT INTO user_copy (id, guid, username, dt, skin, password, flags)
+                SELECT id, guid, username, dt, skin, password, flags FROM user`,
+            'DROP TABLE user',
+            'ALTER TABLE user_copy RENAME TO user',
+            // change world.title COLLATE NOCASE
+            ranameWorldsUniqueTitle,
+            `CREATE TABLE "world_copy" (
+                "id"	INTEGER,
+                "guid"	text NOT NULL,
+                "title"	TEXT COLLATE NOCASE,
+                "user_id"	INTEGER,
+                "dt"	integer,
+                "seed"	TEXT,
+                "generator"	TEXT,
+                "pos_spawn"	TEXT,
+                "play_count"	integer NOT NULL DEFAULT 0,
+                "cover"	TEXT,
+                "game_mode"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT))`,
+            `INSERT INTO world_copy (id, guid, title, user_id, dt, seed, generator, pos_spawn, play_count, cover, game_mode)
+                SELECT id, guid, title, user_id, dt, seed, generator, pos_spawn, play_count, cover, game_mode FROM world`,
+            'DROP TABLE world',
+            'ALTER TABLE world_copy RENAME TO world',
+            // new indices
+            'CREATE UNIQUE INDEX user_username ON user (username)',
+            'CREATE INDEX user_guid ON user (guid)',
+            'CREATE INDEX user_session_token ON user_session (token)',
+            'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
+            'CREATE INDEX world_guid ON world (guid)',
+            'CREATE UNIQUE INDEX world_title ON world (title)'
+        ]});        
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
                 for(let query of m.queries) {
-                    await this.conn.get(query);
+                    if (typeof query === 'string') {
+                        await this.conn.get(query);
+                    } else {
+                        await query(this.conn);
+                    }
                 }
                 await this.conn.get('update options set version = ' + (++version));
                 await this.conn.get('commit');
@@ -154,11 +239,11 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async Registration(username, password) {
-        if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE LOWER(username) = ?", [username.toLowerCase()])) {
+        if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
             throw 'error_player_exists';
         }
         const guid = randomUUID();
-        const result = await this.conn.run('INSERT INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':username':    username,
@@ -166,10 +251,13 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
             const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
                 ':guid': guid
             });
+            if (!row) {
+                throw 'error_player_exists';
+            }
             lastID = row.lastID;
         }
         //
@@ -262,10 +350,10 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE LOWER(title) = LOWER(:title)', { ':title': title});
-        if (worldWithSameTitle != null) {
-            throw 'error_world_with_same_title_already_exist';
-        }
+        // let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
+        // if (worldWithSameTitle != null) {
+        //     throw 'error_world_with_same_title_already_exist';
+        // }
         const guid = randomUUID();
         let default_pos_spawn = generator.pos_spawn;
         switch(generator?.id) {
@@ -279,7 +367,7 @@ export class DBGame {
                 break;
             }
         }
-        const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':user_id':     user_id,
@@ -291,13 +379,15 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
             const row = await this.conn.get('SELECT id AS lastID FROM world WHERE guid = :guid', {
                 ':guid': guid
             });
+            if (!row) {
+                throw 'error_world_with_same_title_already_exist';
+            }
             lastID = row.lastID;
         }
-        lastID = parseInt(lastID);
         //
         await this.InsertWorldPlayer(lastID, user_id);
         return {
@@ -321,7 +411,7 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT id AS lastID FROM world_player WHERE user_id = :user_id', {
                 ':user_id': user_id
             });

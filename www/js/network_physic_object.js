@@ -13,7 +13,7 @@ export class AABBDrawable extends AABB {
     draw(render, pos, delta, do_draw) {
         if (do_draw) {
             render.debugGeom.addAABB(this,
-                {colorBGRA: 0xFFFFFFFF, lineWidth: .4});
+                {colorBGRA: 0xFFFFFFFF, lineWidth: .25});
         }
     }
 

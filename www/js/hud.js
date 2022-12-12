@@ -448,7 +448,7 @@ export class HUD {
 
         // My XYZ
         const playerBlockPos = player.getBlockPos();
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + player.getOverChunkBiomeId();
 
         if(!short_info) {
             const chunk = player.getOverChunk();

@@ -2,6 +2,8 @@ import { FSMBrain } from "../brain.js";
 import { Vector } from "../../../www/js/helpers.js";
 import { WorldAction } from "../../../www/js/world_action.js";
 import { BeeNest } from "../../../www/js/block_type/bee_nest.js";
+import { EnumDifficulty } from "../../../www/js/enums/enum_difficulty.js";
+import { Effect } from "../../../www/js/block_type/effect.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
@@ -20,6 +22,8 @@ export class Brain extends FSMBrain {
             playerHalfWidth: 0.3,
         });
         
+        this.health = 10;
+        
         this.pc.player_state.flying = true;// @todo костыль от сброса полета при касании земли
         
         this.ticks_pollination = 0;
@@ -32,7 +36,6 @@ export class Brain extends FSMBrain {
         this.follow_distance = 10;
         this.back_distance = 10;
         this.anger_time = 300;
-        this.damage = 2;
         this.live = 10;
         this.fly = 0;
         
@@ -185,8 +188,10 @@ export class Brain extends FSMBrain {
             return;
         }
         
-        const player = mob.getWorld().players.get(this.target);
-        if (!player || mob.playerCanBeAtacked(player)) {
+        const player = this.target;
+        const world = mob.getWorld();
+        const difficulty = world.rules.getValue('difficulty');
+        if (!player || mob.playerCanBeAtacked(player) || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doForward);
             return;
@@ -204,12 +209,25 @@ export class Brain extends FSMBrain {
         if (this.ticks_anger <= this.anger_time) {
             if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.ticks_attack > this.interval_attack && distance < this.distance_attack) {
                 this.ticks_attack = 0;
-                player.setDamage(this.damage);
-                const world = mob.getWorld();
+                switch(difficulty) {
+                    case EnumDifficulty.EASY: {
+                        this.target.setDamage(2); 
+                        break;
+                    }
+                    case EnumDifficulty.NORMAL: {
+                        this.target.effects.addEffects([{id: Effect.POISON, level: 1, time: 10}]);
+                        this.target.setDamage(2); 
+                        break;
+                    }
+                    case EnumDifficulty.HARD: {
+                        this.target.effects.addEffects([{id: Effect.POISON, level: 2, time: 18}]);
+                        this.target.setDamage(3); 
+                        break;
+                    }
+                }
                 const actions = new WorldAction();
                 actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
                 world.actions_queue.add(player, actions);
-                
             }
             this.ticks_attack++;
             this.ticks_anger++;
@@ -235,22 +253,37 @@ export class Brain extends FSMBrain {
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
     }
     
-    onDamage(actor, val, type_damage) {
-        const id = actor.session.user_id;
+    async onDamage(actor, val, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
-        const bots = world.getMobsNear(mob.pos, this.back_distance);
-        for (const bot of bots) {
-            if (bot.type == "bee") {
-                bot.getBrain().setCommonTarget(id);
+        const live = mob.indicators.live;
+        if (actor) {
+            const velocity = mob.pos.sub(actor.state.pos).normSelf();
+            velocity.y = 0.4;
+            mob.addVelocity(velocity);
+            const bots = world.getMobsNear(mob.pos, this.back_distance);
+            for (const bot of bots) {
+                if (bot.type == "bee") {
+                    bot.getBrain().setCommonTarget(actor);
+                }
             }
+            this.setCommonTarget(actor);
         }
-        this.setCommonTarget(id);
+        live.value -= val;
+        if (live.value <= 0) {
+            await mob.kill();
+            this.onKill(actor, type_damage);
+        } else {
+            const actions = new WorldAction();
+            actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
+            world.actions_queue.add(actor, actions);
+            mob.save();
+        }
     }
     
     // установка общего таргета для атаки (атака роем)
-    setCommonTarget(id) {
-        this.target = id;
+    setCommonTarget(actor) {
+        this.target = actor;
         this.ticks_anger = 0;
         this.stack.replaceState(this.doFollow);
     }

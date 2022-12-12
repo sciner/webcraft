@@ -1,5 +1,6 @@
 import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
+import { CHUNK_SIZE_X } from '../../chunk_const.js';
 import { DIRECTION, getChunkAddr, Vector } from "../../helpers.js";
 import { CLUSTER_SIZE, ClusterPoint } from "./base.js";
 import { BlockDrawer } from './block_drawer.js';
@@ -16,7 +17,7 @@ const DEFAULT_DOOR_POS = new Vector(0, 0, 0);
 // Base building
 export class Building {
 
-    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_size) {
+    constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size, random_building) {
         this.randoms        = new alea(coord.toHash());
         this.cluster        = cluster;
         this.id             = coord.toHash();
@@ -27,7 +28,7 @@ export class Building {
         this.door_bottom    = door_bottom;
         this.door_direction = door_direction;
         this.size           = size;
-        this.random_size    = random_size;
+        this.random_building= random_building;
         this.materials      = null;
         this.draw_entrance  = true;
         // blocks
@@ -197,7 +198,7 @@ export class Building {
             const x = sizes[i]
             for(let j = 0; j < sizes.length; j++) {
                 const z = sizes[j]
-                resp.push({x, z})
+                resp.push({size: {x, z}})
             }
         }
         return resp;
@@ -206,7 +207,7 @@ export class Building {
     /**
      * Limit building size
      * 
-     * @param {*} random_size 
+     * @param {*} building_template 
      * @param {float} seed 
      * @param {Vector} coord 
      * @param {Vector} size 
@@ -214,15 +215,15 @@ export class Building {
      * @param {Vector} door_bottom 
      * @param {int} door_direction 
      */
-    static selectSize(random_size, seed, coord, size, entrance, door_bottom, door_direction, aabb) {
+    static selectSize(building_template, seed, coord, size, entrance, door_bottom, door_direction, aabb) {
 
-        const door_pos = new Vector(random_size?.door_pos ?? DEFAULT_DOOR_POS);
+        const door_pos = new Vector(building_template?.door_pos ?? DEFAULT_DOOR_POS);
 
-        if('height' in random_size) {
-            aabb.y_max = aabb.y_min + random_size.height + BUILDING_AABB_MARGIN;
+        if(building_template.size.y != undefined) {
+            aabb.y_max = aabb.y_min + building_template.size.y + BUILDING_AABB_MARGIN;
         }
 
-        random_size = new Vector(random_size);
+        const random_size = new Vector(building_template.size);
 
         // swap X and Z
         if(door_direction % 2 == 1) {

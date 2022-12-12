@@ -510,11 +510,12 @@ export default class style {
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
-        if(typeof worker != 'undefined' && block.id == BLOCK.BUBBLE_COLUMN.id || (block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id)) {
+        if(typeof worker != 'undefined' && block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id) {
             worker.postMessage(['add_animated_block', {
                 block_pos: block.posworld,
                 pos: [block.posworld.add(new Vector(.5, .5, .5))],
-                type: 'bubble_column'
+                type: 'bubble_column',
+                isBottom: true
             }]);
         }
 

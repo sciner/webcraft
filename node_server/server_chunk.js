@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector, ArrayHelpers } from "../www/js/helpers.js";
+import { SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -8,7 +8,9 @@ import { WorldAction } from "../www/js/world_action.js";
 import { NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
+import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
+import { TickerHelpers } from "./ticker/ticker_helpers.js";
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -102,22 +104,9 @@ class TickingBlockManager {
                 continue;
             }
             const upd_blocks = v.ticker.call(this, tick_number + pos_index, world, this.#chunk, v, check_pos, ignore_coords);
-            if(Array.isArray(upd_blocks)) {
-                // Sometimes it's covenient to add nulls, e.g. BlockUpdates.updateTNT(). Revome them here.
-                ArrayHelpers.filterSelf(upd_blocks, v => v != null);
-                if (upd_blocks.length > 0) {
-                    updated_blocks.push(...upd_blocks);
-                }
-            }
+            TickerHelpers.pushBlockUpdates(updated_blocks, upd_blocks);
         }
-
-        //
-        if(updated_blocks.length > 0) {
-            const actions = new WorldAction(null, this.#chunk.world, false, true);
-            actions.addBlocks(updated_blocks);
-            world.actions_queue.add(null, actions);
-        }
-
+        world.addUpdatedBlocksActions(updated_blocks);
     }
 
 }
@@ -152,6 +141,12 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_NEW);
         this.dataChunk      = null;
         this.fluid          = null;
+        this.delayedCalls   = new DelayedCalls(world.blockCallees);
+        this.blocksUpdatedByDelayedCalls = [];
+    }
+
+    get addrHash() { // maybe replace it with a computed string, if it's used often
+        return this.addr.toHash();
     }
 
     get maxBlockX() {
@@ -416,9 +411,15 @@ export class ServerChunk {
                 this.randomTickingBlockCount++;
             }
         }
-        //
-        this.mobs = await this.world.db.mobs.loadInChunk(this.addr, this.size);
-        this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        // load various data in parallel
+        const mobPrpmise = this.world.db.mobs.loadInChunk(this.addr, this.size);
+        const drop_itemsPromise = this.world.db.loadDropItems(this.addr, this.size);
+        const serializedDelayedCalls = await this.world.db.loadAndDeleteChunkDelayedCalls(this);
+        if (serializedDelayedCalls) {
+            this.delayedCalls.deserialize(serializedDelayedCalls);
+        }
+        this.mobs = await mobPrpmise;
+        this.drop_items = await drop_itemsPromise; 
         // fluid
         if(this.load_state === CHUNK_STATE_UNLOADED) {
             return;
@@ -435,6 +436,10 @@ export class ServerChunk {
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
             }
+        }
+        // If some delayed calls have been loaded
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.add(this);
         }
     }
 
@@ -881,6 +886,27 @@ export class ServerChunk {
 
     }
 
+    addDelayedCall(calleeId, delay, args) {
+        this.delayedCalls.add(calleeId, delay, args);
+        // If we just aded the 1st call, we know the chunk is not in the set
+        if (this.delayedCalls.length === 1) {
+            this.getChunkManager().chunks_with_delayed_calls.add(this);
+        }
+    }
+
+    executeDelayedCalls() {
+        if (this.delayedCalls.length === 0) {
+            return;
+        }
+        this.delayedCalls.execute(this);
+        // If we just emptied the calls list, delete the chunk from the set
+        if (this.delayedCalls.length === 0) {
+            this.getChunkManager().chunks_with_delayed_calls.delete(this);
+        }
+        this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
+        this.blocksUpdatedByDelayedCalls.length = 0;
+    }
+
     // Before unload chunk
     async onUnload() {
         const chunkManager = this.getChunkManager();
@@ -888,23 +914,31 @@ export class ServerChunk {
             return;
         }
         this.setState(CHUNK_STATE_UNLOADED);
+        if (this.delayedCalls.length) {
+            chunkManager.chunks_with_delayed_calls.delete(this);
+        }
         if (this.dataChunk) {
             await this.world.db.fluid.flushChunk(this);
             chunkManager.dataWorld.removeChunk(this);
         }
 
+        const promises = [];
         // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
-                await mob.onUnload();
+                promises.push(mob.onUnload());
             }
         }
         // Unload drop items
         if(this.drop_items.size > 0) {
             for(let [entity_id, drop_item] of this.drop_items) {
-                drop_item.onUnload();
+                promises.push(drop_item.onUnload());
             }
         }
+        if (this.delayedCalls.length) {
+            promises.push(this.world.db.saveChunkDelayedCalls(this));
+        }
+        await Promise.all(promises);
         // Need unload in worker
         this.world.chunks.chunkUnloaded(this.addr);
     }

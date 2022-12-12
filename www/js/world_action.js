@@ -1007,7 +1007,6 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     if(mat_block.has_head) {
         // const new_rotate = orientation.add(new Vector(2, 0, 0));
         const new_rotate = orientation.clone();
-        new_rotate.x %= 4;
         const next_block = {
             pos: pos.clone().addByCardinalDirectionSelf(mat_block.has_head.pos, orientation.x + 2),
             item: {

@@ -114,7 +114,7 @@ export class DBWorld {
     async compressModifiers() {
         let p_start = performance.now();
         let chunks_count = 0;
-        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE data_blob IS NULL', {});
+        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE has_data_blob = 0', {});
         for(let row of rows) {
             chunks_count++;
             let p = performance.now();
@@ -122,7 +122,7 @@ export class DBWorld {
             let p1 = Math.round((performance.now() - p) * 1000) / 1000;
             p = performance.now();
             // save compressed
-            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob WHERE _rowid_ = :_rowid_', {
+            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
                 ':data_blob':  compressed,
                 ':_rowid_':    row.rowid
             });
@@ -135,8 +135,8 @@ export class DBWorld {
 
     //
     async saveCompressedWorldModifyChunk(addr, compressed) {
-        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob) 
-          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob)`, {
+        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, has_data_blob) 
+          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob, 1)`, {
             ':data_blob':   compressed,
             ':x':           addr.x,
             ':y':           addr.y,
@@ -288,7 +288,7 @@ export class DBWorld {
 
     // findPlayer...
     async findPlayer(world_id, username) {
-        const row = await this.conn.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        const row = await this.conn.get("SELECT id, username FROM user WHERE username = ?", [username]);
         if(!row) {
             return null;
         }
@@ -361,23 +361,23 @@ export class DBWorld {
         });
     }
 
-      // Delete drop item
-      async removeDeadDrops(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE dt < :dt', {
-            ':dt': ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS)
+    // Delete drop item
+    async removeDeadDrops() {
+        await this.conn.run('DELETE FROM drop_item WHERE dt < :dt', {
+            ':dt': ~~(unixTime() - DROP_LIFE_TIME_SECONDS)
         });
     }
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE entity_id = :entity_id', {
+        await this.conn.run('DELETE FROM drop_item WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
     }
 
     // Load drop items
     async loadDropItems(addr, size) {
-        const rows = await this.conn.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND dt >= :death_date AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.conn.all('SELECT * FROM drop_item WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max AND dt >= :death_date', {
             ':death_date' : ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS),
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
@@ -405,7 +405,7 @@ export class DBWorld {
         const resp = {obj: null, compressed: null};
         await this.conn.each(`
                 SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                CASE WHEN data_blob IS NULL THEN 0 ELSE 1 END compressed
+                    has_data_blob compressed
                 FROM world_modify_chunks
                 WHERE x = :x AND y = :y AND z = :z`, {
             ':x': addr.x,
@@ -426,6 +426,33 @@ export class DBWorld {
             resp.obj = decompressWorldModifyChunk(resp.compressed);
         }
         return resp;
+    }
+
+    async saveChunkDelayedCalls(chunk) {
+        const addr = chunk.addrHash;
+        const delayed_calls = chunk.delayedCalls.serialize();
+        const result = this.conn.run('INSERT OR IGNORE INTO chunk (dt, addr, delayed_calls) VALUES (:dt, :addr, :delayed_calls)', {
+            ':dt': unixTime(),
+            ':addr': addr,
+            ':delayed_calls': delayed_calls
+        });
+        // It works both in single- and multi- player. In single, it always runs the update.
+        if (!result.changes) {
+            this.conn.run('UPDATE chunk SET delayed_calls = :delayed_calls WHERE addr = :addr', {
+                ':addr': addr,
+                ':delayed_calls': delayed_calls
+            });
+        }
+    }
+
+    async loadAndDeleteChunkDelayedCalls(chunk) {
+        const row = await this.conn.get('SELECT delayed_calls FROM chunk WHERE addr = ?', [chunk.addrHash]);
+        const delayed_calls = row?.delayed_calls;
+        if (!delayed_calls) {
+            return null;
+        }
+        await this.conn.run('UPDATE chunk SET delayed_calls = NULL WHERE addr = ?', [chunk.addrHash]);
+        return delayed_calls;
     }
 
     // Block set
@@ -611,7 +638,7 @@ export class DBWorld {
 
     //
     async updateChunks(address_list) {
-        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob)
+        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob, has_data_blob)
         SELECT
             json_extract(value, '$.x') x,
             json_extract(value, '$.y') y,
@@ -634,7 +661,8 @@ export class DBWorld {
                     m.chunk_z = json_extract(value, '$.z')
                 ORDER BY m.id ASC
             ),
-            NULL
+            NULL,
+            0
         FROM json_each(:address_list) addrs`, {
             ':address_list': JSON.stringify(address_list)
         });
@@ -675,4 +703,7 @@ export class DBWorld {
         return null;
     }
 
+    async setTitle(title)  {
+        await this.conn.run('UPDATE world SET title = ?', [title]);
+    }
 }

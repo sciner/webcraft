@@ -1,6 +1,6 @@
 import { Vector } from "../../www/js/helpers.js";
 import { WorldAction } from "../../www/js/world_action.js";
-import { BlockUpdates } from './blockUpdates.js'
+import { BlockUpdates } from './ticker_helpers.js'
 
 export default class Ticker {
 
@@ -33,8 +33,6 @@ export default class Ticker {
                 }
             }
         }
-        
-        return [];
     }
     
 }
