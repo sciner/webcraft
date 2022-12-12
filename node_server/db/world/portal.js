@@ -29,7 +29,7 @@ export class DBWorldPortal {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT _rowid_ AS lastID FROM portal WHERE x = :x AND y = :y AND z = :z ORDER by _rowid_ DESC', {
                 ':x':           portal.pos.x,
                 ':y':           portal.pos.y,
