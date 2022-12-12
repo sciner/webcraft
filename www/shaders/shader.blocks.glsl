@@ -196,7 +196,9 @@
 
 #ifdef crosshair_call_func
     // Draw crosshair
-    drawCrosshair();
+    if (u_crosshairOn) {
+        drawCrosshair();
+    }
     //--
 #endif
 
