@@ -513,16 +513,19 @@
                         <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/>
                     </div>
                     <div>&nbsp;</div>
-                    <div>
-                        <input type="file" id="new-skin-input" accept="image/png" ng-upload-change="skin.newSkinFileChanged($event)">
-                    </div>
-                    <div>&nbsp;</div>
-                    <div class="switcher-container">
-                        <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" />
-                        <div class="switcher">
-                            <small></small>
+                    <div class="flex-row items-center">
+                        <div class="open-file-div">
+                            <button class="secondary" for="new-skin-input">{{Lang.open_file}}</label>
+                            <input type="file" id="new-skin-input" accept="image/png" ng-upload-change="skin.newSkinFileChanged($event)">
                         </div>
-                        <label for="chk-new-skin-slim">{{Lang.slim}}</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <div class="switcher-container">
+                            <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-new-skin-slim">{{Lang.slim}}</label>
+                        </div>
                     </div>
                 </div>
                 <div>&nbsp;</div>
