@@ -38,7 +38,7 @@ export class ServerGame {
         for(const [world_guid, _] of this.worlds_loading.entries()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
-            const worldTitlePromise = this.db.getWorld(world_guid)
+            const worldTitlePromise = this.db.getWorld(world_guid);
             const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
             const world = new ServerWorld(BLOCK);
             const db_world = await DBWorld.openDB(conn, world);
