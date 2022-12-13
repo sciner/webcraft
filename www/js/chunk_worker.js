@@ -57,7 +57,6 @@ async function preLoad () {
     });
 
     await import('./terrain_generator/cluster/building_template.js').then(module => {
-        console.log(87)
         BuilgingTemplate = module.BuilgingTemplate;
     });
 
