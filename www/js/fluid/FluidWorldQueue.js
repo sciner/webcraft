@@ -1,6 +1,7 @@
 import {QueuePagePool} from "../light/MultiQueue.js";
 import {FluidChunkQueue} from "./FluidChunkQueue.js";
 import {SimpleQueue} from "../helpers.js";
+import {FluidChunkEvents} from "./FluidChunkEvents.js";
 
 export class FluidWorldQueue {
     constructor(fluidWorld) {
@@ -11,7 +12,7 @@ export class FluidWorldQueue {
         });
         this.dirtyChunks = new SimpleQueue();
         this.deltaChunks = [];
-        this.interactChunks = new SimpleQueue();
+        this.eventChunks = new SimpleQueue();
 
         //ticker
         this.tick = 0;
@@ -25,15 +26,17 @@ export class FluidWorldQueue {
 
     addChunk(fluidChunk) {
         fluidChunk.queue = new FluidChunkQueue(this.world, fluidChunk);
+        fluidChunk.events = new FluidChunkEvents(this.world, fluidChunk);
     }
 
     removeChunk(fluidChunk) {
         fluidChunk.queue.dispose();
+        fluidChunk.events.dispose();
     }
 
     async process(msLimit = 8) {
         const start = performance.now();
-        const {dirtyChunks, interactChunks} = this;
+        const {dirtyChunks, eventChunks} = this;
         this.preTick = (this.preTick + 1) % this.fluidTickRate;
         if (this.preTick !== 0) {
             return;
@@ -69,13 +72,13 @@ export class FluidWorldQueue {
         }
         deltaChunks.length = 0;
 
-        len = interactChunks.length;
+        len = eventChunks.length;
         for (i = 0; i < len; i++) {
-            const chunkQueue = interactChunks.shift();
-            if (!chunkQueue.fluidChunk.parentChunk.fluid) {
+            const chunkEvents = eventChunks.shift();
+            if (!chunkEvents.fluidChunk.parentChunk.fluid) {
                 continue;
             }
-            chunkQueue.processInteract();
+            chunkEvents.process();
             if (performance.now() - start >= msLimit) {
                 break;
             }

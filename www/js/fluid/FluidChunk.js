@@ -3,7 +3,7 @@ import {
     FLUID_GENERATED_FLAG,
     FLUID_LAVA_ID,
     FLUID_STRIDE, FLUID_TYPE_MASK,
-    FLUID_WATER_ID, fluidBlockProps, OFFSET_BLOCK_PROPS,
+    FLUID_WATER_ID, FLUID_WATER_INTERACT, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
@@ -43,7 +43,9 @@ export class FluidChunk {
         this.savedID = -1;
         this.databaseID = 0;
         this.inSaveQueue = false;
+        // server-side things
         this.queue = null;
+        this.events = null;
 
         this.lastSavedSize = 16384;
     }
@@ -66,7 +68,7 @@ export class FluidChunk {
         this.markDirtyMesh();
         if (this.queue) {
             this.queue.pushTickIndex(index);
-            this.queue.pushInteractCoord(index, wx, wy, wz);
+            this.events.pushCoord(index, wx, wy, wz);
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
@@ -381,7 +383,7 @@ export class FluidChunk {
     syncAllProps() {
         const {cx, cy, cz, outerSize} = this.dataChunk;
         const {id} = this.parentChunk.tblocks;
-        const {uint8View} = this;
+        const {uint8View, events} = this;
         const {BLOCK_BY_ID} = BLOCK;
 
         for (let y = 0; y < outerSize.y; y++)
