@@ -1,7 +1,7 @@
 import { Helpers, unixTime, md5 } from "../../../www/js/helpers.js";
 import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED } from "../../../www/js/constant.js";
 import { Buffer } from 'node:buffer';
-import Jimp from 'jimp';
+import skiaCanvas from 'skia-canvas';
 import mkdirp from 'mkdirp';
 
 const SKIN_ROOT = '../www/media/models/player_skins/'
@@ -20,20 +20,29 @@ export class DBGameSkins {
 
     loadStaticSkins() {
         // static list loads once, then we access it instantly when needed
-        this.staticSkinsPromie = Helpers.fetchJSON('../../www/media/models/database.json').then(json => {
+        this.staticSkinsPromise = Helpers.fetchJSON('../../www/media/models/database.json').then(json => {
             return new Map(json.player_skins.map(it => [it.id, it]));
         });
+    }
+
+    hashImage(img) {
+        const canvas = new skiaCanvas.Canvas(img.width, img.height);
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        const imgData = ctx.getImageData(0, 0, img.width, img.width);
+        return md5(imgData, 'base64url');
     }
 
     // reloads the list, and adds misssing files to the DB
     async updateStaticSkins() {
         this.loadStaticSkins();
-        const staticSkinsById = await this.staticSkinsPromie;
+        const staticSkinsById = await this.staticSkinsPromise;
         const resp = {"total": 0, "added": 0, "errors": []};
         for(var skin of staticSkinsById.values()) {
             const fileName = SKIN_ROOT + skin.file + '.png';
-            const img = await Jimp.read(fileName);
-            const hash = md5(img.bitmap.data, 'base64url');
+            const img = await skiaCanvas.loadImage(fileName);
+            const hash = this.hashImage(img);
             const result = await this.conn.run(`INSERT OR IGNORE INTO skin (id, dt, file, type, rights, hash) 
                 VALUES (:id, :dt, :file, :type, :rights, :hash)`, {
                 ':id':          skin.id,
@@ -47,10 +56,10 @@ export class DBGameSkins {
                 resp.added++;
             } else {
                 const id = (await this.getSkinByHashType(hash, skin.type))?.id;
-                if (id !== skin.id) {
+                if (id && id !== skin.id) {
                     resp.errors.push(`Skin id=${skin.id} can't be added because skin id=${id} has the same hash and type.`);
                 } else {
-                    // we can't insert it because of id. So update it
+                    // We can't insert it because it has the same id, or it's the same skin. Update it.
                     await this.conn.run('UPDATE OR IGNORE skin SET hash = :hash, file = :file, type = :type WHERE id = :id', {
                         ':hash':        hash,
                         ':file':        skin.file,
@@ -86,16 +95,16 @@ export class DBGameSkins {
         var dataBuffer;
         try {
             dataBuffer = Buffer.from(data, 'base64');
-            img = await Jimp.read(dataBuffer);
+            img = await skiaCanvas.loadImage(dataBuffer);
         } catch {
             throw 'error_incorrect_image_format';
         }
-        if (img.getWidth() != 64 || img.getHeight() != 64) {
+        if (img.width != 64 || img.height != 64) {
             throw 'error_skin_size_must_be_64';
         }
 
         // searh for a skin with the same hash
-        const hash = md5(img.bitmap.data, 'base64url');
+        const hash = this.hashImage(img);
         const existingSkin = await this.getSkinByHashType(hash, type);
 
         var skin_id;
@@ -155,7 +164,7 @@ export class DBGameSkins {
     }
 
     async getUserSkin(user_id, skin_id) {
-        const staticSkinsById = await this.staticSkinsPromie;
+        const staticSkinsById = await this.staticSkinsPromise;
         const skin = staticSkinsById.get(skin_id);
         if (skin && skin.rights === SKIN_RIGHTS_FREE) {
             return skin;
