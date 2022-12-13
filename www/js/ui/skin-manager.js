@@ -117,8 +117,7 @@ export class SkinManager {
     onCurrentSkinChange() {
         this.#controller.$apply(() => {
             if(this.skinViewer) {
-                // TODO: Where saved skin model (slim or not) for uploaded skin?
-                const model = 'auto-detect';
+                const model = this.currentSkin.type ? 'slim' : 'default';
                 this.skinViewer.loadSkin(this.currentSkin.file, {model})
             }
             this.currentSkinIsOwned = this.currentSkin?.owned || false;
