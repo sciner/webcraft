@@ -3,6 +3,7 @@ import { lerpComplex, Mth } from "./helpers.js";
 import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
+import { Weather } from "./block_type/weather.js";
 
 /**
  * @typedef {object} IFogPreset
@@ -537,7 +538,6 @@ export const FOG_PRESETS = {
 };
 
 export const SETTINGS = {
-    skyColor:               [0, 0, 0.8],
     fog:                    'base', //for preset
     fogDensity:             1, // multiplication
     fogDensityUnderWater:   0.1,
@@ -564,7 +564,6 @@ export class Environment {
             return acc;
         },{});
 
-        this.skyColor = [...SETTINGS.skyColor];
         this.fogDensity = SETTINGS.fogDensity;
         this.chunkBlockDist = SETTINGS.chunkBlockDist;
         this.sunDir = [0.9593, 1.0293, 0.6293];
@@ -663,7 +662,8 @@ export class Environment {
         this.skyBox = renderBackend.createCubeMap({
             code: Resources.codeSky,
             uniforms: {
-                u_brightness: 1.0
+                u_brightness: 1.0,
+                u_baseColor: [0, 0, 0]
                 // u_textureOn: true
             },
             /*sides: [
@@ -785,7 +785,8 @@ export class Environment {
 
         const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
 
-        this._computedBrightness = lum;
+        const weatherMultiplier = Weather.BRIGHTNESS[Qubatch.render.getWeather()];
+        this._computedBrightness = lum * weatherMultiplier;
 
         const value = this.brightness * lum;
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
@@ -868,6 +869,10 @@ export class Environment {
         }
 
         const { width, height }  = render.renderBackend.size;
+
+        const uniforms = this.skyBox.shader.uniforms;
+        const weather = render.getWeather();
+        uniforms['u_baseColor'].value = Weather.SKY_COLOR[weather];
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }

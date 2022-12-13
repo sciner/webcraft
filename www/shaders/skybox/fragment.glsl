@@ -5,6 +5,7 @@
 //
 uniform samplerCube u_texture;
 uniform float u_brightness;
+uniform vec3 u_baseColor;
 uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
 uniform vec3 u_sunDir; // global
@@ -17,7 +18,6 @@ out vec4 outColor;
 
 const vec3 sunColor = vec3(0.95, 0.88, 0.25);
 const vec3 moonColor = vec3(0.9);
-const vec3 baseColor = vec3(0.4627, 0.767, 1.0);
 
 #include<crosshair_define_func>
 #include<vignetting_define_func>
@@ -50,7 +50,7 @@ float rand3Df(vec3 co){
 
 void main() {
     vec3 norm    = normalize(v_texCoord);
-    vec3 color   = baseColor;// texture(u_texture, v_texCoord).rgb;
+    vec3 color   = u_baseColor;// texture(u_texture, v_texCoord).rgb;
     vec3 sun     = normalize(u_sunDir.xyz);
     vec4 overlay;
 
