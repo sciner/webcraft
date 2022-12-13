@@ -92,6 +92,8 @@ export class ServerClient {
 	static CMD_FLUID_UPDATE             = 102;
     static CMD_FLUID_DELTA              = 105;
 
+    static CMD_BUILDING_SCHEMA_ADD      = 107;
+
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
     static BLOCK_ACTION_DESTROY         = 2;

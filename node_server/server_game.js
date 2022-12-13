@@ -7,7 +7,9 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
+import { Helpers } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 class FakeHUD {
     add() {}
@@ -63,13 +65,22 @@ export class ServerGame {
     }
 
     // Start websocket server
-    async start() {
+    async start(config) {
+
         //
         const conn = await SQLiteServerConnector.connect('./game.sqlite3');
         await DBGame.openDB(conn).then((db) => {
             this.db = db
             global.Log = new GameLog(this.db);
         });
+
+        // Load building template schemas
+        for(let item of config.building_schemas) {
+            await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+                json.world = {...json.world, ...item}
+                BuilgingTemplate.addSchema(json)
+            });
+        }
 
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true,
