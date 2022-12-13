@@ -1,5 +1,6 @@
 import { WebGLTerrainShader } from './WebGLTerrainShader.js';
 import { QUAD_FLAGS } from '../../helpers.js';
+import { DEFAULT_ATLAS_SIZE } from '../../constant.js';
 
 export class WebGLFluidShader extends WebGLTerrainShader {
     /**
@@ -19,9 +20,10 @@ export class WebGLFluidShader extends WebGLTerrainShader {
             QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.NO_AO,
             QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_CAN_TAKE_LIGHT,
         ]);
+        const atlas_size = DEFAULT_ATLAS_SIZE * 1.;
         this.fluidUV = new Float32Array([
-            32.0 / 1024.0, 32.0 / 1024.0, 0.0 / 1024.0, 0.0 / 1024.0,
-            32.0 / 1024.0, 32.0 / 1024.0, 32.0 / 1024.0, 0.0 / 1024.0,
+            32.0 / atlas_size, 32.0 / atlas_size, 0.0 / atlas_size, 0.0 / atlas_size,
+            32.0 / atlas_size, 32.0 / atlas_size, 32.0 / atlas_size, 0.0 / atlas_size,
         ]);
         this.fluidFrames = new Int32Array([32, 32]);
     }
