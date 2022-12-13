@@ -5,6 +5,7 @@
 //
 uniform samplerCube u_texture;
 uniform float u_brightness;
+uniform float u_nightshift;
 uniform vec3 u_baseColor;
 uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
@@ -76,7 +77,7 @@ void main() {
     //moon
     vec3 moonPos = -sun;
     float moonDisk = sdfFunc(norm, moonPos, 0.02, 0.99);
-    float moodGlow = sdfFunc(norm, moonPos + vec3(r), 0.05, 0.7) * 0.15;
+    float moodGlow = sdfFunc(norm, moonPos + vec3(r), 0.05, 0.7) * 0.15 * u_nightshift;
 
     overlay += vec4(moonColor, moonDisk * fogFade2);
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
@@ -85,7 +86,7 @@ void main() {
     color =  mix(u_fogColor.rgb, color * max(u_brightness, moodGlow), fogFade);
 
     // overlay
-    color = mix(color, overlay.rgb * 0.5, overlay.a);
+    color = mix(color, overlay.rgb * 0.5, overlay.a * u_nightshift);
 
     // fog tint
     color = mix(color, u_fogColor.rgb, 1. - pow(1. - u_fogAddColor.a, 2.0));

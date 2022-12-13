@@ -568,7 +568,7 @@ export class Environment {
         this.chunkBlockDist = SETTINGS.chunkBlockDist;
         this.sunDir = [0.9593, 1.0293, 0.6293];
         this.brightness = 1.;
-        this.nightshift = 1.;
+        this.nightshift = 1.; // it's 1 above the surface, and 0 deep beow
 
         this.skyBox = null;
 
@@ -663,6 +663,7 @@ export class Environment {
             code: Resources.codeSky,
             uniforms: {
                 u_brightness: 1.0,
+                u_nightshift: 0,
                 u_baseColor: [0, 0, 0]
                 // u_textureOn: true
             },
@@ -874,6 +875,7 @@ export class Environment {
         const uniforms = this.skyBox.shader.uniforms;
         const weather = render.getWeather();
         uniforms['u_baseColor'].value = Weather.SKY_COLOR[weather];
+        uniforms['u_nightshift'].value = this.nightshift;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }
