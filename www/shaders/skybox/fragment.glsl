@@ -5,6 +5,8 @@
 //
 uniform samplerCube u_texture;
 uniform float u_brightness;
+uniform float u_nightshift;
+uniform vec3 u_baseColor;
 uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
 uniform vec3 u_sunDir; // global
@@ -18,7 +20,6 @@ out vec4 outColor;
 
 const vec3 sunColor = vec3(0.95, 0.88, 0.25);
 const vec3 moonColor = vec3(0.9);
-const vec3 baseColor = vec3(0.4627, 0.767, 1.0);
 
 #include<crosshair_define_func>
 #include<vignetting_define_func>
@@ -51,7 +52,7 @@ float rand3Df(vec3 co){
 
 void main() {
     vec3 norm    = normalize(v_texCoord);
-    vec3 color   = baseColor;// texture(u_texture, v_texCoord).rgb;
+    vec3 color   = u_baseColor;// texture(u_texture, v_texCoord).rgb;
     vec3 sun     = normalize(u_sunDir.xyz);
     vec4 overlay;
 
@@ -77,7 +78,7 @@ void main() {
     //moon
     vec3 moonPos = -sun;
     float moonDisk = sdfFunc(norm, moonPos, 0.02, 0.99);
-    float moodGlow = sdfFunc(norm, moonPos + vec3(r), 0.05, 0.7) * 0.15;
+    float moodGlow = sdfFunc(norm, moonPos + vec3(r), 0.05, 0.7) * 0.15 * u_nightshift;
 
     overlay += vec4(moonColor, moonDisk * fogFade2);
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
@@ -86,7 +87,7 @@ void main() {
     color =  mix(u_fogColor.rgb, color * max(u_brightness, moodGlow), fogFade);
 
     // overlay
-    color = mix(color, overlay.rgb * 0.5, overlay.a);
+    color = mix(color, overlay.rgb * 0.5, overlay.a * u_nightshift);
 
     // fog tint
     color = mix(color, u_fogColor.rgb, 1. - pow(1. - u_fogAddColor.a, 2.0));
