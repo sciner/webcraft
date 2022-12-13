@@ -9,12 +9,13 @@ export class Weather {
 
     static SKY_COLOR = [
         [0.4627, 0.767, 1.0],
-        [0.4627, 0.767, 0.9],
+        [0.4627, 0.767, 0.88],
         [0.52, 0.82, 0.9]
     ];
 
-    // It affects global brightness
-    static BRIGHTNESS = [1.0, 0.97, 1.0];
+    static GLOBAL_BRIGHTNESS = [1.0, 0.98, 1.0];
+
+    static FOG_BRIGHTNESS = [1.0, 0.95, 1.0];
     
     static getName(id) {
         return this.NAMES[id] || 'clear';

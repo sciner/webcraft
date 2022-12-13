@@ -770,6 +770,8 @@ export class Environment {
             return;
         }
 
+        const weather = Qubatch.render.getWeather();
+
         const p = this.fogPresetRes;
 
         p.eval(this._sunFactor);
@@ -785,10 +787,9 @@ export class Environment {
 
         const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
 
-        const weatherMultiplier = Weather.BRIGHTNESS[Qubatch.render.getWeather()];
-        this._computedBrightness = lum * weatherMultiplier;
+        this._computedBrightness = lum * Weather.GLOBAL_BRIGHTNESS[weather];
 
-        const value = this.brightness * lum;
+        const value = this.brightness * lum * Weather.FOG_BRIGHTNESS[weather];
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
 
         for (let i = 0; i < 3; i ++) {
