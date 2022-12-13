@@ -17,7 +17,7 @@
         "default": {
             "image": "/textures/default.png",
             "image_n": "/textures/default_n.png",
-            "tx_cnt": 32
+            "tx_cnt": 64
         },
         "entity": {
             "image": "/textures/entity.png",

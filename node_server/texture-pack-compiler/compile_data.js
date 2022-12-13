@@ -40,6 +40,15 @@ export class CompileData {
         return null;
     }
 
+    calcMaskColor(color, palette_pos) {
+        const color_pos = COLOR_PALETTE[color];
+        const mask_color = new Color(color_pos[0], color_pos[1], 0, 0);
+        const TX_CNT = 32 / 1024.0;
+        mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+        mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+        return mask_color
+    }
+
     async init() {
         await this.initDiscs();
         this.initWool();
@@ -86,11 +95,7 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 0);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
             const b = {
                 "id": START_WOOL_ID + i,
                 "name": color.toUpperCase() + '_WOOL',
@@ -152,11 +157,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_BED_ID + i,
                 "name": color.toUpperCase() + '_BED',
@@ -196,11 +198,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let id = START_TERRACOTTA;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             // обычная 1300
             const b = {
                 "id": id++,
@@ -235,11 +234,7 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
             const b = {
                 "id": START_CARPET_ID + i,
                 "name": color.toUpperCase() + '_CARPET',
@@ -439,11 +434,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_STAINED_GLASS + i,
                 "name": color.toUpperCase() + '_STAINED_GLASS',
@@ -462,11 +454,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_STAINED_GLASS_PANE + i,
                 "name": color.toUpperCase() + '_STAINED_GLASS_PANE',
@@ -493,11 +482,8 @@ export class CompileData {
         const palette_pos = {x: 24, y: 31};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_CONCRETE + i,
                 "name": color.toUpperCase() + '_CONCRETE',
@@ -514,11 +500,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_CONCRETE_POWDER + i,
                 "name": color.toUpperCase() + '_CONCRETE_POWDER',
@@ -536,11 +519,8 @@ export class CompileData {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
-            const TX_CNT = 32 / 1024.0;
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.a = 1
             const b = {
                 "id": START_CANDLE + i,
                 "name": color.toUpperCase() + '_CANDLE',
@@ -648,12 +628,9 @@ export class CompileData {
     initBanner() {
         const palette_pos = {x: 0, y: 16};
         let i = 0;
-        const TX_CNT = 32 / 1024.0;
         for(let color in COLOR_PALETTE) {
-            const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 4, 0);
-            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
-            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const mask_color = this.calcMaskColor(color, palette_pos);
+            mask_color.b = 4
             const b = {
                 "id": START_BANNER_ID + i,
                 "name": color.toUpperCase() + '_BANNER',

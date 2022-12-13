@@ -2,11 +2,12 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
-export const TX_CNT = 32;
+export const TX_CNT = DEFAULT_TX_CNT;
 export const TX_SIZE = 16;
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { Vector } from "../helpers.js";
+import { DEFAULT_TX_CNT } from "../constant.js";
 
 const {mat4} = glMatrix;
 

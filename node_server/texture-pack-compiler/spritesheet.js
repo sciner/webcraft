@@ -210,6 +210,7 @@ export class Spritesheet {
 
     // findPlace
     findPlace(block, sx, sy) {
+        const TEX_SLOTS_COUNT = this.tx_cnt * this.tx_cnt
         let good_place = false;
         this.index = 0;
         while(!good_place) {
@@ -242,7 +243,8 @@ export class Spritesheet {
                 this.index++;
             }
             //
-            if(x == this.tx_cnt - 1 && y == this.tx_cnt - 1 || this.index >= 1024) {
+            if(x == this.tx_cnt - 1 && y == this.tx_cnt - 1 || this.index >= TEX_SLOTS_COUNT) {
+                console.log(this.tx_cnt, TEX_SLOTS_COUNT, this.id)
                 throw 'error_no_place';
             }
         }
