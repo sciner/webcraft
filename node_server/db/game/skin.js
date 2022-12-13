@@ -147,7 +147,7 @@ export class DBGameSkins {
     }
 
     async getOwned(user_id) {
-        return await this.conn.all("SELECT skin_id id, file FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ?", [user_id]);
+        return await this.conn.all("SELECT skin_id id, file, type FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ?", [user_id]);
     }
 
     async deleteFromUser(user_id, skin_id) {
