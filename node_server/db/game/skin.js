@@ -161,6 +161,7 @@ export class DBGameSkins {
             return skin;
         }
         let row = await this.conn.get("SELECT id, file, type FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ? AND skin_id = ?", [user_id, skin_id]);
-        return row || staticSkinsPromie.get(DEFAULT_SKIN_ID);
+        return row || staticSkinsById.get(DEFAULT_SKIN_ID);
     }
+
 }
