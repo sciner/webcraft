@@ -9,6 +9,7 @@ import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
 import { WorldPortal } from "../www/js/portal.js";
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 async function waitABit() {
     return true;
@@ -57,6 +58,7 @@ export class ServerChunkManager {
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
+                    this.postWorkerMessage(['buildingSchemaAdd', {list: Object.values(BuilgingTemplate.schemas)}])
                     this.resolve_worker();
                     break;
                 }

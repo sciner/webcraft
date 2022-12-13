@@ -171,7 +171,7 @@ app.use('/worlds', async(req, res) => {
     res.render(pathToIndex, {page, world});
 });
 
-Qubatch.start();
+Qubatch.start(config);
 
 // Start express
 const server = app.listen(config.Port);

@@ -436,7 +436,8 @@ export class DBWorld {
             ':addr': addr,
             ':delayed_calls': delayed_calls
         });
-        if (!result.lastID) {
+        // It works both in single- and multi- player. In single, it always runs the update.
+        if (!result.changes) {
             this.conn.run('UPDATE chunk SET delayed_calls = :delayed_calls WHERE addr = :addr', {
                 ':addr': addr,
                 ':delayed_calls': delayed_calls
@@ -702,4 +703,7 @@ export class DBWorld {
         return null;
     }
 
+    async setTitle(title)  {
+        await this.conn.run('UPDATE world SET title = ?', [title]);
+    }
 }

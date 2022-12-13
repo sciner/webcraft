@@ -20,3 +20,4 @@ export { BookWindow } from "./book.js";
 export { BarrelWindow } from "./barrel.js";
 export { InGameMain } from "./ingamemain.js";
 export { ModeWindow } from "./mode.js";
+export { BrewingWindow } from "./brewing.js";

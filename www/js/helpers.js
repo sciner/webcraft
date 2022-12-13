@@ -2228,8 +2228,12 @@ export function isScalar(v) {
 
 // md5
 export let md5 = (function() {
-    var MD5 = function (d) {
-        return M(V(Y(X(d), 8 * d.length)))
+    var MD5 = function (d, outputEncoding) {
+        const binaryStr = V(Y(X(d), 8 * d.length));
+        if (outputEncoding) { // 'base64', 'base64url', etc. - supported only in node.js
+            return Buffer.from(binaryStr, 'binary').toString(outputEncoding);
+        }
+        return M(binaryStr); // hex (lowercase) encoding by default
     }
     function M (d) {
         for (var _, m = '0123456789abcdef', f = '', r = 0; r < d.length; r++) {
@@ -2289,8 +2293,8 @@ export let md5 = (function() {
     function bitrol (d, _) {
         return d << _ | d >>> 32 - _
     }
-    function MD5Unicode(buffer){
-        if (!(buffer instanceof Uint8Array)) {
+    function MD5Unicode(buffer, outputEncoding){
+        if (!(buffer instanceof Uint8Array || typeof Buffer === 'function' && buffer instanceof Buffer)) {
             buffer = new TextEncoder().encode(typeof buffer==='string' ? buffer : JSON.stringify(buffer));
         }
         var binary = [];
@@ -2298,7 +2302,7 @@ export let md5 = (function() {
         for (var i = 0, il = bytes.byteLength; i < il; i++) {
             binary.push(String.fromCharCode(bytes[i]));
         }
-        return MD5(binary.join(''));
+        return MD5(binary.join(''), outputEncoding);
     }
 
     return MD5Unicode;

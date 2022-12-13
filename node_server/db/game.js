@@ -1,9 +1,12 @@
 import {Vector, unixTime} from '../../www/js/helpers.js';
+import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
+import { SQLiteServerConnector } from './connector/sqlite.js';
 
 export class DBGame {
 
     constructor(conn) {
         this.conn = conn;
+        this.skins = new DBGameSkins(this);
     }
 
     // Open database and return provider
@@ -13,6 +16,43 @@ export class DBGame {
 
     // Migrations
     async applyMigrations() {
+
+        async function ranameWorldsUniqueTitle(conn) {
+            const rows = await conn.all("SELECT id, title, LOWER(title) low, guid FROM world");
+            const map = {};
+            const newMap = {};
+            for(var row of rows) {
+                map[row.low] = map[row.low] || [];
+                map[row.low].push(row);
+                newMap[row.low] = true;
+            }
+            for(var low in map) {
+                const arr = map[low];
+                for(var i = 1; i < arr.length; i++) {
+                    var row = arr[i];
+                    // choose a new title
+                    var tryN = 2;
+                    var newTitle;
+                    do {
+                        newTitle = row.title + '_' + tryN;
+                        tryN++;
+                    } while (newMap[newTitle.toLowerCase()]);
+                    newMap[newTitle.toLowerCase()] = true;
+                    // rename in the game DB
+                    await conn.run("UPDATE world SET title = ? WHERE id = ?", [newTitle, row.id]);
+                    // rename in the world DB
+                    const fileName = `../world/${row.guid}/world.sqlite`;
+                    try {
+                        const worldConn = await SQLiteServerConnector.connect(fileName);
+                        await worldConn.run("UPDATE world SET title = ?", newTitle);
+                        await worldConn.close();
+                        console.log(`Renamed world id=${row.id} ${row.guid} "${row.title}" -> "${newTitle}"`);
+                    } catch {
+                        console.error(`Can't rename world id=${row.id} in ${fileName} "${row.title}" -> "${newTitle}"`);
+                    }
+                }
+            }
+        }
 
         let version = 0;
         
@@ -135,6 +175,7 @@ export class DBGame {
             'DROP TABLE user',
             'ALTER TABLE user_copy RENAME TO user',
             // change world.title COLLATE NOCASE
+            ranameWorldsUniqueTitle,
             `CREATE TABLE "world_copy" (
                 "id"	INTEGER,
                 "guid"	text NOT NULL,
@@ -159,13 +200,43 @@ export class DBGame {
             'CREATE INDEX world_player_user_id_wrold_id ON world_player (user_id, world_id)',
             'CREATE INDEX world_guid ON world (guid)',
             'CREATE UNIQUE INDEX world_title ON world (title)'
-        ]});        
+        ]});
+
+        migrations.push({version: 12, queries: [
+            // hash
+            `CREATE TABLE "skin" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "dt" INTEGER NOT NULL,
+                "file" TEXT NOT NULL,       -- the file name relative to SKIN_ROOT, without an extension
+                "type" INTEGER NOT NULL,
+                "rights" INTEGER NOT NULL DEFAULT 0,
+                "hash" TEXT,                -- base64url-encoded md5 of Buffer returned by Jimp bitmap.data
+                "uploader_user_id" INTEGER,
+                "original_name" TEXT    -- unused, but it may be useful to understand the uploaded skin, so we store it
+            )`,
+            'CREATE UNIQUE INDEX skin_hash_type ON skin (hash, type)',
+            'CREATE INDEX skin_rights ON skin (rights)',
+            // Reserve lower IDs for manualy added skins.
+            // It's not a problem if we run out of low ids, just use the regular autoincrements
+            `INSERT INTO sqlite_sequence (name, seq) VALUES ("skin", ${UPLOAD_STARTING_ID})`,
+            `CREATE TABLE "user_skin" (
+                "user_id" INTEGER NOT NULL,
+                "skin_id" INTEGER NOT NULL,
+                "dt" INTEGER NOT NULL,
+                PRIMARY KEY("user_id", "skin_id")
+            ) WITHOUT ROWID`,
+            'CREATE INDEX user_skin_skin_id ON user_skin (skin_id)',
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
                 for(let query of m.queries) {
-                    await this.conn.get(query);
+                    if (typeof query === 'string') {
+                        await this.conn.get(query);
+                    } else {
+                        await query(this.conn);
+                    }
                 }
                 await this.conn.get('update options set version = ' + (++version));
                 await this.conn.get('commit');
@@ -200,7 +271,7 @@ export class DBGame {
             throw 'error_player_exists';
         }
         const guid = randomUUID();
-        const result = await this.conn.run('INSERT INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO user(dt, guid, username, password) VALUES (:dt, :guid, :username, :password)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':username':    username,
@@ -208,10 +279,13 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
             const row = await this.conn.get('SELECT id AS lastID FROM user WHERE guid = :guid', {
                 ':guid': guid
             });
+            if (!row) {
+                throw 'error_player_exists';
+            }
             lastID = row.lastID;
         }
         //
@@ -304,10 +378,10 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
-        let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
-        if (worldWithSameTitle != null) {
-            throw 'error_world_with_same_title_already_exist';
-        }
+        // let worldWithSameTitle = await this.conn.get('SELECT title FROM world WHERE title = :title', { ':title': title});
+        // if (worldWithSameTitle != null) {
+        //     throw 'error_world_with_same_title_already_exist';
+        // }
         const guid = randomUUID();
         let default_pos_spawn = generator.pos_spawn;
         switch(generator?.id) {
@@ -321,7 +395,7 @@ export class DBGame {
                 break;
             }
         }
-        const result = await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
+        const result = await this.conn.run('INSERT OR IGNORE INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          unixTime(),
             ':guid':        guid,
             ':user_id':     user_id,
@@ -333,13 +407,15 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
             const row = await this.conn.get('SELECT id AS lastID FROM world WHERE guid = :guid', {
                 ':guid': guid
             });
+            if (!row) {
+                throw 'error_world_with_same_title_already_exist';
+            }
             lastID = row.lastID;
         }
-        lastID = parseInt(lastID);
         //
         await this.InsertWorldPlayer(lastID, user_id);
         return {
@@ -363,7 +439,7 @@ export class DBGame {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT id AS lastID FROM world_player WHERE user_id = :user_id', {
                 ':user_id': user_id
             });

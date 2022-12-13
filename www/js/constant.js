@@ -96,3 +96,14 @@ export const KEY = {
     SLASH: 191,
     F11: 122
 };
+
+export const CLIENT_SKIN_ROOT = './media/models/player_skins/';
+
+export const SKIN_RIGHTS_DEFAULT = 0;
+export const SKIN_RIGHTS_FREE = 1;
+export const SKIN_RIGHTS_UPLOADED = 2;
+
+export const PLAYER_SKIN_TYPES = {
+    0: 'player:steve',
+    1: 'player:alex'
+};

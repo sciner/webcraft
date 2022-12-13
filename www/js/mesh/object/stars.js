@@ -35,15 +35,16 @@ export class Mesh_Object_Stars {
 
     }
 
-    // calc stars brightness based on time
+    // calc stars brightness based on time and nightshift
     getCurrentStarBrightness() {
         const time = Qubatch.world.getTime().time;
+        const nightshift_255 = Qubatch.render.env.nightshift * 255;
         return Math.round(((time > SBEGIN || time < SEND) ?
             (
                 (time > SBEGIN && time < SBEGIN+SLEN) ?
                 (((time-SBEGIN)%SLEN)/SLEN) :
                 ((time > (SEND-SLEN) && time < SEND) ? (SLEN-(time-(SEND-SLEN)))/SLEN : 1)
-            ) : 0) * 255);
+            ) : 0) * nightshift_255);
     }
 
     //

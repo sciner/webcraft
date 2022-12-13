@@ -114,6 +114,10 @@ export class World {
                 }
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_BUILDING_SCHEMA_ADD], (cmd) => {
+                this.chunkManager.postWorkerMessage(['buildingSchemaAdd', cmd.data]);
+            });
+
             // Connect
             await this.server.connect(() => {
 

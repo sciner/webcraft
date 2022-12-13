@@ -1084,6 +1084,10 @@ async function needOpenWindow(e, world, pos, player, world_block, world_material
                 actions.open_window = world_material.window;
                 break;
             }
+            case BLOCK.BREWING_STAND.id: {
+                actions.open_window = world_material.window;
+                break;
+            }
             case BLOCK.CHARGING_STATION.id: {
                 actions.open_window = world_material.window;
                 break;

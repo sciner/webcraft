@@ -64,6 +64,11 @@ button,
         &:active {
             background-color: darken(@color-yellow-active, 10%);
         }
+        
+        &:disabled {
+            background-color: @color-grey;
+            cursor: default;
+        }
     }
 
     &.secondary {
@@ -76,6 +81,11 @@ button,
 
         &:focus {
             background-color: darken(@color-button-active, 10%);
+        }
+        
+        &:disabled {
+            background-color: @color-grey;
+            cursor: default;
         }
     }
 }
@@ -286,6 +296,14 @@ h1 {
     @media only screen and (max-width: @media-mobile) {
         text-align: center;
     }
+
+}
+
+@media only screen and (max-width: @media-mobile) {
+    h1 {
+        flex-direction: column;
+        gap: 0.2em;
+    }
 }
 
 .content {
@@ -431,6 +449,11 @@ h1 {
 
 .flex {
     display: flex;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
 }
 
 .justify-between {

@@ -4,7 +4,7 @@ import { TBlock } from "../../../www/js/typed_blocks3.js";
 import { ServerClient } from "../../../www/js/server_client.js";
 import { DelayedBlockListener } from "../ticker_helpers.js"
 
-export const CAN_SUPPORT_BUBBLES = [BLOCK.SOUL_SAND.id, BLOCK.BUBBLE_COLUMN.id];
+export const CAN_SUPPORT_BUBBLES = [88, 415]; // soul_sand, bubble_column
 export const BUBBLES_PROPAGATION_DELAY = 800;
 
 // adds a block of bubbles above, if the newly added block supports it
