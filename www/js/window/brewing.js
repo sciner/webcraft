@@ -23,7 +23,6 @@ export class BrewingWindow extends BaseChestWindow {
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
         });
-        this.tick = 0;
     }
 
     //
@@ -42,7 +41,7 @@ export class BrewingWindow extends BaseChestWindow {
         super.draw(ctx, ax, ay);
         if(this.state) {
             if(typeof this.style.background.image == 'object') {
-                const bubble_percent = (this.tick++ % 50) / 50;
+                const bubble_percent = (Math.round(performance.now() / 50) % 50) / 50;
                 const fuel_percent = this.state.fuel_time / this.state.max_time;
                 // 1. fire
                 const x = ax + this.x;
