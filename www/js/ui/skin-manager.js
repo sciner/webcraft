@@ -1,6 +1,7 @@
 import {Helpers} from '../helpers.js';
 import {Resources} from '../resources.js';
 import {CLIENT_SKIN_ROOT} from '../constant.js';
+import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
 export class SkinManager {
 
@@ -19,6 +20,31 @@ export class SkinManager {
         this.currentSkinIsOwned = false;
         // if it's not null, it'll be used once to set index, and then set to null again
         this.restoreSkinIndex  = null;
+    }
+
+    initSkinView3d(id) {
+        this.skinViewer = this._initSkinView3d('skin_container');
+    }
+
+    initPreviewSkinView3d() {
+        this.previewSkinViewer = this._initSkinView3d('preview_skin_container')
+    }
+
+    _initSkinView3d(id) {
+        const skinViewer = new skinview3d.SkinViewer({
+            canvas: document.getElementById(id),
+            width: 300,
+            height: 300,
+            animation: new skinview3d.WalkingAnimation() // IdleAnimation WalkingAnimation RunningAnimation FlyingAnimation
+        });
+        skinViewer.camera.rotation.x = -0.620;
+        skinViewer.camera.rotation.y = 0.534;
+        skinViewer.camera.rotation.z = 0.348;
+        skinViewer.camera.position.x = 30.5;
+        skinViewer.camera.position.y = 22.0;
+        skinViewer.camera.position.z = 42.0;
+        skinViewer.zoom = 1
+        return skinViewer;
     }
 
     get currentSkin() {
@@ -90,6 +116,11 @@ export class SkinManager {
 
     onCurrentSkinChange() {
         this.#controller.$apply(() => {
+            if(this.skinViewer) {
+                // TODO: Where saved skin model (slim or not) for uploaded skin?
+                const model = 'auto-detect';
+                this.skinViewer.loadSkin(this.currentSkin.file, {model})
+            }
             this.currentSkinIsOwned = this.currentSkin?.owned || false;
         });
     }
@@ -190,6 +221,18 @@ export class SkinManager {
             document.getElementById('new-skin-input').value = null;
         }
 
+        //
+        const skinImageIsSlim = (img) => {
+            const x = 50
+            const y = 16
+            let canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            let pixelData = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
+            return pixelData[3] == 0; 
+        }
+
         var that = this;
         var file = $event.target.files[0];
         if (!file) {
@@ -197,19 +240,29 @@ export class SkinManager {
             // A workaround is complex and not angularjs-friendly: https://stackoverflow.com/questions/17798993/input-type-file-clearing-file-after-clicking-cancel-in-chrome
             return;
         }
+
         const reader = new FileReader();
         reader.onloadend = function () {
             // Load it into an off-screen image to check the size.
             const img = new Image();
             img.onload = function () {
+
                 if (img.naturalWidth != 64 || img.naturalHeight != 64) {
-                    onSkinError('error_skin_size_must_be_64');
-                    return;
+                    return onSkinError('error_skin_size_must_be_64');
                 }
+
+                const is_slim = skinImageIsSlim(img)
+                const model = is_slim ? 'slim' : 'default';
+
+                that.previewSkinViewer.loadSkin(img, {model})
+
+                that.skin_preview_image = img
+
                 that.#controller.$apply(() => {
                     // Set the actual image. Now it's ready to be uploaded.
                     that.newSkinDataURL = reader.result;
                     that.newSkinFileName = file.name;
+                    that.newSkinSlim = is_slim
                 });
             };
             img.onerror = function () {
@@ -232,6 +285,13 @@ export class SkinManager {
                 this.#controller.current_window.show('skin');
             });
         });
+    }
+
+    changePreviewSkinSlim() {
+        if(this.skin_preview_image) {
+            const model = this.newSkinSlim ? 'slim' : 'default';
+            this.previewSkinViewer.loadSkin(this.skin_preview_image, {model})
+        }
     }
 
     newSkinCancel() {

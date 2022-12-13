@@ -446,7 +446,7 @@
                     <div class="flex-row">
                         <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
                         &nbsp;
-                        <button class="secondary" ng-click="skin.deleteSkin()" ng-disabled="!skin.currentSkinIsOwned">{{Lang.delete}}</button>
+                        <button class="secondary" ng-click="skin.deleteSkin()" ng-if="skin.currentSkinIsOwned">{{Lang.delete}}</button>
                     </div>
                 </h1>
                 <div id="skins-slider" class="keen-slider zoom-out">
@@ -460,6 +460,7 @@
                     <button id="slider-prev" class="slider-btn disabled" onclick="sliderPrev()">
                         <i class="icon-chevron-left"></i>
                     </button>
+                    <canvas id="skin_container" ng-init="skin.initSkinView3d()"></canvas>
                     <div id="skins-preview-slider" class="keen-slider thumbnail">
                         <div class="keen-slider__slide" ng-repeat="k in skin.list track by k.id"><img ng-src="{{k.preview}}"/></div>
                     </div>
@@ -510,7 +511,8 @@
                 <h3 class="header">New skin</h3>
                 <div class="input-group">
                     <div>
-                        <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/>
+                        <canvas id="preview_skin_container" ng-init="skin.initPreviewSkinView3d()"></canvas>
+                        <!-- <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/> -->
                     </div>
                     <div>&nbsp;</div>
                     <div class="flex-row items-center">
@@ -520,7 +522,7 @@
                         </div>
                         &nbsp;&nbsp;&nbsp;
                         <div class="switcher-container">
-                            <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" />
+                            <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" ng-change="skin.changePreviewSkinSlim()" />
                             <div class="switcher">
                                 <small></small>
                             </div>
