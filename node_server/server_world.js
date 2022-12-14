@@ -90,40 +90,7 @@ export class ServerWorld {
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
 
-        /*if(this.info.title == 'BLDGFYT') {
-            this.db.conn.run('DELETE FROM world_modify');
-            this.db.conn.run('DELETE FROM world_modify_chunks');
-            const blocks = [];
-            const chunks_addr = new VectorCollector()
-            for(let schema of Object.values(BuilgingTemplate.schemas)) {
-                for(let b of schema.blocks) {
-                    const item = {id: b.block_id};
-                    if(!schema.world.door_bottom) {
-                        console.log(schema.world)
-                        throw 'wer'
-                    }
-                    // const y = schema.world.door_bottom.y - schema.world.pos1.y;
-                    // const y = schema.door_pos.y //- schema.world.pos1.y;
-                    const y = schema.door_pos.y //+ schema.world.door_bottom.y - schema.world.pos1.y 
-                    const pos = new Vector(
-                        schema.world.door_bottom.x - b.move.x,
-                        schema.world.pos1.y + b.move.y + y,
-                        schema.world.door_bottom.z - b.move.z
-                    )
-                    chunks_addr.set(getChunkAddr(pos), true);
-                    if(b.extra_data) item.extra_data = b.extra_data
-                    if(b.rotate) item.rotate = b.rotate
-                    blocks.push({pos, item})
-                }
-            }
-            let t = performance.now()
-            await this.db.blockSetBulk(this, null, blocks)
-            console.log(performance.now() - t)
-            t = performance.now()
-            await this.db.updateChunks(chunks_addr.keys());
-            console.log(performance.now() - t)
-        }
-        */
+        await this.makeBuildingsWorld()
 
         //
         this.packet_reader  = new PacketReader();
@@ -167,6 +134,65 @@ export class ServerWorld {
 
     getDefaultPlayerIndicators() {
         return this.db.getDefaultPlayerIndicators();
+    }
+
+    async makeBuildingsWorld() {
+
+        if(this.info.title != 'BLDGFYT') {
+            return
+        }
+
+        // flush database
+        this.db.conn.run('DELETE FROM world_modify');
+        this.db.conn.run('DELETE FROM world_modify_chunks');
+
+        const blocks = [];
+        const chunks_addr = new VectorCollector()
+        const block_road = {id: 8}
+        const block_num1 = {id: 209}
+        const block_num2 = {id: 210}
+
+        const addBlock = (pos, item) => {
+            blocks.push({pos, item})
+            chunks_addr.set(getChunkAddr(pos), true);
+        }
+
+        // make road
+        for(let x = 10; x > -1000; x--) {
+            const pos = new Vector(x, 0, 2)
+            addBlock(pos, block_road)
+        }
+
+        // each all buildings
+        for(let schema of Object.values(BuilgingTemplate.schemas)) {
+            addBlock(new Vector(schema.world.pos1), block_num1)
+            addBlock(new Vector(schema.world.pos2), block_num2)
+            addBlock(new Vector(schema.world.pos1.x, 1, 2), {id: 643, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            for(let b of schema.blocks) {
+                const item = {id: b.block_id};
+                const y = schema.world.door_bottom.y - schema.door_pos.y - 1
+                const z = schema.door_pos.z
+                const pos = new Vector(
+                    schema.world.door_bottom.x - b.move.x,
+                    schema.world.pos1.y + b.move.y - y,
+                    schema.world.door_bottom.z - b.move.z + z
+                )
+                if(b.extra_data) item.extra_data = b.extra_data
+                if(b.rotate) item.rotate = b.rotate
+                addBlock(pos, item)
+            }
+        }
+
+        // store modifiers in db
+        let t = performance.now()
+        await this.db.blockSetBulk(this, null, blocks)
+        console.log(performance.now() - t)
+
+        // compress chunks in db
+        t = performance.now()
+        await this.db.updateChunks(chunks_addr.keys());
+        console.log(performance.now() - t)
+
     }
 
     get serverTime() {
