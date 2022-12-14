@@ -141,7 +141,7 @@ export class ServerWorld {
      */
     async makeBuildingsWorld() {
 
-        if(this.info.title != config.building_schames_world_name) {
+        if(this.info.title != config.building_schemas_world_name) {
             return false
         }
 

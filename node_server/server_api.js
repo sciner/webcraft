@@ -41,7 +41,7 @@ export class ServerAPI {
             case '/api/Game/CreateWorld': {
 
                 // check admin rights for specific world
-                if([config.building_schames_world_name].includes(params.title)) {
+                if([config.building_schemas_world_name].includes(params.title)) {
                     const session = await Qubatch.db.GetPlayerSession(session_id);
                     ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
                 }

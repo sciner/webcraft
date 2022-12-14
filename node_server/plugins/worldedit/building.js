@@ -62,7 +62,7 @@ export class WorldEditBuilding {
     async save(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.title != config.building_schames_world_name) {
+        if(chat.world.info.title != config.building_schemas_world_name) {
             throw 'error_invalid_world';
         }
 
