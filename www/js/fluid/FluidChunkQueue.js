@@ -59,7 +59,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
     let goesSides = lvl === 0;
     let hasSupport = lvl === 0 || lvl === 8 && (neib[0] & FLUID_TYPE_MASK) === fluidType;
     // check down
-    if ((neib[1] & FLUID_SOLID16) === 0) {
+    if ((neib[1] & FLUID_SOLID16) !== 0) {
         goesSides = true;
     } else {
         let neibType = (neib[1] & FLUID_TYPE_MASK);
@@ -110,12 +110,12 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
                 hasImprovement = true;
             }
         }
-        hasImprovement = hasImprovement || (hasEmpty & !hasDownFlow);
         if (hasImprovement) {
             return true;
         }
     }
-    return !hasSupport;
+    hasImprovement = hasImprovement || !hasSupport || (hasEmpty & !hasDownFlow);
+    return hasImprovement;
 }
 
 export class FluidChunkQueue {
@@ -537,6 +537,7 @@ export class FluidChunkQueue {
                 goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
             }
             let flowMask = 0, emptyMask = 0, emptyBest = 0;
+            let hasDownFlow = false;
             // 4 propagate to neibs
             for (let dir = 1; dir < 6; dir++) {
                 let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
@@ -578,6 +579,9 @@ export class FluidChunkQueue {
                         } else if (neibLvl === 8) {
                             //nothing
                         } else {
+                            if (neibLvl >= moreThan) {
+                                hasDownFlow = true;
+                            }
                             improve = neibLvl > moreThan;
                             if (changed) {
                                 improve |= neibLvl === oldLvl + lower;
@@ -595,7 +599,7 @@ export class FluidChunkQueue {
                 }
             }
             // TODO: bfs for shortest route like in MC
-            if (emptyMask > 0) {
+            if (emptyMask > 0 && (!hasDownFlow || lvl === 0)) {
                 if (emptyBest > 0) {
                     emptyMask = emptyBest;
                 }
