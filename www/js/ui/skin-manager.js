@@ -133,7 +133,8 @@ export class SkinManager {
                 var ownList = resp || []; // on invalid session resp == null
                 for(let skin of resp) {
                     skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
-                    skin.preview = skin.file;
+                    // don't show raw preview in the inventory:
+                    // skin.preview = skin.file;
                     skin.owned = true;
                 }
                 resp.sort((a, b) => a.id - b.id);
@@ -159,7 +160,8 @@ export class SkinManager {
 
         this.#controller.Qubatch.skins = this;
         const skin_id = localStorage.getItem('skin');
-        this.#controller.Qubatch.skin = {id: skin_id};
+        this.#controller.Qubatch.skin = this.currentSkin.id == skin_id 
+            ? this.currentSkin : {id: skin_id};
     }
 
     //
