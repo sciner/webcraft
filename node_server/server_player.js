@@ -152,11 +152,12 @@ export class ServerPlayer extends Player {
             name: ServerClient.CMD_HELLO,
             data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
+
         //
         this.sendPackets([{
             name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
             data: {
-                list: Object.values(BuilgingTemplate.schemas)
+                list: Array.from(BuilgingTemplate.schemas.values())
             }
         }]);
 

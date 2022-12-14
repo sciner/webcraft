@@ -46,6 +46,10 @@ export const PORTAL_SIZE                    = {width: 4, height: 5};
 export const MAX_PORTAL_SEARCH_DIST         = 128;
 export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 
+// World types
+export const WORLD_TYPE_NORMAL              = 1;
+export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
+
 export const MOUSE = {
     DOWN: 1,
     UP: 2,

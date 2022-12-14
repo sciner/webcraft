@@ -3,7 +3,7 @@ import { Vector, VectorCollector } from "../../helpers.js";
 //
 export class BuilgingTemplate {
 
-    static schemas = {};
+    static schemas = new Map();
 
     constructor(json, bm) {
 
@@ -25,7 +25,7 @@ export class BuilgingTemplate {
         schema.world.pos1 = new Vector(schema.world.pos1)
         schema.world.pos2 = new Vector(schema.world.pos2)
         schema.world.door_bottom = new Vector(schema.world.door_bottom)
-        this.schemas[schema.name] = schema
+        this.schemas.set(schema.name, schema);
     }
 
     static fromSchema(name, bm) {
@@ -33,7 +33,7 @@ export class BuilgingTemplate {
     }
 
     static getSchema(name) {
-        const resp = this.schemas[name]
+        const resp = this.schemas.get(name)
         if(!resp) throw 'building_schema_not_found'
         return resp
     }

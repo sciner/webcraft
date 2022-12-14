@@ -6,6 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
+import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
 
 /**
  * World generation unfo passed from server
@@ -114,8 +115,12 @@ export class World {
                 }
             });
 
+            // Add or update building schemas
             this.server.AddCmdListener([ServerClient.CMD_BUILDING_SCHEMA_ADD], (cmd) => {
                 this.chunkManager.postWorkerMessage(['buildingSchemaAdd', cmd.data]);
+                for(let schema of cmd.data.list) {
+                    BuilgingTemplate.addSchema(schema);
+                }
             });
 
             // Connect
