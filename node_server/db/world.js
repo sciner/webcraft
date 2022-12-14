@@ -706,4 +706,18 @@ export class DBWorld {
     async setTitle(title)  {
         await this.conn.run('UPDATE world SET title = ?', [title]);
     }
+
+    async flushWorld() {
+        await this.TransactionBegin()
+        try {
+            for(let tablename of ['world_chunks_fluid', 'world_modify', 'world_modify_chunks', 'drop_item', 'entity', 'painting', 'portal', 'teleport_points', 'chunk']) {
+                this.conn.run(`DELETE FROM ${tablename}`);
+            }
+            await this.TransactionCommit()
+        } catch(e) {
+            await this.TransactionRollback()
+            throw e;
+        }
+    }
+
 }

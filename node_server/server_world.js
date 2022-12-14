@@ -136,15 +136,17 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    /**
+     * @returns {boolean}
+     */
     async makeBuildingsWorld() {
 
-        if(this.info.title != 'BLDGFYT') {
-            return
+        if(this.info.title != config.building_schames_world_name) {
+            return false
         }
 
         // flush database
-        this.db.conn.run('DELETE FROM world_modify');
-        this.db.conn.run('DELETE FROM world_modify_chunks');
+        await this.db.flushWorld()
 
         const blocks = [];
         const chunks_addr = new VectorCollector()
@@ -198,12 +200,14 @@ export class ServerWorld {
         // store modifiers in db
         let t = performance.now()
         await this.db.blockSetBulk(this, null, blocks)
-        console.log(performance.now() - t)
+        console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
         t = performance.now()
         await this.db.updateChunks(chunks_addr.keys());
-        console.log(performance.now() - t)
+        console.log('Building: compress chunks in db ...', performance.now() - t)
+
+        return true
 
     }
 

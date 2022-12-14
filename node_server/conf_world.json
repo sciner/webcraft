@@ -1,4 +1,5 @@
 {
+    "building_schames_world_name": "BLDGFYT",
     "building_schemas": [
         {"name": "church", "pos1": {"x": 5, "y": 0, "z": 1}, "pos2": {"x": -5, "y": 26, "z": -19}, "door_bottom": {"x": 0, "y": 1, "z": -1}},
         {"name": "nico", "pos1": {"x": -17, "y": 1, "z": 1}, "pos2": {"x": -29, "y": 8, "z": -10}, "door_bottom": {"x": -24, "y": 2, "z": -2}},
