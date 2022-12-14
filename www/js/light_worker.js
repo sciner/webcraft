@@ -69,6 +69,7 @@ function run() {
                     uniqId: chunk.uniqId,
                 }]);
             }
+            world.estimateGroundLevel();
         }
 
         endChunks++;
@@ -183,12 +184,17 @@ async function onMessageFunc(e) {
             break;
         }
         case 'destructChunk': {
+            var changed = false;
             for (let addr of args) {
                 let chunk = world.chunkManager.getChunk(addr);
                 if (chunk) {
                     chunk.removed = true;
                     world.chunkManager.delete(chunk);
+                    changed = true;
                 }
+            }
+            if (changed) {
+                world.estimateGroundLevel();
             }
             break;
         }

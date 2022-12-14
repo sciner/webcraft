@@ -10,6 +10,9 @@ import {
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
 
+const MIN_LIGHT_Y_STRIDE = 2;   // we fin minY not in each column
+const MIN_LIGHT_Y_BUCKET_SIZE = 8; // we store one minY per bucket
+
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
     const sx = 1, sz = size.x, sy = size.x * size.z;
@@ -54,6 +57,8 @@ export class Chunk {
         this.len = this.lightChunk.insideLen;
         this.outerLen = this.lightChunk.outerLen;
 
+        this.xzKey = this.addr.x.toString() + '_' + this.addr.y;
+        this.minLightY = null;
     }
 
     get chunkManager() {
@@ -159,6 +164,59 @@ export class Chunk {
                 }
         if (found) {
             this.lastID++;
+        }
+    }
+
+    calcMinLightY(is4444) {
+        const {outerSize, size} = this;
+        const result = this.lightResult;
+        const baseY = this.lightChunk.pos.y;
+
+        const padding = this.lightChunk.padding;
+        const sx = 1;
+        const sz = sx * outerSize.x;
+        const sy = sz * outerSize.z;
+
+        const szBucket = size.x / MIN_LIGHT_Y_BUCKET_SIZE | 0;
+
+        this.minLightY = this.minLightY || new Array(
+            (this.size.x / MIN_LIGHT_Y_BUCKET_SIZE | 0) *
+            (this.size.z / MIN_LIGHT_Y_BUCKET_SIZE | 0));
+        for(var i = 0; i < this.minLightY.length; i++) {
+            this.minLightY[i] = Infinity;
+        }
+        // for each column
+        for (let x = 0; x < size.x; x += MIN_LIGHT_Y_STRIDE) {
+            for (let z = 0; z < size.z; z += MIN_LIGHT_Y_STRIDE) {
+                const base = (x + padding) * sx + (z + padding) * sz;
+                // find the lowest lit block
+                var bestY = Infinity;
+                for(let y = 1; y < size.y; y += 2) {
+                    var ind = base + (y + padding) * sy;
+                    const hasLight = is4444
+                        ? (result[ind] & 0xF00) !== 0xF00
+                        : result[ind * 4 + 1] !== 0xFF;
+                    if (hasLight) {
+                        // improve Y accuracy to 1 block
+                        ind -= sy;
+                        const hasLightBelow = is4444
+                            ? (result[ind] & 0xF00) !== 0xF00
+                            : result[ind * 4 + 1] !== 0xFF;
+                        if (hasLightBelow) {
+                            y--;
+                        }
+                        // we found it!
+                        bestY = baseY + y;
+                        break;
+                    }
+                }
+                // save it in the bucket
+                const outInd = ((x - padding) / MIN_LIGHT_Y_BUCKET_SIZE | 0) + 
+                    ((z - padding) / MIN_LIGHT_Y_BUCKET_SIZE | 0) * szBucket;
+                if (this.minLightY[outInd] > bestY) {
+                    this.minLightY[outInd] = bestY;
+                }
+            }
         }
     }
 
@@ -276,6 +334,7 @@ export class Chunk {
         //
         if (changed) {
             this.crc++;
+            this.calcMinLightY(is4444);
         } else {
             // TODO: find out why are there so many calcResults
             // console.log('WTF');

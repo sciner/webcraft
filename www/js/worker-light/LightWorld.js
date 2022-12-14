@@ -1,4 +1,4 @@
-import {VectorCollector, Vector} from '../helpers.js';
+import {VectorCollector, Vector, ArrayHelpers} from '../helpers.js';
 import {BaseChunk} from '../core/BaseChunk.js';
 import {
     OFFSET_DAY,
@@ -11,6 +11,9 @@ import {
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
+
+const MIN_LIGHT_Y_MIN_PERCENT = 0.05;
+const MIN_LIGHT_Y_MAX_PERCENT = 0.15;
 
 export class ChunkManager {
     constructor(world) {
@@ -122,5 +125,42 @@ export class LightWorld {
                 }
             }
         }
+    }
+
+    estimateGroundLevel() {
+        // For each column of chunks, and for each (x, z) within that column,
+        // find the lowest block with any light. The exact x and z don't matter.
+        var byXZ = {};
+        for(let chunk of this.chunkManager.list) {
+            if (chunk.minLightY != null) {
+                const values = byXZ[chunk.xzKey];
+                if (values == null) {
+                    byXZ[chunk.xzKey] = chunk.minLightY;
+                } else {
+                    for(var i = 0; i < values.length; i++) {
+                        if (values[i] > chunk.minLightY[i]) {
+                            values[i] = chunk.minLightY[i];
+                        }
+                    }
+                }
+            }
+        }
+        // select the average Y from the MIN_LIGHT_Y_MIN_PERCENT..MIN_LIGHT_Y_MAX_PERCENT of values
+        var list = [];
+        for(let key in byXZ) {
+            list.push(...byXZ[key]);
+        }
+        var groundLevel = null;
+        if (list.length !== 0) {
+            var minInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MIN_PERCENT);
+            var maxInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MAX_PERCENT);
+            ArrayHelpers.partialSort(list, maxInd + 1);
+            var sum = 0;
+            for(var i = minInd; i <= maxInd; i++) {
+                sum += list[i];
+            }
+            groundLevel = sum / (maxInd - minInd + 1);
+        }
+        worker.postMessage(['ground_level_estimated', groundLevel]);
     }
 }

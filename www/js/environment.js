@@ -1,5 +1,5 @@
 //@ts-check
-import { lerpComplex, Mth } from "./helpers.js";
+import { lerpComplex, Mth, Vector } from "./helpers.js";
 import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
@@ -20,6 +20,9 @@ export const PRESET_NAMES = {
     NETHER_PORTAL: 'nether_portal'
 }
 
+const HORIZON_BRIGHTNESS_MIN_DEPTH = 4;
+const HORIZON_BRIGHTNESS_MAX_DEPTH = 10;
+const HORIZON_BRIGHTNES_PER_SECOND = 0.5;
 
 export class FogPreset {
     /**
@@ -569,6 +572,12 @@ export class Environment {
         this.sunDir = [0.9593, 1.0293, 0.6293];
         this.brightness = 1.;
         this.nightshift = 1.; // it's 1 above the surface, and 0 deep beow
+        
+        // similar to nightshift, but based on estimated depth
+        this.horizonBrightness = 1;
+        this.hbLastPos = new Vector() // used for temporal smoothing;
+        this.hbLastTime = -Infinity;
+        this.deepHorizonEnabled = true;
 
         this.skyBox = null;
 
@@ -766,10 +775,43 @@ export class Environment {
         }
     }
 
+    updateDeepHorizon() {
+        const groundLevelEastimtion = Qubatch.world.chunkManager.groundLevelEastimtion;
+
+        const player = Qubatch.player;
+        const disabled = !this.deepHorizonEnabled || player.eyes_in_block?.is_water;
+        if (disabled || groundLevelEastimtion == null) {
+            this.horizonBrightness = this.nightshift;
+            if (disabled) {
+                // when it becomes enabled, it's instant.
+                this.hbLastTime = performance.now();
+            }
+            return;
+        }
+        // calculate brightness based on depth
+        const playerPos = Qubatch.player.pos;
+        var elevation = playerPos.y - groundLevelEastimtion;
+        var newHorizonBrightness = Mth.lerpAny(elevation, 
+            -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,
+            -HORIZON_BRIGHTNESS_MAX_DEPTH, 0);
+        newHorizonBrightness = Math.min(newHorizonBrightness, this.nightshift);
+        // temporal smoothing (helps when many chunks change quickly)
+        const maxDelta = this.hbLastPos.distance(playerPos) < 10
+            ? (performance.now() - this.hbLastTime) * 0.001 * HORIZON_BRIGHTNES_PER_SECOND
+            : Infinity;
+        var delta = newHorizonBrightness - this.horizonBrightness;
+        delta = Math.max(Math.min(delta, maxDelta), -maxDelta);
+        this.horizonBrightness += delta;
+        this.hbLastPos.copyFrom(playerPos);
+        this.hbLastTime = performance.now();
+    }
+
     updateFogState() {
         if (!this._fogDirty) {
             return;
         }
+
+        this.updateDeepHorizon();
 
         const weather = Qubatch.render.getWeather();
 
@@ -791,7 +833,7 @@ export class Environment {
         this._computedBrightness = lum * Weather.GLOBAL_BRIGHTNESS[weather];
 
         const value = this.brightness * lum * Weather.FOG_BRIGHTNESS[weather];
-        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
+        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.horizonBrightness * value);
 
         for (let i = 0; i < 3; i ++) {
             this.rawInterpolatedFog[i]     = fogColor[i] * mult;
