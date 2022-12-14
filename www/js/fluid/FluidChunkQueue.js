@@ -400,7 +400,7 @@ export class FluidChunkQueue {
             let fluidType = val & FLUID_TYPE_MASK;
             if ((qplace[index] & curFlag) === 0) {
                 //TODO: find out who violates this invariant
-                console.log("WTF_FLUID_QUEUE");
+                //console.log("WTF_FLUID_QUEUE");
             }
             qplace[index] &= !curFlag;
             if (fluidType === 0) {
