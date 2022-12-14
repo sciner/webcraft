@@ -145,8 +145,6 @@ export class Chunk {
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }
-        this.minLightY = args.minLightY;
-        chunkManager.recalcLightY();
     }
 
     genLightSourceBuf() {
