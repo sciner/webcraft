@@ -55,7 +55,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
 
     let hasImprovement = false;
 
-    let hasDownFlow = false, hasEmpty = false;
+    let hasSideFlow = false, hasEmpty = false;
     let goesSides = lvl === 0;
     let hasSupport = lvl === 0 || lvl === 8 && (neib[0] & FLUID_TYPE_MASK) === fluidType;
     // check down
@@ -100,7 +100,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
             } else {
                 let neibLvl = (neib[dir] & FLUID_LEVEL_MASK) & 7;
                 hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
-                hasDownFlow = hasDownFlow || neibLvl > lvl;
+                hasSideFlow = hasSideFlow || neibLvl > lvl;
                 hasSupport = hasSupport || neibLvl < lvl;
             }
         } else if (moreThan < 8 && goesSides) {
@@ -114,7 +114,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
             return true;
         }
     }
-    hasImprovement = hasImprovement || !hasSupport || (hasEmpty & !hasDownFlow);
+    hasImprovement = hasImprovement || !hasSupport || (hasEmpty & !hasSideFlow);
     return hasImprovement;
 }
 
@@ -400,7 +400,7 @@ export class FluidChunkQueue {
             let fluidType = val & FLUID_TYPE_MASK;
             if ((qplace[index] & curFlag) === 0) {
                 //TODO: find out who violates this invariant
-                // console.log("WTF_FLUID_QUEUE");
+                console.log("WTF_FLUID_QUEUE");
             }
             qplace[index] &= !curFlag;
             if (fluidType === 0) {
@@ -537,8 +537,9 @@ export class FluidChunkQueue {
                 goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
             }
             let flowMask = 0, emptyMask = 0, emptyBest = 0;
-            let hasDownFlow = false;
+            let hasSideFlow = false;
             // 4 propagate to neibs
+            let flowsDown = false;
             for (let dir = 1; dir < 6; dir++) {
                 let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
                 // dif26 here?
@@ -565,7 +566,7 @@ export class FluidChunkQueue {
                         // going down!
                         improve = (neibType !== 0 && neibLvl === 8) ^ !emptied;
                         if (improve && neibType === 0) {
-                            emptyMask |= 1 << dir;
+                            flowsDown = true;
                         }
                     } else {
                         // going side!
@@ -579,8 +580,8 @@ export class FluidChunkQueue {
                         } else if (neibLvl === 8) {
                             //nothing
                         } else {
-                            if (neibLvl >= moreThan) {
-                                hasDownFlow = true;
+                            if (neibLvl > oldLvl) {
+                                hasSideFlow = true;
                             }
                             improve = neibLvl > moreThan;
                             if (changed) {
@@ -599,10 +600,13 @@ export class FluidChunkQueue {
                 }
             }
             // TODO: bfs for shortest route like in MC
-            if (emptyMask > 0 && (!hasDownFlow || lvl === 0)) {
-                if (emptyBest > 0) {
-                    emptyMask = emptyBest;
-                }
+            if (emptyBest > 0) {
+                emptyMask = emptyBest;
+            }
+            if (flowsDown) {
+                emptyMask |= 1 << 1;
+            }
+            if (emptyMask > 0) {
                 for (let dir = 1; dir < 6; dir++) {
                     if ((emptyMask & (1 << dir)) > 0) {
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
