@@ -20,9 +20,9 @@ export const PRESET_NAMES = {
     NETHER_PORTAL: 'nether_portal'
 }
 
-const HORIZON_BRIGHTNESS_MIN_DEPTH = 4;
-const HORIZON_BRIGHTNESS_MAX_DEPTH = 10;
-const HORIZON_BRIGHTNES_PER_SECOND = 0.5;
+const HORIZON_BRIGHTNESS_MIN_DEPTH = 2;
+const HORIZON_BRIGHTNESS_MAX_DEPTH = 8;
+const HORIZON_MAX_BRIGHTNES_PER_SECOND = 0.5;
 
 export class FogPreset {
     /**
@@ -784,7 +784,7 @@ export class Environment {
             this.horizonBrightness = this.nightshift;
             if (disabled) {
                 // when it becomes enabled, it's instant.
-                this.hbLastTime = performance.now();
+                this.hbLastTime = -Infinity;
             }
             return;
         }
@@ -797,7 +797,7 @@ export class Environment {
         newHorizonBrightness = Math.min(newHorizonBrightness, this.nightshift);
         // temporal smoothing (helps when many chunks change quickly)
         const maxDelta = this.hbLastPos.distance(playerPos) < 10
-            ? (performance.now() - this.hbLastTime) * 0.001 * HORIZON_BRIGHTNES_PER_SECOND
+            ? (performance.now() - this.hbLastTime) * 0.001 * HORIZON_MAX_BRIGHTNES_PER_SECOND
             : Infinity;
         var delta = newHorizonBrightness - this.horizonBrightness;
         delta = Math.max(Math.min(delta, maxDelta), -maxDelta);
