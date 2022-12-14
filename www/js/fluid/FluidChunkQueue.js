@@ -220,7 +220,7 @@ export class FluidChunkQueue {
         fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
         this.markDeltaIndex(ind);
-        fluidChunk.events.pushCoord(ind, wx, wy, wz);
+        fluidChunk.events.pushCoord(ind, wx, wy, wz, forceVal);
     }
 
     pushTickIndex(index, tick = 1) {
@@ -241,8 +241,8 @@ export class FluidChunkQueue {
 
     initInBounds(localBounds) {
         const {fluidChunk} = this;
-        const {uint16View, events} = fluidChunk;
-        const {cx, cy, cz, cw, pos} = fluidChunk.dataChunk;
+        const {uint16View} = fluidChunk;
+        const {cx, cy, cz, cw} = fluidChunk.dataChunk;
         const {lavaLower} = this.fluidWorld.queue;
         for (let y = localBounds.y_min; y <= localBounds.y_max; y++) {
             for (let z = localBounds.z_min; z <= localBounds.z_max; z++)
@@ -380,6 +380,7 @@ export class FluidChunkQueue {
             qplace[ind] |= QUEUE_PROCESS;
             assignIndices[assignNum++] = ind;
         }
+        fluidChunk.events.pushCoord(ind, wx, wy, wz, val);
     }
 
     process() {
@@ -521,7 +522,6 @@ export class FluidChunkQueue {
                     changed = true;
                     if (supportLvl === 16) {
                         emptied = true;
-                        events.pushCoord(index, wx, wy, wz);
                     } else {
                         lvl = supportLvl;
                     }
@@ -616,7 +616,6 @@ export class FluidChunkQueue {
                             let nIndex = cx * nx + cy * ny + cz * nz + shiftCoord;
                             this.assign(nIndex, nx, ny, nz, asVal, portals, portals.length);
                             this.pushNextIndex(nIndex, ticks);
-                            events.pushCoord(index, nz, ny, nz);
                         } else {
                             // force into neib chunk
                             neibChunk[dir]?.assignGlobal(nx, ny, nz, ticks, asVal);
@@ -625,7 +624,8 @@ export class FluidChunkQueue {
                 }
             }
             if (changed) {
-                this.assign(index, wx, wy, wz, emptied ? 0 : (lvl | fluidType), knownPortals, portalNum);
+                const asVal = emptied ? 0 : (lvl | fluidType);
+                this.assign(index, wx, wy, wz, asVal, knownPortals, portalNum);
             }
         }
         this.assignFinish();

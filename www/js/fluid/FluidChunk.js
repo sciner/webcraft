@@ -68,7 +68,7 @@ export class FluidChunk {
         this.markDirtyMesh();
         if (this.queue) {
             this.queue.pushTickIndex(index);
-            this.events.pushCoord(index, wx, wy, wz);
+            this.events.pushCoord(index, wx, wy, wz, value);
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;

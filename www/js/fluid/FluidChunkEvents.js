@@ -1,6 +1,6 @@
 import {
-    FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_WATER_ID,
-    FLUID_WATER_INTERACT16, fluidBlockProps, OFFSET_BLOCK_PROPS,
+    FLUID_TYPE_MASK, FLUID_WATER_ID,
+    FLUID_WATER_INTERACT16, FLUID_WATER_REMOVE16, fluidBlockProps, OFFSET_BLOCK_PROPS,
 } from "./FluidConst.js";
 import {
     BLOCK
@@ -27,10 +27,11 @@ export class FluidChunkEvents {
         return this.qplace;
     }
 
-    pushCoord(index, wx, wy, wz) {
+    pushCoord(index, wx, wy, wz, val) {
         const { uint16View } = this.fluidChunk;
         const { cy } = this.fluidChunk.dataChunk;
-        if ((uint16View[index] & FLUID_WATER_INTERACT16) !== 0) {
+        const flag = (val === 0 ? FLUID_WATER_REMOVE16 : 0) | FLUID_WATER_INTERACT16;
+        if ((uint16View[index] & flag) !== 0) {
             const qplace = this.ensurePlace();
             if ((qplace[index] & QUEUE_INTERACT) === 0) {
                 qplace[index] |= QUEUE_INTERACT;
@@ -38,7 +39,7 @@ export class FluidChunkEvents {
                 this.markDirty();
             }
         }
-        if ((uint16View[index - cy] & FLUID_WATER_INTERACT16) !== 0) {
+        if ((uint16View[index - cy] & flag) !== 0) {
             const qplace = this.ensurePlace();
             if ((qplace[index - cy] & QUEUE_INTERACT) === 0) {
                 const {facetPortals, aabb} = this.fluidChunk.dataChunk;
