@@ -4802,12 +4802,7 @@
             },
             "drop_item": {"name": "DIRT", "count": 0, "chance": 0},
             "extra_data": {
-                "type": "zombie",
-                "limit": {},
-                "calculated": [
-                    {"type": "random_item", "name": "skin", "items": ["base"]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [600, 800]}
-                ]
+                "limit": {}
             },
             "texture_animations": {
                 "side": null
