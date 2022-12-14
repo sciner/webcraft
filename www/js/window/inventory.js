@@ -134,7 +134,9 @@ export class InventoryWindow extends BaseCraftWindow {
     addPlayerBox() {
         const ct = this;
         let lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom, 98 * this.zoom, 140 * this.zoom, 'lblPlayerBox', null, null);
-        lblPlayerBox.setBackground(Qubatch.skin.preview, 'stretch');
+        if(Qubatch.skin.preview) {
+            lblPlayerBox.setBackground(Qubatch.skin.preview, 'stretch');
+        }
         ct.add(lblPlayerBox);
     }
 

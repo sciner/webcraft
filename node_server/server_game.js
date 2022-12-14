@@ -76,10 +76,23 @@ export class ServerGame {
 
         // Load building template schemas
         for(let item of config.building_schemas) {
-            await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
-                json.world = {...json.world, ...item}
-                BuilgingTemplate.addSchema(json)
-            });
+            try {
+                await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+                    json.world = {...json.world, ...item}
+                    BuilgingTemplate.addSchema(json)
+                });
+            } catch(e) {
+                const schema = {
+                    name: item.name,
+                    world: {
+                        pos1: item.pos1,
+                        pos2: item.pos2,
+                        door_bottom: item.door_bottom
+                    },
+                    blocks: []
+                }
+                BuilgingTemplate.addSchema(schema)
+            }
         }
 
         // Create websocket server

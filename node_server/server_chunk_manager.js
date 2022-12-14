@@ -58,7 +58,7 @@ export class ServerChunkManager {
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
-                    this.postWorkerMessage(['buildingSchemaAdd', {list: Object.values(BuilgingTemplate.schemas)}])
+                    this.postWorkerMessage(['buildingSchemaAdd', {list: Array.from(BuilgingTemplate.schemas.values())}])
                     this.resolve_worker();
                     break;
                 }

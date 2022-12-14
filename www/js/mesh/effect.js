@@ -3,6 +3,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { Mesh_Effect_Particle } from './effect/particle.js';
+import { LIGHT_TYPE_NO } from '../constant.js';
 
 const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
 const chunk_size                            = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -198,7 +199,12 @@ export class Mesh_Effect {
 
     }
 
-    // Draw
+    /**
+     * Draw effect mesh
+     * @param { import("../render.js").Renderer } render
+     * @param {float} delta 
+     * @returns 
+     */
     draw(render, delta) {
 
         if(this.p_count < 0) {
@@ -208,21 +214,26 @@ export class Mesh_Effect {
         this.update(render, delta);
 
         if(!this.chunk) {
+            /**
+            * @type { import("../chunk.js").Chunk }
+            */
             this.chunk = ChunkManager.instance.getChunk(this.chunk_addr);
         }
 
         if(this.chunk) {
-            const light = this.chunk.getLightTexture(render.renderBackend);
-            if(light) {
-                this.material.changeLighTex(light);
-                render.renderBackend.drawMesh(
-                    this.buffer,
-                    this.material,
-                    this.chunk_coord,
-                    null
-                );
-                this.material.lightTex = null;
+            if(render.settings.use_light != LIGHT_TYPE_NO) {
+                const light = this.chunk.getLightTexture(render.renderBackend);
+                if(light) {
+                    this.material.changeLighTex(light);
+                }
             }
+            render.renderBackend.drawMesh(
+                this.buffer,
+                this.material,
+                this.chunk_coord,
+                null
+            );
+            this.material.lightTex = null;
         }
 
     }

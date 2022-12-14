@@ -9,6 +9,7 @@ import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
+export const TREE_BETWEEN_DIST      = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
 export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число деревьев в чанке
 export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева

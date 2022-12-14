@@ -1,6 +1,7 @@
 import {Color, Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
+import { DEFAULT_ATLAS_SIZE, DEFAULT_TX_SIZE } from './constant.js';
 
 let tmpCanvas;
 
@@ -81,7 +82,7 @@ export class BaseResourcePack {
 
         const texture = renderBackend.createTexture({
             source: await this.genMipMapTexture(image, settings, textureInfo),
-            style: this.genTextureStyle(image, settings, textureInfo),
+            style: this.genTextureStyle(image, settings, image.width / textureInfo.tx_cnt),
             minFilter: textureInfo?.minFilter || 'nearest',
             magFilter: textureInfo?.magFilter ||'nearest',
         });
@@ -136,7 +137,7 @@ export class BaseResourcePack {
 
             const texture = renderBackend.createTexture({
                 source: cnv.canvas,
-                style: this.genTextureStyle(cnv.canvas, settings_for_canvas),
+                style: this.genTextureStyle(cnv.canvas, settings_for_canvas, DEFAULT_TX_SIZE),
                 minFilter: 'nearest',
                 magFilter: 'nearest',
             });
@@ -224,9 +225,8 @@ export class BaseResourcePack {
         return Promise.all(tasks)
     }
 
-    genTextureStyle(image, settings) {
+    genTextureStyle(image, settings, terrainBlockSize = DEFAULT_TX_SIZE) {
         let terrainTexSize          = image.width;
-        let terrainBlockSize        = image.width / 512 * 16;
         const style = new TerrainTextureUniforms();
         style.blockSize = terrainBlockSize / terrainTexSize;
         style.pixelSize = 1.0 / terrainTexSize;

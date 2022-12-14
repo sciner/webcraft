@@ -69,6 +69,7 @@ function run() {
                     uniqId: chunk.uniqId,
                 }]);
             }
+            world.groundLevel.estimateIfNecessary();
         }
 
         endChunks++;
@@ -197,6 +198,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'setPotentialCenter': {
+            world.chunk_render_dist = args.chunk_render_dist;
             if (args.pos) {
                 world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
                 world.checkPotential();

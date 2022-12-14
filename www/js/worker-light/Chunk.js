@@ -9,6 +9,7 @@ import {
     OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
+import {ChunkGroundLevel} from "./GroundLevel.js"
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -42,6 +43,7 @@ export class Chunk {
                 strideBytes: 3,
             }: null
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
+        this.pos = this.lightChunk.pos;
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
 
@@ -54,6 +56,7 @@ export class Chunk {
         this.len = this.lightChunk.insideLen;
         this.outerLen = this.lightChunk.outerLen;
 
+        this.groundLevel = new ChunkGroundLevel(this);
     }
 
     get chunkManager() {
@@ -276,6 +279,7 @@ export class Chunk {
         //
         if (changed) {
             this.crc++;
+            this.groundLevel.calcMinLightY(is4444);
         } else {
             // TODO: find out why are there so many calcResults
             // console.log('WTF');

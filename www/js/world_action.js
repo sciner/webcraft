@@ -12,6 +12,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
+import { COVER_STYLE_SIDES } from "./constant.js";
 
 const _createBlockAABB = new AABB();
 
@@ -245,14 +246,23 @@ function makeDropItem(block, item) {
     return item;
 }
 
-// Drop block
+/**
+ * Drop block
+ * 
+ * @param {*} player 
+ * @param {*} block 
+ * @param { WorldAction } actions 
+ * @param {*} force 
+ * 
+ * @returns {object[]} dropped blocks
+ */
 function dropBlock(player, block, actions, force) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
     }*/
     if(block.material.tags.includes('no_drop')) {
-        return;
+        return [];
     }
 
     if(block.material.drop_item) {
@@ -271,6 +281,7 @@ function dropBlock(player, block, actions, force) {
                         if(count > 0) {
                             const item = makeDropItem(block, {id: drop_block.id, count: count});
                             actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                            return [item]
                         }
                     }
                 }
@@ -307,12 +318,19 @@ function dropBlock(player, block, actions, force) {
         for(let item of items) {
             actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
         }
+        return items
     }
+    return [];
 }
 
 // DestroyBlocks
 class DestroyBlocks {
 
+    /**
+     * @param { import("../../node_server/server_world.js").ServerWorld } world
+     * @param { import("../../node_server/server_player.js").ServerPlayer } player
+     * @param { WorldAction } actions 
+     */
     constructor(world, player, actions) {
         this.cv         = new VectorCollector();
         this.world      = world;
@@ -335,20 +353,21 @@ class DestroyBlocks {
         if(tblock.material.sound) {
             actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
+        const drop_items = [];
         //
         if(tblock.material.is_jukebox) {
             // If disc exists inside jukebox
             if(tblock.extra_data && tblock.extra_data.disc) {
                 const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false);
+                drop_items.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false));
                 // Stop play disc
                 actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            dropBlock(player, tblock, actions, false);
+            drop_items.push(...dropBlock(player, tblock, actions, false));
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
@@ -395,6 +414,14 @@ class DestroyBlocks {
         //
         if(tblock.material.is_chest) {
             actions.dropChest(tblock)
+        }
+        //
+        if(tblock.material.style == 'cover' && tblock.extra_data) {
+            const existing_faces = Object.keys(tblock.extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
+            const dcount = existing_faces.length
+            if(dcount > 1 && drop_items.length == 1) {
+                drop_items[0].count = dcount
+            }           
         }
     }
 
@@ -533,7 +560,7 @@ export class WorldAction {
             if(!mat.can_auto_drop) {
                 return false;
             }
-            if(!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) {
+            if((!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
             const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
@@ -633,11 +660,28 @@ export class WorldAction {
         // Уничтожаем блоки
         if (listBlockDestruction.size > 0) {
             for(const [pos, block] of listBlockDestruction.entries()) {
-                this.addBlocks([
-                    {pos: pos.clone(), item: air, drop_blocks_chance}
-                ]);
-                extruded_blocks.set(pos, 'extruded');
-                createAutoDrop(block.tblock);
+                if (pos.equal(vec_center)) { // просто удаляем центральный блок ( это tnt)
+                    this.addBlocks([
+                        {pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                    ]);
+                } else if (block.tblock.id == BLOCK.TNT.id) {
+                    // просто удаляем tnt с шаносом поджигания и взрыва
+                    if (Math.random() < 0.7) {
+                        this.addBlocks([
+                            {pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                        ]);
+                    } else if (block.tblock.extra_data.fuse == 0) {
+                        this.addBlocks([
+                            {pos: pos.clone(), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                        ]);
+                    }
+                } else {
+                    this.addBlocks([
+                        {pos: pos.clone(), item: air, drop_blocks_chance}
+                    ]);
+                    extruded_blocks.set(pos, 'extruded');
+                    createAutoDrop(block.tblock);
+                }
             }
         }
 
@@ -739,7 +783,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         // 2.
         if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
             const tblock = world.getBlock(pos);
-            if(tblock.id > 0) {
+            if(tblock?.id > 0) {
                 destroyBlocks.add(tblock, pos);
                 //
                 actions.decrement_instrument = {id: tblock.id};
@@ -798,7 +842,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
+        for(let func of [useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -860,7 +904,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Запрет установки блока на блоки, которые занимает игрок
-            if(mat_block.passable == 0) {
+            if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     x_min: player.pos.x - player.radius / 2,
@@ -908,7 +952,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
             // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions)) {
+                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
                     return actions;
                 }
             }
@@ -1205,9 +1249,17 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 }
 
 // Drop egg
-async function dropEgg(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
+    }
+    if(world_material.id == BLOCK.MOB_SPAWN.id) {
+        extra_data.type = mat_block.spawn_egg.type;
+        extra_data.skin = mat_block.spawn_egg.skin;
+        extra_data.max_ticks = 800;
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.MOB_SPAWN.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.decrement = true;
+        return true;
     }
     pos.x += pos.n.x + .5
     pos.y += pos.n.y;
@@ -1750,7 +1802,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
                 }
             }
         }
-        // поворт
+        // поворот
         if (pos.n.y != 0) {
             block.extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
         }
@@ -1772,6 +1824,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
         if (pos.n.z == 1) {
             block.extra_data.north = true;
         }
+        actions.decrement = true;
         actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     } else if (world_block.id != mat_block.id){
         const data = {};
@@ -1794,6 +1847,7 @@ async function putPlate(e, world, pos, player, world_block, world_material, mat_
             data.north = true;
         }
         data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
+        actions.decrement = true;
         actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     }
     return true;
@@ -1875,7 +1929,7 @@ async function removeFromPot(e, world, pos, player, world_block, world_material,
 }
 
 // Посадить растения можно только на блок земли
-async function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(!mat_block.planting) {
         return false;
     }
@@ -1927,7 +1981,7 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
 }
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
-async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(mat_block.tags.includes('set_only_fullface')) {
         const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
         if(!underBlock || underBlock.material.transparent) {
@@ -1938,7 +1992,7 @@ async function restrictOnlyFullFace(e, world, pos, player, world_block, world_ma
 }
 
 // Проверка места под лестницу/лианы
-async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(['ladder'].indexOf(mat_block.style) < 0) {
         return false;
     }
@@ -1988,7 +2042,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
 }
 
 // Факелы можно ставить только на определенные виды блоков!
-async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(mat_block.style != 'torch') {
         return false;
     }

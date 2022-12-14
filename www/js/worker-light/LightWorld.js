@@ -11,6 +11,7 @@ import {
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
+import {WorldGroundLevel} from "./GroundLevel.js"
 
 export class ChunkManager {
     constructor(world) {
@@ -36,6 +37,8 @@ export class ChunkManager {
         this.lightBase.addSub(chunk.lightChunk);
 
         this.chunkById[chunk.dataId] = chunk;
+
+        this.world.groundLevel.onAddChunk(chunk);
     }
 
     delete(chunk) {
@@ -43,6 +46,8 @@ export class ChunkManager {
             this.chunkById[chunk.dataId] = null;
             this.list.splice(this.list.indexOf(chunk), 1);
             this.lightBase.removeSub(chunk.lightChunk);
+            
+            this.world.groundLevel.onDeleteChunk(chunk);
         }
     }
 }
@@ -65,6 +70,8 @@ export class LightWorld {
         //this.dayLightSrc.waves.debugName = 'DayLightSrc';
         this.defDayLight = adjustSrc(15);
         this.isEmptyQueue = true;
+
+        this.groundLevel = new WorldGroundLevel(this);
     }
 
     getPotential(wx, wy, wz) {
@@ -82,6 +89,7 @@ export class LightWorld {
         if (this.isEmptyQueue && this.chunkManager.nextPotentialCenter) {
             this.chunkManager.activePotentialCenter = this.chunkManager.nextPotentialCenter;
         }
+        this.groundLevel.onCheckPotential();
     }
 
     setChunkBlock({addr, list}) {

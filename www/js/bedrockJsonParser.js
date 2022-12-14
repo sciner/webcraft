@@ -150,7 +150,7 @@ export function fillCube({
 
     }
 
-    if (dx * dz > 0) {
+    if (dx * dy > 0) {
         //north
         c = uv.north;
         target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,

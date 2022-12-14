@@ -7,6 +7,7 @@ import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
+import { Biomes } from "./terrain_generator/biome3/biomes.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -448,7 +449,15 @@ export class HUD {
 
         // My XYZ
         const playerBlockPos = player.getBlockPos();
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + player.getOverChunkBiomeId();
+        let biome_id = player.getOverChunkBiomeId()
+        if(biome_id > 0) {
+            if(!this.biomes) {
+                globalThis.BLOCK = Qubatch.world.block_manager
+                this.biomes = new Biomes(null);
+            }
+            biome_id = this.biomes.byID.get(biome_id).title
+        }
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + biome_id;
 
         if(!short_info) {
             const chunk = player.getOverChunk();

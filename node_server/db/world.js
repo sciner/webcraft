@@ -3,7 +3,7 @@ import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
-import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
+import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '../../www/js/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
@@ -53,18 +53,19 @@ export class DBWorld {
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
             const resp = {
-                id:         row.id,
-                user_id:    row.user_id,
-                dt:         row.dt,
-                guid:       row.guid,
-                title:      row.title,
-                seed:       row.seed,
-                game_mode:  row.game_mode,
-                generator:  JSON.parse(row.generator),
-                pos_spawn:  JSON.parse(row.pos_spawn),
-                rules:      JSON.parse(row.rules),
-                state:      null,
-                add_time:   row.add_time,
+                id:             row.id,
+                user_id:        row.user_id,
+                dt:             row.dt,
+                guid:           row.guid,
+                title:          row.title,
+                seed:           row.seed,
+                game_mode:      row.game_mode,
+                generator:      JSON.parse(row.generator),
+                pos_spawn:      JSON.parse(row.pos_spawn),
+                rules:          JSON.parse(row.rules),
+                state:          null,
+                add_time:       row.add_time,
+                world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
             }
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;
@@ -706,4 +707,18 @@ export class DBWorld {
     async setTitle(title)  {
         await this.conn.run('UPDATE world SET title = ?', [title]);
     }
+
+    async flushWorld() {
+        await this.TransactionBegin()
+        try {
+            for(let tablename of ['world_chunks_fluid', 'world_modify', 'world_modify_chunks', 'drop_item', 'entity', 'painting', 'portal', 'teleport_points', 'chunk']) {
+                this.conn.run(`DELETE FROM ${tablename}`);
+            }
+            await this.TransactionCommit()
+        } catch(e) {
+            await this.TransactionRollback()
+            throw e;
+        }
+    }
+
 }

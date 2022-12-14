@@ -1,4 +1,5 @@
 {
+    "building_schemas_world_name": "BLDGFYT",
     "building_schemas": [
         {"name": "church", "pos1": {"x": 5, "y": 0, "z": 1}, "pos2": {"x": -5, "y": 26, "z": -19}, "door_bottom": {"x": 0, "y": 1, "z": -1}},
         {"name": "nico", "pos1": {"x": -17, "y": 1, "z": 1}, "pos2": {"x": -29, "y": 8, "z": -10}, "door_bottom": {"x": -24, "y": 2, "z": -2}},
@@ -8,12 +9,13 @@
         {"name": "domikkam2", "pos1": {"x": -102, "y": 0, "z": 0}, "pos2": {"x": -108, "y": 5, "z": -7}, "door_bottom": {"x": -105, "y": 1, "z": -1}},
         {"name": "domsmall", "pos1": {"x": -112, "y": -1, "z": 0}, "pos2": {"x": -119, "y": 5, "z": -6}, "door_bottom": {"x": -116, "y": 1, "z": -1}},
         {"name": "farmer_house", "pos1": {"x": -121, "y": 0, "z": 0}, "pos2": {"x": -136, "y": 8, "z": -10}, "door_bottom": {"x": -129, "y": 1, "z": -1}},
-        {"name": "tiny_house", "pos1": {"x": -140, "y": -1, "z": 0}, "pos2": {"x": -144, "y": 6, "z": 6}, "door_bottom": {"x": -142, "y": 1, "z": -1}},
+        {"name": "tiny_house", "pos1": {"x": -140, "y": -1, "z": 0}, "pos2": {"x": -144, "y": 6, "z": -6}, "door_bottom": {"x": -142, "y": 1, "z": -1}},
         {"name": "watch_tower", "pos1": {"x": -148, "y": 1, "z": 0}, "pos2": {"x": -157, "y": 24, "z": -10}, "door_bottom": {"x": -153, "y": 4, "z": -3}},
         {"name": "medium_house", "pos1": {"x": -163, "y": 0, "z": 1}, "pos2": {"x": -171, "y": 7, "z": -7}, "door_bottom": {"x": -166, "y": 1, "z": 0}},
         {"name": "tiny_house2", "pos1": {"x": -176, "y": 1, "z": 2}, "pos2": {"x": -182, "y": 7, "z": -6}, "door_bottom": {"x": -179, "y": 2, "z": 0}},
         {"name": "tiny_mart", "pos1": {"x": -187, "y": 0, "z": 1}, "pos2": {"x": -201, "y": 4, "z": -10}, "door_bottom": {"x": -194, "y": 0, "z": 0}},
-        {"name": "sand_house", "pos1": {"x": -206, "y": 0, "z": 1}, "pos2": {"x": -212, "y": 4, "z": -5}, "door_bottom": {"x": -209, "y": 1, "z": 0}}
+        {"name": "sand_house", "pos1": {"x": -206, "y": 0, "z": 1}, "pos2": {"x": -212, "y": 4, "z": -5}, "door_bottom": {"x": -209, "y": 1, "z": 0}},
+        {"name": "sand_house2", "pos1": {"x": -215, "y": 0, "z": 1}, "pos2": {"x": -221, "y": 5, "z": -5}, "door_bottom": {"x": -218, "y": 1, "z": 1}}
     ],
     "brains": [
         "default",

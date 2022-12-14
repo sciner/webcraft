@@ -3,6 +3,7 @@ import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { DEFAULT_TX_CNT } from "./constant.js";
 
 const {mat4} = glMatrix;
 
@@ -13,7 +14,7 @@ export const CAMERA_MODE = {
     THIRD_PERSON_FRONT: 2
 };
 
-export const TX_CNT = 32;
+export const TX_CNT = DEFAULT_TX_CNT;
 
 /**
  * Lerp any value between
@@ -83,6 +84,12 @@ export class Mth {
         amount = amount < 0 ? 0 : amount;
         amount = amount > 1 ? 1 : amount;
         return value1 + (value2 - value1) * amount;
+    }
+
+    static lerpAny(x, x1, value1, x2, value2) {
+        return x1 !== x2
+            ? this.lerp((x - x1) / (x2 - x1), value1, value2)
+            : (value1 + value2) * 0.5;
     }
 
     static sin(a) {
@@ -1640,11 +1647,68 @@ export class ArrayHelpers {
         arr.length = dst;
     }
 
+    static sum(arr, mapper = (it) => it) {
+        var sum = 0;
+        for (let i = 0; i < arr.length; i++) {
+            sum += mapper(arr);
+        }
+        return sum;
+    }
+
     static growAndSet(arr, index, value, filler = undefined) {
         while (arr.length <= index) {
             arr.push(filler);
         }
         arr[index] = value;
+    }
+
+    /**
+     * Ensures that the first sortedLength elements are the same as if the entire array
+     * was sorted. The order of the remaining elemnets is undefin.
+     * It has O(length) time.
+     * @param {Int} sortedLength - the number of first array elements that will be sorted.
+     */
+    static partialSort(arr, sortedLength = arr.length, compare,
+        // do not pass the last 2 arguments - they are internal
+        fromIncl = 0, toExcl = arr.length
+    ) {
+        while (true) {
+            var d = toExcl - fromIncl;
+            if (d <= 2) {
+                if (d == 2) {
+                    var v = arr[fromIncl + 1];
+                    if (compare(arr[fromIncl], v) > 0) {
+                        arr[fromIncl + 1] = arr[fromIncl];
+                        arr[fromIncl] = v;
+                    }
+                }
+                return;
+            }
+            var left = fromIncl;
+            var right = toExcl - 1;
+            var m = arr[(fromIncl + toExcl) >> 1];
+            do {
+                var vl = arr[left];
+                while (compare(vl, m) < 0) {
+                    vl = arr[++left];
+                }
+                var vr = arr[right];
+                while (compare(vr, m) > 0) {
+                    vr = arr[--right];
+                }
+                if (left > right) {
+                    break;
+                }
+                arr[left] = vr;
+                arr[right] = vl;
+                left++;
+                right--;
+            } while (left <= right);
+            if (left < sortedLength) {
+                this.partialSort(arr, sortedLength, compare, left, toExcl);
+            }
+            toExcl = left;
+        }
     }
 }
 

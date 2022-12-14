@@ -39,6 +39,13 @@ export class ServerAPI {
                 return session;
             }
             case '/api/Game/CreateWorld': {
+
+                // check admin rights for specific world
+                if([config.building_schemas_world_name].includes(params.title)) {
+                    const session = await Qubatch.db.GetPlayerSession(session_id);
+                    ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                }
+
                 const title       = params.title;
                 const seed        = params.seed;
                 const generator   = WorldGenerators.validateAndFixOptions(params.generator);

@@ -38,9 +38,9 @@ void main() {
         v_color.b = 1.0; // no mask_shift for you, sorry
         float t = ((u_time * float(frames) / 1.5) / 1000.);
         int i = int(t);
-        uvCenter0.y += float(i % frames) / 32.;
-        uvCenter1.y += float(i % frames) / 32.;
-        // uvCenter1.y += float((i + 1) % frames) / 32.;
+        uvCenter0.y += float(i % frames) / 64.;
+        uvCenter1.y += float(i % frames) / 64.;
+        // uvCenter1.y += float((i + 1) % frames) / 64.;
         v_animInterp = fract(t);
     }
 

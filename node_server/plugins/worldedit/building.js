@@ -3,6 +3,8 @@ import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 import fs from "fs";
 import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
+import { ServerClient } from "../../../www/js/server_client.js";
+import { WORLD_TYPE_BUILDING_SCHEMAS } from "../../../www/js/constant.js";
 
 //
 export class WorldEditBuilding {
@@ -37,7 +39,7 @@ export class WorldEditBuilding {
             this.list.set(building.name, building);
         };
 
-        for(let schema of Object.values(BuilgingTemplate.schemas)) {
+        for(let schema of BuilgingTemplate.schemas.values()) {
             insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom)
         }
 
@@ -61,7 +63,7 @@ export class WorldEditBuilding {
     async save(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.guid != '26fa33a4-89dc-460e-8af8-420394a3d1b3') {
+        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
             throw 'error_invalid_world';
         }
 
@@ -85,10 +87,10 @@ export class WorldEditBuilding {
         building.size = new Vector(copy_data.quboid.volx, copy_data.quboid.voly, copy_data.quboid.volz)
 
         const pos1 = building.world.pos1
-        const door_bottom = building.world.door_bottom.sub(pos1)
+        const rel_door_bottom = building.world.door_bottom.sub(pos1)
 
         // calc door_pos
-        building.door_pos.set(-door_bottom.x, door_bottom.y, -door_bottom.z);
+        building.door_pos.set(-rel_door_bottom.x, rel_door_bottom.y, -rel_door_bottom.z);
 
         // clear blocks
         building.blocks = [];
@@ -101,9 +103,9 @@ export class WorldEditBuilding {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
-                door_bottom.x - bpos.x,
-                bpos.y - door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                door_bottom.z - bpos.z + building.door_pos.z
+                rel_door_bottom.x - bpos.x,
+                bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
+                rel_door_bottom.z - bpos.z + building.door_pos.z
             );
             const block = {
                 move,
@@ -119,10 +121,24 @@ export class WorldEditBuilding {
         }
 
         // export
-        const file_name = `../data/building_schema/${building.name}.json`;
+        const file_name = `./data/building_schema/${building.name}.json`;
 
         // Calling gzip method
-        fs.writeFileSync(file_name, JSON.stringify(building));
+        const json = JSON.stringify(building)
+        fs.writeFileSync(file_name, json);
+
+        // Update in memory
+        BuilgingTemplate.addSchema(building)
+
+        // Notify all players in all worlds
+        for(let w of Qubatch.worlds.values()) {
+            w.sendAll([{
+                name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
+                data: {
+                    list: [building]
+                }
+            }]);
+        }
 
         // message to player chat
         const msg = `${copy_data.blocks.size} building block(s) saved`;

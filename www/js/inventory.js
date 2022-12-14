@@ -258,6 +258,16 @@ export class Inventory {
         }
     }
 
+    countItemId(item_id) {
+        var count = 0;
+        for(let item of this.items) {
+            if (item && item.id === item_id) {
+                count += item.count;
+            }
+        }
+        return count;
+    }
+
     // Возвращает список того, чего и в каком количестве не хватает
     // в текущем инвентаре по указанному списку
     hasResources(resources) {
