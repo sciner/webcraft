@@ -47,10 +47,10 @@ export default class Ticker {
             if (players.length == 0) {
                 return;
             }
-
+            
             // Спаунер перестает создавать мобов, если в зоне размером 17x9x17 находятся шесть или более мобов одного типа.
             // Проверяем количество мобов в радиусе(в радиусе 4 блоков не должно быть больше 5 мобов)
-            const mobs = world.getMobsNear(pos, 9, [extra_data.type]);
+            const mobs = world.getMobsNear(pos, SPAWN_PLAYER_DISTANCE, [extra_data.type]);
             if (mobs.length > 5) {
                 console.warn('mobs.length >= 6');
                 return;
@@ -59,6 +59,9 @@ export default class Ticker {
             // Место спауна моба, 4 попытки. Если на координатак моб, игрок или блок, то не спауним
             let spawned_count = 0;
             for(let i = 0; i < SPAWN_ATTEMPTS; i++) {
+                if (spawned_count > 5) {
+                    break;
+                }
                 const x = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
                 const z = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
                 const y = Math.random() * SPAWN_RAD_VERT | 0;
