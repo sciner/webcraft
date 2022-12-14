@@ -13,6 +13,7 @@ export const GRASS_PALETTE_OFFSET           = 256; // (in px) offset in mask_col
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
+export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
