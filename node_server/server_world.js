@@ -29,6 +29,7 @@ import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -88,6 +89,42 @@ export class ServerWorld {
         this.db.removeDeadDrops();
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
+
+        /*if(this.info.title == 'BLDGFYT') {
+            this.db.conn.run('DELETE FROM world_modify');
+            this.db.conn.run('DELETE FROM world_modify_chunks');
+            const blocks = [];
+            const chunks_addr = new VectorCollector()
+            for(let schema of Object.values(BuilgingTemplate.schemas)) {
+                for(let b of schema.blocks) {
+                    const item = {id: b.block_id};
+                    if(!schema.world.door_bottom) {
+                        console.log(schema.world)
+                        throw 'wer'
+                    }
+                    // const y = schema.world.door_bottom.y - schema.world.pos1.y;
+                    // const y = schema.door_pos.y //- schema.world.pos1.y;
+                    const y = schema.door_pos.y //+ schema.world.door_bottom.y - schema.world.pos1.y 
+                    const pos = new Vector(
+                        schema.world.door_bottom.x - b.move.x,
+                        schema.world.pos1.y + b.move.y + y,
+                        schema.world.door_bottom.z - b.move.z
+                    )
+                    chunks_addr.set(getChunkAddr(pos), true);
+                    if(b.extra_data) item.extra_data = b.extra_data
+                    if(b.rotate) item.rotate = b.rotate
+                    blocks.push({pos, item})
+                }
+            }
+            let t = performance.now()
+            await this.db.blockSetBulk(this, null, blocks)
+            console.log(performance.now() - t)
+            t = performance.now()
+            await this.db.updateChunks(chunks_addr.keys());
+            console.log(performance.now() - t)
+        }
+        */
+
         //
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();

@@ -119,7 +119,7 @@ export class WorldEditBuilding {
         }
 
         // export
-        const file_name = `../data/building_schema/${building.name}.json`;
+        const file_name = `./data/building_schema/${building.name}.json`;
 
         // Calling gzip method
         fs.writeFileSync(file_name, JSON.stringify(building));

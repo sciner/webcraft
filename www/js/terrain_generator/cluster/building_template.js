@@ -22,6 +22,9 @@ export class BuilgingTemplate {
     }
 
     static addSchema(schema) {
+        schema.world.pos1 = new Vector(schema.world.pos1)
+        schema.world.pos2 = new Vector(schema.world.pos2)
+        schema.world.door_bottom = new Vector(schema.world.door_bottom)
         this.schemas[schema.name] = schema
     }
 
