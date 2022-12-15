@@ -533,7 +533,7 @@ export class WorldAction {
             if(!mat.can_auto_drop) {
                 return false;
             }
-            if(!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) {
+            if((!mat.is_chest && !Number.isNaN(drop_blocks_chance) && Math.random() > drop_blocks_chance) || tblock.id == BLOCK.TNT.id) {
                 return false;
             }
             const pos = tblock.posworld.clone().addSelf(new Vector(.5, .5, .5));
@@ -633,11 +633,28 @@ export class WorldAction {
         // Уничтожаем блоки
         if (listBlockDestruction.size > 0) {
             for(const [pos, block] of listBlockDestruction.entries()) {
-                this.addBlocks([
-                    {pos: pos.clone(), item: air, drop_blocks_chance}
-                ]);
-                extruded_blocks.set(pos, 'extruded');
-                createAutoDrop(block.tblock);
+                if (pos.equal(vec_center)) { // просто удаляем центральный блок ( это tnt)
+                    this.addBlocks([
+                        {pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                    ]);
+                } else if (block.tblock.id == BLOCK.TNT.id) {
+                    // просто удаляем tnt с шаносом поджигания и взрыва
+                    if (Math.random() < 0.7) {
+                        this.addBlocks([
+                            {pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                        ]);
+                    } else if (block.tblock.extra_data.fuse == 0) {
+                        this.addBlocks([
+                            {pos: pos.clone(), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                        ]);
+                    }
+                } else {
+                    this.addBlocks([
+                        {pos: pos.clone(), item: air, drop_blocks_chance}
+                    ]);
+                    extruded_blocks.set(pos, 'extruded');
+                    createAutoDrop(block.tblock);
+                }
             }
         }
 
