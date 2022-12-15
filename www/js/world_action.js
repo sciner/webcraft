@@ -815,7 +815,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of [useShears, putDiscIntoJukebox, dropEgg, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
+        for(let func of [useShears, putDiscIntoJukebox, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return actions;
             }
@@ -1222,9 +1222,17 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 }
 
 // Drop egg
-async function dropEgg(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
+    }
+    if(world_material.id == BLOCK.MOB_SPAWN.id) {
+        extra_data.type = mat_block.spawn_egg.type;
+        extra_data.skin = mat_block.spawn_egg.skin;
+        extra_data.max_ticks = 800;
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.MOB_SPAWN.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.decrement = true;
+        return true;
     }
     pos.x += pos.n.x + .5
     pos.y += pos.n.y;
