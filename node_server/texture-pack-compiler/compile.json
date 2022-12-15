@@ -3144,7 +3144,8 @@
                 "side": "block/ladder.png"
             },
             "tags": [
-                "ladder"
+                "ladder",
+                "can_set_on_wall"
             ],
             "can_rotate": true
         },
