@@ -739,7 +739,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         // 2.
         if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
             const tblock = world.getBlock(pos);
-            if(tblock.id > 0) {
+            if(tblock?.id > 0) {
                 destroyBlocks.add(tblock, pos);
                 //
                 actions.decrement_instrument = {id: tblock.id};
