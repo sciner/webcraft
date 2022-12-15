@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
+import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -747,6 +747,27 @@ export class ServerChunk {
                         ]);
                         world.actions_queue.add(null, actions);
                     }
+                    break;
+                }
+                case 'painting':
+                case 'ladder': {
+                    if (neighbourPos.y === pos.y) {
+                        // 6 sides
+                        let drop = false;
+                        if(neighbourPos.z > pos.z && (rot.x == DIRECTION.SOUTH || SIX_VECS.south.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.z < pos.z && (rot.x == DIRECTION.NORTH || SIX_VECS.north.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.x > pos.x && (rot.x == DIRECTION.WEST || SIX_VECS.west.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.x < pos.x && (rot.x == DIRECTION.EAST || SIX_VECS.east.equal(rot))) {
+                            drop = true;
+                        }
+                        if(drop) {
+                            return createDrop(tblock);
+                        }
+                    }
+                    break;
                 }
             }
         } else {
@@ -808,6 +829,7 @@ export class ServerChunk {
                         }
                     ]);
                     world.actions_queue.add(null, actions);
+                    break;
                 }
             }
         }
