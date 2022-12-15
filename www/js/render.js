@@ -448,6 +448,22 @@ export class Renderer {
             tmpContext.imageSmoothingEnabled = false;
             ctx.imageSmoothingEnabled = false;
 
+            //
+            const texs = new Map()
+            const getTextureOrigImage = (tex) => {
+                let canvas = texs.get(tex)
+                if(!canvas) {
+                    const imagedata = tex.imageData
+                    canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = imagedata.width;
+                    canvas.height = imagedata.height;
+                    ctx.putImageData(imagedata, 0, 0);
+                    texs.set(tex, canvas)
+                }
+                return canvas // tex.texture.source
+            }
+
             // render plain preview that not require 3D view
             // and can be draw directly
             extruded.forEach((material) => {
@@ -483,7 +499,7 @@ export class Renderer {
                 let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
                 let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
 
-                let image = tex.texture.source;
+                let image = getTextureOrigImage(tex)
 
                 const tint = material.tags && (
                     material.tags.includes('mask_biome') ||
