@@ -341,7 +341,7 @@ export class Biomes {
                 {percent: .9, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
                 {percent: .1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: 1}},
             ]
-        }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
+        }, null, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome(36, 'Плато саванны', 1, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
@@ -350,7 +350,7 @@ export class Biomes {
                 // {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
                 // {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
             ]
-        }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
+        }, null, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome(163, 'Выветренная саванна', 1.1, 0, undefined, undefined, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome(164, 'Плато выветренной саванны', 1, 0);
         this.addBiome(37, 'Пустошь', 2, 0);
