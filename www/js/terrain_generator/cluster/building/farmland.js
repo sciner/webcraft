@@ -16,16 +16,18 @@ export class Farmland extends Building {
         this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
         this.draw_entrance = false;
 
-        const inner_size = this.size.sub(new Vector(2, 0, 2))
+        const right_size = this.size.clone()
+        if(door_direction % 2 == 1) {
+            right_size.swapXZSelf();
+        }
 
-        // append basement + natural basement
-        this.blocks.appendBasementBlocks(Vector.ZERO, this.size, BLOCK.DIRT.id);
+        const inner_size = right_size.sub(new Vector(2, 0, 2))
 
         // add air above
-        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), this.size.add(new Vector(0, 5, 0)), BLOCK.AIR.id)
+        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.add(new Vector(0, 5, 0)), BLOCK.AIR.id)
 
         // box
-        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), this.size.add(Vector.YP), BLOCK.OAK_LOG.id)
+        this.blocks.appendQuboidBlocks(new Vector(0, -1, 0), right_size.add(Vector.YP), BLOCK.OAK_LOG.id)
 
         // farmland wet
         this.blocks.appendQuboidBlocks(new Vector(1, 0, 1), inner_size, BLOCK.FARMLAND_WET.id)
@@ -35,8 +37,8 @@ export class Farmland extends Building {
 
         // water
         for(let axe of ['x', 'z']) {
-            if(this.size[axe] >= 7) {
-                const sz = this.size[axe];
+            if(right_size[axe] >= 7) {
+                const sz = right_size[axe];
                 if((sz - 7) % 3 == 0) {
 
                     const water_pos = new Vector(0, 0, 0);
@@ -52,7 +54,7 @@ export class Farmland extends Building {
 
                     water_size.y = 2;
 
-                    for(let i = 3; i < this.size[axe] - 1; i += 3) {
+                    for(let i = 3; i < right_size[axe] - 1; i += 3) {
 
                         water_pos[axe] += 3;
 
