@@ -22,12 +22,13 @@ import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 import {LineGeometry} from "./geom/LineGeometry.js";
+import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
 
 const {mat3, mat4} = glMatrix;
 
@@ -748,6 +749,27 @@ export class Renderer {
                 colorBGRA:  0xFF00FF00,
             })
         }
+
+        // buildings grid
+        if(this.world.mobs.draw_debug_grid) {
+            if(this.world.info && this.world.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS) {
+                const _schema_coord = new Vector(0, 0, 0)
+                const _schema_size = new Vector(0, 0, 0)
+                for(const [name, schema] of BuilgingTemplate.schemas.entries()) {
+                    _schema_size.copyFrom(schema.world.pos1).subSelf(schema.world.pos2).addScalarSelf(1, 0, 1)
+                    _schema_size.y = _schema_size.y * -1 + 1
+                    _schema_coord.set(schema.world.pos2.x, schema.world.pos1.y - 1, schema.world.pos2.z)
+                    _schema_coord.y++
+                    this.debugGeom.addBlockGrid({
+                        pos:        _schema_coord,
+                        size:       _schema_size,
+                        lineWidth:  .15,
+                        colorBGRA:  0xFFFFFFFF,
+                    })
+                }
+            }
+        }
+
         this.debugGeom.draw(renderBackend);
 
         // @todo и тут тоже не должно быть

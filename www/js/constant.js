@@ -13,6 +13,7 @@ export const GRASS_PALETTE_OFFSET           = 256; // (in px) offset in mask_col
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
+export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -44,6 +45,10 @@ export const PORTAL_USE_INTERVAL            = 5000; // ms
 export const PORTAL_SIZE                    = {width: 4, height: 5};
 export const MAX_PORTAL_SEARCH_DIST         = 128;
 export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
+
+// World types
+export const WORLD_TYPE_NORMAL              = 1;
+export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 
 export const MOUSE = {
     DOWN: 1,

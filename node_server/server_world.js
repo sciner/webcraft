@@ -23,7 +23,7 @@ import { ServerClient } from "../www/js/server_client.js";
 import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -136,18 +136,21 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    /**
+     * @returns {boolean}
+     */
     async makeBuildingsWorld() {
 
-        if(this.info.title != 'BLDGFYT') {
-            return
+        if(this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+            return false
         }
 
         // flush database
-        this.db.conn.run('DELETE FROM world_modify');
-        this.db.conn.run('DELETE FROM world_modify_chunks');
+        await this.db.flushWorld()
 
         const blocks = [];
         const chunks_addr = new VectorCollector()
+        const block_air = {id: 0}
         const block_road = {id: 8}
         const block_num1 = {id: 209}
         const block_num2 = {id: 210}
@@ -159,15 +162,26 @@ export class ServerWorld {
 
         // make road
         for(let x = 10; x > -1000; x--) {
-            const pos = new Vector(x, 0, 2)
+            const pos = new Vector(x, 0, 3)
             addBlock(pos, block_road)
         }
 
         // each all buildings
-        for(let schema of Object.values(BuilgingTemplate.schemas)) {
+        for(let schema of BuilgingTemplate.schemas.values()) {
             addBlock(new Vector(schema.world.pos1), block_num1)
             addBlock(new Vector(schema.world.pos2), block_num2)
-            addBlock(new Vector(schema.world.pos1.x, 1, 2), {id: 643, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            // draw sign
+            addBlock(new Vector(schema.world.pos1.x, 1, 3), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            // clear basement level
+            for(let x = 0; x <= (schema.world.pos1.x - schema.world.pos2.x); x++) {
+                for(let z = 0; z <= (schema.world.pos1.z - schema.world.pos2.z); z++) {
+                    const pos = new Vector(schema.world.pos1.x - x, 0, schema.world.pos1.z - z)
+                    if(!pos.equal(schema.world.pos1) && !pos.equal(schema.world.pos2)) {
+                        addBlock(pos, block_air)
+                    }
+                }
+            }
+            // fill blocks
             for(let b of schema.blocks) {
                 const item = {id: b.block_id};
                 const y = schema.world.door_bottom.y - schema.door_pos.y - 1
@@ -186,12 +200,14 @@ export class ServerWorld {
         // store modifiers in db
         let t = performance.now()
         await this.db.blockSetBulk(this, null, blocks)
-        console.log(performance.now() - t)
+        console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
         t = performance.now()
         await this.db.updateChunks(chunks_addr.keys());
-        console.log(performance.now() - t)
+        console.log('Building: compress chunks in db ...', performance.now() - t)
+
+        return true
 
     }
 
@@ -203,11 +219,14 @@ export class ServerWorld {
     getInfo() {
         return this.info;
     }
-    
-    // спавнер мобов
-    autoSpawner() {
+
+    // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
+    autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
-        if (this.getLight() > 6) {
+        const good_light_for_spawn = this.getLight() > 6;
+        const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        // не спавним мобов в мире-конструкторе и в дневное время
+        if(!good_world_for_spawn || !good_light_for_spawn) {
             return;
         }
         // находим игроков
@@ -216,6 +235,7 @@ export class ServerWorld {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
                 if (mobs.length <= 4) {
+                    // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
                     // выбираем рандомную позицию для спауна
                     const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const y = player.state.pos.y + 2 * (Math.random());
@@ -320,10 +340,11 @@ export class ServerWorld {
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
-            for (let player of this.players.values()) {
+            for(let player of this.players.values()) {
                 await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
+            //
             await this.chunks.fluidWorld.queue.process();
             this.ticks_stat.add('fluid_queue');
             // 4.
@@ -343,11 +364,12 @@ export class ServerWorld {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
             }
+            // Auto spawn hostile mobs
             if(this.ticks_stat.number % 100 == 0) {
-                this.autoSpawner();
-                this.ticks_stat.add('auto_spawner');
+                this.autoSpawnHostileMobs();
+                this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
-            //
+            // Save fluids
             this.ticks_stat.add('db_fluid_save');
             await this.db.fluid.saveFluids();
             this.ticks_stat.end();
@@ -1034,4 +1056,5 @@ export class ServerWorld {
             this.actions_queue.add(null, action);
         }
     }
+
 }

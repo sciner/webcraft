@@ -12,20 +12,12 @@ export class WorldTickStat {
         this.count = 0;
         this.min = Number.MAX_SAFE_INTEGER;
         this.max = 0;
-        this.values = {
-            chunks: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            players: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            mobs: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            drop_items: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            packet_reader_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            maps_clear: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            packets_queue_send: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            chunks_random_tick: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            actions_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            fluid_queue: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            db_fluid_save: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-            auto_spawner: { min: Infinity, max: -Infinity, avg: 0, sum: 0 },
-        };
+        this.values = {}
+        for(let stat_name of ['chunks', 'players', 'mobs', 'drop_items', 'packet_reader_queue',
+            'maps_clear', 'packets_queue_send', 'chunks_random_tick', 'actions_queue', 'fluid_queue',
+            'db_fluid_save', 'auto_spawn_hostile_mobs']) {
+            this.values[stat_name] = { min: Infinity, max: -Infinity, avg: 0, sum: 0 };
+        }
     }
 
     add(field) {
