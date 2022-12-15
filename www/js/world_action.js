@@ -860,7 +860,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Запрет установки блока на блоки, которые занимает игрок
-            if(mat_block.passable == 0) {
+            if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     x_min: player.pos.x - player.radius / 2,
@@ -908,7 +908,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
             // Material restrictions
             for(let func of [restrictPlanting, restrictOnlyFullFace, restrictLadder, restrictTorch]) {
-                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions)) {
+                if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, replaceBlock, actions, orientation)) {
                     return actions;
                 }
             }
@@ -1875,7 +1875,7 @@ async function removeFromPot(e, world, pos, player, world_block, world_material,
 }
 
 // Посадить растения можно только на блок земли
-async function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictPlanting(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(!mat_block.planting) {
         return false;
     }
@@ -1927,7 +1927,7 @@ async function setOnWater(e, world, pos, player, world_block, world_material, ma
 }
 
 // Можно поставить только на полный (непрозрачный блок, снизу)
-async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictOnlyFullFace(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(mat_block.tags.includes('set_only_fullface')) {
         const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
         if(!underBlock || underBlock.material.transparent) {
@@ -1938,7 +1938,7 @@ async function restrictOnlyFullFace(e, world, pos, player, world_block, world_ma
 }
 
 // Проверка места под лестницу/лианы
-async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictLadder(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(['ladder'].indexOf(mat_block.style) < 0) {
         return false;
     }
@@ -1988,7 +1988,7 @@ async function restrictLadder(e, world, pos, player, world_block, world_material
 }
 
 // Факелы можно ставить только на определенные виды блоков!
-async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+async function restrictTorch(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions, orientation) {
     if(mat_block.style != 'torch') {
         return false;
     }
