@@ -1,10 +1,11 @@
-import {BLOCK} from '../../js/blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk_const.js';
-import {Vector} from '../../js/helpers.js';
+import { BLOCK} from '../../js/blocks.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../js/chunk_const.js';
+import { Vector } from '../../js/helpers.js';
 import { Biomes } from '../../js/terrain_generator/biome3/biomes.js';
-import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
-import { alea } from '../../js/terrain_generator/default.js';
-import { TerrainMapManager2 } from '../../js/terrain_generator/biome3/terrain/manager.js';
+import Terrain_Generator from '../../js/terrain_generator/biome3/index.js';
+// import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
+// import { alea } from '../../js/terrain_generator/default.js';
+// import { TerrainMapManager2 } from '../../js/terrain_generator/biome3/terrain/manager.js';
 
 await BLOCK.init({
     texture_pack: 'base',
@@ -19,6 +20,7 @@ await import('../../js/terrain_generator/biomes.js').then(module => {
 });
 
 globalThis.BLOCK            = BLOCK;
+globalThis.maps            = null;
 
 const CHUNK_RENDER_DIST     = 32;
 const chunk_addr_start      = new Vector(0 - CHUNK_RENDER_DIST, 0, 0 - CHUNK_RENDER_DIST);
@@ -73,25 +75,6 @@ class SectionPos {
 
 }
 
-// showCoordInfo
-export function showCoordInfo(x, z) {
-    /*
-    const ax = chunk_coord_start.x + z;
-    const az = chunk_coord_start.z + x;
-    const chunk_addr = getChunkAddr(ax, 0, az);
-    const map = all_maps.get(chunk_addr);
-    if(map) {
-        const mx = ax - map.chunk.coord.x;
-        const mz = az - map.chunk.coord.z;
-        const cell_index = mz * CHUNK_SIZE_X + mx;
-        const cell = map.cells[cell_index];
-        let text = ax + 'x' + az;
-        text += `\n${cell.biome.color}`;
-        document.getElementById('dbg').innerText = text;
-    }*/
-}
-
-
 class LinearCongruentialGenerator {
 
     static MULTIPLIER = 6364136223846793005n;
@@ -104,9 +87,8 @@ class LinearCongruentialGenerator {
         return b[0] + b[1];
     }
 
- }
+}
 
- //
 class BiomeGenerator {
 
     constructor() {
@@ -234,7 +216,18 @@ class BiomeGenerator {
 
 }
 
-export function calcBiomes() {
+// showCoordInfo
+export function showCoordInfo(x, z) {
+    if(!maps) return
+    const ax = chunk_coord_start.x + z;
+    const az = chunk_coord_start.z + x;
+    const biome = maps.calcBiome(new Vector(ax, 0, az));
+    let text = ax + 'x' + az;
+    text += `\n${biome.title} #${biome.id}`;
+    document.getElementById('dbg').innerText = text;
+}
+
+export async function calcBiomes() {
 
     /*
     const bm = new BiomeGenerator();
@@ -248,25 +241,23 @@ export function calcBiomes() {
     ctx.fillStyle = "#fc0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const maps_generated = SZ * SZ;
-    const imgData = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
+    const maps_generated    = SZ * SZ;
+    const imgData           = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
+    const seed              = '1';
+    const world_id          = seed;
+    const world             = {chunkManager: null}
+    const options           = {};
 
-    const seed = '1';
-
-    const al = new alea(seed);
-    const noise2d = createNoise2D(al.double);
-    const noise3d = null; // createNoise3D(al.double);
-
-    const world_id = al.double();
-
-    const maps = new TerrainMapManager2(seed, world_id, noise2d, noise3d);
+    const generator = new Terrain_Generator(world, seed, world_id, options)
+    await generator.init()
+    maps = generator.maps;
+    const noise2d = generator.noise2d
 
     const biomes = new Biomes(noise2d);
     const pn = performance.now();
-
     const xyz = new Vector(0, 0, 0);
-
     const biomes_stat = new Map();
+
     let biomes_stat_count = 0;
 
     for(let x = 0; x < SZ * CHUNK_SIZE_X; x += 1) {
@@ -274,7 +265,7 @@ export function calcBiomes() {
 
             const px = chunk_coord_start.x + x;
             const pz = chunk_coord_start.z + z;
-            const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
+            const index = (x * (SZ * CHUNK_SIZE_X) + z) * 4;
 
             xyz.set(px, 0, pz);
 

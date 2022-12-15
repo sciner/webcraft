@@ -113,11 +113,13 @@ export class Biomes {
         const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, temp);
         this.list.push(biome);
         this.byName.set(title, biome);
+        this.byID.set(biome.id, biome);
     }
 
     initBiomes() {
 
         this.byName = new Map();
+        this.byID = new Map();
         this.list = [];
     
         // Снежные биомы
@@ -173,7 +175,16 @@ export class Biomes {
             ]
         }, undefined, undefined, new IndexedColor(75, 435, 0));
         this.addBiome(129, 'Подсолнечниковые равнины', 0.8, 0.4);
-        this.addBiome(4, 'Лес', 0.7, 0.8);
+        this.addBiome(4, 'Лес', 0.7, 0.8, null, {
+            frequency: TREE_FREQUENCY * 3,
+            list: [
+                {percent: 0.01, trunk: TREES.BIRCH.trunk, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.4, ...TREES.OAK},
+                {percent: 0.4, ...TREES.BIRCH},
+                {percent: .09, ...TREES.BIG_OAK},
+                {percent: .1, ...TREES.BIG_OAK, trunk: TREES.BIRCH.trunk, leaves: TREES.BIRCH.leaves},
+            ]
+        });
         this.addBiome(18, 'Холмистый лес', 0.7, 0.8);
         this.addBiome(132, 'Цветочный лес', 0.7, 0.8);
         this.addBiome(27, 'Березняк', 0.6, 0.6, null, {
@@ -272,7 +283,13 @@ export class Biomes {
         this.addBiome(151, 'Рельефная окраина джунглей', 0.95, 0.8);
         this.addBiome(168, 'Бамбуковые джунгли', 0.95, 0.9);
         this.addBiome(169, 'Холмистые бамбуковые джунгли', 0.95, 0.9);
-        this.addBiome(14, 'Грибные поля', 0.9, 1, undefined, undefined, {
+        this.addBiome(14, 'Грибные поля', 0.9, 1, undefined, {
+            frequency: TREE_FREQUENCY / 4,
+            list: [
+                {percent: .5, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
+                {percent: .5, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
+            ]
+        }, {
             frequency: PLANTS_FREQUENCY * 5,
             list: [
                 {percent: .5, blocks: [{id: BLOCK.RED_MUSHROOM.id}]},
@@ -328,10 +345,10 @@ export class Biomes {
         this.addBiome(36, 'Плато саванны', 1, 0, undefined, {
             frequency: TREE_FREQUENCY,
             list: [
-                {percent: .2, ...TREES.ACACIA, height: {min: 2, max: 2}},
-                {percent: .7, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
-                {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
-                {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
+                {percent: .25, ...TREES.ACACIA, height: {min: 2, max: 2}},
+                {percent: .75, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+                // {percent: .05, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}},
+                // {percent: .05, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}}
             ]
         }, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
         this.addBiome(163, 'Выветренная саванна', 1.1, 0, undefined, undefined, undefined, undefined, new IndexedColor(77, 510, 0), new IndexedColor(128, 194, 0));
