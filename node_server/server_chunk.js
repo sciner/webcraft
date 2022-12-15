@@ -665,9 +665,14 @@ export class ServerChunk {
                 return createDrop(tblock);
             }
 
-            switch(tblock.material.style) {
+            const require_support = tblock.material.support_style || tblock.material.style;
+
+            switch(require_support) {
+                case 'bottom': // not a block style, but a name for a common type of support
                 case 'rails':
-                case 'candle': {
+                case 'candle':
+                case 'redstone':
+                case 'cactus': {
                     // only bottom
                     if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
@@ -724,12 +729,6 @@ export class ServerChunk {
                         return createDrop(tblock);
                     }
                     break;
-                }
-                case 'redstone':
-                case 'cactus': {
-                    if(neighbourPos.y < pos.y) {
-                        return createDrop(tblock);
-                    }
                 }
                 case 'chest': {
                     // if a chest half is missing the other half, convert it to a normal chest

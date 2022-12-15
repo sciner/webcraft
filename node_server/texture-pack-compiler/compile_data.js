@@ -145,7 +145,8 @@ export class CompileData {
                     "no_drop_ao",
                     "rotate_by_pos_n_12",
                     "button"
-                ]
+                ],
+                "support_style": "item_frame"
             };
             this.blocks.push(b);
             i++;
@@ -250,7 +251,8 @@ export class CompileData {
                     "carpet",
                     "rotate_by_pos_n",
                     "no_drop_ao"
-                ]
+                ],
+                "support_style": "item_frame"
             };
             this.blocks.push(b);
             i++;
@@ -619,8 +621,10 @@ export class CompileData {
                     "id": p.material
                 },
                 "tags": [
+                    "set_only_fullface",
                     "no_drop_ao"
-                ]
+                ],
+                "support_style": "bottom"
             });
         }
     }

@@ -70,6 +70,7 @@ export function Physics(mcData, fake_world, options) {
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
+        swimDownSpeed: 0.5,
         stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
@@ -624,8 +625,10 @@ export function Physics(mcData, fake_world, options) {
         if (entity.control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
             if (entity.isInWater || entity.isInLava) {
-                // @fixed Без этого фикса игрок не может выбраться из воды на берег
-                vel.y += 0.09 // 0.04
+                if (!entity.control.sneak) {
+                    // @fixed Без этого фикса игрок не может выбраться из воды на берег
+                    vel.y += 0.09 // 0.04
+                }
             } else if (entity.onGround && entity.jumpTicks === 0) {
                 vel.y = Math.fround(0.42 * physics.scale)
                 if(honeyblockId != BLOCK_NOT_EXISTS) {
@@ -663,6 +666,10 @@ export function Physics(mcData, fake_world, options) {
             if(entity.flying) {
                 if(!entity.control.jump) {
                     vel.y = -physics.flyingYSpeed;
+                }
+            } else if (entity.isInWater || entity.isInLava) {
+                if (!entity.control.jump) {
+                    vel.y = -physics.swimDownSpeed;
                 }
             } else {
                 strafe *= physics.sneakSpeed
