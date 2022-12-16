@@ -800,6 +800,16 @@ export class ServerChunk {
                     if (expectedNeighbourPos.equal(neighbourPos)) {
                         newType = 'right';
                         newNeighbourType = 'left';
+                        // a fix for a chest inserted btween two - the one on the left doesn't attempt to transform
+                        const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
+                        var farNeighbour = this.getBlock(farNeighbourPos, null, true);
+                        if (farNeighbour &&
+                            farNeighbour.material.name === 'CHEST' &&
+                            farNeighbour.extra_data?.type == null &&
+                            dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
+                        ) {
+                            break;
+                        }
                     } else {
                         expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
                         if (expectedNeighbourPos.equal(neighbourPos)) {
