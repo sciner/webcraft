@@ -144,7 +144,7 @@ export class FluidChunkEvents {
             qplace[index] &= ~QUEUE_INTERACT;
 
             tmp_Vector.set(x + pos.x, y + pos.y, z + pos.z);
-            cb(tmp_Vector, v & FLUID_EVENT_FLAG_ABOVE !== 0);
+            cb(tmp_Vector, (v & FLUID_EVENT_FLAG_ABOVE) !== 0);
 
             let wx = x + pos.x, wy = y + pos.y, wz = z + pos.z;
             console.log(`fluid event at ${wx}, ${wy}, ${wz}`)
