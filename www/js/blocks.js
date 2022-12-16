@@ -585,6 +585,9 @@ export class BLOCK {
     }
 
     static isSolid(block) {
+        if(block.id == 0) {
+            return false
+        }
         return block.style == 'default' &&
             !block.is_fluid &&
             !block.is_leaves &&

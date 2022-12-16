@@ -251,14 +251,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // Calculate caves
                 const cave_middle_level = 100;
                 const cave_amplitude = 16;
-                const cave_width = .25;
+                const cave_base_freq = 75
+                const cave_width = .25 / (cave_base_freq / 64);
                 const cave_rad = 4;
                 const caves = [];
                 for(let i = 0; i < 3; i++) {
                     const shift = 10000 * i;
                     const cave_x = xyz.x + shift;
                     const cave_z = xyz.z + shift;
-                    const cave_density = Math.abs((this.noise2d(cave_x / 48, cave_z / 48)));
+                    const cave_density = Math.abs((this.noise2d(cave_x / cave_base_freq, cave_z / cave_base_freq)));
                     if(cave_density < cave_width) {
                         const cave_y_density = this.noise2d((cave_x + 10000) / 64, (cave_z + 10000) / 64);
                         const cave_y_pos = cave_middle_level - (cave_amplitude * 1.5 * i) + cave_y_density * cave_amplitude;
@@ -279,7 +280,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     if(density > DENSITY_THRESHOLD) {
 
                         // Remove caves
-                        if(density > DENSITY_THRESHOLD * (xyz.y <= WATER_LEVEL ? 1.25 : 1)) {
+                        if(density > DENSITY_THRESHOLD) { // + (xyz.y <= WATER_LEVEL ? d3 * 2 + 3 : 0)) {
                             for(let cave of caves) {
                                 const cave_height = (1 - cave.cave_density / cave_width) * cave_rad;
                                 const y_diff = xyz.y - cave.cave_y_pos;
