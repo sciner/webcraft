@@ -54,8 +54,7 @@ export function parseManyToMany(conf, transformKey = v => v, result = new Map())
 
 async function rollupImport(dir, file) {
     switch(dir) {
-        case './ticker/before_change/': return import(`./ticker/before_change/${file}.js`);
-        case './ticker/after_change/': return import(`./ticker/after_change/${file}.js`);
+        case './ticker/listeners/': return import(`./ticker/listeners/${file}.js`);
     }
     throw new Error('Unsupported directory: ' + dir);
 }
@@ -63,11 +62,10 @@ async function rollupImport(dir, file) {
 /**
  * Parses many-to-many conf and impots objects from .js modules.
  * 
- * @param {Array} conf - many-to-many conf, see {@link parseManyToMany}.
- *   A value can be "moduleName", or "moduleName:importDescription".
+ * @param {Array} conf - the reult of {@link parseManyToMany}.
+ *   The values can be "moduleName", or "moduleName:importDescription".
  *   importDescription can contain ":"; only the 1st ":" is treated as a separator.
  * @param {String} folder
- * @param {Function} transformKey - transforms keys.
  * @param {Function} doImport - imports and processes an export described by a string
  *   from a module. Implementations: {@link simpleImport}, {@link importClassInstance}.
  * @param {Map, Object or Array} result - the resulting mapping of transformed keys
@@ -75,33 +73,51 @@ async function rollupImport(dir, file) {
  * @param {Object} uniqueImports - collects all unique [config_value, imported_objct] here.
  * @returns the result parametr,.
  */
-export async function loadMappedImports(conf, folder, 
-    transformKey = v => v,
+
+export async function loadMappedImports(resultMap,
+    folder,
     doImport = simpleImport,
-    result = new Map(),
     uniqueImports = {}
 ) {
-    parseManyToMany(conf, transformKey, result);
-    for(let list of ArrayOrMap.valuesExceptUndefined(result)) {
+    // load missing unique imports into uniqueImports as promises
+    const promises = [];
+    for(let list of ArrayOrMap.valuesExceptUndefined(resultMap)) {
         for(var i = 0; i < list.length; i++) {
-            const rawValue = list[i];
-            var imp = uniqueImports[rawValue];
-            if (imp == null) {
-                var [moduleName, importStr] = StringHelpers.splitFirst(rawValue, ':');
-                importStr = importStr || 'default';
-                // TODO amybe async, maybe cache modules
-                const module = await rollupImport(folder, moduleName);
-                imp = doImport(module, importStr);
+            const fullImportString = list[i];
+            if (uniqueImports[fullImportString]) {
+                continue;
+            }
+            // declare them const, otherwise functions use the same value from the closure
+            const [moduleName, importStr_] = StringHelpers.splitFirst(fullImportString, ':');
+            const importStr = importStr_ || 'default';            
+            const p = rollupImport(folder, moduleName).then(function (module) {                    
+                const imp = doImport(module, importStr, fullImportString);
                 if (imp == null) {
                     moduleName = folder + moduleName + '.js'
                     throw new Error(`Can't import ${importStr} from ${moduleName}`);
                 }
-                uniqueImports[rawValue] = imp;
-            }
-            list[i] = imp;
+                return imp;
+            });
+            uniqueImports[fullImportString] = p;
+            promises.push(p);
         }
     }
-    return result;
+    // await all promises and replace the strings with imported objects
+    return await Promise.all(promises).then(async function () {
+        for(let list of ArrayOrMap.valuesExceptUndefined(resultMap)) {
+            for(var i = 0; i < list.length; i++) {
+                const fullImportString = list[i];
+                var imp = uniqueImports[fullImportString];
+                if (imp instanceof Promise) {
+                    imp = await imp; // it's already resolved
+                    uniqueImports[fullImportString] = imp;
+                    imp._mappedfullImportString = fullImportString;
+                }
+                list[i] = imp;
+            }
+        }
+        return resultMap;
+    });
 }
 
 // https://stackoverflow.com/questions/526559/testing-if-something-is-a-class-in-javascript
@@ -120,7 +136,7 @@ function isClass(obj) {
 /**
  * It can be passed to {@link loadMappedImports}
  */
-export function simpleImport(module, str) {
+export function simpleImport(module, str, fullStr) {
     return module[str];
 }
 
@@ -133,7 +149,7 @@ export function simpleImport(module, str) {
  * In cases 1 and 2, arguments can be described like this:
  *      moduleName:functionOrClassName(arg1, arg2, arg3)
  */
-export function importClassInstance(module, str) {
+export function importClassInstance(module, str, fullImportString) {
     var [name, args] = StringHelpers.splitFirst(str, '(');
     if (args) {
         args = '[' + args.substr(0, args.length - 1) + ']';
@@ -153,31 +169,10 @@ export function importClassInstance(module, str) {
     }
 }
 
-/**
- * @param {Array} calleesById - output object {@link DelayedCalls}, optinal.
- *  For the callees, declaring calleeId is optinal; the default value is (folder + key).
- *  Frequently used callees should decalre a short calleeId as an optimization.
- */
-export async function loadBlockListeners(conf, folder, calleesById = null) {
-    const uniques = {};
-    const result = await loadMappedImports(conf, folder, 
-        name => BLOCK.fromName(name.toUpperCase()).id,
-        importClassInstance, [], uniques);
-    if (calleesById) {
-        for(var key in uniques) {
-            var callee = uniques[key];
-            if ('delayedCall' in callee) { // if it's actually a callee
-                if (!callee.calleeId) { // we can't just set it becase it may have a getter
-                    callee.calleeId = folder + key;
-                }
-                if (calleesById[callee.calleeId]) {
-                    throw new Error('Duplicate calleeId: ' + callee.calleeId);
-                }
-                calleesById[callee.calleeId] = callee;
-            }
-        }
-    }
-    return result;
+export function importClassInstanceWithId(module, str, fullImportString) {
+    const res = importClassInstance(module, str);
+    res.importString = fullImportString;
+    return res;
 }
 
 export class DelayedCalls {
@@ -247,10 +242,13 @@ export class DelayedCalls {
             var entry = this.list[i];
             const callee = this.calleesById[entry.id];
             // if the loaded callee is not present, skip it - maybe the code has changed
+            if (!callee) {
+                continue;
+            }
             if (entry.args) {
-                callee?.delayedCall(...arguments, ...entry.args);
+                callee(...arguments, ...entry.args);
             } else {
-                callee?.delayedCall(...arguments);
+                callee(...arguments);
             }
             i++;
         }

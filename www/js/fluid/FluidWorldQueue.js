@@ -75,10 +75,14 @@ export class FluidWorldQueue {
         len = eventChunks.length;
         for (i = 0; i < len; i++) {
             const chunkEvents = eventChunks.shift();
-            if (!chunkEvents.fluidChunk.parentChunk.fluid) {
+            const parentChunk = chunkEvents.fluidChunk.parentChunk
+            if (!parentChunk.fluid) {
                 continue;
             }
-            chunkEvents.process();
+            chunkEvents.process((pos, isFluidChangeAbove) => {
+                parentChunk.onFluidEvent(pos, isFluidChangeAbove);
+            });
+            parentChunk.applyChangesByListeners();
             if (performance.now() - start >= msLimit) {
                 break;
             }

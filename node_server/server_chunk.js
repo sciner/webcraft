@@ -142,7 +142,7 @@ export class ServerChunk {
         this.dataChunk      = null;
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
-        this.blocksUpdatedByDelayedCalls = [];
+        this.blocksUpdatedByListeners = [];
     }
 
     get addrHash() { // maybe replace it with a computed string, if it's used often
@@ -974,6 +974,63 @@ export class ServerChunk {
         }
     }
 
+    onFluidEvent(pos, isFluidChangeAbove) {
+
+        const that = this;
+        function processResult(res, calleeId) {
+            if (typeof res === 'number') {
+                that.addDelayedCall(calleeId, res, [pos]);
+            } else {
+                TickerHelpers.pushBlockUpdates(that.blocksUpdatedByListeners, res);
+            }
+        }
+
+        const tblock = this.getBlock(pos, tmp_onFluidEvent_TBlock);
+        const fluidY = isFluidChangeAbove ? pos.y + 1 : pos.y;
+        const fluidValue = this.getFluidValue(pos.x, fluidY, pos.z);
+        
+        if (isFluidChangeAbove) {
+            var listeners = this.world.blockListeners.fluidAboveChangeListeners[tblock.id];
+            if (listeners) {
+                for(let listener of listeners) {
+                    var res = listener.onFluidAboveChange(this, tblock, fluidValue, true);
+                    processResult(res, listener.onFluidAboveChangeCalleeId);
+                }
+            }
+            if ((fluidValue & FLUID_TYPE_MASK) === 0) {
+                listeners = this.world.blockListeners.fluidAboveRemoveListeners[tblock.id];
+                if (listeners) {
+                    for(let listener of listeners) {
+                        var res = listener.onFluidAboveRemove(this, tblock, true);
+                        processResult(res, listener.onFluidAboveRemoveCalleeId);
+                    }
+                }
+            }
+        } else {
+            var listeners = this.world.blockListeners.fluidChangeListeners[tblock.id];
+            if (listeners) {
+                for(let listener of listeners) {
+                    var res = listener.onFluidChange(this, tblock, fluidValue, true);
+                    processResult(res, listener.onFluidChangeCalleeId);
+                }
+            }
+            if ((fluidValue & FLUID_TYPE_MASK) === 0) {
+                listeners = this.world.blockListeners.fluidRemoveListeners[tblock.id];
+                if (listeners) {
+                    for(let listener of listeners) {
+                        var res = listener.onFluidRemove(this, tblock, true);
+                        processResult(res, listener.onFluidRemoveCalleeId);
+                    }
+                }
+            }
+        }
+    }
+
+    applyChangesByListeners() {
+        this.world.addUpdatedBlocksActions(this.blocksUpdatedByListeners);
+        this.blocksUpdatedByListeners.length = 0;
+    }
+
     executeDelayedCalls() {
         if (this.delayedCalls.length === 0) {
             return;
@@ -983,8 +1040,7 @@ export class ServerChunk {
         if (this.delayedCalls.length === 0) {
             this.getChunkManager().chunks_with_delayed_calls.delete(this);
         }
-        this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
-        this.blocksUpdatedByDelayedCalls.length = 0;
+        this.applyChangesByListeners();
     }
 
     // Before unload chunk
@@ -1026,3 +1082,4 @@ export class ServerChunk {
 }
 
 const tmp_posVector         = new Vector();
+const tmp_onFluidEvent_TBlock = new TBlock();

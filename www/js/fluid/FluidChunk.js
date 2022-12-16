@@ -320,7 +320,7 @@ export class FluidChunk {
     syncBlockProps(index, blockId, isPortal) {
         const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
         const old = this.uint8View[ind];
-        const props = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
+        const props = blockId ? this.world.blockPropsById[blockId] : 0;
         if (props === old) {
             return;
         }

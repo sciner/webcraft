@@ -1,11 +1,13 @@
 import {
-    FLUID_TYPE_MASK, FLUID_WATER_ID,
-    FLUID_WATER_INTERACT16, FLUID_WATER_REMOVE16, fluidBlockProps, OFFSET_BLOCK_PROPS,
+    FLUID_TYPE_MASK, FLUID_WATER_ID, FLUID_EVENT_FLAG_ABOVE,
+    FLUID_WATER_INTERACT16, FLUID_WATER_REMOVE16,
+    FLUID_WATER_ABOVE_INTERACT16, FLUID_WATER_ABOVE_REMOVE16
 } from "./FluidConst.js";
 import {
     BLOCK
 } from "./../blocks.js";
 import {SingleQueue} from "../light/MultiQueue.js";
+import { Vector } from "../helpers.js";
 
 const QUEUE_INTERACT = 1;
 
@@ -39,20 +41,21 @@ export class FluidChunkEvents {
                 this.markDirty();
             }
         }
-        if ((uint16View[index - cy] & flag) !== 0) {
+        const flagBelow = (val === 0 ? FLUID_WATER_ABOVE_REMOVE16 : 0) | FLUID_WATER_ABOVE_INTERACT16;
+        if ((uint16View[index - cy] & flagBelow) !== 0) {
             const qplace = this.ensurePlace();
             if ((qplace[index - cy] & QUEUE_INTERACT) === 0) {
                 const {facetPortals, aabb} = this.fluidChunk.dataChunk;
                 wy--;
                 if (wy >= aabb.y_min) {
                     qplace[index - cy] |= QUEUE_INTERACT;
-                    this.list.push(index - cy);
+                    this.list.push((index - cy) | FLUID_EVENT_FLAG_ABOVE);
                     this.markDirty();
                 } else {
                     for (let i = 0; i < facetPortals.length; i++) {
                         const region = facetPortals[i].toRegion;
                         if (region.aabb.contains(wx, wy, wz)) {
-                            region.rev.fluid.events.pushGlobal(wx, wy, wz);
+                            region.rev.fluid.events.pushGlobal(wx, wy, wz, FLUID_EVENT_FLAG_ABOVE);
                             break;
                         }
                     }
@@ -68,14 +71,14 @@ export class FluidChunkEvents {
         }
     }
 
-    pushGlobal(wx, wy, wz) {
+    pushGlobal(wx, wy, wz, indexFlag) {
         const index = this.fluidChunk.dataChunk.indexByWorld(wx, wy, wz);
         const qplace = this.fluidChunk.ensurePlace();
         if ((qplace[index] & QUEUE_INTERACT) !== 0) {
             return;
         }
         qplace[index] |= QUEUE_INTERACT;
-        this.list.push(index);
+        this.list.push(index | indexFlag);
         this.markDirty();
     }
 
@@ -111,7 +114,7 @@ export class FluidChunkEvents {
                             } else {
                                 for (let i = 0; i < downPortals.length;i++) {
                                     if (downPortals[i].aabb.contains(wx, wy, wz)) {
-                                        downPortals[i].toRegion.rev.fluid.events.pushGlobal(wx, wy, wz);
+                                        downPortals[i].toRegion.rev.fluid.events.pushGlobal(wx, wy, wz, FLUID_EVENT_FLAG_ABOVE);
                                         break;
                                     }
                                 }
@@ -121,12 +124,13 @@ export class FluidChunkEvents {
                 }
     }
 
-    process() {
+    process(cb) {
         let {list, qplace} = this;
         const {outerSize, pos, cw} = this.fluidChunk.dataChunk;
         this.inQueue = false;
         while (list.head) {
-            const index = list.shift();
+            const v = list.shift();
+            const index = v & ~FLUID_EVENT_FLAG_ABOVE;
 
             let tmp = index - cw;
             let x = tmp % outerSize.x;
@@ -139,6 +143,9 @@ export class FluidChunkEvents {
 
             qplace[index] &= ~QUEUE_INTERACT;
 
+            tmp_Vector.set(x + pos.x, y + pos.y, z + pos.z);
+            cb(tmp_Vector, v & FLUID_EVENT_FLAG_ABOVE !== 0);
+
             let wx = x + pos.x, wy = y + pos.y, wz = z + pos.z;
             console.log(`fluid event at ${wx}, ${wy}, ${wz}`)
             // index, wx, wy, wz
@@ -150,3 +157,5 @@ export class FluidChunkEvents {
         this.fluidChunk.events = null;
     }
 }
+
+const tmp_Vector = new Vector();
