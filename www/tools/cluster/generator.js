@@ -39,8 +39,14 @@ for(let b of blocks) {
 import {Vector} from '../../js/helpers.js';
 import {ClusterVilage} from '../../js/terrain_generator/cluster/vilage.js';
 
-let cnv = document.getElementById('sandbox_canvas');
-let ctx = cnv.getContext('2d', { alpha: false });
+//
+const WORLD_SEED = 1740540541;
+// const START_CLUSTER_ADDR = new Vector(921, 0, 498); // new Vector(240, 0, 807)
+const START_CLUSTER_ADDR = new Vector(-7, 0, -1);
+
+//
+const cnv = document.getElementById('sandbox_canvas');
+const ctx = cnv.getContext('2d', { alpha: false });
 
 class Sandbox {
 
@@ -48,13 +54,13 @@ class Sandbox {
         let attempts = 0;
         while(true) {
             attempts++;
-            let addr = vec ? vec : new Vector(
+            const addr = vec ? vec : new Vector(
                 (Math.random() * 999) | 0,
                 0,
                 (Math.random() * 999) | 0
             );
             let tm = performance.now();
-            this.cluster = new ClusterVilage({}, addr);
+            this.cluster = new ClusterVilage({seed: WORLD_SEED, version: 2}, addr);
             if(this.cluster.is_empty) {
                 vec = null;
             } else {
@@ -80,7 +86,7 @@ class Sandbox {
             for(var z = 0; z < this.settings.size; z++) {
                 const dist = this.cluster.near_mask[z * this.settings.size + x];
                 ctx.fillStyle = "rgba(255,15,0," + (1-Math.round(dist/max_dist*100)/100) + ")";
-                ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
             }
         }
         //
@@ -100,7 +106,7 @@ class Sandbox {
                     }
                     ctx.fillStyle = "#00000011";
                 }
-                ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+                ctx.fillRect(z * scale, x * scale, 1 * scale, 1 * scale);
             }
         }
         //
@@ -110,13 +116,21 @@ class Sandbox {
         const cz = this.cluster.coord.z;
         for(let b of this.cluster.buildings.values()) {
             ctx.fillStyle = "#0000ff55";
-            ctx.fillRect((b.coord.x - cx) * scale, (b.coord.z - cz) * scale, b.width * scale, b.height * scale);
+            ctx.fillRect((b.coord.z - cz) * scale, (b.coord.x - cx) * scale, b.size.z * scale, b.size.x * scale);
+            //
+            if(b.random_building?.right) {
+                ctx.fillStyle = "#00000055";
+                ctx.fillRect((b.coord.z - cz + 1) * scale, (b.coord.x - cx + 1) * scale, (b.size.z - 2) * scale, (b.size.x - 2) * scale);
+            }
+            //
             ctx.fillStyle = "#fff";
-            // ctx.fillText(`${b.size.x}x${b.size.z}`, (b.coord.x - cx) * scale + 1, (b.coord.z - cz) * scale + 1);
+            const right = b.random_building?.right ? ' R' : '';
+            const label = `${b.size.x}x${b.size.z}${right}`;
+            ctx.fillText(label, (b.coord.z - cz) * scale + 1, (b.coord.x - cx) * scale + 1);
         }
     }
 
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(new Vector(240, 0, 807));
+sandbox.generate(START_CLUSTER_ADDR);

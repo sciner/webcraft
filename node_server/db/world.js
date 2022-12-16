@@ -1,9 +1,9 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../www/js/chunk_const.js";
-import { getChunkAddr, Vector } from "../../www/js/helpers.js";
+import { getChunkAddr, Vector, unixTime } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK} from "../../www/js/blocks.js";
 import { DropItem } from '../drop_item.js';
-import { INVENTORY_SLOT_COUNT } from '../../www/js/constant.js';
+import { INVENTORY_SLOT_COUNT, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '../../www/js/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
@@ -53,18 +53,19 @@ export class DBWorld {
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
             const resp = {
-                id:         row.id,
-                user_id:    row.user_id,
-                dt:         row.dt,
-                guid:       row.guid,
-                title:      row.title,
-                seed:       row.seed,
-                game_mode:  row.game_mode,
-                generator:  JSON.parse(row.generator),
-                pos_spawn:  JSON.parse(row.pos_spawn),
-                rules:      JSON.parse(row.rules),
-                state:      null,
-                add_time:   row.add_time,
+                id:             row.id,
+                user_id:        row.user_id,
+                dt:             row.dt,
+                guid:           row.guid,
+                title:          row.title,
+                seed:           row.seed,
+                game_mode:      row.game_mode,
+                generator:      JSON.parse(row.generator),
+                pos_spawn:      JSON.parse(row.pos_spawn),
+                rules:          JSON.parse(row.rules),
+                state:          null,
+                add_time:       row.add_time,
+                world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
             }
             resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
             return resp;
@@ -72,7 +73,7 @@ export class DBWorld {
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
         await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
@@ -114,7 +115,7 @@ export class DBWorld {
     async compressModifiers() {
         let p_start = performance.now();
         let chunks_count = 0;
-        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE data_blob IS NULL', {});
+        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE has_data_blob = 0', {});
         for(let row of rows) {
             chunks_count++;
             let p = performance.now();
@@ -122,7 +123,7 @@ export class DBWorld {
             let p1 = Math.round((performance.now() - p) * 1000) / 1000;
             p = performance.now();
             // save compressed
-            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob WHERE _rowid_ = :_rowid_', {
+            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
                 ':data_blob':  compressed,
                 ':_rowid_':    row.rowid
             });
@@ -135,8 +136,8 @@ export class DBWorld {
 
     //
     async saveCompressedWorldModifyChunk(addr, compressed) {
-        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob) 
-          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob)`, {
+        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, has_data_blob) 
+          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob, 1)`, {
             ':data_blob':   compressed,
             ':x':           addr.x,
             ':y':           addr.y,
@@ -212,7 +213,7 @@ export class DBWorld {
         // Insert to DB
         await this.conn.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin, stats) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin, :stats)', {
             ':id':          player.session.user_id,
-            ':dt':          ~~(Date.now() / 1000),
+            ':dt':          unixTime(),
             ':guid':        player.session.user_guid,
             ':username':    player.session.username,
             ':pos':         JSON.stringify(default_pos_spawn),
@@ -232,7 +233,7 @@ export class DBWorld {
     async insertChatMessage(player, params) {
         await this.conn.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
             ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':text':            params.text,
             ':world_id':        this.world.info.id,
             ':user_session_id': 0
@@ -255,7 +256,7 @@ export class DBWorld {
             ':pos':             JSON.stringify(player.state.pos),
             ':rotate':          JSON.stringify(player.state.rotate),
             ':indicators':      JSON.stringify(player.state.indicators),
-            ':dt_moved':        ~~(Date.now() / 1000),
+            ':dt_moved':        unixTime(),
             ':stats':           JSON.stringify(player.state.stats),
         });
     }
@@ -288,7 +289,7 @@ export class DBWorld {
 
     // findPlayer...
     async findPlayer(world_id, username) {
-        const row = await this.conn.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        const row = await this.conn.get("SELECT id, username FROM user WHERE username = ?", [username]);
         if(!row) {
             return null;
         }
@@ -336,7 +337,7 @@ export class DBWorld {
     // Create drop item
     async createDropItem(params) {
         const entity_id = randomUUID();
-        let dt = ~~(Date.now() / 1000);
+        let dt = unixTime();
         await this.conn.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
             ':dt':              dt,
             ':entity_id':       entity_id,
@@ -361,23 +362,23 @@ export class DBWorld {
         });
     }
 
-      // Delete drop item
-      async removeDeadDrops(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE dt < :dt', {
-            ':dt': ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS)
+    // Delete drop item
+    async removeDeadDrops() {
+        await this.conn.run('DELETE FROM drop_item WHERE dt < :dt', {
+            ':dt': ~~(unixTime() - DROP_LIFE_TIME_SECONDS)
         });
     }
 
     // Delete drop item
     async deleteDropItem(entity_id) {
-        await this.conn.run('UPDATE drop_item SET is_deleted = 1 WHERE entity_id = :entity_id', {
+        await this.conn.run('DELETE FROM drop_item WHERE entity_id = :entity_id', {
             ':entity_id': entity_id
         });
     }
 
     // Load drop items
     async loadDropItems(addr, size) {
-        const rows = await this.conn.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND dt >= :death_date AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        const rows = await this.conn.all('SELECT * FROM drop_item WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max AND dt >= :death_date', {
             ':death_date' : ~~(Date.now() / 1000 - DROP_LIFE_TIME_SECONDS),
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
@@ -405,7 +406,7 @@ export class DBWorld {
         const resp = {obj: null, compressed: null};
         await this.conn.each(`
                 SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                CASE WHEN data_blob IS NULL THEN 0 ELSE 1 END compressed
+                    has_data_blob compressed
                 FROM world_modify_chunks
                 WHERE x = :x AND y = :y AND z = :z`, {
             ':x': addr.x,
@@ -426,6 +427,33 @@ export class DBWorld {
             resp.obj = decompressWorldModifyChunk(resp.compressed);
         }
         return resp;
+    }
+
+    async saveChunkDelayedCalls(chunk) {
+        const addr = chunk.addrHash;
+        const delayed_calls = chunk.delayedCalls.serialize();
+        const result = this.conn.run('INSERT OR IGNORE INTO chunk (dt, addr, delayed_calls) VALUES (:dt, :addr, :delayed_calls)', {
+            ':dt': unixTime(),
+            ':addr': addr,
+            ':delayed_calls': delayed_calls
+        });
+        // It works both in single- and multi- player. In single, it always runs the update.
+        if (!result.changes) {
+            this.conn.run('UPDATE chunk SET delayed_calls = :delayed_calls WHERE addr = :addr', {
+                ':addr': addr,
+                ':delayed_calls': delayed_calls
+            });
+        }
+    }
+
+    async loadAndDeleteChunkDelayedCalls(chunk) {
+        const row = await this.conn.get('SELECT delayed_calls FROM chunk WHERE addr = ?', [chunk.addrHash]);
+        const delayed_calls = row?.delayed_calls;
+        if (!delayed_calls) {
+            return null;
+        }
+        await this.conn.run('UPDATE chunk SET delayed_calls = NULL WHERE addr = ?', [chunk.addrHash]);
+        return delayed_calls;
     }
 
     // Block set
@@ -474,7 +502,7 @@ export class DBWorld {
         if(need_insert) {
             const run_data = {
                 ':user_id':     player?.session.user_id || null,
-                ':dt':          ~~(Date.now() / 1000),
+                ':dt':          unixTime(),
                 ':world_id':    world.info.id,
                 ':x':           params.pos.x,
                 ':y':           params.pos.y,
@@ -499,7 +527,7 @@ export class DBWorld {
     // Bulk block set
     async blockSetBulk(world, player, data) {
         const user_id = player?.session.user_id || null;
-        const dt =  ~~(Date.now() / 1000);
+        const dt =  unixTime();
         const world_id = world.info.id;
         for (var i = 0; i < data.length; i++) {
             const params = data[i];
@@ -611,7 +639,7 @@ export class DBWorld {
 
     //
     async updateChunks(address_list) {
-        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob)
+        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob, has_data_blob)
         SELECT
             json_extract(value, '$.x') x,
             json_extract(value, '$.y') y,
@@ -634,7 +662,8 @@ export class DBWorld {
                     m.chunk_z = json_extract(value, '$.z')
                 ORDER BY m.id ASC
             ),
-            NULL
+            NULL,
+            0
         FROM json_each(:address_list) addrs`, {
             ':address_list': JSON.stringify(address_list)
         });
@@ -673,6 +702,23 @@ export class DBWorld {
             return JSON.parse(row.ender_chest);
         }
         return null;
+    }
+
+    async setTitle(title)  {
+        await this.conn.run('UPDATE world SET title = ?', [title]);
+    }
+
+    async flushWorld() {
+        await this.TransactionBegin()
+        try {
+            for(let tablename of ['world_chunks_fluid', 'world_modify', 'world_modify_chunks', 'drop_item', 'entity', 'painting', 'portal', 'teleport_points', 'chunk']) {
+                this.conn.run(`DELETE FROM ${tablename}`);
+            }
+            await this.TransactionCommit()
+        } catch(e) {
+            await this.TransactionRollback()
+            throw e;
+        }
     }
 
 }

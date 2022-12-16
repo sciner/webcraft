@@ -9,6 +9,7 @@ import { AABB } from "../www/js/core/AABB.js";
 import {DataWorld} from "../www/js/typed_blocks3.js";
 import { compressNearby } from "../www/js/packet_compressor.js";
 import { WorldPortal } from "../www/js/portal.js";
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 async function waitABit() {
     return true;
@@ -22,6 +23,7 @@ export class ServerChunkManager {
         this.chunk_queue_load       = new VectorCollector();
         this.chunk_queue_gen_mobs   = new VectorCollector();
         this.ticking_chunks         = new VectorCollector();
+        this.chunks_with_delayed_calls = new Set();
         this.invalid_chunks_queue   = [];
         this.unloaded_chunk_addrs   = [];
         //
@@ -56,6 +58,7 @@ export class ServerChunkManager {
             switch(cmd) {
                 case 'world_inited': {
                     this.worker_inited = true;
+                    this.postWorkerMessage(['buildingSchemaAdd', {list: Array.from(BuilgingTemplate.schemas.values())}])
                     this.resolve_worker();
                     break;
                 }
@@ -146,6 +149,9 @@ export class ServerChunkManager {
                 }
                 chunk.tick(tick_number);
             }
+        }
+        for(let chunk of this.chunks_with_delayed_calls) {
+            chunk.executeDelayedCalls();
         }
         // 4.
         if(this.unloaded_chunk_addrs.length > 0) {

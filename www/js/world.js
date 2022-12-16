@@ -5,6 +5,8 @@ import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { Vector } from "./helpers.js";
+import { ChestHelpers } from "./block_helpers.js";
+import { BuilgingTemplate } from "./terrain_generator/cluster/building_template.js";
 
 /**
  * World generation unfo passed from server
@@ -42,6 +44,7 @@ export class World {
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
+        this.blockModifierListeners = [];
     }
 
     get serverTimeWithLatency() {
@@ -109,6 +112,14 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
                     TrackerPlayer.stop(params.pos);
+                }
+            });
+
+            // Add or update building schemas
+            this.server.AddCmdListener([ServerClient.CMD_BUILDING_SCHEMA_ADD], (cmd) => {
+                this.chunkManager.postWorkerMessage(['buildingSchemaAdd', cmd.data]);
+                for(let schema of cmd.data.list) {
+                    BuilgingTemplate.addSchema(schema);
                 }
             });
 
@@ -226,7 +237,21 @@ export class World {
         }
         if(actions.load_chest) {
             player.stopAllActivity();
-            Qubatch.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
+            var info = actions.load_chest
+            var window = info.window;
+            var secondInfo = null;
+            if (window === 'frmChest') {
+                secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
+                if (secondInfo) {
+                    window = 'frmDoubleChest';
+                    if (secondInfo.extra_data.type === 'right') {
+                        const t = info;
+                        info = secondInfo;
+                        secondInfo = t;
+                    }
+                }
+            }
+            Qubatch.hud.wm.getWindow(window).load(info, secondInfo);
         }
         if(actions.play_sound) {
             for(let item of actions.play_sound) {

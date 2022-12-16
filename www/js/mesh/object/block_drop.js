@@ -1,5 +1,5 @@
 import { FakeTBlock } from '../../blocks.js';
-import {Vector} from '../../helpers.js';
+import { Vector, unixTime } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 
@@ -166,7 +166,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     get age() {
-        return ~~(Date.now() / 1000) - this.dt;
+        return unixTime() - this.dt;
     }
 
     isDead() {

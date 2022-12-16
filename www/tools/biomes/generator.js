@@ -1,10 +1,11 @@
-import {BLOCK} from '../../js/blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk_const.js';
-import {Vector} from '../../js/helpers.js';
+import { BLOCK} from '../../js/blocks.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '../../js/chunk_const.js';
+import { Vector } from '../../js/helpers.js';
 import { Biomes } from '../../js/terrain_generator/biome3/biomes.js';
-import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
-import { alea } from '../../js/terrain_generator/default.js';
-import { TerrainMapManager2 } from '../../js/terrain_generator/biome3/terrain/manager.js';
+import Terrain_Generator from '../../js/terrain_generator/biome3/index.js';
+// import { createNoise2D, createNoise3D } from '../../vendors/simplex-noise.js';
+// import { alea } from '../../js/terrain_generator/default.js';
+// import { TerrainMapManager2 } from '../../js/terrain_generator/biome3/terrain/manager.js';
 
 await BLOCK.init({
     texture_pack: 'base',
@@ -19,54 +20,83 @@ await import('../../js/terrain_generator/biomes.js').then(module => {
 });
 
 globalThis.BLOCK            = BLOCK;
+globalThis.maps            = null;
 
 const CHUNK_RENDER_DIST     = 32;
 const chunk_addr_start      = new Vector(0 - CHUNK_RENDER_DIST, 0, 0 - CHUNK_RENDER_DIST);
 const chunk_coord_start     = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
 const SZ                    = CHUNK_RENDER_DIST * 2;
 
-// showCoordInfo
-export function showCoordInfo(x, z) {
-    /*
-    const ax = chunk_coord_start.x + z;
-    const az = chunk_coord_start.z + x;
-    const chunk_addr = getChunkAddr(ax, 0, az);
-    const map = all_maps.get(chunk_addr);
-    if(map) {
-        const mx = ax - map.chunk.coord.x;
-        const mz = az - map.chunk.coord.z;
-        const cell_index = mz * CHUNK_SIZE_X + mx;
-        const cell = map.cells[cell_index];
-        let text = ax + 'x' + az;
-        text += `\n${cell.biome.color}`;
-        document.getElementById('dbg').innerText = text;
-    }*/
+class Mth {
+
+    static sqrt(n) {
+        if(n >= 0) return Math.sqrt(n)
+        return -Math.sqrt(-n)
+    }
+
+    static square(n) {
+        return n * n
+    }
+
+    static clamp(n, min, max) {
+        if(n < min) return min
+        if(n > max) return max
+        return n
+    }
+
 }
 
+class QuartPos {
+
+    /**
+     * @param {int} p_175403_ 
+     */
+    static toBlock(p_175403_) {
+        return p_175403_ << 2;
+    }
+    
+    /**
+     * @param {int} p_175401_
+     */
+    static fromBlock(p_175401_) {
+        return p_175401_ >> 2;
+     }
+
+}
+
+class SectionPos {
+
+    /**
+     * @param {int} p_123172_
+     */
+    static blockToSectionCoord(p_123172_) {
+        return p_123172_ >> 4;
+    }
+
+}
 
 class LinearCongruentialGenerator {
 
-    static MULTIPLIER = BigInt(6364136223846793005);
-    static INCREMENT = BigInt(1442695040888963407);
+    static MULTIPLIER = 6364136223846793005n;
+    static INCREMENT = 1442695040888963407n;
  
     static next(p_13973_, p_13974_) {
+        p_13974_ = BigInt(p_13974_)
         const b = new BigInt64Array([p_13973_, p_13974_])
-        // p_13973_ = BigInt(p_13973_)
-        // p_13974_ = BigInt(p_13974_)
         b[0] *= b[0] * 6364136223846793005n + 1442695040888963407n;
         return b[0] + b[1];
     }
 
- }
+}
 
- //
 class BiomeGenerator {
 
     constructor() {
-        this.biomeZoomSeed = BigInt(-4234997244040992158);
+        this.biomeZoomSeed = 5017357443398579235n;
     }
 
     getBiome(xyz) {
+
         const i = xyz.x - 2;
         const j = xyz.y - 2;
         const k = xyz.z - 2;
@@ -77,7 +107,7 @@ class BiomeGenerator {
         const d1 = (j & 3) / 4.0;
         const d2 = (k & 3) / 4.0;
 
-        debugger
+        // debugger
 
         let k1 = 0;
         let d3 = Infinity;
@@ -103,44 +133,106 @@ class BiomeGenerator {
         const i3 = (k1 & 2) == 0 ? i1 : i1 + 1;
         const j3 = (k1 & 1) == 0 ? j1 : j1 + 1;
 
-        return { l2, i3, j3 };
-
         // return this.noiseBiomeSource.getNoiseBiome(l2, i3, j3);
+        return this.getNoiseBiome(l2, i3, j3);
 
+    }
+
+    /**
+     * @param {int} p_204347_ 
+     * @param {int} p_204348_ 
+     * @param {int} p_204349_ 
+     * @returns 
+     */
+    getNoiseBiome(p_204347_, p_204348_, p_204349_) {
+        /**
+        * @type {int}
+        */
+        const i = QuartPos.fromBlock(this.getMinBuildHeight());
+        /**
+        * @type {int}
+        */
+        const k = i + QuartPos.fromBlock(this.getHeight()) - 1;
+        /**
+        * @type {int}
+        */
+        const l = Mth.clamp(p_204348_, i, k);
+        /**
+        * @type {int}
+        */
+        const j = this.getSectionIndex(QuartPos.toBlock(l));
+        debugger
+        return this.sections[j].getNoiseBiome(p_204347_ & 3, l & 3, p_204349_ & 3);
+    }
+
+    /**
+     * 
+     * @param {int} p_151565_ 
+     */
+    getSectionIndex(p_151565_) {
+        return this.getSectionIndexFromSectionY(SectionPos.blockToSectionCoord(p_151565_));
+    }
+
+    /**
+     * @param {int} p_151567_ 
+     */
+    getSectionIndexFromSectionY(p_151567_) {
+        return p_151567_ - this.getMinSection();
+    }
+
+    getMinSection() {
+       return SectionPos.blockToSectionCoord(this.getMinBuildHeight());
+    }
+
+    getMinBuildHeight() {
+        return -64;
+    }
+
+    getHeight() {
+        return 384
     }
 
     getFiddle(p_186690_) {
         // const d0 = Math.floorMod(p_186690_ >> 24, 1024) / 1024.0;
-        const d0 = ((p_186690_ >> 24) & 1023) / 1024.0
-
+        const d0 = Number((p_186690_ >> 24n) & 1023n) / 1024;
         // const d0 = (Math.floor(p_186690_ >> 24) % 1024) / 1024.0;
         return (d0 - 0.5) * 0.9;
     }
 
     getFiddledDistance(p_186680_, p_186681_, p_186682_, p_186683_, p_186684_, p_186685_, p_186686_) {
-        let resp = LinearCongruentialGenerator.next(p_186680_, p_186681_ + 0n);
-        resp = LinearCongruentialGenerator.next(resp, p_186682_ + 0n);
-        resp = LinearCongruentialGenerator.next(resp, p_186683_ + 0n);
-        resp = LinearCongruentialGenerator.next(resp, p_186681_ + 0n);
-        resp = LinearCongruentialGenerator.next(resp, p_186682_ + 0n);
-        resp = LinearCongruentialGenerator.next(resp, p_186683_ + 0n);
+        let resp = LinearCongruentialGenerator.next(p_186680_, p_186681_);
+        resp = LinearCongruentialGenerator.next(resp, p_186682_);
+        resp = LinearCongruentialGenerator.next(resp, p_186683_);
+        resp = LinearCongruentialGenerator.next(resp, p_186681_);
+        resp = LinearCongruentialGenerator.next(resp, p_186682_);
+        resp = LinearCongruentialGenerator.next(resp, p_186683_);
         const d0 = this.getFiddle(resp);
-        resp = LinearCongruentialGenerator.next(resp, p_186680_ + 0n);
+        resp = LinearCongruentialGenerator.next(resp, p_186680_);
         const d1 = this.getFiddle(resp);
-        resp = LinearCongruentialGenerator.next(resp, p_186680_ + 0n);
+        resp = LinearCongruentialGenerator.next(resp, p_186680_);
         const d2 = this.getFiddle(resp);
-        return Math.sqrt(p_186686_ + d2) + Math.sqrt(p_186685_ + d1) + Math.sqrt(p_186684_ + d0);
+        return Mth.square(p_186686_ + d2) + Mth.square(p_186685_ + d1) + Mth.square(p_186684_ + d0);
      }
 
 }
 
-await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
+// showCoordInfo
+export function showCoordInfo(x, z) {
+    if(!maps) return
+    const ax = chunk_coord_start.x + z;
+    const az = chunk_coord_start.z + x;
+    const biome = maps.calcBiome(new Vector(ax, 0, az));
+    let text = ax + 'x' + az;
+    text += `\n${biome.title} #${biome.id}`;
+    document.getElementById('dbg').innerText = text;
+}
 
-    globalThis.Biomes = module.Biomes;
+export async function calcBiomes() {
 
+    /*
     const bm = new BiomeGenerator();
-    console.log(bm.getBiome(new Vector(152, 65, 209)))
-    return;
+    return console.log(bm.getBiome(new Vector(54, -8, 22)))
+    */
 
     const canvas = document.getElementById('canvas3D');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -149,25 +241,23 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
     ctx.fillStyle = "#fc0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const maps_generated = SZ * SZ;
-    const imgData = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
+    const maps_generated    = SZ * SZ;
+    const imgData           = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
+    const seed              = '1';
+    const world_id          = seed;
+    const world             = {chunkManager: null}
+    const options           = {};
 
-    const seed = '1';
-
-    const al = new alea(seed);
-    const noise2d = createNoise2D(al.double);
-    const noise3d = null; // createNoise3D(al.double);
-
-    const world_id = al.double();
-
-    const maps = new TerrainMapManager2(seed, world_id, noise2d, noise3d);
+    const generator = new Terrain_Generator(world, seed, world_id, options)
+    await generator.init()
+    maps = generator.maps;
+    const noise2d = generator.noise2d
 
     const biomes = new Biomes(noise2d);
     const pn = performance.now();
-
     const xyz = new Vector(0, 0, 0);
-
     const biomes_stat = new Map();
+
     let biomes_stat_count = 0;
 
     for(let x = 0; x < SZ * CHUNK_SIZE_X; x += 1) {
@@ -175,7 +265,7 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
 
             const px = chunk_coord_start.x + x;
             const pz = chunk_coord_start.z + z;
-            const index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
+            const index = (x * (SZ * CHUNK_SIZE_X) + z) * 4;
 
             xyz.set(px, 0, pz);
 
@@ -189,7 +279,7 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
 
             } else {
 
-                const {biome, temperature, humidity} = maps.calcBiome(xyz);
+                const biome = maps.calcBiome(xyz);
 
                 let bs = biomes_stat.get(biome.title)
                 biomes_stat.set(biome.title, bs ? bs + 1 : 1);
@@ -244,4 +334,4 @@ await import('../../js/terrain_generator/biome3/biomes.js').then(module => {
     stat.sort((a, b) => b.percent - a.percent)
     console.table(stat)
 
-});
+}

@@ -25,6 +25,7 @@ export class Chunk {
         this.dataIdShift = args.dataId << BITS_QUEUE_BLOCK_INDEX;
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
+        this.uniqId = args.uniqId;
         this.lastID = 0;
         this.sentID = 0;
         this.removed = false;

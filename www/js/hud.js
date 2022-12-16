@@ -2,11 +2,12 @@ import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
-import { isMobileBrowser } from "./helpers.js";
+import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
+import { Biomes } from "./terrain_generator/biome3/biomes.js";
 
 // QuestActionType
 export class QuestActionType {
@@ -29,11 +30,13 @@ export class HUD {
         this.ctx.imageSmoothingEnabled  = false;
         this.active                     = true;
         this.draw_info                  = DRAW_HUD_INFO_DEFAULT;
+        this.draw_block_info            = !isMobileBrowser();
         this.texture                    = null;
         this.buffer                     = null;
         this.width                      = 0;
         this.height                     = 0;
         this.text                       = null;
+        this.block_text                 = null;
         this.items                      = [];
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
@@ -175,6 +178,10 @@ export class HUD {
         // Main menu
         this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
         wm.add(this.frmMainMenu);
+    }
+
+    isDrawingBlockInfo() {
+        return this.active && this.draw_info && this.draw_block_info;
     }
 
     //
@@ -409,14 +416,51 @@ export class HUD {
                 }
             }
 
+            const desc = Qubatch.player.pickAt.targetDescription;
+            this.block_text = null;
+            if (this.draw_block_info && desc) {
+                this.block_text = 'Targeted block Id: ' + desc.block.id +
+                    '\nName: ' + desc.material.name +
+                    '\nWorld pos.: ' + desc.worldPos.toString() +
+                    '\nPos. in chunk: ' + desc.posInChunk.toString() +
+                    '\nChunk addr.: ' + desc.chunkAddr.toString();
+                if (desc.block.rotate) {
+                    this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
+                }
+                if (desc.block.entity_id) {
+                    this.block_text += '\nentiry_id: ' + desc.block.entity_id;
+                }
+                if (desc.block.power) {
+                    this.block_text += '\npower: ' + desc.block.power;
+                }
+                const ed = desc.block.extra_data
+                if (ed) {
+                    var s = '';
+                    for(let key in ed) {
+                        s += '\n    ' + key + ': ' + JSON.stringify(ed[key])
+                    }
+                    this.block_text += '\nextra_data: {' + s + '\n}';
+                }
+                if (desc.fluid) { // maybe unpack it
+                    this.block_text += '\nfluid: ' + desc.fluid;
+                }
+            }
         }
 
         // My XYZ
         const playerBlockPos = player.getBlockPos();
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
+        let biome_id = player.getOverChunkBiomeId()
+        if(biome_id > 0) {
+            if(!this.biomes) {
+                globalThis.BLOCK = Qubatch.world.block_manager
+                this.biomes = new Biomes(null);
+            }
+            biome_id = this.biomes.byID.get(biome_id).title
+        }
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + biome_id;
 
         if(!short_info) {
-            const chunk = player.overChunk;
+            const chunk = player.getOverChunk();
             if(chunk) {
                 /*let biome = null;
                 if(chunk.map) {
@@ -426,7 +470,8 @@ export class HUD {
                         //
                     }
                 }*/
-                this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n'; // + ' / ' + biome + '\n';
+                this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z; // + ' / ' + biome + '\n';
+                this.text += '\nCLUSTER: ' + Math.floor(chunk.coord.x/128) + ', ' + Math.floor(chunk.coord.z/128) + '\n'; // + ' / ' + biome + '\n';
             }
         }
 
@@ -467,6 +512,13 @@ export class HUD {
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Qubatch.averageClockTimer.avg);
         this.drawText('info', this.text, 10 * this.zoom, 10 * this.zoom);
+        //
+        if (this.block_text) {
+            const active_quest = Qubatch.hud.wm.getWindow('frmQuests').active;
+            const y = active_quest?.mt ? active_quest.mt.height + 60 * this.zoom : 10 * this.zoom;
+            const x = Math.max(this.width * 0.55, this.width - 400 * this.zoom);
+            this.drawText('block_info', this.block_text, x, y);
+        }
         //
         this.drawActiveQuest();
         //

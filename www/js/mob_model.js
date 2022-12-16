@@ -4,9 +4,10 @@ import * as ModelBuilder from "./modelBuilder.js";
 import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
-import { HEAD_MAX_ROTATE_ANGLE, MOUSE, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import { Renderer } from "./render.js";
+import { CLIENT_SKIN_ROOT } from "./constant.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -689,9 +690,10 @@ export class MobModel extends NetworkPhysicObject {
      * @param {Vector} camPos 
      * @param {float} delta 
      * @param {float} speed 
+     * @param {boolean} draw_debug_grid
      * @returns 
      */
-    draw(render, camPos, delta, speed) {
+    draw(render, camPos, delta, speed, draw_debug_grid = false) {
 
         this.lazyInit(render);
         this.update(render, camPos, delta, speed);
@@ -777,9 +779,10 @@ export class MobModel extends NetworkPhysicObject {
         this.renderer.drawLayer(render, this, ignore_roots);
 
         // Draw AABB wireframe
-        //if(this.aabb) {
-        //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
-        //}
+        if(this.aabb && draw_debug_grid) {
+            this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+        }
+
     }
 
     /**
@@ -831,22 +834,8 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        if(this.type === 'player') {
-            if (this.skin === 'base') {
-                this.skin = '1';
-                this.type = 'player:steve';
-            } else {
-                this.type = 'player:steve';
-
-                if (!(this.skin in Resources.models[this.type].skins)) {
-                    this.type = 'player:alex';
-                }
-
-                if (!(this.skin in Resources.models[this.type].skins)) {
-                    this.type = 'player:steve';
-                    this.skin = '1';
-                }
-            }
+        if (this.type.startsWith('player')) {
+            return this.loadPlayerModel(render);
         }
 
         const asset = await Resources.getModelAsset(this.type);
@@ -871,6 +860,32 @@ export class MobModel extends NetworkPhysicObject {
 
         const image = await asset.getSkin(this.skin);
 
+        this.loadTextures(render, image);
+    }
+
+
+    async loadPlayerModel(render) {
+        if (this.sceneTree) {
+            return;
+        }
+
+        if (!this.skin.file.startsWith(CLIENT_SKIN_ROOT)) {
+            this.skin.file = CLIENT_SKIN_ROOT + this.skin.file + '.png';
+        }
+        this.type = PLAYER_SKIN_TYPES[this.skin.type];
+
+        const asset = await Resources.getModelAsset(this.type);
+        if (!asset) {
+            console.log("Can't locate model for:", this.type);
+            return null;
+        }
+
+        this.sceneTree = ModelBuilder.loadModel(asset);
+        if (!this.sceneTree) {
+            return null;
+        }
+
+        const image = await asset.getPlayerSkin(this.skin.file);
         this.loadTextures(render, image);
     }
 

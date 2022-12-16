@@ -1,5 +1,6 @@
 export { ChargingStationWindow } from "./charging_station.js";
 export { ChestWindow } from "./chest.js";
+export { DoubleChestWindow } from "./double_chest.js";
 export { CraftTable } from "./craft_table.js";
 export { CreativeInventoryWindow } from "./creative_inventory.js";
 export { DieWindow } from "./die.js";
@@ -19,3 +20,4 @@ export { BookWindow } from "./book.js";
 export { BarrelWindow } from "./barrel.js";
 export { InGameMain } from "./ingamemain.js";
 export { ModeWindow } from "./mode.js";
+export { BrewingWindow } from "./brewing.js";

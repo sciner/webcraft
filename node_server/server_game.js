@@ -7,7 +7,9 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 import { BLOCK } from '../www/js/blocks.js';
+import { Helpers } from '../www/js/helpers.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 class FakeHUD {
     add() {}
@@ -38,10 +40,12 @@ export class ServerGame {
         for(const [world_guid, _] of this.worlds_loading.entries()) {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
+            const worldTitlePromise = this.db.getWorld(world_guid);
             const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
             const world = new ServerWorld(BLOCK);
             const db_world = await DBWorld.openDB(conn, world);
-            await world.initServer(world_guid, db_world);
+            const title = (await worldTitlePromise).title;
+            await world.initServer(world_guid, db_world, title);
             this.worlds.set(world_guid, world);
             this.worlds_loading.delete(world_guid);
             console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
@@ -61,13 +65,35 @@ export class ServerGame {
     }
 
     // Start websocket server
-    async start() {
+    async start(config) {
+
         //
         const conn = await SQLiteServerConnector.connect('./game.sqlite3');
         await DBGame.openDB(conn).then((db) => {
             this.db = db
             global.Log = new GameLog(this.db);
         });
+
+        // Load building template schemas
+        for(let item of config.building_schemas) {
+            try {
+                await Helpers.fetchJSON(`../../node_server/data/building_schema/${item.name}.json`, true, 'bs').then((json) => {
+                    json.world = {...json.world, ...item}
+                    BuilgingTemplate.addSchema(json)
+                });
+            } catch(e) {
+                const schema = {
+                    name: item.name,
+                    world: {
+                        pos1: item.pos1,
+                        pos2: item.pos2,
+                        door_bottom: item.door_bottom
+                    },
+                    blocks: []
+                }
+                BuilgingTemplate.addSchema(schema)
+            }
+        }
 
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true,
@@ -101,7 +127,7 @@ export class ServerGame {
             const onWorld = async () => {
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id, query.skin, conn, world);
+                player.onJoin(query.session_id, parseFloat(query.skin), conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };

@@ -4,11 +4,12 @@ import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { DEFAULT_TX_CNT } from "../constant.js";
 
 const {mat4} = glMatrix;
 
 const STALK_WIDTH = 6/32;
-const TX_CNT = 32;
+const TX_CNT = DEFAULT_TX_CNT;
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');

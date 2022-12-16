@@ -53,6 +53,7 @@
             "id": 415,
             "name": "BUBBLE_COLUMN",
             "transparent": true,
+            "style": "bubble_column",
             "passable": 0.4,
             "selflit": true,
             "is_fluid": true,
@@ -1493,6 +1494,15 @@
             "inventory_style": "extruder",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
             "texture": "block/grass.png",
+            "texture_variants": [
+                "block/grass/grass1.png",
+                "block/grass/grass2.png",
+                "block/grass/grass3.png",
+                "block/grass/grass4.png",
+                "block/grass/grass5.png",
+                "block/grass/grass6.png",
+                "block/grass/grass7.png"
+            ],
             "material": {
                 "id": "plant"
             },
@@ -2397,14 +2407,27 @@
             "name": "BREWING_STAND",
             "inventory_style": "extruder",
             "transparent": true,
+            "window": "frmBrewing",
             "style": "planting",
+            "is_entity": true,
             "material": {
                 "id": "stone"
             },
             "texture": "block/brewing_stand.png",
             "tags": [
                 "no_drop_ao"
-            ]
+            ],
+            "chest_slots": 5,
+            "ticking": {
+                "type": "brewing"
+            },
+            "extra_data":{
+                "state": {
+                    "fuel_time": 0,
+                    "result_ticks": 0,
+                    "result_percent": 0
+                }
+            }
         },
         {
             "id": 121,
@@ -3054,7 +3077,8 @@
             },
             "texture": {
                 "id": "entity",
-                "side": "entity/chest/normal.png"
+                "side": "entity/chest/normal.png",
+                "right": "entity/chest/normal_right.png"
             }
         },
         {
@@ -3120,7 +3144,8 @@
                 "side": "block/ladder.png"
             },
             "tags": [
-                "ladder"
+                "ladder",
+                "can_set_on_wall"
             ],
             "can_rotate": true
         },
@@ -3524,6 +3549,28 @@
                 "up": "block/tall_grass_top.png",
                 "down": "block/tall_grass_bottom.png"
             },
+            "texture_variants": [
+                {
+                    "up": "block/tall_grass/tall_grass1_top.png",
+                    "down": "block/tall_grass/tall_grass1_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass2_top.png",
+                    "down": "block/tall_grass/tall_grass2_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass3_top.png",
+                    "down": "block/tall_grass/tall_grass3_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass4_top.png",
+                    "down": "block/tall_grass/tall_grass4_bottom.png"
+                },
+                {
+                    "up": "block/tall_grass/tall_grass5_top.png",
+                    "down": "block/tall_grass/tall_grass5_bottom.png"
+                }
+            ],
             "material": {
                 "id": "plant"
             },
@@ -4756,12 +4803,7 @@
             },
             "drop_item": {"name": "DIRT", "count": 0, "chance": 0},
             "extra_data": {
-                "type": "zombie",
-                "limit": {},
-                "calculated": [
-                    {"type": "random_item", "name": "skin", "items": ["base"]},
-                    {"type": "random_int", "name": "max_ticks", "min_max": [600, 800]}
-                ]
+                "limit": {}
             },
             "texture_animations": {
                 "side": null
@@ -7681,7 +7723,7 @@
         },
         {
             "id": 241,
-            "name": "SLOWNESS_2",
+            "name": "SLOWNESS_4",
             "style": "extruder",
             "max_in_stack": 1,
             "item": {"name": "bottle"},
@@ -8137,6 +8179,209 @@
                 "id": "iron"
             },
             "texture": "item/iron_nugget.png"
+        },
+        {
+            "id": 261,
+            "name": "BLAZE_POWDER",
+            "style": "extruder",
+            "diagonal": true,
+            "texture": "item/blaze_powder.png",
+            "item": {"name": "blaze_powder"},
+            "fuel_time": 80,
+            "material": {
+                "id": "wood"
+            }
+        },
+         {
+            "id": 262,
+            "name": "NETHER_WART",
+            "passable": 1,
+            "transparent": true,
+            "style": "planting",
+            "sound": "madcraft:block.grass",
+            "material": {"id": "plant"},
+            "inventory": {
+                "style": "extruder",
+                "texture": "item/nether_wart.png"
+            },
+            "texture": "block/nether_wart_stage0.png"
+        },
+        {
+            "id": 263,
+            "name": "GLOWSTONE_DUST",
+            "style": "extruder",
+            "texture": "item/glowstone_dust.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 264,
+            "name": "AWKWARD",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            },
+            "effects":[
+                {}
+            ]
+        },
+        {
+            "id": 265,
+            "name": "WATER_BOTTLE",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bottle"},
+            "material": {
+                "id": "glass"
+            },
+            "tags": [
+                "mask_color"
+            ],
+            "mask_color": {"r": 29, "g": 533, "b": 0},
+            "texture": {
+                "side": "26|31"
+            },
+            "inventory": {
+                "style": "extruder",
+                "texture": "26|31"
+            }
+        },
+        {
+            "id": 266,
+            "name": "FERMENTED_SPIDER_EYE",
+            "style": "extruder",
+            "texture": "item/fermented_spider_eye.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 267,
+            "name": "GLISTERING_MELON_SLICE",
+            "style": "extruder",
+            "texture": "item/glistering_melon_slice.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 268,
+            "name": "SPIDER_EYE",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "food": {
+                "amount": 1,
+                "saturation": 0.3
+            },
+            "effects":[
+                {"id": 6, "time": 4, "level": 1}
+            ],
+            "texture": "item/spider_eye.png"
+        },
+        {
+            "id": 269,
+            "name": "GHAST_TEAR",
+            "style": "extruder",
+            "texture": "item/ghast_tear.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 270,
+            "name": "MAGMA_CREAM",
+            "style": "extruder",
+            "texture": "item/magma_cream.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 271,
+            "name": "PUFFERFISH",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "effects":[
+                {"id": 11, "time": 15, "level":2},
+                {"id": 9, "time": 15, "level": 3},
+                {"id": 6, "time": 60, "level": 4}
+            ],
+            "texture": "item/pufferfish.png"
+        },
+        {
+            "id": 272,
+            "name": "GOLDEN_CARROT",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_info_pot"
+            ],
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/golden_carrot.png"
+        },
+        {
+            "id": 273,
+            "name": "TURTLE_HELMET",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
+            "id": 274,
+            "name": "PHANTOM_MEMBRANE",
+            "style": "extruder",
+            "texture": "item/phantom_membrane.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
         }
     ]
 }

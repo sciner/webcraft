@@ -2,6 +2,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import {DIRECTION, Vector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {WorldAction} from "../www/js/world_action.js";
+import { Weather } from "../www/js/block_type/weather.js";
 
 export class ServerChat {
 
@@ -79,6 +80,9 @@ export class ServerChat {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
                 }
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
                 switch (args[1]) {
                     case 'list': {
                         const admin_list = this.world.admins.getList().join(', ');
@@ -112,9 +116,9 @@ export class ServerChat {
                 break;
             }
             case '/give':
-                //if(!player.game_mode.isCreative()) {
-                //  throw 'error_command_not_working_in_this_game_mode';
-                //}
+                if(!player.game_mode.isCreative()) {
+                  throw 'error_command_not_working_in_this_game_mode';
+                }
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;
                 let cnt = 1;
@@ -142,7 +146,7 @@ export class ServerChat {
                 break;
             case '/help':
                 let commands = [
-                    '/weather (clear | rain)',
+                    '/weather (' + Weather.NAMES.join(' | ') + ')',
                     '/gamemode [world] (survival | creative | adventure | spectator | get)',
                     '/tp -> teleport',
                     '/stp -> safe teleport',
@@ -150,7 +154,7 @@ export class ServerChat {
                     '/seed',
                     '/give <item> [<count>]',
                 ];
-                this.sendSystemChatMessageToSelectedPlayers('\n' + commands.join('\n'), [player.session.user_id]);
+                this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), [player.session.user_id]);
                 break;
             case '/gamemode':
                 if(!this.world.admins.checkIsAdmin(player)) {

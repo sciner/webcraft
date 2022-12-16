@@ -1,6 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
+import { BLOCK } from '../../../blocks.js';
 
 import { getAheadMove } from "../../cluster/vilage.js";
 
@@ -15,16 +16,20 @@ export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число �
 export const WATER_LEVEL            = 80;
 export const DENSITY_THRESHOLD      = .6;
 
-const mountain_desert_mats = [
-    BLOCK.ORANGE_TERRACOTTA.id,
-    BLOCK.LIGHT_GRAY_TERRACOTTA.id,
-    BLOCK.BROWN_TERRACOTTA.id,
-    BLOCK.TERRACOTTA.id,
-    BLOCK.WHITE_TERRACOTTA.id,
-    BLOCK.WHITE_TERRACOTTA.id,
-    // BLOCK.PINK_TERRACOTTA.id,
-    // BLOCK.YELLOW_TERRACOTTA.id,
-];
+let mountain_desert_mats = [];
+
+function initMats() {
+    mountain_desert_mats = [
+        BLOCK.ORANGE_TERRACOTTA.id,
+        BLOCK.LIGHT_GRAY_TERRACOTTA.id,
+        BLOCK.BROWN_TERRACOTTA.id,
+        BLOCK.TERRACOTTA.id,
+        BLOCK.WHITE_TERRACOTTA.id,
+        BLOCK.WHITE_TERRACOTTA.id,
+        // BLOCK.PINK_TERRACOTTA.id,
+        // BLOCK.YELLOW_TERRACOTTA.id,
+    ];
+}
 
 //
 class RiverPoint {
@@ -43,11 +48,11 @@ class RiverPoint {
 export class DensityParams {
 
     /**
-     * @param {float} d1 
-     * @param {float} d2 
-     * @param {float} d3 
-     * @param {float} d4 
-     * @param {float} density 
+     * @param {float} d1
+     * @param {float} d2
+     * @param {float} d3
+     * @param {float} d4
+     * @param {float} density
      */
     constructor(d1, d2, d3, d4, density) {
         this.d1 = d1;
@@ -58,11 +63,11 @@ export class DensityParams {
     }
 
     /**
-     * @param {float} d1 
-     * @param {float} d2 
-     * @param {float} d3 
-     * @param {float} d4 
-     * @param {float} density 
+     * @param {float} d1
+     * @param {float} d2
+     * @param {float} d3
+     * @param {float} d4
+     * @param {float} density
      */
     set(d1, d2, d3, d4, density) {
         this.d1 = d1;
@@ -150,6 +155,7 @@ export class TerrainMapManager2 {
         this.presets.sort(() => .5 - this.rnd_presets.double());
 
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
+        initMats();
     }
 
     // Delete map for unused chunk
@@ -166,7 +172,7 @@ export class TerrainMapManager2 {
 
     // Generate maps
     generateAround(chunk, chunk_addr, smooth, generate_trees) {
-        
+
         const rad                   = generate_trees ? 2 : 1;
         const noisefn               = this.noise2d;
         const maps                  = [];
@@ -175,7 +181,7 @@ export class TerrainMapManager2 {
          * @type {TerrainMap2}
          */
         let center_map              = null;
-        
+
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManager2._temp_vec3.set(x, -chunk_addr.y, z);
@@ -276,9 +282,9 @@ export class TerrainMapManager2 {
     // Шум для гор
     mountainFractalNoise(x, y, octaves, lacunarity, persistence, scale) {
         // The sum of our octaves
-        let value = 0 
+        let value = 0
         // These coordinates will be scaled the lacunarity
-        let x1 = x 
+        let x1 = x
         let y1 = y
         // Determines the effect of each octave on the previous sum
         let amplitude = 1
@@ -302,11 +308,11 @@ export class TerrainMapManager2 {
     }
 
     /**
-     * 
-     * @param {Vector} xyz 
-     * @param {*} cell 
-     * @param {?DensityParams} density_params 
-     * @returns 
+     *
+     * @param {Vector} xyz
+     * @param {*} cell
+     * @param {?DensityParams} density_params
+     * @returns
      */
     calcDensity(xyz, cell, density_params = null) {
 
@@ -328,7 +334,7 @@ export class TerrainMapManager2 {
                 const d1 = 0;
                 const d2 = 0;
                 const d3 = (
-                    this.noise2d(xyz.x/25, xyz.z/25) + 
+                    this.noise2d(xyz.x/25, xyz.z/25) +
                     this.noise2d((xyz.x + 1000) / 25, (xyz.z + 1000) / 25)
                 ) / 2;
                 const d4 = 0;
@@ -378,12 +384,12 @@ export class TerrainMapManager2 {
     }
 
     /**
-     * 
-     * @param {Vector} xyz 
-     * @param {int} not_air_count 
-     * @param {TerrainMapCell} cell 
-     * @param {DensityParams} density_params 
-     * @returns 
+     *
+     * @param {Vector} xyz
+     * @param {int} not_air_count
+     * @param {TerrainMapCell} cell
+     * @param {DensityParams} density_params
+     * @returns
      */
     getBlock(xyz, not_air_count, cell, density_params) {
 
@@ -409,7 +415,6 @@ export class TerrainMapManager2 {
             const index = xyz.y % mountain_desert_mats.length
             const dd = Math.floor(index * v);
             block_id = mountain_desert_mats[dd % mountain_desert_mats.length];
-            debugger
 
         } else {
             // 2. select block in dirt layer
@@ -506,14 +511,17 @@ export class TerrainMapManager2 {
         if(!map.cluster.is_empty && map.cluster.buildings) {
             for(const [_, building] of map.cluster.buildings.entries()) {
                 if(building.door_bottom && building.door_bottom.y == Infinity) {
-                    xyz.copyFrom(building.door_bottom).addSelf(getAheadMove(building.door_direction))
+
+                    xyz.copyFrom(building.entrance).addSelf(getAheadMove(building.door_direction))
+
                     const river_point = this.makeRiverPoint(xyz.x, xyz.z);
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
-
+ 
                     xyz.y = map.cluster.y_base;
                     this.noise3d.generate4(xyz, doorSearchSize);
+
                     for(let i = 0; i < 2; i++) {
                         if(building.door_bottom.y != Infinity) {
                             break;
@@ -537,6 +545,7 @@ export class TerrainMapManager2 {
                             free_height++;
                         }
                     }
+
                 }
             }
         }

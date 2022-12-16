@@ -17,18 +17,7 @@ export default class packet_reader {
         if(!player.game_mode.canBlockAction()) {
             return true;
         }
-        //
-        const chests = player.world.chests;
-        const pos = packet.data.chest.pos;
-        const chest = await chests.get(pos);
-        if (chest) {
-            // console.log('Chest state from ' + player.session.username, packet.data);
-            await chests.confirmPlayerAction(player, pos, packet.data);
-        } else {
-            player.inventory.refresh(true);
-            const pos_hash = pos.toHash();
-            throw `Chest ${pos_hash} not found`;
-        }
+        await player.world.chests.confirmPlayerAction(player, packet.data);
         return true;
     }
 

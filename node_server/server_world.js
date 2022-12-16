@@ -1,11 +1,13 @@
 import config from "./config.js";
 
+import { loadBlockListeners } from "./server_helpers.js";
 import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
+import { TickerHelpers } from "./ticker/ticker_helpers.js";
 
 import { WorldTickStat } from "./world/tick_stat.js";
 import { WorldPacketQueue } from "./world/packet_queue.js";
@@ -14,18 +16,20 @@ import { WorldMobManager } from "./world/mob_manager.js";
 import { WorldAdminManager } from "./world/admin_manager.js";
 import { WorldChestManager } from "./world/chest_manager.js";
 
-import { getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
+import { ArrayHelpers, getChunkAddr, Vector, VectorCollector } from "../www/js/helpers.js";
 import { AABB } from "../www/js/core/AABB.js";
+import { BLOCK } from "../www/js/blocks.js";
 import { ServerClient } from "../www/js/server_client.js";
 import { PLAYER_STATUS_DEAD, PLAYER_STATUS_ALIVE } from "../www/js/player.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../www/js/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, WORLD_TYPE_BUILDING_SCHEMAS } from "../www/js/constant.js";
 import { Weather } from "../www/js/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -35,12 +39,15 @@ export class ServerWorld {
     constructor(block_manager) {
         this.temp_vec = new Vector();
         this.block_manager = block_manager;
+        this.updatedBlocksByListeners = [];
     }
 
-    async initServer(world_guid, db_world) {
+    async initServer(world_guid, db_world, new_title) {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
+        const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
+        var t = performance.now();
         // Tickers
         this.tickers = new Map();
         for(let fn of config.tickers) {
@@ -55,6 +62,17 @@ export class ServerWorld {
                 this.random_tickers.set(fn, module.default);
             });
         }
+        this.blockCallees = {};
+        // "Before change" listenes are called by the old (possibly to-be-removed) block id,
+        // before it's changed. Use it to listen for removal, and process extra_data of the removed block.
+        const beforeBlockChangeListenersPromise = loadBlockListeners(
+            config.before_block_change_listeners,
+            './ticker/before_change/', this.blockCallees);
+        // "After change" listenes are called by the new block id, after it's set.
+        this.afterBlockChangeListeners = await loadBlockListeners(
+            config.after_block_change_listeners,
+            './ticker/after_change/', this.blockCallees);
+        this.beforeBlockChangeListeners = await beforeBlockChangeListenersPromise;
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -62,10 +80,18 @@ export class ServerWorld {
                 this.brains.add(fn, module.Brain);
             });
         }
+        t = performance.now() - t;
+        if (t > 50) {
+            console.log('Importing tickers, listeners & brains: ' + t + ' ms');
+        }
         //
         this.db             = db_world;
         this.db.removeDeadDrops();
+        await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
+
+        await this.makeBuildingsWorld()
+
         //
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
@@ -110,6 +136,81 @@ export class ServerWorld {
         return this.db.getDefaultPlayerIndicators();
     }
 
+    /**
+     * @returns {boolean}
+     */
+    async makeBuildingsWorld() {
+
+        if(this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
+            return false
+        }
+
+        // flush database
+        await this.db.flushWorld()
+
+        const blocks = [];
+        const chunks_addr = new VectorCollector()
+        const block_air = {id: 0}
+        const block_road = {id: 8}
+        const block_num1 = {id: 209}
+        const block_num2 = {id: 210}
+
+        const addBlock = (pos, item) => {
+            blocks.push({pos, item})
+            chunks_addr.set(getChunkAddr(pos), true);
+        }
+
+        // make road
+        for(let x = 10; x > -1000; x--) {
+            const pos = new Vector(x, 0, 3)
+            addBlock(pos, block_road)
+        }
+
+        // each all buildings
+        for(let schema of BuilgingTemplate.schemas.values()) {
+            addBlock(new Vector(schema.world.pos1), block_num1)
+            addBlock(new Vector(schema.world.pos2), block_num2)
+            // draw sign
+            addBlock(new Vector(schema.world.pos1.x, 1, 3), {id: 645, extra_data: {text: schema.name, username: this.info.title, dt: new Date().toISOString()}, rotate: new Vector(0, 1, 0)})
+            // clear basement level
+            for(let x = 0; x <= (schema.world.pos1.x - schema.world.pos2.x); x++) {
+                for(let z = 0; z <= (schema.world.pos1.z - schema.world.pos2.z); z++) {
+                    const pos = new Vector(schema.world.pos1.x - x, 0, schema.world.pos1.z - z)
+                    if(!pos.equal(schema.world.pos1) && !pos.equal(schema.world.pos2)) {
+                        addBlock(pos, block_air)
+                    }
+                }
+            }
+            // fill blocks
+            for(let b of schema.blocks) {
+                const item = {id: b.block_id};
+                const y = schema.world.door_bottom.y - schema.door_pos.y - 1
+                const z = schema.door_pos.z
+                const pos = new Vector(
+                    schema.world.door_bottom.x - b.move.x,
+                    schema.world.pos1.y + b.move.y - y,
+                    schema.world.door_bottom.z - b.move.z + z
+                )
+                if(b.extra_data) item.extra_data = b.extra_data
+                if(b.rotate) item.rotate = b.rotate
+                addBlock(pos, item)
+            }
+        }
+
+        // store modifiers in db
+        let t = performance.now()
+        await this.db.blockSetBulk(this, null, blocks)
+        console.log('Building: store modifiers in db ...', performance.now() - t)
+
+        // compress chunks in db
+        t = performance.now()
+        await this.db.updateChunks(chunks_addr.keys());
+        console.log('Building: compress chunks in db ...', performance.now() - t)
+
+        return true
+
+    }
+
     get serverTime() {
         return Date.now() + SERVE_TIME_LAG;
     }
@@ -118,11 +219,14 @@ export class ServerWorld {
     getInfo() {
         return this.info;
     }
-    
-    // спавнер мобов
-    autoSpawner() {
+
+    // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
+    autoSpawnHostileMobs() {
         const SPAWN_DISTANCE = 16;
-        if (this.getLight() > 6) {
+        const good_light_for_spawn = this.getLight() > 6;
+        const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        // не спавним мобов в мире-конструкторе и в дневное время
+        if(!good_world_for_spawn || !good_light_for_spawn) {
             return;
         }
         // находим игроков
@@ -131,6 +235,7 @@ export class ServerWorld {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
                 if (mobs.length <= 4) {
+                    // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
                     // выбираем рандомную позицию для спауна
                     const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const y = player.state.pos.y + 2 * (Math.random());
@@ -235,10 +340,11 @@ export class ServerWorld {
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
-            for (let player of this.players.values()) {
+            for(let player of this.players.values()) {
                 await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
+            //
             await this.chunks.fluidWorld.queue.process();
             this.ticks_stat.add('fluid_queue');
             // 4.
@@ -258,11 +364,12 @@ export class ServerWorld {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
             }
+            // Auto spawn hostile mobs
             if(this.ticks_stat.number % 100 == 0) {
-                this.autoSpawner();
-                this.ticks_stat.add('auto_spawner');
+                this.autoSpawnHostileMobs();
+                this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
-            //
+            // Save fluids
             this.ticks_stat.add('db_fluid_save');
             await this.db.fluid.saveFluids();
             this.ticks_stat.end();
@@ -317,21 +424,8 @@ export class ServerWorld {
         // 6. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, this.players.keys());
         // 7. Drop item if stored
-        const drag_item = player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
-        if(drag_item) {
-            let saved = false;
-            for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
-                if(!player.inventory.items[i]) {
-                    player.inventory.items[i] = drag_item;
-                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
-                    await player.inventory.save();
-                    saved = true;
-                    break;
-                }
-            }
-            if(!saved) {
-                player.inventory.dropFromDragSlot();
-            }
+        if (player.inventory.moveOrDropFromDragSlot()) {
+            await player.inventory.save();
         }
         // 8. Send CMD_CONNECTED
         player.sendPackets([{
@@ -567,6 +661,7 @@ export class ServerWorld {
         }
         // Modify blocks
         if (actions.blocks && actions.blocks.list) {
+            this.updatedBlocksByListeners.length = 0;
             let chunk_addr = new Vector(0, 0, 0);
             let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
             let chunk = null;
@@ -623,9 +718,25 @@ export class ServerWorld {
                                 }
                             }
                         }
+                        const tblock = chunk.tblocks.get(block_pos_in_chunk);
+                        let oldId = tblock.id;
+                        // call block change listeners
+                        if (on_block_set) {
+                            var listeners = this.beforeBlockChangeListeners[oldId];
+                            if (listeners) {
+                                for(let listener of listeners) {
+                                    const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
+                                    var res = listener.func(chunk, tblock, newMaterial, true);
+                                    if (typeof res === 'number') {
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos]);
+                                    } else {
+                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
+                                    }
+                                }
+                            }
+                        }
                         // 3. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
-                        let tblock = chunk.tblocks.get(block_pos_in_chunk);
                         tblock.id = params.item.id;
                         tblock.extra_data = params.item?.extra_data || null;
                         tblock.entity_id = params.item?.entity_id || null;
@@ -634,7 +745,19 @@ export class ServerWorld {
                         // 1. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
-                            chunk.onBlockSet(block_pos.clone(), params.item)
+                            chunk.onBlockSet(block_pos.clone(), params.item);
+                            const listeners = this.afterBlockChangeListeners[tblock.id];
+                            if (listeners) {
+                                for(let listener of listeners) {
+                                    const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
+                                    var res = listener.func(chunk, tblock, oldMaterial, true);
+                                    if (typeof res === 'number') {
+                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos, oldMaterial.id]);
+                                    } else {
+                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
+                                    }
+                                }
+                            }
                         }
                         if (server_player) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
@@ -671,6 +794,7 @@ export class ServerWorld {
                 }
                 throw e;
             }
+            this.addUpdatedBlocksActions(this.updatedBlocksByListeners);
         }
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
@@ -922,6 +1046,15 @@ export class ServerWorld {
             return 12;
         }
         return 15;
+    }
+
+    addUpdatedBlocksActions(updated_blocks) {
+        ArrayHelpers.filterSelf(updated_blocks, v => v != null);
+        if (updated_blocks.length) {
+            const action = new WorldAction(null, this, false, true);
+            action.addBlocks(updated_blocks);
+            this.actions_queue.add(null, action);
+        }
     }
 
 }

@@ -3,6 +3,7 @@ import { lerpComplex, Mth } from "./helpers.js";
 import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
+import { Weather } from "./block_type/weather.js";
 
 /**
  * @typedef {object} IFogPreset
@@ -537,7 +538,6 @@ export const FOG_PRESETS = {
 };
 
 export const SETTINGS = {
-    skyColor:               [0, 0, 0.8],
     fog:                    'base', //for preset
     fogDensity:             1, // multiplication
     fogDensityUnderWater:   0.1,
@@ -564,12 +564,11 @@ export class Environment {
             return acc;
         },{});
 
-        this.skyColor = [...SETTINGS.skyColor];
         this.fogDensity = SETTINGS.fogDensity;
         this.chunkBlockDist = SETTINGS.chunkBlockDist;
         this.sunDir = [0.9593, 1.0293, 0.6293];
         this.brightness = 1.;
-        this.nightshift = 1.;
+        this.nightshift = 1.; // it's 1 above the surface, and 0 deep beow
 
         this.skyBox = null;
 
@@ -663,7 +662,9 @@ export class Environment {
         this.skyBox = renderBackend.createCubeMap({
             code: Resources.codeSky,
             uniforms: {
-                u_brightness: 1.0
+                u_brightness: 1.0,
+                u_nightshift: 0,
+                u_baseColor: [0, 0, 0]
                 // u_textureOn: true
             },
             /*sides: [
@@ -770,6 +771,8 @@ export class Environment {
             return;
         }
 
+        const weather = Qubatch.render.getWeather();
+
         const p = this.fogPresetRes;
 
         p.eval(this._sunFactor);
@@ -785,9 +788,9 @@ export class Environment {
 
         const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
 
-        this._computedBrightness = lum;
+        this._computedBrightness = lum * Weather.GLOBAL_BRIGHTNESS[weather];
 
-        const value = this.brightness * lum;
+        const value = this.brightness * lum * Weather.FOG_BRIGHTNESS[weather];
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
 
         for (let i = 0; i < 3; i ++) {
@@ -868,6 +871,11 @@ export class Environment {
         }
 
         const { width, height }  = render.renderBackend.size;
+
+        const uniforms = this.skyBox.shader.uniforms;
+        const weather = render.getWeather();
+        uniforms['u_baseColor'].value = Weather.SKY_COLOR[weather];
+        uniforms['u_nightshift'].value = this.nightshift;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }

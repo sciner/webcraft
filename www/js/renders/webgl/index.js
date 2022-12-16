@@ -12,6 +12,7 @@ import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
+import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
@@ -322,6 +323,7 @@ export default class WebGLRenderer extends BaseRenderer {
         this.mesh = new GLMeshDrawer(this);
         this.cube = new GLCubeDrawer(this);
         this.chunk = new GLChunkDrawer(this);
+        this.line = new GLLineDrawer(this);
     }
 
     async init(args) {
@@ -337,6 +339,8 @@ export default class WebGLRenderer extends BaseRenderer {
         }
         this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+
+        this.line.init();
         return Promise.resolve(this);
     }
 

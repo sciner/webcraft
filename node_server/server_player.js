@@ -16,6 +16,7 @@ import { ServerPlayerDamage } from "./player/damage.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ServerPlayerEffects } from "./player/effects.js";
 import { Effect } from "../www/js/block_type/effect.js";
+import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 
 export class NetworkMessage {
     constructor({
@@ -125,17 +126,20 @@ export class ServerPlayer extends Player {
      * @param {WebSocket} conn 
      * @param {ServerWorld} world 
      */
-    async onJoin(session_id, skin, conn, world) {
+    async onJoin(session_id, skin_id, conn, world) {
         
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
         }
 
+        // TODO: Maybe set the session here, and not in cmd_connect? (to avoid redundant select)
+        const session = await Qubatch.db.GetPlayerSession(session_id);
+
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
         this.session_id         = session_id;
-        this.skin               = skin;
+        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id);
         //
         conn.player = this;
         conn.on('message', this.onMessage.bind(this));
@@ -147,6 +151,14 @@ export class ServerPlayer extends Player {
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
             data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
+        }]);
+
+        //
+        this.sendPackets([{
+            name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
+            data: {
+                list: Array.from(BuilgingTemplate.schemas.values())
+            }
         }]);
 
         this.sendWorldInfo(false);

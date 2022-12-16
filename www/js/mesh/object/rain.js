@@ -42,7 +42,7 @@ export default class Mesh_Object_Rain {
         this.type           = type;
         this.chunkManager   = chunkManager;
         this.player         = render.player;
-
+        
         // Material (rain)
         const mat = render.defaultShader.materials.doubleface_transparent;
 
@@ -53,6 +53,10 @@ export default class Mesh_Object_Rain {
             minFilter: 'nearest',
             magFilter: 'nearest'
         }));
+        
+        if (this.type == 'rain') {
+            this.sound_id = Qubatch.sounds.play('madcraft:environment', 'rain', null, true);  
+        }
 
     }
 
@@ -282,6 +286,9 @@ export default class Mesh_Object_Rain {
     destroy(render) {
         if(this.buffer) {
             this.buffer.destroy();
+        }
+        if(this.sound_id) {
+            Qubatch.sounds.stop(this.sound_id);
         }
     }
 

@@ -1,4 +1,4 @@
-import { Vector } from "../../../www/js/helpers.js";
+import { Vector, unixTime } from "../../../www/js/helpers.js";
 import { WorldPortal } from "../../../www/js/portal.js";
 
 export class DBWorldPortal {
@@ -15,7 +15,7 @@ export class DBWorldPortal {
      */
     async add(user_id, portal) {
         const result = await this.conn.run('INSERT INTO portal(user_id, dt, x, y, z, rotate, size, player_pos, portal_block_id, type, pair) VALUES(:user_id, :dt, :x, :y, :z, :rotate, :size, :player_pos, :portal_block_id, :type, :pair)', {
-            ':dt':              ~~(Date.now() / 1000),
+            ':dt':              unixTime(),
             ':user_id':         user_id,
             ':x':               portal.pos.x,
             ':y':               portal.pos.y,
@@ -29,7 +29,7 @@ export class DBWorldPortal {
         });
         // lastID
         let lastID = result.lastID;
-        if(!lastID) {
+        if(!result.lastID) {
             const row = await this.conn.get('SELECT _rowid_ AS lastID FROM portal WHERE x = :x AND y = :y AND z = :z ORDER by _rowid_ DESC', {
                 ':x':           portal.pos.x,
                 ':y':           portal.pos.y,
@@ -59,12 +59,14 @@ export class DBWorldPortal {
     async search(pos, max_dist, type) {
         const row = await this.conn.get(`WITH portals AS (SELECT _rowid_ as id, *, ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) as dist
         FROM portal
-        WHERE ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) < :max_dist)
+        WHERE (x > :x - :max_dist) AND (x < :x + :max_dist) AND (z > :z - :max_dist) AND (z < :z + :max_dist)
+            AND ((x - :x) * (x - :x) + (y - :y) * (y - :y) + (z - :z) * (z - :z)) < :max_dist_sqr)
         SELECT * FROM portals ORDER BY dist ASC LIMIT 1`, {
             ':x': pos.x,
             ':y': pos.y,
             ':z': pos.z,
-            ':max_dist': Math.pow(max_dist, 2)
+            ':max_dist': max_dist,
+            ':max_dist_sqr': max_dist * max_dist
         });
         if(!row) {
             return null;

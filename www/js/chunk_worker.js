@@ -3,6 +3,7 @@ let Vector              = null;
 let Helpers             = null;
 let getChunkAddr        = null;
 let VectorCollector     = null;
+let BuilgingTemplate    = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
@@ -54,6 +55,11 @@ async function preLoad () {
         Helpers = module.Helpers;
         VectorCollector = module.VectorCollector;
     });
+
+    await import('./terrain_generator/cluster/building_template.js').then(module => {
+        BuilgingTemplate = module.BuilgingTemplate;
+    });
+
     // load font
     if(typeof process == 'undefined') {
     await import('../data/font.js').then(module => {
@@ -269,6 +275,12 @@ async function onMessageFunc(e) {
                 world.checkPotential(new Vector().copyFrom(args.pos).round());
             }
             break;
+        }
+        case 'buildingSchemaAdd': {
+            for(let schema of args.list) {
+                BuilgingTemplate.addSchema(schema)
+            }
+            break
         }
     }
 }

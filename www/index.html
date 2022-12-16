@@ -359,6 +359,14 @@
                         </div>
                     </div> -->
                     <div class="input-group">
+                        <p>{{Lang.field_of_view}}: <span>{{settings.form.fov}}</span>°</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="inputRange_FOV" class="slider" type="range" min="50" max="120" step="5" value="settings.form.fov"
+                                ng-model="settings.form.fov" ng-change="settings.updateSlider('inputRange_FOV')">
+                        </div>
+                        <div id="inputRange_FOV_ticks"></div>
+                    </div>
+                    <div class="input-group">
                         <p>{{Lang.render_options}}</p>
                         <div class="switcher-container">
                             <input type="checkbox" id="chk-generate_mipmap" value="" ng-model="settings.form.mipmap" />
@@ -435,20 +443,26 @@
                     <p class="font-m m-0" style="color: #B7B2CC;">
                         <span id="skins-current"></span>/<span id="skins-length"></span>
                     </p>
+                    <div class="flex-row">
+                        <button class="secondary" ng-click="skin.newSkin()">{{Lang.new_skin}}</button>
+                        &nbsp;
+                        <button class="secondary" ng-click="skin.deleteSkin()" ng-if="skin.currentSkinIsOwned">{{Lang.delete}}</button>
+                    </div>
                 </h1>
                 <div id="skins-slider" class="keen-slider zoom-out">
-                    <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list">
+                    <div class="keen-slider__slide zoom-out__slide" ng-repeat="k in skin.list track by k.id">
                         <div>
                             <img ng-src="{{k.preview}}" alt="preview skin" />
                         </div>
                     </div>
                 </div>
-                <div class="preview-buttons">
+                <div class="preview-buttons" id="div-skin-preview-buttons">
                     <button id="slider-prev" class="slider-btn disabled" onclick="sliderPrev()">
                         <i class="icon-chevron-left"></i>
                     </button>
+                    <canvas id="skin_container" ng-init="skin.initSkinView3d()"></canvas>
                     <div id="skins-preview-slider" class="keen-slider thumbnail">
-                        <div class="keen-slider__slide" ng-repeat="k in skin.list"><img ng-src="{{k.preview}}"/></div>
+                        <div class="keen-slider__slide" ng-repeat="k in skin.list track by k.id"><img ng-src="{{k.preview}}"/></div>
                     </div>
                     <button id="slider-next" class="slider-btn" onclick="sliderNext()">
                         <i class="icon-chevron-right"></i>
@@ -481,6 +495,48 @@
                     <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
                 </div>
             </div> -->
+            <div class="social">
+                <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/discord.svg" alt="">
+                </a>
+                <a class="icon" ng-href="{{links.youtube}}" target="_blank" rel="noreferrer">
+                    <img src="style/img/youtube.svg" alt="">
+                </a>
+            </div>
+        </div>
+        
+        <!-- New skin -->
+        <div class="profile-page" ng-if="current_window.id == 'new_skin'">
+            <div class="content items-center">
+                <h3 class="header">New skin</h3>
+                <div class="input-group">
+                    <div>
+                        <canvas id="preview_skin_container" ng-init="skin.initPreviewSkinView3d()"></canvas>
+                        <!-- <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/> -->
+                    </div>
+                    <div>&nbsp;</div>
+                    <div class="flex-row items-center">
+                        <div class="open-file-div">
+                            <button class="secondary" for="new-skin-input">{{Lang.open_file}}</label>
+                            <input type="file" id="new-skin-input" accept="image/png" ng-upload-change="skin.newSkinFileChanged($event)">
+                        </div>
+                        &nbsp;&nbsp;&nbsp;
+                        <div class="switcher-container">
+                            <input type="checkbox" id="chk-new-skin-slim" value="" ng-model="skin.newSkinSlim" ng-change="skin.changePreviewSkinSlim()" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-new-skin-slim">{{Lang.slim}}</label>
+                        </div>
+                    </div>
+                </div>
+                <div>&nbsp;</div>
+                <div class="flex-row items-center">
+                    <button class="secondary flex-row" ng-click="skin.newSkinCancel()">{{Lang.cancel}}</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <button class="primary flex-row" ng-click="skin.newSkinOk()" ng-disabled="!skin.newSkinDataURL">{{Lang.apply}}</button>
+                </div>
+            </div>
             <div class="social">
                 <a class="icon" ng-href="{{links.discord}}" target="_blank" rel="noreferrer">
                     <img src="style/img/discord.svg" alt="">

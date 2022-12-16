@@ -13,7 +13,7 @@ import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-const MAX_APPLY_VERTICES_COUNT  = 10;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -36,6 +36,9 @@ export class ChunkManager {
 
     #world;
 
+    /**
+     * @param { import("./world.js").World } world
+     */
     constructor(world) {
 
         ChunkManager.instance = this;
@@ -44,6 +47,7 @@ export class ChunkManager {
         this.chunks                 = new VectorCollectorFlat();
         this.chunks_prepare         = new VectorCollector();
         this.block_sets             = 0;
+        this.draw_debug_grid        = world.settings.chunks_draw_debug_grid;
 
         this.lightPool              = null;
         this.lightProps = {
@@ -234,6 +238,10 @@ export class ChunkManager {
                 case 'light_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
+                        if (chunk.uniqId !== args.uniqId) {
+                            // This happens occasionally after quick F8.
+                            break;
+                        }
                         chunk.onLightGenerated(args);
                     }
                     break;
@@ -262,7 +270,11 @@ export class ChunkManager {
 
     }
 
-    // С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+    /**
+     * С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
+     * @param {Vector} addr 
+     * @param {Uint8Array} fluid 
+     */
     setChunkFluid(addr, fluid) {
         const chunk = this.getChunkForSetData(addr);
         if(chunk instanceof Chunk) {
@@ -272,6 +284,10 @@ export class ChunkManager {
         }
     }
 
+    /**
+     * @param {Vector} addr 
+     * @param {Uint8Array} fluidDelta 
+     */
     setChunkFluidDelta(addr, fluidDelta) {
         const chunk = this.getChunkForSetData(addr);
         if(chunk instanceof Chunk) {
@@ -279,6 +295,10 @@ export class ChunkManager {
         }
     }
 
+    /**
+     * @param {Vector} addr 
+     * @returns 
+     */
     getChunkForSetData(addr) {
         const chunk = this.getChunk(addr);
         if(chunk) {
@@ -298,7 +318,9 @@ export class ChunkManager {
         return null;
     }
 
-    //
+    /**
+     * @param {int} value 
+     */
     setRenderDist(value) {
         this.#world.server.setRenderDist(value);
     }
@@ -316,7 +338,7 @@ export class ChunkManager {
 
     /**
      * highly optimized
-     * @param render
+     * @param { import("./render.js").Renderer } render
      */
     prepareRenderList(render) {
 
@@ -419,7 +441,13 @@ export class ChunkManager {
         }
     }
 
-    // Draw level chunks
+    /**
+     * Draw level chunks
+     * @param { import("./render.js").Renderer } render
+     * @param { import("./base_resource_pack.js").BaseResourcePack } resource_pack
+     * @param {boolean} transparent 
+     * @returns 
+     */
     draw(render, resource_pack, transparent) {
         if(!this.worker_inited || !this.nearby) {
             return;
@@ -468,7 +496,7 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {*} addr
+     * @param {Vector} addr
      * @returns Chunk
      */
     getChunk(addr) {
@@ -531,14 +559,10 @@ export class ChunkManager {
     // Remove chunk
     removeChunk(addr) {
         this.chunks_prepare.delete(addr);
-        let chunk = this.chunks.get(addr);
+        const chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
-            // 1. Delete emitters
-            Qubatch.render.meshes.effects.destroyAllInAABB(chunk.aabb);
-            // 2. Destroy playing discs
-            TrackerPlayer.destroyAllInAABB(chunk.aabb);
-            // 3. Call chunk destructor
+            // Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;
@@ -764,6 +788,18 @@ export class ChunkManager {
             cnt++;
         }
         this.postWorkerMessage(['setBlock', set_block_list]);
+    }
+
+    // Toggle grid
+    toggleDebugGrid() {
+        this.draw_debug_grid = !this.draw_debug_grid;
+        Qubatch.setSetting('chunks_draw_debug_grid', this.draw_debug_grid);
+    }
+
+    // Set debug grid visibility
+    setDebugGridVisibility(value) {
+        this.draw_debug_grid = !value;
+        this.toggleDebugGrid();
     }
 
 }

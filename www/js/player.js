@@ -14,6 +14,8 @@ import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER
 import { compressPlayerStateC } from "./packet_compressor.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -59,6 +61,10 @@ export class Player {
         return 0;
     }
 
+    /**
+     * @param { import("./world.js").World } world
+     * @param {*} cb 
+     */
     JoinToWorld(world, cb) {
         this.world = world;
         //
@@ -123,7 +129,6 @@ export class Player {
         this.walkDistO              = 0;
         this.bob                    = 0;
         this.oBob                   = 0;
-        this.overChunk              = null;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
         this.body_rotate            = 0;
@@ -227,6 +232,20 @@ export class Player {
         //}, 10);
 
         return true;
+    }
+
+    getOverChunk() {
+        var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        
+        // legacy code, maybe not needed anymore:
+        if (!overChunk) {
+            // some kind of race F8+R
+            const blockPos = this.getBlockPos();
+            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
+        }
+
+        return overChunk;
     }
 
     get isAlive() {
@@ -374,10 +393,12 @@ export class Player {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
                     // putting items into a pot or a chest takes priority over using them
-                    const canPutIntoTarget = targetMaterial &&
-                        (targetMaterial.tags.includes("pot") && cur_mat.tags.includes("can_put_info_pot") ||
-                        targetMaterial.window);
-                    if(!canPutIntoTarget && this.startItemUse(cur_mat)) {
+                    const canInteractWithBlock = (
+                        targetMaterial &&
+                        targetMaterial.tags.includes('pot') &&
+                        cur_mat.tags.includes("can_put_info_pot")
+                    ) || targetMaterial.can_interact_with_hand;
+                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -567,13 +588,19 @@ export class Player {
         return pc.player_state.flying;
     }
 
+    /**
+     * @param {boolean} value 
+     */
     setFlying(value) {
         let pc = this.getPlayerControl();
         pc.mul = 1;
         pc.player_state.flying = value;
     }
 
-    //
+    /**
+     * @param {int} value 
+     * @returns 
+     */
     changeSpectatorSpeed(value) {
         if(!this.game_mode.isSpectator()) {
             return false;
@@ -598,7 +625,11 @@ export class Player {
         return this.pr;
     }
 
-    // Updates this local player (gravity, movement)
+    /**
+     * Updates this local player (gravity, movement)
+     * @param {float} delta 
+     * @returns 
+     */
     update(delta) {
 
         // View
@@ -610,16 +641,8 @@ export class Player {
             this.xBob += (this.getXRot() - this.xBob) * 0.5;
             this.yBob += (this.getYRot() - this.yBob) * 0.5;
 
-            if(!this.overChunk) {
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if (!this.overChunk) {
-                // some kind of race F8+R
-                const blockPos = this.getBlockPos();
-                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
-                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
-            }
-            if(!this.overChunk?.inited) {
+            const overChunk = this.getOverChunk();
+            if(!overChunk?.inited) {
                 return;
             }
             let isSpectator = this.game_mode.isSpectator();
@@ -709,7 +732,6 @@ export class Player {
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = this.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
@@ -760,7 +782,9 @@ export class Player {
         return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
-    //
+    /**
+     * @param {float} delta 
+     */
     checkBodyRot(delta) {
         const pc = this.getPlayerControl();
         const value = delta * this.body_rotate_speed;
@@ -779,7 +803,10 @@ export class Player {
         }
     }
 
-    //
+    /**
+     * @param {string} name 
+     * @param {*[]} args 
+     */
     triggerEvent(name, args) {
         switch(name) {
             case 'step': {
@@ -802,7 +829,7 @@ export class Player {
                 // turn on 'Underwater_Ambience' sound
                 if(!this.underwater_track_id) {
                     Qubatch.sounds.play('madcraft:environment', 'entering_water');
-                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience');
+                    this.underwater_track_id = Qubatch.sounds.play('madcraft:environment', 'underwater_ambience', null, true);
                 }
                 break;
             }
@@ -825,8 +852,11 @@ export class Player {
         }
     }
 
+    /**
+     * @returns { import("./player_model.js").PlayerModel }
+     */
     getModel() {
-        return Qubatch.world.players.get(this.session.user_id);
+        return this.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
@@ -849,10 +879,10 @@ export class Player {
             return;
         }
         if(!this.onGround) {
-            let bpos = this.getBlockPos().add({x: 0, y: -1, z: 0});
+            let bpos = this.getBlockPos().add(Vector.YN);
             let block = this.world.chunkManager.getBlock(bpos);
             // ignore damage if dropped into water
-            if(block.material.is_fluid) {
+            if(block.fluid > 0) {
                 this.lastBlockPos = this.getBlockPos();
             } else {
                 let pos = this.getBlockPos();
@@ -1071,6 +1101,16 @@ export class Player {
     // TODO: должен возвращать руку, в которой сейчас идет анимация (у нас она пока только одна)
     getUsedItemHand() {
         return InteractionHand.MAIN_HAND;
+    }
+
+    //
+    getOverChunkBiomeId() {
+        const chunk = this.getOverChunk()
+        if(!chunk) return
+        const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
+        const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
+        const cell_index = z * CHUNK_SIZE_X + x;
+        return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
     }
 
 }

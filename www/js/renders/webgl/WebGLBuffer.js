@@ -39,6 +39,29 @@ export class WebGLBuffer extends BaseBuffer {
         super.update();
     }
 
+    updatePartial(len) {
+        const  {
+            gl
+        } = this.context;
+
+        if (!this.buffer) {
+            this.buffer = gl.createBuffer();
+        }
+
+        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+
+        gl.bindBuffer(type, this.buffer);
+
+        if (this.lastLenght < this.data.length) {
+            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+            this.lastLenght = this.data.length
+        } else {
+            gl.bufferSubData(type, 0, this.data, 0, len);
+        }
+
+        super.update();
+    }
+
     bind() {
         const {
             /**

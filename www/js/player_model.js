@@ -391,7 +391,16 @@ export class PlayerModel extends MobModel {
         this.animationScript.swingProgress = this.swingProgress;
     }
 
-    //
+    /**
+     * @param {Vector} pos 
+     * @param {Vector} rotate 
+     * @param {boolean} sneak 
+     * @param {boolean} moving 
+     * @param {boolean} running 
+     * @param {*} hands 
+     * @param {boolean} lies 
+     * @param {boolean} sitting 
+     */
     setProps(pos, rotate, sneak, moving, running, hands, lies, sitting) {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around

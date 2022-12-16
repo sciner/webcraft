@@ -39,6 +39,13 @@ export class ServerAPI {
                 return session;
             }
             case '/api/Game/CreateWorld': {
+
+                // check admin rights for specific world
+                if([config.building_schemas_world_name].includes(params.title)) {
+                    const session = await Qubatch.db.GetPlayerSession(session_id);
+                    ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                }
+
                 const title       = params.title;
                 const seed        = params.seed;
                 const generator   = WorldGenerators.validateAndFixOptions(params.generator);
@@ -136,6 +143,27 @@ export class ServerAPI {
                     list.push({id: gm.id, title: gm.title});
                 }
                 return list;
+            }
+            case '/api/Skin/Upload': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                const params = req.body;
+                const skin_id = await Qubatch.db.skins.upload(params.data, params.name, params.type, session.user_id);
+                return {'skin_id': skin_id};
+            }
+            case '/api/Skin/GetOwned': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                return await Qubatch.db.skins.getOwned(session.user_id);
+            }
+            case '/api/Skin/DeleteFromUser': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                const params = req.body;
+                await Qubatch.db.skins.deleteFromUser(session.user_id, params.skin_id);
+                return {'result': 'ok'};
+            }
+            case '/api/Skin/UpdateStatic': {
+                const session = await Qubatch.db.GetPlayerSession(session_id);
+                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                return await Qubatch.db.skins.updateStaticSkins();
             }
             default: {
                 throw 'error_method_not_exists';

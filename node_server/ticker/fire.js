@@ -1,7 +1,7 @@
 import { BLOCK } from '../../www/js/blocks.js';
 import { Vector } from '../../www/js/helpers.js';
 import { ServerClient } from '../../www/js/server_client.js';
-import { BlockUpdates } from './blockUpdates.js'
+import { BlockUpdates } from './ticker_helpers.js'
 
 const FACES = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP, Vector.YN, Vector.YP];
 
@@ -20,7 +20,10 @@ export default class Ticker {
         const age = extra_data.age;
         const updated = [];
         const block = world.getBlock(pos.add(Vector.YN));
-        if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id) {
+        if (!block) {
+            return false;
+        }
+        if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id && block.fluid == 0) {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
         const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
