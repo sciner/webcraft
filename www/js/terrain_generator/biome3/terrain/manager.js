@@ -351,9 +351,11 @@ export class TerrainMapManager2 {
         // waterfront/берег
         const under_waterline = xyz.y < WATER_LEVEL;
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
+        const under_earth_height = WATER_LEVEL - xyz.y
+        const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        if(h < DENSITY_THRESHOLD) {
+        if(h + under_earth_coeff < DENSITY_THRESHOLD) {
             if(density_params) {
                 return density_params.set(0, 0, 0, 0, 0);
             }
@@ -369,7 +371,7 @@ export class TerrainMapManager2 {
             // 64/120 + 32/120 + 16/120 + 8/120
             (d1 * density_coeff.d1 + d2 * density_coeff.d2 + d3 * density_coeff.d3 + d4 * density_coeff.d4)
             / 2 + .5
-        ) * h;
+        ) * h + under_earth_coeff;
 
         // rivers/реки
         if(cell.river_point) {
