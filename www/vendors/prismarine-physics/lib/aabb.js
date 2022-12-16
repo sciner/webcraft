@@ -1,5 +1,5 @@
 
-const EPS = 1e-6
+const EPS = 1e-3
 
 export class AABB {
   constructor (x0, y0, z0, x1, y1, z1) {
@@ -69,9 +69,9 @@ export class AABB {
 
   computeOffsetX (other, offsetX) {
     if (other.maxY > this.minY && other.minY < this.maxY && other.maxZ > this.minZ && other.minZ < this.maxZ) {
-      if (offsetX > 0.0 && other.maxX <= this.minX + EPS) {
+      if (offsetX > 0.0 && other.maxX - this.minX <= EPS) {
         offsetX = Math.min(this.minX - other.maxX, offsetX)
-      } else if (offsetX < 0.0 && other.minX >= this.maxX - EPS) {
+      } else if (offsetX < 0.0 && other.minX - this.maxX >= -EPS) {
         offsetX = Math.max(this.maxX - other.minX, offsetX)
       }
     }
@@ -80,9 +80,9 @@ export class AABB {
 
   computeOffsetY (other, offsetY) {
     if (other.maxX > this.minX && other.minX < this.maxX && other.maxZ > this.minZ && other.minZ < this.maxZ) {
-      if (offsetY > 0.0 && other.maxY <= this.minY + EPS) {
+      if (offsetY > 0.0 && other.maxY - this.minY <= EPS) {
         offsetY = Math.min(this.minY - other.maxY, offsetY)
-      } else if (offsetY < 0.0 && other.minY >= this.maxY - EPS) {
+      } else if (offsetY < 0.0 && other.minY - this.maxY >= -EPS) {
         offsetY = Math.max(this.maxY - other.minY, offsetY)
       }
     }
@@ -91,9 +91,9 @@ export class AABB {
 
   computeOffsetZ (other, offsetZ) {
     if (other.maxX > this.minX && other.minX < this.maxX && other.maxY > this.minY && other.minY < this.maxY) {
-      if (offsetZ > 0.0 && other.maxZ <= this.minZ + EPS) {
+      if (offsetZ > 0.0 && other.maxZ - this.minZ <= EPS) {
         offsetZ = Math.min(this.minZ - other.maxZ, offsetZ)
-      } else if (offsetZ < 0.0 && other.minZ >= this.maxZ - EPS) {
+      } else if (offsetZ < 0.0 && other.minZ - this.maxZ >= -EPS) {
         offsetZ = Math.max(this.maxZ - other.minZ, offsetZ)
       }
     }
