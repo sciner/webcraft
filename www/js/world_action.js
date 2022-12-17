@@ -416,7 +416,7 @@ class DestroyBlocks {
             actions.dropChest(tblock)
         }
         //
-        if(tblock.material.style == 'cover') {
+        if(tblock.material.style == 'cover' && tblock.extra_data) {
             const existing_faces = Object.keys(tblock.extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
             const dcount = existing_faces.length
             if(dcount > 1 && drop_items.length == 1) {
