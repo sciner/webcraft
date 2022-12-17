@@ -5,6 +5,7 @@ export const maxPotential = 400;
 export const defPageSize = 1 << 12;
 
 export const MASK_SRC_AMOUNT = 31;
+export const MASK_SRC_LIQUID = 64;
 export const MASK_SRC_BLOCK = 96;
 export const MASK_SRC_AO = 128;
 export const MASK_SRC_REST = 224;
@@ -44,6 +45,12 @@ export const DIR_MAX_MASK = (1 << 26) - (1 << 6);
 
 export const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 11);
 export const DISPERSE_MIN = 9;
+
+export const GROUND_STRIDE = 2;   // we fin minY not in each column
+export const GROUND_BUCKET_SIZE = 8; // we store one minY per bucket
+export const GROUND_SKIP_CHUNKS = 4; // If queue is not empty, update ground level once per N chunks
+export const GROUND_ESTIMATION_MIN_DIST = GROUND_BUCKET_SIZE * 2;
+export const GROUND_ESTIMATION_MAX_DIST = 60;
 
 export function adjustSrc(srcLight) {
     const amount = srcLight & MASK_SRC_AMOUNT;

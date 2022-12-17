@@ -41,6 +41,7 @@ function run() {
     // }
 
     world.isEmptyQueue = ready === 0;
+    world.groundLevelSkipCounter = 1;
     world.checkPotential();
 
     world.chunkManager.list.forEach((chunk) => {
@@ -69,7 +70,11 @@ function run() {
                     uniqId: chunk.uniqId,
                 }]);
             }
-            world.estimateGroundLevel();
+            // update ground level
+            world.groundLevelSkipCounter = (world.groundLevelSkipCounter + 1) % LightConst.GROUND_SKIP_CHUNKS;
+            if (world.isEmptyQueue || world.groundLevelSkipCounter === 0) {
+                world.estimateGroundLevel();
+            }
         }
 
         endChunks++;
@@ -203,9 +208,17 @@ async function onMessageFunc(e) {
             break;
         }
         case 'setPotentialCenter': {
+            world.chunk_render_dist = args.chunk_render_dist;
             if (args.pos) {
                 world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
                 world.checkPotential();
+            }
+            // if the player moved far enough, update the ground level estimation
+            if ((world.isEmptyQueue || world.groundLevelSkipCounter === 0) && 
+                world.prevGroundLevelPlayerPos && 
+                world.prevGroundLevelPlayerPos.distance(world.chunkManager.nextPotentialCenter) > LightConst.GROUND_BUCKET_SIZE
+            ) {
+                world.estimateGroundLevel();
             }
             break;
         }

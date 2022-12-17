@@ -577,7 +577,7 @@ export class Environment {
         this.horizonBrightness = 1;
         this.hbLastPos = new Vector() // used for temporal smoothing;
         this.hbLastTime = -Infinity;
-        this.deepHorizonEnabled = true;
+        this.deepDarkMode = 'auto';
 
         this.skyBox = null;
 
@@ -777,9 +777,14 @@ export class Environment {
 
     updateDeepHorizon() {
         const groundLevelEastimtion = Qubatch.world.chunkManager.groundLevelEastimtion;
-
         const player = Qubatch.player;
-        const disabled = !this.deepHorizonEnabled || player.eyes_in_block?.is_water;
+
+        var disabled = player.eyes_in_block?.is_water;
+        if (this.deepDarkMode === 'auto') {
+            disabled |= player.game_mode.isSpectator();
+        } else if (this.deepDarkMode === 'off') {
+            disabled = true;
+        }
         if (disabled || groundLevelEastimtion == null) {
             this.horizonBrightness = this.nightshift;
             if (disabled) {
@@ -789,7 +794,7 @@ export class Environment {
             return;
         }
         // calculate brightness based on depth
-        const playerPos = Qubatch.player.pos;
+        const playerPos = player.pos;
         var elevation = playerPos.y - groundLevelEastimtion;
         var newHorizonBrightness = Mth.lerpAny(elevation, 
             -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,

@@ -6,12 +6,10 @@ import {
     DIR_COUNT,
     DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
     MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
-    OFFSET_SOURCE
+    OFFSET_SOURCE,
+    GROUND_STRIDE, GROUND_BUCKET_SIZE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
-
-const MIN_LIGHT_Y_STRIDE = 2;   // we fin minY not in each column
-const MIN_LIGHT_Y_BUCKET_SIZE = 8; // we store one minY per bucket
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -168,53 +166,69 @@ export class Chunk {
     }
 
     calcMinLightY(is4444) {
-        const {outerSize, size} = this;
+        const {outerSize, size, lightChunk} = this;
         const result = this.lightResult;
         const baseY = this.lightChunk.pos.y;
 
-        const padding = this.lightChunk.padding;
-        const sx = 1;
-        const sz = sx * outerSize.x;
-        const sy = sz * outerSize.z;
+        // strides for result = this.lightResult
+        const rsx = 1;
+        const rsz = rsx * outerSize.x;
+        const rsy = rsz * outerSize.z;
 
-        const szBucket = size.x / MIN_LIGHT_Y_BUCKET_SIZE | 0;
+        // strides for uint8View
+        const {uint8View, strideBytes, padding} = lightChunk;
+        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;        
 
-        this.minLightY = this.minLightY || new Array(
-            (this.size.x / MIN_LIGHT_Y_BUCKET_SIZE | 0) *
-            (this.size.z / MIN_LIGHT_Y_BUCKET_SIZE | 0));
-        for(var i = 0; i < this.minLightY.length; i++) {
-            this.minLightY[i] = Infinity;
+        // strides for minLightY
+        const szBucket = size.x / GROUND_BUCKET_SIZE | 0;
+
+        function isDryLit(ind, indUint8View) {
+            const hasLight = is4444
+                ? (result[ind] & 0xF00) !== 0xF00
+                : result[ind * 4 + 1] !== 0xFF;
+            return hasLight && (uint8View[indUint8View + OFFSET_SOURCE] & MASK_SRC_BLOCK) === 0;
+        }
+
+        if (!this.minLightY) {
+            this.minLightY = [];
+            for(let x = 0; x < size.x; x += GROUND_BUCKET_SIZE) {
+                for(let z = 0; z < size.z; z += GROUND_BUCKET_SIZE) {
+                    const wx = this.lightChunk.pos.x + x + GROUND_BUCKET_SIZE / 2 | 0;
+                    const wz = this.lightChunk.pos.z + z + GROUND_BUCKET_SIZE / 2 | 0;
+                    this.minLightY.push({
+                        x: wx,
+                        z: wz,
+                        key: wx.toString() + ' ' + wz,
+                        value: Infinity
+                    });
+                }
+            }
         }
         // for each column
-        for (let x = 0; x < size.x; x += MIN_LIGHT_Y_STRIDE) {
-            for (let z = 0; z < size.z; z += MIN_LIGHT_Y_STRIDE) {
-                const base = (x + padding) * sx + (z + padding) * sz;
+        for (let z = padding; z < outerSize.z - padding; z += GROUND_STRIDE) {
+            for (let x = padding; x < outerSize.x - padding; x += GROUND_STRIDE) {
+                const base = x * rsx + z * rsz;
+                const baseUint8View = sx * x + sz * z;
                 // find the lowest lit block
                 var bestY = Infinity;
-                for(let y = 1; y < size.y; y += 2) {
-                    var ind = base + (y + padding) * sy;
-                    const hasLight = is4444
-                        ? (result[ind] & 0xF00) !== 0xF00
-                        : result[ind * 4 + 1] !== 0xFF;
-                    if (hasLight) {
+                // we start from (padding + 1), so we can then look at (y - 1)
+                for(let y = padding + 1; y < outerSize.y - padding; y += 2) {
+                    var ind = base + y * rsy;
+                    var indUint8View = baseUint8View + sy * y;
+                    if (isDryLit(ind, indUint8View)) {
                         // improve Y accuracy to 1 block
-                        ind -= sy;
-                        const hasLightBelow = is4444
-                            ? (result[ind] & 0xF00) !== 0xF00
-                            : result[ind * 4 + 1] !== 0xFF;
-                        if (hasLightBelow) {
+                        if (isDryLit(ind - rsy, indUint8View - sy)) {
                             y--;
                         }
                         // we found it!
-                        bestY = baseY + y;
+                        bestY = baseY + y - padding;
                         break;
                     }
                 }
                 // save it in the bucket
-                const outInd = ((x - padding) / MIN_LIGHT_Y_BUCKET_SIZE | 0) + 
-                    ((z - padding) / MIN_LIGHT_Y_BUCKET_SIZE | 0) * szBucket;
-                if (this.minLightY[outInd] > bestY) {
-                    this.minLightY[outInd] = bestY;
+                const outInd = (x / GROUND_BUCKET_SIZE | 0) + (z / GROUND_BUCKET_SIZE | 0) * szBucket;
+                if (this.minLightY[outInd].value > bestY) {
+                    this.minLightY[outInd].value = bestY;
                 }
             }
         }

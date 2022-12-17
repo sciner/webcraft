@@ -1659,7 +1659,7 @@ export class ArrayHelpers {
      * It has O(length) time.
      * @param {Int} sortedLength - the number of first array elements that will be sorted.
      */
-    static partialSort(arr, sortedLength = arr.length, compare = (a, b) => a - b,
+    static partialSort(arr, sortedLength = arr.length, compare,
         // do not pass the last 2 arguments - they are internal
         fromIncl = 0, toExcl = arr.length
     ) {

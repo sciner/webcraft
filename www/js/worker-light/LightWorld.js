@@ -7,10 +7,12 @@ import {
     dlen,
     adjustSrc,
     OFFSET_LIGHT,
-    OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN
+    OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN,
+    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
+import { CHUNK_SIZE_X } from '../chunk_const.js';
 
 const MIN_LIGHT_Y_MIN_PERCENT = 0.05;
 const MIN_LIGHT_Y_MAX_PERCENT = 0.15;
@@ -26,6 +28,7 @@ export class ChunkManager {
         this.chunkById = [null];
         this.activePotentialCenter = null;
         this.nextPotentialCenter = null;
+        this.prevGroundLevelPlayerPos = null;
     }
 
     // Get
@@ -128,39 +131,52 @@ export class LightWorld {
     }
 
     estimateGroundLevel() {
-        // For each column of chunks, and for each (x, z) within that column,
-        // find the lowest block with any light. The exact x and z don't matter.
-        var byXZ = {};
+        const playerPos = this.chunkManager.nextPotentialCenter;
+        const maxDist = Math.min(GROUND_ESTIMATION_MAX_DIST,
+            Math.max(GROUND_ESTIMATION_MIN_DIST,
+                (this.chunk_render_dist || 0) * CHUNK_SIZE_X
+            ));
+        // For each (X, Z) bucket, find the lowest block with any light.
+        const byXZ = {};
         for(let chunk of this.chunkManager.list) {
-            if (chunk.minLightY != null) {
-                const values = byXZ[chunk.xzKey];
-                if (values == null) {
-                    byXZ[chunk.xzKey] = chunk.minLightY;
-                } else {
-                    for(var i = 0; i < values.length; i++) {
-                        if (values[i] > chunk.minLightY[i]) {
-                            values[i] = chunk.minLightY[i];
-                        }
+            const minLightY = chunk.minLightY;
+            if (minLightY == null) {
+                continue;
+            }
+            for(let i = 0; i < minLightY.length; i++) {
+                const v = minLightY[i];
+                if (playerPos) {
+                    const distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
+                        (v.z - playerPos.z) * (v.z - playerPos.z);
+                    if (distSqr > maxDist * maxDist) {
+                        continue;
                     }
+                }
+                var exV = byXZ[v.key];
+                if (exV == null) {
+                    byXZ[v.key] = v;
+                } else {
+                    exV.value = Math.min(v.value, exV.value);
                 }
             }
         }
         // select the average Y from the MIN_LIGHT_Y_MIN_PERCENT..MIN_LIGHT_Y_MAX_PERCENT of values
         var list = [];
         for(let key in byXZ) {
-            list.push(...byXZ[key]);
+            list.push(byXZ[key].value);
         }
         var groundLevel = null;
         if (list.length !== 0) {
             var minInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MIN_PERCENT);
             var maxInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MAX_PERCENT);
-            ArrayHelpers.partialSort(list, maxInd + 1);
+            ArrayHelpers.partialSort(list, maxInd + 1, (a, b) => a - b);
             var sum = 0;
             for(var i = minInd; i <= maxInd; i++) {
                 sum += list[i];
             }
             groundLevel = sum / (maxInd - minInd + 1);
         }
+        this.prevGroundLevelPlayerPos = playerPos;
         worker.postMessage(['ground_level_estimated', groundLevel]);
     }
 }
