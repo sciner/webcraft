@@ -22,7 +22,7 @@ import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
@@ -143,7 +143,7 @@ export class Renderer {
 
         if (renderBackend.gl) {
             // world.chunkManager.setLightTexFormat('rgba4unorm', false);
-            if (settings.use_light === 2) {
+            if (settings.use_light === LIGHT_TYPE_RTX) {
                 world.chunkManager.setLightTexFormat('rgba8unorm', true);
                 renderBackend.globalUniforms.useNormalMap = true;
             } else {

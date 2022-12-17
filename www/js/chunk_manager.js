@@ -11,6 +11,7 @@ import { decompressNearby } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
+import { LIGHT_TYPE_NO } from "./constant.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -256,7 +257,7 @@ export class ChunkManager {
         const settings = world.settings;
         const resource_cache = Helpers.getCache();
 
-        this.use_light                = !!settings.use_light;
+        this.use_light                = settings.use_light != LIGHT_TYPE_NO;
         this.worker_counter           = this.use_light ? 2 : 1;
 
         this.postWorkerMessage(['init', {

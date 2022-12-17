@@ -50,6 +50,11 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 
+// Global light type
+export const LIGHT_TYPE_NO                  = 0;
+export const LIGHT_TYPE_SMOOTH              = 1;
+export const LIGHT_TYPE_RTX                 = 2;
+
 export const MOUSE = {
     DOWN: 1,
     UP: 2,
