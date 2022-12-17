@@ -53,6 +53,7 @@ export const GROUND_ESTIMATION_MIN_DIST = GROUND_BUCKET_SIZE * 2;
 export const GROUND_ESTIMATION_MAX_DIST = 80;
 // points far away from the player are "rised up" by up to this amount, making them matter less
 export const GROUND_ESTIMATION_FAR_BIAS = 16;
+export const GROUND_ESTIMATION_FAR_BIAS_MIN_DIST = 40;
 
 export function adjustSrc(srcLight) {
     const amount = srcLight & MASK_SRC_AMOUNT;

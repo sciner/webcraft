@@ -1,4 +1,4 @@
-import {VectorCollector, Vector, ArrayHelpers} from '../helpers.js';
+import {VectorCollector, Vector, ArrayHelpers, Mth} from '../helpers.js';
 import {BaseChunk} from '../core/BaseChunk.js';
 import {
     OFFSET_DAY,
@@ -8,7 +8,8 @@ import {
     adjustSrc,
     OFFSET_LIGHT,
     OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN,
-    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST, GROUND_ESTIMATION_FAR_BIAS, GROUND_BUCKET_SIZE
+    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST,
+    GROUND_ESTIMATION_FAR_BIAS, GROUND_ESTIMATION_FAR_BIAS_MIN_DIST
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
@@ -165,12 +166,10 @@ export class LightWorld {
         const byDist = [];
         for(let key in byXZ) {
             const v = byXZ[key];
-            v.biasedY = v.y;
             // don't apply the bias closer than GROUND_BUCKET_SIZE
-            const distSqr = v.distSqr - GROUND_BUCKET_SIZE * GROUND_BUCKET_SIZE;
-            if (distSqr > 0) {
-                v.biasedY += distSqr / maxDistSqr * GROUND_ESTIMATION_FAR_BIAS;
-            }
+            v.biasedY = v.y + Mth.lerpAny(v.distSqr,
+                GROUND_ESTIMATION_FAR_BIAS_MIN_DIST * GROUND_ESTIMATION_FAR_BIAS_MIN_DIST, 0,
+                maxDistSqr, GROUND_ESTIMATION_FAR_BIAS);
             byDist.push(v);
         }
         byDist.sort((a, b) => a.distSqr - b.distSqr);
