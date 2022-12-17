@@ -86,6 +86,12 @@ export class Mth {
         return value1 + (value2 - value1) * amount;
     }
 
+    static lerpAny(x, x1, value1, x2, value2) {
+        return x1 !== x2
+            ? this.lerp((x - x1) / (x2 - x1), value1, value2)
+            : (value1 + value2) * 0.5;
+    }
+
     static sin(a) {
         return Math.sin(a);
     }
@@ -1646,6 +1652,55 @@ export class ArrayHelpers {
             arr.push(filler);
         }
         arr[index] = value;
+    }
+
+    /**
+     * Ensures that the first sortedLength elements are the same as if the entire array
+     * was sorted. The order of the remaining elemnets is undefin.
+     * It has O(length) time.
+     * @param {Int} sortedLength - the number of first array elements that will be sorted.
+     */
+    static partialSort(arr, sortedLength = arr.length, compare,
+        // do not pass the last 2 arguments - they are internal
+        fromIncl = 0, toExcl = arr.length
+    ) {
+        while (true) {
+            var d = toExcl - fromIncl;
+            if (d <= 2) {
+                if (d == 2) {
+                    var v = arr[fromIncl + 1];
+                    if (compare(arr[fromIncl], v) > 0) {
+                        arr[fromIncl + 1] = arr[fromIncl];
+                        arr[fromIncl] = v;
+                    }
+                }
+                return;
+            }
+            var left = fromIncl;
+            var right = toExcl - 1;
+            var m = arr[(fromIncl + toExcl) >> 1];
+            do {
+                var vl = arr[left];
+                while (compare(vl, m) < 0) {
+                    vl = arr[++left];
+                }
+                var vr = arr[right];
+                while (compare(vr, m) > 0) {
+                    vr = arr[--right];
+                }
+                if (left > right) {
+                    break;
+                }
+                arr[left] = vr;
+                arr[right] = vl;
+                left++;
+                right--;
+            } while (left <= right);
+            if (left < sortedLength) {
+                this.partialSort(arr, sortedLength, compare, left, toExcl);
+            }
+            toExcl = left;
+        }
     }
 }
 

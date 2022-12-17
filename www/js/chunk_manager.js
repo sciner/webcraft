@@ -76,6 +76,8 @@ export class ChunkManager {
 
         this.chunk_modifiers        = new VectorCollector();
 
+        this.groundLevelEastimtion  = null;
+
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
             this.lightWorker = new Worker('./js-gen/light_worker_bundle.js');
@@ -247,6 +249,10 @@ export class ChunkManager {
                     }
                     break;
                 }
+                case 'ground_level_estimated': {
+                    that.groundLevelEastimtion = args;
+                    break;
+                }
             }
         }
         // Init webworkers
@@ -359,8 +365,12 @@ export class ChunkManager {
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            this.postWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
-            this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
+            const msg = { 
+                pos: player.pos,
+                chunk_render_dist: player.state.chunk_render_dist
+            };
+            this.postWorkerMessage(['setPotentialCenter', msg]);
+            this.postLightWorkerMessage(['setPotentialCenter', msg]);
 
             this.poses_chunkPos.copyFrom(player_chunk_addr);
             const pos               = this.poses_chunkPos;
