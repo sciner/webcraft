@@ -10,7 +10,7 @@ export const FLUID_GENERATED_FLAG = 128;
 
 // these flags should be returned by fluidBlockProps()
 export const FLUID_BLOCK_RESTRICT = 128;
-export const FLUID_BLOCK_OPAQUE = 196;
+export const FLUID_BLOCK_OPAQUE = 192;
 export const FLUID_WATER_INTERACT = 32;
 export const FLUID_WATER_REMOVE = 16;
 export const FLUID_WATER_ABOVE_INTERACT = 8;
