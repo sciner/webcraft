@@ -72,11 +72,12 @@ export default class style {
         }
 
         const material = block.material;
+        const tx_cnt = material.tx_cnt;
 
         // Textures
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        c[0] -= .5 / 32;
-        c[1] -= .5 / 32;
+        c[0] -= .5 / tx_cnt;
+        c[1] -= .5 / tx_cnt;
 
         matrix = mat4.create();
 
@@ -99,10 +100,10 @@ export default class style {
         );
         let c_side = [...c];
         let c_down = [...c];
-        c_down[0] += 8 / 32 / 32;
-        c_down[1] += 8 / 32 / 32;
-        c_side[0] += 8 / 32 / 32;
-        c_side[1] += 13 / 32 / 32;
+        c_down[0] += 8 / tx_cnt / 32;
+        c_down[1] += 8 / tx_cnt / 32;
+        c_side[0] += 8 / tx_cnt / 32;
+        c_side[1] += 13 / tx_cnt / 32;
         pushAABB(
             vertices,
             aabb_down,
@@ -133,10 +134,10 @@ export default class style {
         aabb_down.translate(0, 2/32, 0);
         c_side = [...c];
         c_down = [...c];
-        c_down[0] += 6 / 32 / 32;
-        c_down[1] += 2 / 32 / 32;
-        c_side[0] += 2 / 32 / 32;
-        c_side[1] += 15 / 32 / 32;
+        c_down[0] += 6 / tx_cnt / 32;
+        c_down[1] += 2 / tx_cnt / 32;
+        c_side[0] += 2 / tx_cnt / 32;
+        c_side[1] += 15 / tx_cnt / 32;
         pushAABB(
             vertices,
             aabb_down,

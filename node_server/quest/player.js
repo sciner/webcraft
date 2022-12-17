@@ -160,6 +160,19 @@ export class QuestPlayer {
         if(!block) {
             throw 'error_invalid_block';
         }
+        for(let quest of this.quests.values()) {
+            if(quest.is_completed) {
+                continue;
+            }
+            for(let action of quest.actions) {
+                if(action.ok) {
+                    continue;
+                }
+                if(action.quest_action_type_id == QuestActionType.PICKUP) {
+                    await action.processTriggerEvent(quest, e);
+                }
+            }
+        }
         // this.sendMessage(`${e.player.session.username} put item ${block.name} to inventory`);
     }
 

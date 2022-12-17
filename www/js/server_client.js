@@ -51,7 +51,7 @@ export class ServerClient {
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
-	static CMD_GENERATE_PARTICLE       = 89;
+	static CMD_GENERATE_PARTICLE        = 89;
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
@@ -91,6 +91,8 @@ export class ServerClient {
     // Fluid
 	static CMD_FLUID_UPDATE             = 102;
     static CMD_FLUID_DELTA              = 105;
+
+    static CMD_BUILDING_SCHEMA_ADD      = 107;
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

@@ -1,11 +1,10 @@
-import { DIRECTION, Vector, VectorCollector } from "../../../www/js/helpers.js";
-
-import e3290 from "../../../www/js/terrain_generator/cluster/building/data/e3290.json" assert { type: "json" };
-
+import { Vector, VectorCollector } from "../../../www/js/helpers.js";
 
 import fs from "fs";
 import { BuilgingTemplate } from "../../../www/js/terrain_generator/cluster/building_template.js";
 import { BLOCK } from "../../../www/js/blocks.js";
+import { ServerClient } from "../../../www/js/server_client.js";
+import { WORLD_TYPE_BUILDING_SCHEMAS } from "../../../www/js/constant.js";
 
 //
 export class WorldEditBuilding {
@@ -40,20 +39,9 @@ export class WorldEditBuilding {
             this.list.set(building.name, building);
         };
 
-        insert('church', new Vector(5, 0, 1), new Vector(-5, 26, -19), new Vector(0, 1, -1))
-        insert('nico', new Vector(-17, 1, 1), new Vector(-29, 8, -10), new Vector(-24, 2, -2))
-        insert('e3290', new Vector(-57, 0, 1), new Vector(-70, 13, -13), new Vector(-68, 1, 1))
-        insert('domikder', new Vector(-78, 0, 0), new Vector(-86, 6, -7), new Vector(-82, 1, -1))
-        insert('domikkam', new Vector(-89, 0, 0), new Vector(-97, 5, -7), new Vector(-93, 1, -1))
-        insert('domikkam2', new Vector(-102, 0, 0), new Vector(-108, 5, -7), new Vector(-105, 1, -1),)
-        insert('domsmall', new Vector(-112, -1, 0), new Vector(-119, 5, -6), new Vector(-116, 1, -1))
-        insert('farmer_house', new Vector(-121, 0, 0), new Vector(-136, 8, -10), new Vector(-129, 1, -1))
-        insert('tiny_house', new Vector(-140, -1, 0), new Vector(-144, 6, -6), new Vector(-142, 1, -1))
-        insert('watch_tower', new Vector(-148, 1, 0), new Vector(-157, 24, -10), new Vector(-153, 4, -3))
-        insert('medium_house', new Vector(-163, 0, 1), new Vector(-171, 7, -7), new Vector(-166, 1, 0))
-        insert('tiny_house2', new Vector(-176, 1, 2), new Vector(-182, 7, -6), new Vector(-179, 2, 0))
-        insert('tiny_mart', new Vector(-187, 0, 1), new Vector(-201, 4, -10), new Vector(-194, 0, 0))
-        insert('sand_house', new Vector(-206, 0, 1), new Vector(-212, 4, -5), new Vector(-209, 1, 0))
+        for(let schema of BuilgingTemplate.schemas.values()) {
+            insert(schema.name, schema.world.pos1, schema.world.pos2, schema.world.door_bottom)
+        }
 
     }
 
@@ -75,7 +63,7 @@ export class WorldEditBuilding {
     async save(chat, player, cmd, args) {
 
         //
-        if(chat.world.info.guid != '26fa33a4-89dc-460e-8af8-420394a3d1b3') {
+        if(chat.world.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS) {
             throw 'error_invalid_world';
         }
 
@@ -99,10 +87,10 @@ export class WorldEditBuilding {
         building.size = new Vector(copy_data.quboid.volx, copy_data.quboid.voly, copy_data.quboid.volz)
 
         const pos1 = building.world.pos1
-        const door_bottom = building.world.door_bottom.sub(pos1)
+        const rel_door_bottom = building.world.door_bottom.sub(pos1)
 
         // calc door_pos
-        building.door_pos.set(-door_bottom.x, door_bottom.y, -door_bottom.z);
+        building.door_pos.set(-rel_door_bottom.x, rel_door_bottom.y, -rel_door_bottom.z);
 
         // clear blocks
         building.blocks = [];
@@ -115,9 +103,9 @@ export class WorldEditBuilding {
             if([209, 210].includes(item.id)) continue;
             if(item.id == 0 && !copy_air) continue;
             const move = new Vector(
-                door_bottom.x - bpos.x,
-                bpos.y - door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
-                door_bottom.z - bpos.z + building.door_pos.z
+                rel_door_bottom.x - bpos.x,
+                bpos.y - rel_door_bottom.y + building.door_pos.y - (basement_y - pos1.y),
+                rel_door_bottom.z - bpos.z + building.door_pos.z
             );
             const block = {
                 move,
@@ -133,10 +121,24 @@ export class WorldEditBuilding {
         }
 
         // export
-        const file_name = `../www/js/terrain_generator/cluster/building/data/${building.name}.json`;
+        const file_name = `./data/building_schema/${building.name}.json`;
 
         // Calling gzip method
-        fs.writeFileSync(file_name, JSON.stringify(building));
+        const json = JSON.stringify(building)
+        fs.writeFileSync(file_name, json);
+
+        // Update in memory
+        BuilgingTemplate.addSchema(building)
+
+        // Notify all players in all worlds
+        for(let w of Qubatch.worlds.values()) {
+            w.sendAll([{
+                name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
+                data: {
+                    list: [building]
+                }
+            }]);
+        }
 
         // message to player chat
         const msg = `${copy_data.blocks.size} building block(s) saved`;
@@ -158,11 +160,10 @@ export class WorldEditBuilding {
             fluids: []
         };
 
-        // const building = e3290; // nico; // church;
         const mirror_x = false;
         const mirror_z = false;
 
-        const building = new BuilgingTemplate(e3290, BLOCK);
+        const building = BuilgingTemplate.fromSchema('e3290', BLOCK);
 
         for(let block of building.rot[direction]) {
             const item = {

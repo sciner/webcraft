@@ -9,8 +9,6 @@ import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 
 // Buildings
-// import { BuildingS } from "./building/buildings.js";
-// import { Building1 } from "./building/building1.js";
 import { Farmland } from "./building/farmland.js";
 import { WaterWell } from "./building/waterwell.js";
 import { StreetLight } from "./building/streetlight.js";

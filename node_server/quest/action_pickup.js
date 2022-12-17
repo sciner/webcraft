@@ -15,9 +15,14 @@ export class QuestActionPickup extends QuestActionBase {
 
     // processTriggerEvent...
     async processTriggerEvent(quest, e) {
-        for(let item of e.data.items) {
-            if(item.id == this.block_id) {
-                this.value = (this.value | 0) + item.count;
+        // pickup events have "items", inventory events - "item"
+        const items = e.data.items || [e.data.item];
+        for(let item of items) {
+            // items in pickup events have "id", in inventory events - "block_id"
+            const item_id = item.id ?? item.block_id;
+            if(item_id == this.block_id) {
+                const hasCount = e.player.inventory.countItemId(item_id);
+                this.value = Math.max(this.value | 0, hasCount);
                 this.update();
                 console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);
                 await this.save();

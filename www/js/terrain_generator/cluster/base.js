@@ -333,7 +333,7 @@ export class ClusterBase {
     //
     drawNaturalBasement(chunk, pos, size, block) {
 
-        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z)
+        const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y + 1, pos.z + size.z)
         if(!chunk.aabb.intersect(aabb)) return false
 
         let bx = pos.x - chunk.coord.x;
@@ -346,11 +346,12 @@ export class ClusterBase {
         const margin = 2;
 
         for(let k = size.y; k > 0; k--) {
+            const y = by + k;
+            if(y >= CHUNK_SIZE_Y) continue
             const rad_coef = Math.sqrt(k / (size.y / 2.2)) * .6 * (1 - randoms.double() / 4.5);
             for(let i = -margin; i < size.x + margin; i++) {
                 for(let j = -margin; j < size.z + margin; j++) {
                     const x = bx + i;
-                    const y = by + k;
                     const z = bz + j;
                     _vec.set(x, y, z);
                     const dist = center.distance(_vec);

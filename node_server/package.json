@@ -26,8 +26,7 @@
     "sqlite3": "^5.0.8",
     "uuid": "^8.3.2",
     "ws": "^8.2.3",
-    "mkdirp": "^1.0.4",
-    "jimp": "^0.16.2"
+    "mkdirp": "^1.0.4"
   },
   "type": "module",
   "optionalDependencies": {

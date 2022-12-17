@@ -1,4 +1,5 @@
-import config from "./conf.json" assert { type: "json" };
+import conf from "./conf.json" assert { type: "json" };
+import conf_world from "./conf_world.json" assert { type: "json" };
 
 if(typeof process != 'undefined') {
     process.argv.forEach((e, i) => {
@@ -9,16 +10,16 @@ if(typeof process != 'undefined') {
 
         const [name, value] = e.replace('--', '').split('=');
 
-        if (!(name in config)) {
+        if (!(name in conf)) {
             return;
         }
 
         if (typeof value ==='undefined') {
-            config[name] = true;
+            conf[name] = true;
         } else {
-            config[name] = isNaN(+value) ? value : +value;
+            conf[name] = isNaN(+value) ? value : +value;
         }
     });
 }
 
-export default config;
+export default {...conf, ...conf_world};

@@ -1,6 +1,6 @@
 import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../www/js/chunk_const.js";
 import { ServerClient } from "../www/js/server_client.js";
-import { SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
+import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.js";
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
@@ -665,9 +665,14 @@ export class ServerChunk {
                 return createDrop(tblock);
             }
 
-            switch(tblock.material.style) {
+            const require_support = tblock.material.support_style || tblock.material.style;
+
+            switch(require_support) {
+                case 'bottom': // not a block style, but a name for a common type of support
                 case 'rails':
-                case 'candle': {
+                case 'candle':
+                case 'redstone':
+                case 'cactus': {
                     // only bottom
                     if(neighbourPos.y < pos.y) {
                         return createDrop(tblock);
@@ -725,12 +730,6 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'redstone':
-                case 'cactus': {
-                    if(neighbourPos.y < pos.y) {
-                        return createDrop(tblock);
-                    }
-                }
                 case 'chest': {
                     // if a chest half is missing the other half, convert it to a normal chest
                     if (neighbourPos.y === pos.y && // a fast redundant check to eliminate 2 out of 6 slower checks
@@ -748,6 +747,27 @@ export class ServerChunk {
                         ]);
                         world.actions_queue.add(null, actions);
                     }
+                    break;
+                }
+                case 'painting':
+                case 'ladder': {
+                    if (neighbourPos.y === pos.y) {
+                        // 6 sides
+                        let drop = false;
+                        if(neighbourPos.z > pos.z && (rot.x == DIRECTION.SOUTH || SIX_VECS.south.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.z < pos.z && (rot.x == DIRECTION.NORTH || SIX_VECS.north.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.x > pos.x && (rot.x == DIRECTION.WEST || SIX_VECS.west.equal(rot))) {
+                            drop = true;
+                        } else if(neighbourPos.x < pos.x && (rot.x == DIRECTION.EAST || SIX_VECS.east.equal(rot))) {
+                            drop = true;
+                        }
+                        if(drop) {
+                            return createDrop(tblock);
+                        }
+                    }
+                    break;
                 }
             }
         } else {
@@ -760,11 +780,12 @@ export class ServerChunk {
                     break;
                 }
                 case 'chest': {
+                    const chestId = BLOCK.CHEST.id;
                     // check if we can combine two halves into a double chest
                     if (neighbourPos.y !== pos.y ||
-                        tblock.material.name !== 'CHEST' ||
+                        tblock.material.id !== chestId ||
                         tblock.extra_data?.type ||
-                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.material.id !== chestId ||
                         neighbour.extra_data?.type
                     ) {
                         break;
@@ -780,6 +801,16 @@ export class ServerChunk {
                     if (expectedNeighbourPos.equal(neighbourPos)) {
                         newType = 'right';
                         newNeighbourType = 'left';
+                        // a fix for a chest inserted btween two - the one on the left doesn't attempt to transform
+                        const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
+                        var farNeighbour = this.getBlock(farNeighbourPos, null, true);
+                        if (farNeighbour &&
+                            farNeighbour.material.id === chestId &&
+                            farNeighbour.extra_data?.type == null &&
+                            dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
+                        ) {
+                            break;
+                        }
                     } else {
                         expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
                         if (expectedNeighbourPos.equal(neighbourPos)) {
@@ -809,6 +840,7 @@ export class ServerChunk {
                         }
                     ]);
                     world.actions_queue.add(null, actions);
+                    break;
                 }
             }
         }

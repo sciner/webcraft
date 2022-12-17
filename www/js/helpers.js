@@ -3,6 +3,7 @@ import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
+import { DEFAULT_TX_CNT } from "./constant.js";
 
 const {mat4} = glMatrix;
 
@@ -13,7 +14,7 @@ export const CAMERA_MODE = {
     THIRD_PERSON_FRONT: 2
 };
 
-export const TX_CNT = 32;
+export const TX_CNT = DEFAULT_TX_CNT;
 
 /**
  * Lerp any value between

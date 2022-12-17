@@ -1,0 +1,96 @@
+{
+    "building_schemas_world_name": "BLDGFYT",
+    "building_schemas": [
+        {"name": "church", "pos1": {"x": 5, "y": 0, "z": 1}, "pos2": {"x": -5, "y": 26, "z": -19}, "door_bottom": {"x": 0, "y": 1, "z": -1}},
+        {"name": "nico", "pos1": {"x": -17, "y": 1, "z": 1}, "pos2": {"x": -29, "y": 8, "z": -10}, "door_bottom": {"x": -24, "y": 2, "z": -2}},
+        {"name": "e3290", "pos1": {"x": -57, "y": 0, "z": 1}, "pos2": {"x": -70, "y": 13, "z": -13}, "door_bottom": {"x": -68, "y": 1, "z": 1}},
+        {"name": "domikder", "pos1": {"x": -78, "y": 0, "z": 0}, "pos2": {"x": -86, "y": 6, "z": -7}, "door_bottom": {"x": -82, "y": 1, "z": -1}},
+        {"name": "domikkam", "pos1": {"x": -89, "y": 0, "z": 0}, "pos2": {"x": -97, "y": 5, "z": -7}, "door_bottom": {"x": -93, "y": 1, "z": -1}},
+        {"name": "domikkam2", "pos1": {"x": -102, "y": 0, "z": 0}, "pos2": {"x": -108, "y": 5, "z": -7}, "door_bottom": {"x": -105, "y": 1, "z": -1}},
+        {"name": "domsmall", "pos1": {"x": -112, "y": -1, "z": 0}, "pos2": {"x": -119, "y": 5, "z": -6}, "door_bottom": {"x": -116, "y": 1, "z": -1}},
+        {"name": "farmer_house", "pos1": {"x": -121, "y": 0, "z": 0}, "pos2": {"x": -136, "y": 8, "z": -10}, "door_bottom": {"x": -129, "y": 1, "z": -1}},
+        {"name": "tiny_house", "pos1": {"x": -140, "y": -1, "z": 0}, "pos2": {"x": -144, "y": 6, "z": -6}, "door_bottom": {"x": -142, "y": 1, "z": -1}},
+        {"name": "watch_tower", "pos1": {"x": -148, "y": 1, "z": 0}, "pos2": {"x": -157, "y": 24, "z": -10}, "door_bottom": {"x": -153, "y": 4, "z": -3}},
+        {"name": "medium_house", "pos1": {"x": -163, "y": 0, "z": 1}, "pos2": {"x": -171, "y": 7, "z": -7}, "door_bottom": {"x": -166, "y": 1, "z": 0}},
+        {"name": "tiny_house2", "pos1": {"x": -176, "y": 1, "z": 2}, "pos2": {"x": -182, "y": 7, "z": -6}, "door_bottom": {"x": -179, "y": 2, "z": 0}},
+        {"name": "tiny_mart", "pos1": {"x": -187, "y": 0, "z": 1}, "pos2": {"x": -201, "y": 4, "z": -10}, "door_bottom": {"x": -194, "y": 0, "z": 0}},
+        {"name": "sand_house", "pos1": {"x": -206, "y": 0, "z": 1}, "pos2": {"x": -212, "y": 4, "z": -5}, "door_bottom": {"x": -209, "y": 1, "z": 0}},
+        {"name": "sand_house2", "pos1": {"x": -215, "y": 0, "z": 1}, "pos2": {"x": -221, "y": 5, "z": -5}, "door_bottom": {"x": -218, "y": 1, "z": 1}}
+    ],
+    "brains": [
+        "default",
+        "chicken",
+        "creeper",
+        "horse",
+        "fox",
+        "pig",
+        "snow_golem",
+        "cow",
+        "sheep",
+        "npc",
+        "zombie",
+        "bee",
+        "parrot"
+    ],
+    "tickers": [
+        "bamboo",
+        "charging_station",
+        "spawnmob",
+        "stage",
+        "furnace",
+        "bee_nest",
+        "bn",
+        "fire",
+        "tnt",
+        "brewing"
+    ],
+    "random_tickers": [
+        "grass_block"
+    ],
+    "before_block_change_listeners": [
+        [["soul_sand", "bubble_column"], "bubbles:RemoveBubblesAbove"],
+        ["bubble_column", "bubbles:RestoreBubbles"]
+    ],
+    "after_block_change_listeners": [
+        [["soul_sand", "bubble_column"], "bubbles"]
+    ],
+    "chat_plugins": [
+        "chat_teleport",
+        "chat_time",
+        "chat_worldedit",
+        "gamerule",
+        "view_distance",
+        "chat_ping",
+        "chat_weather",
+        "chat_effects",
+        "chat_setworldspawn",
+        "chat_particle"
+    ],
+    "clientpackets": [
+        "cmd_block_clone",
+        "cmd_change_pos_spawn",
+        "cmd_change_render_dist",
+        "cmd_chat_send_message",
+        "cmd_chest_confirm",
+        "cmd_chunk_load",
+        "cmd_connect",
+        "cmd_drop_item",
+        "cmd_drop_item_pickup",
+        "cmd_gamemode_next",
+        "cmd_gamemode_set",
+        "cmd_inventory_new_state",
+        "cmd_inventory_select",
+        "cmd_load_chest",
+        "cmd_pickat_action",
+        "cmd_ping",
+        "cmd_player_state",
+        "cmd_quest_get_enabled",
+        "cmd_resurrection",
+        "cmd_standup_straight",
+        "cmd_stats",
+        "cmd_sync_time",
+        "cmd_teleport_request",
+        "cmd_modify_indicator_request",
+        "cmd_use_item"
+    ]
+}
