@@ -5,7 +5,7 @@ import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
-import { NO_TICK_BLOCKS } from "../www/js/constant.js";
+import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
@@ -766,6 +766,50 @@ export class ServerChunk {
                         if(drop) {
                             return createDrop(tblock);
                         }
+                    }
+                    break;
+                }
+                case 'cover': {
+                    let drop = false;
+                    const removeCoverSide = (side_name) => {
+                        if(tblock.extra_data[side_name]) {
+                            const new_extra_data = {...tblock.extra_data}
+                            delete(new_extra_data[side_name])
+                            const existing_faces = Object.keys(new_extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
+                            if(existing_faces.length == 0) {
+                                drop = true;
+                            } else {
+                                const newTblock = tblock.clonePOJO();
+                                newTblock.extra_data = new_extra_data;
+                                const actions = new WorldAction();
+                                actions.addBlocks([
+                                    {
+                                        pos: pos.clone(),
+                                        item: newTblock,
+                                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                                    }
+                                ]);
+                                world.actions_queue.add(null, actions);
+                            }
+                        }
+                    }
+                    //
+                    if(neighbourPos.z > pos.z) {
+                        removeCoverSide('south')
+                    } else if(neighbourPos.z < pos.z) {
+                        removeCoverSide('north')
+                    } else if(neighbourPos.x > pos.x) {
+                        removeCoverSide('west')
+                    } else if(neighbourPos.x < pos.x) {
+                        removeCoverSide('east')
+                    } else if(neighbourPos.y < pos.y) {
+                        removeCoverSide('up')
+                    } else if(neighbourPos.y > pos.y) {
+                        removeCoverSide('down')
+                    }
+                    //
+                    if(drop) {
+                        return createDrop(tblock);
                     }
                     break;
                 }
