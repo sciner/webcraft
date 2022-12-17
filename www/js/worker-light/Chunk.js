@@ -191,18 +191,22 @@ export class Chunk {
 
         if (!this.minLightY) {
             this.minLightY = [];
-            for(let x = 0; x < size.x; x += GROUND_BUCKET_SIZE) {
-                for(let z = 0; z < size.z; z += GROUND_BUCKET_SIZE) {
+            for(let z = 0; z < size.z; z += GROUND_BUCKET_SIZE) {
+                for(let x = 0; x < size.x; x += GROUND_BUCKET_SIZE) {
                     const wx = this.lightChunk.pos.x + x + GROUND_BUCKET_SIZE / 2 | 0;
                     const wz = this.lightChunk.pos.z + z + GROUND_BUCKET_SIZE / 2 | 0;
                     this.minLightY.push({
                         x: wx,
                         z: wz,
                         key: wx.toString() + ' ' + wz,
-                        value: Infinity
+                        y: Infinity,
+                        distSqr: 0
                     });
                 }
             }
+        }
+        for(var i = 0; i < this.minLightY.length; i++) {
+            this.minLightY[i].y = Infinity;
         }
         // for each column
         for (let z = padding; z < outerSize.z - padding; z += GROUND_STRIDE) {
@@ -227,8 +231,8 @@ export class Chunk {
                 }
                 // save it in the bucket
                 const outInd = (x / GROUND_BUCKET_SIZE | 0) + (z / GROUND_BUCKET_SIZE | 0) * szBucket;
-                if (this.minLightY[outInd].value > bestY) {
-                    this.minLightY[outInd].value = bestY;
+                if (this.minLightY[outInd].y > bestY) {
+                    this.minLightY[outInd].y = bestY;
                 }
             }
         }

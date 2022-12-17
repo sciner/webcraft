@@ -8,7 +8,7 @@ import {
     adjustSrc,
     OFFSET_LIGHT,
     OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN,
-    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST
+    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST, GROUND_ESTIMATION_FAR_BIAS, GROUND_BUCKET_SIZE
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
@@ -136,6 +136,7 @@ export class LightWorld {
             Math.max(GROUND_ESTIMATION_MIN_DIST,
                 (this.chunk_render_dist || 0) * CHUNK_SIZE_X
             ));
+        const maxDistSqr = maxDist * maxDist;
         // For each (X, Z) bucket, find the lowest block with any light.
         const byXZ = {};
         for(let chunk of this.chunkManager.list) {
@@ -146,9 +147,9 @@ export class LightWorld {
             for(let i = 0; i < minLightY.length; i++) {
                 const v = minLightY[i];
                 if (playerPos) {
-                    const distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
+                    v.distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
                         (v.z - playerPos.z) * (v.z - playerPos.z);
-                    if (distSqr > maxDist * maxDist) {
+                    if (v.distSqr > maxDistSqr) {
                         continue;
                     }
                 }
@@ -156,17 +157,40 @@ export class LightWorld {
                 if (exV == null) {
                     byXZ[v.key] = v;
                 } else {
-                    exV.value = Math.min(v.value, exV.value);
+                    exV.y = Math.min(v.y, exV.y);
                 }
             }
         }
-        // select the average Y from the MIN_LIGHT_Y_MIN_PERCENT..MIN_LIGHT_Y_MAX_PERCENT of values
-        var list = [];
+        // apply distance bias, sort by distance;
+        const byDist = [];
         for(let key in byXZ) {
-            list.push(byXZ[key].value);
+            const v = byXZ[key];
+            v.biasedY = v.y;
+            // don't apply the bias closer than GROUND_BUCKET_SIZE
+            const distSqr = v.distSqr - GROUND_BUCKET_SIZE * GROUND_BUCKET_SIZE;
+            if (distSqr > 0) {
+                v.biasedY += distSqr / maxDistSqr * GROUND_ESTIMATION_FAR_BIAS;
+            }
+            byDist.push(v);
         }
-        var groundLevel = null;
-        if (list.length !== 0) {
+        byDist.sort((a, b) => a.distSqr - b.distSqr);
+
+        var groundLevel = Infinity;
+        const list = [];
+        // look at the surface at 5 different scales, to account for small nearby and big far-away changes
+        const multiplier = Math.sqrt(Math.sqrt(GROUND_ESTIMATION_MAX_DIST / GROUND_ESTIMATION_MIN_DIST));
+        for(var radius = GROUND_ESTIMATION_MIN_DIST; radius <= GROUND_ESTIMATION_MAX_DIST + 1; radius *= multiplier) {
+            // select close enough points
+            const maxDistSqr = radius * radius;
+            list.length = 0;
+            var i = 0;
+            while (i < byDist.length && byDist[i].distSqr <= maxDistSqr) {
+                list.push(byDist[i++].biasedY);
+            }
+            if (list.length === 0) {
+                continue;
+            }
+            // select the average Y from the MIN_LIGHT_Y_MIN_PERCENT..MIN_LIGHT_Y_MAX_PERCENT of values
             var minInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MIN_PERCENT);
             var maxInd = Math.round((list.length - 1) * MIN_LIGHT_Y_MAX_PERCENT);
             ArrayHelpers.partialSort(list, maxInd + 1, (a, b) => a - b);
@@ -174,7 +198,8 @@ export class LightWorld {
             for(var i = minInd; i <= maxInd; i++) {
                 sum += list[i];
             }
-            groundLevel = sum / (maxInd - minInd + 1);
+            const level = sum / (maxInd - minInd + 1);
+            groundLevel = Math.min(groundLevel, level);
         }
         this.prevGroundLevelPlayerPos = playerPos;
         worker.postMessage(['ground_level_estimated', groundLevel]);

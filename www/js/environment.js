@@ -807,6 +807,7 @@ export class Environment {
         var delta = newHorizonBrightness - this.horizonBrightness;
         delta = Math.max(Math.min(delta, maxDelta), -maxDelta);
         this.horizonBrightness += delta;
+
         this.hbLastPos.copyFrom(playerPos);
         this.hbLastTime = performance.now();
     }
