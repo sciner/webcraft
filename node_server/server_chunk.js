@@ -771,41 +771,45 @@ export class ServerChunk {
                 }
                 case 'cover': {
                     let drop = false;
-                    const removeCoverSide = (side_name) => {
-                        if(tblock.extra_data[side_name]) {
-                            const new_extra_data = {...tblock.extra_data}
-                            delete(new_extra_data[side_name])
-                            const existing_faces = Object.keys(new_extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
-                            if(existing_faces.length == 0) {
-                                drop = true;
-                            } else {
-                                const newTblock = tblock.clonePOJO();
-                                newTblock.extra_data = new_extra_data;
-                                const actions = new WorldAction();
-                                actions.addBlocks([
-                                    {
-                                        pos: pos.clone(),
-                                        item: newTblock,
-                                        action_id: ServerClient.BLOCK_ACTION_MODIFY
-                                    }
-                                ]);
-                                world.actions_queue.add(null, actions);
+                    if(tblock.extra_data) {
+                        const removeCoverSide = (side_name) => {
+                            if(tblock.extra_data[side_name]) {
+                                const new_extra_data = {...tblock.extra_data}
+                                delete(new_extra_data[side_name])
+                                const existing_faces = Object.keys(new_extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
+                                if(existing_faces.length == 0) {
+                                    drop = true;
+                                } else {
+                                    const newTblock = tblock.clonePOJO();
+                                    newTblock.extra_data = new_extra_data;
+                                    const actions = new WorldAction();
+                                    actions.addBlocks([
+                                        {
+                                            pos: pos.clone(),
+                                            item: newTblock,
+                                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                                        }
+                                    ]);
+                                    world.actions_queue.add(null, actions);
+                                }
                             }
                         }
-                    }
-                    //
-                    if(neighbourPos.z > pos.z) {
-                        removeCoverSide('south')
-                    } else if(neighbourPos.z < pos.z) {
-                        removeCoverSide('north')
-                    } else if(neighbourPos.x > pos.x) {
-                        removeCoverSide('west')
-                    } else if(neighbourPos.x < pos.x) {
-                        removeCoverSide('east')
-                    } else if(neighbourPos.y < pos.y) {
-                        removeCoverSide('up')
-                    } else if(neighbourPos.y > pos.y) {
-                        removeCoverSide('down')
+                        //
+                        if(neighbourPos.z > pos.z) {
+                            removeCoverSide('south')
+                        } else if(neighbourPos.z < pos.z) {
+                            removeCoverSide('north')
+                        } else if(neighbourPos.x > pos.x) {
+                            removeCoverSide('west')
+                        } else if(neighbourPos.x < pos.x) {
+                            removeCoverSide('east')
+                        } else if(neighbourPos.y < pos.y) {
+                            removeCoverSide('up')
+                        } else if(neighbourPos.y > pos.y) {
+                            removeCoverSide('down')
+                        }
+                    } else {
+                        drop = true;
                     }
                     //
                     if(drop) {
