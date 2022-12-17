@@ -780,11 +780,12 @@ export class ServerChunk {
                     break;
                 }
                 case 'chest': {
+                    const chestId = BLOCK.CHEST.id;
                     // check if we can combine two halves into a double chest
                     if (neighbourPos.y !== pos.y ||
-                        tblock.material.name !== 'CHEST' ||
+                        tblock.material.id !== chestId ||
                         tblock.extra_data?.type ||
-                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.material.id !== chestId ||
                         neighbour.extra_data?.type
                     ) {
                         break;
@@ -804,7 +805,7 @@ export class ServerChunk {
                         const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
                         var farNeighbour = this.getBlock(farNeighbourPos, null, true);
                         if (farNeighbour &&
-                            farNeighbour.material.name === 'CHEST' &&
+                            farNeighbour.material.id === chestId &&
                             farNeighbour.extra_data?.type == null &&
                             dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
                         ) {
