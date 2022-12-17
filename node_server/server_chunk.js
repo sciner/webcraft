@@ -780,11 +780,12 @@ export class ServerChunk {
                     break;
                 }
                 case 'chest': {
+                    const chestId = BLOCK.CHEST.id;
                     // check if we can combine two halves into a double chest
                     if (neighbourPos.y !== pos.y ||
-                        tblock.material.name !== 'CHEST' ||
+                        tblock.material.id !== chestId ||
                         tblock.extra_data?.type ||
-                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.material.id !== chestId ||
                         neighbour.extra_data?.type
                     ) {
                         break;
@@ -800,6 +801,16 @@ export class ServerChunk {
                     if (expectedNeighbourPos.equal(neighbourPos)) {
                         newType = 'right';
                         newNeighbourType = 'left';
+                        // a fix for a chest inserted btween two - the one on the left doesn't attempt to transform
+                        const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
+                        var farNeighbour = this.getBlock(farNeighbourPos, null, true);
+                        if (farNeighbour &&
+                            farNeighbour.material.id === chestId &&
+                            farNeighbour.extra_data?.type == null &&
+                            dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
+                        ) {
+                            break;
+                        }
                     } else {
                         expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
                         if (expectedNeighbourPos.equal(neighbourPos)) {
