@@ -48,12 +48,13 @@ export class ManageBubbles {
 
 function manageBubbles(newMaterialBelow, block, newMaterial, firstRun) {
     const hasBubbles = newMaterial.id === BLOCK.BUBBLE_COLUMN.id;
+    const shouldRemoveBubblesInstantly = !block.isWater;
     const shouldHaveBubbles =
+        !shouldRemoveBubblesInstantly &&
         CAN_SUPPORT_BUBBLES.includes(newMaterialBelow.id) &&
-        block.isWater &&
         (newMaterial.id === 0 || hasBubbles);
     if (hasBubbles !== shouldHaveBubbles) {
-        if (firstRun) {
+        if (firstRun && !shouldRemoveBubblesInstantly) {
             return BUBBLES_PROPAGATION_DELAY;
         }
         return shouldHaveBubbles ? {
