@@ -73,7 +73,7 @@ export class FluidChunkEvents {
 
     pushGlobal(wx, wy, wz, indexFlag) {
         const index = this.fluidChunk.dataChunk.indexByWorld(wx, wy, wz);
-        const qplace = this.fluidChunk.ensurePlace();
+        const qplace = this.ensurePlace();
         if ((qplace[index] & QUEUE_INTERACT) !== 0) {
             return;
         }
