@@ -408,12 +408,12 @@ export class Default_Terrain_Generator {
         for(let rad of [1, 1, 2, 2]) {
             for(let i = x - rad; i <= x + rad; i++) {
                 for(let j = z - rad; j <= z + rad; j++) {
-                    let m = (i == x - rad && j == z - rad) ||
+                    const m = (i == x - rad && j == z - rad) ||
                         (i == x + rad && j == z + rad) ||
                         (i == x - rad && j == z + rad) ||
                         (i == x + rad && j == z - rad);
-                        let m2 = (py == y + tree.height) ||
-                        (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
+                    const m2 = (py == y + tree.height) ||
+                        (i + chunk.coord.x + j + chunk.coord.z + py + chunk.coord.y) % 3 > 0;
                     if(m && m2) {
                         continue;
                     }
