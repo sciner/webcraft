@@ -1647,6 +1647,14 @@ export class ArrayHelpers {
         arr.length = dst;
     }
 
+    static sum(arr, mapper = (it) => it) {
+        var sum = 0;
+        for (let i = 0; i < arr.length; i++) {
+            sum += mapper(arr);
+        }
+        return sum;
+    }
+
     static growAndSet(arr, index, value, filler = undefined) {
         while (arr.length <= index) {
             arr.push(filler);
