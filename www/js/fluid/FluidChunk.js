@@ -3,7 +3,7 @@ import {
     FLUID_GENERATED_FLAG,
     FLUID_LAVA_ID,
     FLUID_STRIDE, FLUID_TYPE_MASK,
-    FLUID_WATER_ID, fluidBlockProps, OFFSET_BLOCK_PROPS,
+    FLUID_WATER_ID, FLUID_WATER_INTERACT, fluidBlockProps, OFFSET_BLOCK_PROPS,
     OFFSET_FLUID
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
@@ -43,7 +43,9 @@ export class FluidChunk {
         this.savedID = -1;
         this.databaseID = 0;
         this.inSaveQueue = false;
+        // server-side things
         this.queue = null;
+        this.events = null;
 
         this.lastSavedSize = 16384;
     }
@@ -66,6 +68,7 @@ export class FluidChunk {
         this.markDirtyMesh();
         if (this.queue) {
             this.queue.pushTickIndex(index);
+            this.events.pushCoord(index, wx, wy, wz, value);
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
@@ -317,7 +320,7 @@ export class FluidChunk {
     syncBlockProps(index, blockId, isPortal) {
         const ind = index * FLUID_STRIDE + OFFSET_BLOCK_PROPS;
         const old = this.uint8View[ind];
-        const props = blockId ? fluidBlockProps(BLOCK.BLOCK_BY_ID[blockId]) : 0;
+        const props = blockId ? this.world.blockPropsById[blockId] : 0;
         if (props === old) {
             return;
         }
@@ -351,7 +354,8 @@ export class FluidChunk {
             }
         }
         // 2. solid block on top of fluid
-        if ((this.uint16View[index] & FLUID_TYPE_MASK) > 0) {
+        let wasFluid = (this.uint16View[index] & FLUID_TYPE_MASK) > 0;
+        if (wasFluid) {
             if (isSolid) {
                 this.uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
                 if (!isPortal) {
@@ -379,7 +383,7 @@ export class FluidChunk {
     syncAllProps() {
         const {cx, cy, cz, outerSize} = this.dataChunk;
         const {id} = this.parentChunk.tblocks;
-        const {uint8View} = this;
+        const {uint8View, events} = this;
         const {BLOCK_BY_ID} = BLOCK;
 
         for (let y = 0; y < outerSize.y; y++)
@@ -388,9 +392,7 @@ export class FluidChunk {
                     let index = x * cx + y * cy + z * cz;
                     let props = 0;
                     const blockId = id[index];
-                    if (blockId) {
-                        props = fluidBlockProps(BLOCK_BY_ID[blockId]);
-                    }
+                    props = blockId ? this.world.blockPropsById[blockId] : 0;
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
     }

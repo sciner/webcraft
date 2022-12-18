@@ -1,3 +1,4 @@
+import { BLOCK } from "../blocks.js";
 import {getChunkAddr, Vector, VectorCollector} from "../helpers.js";
 import {FluidChunk} from "./FluidChunk.js";
 import {
@@ -7,15 +8,27 @@ import {
     FLUID_TYPE_MASK,
     FLUID_WATER_ID,
     FLUID_LAVA_ID,
-    OFFSET_FLUID
+    OFFSET_FLUID,
+    fluidBlockProps
 } from "./FluidConst.js";
 
 export class FluidWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
+        this.world = chunkManager.getWorld();
         this.mesher = null;
         this.database = null;
         this.queue = null;
+
+        this.blockPropsById = new Uint8Array(BLOCK.max_id + 1);
+        const blockListeners = this.world.blockListeners;
+        for(var id = 0; id < this.blockPropsById.length; id++) {
+            var props = fluidBlockProps(BLOCK.BLOCK_BY_ID[id]);
+            if (blockListeners) { // server-only
+                props |= blockListeners.fluidBlockPropsById[id];
+            }
+            this.blockPropsById[id] = props;
+        }
     }
 
     addChunk(chunk) {

@@ -5,7 +5,7 @@ import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
 import { WorldAction } from "../www/js/world_action.js";
-import { NO_TICK_BLOCKS } from "../www/js/constant.js";
+import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
@@ -142,7 +142,7 @@ export class ServerChunk {
         this.dataChunk      = null;
         this.fluid          = null;
         this.delayedCalls   = new DelayedCalls(world.blockCallees);
-        this.blocksUpdatedByDelayedCalls = [];
+        this.blocksUpdatedByListeners = [];
     }
 
     get addrHash() { // maybe replace it with a computed string, if it's used often
@@ -769,6 +769,54 @@ export class ServerChunk {
                     }
                     break;
                 }
+                case 'cover': {
+                    let drop = false;
+                    if(tblock.extra_data) {
+                        const removeCoverSide = (side_name) => {
+                            if(tblock.extra_data[side_name]) {
+                                const new_extra_data = {...tblock.extra_data}
+                                delete(new_extra_data[side_name])
+                                const existing_faces = Object.keys(new_extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
+                                if(existing_faces.length == 0) {
+                                    drop = true;
+                                } else {
+                                    const newTblock = tblock.clonePOJO();
+                                    newTblock.extra_data = new_extra_data;
+                                    const actions = new WorldAction();
+                                    actions.addBlocks([
+                                        {
+                                            pos: pos.clone(),
+                                            item: newTblock,
+                                            action_id: ServerClient.BLOCK_ACTION_MODIFY
+                                        }
+                                    ]);
+                                    world.actions_queue.add(null, actions);
+                                }
+                            }
+                        }
+                        //
+                        if(neighbourPos.z > pos.z) {
+                            removeCoverSide('south')
+                        } else if(neighbourPos.z < pos.z) {
+                            removeCoverSide('north')
+                        } else if(neighbourPos.x > pos.x) {
+                            removeCoverSide('west')
+                        } else if(neighbourPos.x < pos.x) {
+                            removeCoverSide('east')
+                        } else if(neighbourPos.y < pos.y) {
+                            removeCoverSide('up')
+                        } else if(neighbourPos.y > pos.y) {
+                            removeCoverSide('down')
+                        }
+                    } else {
+                        drop = true;
+                    }
+                    //
+                    if(drop) {
+                        return createDrop(tblock);
+                    }
+                    break;
+                }
             }
         } else {
             switch(tblock.material.style) {
@@ -780,11 +828,12 @@ export class ServerChunk {
                     break;
                 }
                 case 'chest': {
+                    const chestId = BLOCK.CHEST.id;
                     // check if we can combine two halves into a double chest
                     if (neighbourPos.y !== pos.y ||
-                        tblock.material.name !== 'CHEST' ||
+                        tblock.material.id !== chestId ||
                         tblock.extra_data?.type ||
-                        neighbour.material.name !== 'CHEST' ||
+                        neighbour.material.id !== chestId ||
                         neighbour.extra_data?.type
                     ) {
                         break;
@@ -800,6 +849,16 @@ export class ServerChunk {
                     if (expectedNeighbourPos.equal(neighbourPos)) {
                         newType = 'right';
                         newNeighbourType = 'left';
+                        // a fix for a chest inserted btween two - the one on the left doesn't attempt to transform
+                        const farNeighbourPos = expectedNeighbourPos.clone().addSelf(dxz);
+                        var farNeighbour = this.getBlock(farNeighbourPos, null, true);
+                        if (farNeighbour &&
+                            farNeighbour.material.id === chestId &&
+                            farNeighbour.extra_data?.type == null &&
+                            dir === BLOCK.getCardinalDirection(farNeighbour.rotate)
+                        ) {
+                            break;
+                        }
                     } else {
                         expectedNeighbourPos.copyFrom(pos).subSelf(dxz);
                         if (expectedNeighbourPos.equal(neighbourPos)) {
@@ -915,6 +974,63 @@ export class ServerChunk {
         }
     }
 
+    onFluidEvent(pos, isFluidChangeAbove) {
+
+        const that = this;
+        function processResult(res, calleeId) {
+            if (typeof res === 'number') {
+                that.addDelayedCall(calleeId, res, [pos]);
+            } else {
+                TickerHelpers.pushBlockUpdates(that.blocksUpdatedByListeners, res);
+            }
+        }
+
+        const tblock = this.getBlock(pos, tmp_onFluidEvent_TBlock);
+        const fluidY = isFluidChangeAbove ? pos.y + 1 : pos.y;
+        const fluidValue = this.getFluidValue(pos.x, fluidY, pos.z);
+        
+        if (isFluidChangeAbove) {
+            var listeners = this.world.blockListeners.fluidAboveChangeListeners[tblock.id];
+            if (listeners) {
+                for(let listener of listeners) {
+                    var res = listener.onFluidAboveChange(this, tblock, fluidValue, true);
+                    processResult(res, listener.onFluidAboveChangeCalleeId);
+                }
+            }
+            if ((fluidValue & FLUID_TYPE_MASK) === 0) {
+                listeners = this.world.blockListeners.fluidAboveRemoveListeners[tblock.id];
+                if (listeners) {
+                    for(let listener of listeners) {
+                        var res = listener.onFluidAboveRemove(this, tblock, true);
+                        processResult(res, listener.onFluidAboveRemoveCalleeId);
+                    }
+                }
+            }
+        } else {
+            var listeners = this.world.blockListeners.fluidChangeListeners[tblock.id];
+            if (listeners) {
+                for(let listener of listeners) {
+                    var res = listener.onFluidChange(this, tblock, fluidValue, true);
+                    processResult(res, listener.onFluidChangeCalleeId);
+                }
+            }
+            if ((fluidValue & FLUID_TYPE_MASK) === 0) {
+                listeners = this.world.blockListeners.fluidRemoveListeners[tblock.id];
+                if (listeners) {
+                    for(let listener of listeners) {
+                        var res = listener.onFluidRemove(this, tblock, true);
+                        processResult(res, listener.onFluidRemoveCalleeId);
+                    }
+                }
+            }
+        }
+    }
+
+    applyChangesByListeners() {
+        this.world.addUpdatedBlocksActions(this.blocksUpdatedByListeners);
+        this.blocksUpdatedByListeners.length = 0;
+    }
+
     executeDelayedCalls() {
         if (this.delayedCalls.length === 0) {
             return;
@@ -924,8 +1040,7 @@ export class ServerChunk {
         if (this.delayedCalls.length === 0) {
             this.getChunkManager().chunks_with_delayed_calls.delete(this);
         }
-        this.world.addUpdatedBlocksActions(this.blocksUpdatedByDelayedCalls);
-        this.blocksUpdatedByDelayedCalls.length = 0;
+        this.applyChangesByListeners();
     }
 
     // Before unload chunk
@@ -967,3 +1082,4 @@ export class ServerChunk {
 }
 
 const tmp_posVector         = new Vector();
+const tmp_onFluidEvent_TBlock = new TBlock();

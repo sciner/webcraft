@@ -1,7 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_THRESHOLD, DensityParams } from "./manager.js";
+import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_THRESHOLD, DensityParams } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
 
 export class TerrainMap2 extends TerrainMap {
@@ -13,7 +13,7 @@ export class TerrainMap2 extends TerrainMap {
 
     /**
      * @param {*} chunk 
-     * @param {*} cluster 
+     * @param { import("../../cluster/base.js").ClusterBase } cluster
      * @param {*} aleaRandom 
      * @param {float} rnd 
      * @param {int} x 
@@ -33,8 +33,8 @@ export class TerrainMap2 extends TerrainMap {
         }
 
         //
-        for(let i = -2; i <= 2; i++) {
-            for(let j = -2; j <= 2; j++) {
+        for(let i = -TREE_BETWEEN_DIST; i <= TREE_BETWEEN_DIST; i++) {
+            for(let j = -TREE_BETWEEN_DIST; j <= TREE_BETWEEN_DIST; j++) {
                 const px = x + i;
                 const pz = z + j;
                 if(px >= 0 && pz >= 0 && px < CHUNK_SIZE_X && pz < CHUNK_SIZE_Z) {
@@ -61,16 +61,11 @@ export class TerrainMap2 extends TerrainMap {
                 if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, TREE_MARGIN)) {
                     break;
                 }
-                let r = aleaRandom.double();
-                const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
+                const rand_height = aleaRandom.double();
+                const height = Helpers.clamp(Math.round(rand_height * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
                 const rad = Math.max(parseInt(height / 2), 2);
-                this.trees.push({
-                    // biome_code: biome.code,
-                    pos:        new Vector(x, y, z),
-                    height:     height,
-                    rad:        rad,
-                    type:       type
-                });
+                const pos = new Vector(x, y, z)
+                this.trees.push({height, rad, type, pos})
                 return true;
             }
         }
@@ -96,7 +91,7 @@ export class TerrainMap2 extends TerrainMap {
         const aleaRandom = new alea('trees_' + seed + '_' + chunk.coord.toString());
         const xyz = new Vector(0, 0, 0);
         const map = this;
-        const treeSearchSize = new Vector(1, CHUNK_SIZE_Y, 1);
+        const treeSearchSize = new Vector(1, CHUNK_SIZE_Y + 1, 1);
         const density_params = new DensityParams(0, 0, 0, 0, 0);
 
         for(let i = 0; i < 8; i++) {

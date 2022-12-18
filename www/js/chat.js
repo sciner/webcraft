@@ -208,6 +208,17 @@ export class Chat extends TextBox {
                     no_send = true;
                     break;
                 }
+                case '/deepdark': {
+                    const value = (temp[0] || '').trim().toLowerCase();
+                    if(['on', 'off', 'auto'].includes(value)) { 
+                        Qubatch.render.env.deepDarkMode = value;
+                    } else {
+                        this.messages.add(SYSTEM_NAME, '/deepdark (auto | on | off)');
+                        this.messages.add(SYSTEM_NAME, '   auto: on for players, off for spectators');
+                    }
+                    no_send = true;
+                    break;
+                }
                 case '/bb': {
                     let bbname = null;
                     let animation_name = null;

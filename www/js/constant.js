@@ -14,6 +14,7 @@ export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
 export const DIRT_COLOR_NOISE_RANGE         = 20; // mix dirt colors on every block with random value
+export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
@@ -49,6 +50,11 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 // World types
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
+
+// Global light type
+export const LIGHT_TYPE_NO                  = 0;
+export const LIGHT_TYPE_SMOOTH              = 1;
+export const LIGHT_TYPE_RTX                 = 2;
 
 export const MOUSE = {
     DOWN: 1,

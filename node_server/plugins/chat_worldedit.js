@@ -3,7 +3,7 @@ import { getChunkAddr, Vector, VectorCollector } from "../../www/js/helpers.js";
 import {WorldAction} from "../../www/js/world_action.js";
 import { SchematicReader } from "./worldedit/schematic_reader.js";
 import { ServerClient } from "../../www/js/server_client.js";
-import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
+import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "../../www/js/fluid/FluidConst.js";
 import { WorldEditBuilding } from "./worldedit/building.js";
 import { BuilgingTemplate } from "../../www/js/terrain_generator/cluster/building_template.js";
 
@@ -571,7 +571,13 @@ export default class WorldEdit {
                         chat.world.actions_queue.add(null, actions);
                         actions = new WorldAction(null, null, true, false);
                     }
-                    actions.addBlocks([{pos: bpos, item: palette.nextAsItem(), action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                    const item = palette.nextAsItem();
+                    const fluidId = isFluidId(item.id);
+                    if (fluidId) {
+                        actions.addFluids([bpos.x, bpos.y, bpos.z, fluidId]);
+                    } else {
+                        actions.addBlocks([{pos: bpos, item, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                    }
                 }
             }
         }

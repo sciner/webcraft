@@ -1,5 +1,7 @@
 import {QueuePagePool} from "../light/MultiQueue.js";
 import {FluidChunkQueue} from "./FluidChunkQueue.js";
+import {SimpleQueue} from "../helpers.js";
+import {FluidChunkEvents} from "./FluidChunkEvents.js";
 
 export class FluidWorldQueue {
     constructor(fluidWorld) {
@@ -8,8 +10,9 @@ export class FluidWorldQueue {
             pageSize: 256,
             bytesPerElement: 2,
         });
-        this.dirtyChunks = [];
+        this.dirtyChunks = new SimpleQueue();
         this.deltaChunks = [];
+        this.eventChunks = new SimpleQueue();
 
         //ticker
         this.tick = 0;
@@ -23,15 +26,17 @@ export class FluidWorldQueue {
 
     addChunk(fluidChunk) {
         fluidChunk.queue = new FluidChunkQueue(this.world, fluidChunk);
+        fluidChunk.events = new FluidChunkEvents(this.world, fluidChunk);
     }
 
     removeChunk(fluidChunk) {
         fluidChunk.queue.dispose();
+        fluidChunk.events.dispose();
     }
 
     async process(msLimit = 8) {
         const start = performance.now();
-        const {dirtyChunks} = this;
+        const {dirtyChunks, eventChunks} = this;
         this.preTick = (this.preTick + 1) % this.fluidTickRate;
         if (this.preTick !== 0) {
             return;
@@ -43,7 +48,7 @@ export class FluidWorldQueue {
         let i;
         let len = dirtyChunks.length;
         for (i = 0; i < len; i++) {
-            const chunkQueue = dirtyChunks[i];
+            const chunkQueue = dirtyChunks.shift();
             if (!chunkQueue.fluidChunk.parentChunk.fluid) {
                 continue;
             }
@@ -52,9 +57,6 @@ export class FluidWorldQueue {
             if (performance.now() - start >= msLimit) {
                 break;
             }
-        }
-        if (i > 0) {
-            dirtyChunks.splice(0, i);
         }
         const {deltaChunks} = this;
         for (let i = 0; i < deltaChunks.length; i++)
@@ -69,5 +71,21 @@ export class FluidWorldQueue {
             }
         }
         deltaChunks.length = 0;
+
+        len = eventChunks.length;
+        for (i = 0; i < len; i++) {
+            const chunkEvents = eventChunks.shift();
+            const parentChunk = chunkEvents.fluidChunk.parentChunk
+            if (!parentChunk.fluid) {
+                continue;
+            }
+            chunkEvents.process((pos, isFluidChangeAbove) => {
+                parentChunk.onFluidEvent(pos, isFluidChangeAbove);
+            });
+            parentChunk.applyChangesByListeners();
+            if (performance.now() - start >= msLimit) {
+                break;
+            }
+        }
     }
 }

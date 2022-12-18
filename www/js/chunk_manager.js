@@ -11,6 +11,7 @@ import { decompressNearby } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
+import { LIGHT_TYPE_NO } from "./constant.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -74,6 +75,8 @@ export class ChunkManager {
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
 
         this.chunk_modifiers        = new VectorCollector();
+
+        this.groundLevelEastimtion  = null;
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-gen/chunk_worker_bundle.js');
@@ -206,6 +209,10 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
+                case 'delete_animated_block': {
+                    Qubatch.render.meshes.effects.deleteBlockEmitter(args);
+                    break;
+                }
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
@@ -246,6 +253,10 @@ export class ChunkManager {
                     }
                     break;
                 }
+                case 'ground_level_estimated': {
+                    that.groundLevelEastimtion = args;
+                    break;
+                }
             }
         }
         // Init webworkers
@@ -256,7 +267,7 @@ export class ChunkManager {
         const settings = world.settings;
         const resource_cache = Helpers.getCache();
 
-        this.use_light                = !!settings.use_light;
+        this.use_light                = settings.use_light != LIGHT_TYPE_NO;
         this.worker_counter           = this.use_light ? 2 : 1;
 
         this.postWorkerMessage(['init', {
@@ -358,8 +369,12 @@ export class ChunkManager {
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            this.postWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
-            this.postLightWorkerMessage(['setPotentialCenter', { pos: player.pos }]);
+            const msg = { 
+                pos: player.pos,
+                chunk_render_dist: player.state.chunk_render_dist
+            };
+            this.postWorkerMessage(['setPotentialCenter', msg]);
+            this.postLightWorkerMessage(['setPotentialCenter', msg]);
 
             this.poses_chunkPos.copyFrom(player_chunk_addr);
             const pos               = this.poses_chunkPos;

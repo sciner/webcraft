@@ -759,6 +759,7 @@ export class BLOCK {
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
         block.light_power_number = BLOCK.getLightPower(block);
+        block.interact_water = block.tags.includes('interact_water');
         // Append to collections
         if(replace_block) {
             original_props.push('resource_pack');
