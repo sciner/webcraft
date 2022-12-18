@@ -41,7 +41,6 @@ function run() {
     // }
 
     world.isEmptyQueue = ready === 0;
-    world.groundLevelSkipCounter = 0;
     world.checkPotential();
 
     world.chunkManager.list.forEach((chunk) => {
@@ -70,14 +69,7 @@ function run() {
                     uniqId: chunk.uniqId,
                 }]);
             }
-            // update ground level
-            if (world.chunkManager.minLightYDirty) {
-                world.groundLevelSkipCounter = (world.groundLevelSkipCounter + 1) % LightConst.GROUND_SKIP_CHUNKS;
-                if (world.isEmptyQueue || world.groundLevelSkipCounter === 0) {
-                    world.estimateGroundLevel();
-                    world.groundLevelSkipCounter = 0;
-                }
-            }
+            world.groundLevel.estimateIfNecessary();
         }
 
         endChunks++;

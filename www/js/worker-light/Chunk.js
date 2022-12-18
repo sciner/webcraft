@@ -6,10 +6,10 @@ import {
     DIR_COUNT,
     DISPERSE_MIN, dx, dy, dz, LIGHT_STRIDE_BYTES, LIGHT_STRIDE_BYTES_NORMAL, MASK_SRC_AMOUNT, MASK_SRC_AO,
     MASK_SRC_BLOCK, OFFSET_DAY, OFFSET_LIGHT, OFFSET_NORMAL,
-    OFFSET_SOURCE,
-    GROUND_STRIDE, GROUND_BUCKET_SIZE
+    OFFSET_SOURCE
 } from "./LightConst.js";
 import {DataChunk} from "../core/DataChunk.js";
+import {ChunkGroundLevel} from "./GroundLevel.js"
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -56,22 +56,7 @@ export class Chunk {
         this.len = this.lightChunk.insideLen;
         this.outerLen = this.lightChunk.outerLen;
 
-        this.xzKey = this.addr.x.toString() + '_' + this.addr.z;
-        this.minLightY = [];
-        for(let z = 0; z < this.size.z; z += GROUND_BUCKET_SIZE) {
-            for(let x = 0; x < this.size.x; x += GROUND_BUCKET_SIZE) {
-                const wx = this.pos.x + x + GROUND_BUCKET_SIZE / 2 | 0;
-                const wz = this.pos.z + z + GROUND_BUCKET_SIZE / 2 | 0;
-                this.minLightY.push({
-                    x: wx,
-                    z: wz,
-                    key: wx.toString() + ' ' + wz,
-                    y: Infinity,
-                    oldY: Infinity
-                });
-            }
-        }
-        this.hasMinLightY = false;
+        this.groundLevel = new ChunkGroundLevel(this);
     }
 
     get chunkManager() {
@@ -178,78 +163,6 @@ export class Chunk {
         if (found) {
             this.lastID++;
         }
-    }
-
-    calcMinLightY(is4444) {
-        const {outerSize, size, lightChunk} = this;
-        const result = this.lightResult;
-
-        // strides for result = this.lightResult
-        const rsx = 1;
-        const rsz = rsx * outerSize.x;
-        const rsy = rsz * outerSize.z;
-
-        // strides for uint8View
-        const {uint8View, strideBytes, padding} = lightChunk;
-        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;        
-
-        // strides for minLightY
-        const szBucket = size.x / GROUND_BUCKET_SIZE | 0;
-
-        function isDryLit(ind, indUint8View) {
-            const hasLight = is4444
-                ? (result[ind] & 0xF00) !== 0xF00
-                : result[ind * 4 + 1] !== 0xFF;
-            return hasLight && (uint8View[indUint8View + OFFSET_SOURCE] & MASK_SRC_BLOCK) === 0;
-        }
-
-        for(var i = 0; i < this.minLightY.length; i++) {
-            this.minLightY[i].y = Infinity;
-        }
-        // for each column
-        for (let z = padding; z < outerSize.z - padding; z += GROUND_STRIDE) {
-            for (let x = padding; x < outerSize.x - padding; x += GROUND_STRIDE) {
-                const base = x * rsx + z * rsz;
-                const baseUint8View = sx * x + sz * z;
-                // find the lowest lit block
-                var bestY = Infinity;
-                // we start from (padding + 1), so we can then look at (y - 1)
-                for(let y = padding + 1; y < outerSize.y - padding; y += 2) {
-                    var ind = base + y * rsy;
-                    var indUint8View = baseUint8View + sy * y;
-                    if (isDryLit(ind, indUint8View)) {
-                        // improve Y accuracy to 1 block
-                        if (isDryLit(ind - rsy, indUint8View - sy)) {
-                            y--;
-                        }
-                        // we found it!
-                        bestY = this.pos.y + y - padding;
-                        break;
-                    }
-                }
-                // save it in the bucket
-                const outInd = (x / GROUND_BUCKET_SIZE | 0) + (z / GROUND_BUCKET_SIZE | 0) * szBucket;
-                if (this.minLightY[outInd].y > bestY) {
-                    this.minLightY[outInd].y = bestY;
-                }
-            }
-        }
-        // check if this chunk may affect the column
-        const column = this.chunkManager.columns.get(this.xzKey);
-        const isCloseEnough = !this.chunkManager.columnsIsFarAway(column);
-        const lastChunkMising = (this.chunkManager.countMissingInColumn(column) === 1);
-        for (var i = 0; i < this.minLightY.length; i++) {
-            const v = this.minLightY[i];
-            if (lastChunkMising ||
-                v.y < column.minLightY[i].y ||
-                v.y !== v.oldY && v.oldY === column.minLightY[i].y
-            ) {
-                column.minLightYDirty = true;
-                this.chunkManager.minLightYDirty |= isCloseEnough;
-            }
-            v.oldY = v.y;
-        }
-        this.hasMinLightY = true;
     }
 
     calcResult(is4444, hasNormals) {
@@ -366,7 +279,7 @@ export class Chunk {
         //
         if (changed) {
             this.crc++;
-            this.calcMinLightY(is4444);
+            this.groundLevel.calcMinLightY(is4444);
         } else {
             // TODO: find out why are there so many calcResults
             // console.log('WTF');
