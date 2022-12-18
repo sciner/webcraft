@@ -249,6 +249,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 */
 
                 // Calculate caves
+                /*
                 const cave_middle_level = 100;
                 const cave_amplitude = 16;
                 const cave_base_freq = 75
@@ -266,6 +267,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         caves.push({cave_y_pos, cave_density});
                     }
                 }
+                */
 
                 // Each y-column
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
@@ -280,6 +282,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     if(density > DENSITY_THRESHOLD) {
 
                         // Remove caves
+                        /*
                         if(density > DENSITY_THRESHOLD) { // + (xyz.y <= WATER_LEVEL ? d3 * 2 + 3 : 0)) {
                             for(let cave of caves) {
                                 const cave_height = (1 - cave.cave_density / cave_width) * cave_rad;
@@ -290,6 +293,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 }
                             }
                         }
+                        */
 
                         if(density > 0) {
 
