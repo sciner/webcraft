@@ -209,6 +209,10 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
+                case 'delete_animated_block': {
+                    Qubatch.render.meshes.effects.deleteBlockEmitter(args);
+                    break;
+                }
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);

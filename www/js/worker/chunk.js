@@ -40,6 +40,11 @@ export class ChunkManager {
         this.materialToId = new Map();
     }
 
+    // For compatibility with the client API
+    getWorld() {
+        return this.world;
+    }
+
     // Get
     getChunk(addr) {
         return this.world.chunks.get(addr);

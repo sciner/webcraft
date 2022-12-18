@@ -510,13 +510,17 @@ export default class style {
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
 
         // Add animations
-        if(typeof worker != 'undefined' && block.id == BLOCK.SOUL_SAND.id && neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id) {
-            worker.postMessage(['add_animated_block', {
-                block_pos: block.posworld,
-                pos: [block.posworld.add(new Vector(.5, .5, .5))],
-                type: 'bubble_column',
-                isBottom: true
-            }]);
+        if(typeof worker != 'undefined' && block.id == BLOCK.SOUL_SAND.id) {
+            if (neighbours.UP?.id == BLOCK.BUBBLE_COLUMN.id) {
+                worker.postMessage(['add_animated_block', {
+                    block_pos: block.posworld,
+                    pos: [block.posworld.add(new Vector(.5, .5, .5))],
+                    type: 'bubble_column',
+                    isBottom: true
+                }]);
+            } else {
+                worker.postMessage(['delete_animated_block', block.posworld]);
+            }
         }
 
         // Jukebox

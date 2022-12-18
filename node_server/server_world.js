@@ -1,13 +1,12 @@
 import config from "./config.js";
 
-import { loadBlockListeners } from "./server_helpers.js";
 import { Brains } from "./fsm/index.js";
 import { DropItem } from "./drop_item.js";
 import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
-import { TickerHelpers } from "./ticker/ticker_helpers.js";
+import { TickerHelpers, BlockListeners } from "./ticker/ticker_helpers.js";
 
 import { WorldTickStat } from "./world/tick_stat.js";
 import { WorldPacketQueue } from "./world/packet_queue.js";
@@ -62,17 +61,10 @@ export class ServerWorld {
                 this.random_tickers.set(fn, module.default);
             });
         }
-        this.blockCallees = {};
-        // "Before change" listenes are called by the old (possibly to-be-removed) block id,
-        // before it's changed. Use it to listen for removal, and process extra_data of the removed block.
-        const beforeBlockChangeListenersPromise = loadBlockListeners(
-            config.before_block_change_listeners,
-            './ticker/before_change/', this.blockCallees);
-        // "After change" listenes are called by the new block id, after it's set.
-        this.afterBlockChangeListeners = await loadBlockListeners(
-            config.after_block_change_listeners,
-            './ticker/after_change/', this.blockCallees);
-        this.beforeBlockChangeListeners = await beforeBlockChangeListenersPromise;
+        // Block listeners & callees
+        this.blockListeners = new BlockListeners();
+        await this.blockListeners.loadAll(config);
+        this.blockCallees = this.blockListeners.calleesById;
         // Brains
         this.brains = new Brains();
         for(let fn of config.brains) {
@@ -722,13 +714,13 @@ export class ServerWorld {
                         let oldId = tblock.id;
                         // call block change listeners
                         if (on_block_set) {
-                            var listeners = this.beforeBlockChangeListeners[oldId];
+                            const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const newMaterial = BLOCK.BLOCK_BY_ID[params.item.id];
-                                    var res = listener.func(chunk, tblock, newMaterial, true);
+                                    var res = listener.onBeforeBlockChange(chunk, tblock, newMaterial, true);
                                     if (typeof res === 'number') {
-                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos]);
+                                        chunk.addDelayedCall(listener.onBeforeBlockChangeCalleeId, res, [block_pos]);
                                     } else {
                                         TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
                                     }
@@ -746,13 +738,13 @@ export class ServerWorld {
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item);
-                            const listeners = this.afterBlockChangeListeners[tblock.id];
+                            const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
-                                    var res = listener.func(chunk, tblock, oldMaterial, true);
+                                    var res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
-                                        chunk.addDelayedCall(listener.calleeId, res, [block_pos, oldMaterial.id]);
+                                        chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);
                                     } else {
                                         TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
                                     }

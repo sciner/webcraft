@@ -1755,6 +1755,28 @@ export class ArrayOrMap {
             }
         }
     }
+
+    static *entriesExceptUndefined(collection) {
+        if (collection instanceof Map) {
+            for(let entry of collection.entries()) {
+                if (entry[1] !== undefined) {
+                    yield v;
+                }
+            }
+        } else if (Array.isArray(collection)) {
+            for(var i = 0; i < collection.length; i++) {
+                if (collection[i] !== undefined) {
+                    yield [i, collection[i]];
+                }
+            }
+        } else {
+            for(let key in collection) {
+                if (collection.hasOwnProperty(key) && collection[key] !== undefined) {
+                    yield [key, collection[key]];
+                }
+            }
+        }
+    }
 }
 
 // Make fetch functions

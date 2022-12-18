@@ -8,13 +8,25 @@ export const FLUID_TYPE_SHIFT = 4;
 export const FLUID_UPDATE_FLAG = 64;
 export const FLUID_GENERATED_FLAG = 128;
 
+// these flags should be returned by fluidBlockProps()
 export const FLUID_BLOCK_RESTRICT = 128;
-export const FLUID_BLOCK_OPAQUE = 196;
+export const FLUID_BLOCK_OPAQUE = 192;
+export const FLUID_WATER_INTERACT = 32;
+export const FLUID_WATER_REMOVE = 16;
+export const FLUID_WATER_ABOVE_INTERACT = 8;
+export const FLUID_WATER_ABOVE_REMOVE = 4;
+
+// these flags should be checked when interacting with fluid
+export const FLUID_WATER_INTERACT16 = FLUID_WATER_INTERACT << 8;
+export const FLUID_WATER_REMOVE16 = FLUID_WATER_REMOVE << 8;
+export const FLUID_WATER_ABOVE_INTERACT16 = FLUID_WATER_ABOVE_INTERACT << 8;
+export const FLUID_WATER_ABOVE_REMOVE16 = FLUID_WATER_ABOVE_REMOVE << 8;
 export const FLUID_SOLID16 = FLUID_BLOCK_RESTRICT << 8;
 export const FLUID_OPAQUE16 = FLUID_BLOCK_OPAQUE << 8;
-export const FLUID_PROPS_MASK16 = FLUID_SOLID16 | FLUID_OPAQUE16;
-export const FLUID_MASK = FLUID_LEVEL_MASK | FLUID_TYPE_MASK;
-export const FLUID_BLOCK_INTERACT = 32;
+
+// If it's present in "index" of the event, then it means the fuild in the block
+// above has changed.
+export const FLUID_EVENT_FLAG_ABOVE = 0x10000000;
 
 export const OFFSET_FLUID = 0;
 export const OFFSET_BLOCK_PROPS = 1;
@@ -56,6 +68,9 @@ export function fluidBlockProps(block) {
         return res;
     }
     const blockMat = block.material;
+    if (block.interact_water) {
+        res |= FLUID_WATER_INTERACT;
+    }
     if (block.is_solid || block.is_solid_for_fluid) {
         if (block.transparent) {
             res |= FLUID_BLOCK_RESTRICT;

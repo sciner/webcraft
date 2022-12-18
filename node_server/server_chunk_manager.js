@@ -102,6 +102,11 @@ export class ServerChunkManager {
         this.worker.postMessage(cmd);
     }
 
+    // For compatibility with client ChunkManager API
+    getWorld() {
+        return this.world;
+    }
+
     chunkStateChanged(chunk, state_id) {
         switch(state_id) {
             case CHUNK_STATE_BLOCKS_GENERATED: {

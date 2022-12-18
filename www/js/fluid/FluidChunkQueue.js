@@ -55,11 +55,11 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
 
     let hasImprovement = false;
 
-    let hasDownFlow = false, hasEmpty = false;
+    let hasSideFlow = false, hasEmpty = false;
     let goesSides = lvl === 0;
     let hasSupport = lvl === 0 || lvl === 8 && (neib[0] & FLUID_TYPE_MASK) === fluidType;
     // check down
-    if ((neib[1] & FLUID_SOLID16) === 0) {
+    if ((neib[1] & FLUID_SOLID16) !== 0) {
         goesSides = true;
     } else {
         let neibType = (neib[1] & FLUID_TYPE_MASK);
@@ -100,7 +100,7 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
             } else {
                 let neibLvl = (neib[dir] & FLUID_LEVEL_MASK) & 7;
                 hasImprovement = neibLvl < lessThan || neibLvl > moreThan;
-                hasDownFlow = hasDownFlow || neibLvl > lvl;
+                hasSideFlow = hasSideFlow || neibLvl > lvl;
                 hasSupport = hasSupport || neibLvl < lvl;
             }
         } else if (moreThan < 8 && goesSides) {
@@ -110,12 +110,12 @@ function shouldGoToQueue(uint16View, index, cx, cy, cz, lower) {
                 hasImprovement = true;
             }
         }
-        hasImprovement = hasImprovement || (hasEmpty & !hasDownFlow);
         if (hasImprovement) {
             return true;
         }
     }
-    return !hasSupport;
+    hasImprovement = hasImprovement || !hasSupport || (hasEmpty & !hasSideFlow);
+    return hasImprovement;
 }
 
 export class FluidChunkQueue {
@@ -220,6 +220,7 @@ export class FluidChunkQueue {
         fluidChunk.setValuePortals(ind, wx, wy, wz, forceVal, portals2, portals2.length);
         this.pushTickIndex(ind, ticks);
         this.markDeltaIndex(ind);
+        fluidChunk.events.pushCoord(ind, wx, wy, wz, forceVal);
     }
 
     pushTickIndex(index, tick = 1) {
@@ -268,6 +269,7 @@ export class FluidChunkQueue {
         const bounds = new AABB();
         bounds.copyFrom(fluidChunk.getLocalBounds());
         this.initInBounds(bounds);
+        fluidChunk.events.initInBounds(bounds);
         const {aabb, facetPortals} = fluidChunk.dataChunk;
 
         for (let i = 0; i < facetPortals.length; i++) {
@@ -378,6 +380,7 @@ export class FluidChunkQueue {
             qplace[ind] |= QUEUE_PROCESS;
             assignIndices[assignNum++] = ind;
         }
+        fluidChunk.events.pushCoord(ind, wx, wy, wz, val);
     }
 
     process() {
@@ -386,7 +389,7 @@ export class FluidChunkQueue {
         this.lastTick = this.fluidWorld.queue.tick;
         lavaCast.length = 0;
         const {qplace, curList, curFlag, fluidChunk} = this;
-        const {uint16View} = fluidChunk;
+        const {uint16View, events} = fluidChunk;
         const {cx, cy, cz, cw, shiftCoord, outerSize, safeAABB, aabb, pos, portals} = this.fluidChunk.dataChunk;
         const {lavaSpeedSlow, lavaLower} = this.fluidWorld.queue;
         this.assignStart(uint16View.length);
@@ -398,7 +401,7 @@ export class FluidChunkQueue {
             let fluidType = val & FLUID_TYPE_MASK;
             if ((qplace[index] & curFlag) === 0) {
                 //TODO: find out who violates this invariant
-                // console.log("WTF_FLUID_QUEUE");
+                //console.log("WTF_FLUID_QUEUE");
             }
             qplace[index] &= !curFlag;
             if (fluidType === 0) {
@@ -534,7 +537,9 @@ export class FluidChunkQueue {
                 goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
             }
             let flowMask = 0, emptyMask = 0, emptyBest = 0;
+            let hasSideFlow = false;
             // 4 propagate to neibs
+            let flowsDown = false;
             for (let dir = 1; dir < 6; dir++) {
                 let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
                 // dif26 here?
@@ -561,7 +566,7 @@ export class FluidChunkQueue {
                         // going down!
                         improve = (neibType !== 0 && neibLvl === 8) ^ !emptied;
                         if (improve && neibType === 0) {
-                            emptyMask |= 1 << dir;
+                            flowsDown = true;
                         }
                     } else {
                         // going side!
@@ -575,6 +580,9 @@ export class FluidChunkQueue {
                         } else if (neibLvl === 8) {
                             //nothing
                         } else {
+                            if (neibLvl > oldLvl) {
+                                hasSideFlow = true;
+                            }
                             improve = neibLvl > moreThan;
                             if (changed) {
                                 improve |= neibLvl === oldLvl + lower;
@@ -592,10 +600,13 @@ export class FluidChunkQueue {
                 }
             }
             // TODO: bfs for shortest route like in MC
+            if (emptyBest > 0) {
+                emptyMask = emptyBest;
+            }
+            if (flowsDown) {
+                emptyMask |= 1 << 1;
+            }
             if (emptyMask > 0) {
-                if (emptyBest > 0) {
-                    emptyMask = emptyBest;
-                }
                 for (let dir = 1; dir < 6; dir++) {
                     if ((emptyMask & (1 << dir)) > 0) {
                         let nx = wx + dx[dir], ny = wy + dy[dir], nz = wz + dz[dir];
@@ -613,7 +624,8 @@ export class FluidChunkQueue {
                 }
             }
             if (changed) {
-                this.assign(index, wx, wy, wz, emptied ? 0 : (lvl | fluidType), knownPortals, portalNum);
+                const asVal = emptied ? 0 : (lvl | fluidType);
+                this.assign(index, wx, wy, wz, asVal, knownPortals, portalNum);
             }
         }
         this.assignFinish();
