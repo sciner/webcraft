@@ -392,9 +392,7 @@ export class FluidChunk {
                     let index = x * cx + y * cy + z * cz;
                     let props = 0;
                     const blockId = id[index];
-                    if (blockId) {
-                        props = fluidBlockProps(BLOCK_BY_ID[blockId]);
-                    }
+                    props = blockId ? this.world.blockPropsById[blockId] : 0;
                     uint8View[index * FLUID_STRIDE + OFFSET_BLOCK_PROPS] = props;
                 }
     }
