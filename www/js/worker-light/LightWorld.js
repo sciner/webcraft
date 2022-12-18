@@ -8,12 +8,11 @@ import {
     adjustSrc,
     OFFSET_LIGHT,
     OFFSET_SOURCE, MASK_SRC_AO, MASK_SRC_REST, maxLight, DISPERSE_MIN,
-    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST,
-    GROUND_ESTIMATION_FAR_BIAS, GROUND_ESTIMATION_FAR_BIAS_MIN_DIST
+    GROUND_ESTIMATION_MIN_DIST, GROUND_ESTIMATION_MAX_DIST, GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR,
+    GROUND_ESTIMATION_FAR_BIAS, GROUND_ESTIMATION_FAR_BIAS_MIN_DIST, GROUND_BUCKET_SIZE
 } from "./LightConst.js";
 import {LightQueue} from "./LightQueue.js";
 import {DirNibbleQueue} from "./DirNibbleQueue.js";
-import { CHUNK_SIZE_X } from '../chunk_const.js';
 
 const MIN_LIGHT_Y_MIN_PERCENT = 0.05;
 const MIN_LIGHT_Y_MAX_PERCENT = 0.15;
@@ -30,6 +29,8 @@ export class ChunkManager {
         this.activePotentialCenter = null;
         this.nextPotentialCenter = null;
         this.prevGroundLevelPlayerPos = null;
+        this.columns = new Map();
+        this.minLightYDirty = false;
     }
 
     // Get
@@ -43,6 +44,25 @@ export class ChunkManager {
         this.lightBase.addSub(chunk.lightChunk);
 
         this.chunkById[chunk.dataId] = chunk;
+
+        var column = this.columns.get(chunk.xzKey);
+        if (column == null) {
+            column = {
+                chunks: [],
+                minLightY: chunk.minLightY.map(function (it) { return {
+                    x: it.x,
+                    z: it.z,
+                    key: it.key,
+                    y: Infinity,
+                    distSqr: 0
+                }}),
+                minLightYDirty: false, // it'll become dirty when the light is calculated
+                centerX: chunk.pos.x + chunk.size.x / 2,
+                centerZ: chunk.pos.z + chunk.size.z / 2,
+            };
+            this.columns.set(chunk.xzKey, column);
+        }
+        column.chunks.push(chunk);
     }
 
     delete(chunk) {
@@ -50,7 +70,48 @@ export class ChunkManager {
             this.chunkById[chunk.dataId] = null;
             this.list.splice(this.list.indexOf(chunk), 1);
             this.lightBase.removeSub(chunk.lightChunk);
+            
+            // remove the column and/or the chunk from the colum
+            const column = this.columns.get(chunk.xzKey);
+            ArrayHelpers.fastDeleteValue(column.chunks, chunk);
+            if (column.chunks.length) {
+                // if this chunk had one of the minimums in the colum, make minLightY dirty
+                if (chunk.hasMinLightY) {
+                    for (var i = 0; i < chunk.minLightY.length; i++) {
+                        const y = chunk.minLightY[i].y;
+                        if (y !== Infinity && y === column.minLightY[i].y) {
+                            column.minLightYDirty = true;
+                            this.minLightYDirty = true;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                delete this.columns.delete(chunk.xzKey);
+                this.minLightYDirty |= chunk.hasMinLightY;
+            }
         }
+    }
+
+    // How may cunks from this colums must have their minLightY calculated
+    // before we can use the column.
+    countMissingInColumn(column) {
+        for (let i = 0; i < column.minLightY.length; i++) {
+            if (column.minLightY[i] != Infinity) {
+                return 0;
+            }
+        }
+        return ArrayHelpers.sum(column.chunks, (it) => it.hasMinLightY ? 0 : 1);
+    }
+
+    columnsIsFarAway(column) {
+        const playerPos = this.nextPotentialCenter;
+        if (!playerPos) {
+            return true;
+        }
+        return (column.centerX - playerPos.x) * (column.centerX - playerPos.x) +
+            (column.centerZ - playerPos.z) * (column.centerZ - playerPos.z) >
+            GROUND_ESTIMATION_COLUMN_CENTER_MAX_DIST_SQR;
     }
 }
 
@@ -89,6 +150,11 @@ export class LightWorld {
         if (this.isEmptyQueue && this.chunkManager.nextPotentialCenter) {
             this.chunkManager.activePotentialCenter = this.chunkManager.nextPotentialCenter;
         }
+        // if the player moved far enough, update the ground level estimation
+        this.chunkManager.minLightYDirty |=
+            this.prevGroundLevelPlayerPos
+            ? this.prevGroundLevelPlayerPos.distance(this.chunkManager.nextPotentialCenter) > GROUND_BUCKET_SIZE
+            : true;
     }
 
     setChunkBlock({addr, list}) {
@@ -133,50 +199,55 @@ export class LightWorld {
 
     estimateGroundLevel() {
         const playerPos = this.chunkManager.nextPotentialCenter;
-        const maxDist = Math.min(GROUND_ESTIMATION_MAX_DIST,
-            Math.max(GROUND_ESTIMATION_MIN_DIST,
-                (this.chunk_render_dist || 0) * CHUNK_SIZE_X
-            ));
-        const maxDistSqr = maxDist * maxDist;
-        // For each (X, Z) bucket, find the lowest block with any light.
-        const byXZ = {};
-        for(let chunk of this.chunkManager.list) {
-            const minLightY = chunk.minLightY;
-            if (minLightY == null) {
+        if (!playerPos) {
+            return;
+        }
+        const columns = this.chunkManager.columns;
+        const maxDistSqr = GROUND_ESTIMATION_MAX_DIST * GROUND_ESTIMATION_MAX_DIST;
+        const biasMaxDist = GROUND_ESTIMATION_MAX_DIST - GROUND_ESTIMATION_FAR_BIAS_MIN_DIST;
+        const biasMaxDistSqr = biasMaxDist * biasMaxDist;
+        const byDist = [];
+        // For each (X, Z) bucket, collect known values of lowest light Y
+        for(let column of columns.values()) {
+            if (this.chunkManager.countMissingInColumn(column) ||
+                this.chunkManager.columnsIsFarAway(column)
+            ) {
                 continue;
             }
-            for(let i = 0; i < minLightY.length; i++) {
-                const v = minLightY[i];
-                if (playerPos) {
-                    v.distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
-                        (v.z - playerPos.z) * (v.z - playerPos.z);
-                    if (v.distSqr > maxDistSqr) {
-                        continue;
+            // update dirty columns that
+            if (column.minLightYDirty) {
+                column.minLightY.forEach((v) => { v.y = Infinity; });
+                for(var i = 0; i < column.chunks.length; i++) {
+                    const chunk = column.chunks[i];
+                    if (chunk.hasMinLightY) {
+                        for(var j = 0; j < chunk.minLightY.length; j++) {
+                            const y = chunk.minLightY[j].y;
+                            if (column.minLightY[j].y > y) {
+                                column.minLightY[j].y = y;
+                            }
+                        }
                     }
                 }
-                var exV = byXZ[v.key];
-                if (exV == null) {
-                    byXZ[v.key] = v;
-                } else {
-                    exV.y = Math.min(v.y, exV.y);
-                }
+                column.minLightYDirty = false;
             }
-        }
-        // apply distance bias, sort by distance;
-        const byDist = [];
-        for(let key in byXZ) {
-            const v = byXZ[key];
-            // don't apply the bias closer than GROUND_BUCKET_SIZE
-            v.biasedY = v.y + Mth.lerpAny(v.distSqr,
-                GROUND_ESTIMATION_FAR_BIAS_MIN_DIST * GROUND_ESTIMATION_FAR_BIAS_MIN_DIST, 0,
-                maxDistSqr, GROUND_ESTIMATION_FAR_BIAS);
-            byDist.push(v);
+            // calculate the distances to the player, apply dustance bias, collect into the array
+            column.minLightY.forEach((v) => { 
+                v.distSqr = (v.x - playerPos.x) * (v.x - playerPos.x) +
+                    (v.z - playerPos.z) * (v.z - playerPos.z);
+                if (v.distSqr <= maxDistSqr) {
+                    // Don't apply the bias closer than GROUND_BUCKET_SIZE.
+                    // Beyound the threshold, bias rises quadratically - slow, then fast.
+                    const distBeyoundThreshold = Math.max(0, Math.sqrt(v.distSqr) - GROUND_ESTIMATION_FAR_BIAS_MIN_DIST);
+                    v.biasedY = v.y + 
+                        distBeyoundThreshold * distBeyoundThreshold / biasMaxDistSqr * GROUND_ESTIMATION_FAR_BIAS;
+                    byDist.push(v);
+                }
+            });
         }
         byDist.sort((a, b) => a.distSqr - b.distSqr);
-
+        // look at the surface at 5 different scales, to account for small nearby and big far-away changes
         var groundLevel = Infinity;
         const list = [];
-        // look at the surface at 5 different scales, to account for small nearby and big far-away changes
         const multiplier = Math.sqrt(Math.sqrt(GROUND_ESTIMATION_MAX_DIST / GROUND_ESTIMATION_MIN_DIST));
         for(var radius = GROUND_ESTIMATION_MIN_DIST; radius <= GROUND_ESTIMATION_MAX_DIST + 1; radius *= multiplier) {
             // select close enough points
@@ -200,6 +271,7 @@ export class LightWorld {
             const level = sum / (maxInd - minInd + 1);
             groundLevel = Math.min(groundLevel, level);
         }
+        this.chunkManager.minLightYDirty = false;
         this.prevGroundLevelPlayerPos = playerPos;
         worker.postMessage(['ground_level_estimated', groundLevel]);
     }

@@ -43,6 +43,7 @@ export class Chunk {
                 strideBytes: 3,
             }: null
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
+        this.pos = this.lightChunk.pos;
 
         calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
 
@@ -55,8 +56,22 @@ export class Chunk {
         this.len = this.lightChunk.insideLen;
         this.outerLen = this.lightChunk.outerLen;
 
-        this.xzKey = this.addr.x.toString() + '_' + this.addr.y;
-        this.minLightY = null;
+        this.xzKey = this.addr.x.toString() + '_' + this.addr.z;
+        this.minLightY = [];
+        for(let z = 0; z < this.size.z; z += GROUND_BUCKET_SIZE) {
+            for(let x = 0; x < this.size.x; x += GROUND_BUCKET_SIZE) {
+                const wx = this.pos.x + x + GROUND_BUCKET_SIZE / 2 | 0;
+                const wz = this.pos.z + z + GROUND_BUCKET_SIZE / 2 | 0;
+                this.minLightY.push({
+                    x: wx,
+                    z: wz,
+                    key: wx.toString() + ' ' + wz,
+                    y: Infinity,
+                    oldY: Infinity
+                });
+            }
+        }
+        this.hasMinLightY = false;
     }
 
     get chunkManager() {
@@ -168,7 +183,6 @@ export class Chunk {
     calcMinLightY(is4444) {
         const {outerSize, size, lightChunk} = this;
         const result = this.lightResult;
-        const baseY = this.lightChunk.pos.y;
 
         // strides for result = this.lightResult
         const rsx = 1;
@@ -189,22 +203,6 @@ export class Chunk {
             return hasLight && (uint8View[indUint8View + OFFSET_SOURCE] & MASK_SRC_BLOCK) === 0;
         }
 
-        if (!this.minLightY) {
-            this.minLightY = [];
-            for(let z = 0; z < size.z; z += GROUND_BUCKET_SIZE) {
-                for(let x = 0; x < size.x; x += GROUND_BUCKET_SIZE) {
-                    const wx = this.lightChunk.pos.x + x + GROUND_BUCKET_SIZE / 2 | 0;
-                    const wz = this.lightChunk.pos.z + z + GROUND_BUCKET_SIZE / 2 | 0;
-                    this.minLightY.push({
-                        x: wx,
-                        z: wz,
-                        key: wx.toString() + ' ' + wz,
-                        y: Infinity,
-                        distSqr: 0
-                    });
-                }
-            }
-        }
         for(var i = 0; i < this.minLightY.length; i++) {
             this.minLightY[i].y = Infinity;
         }
@@ -225,7 +223,7 @@ export class Chunk {
                             y--;
                         }
                         // we found it!
-                        bestY = baseY + y - padding;
+                        bestY = this.pos.y + y - padding;
                         break;
                     }
                 }
@@ -236,6 +234,22 @@ export class Chunk {
                 }
             }
         }
+        // check if this chunk may affect the column
+        const column = this.chunkManager.columns.get(this.xzKey);
+        const isCloseEnough = !this.chunkManager.columnsIsFarAway(column);
+        const lastChunkMising = (this.chunkManager.countMissingInColumn(column) === 1);
+        for (var i = 0; i < this.minLightY.length; i++) {
+            const v = this.minLightY[i];
+            if (lastChunkMising ||
+                v.y < column.minLightY[i].y ||
+                v.y !== v.oldY && v.oldY === column.minLightY[i].y
+            ) {
+                column.minLightYDirty = true;
+                this.chunkManager.minLightYDirty |= isCloseEnough;
+            }
+            v.oldY = v.y;
+        }
+        this.hasMinLightY = true;
     }
 
     calcResult(is4444, hasNormals) {

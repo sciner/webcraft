@@ -41,7 +41,7 @@ function run() {
     // }
 
     world.isEmptyQueue = ready === 0;
-    world.groundLevelSkipCounter = 1;
+    world.groundLevelSkipCounter = 0;
     world.checkPotential();
 
     world.chunkManager.list.forEach((chunk) => {
@@ -71,9 +71,12 @@ function run() {
                 }]);
             }
             // update ground level
-            world.groundLevelSkipCounter = (world.groundLevelSkipCounter + 1) % LightConst.GROUND_SKIP_CHUNKS;
-            if (world.isEmptyQueue || world.groundLevelSkipCounter === 0) {
-                world.estimateGroundLevel();
+            if (world.chunkManager.minLightYDirty) {
+                world.groundLevelSkipCounter = (world.groundLevelSkipCounter + 1) % LightConst.GROUND_SKIP_CHUNKS;
+                if (world.isEmptyQueue || world.groundLevelSkipCounter === 0) {
+                    world.estimateGroundLevel();
+                    world.groundLevelSkipCounter = 0;
+                }
             }
         }
 
@@ -189,17 +192,12 @@ async function onMessageFunc(e) {
             break;
         }
         case 'destructChunk': {
-            var changed = false;
             for (let addr of args) {
                 let chunk = world.chunkManager.getChunk(addr);
                 if (chunk) {
                     chunk.removed = true;
                     world.chunkManager.delete(chunk);
-                    changed = true;
                 }
-            }
-            if (changed) {
-                world.estimateGroundLevel();
             }
             break;
         }
@@ -212,13 +210,6 @@ async function onMessageFunc(e) {
             if (args.pos) {
                 world.chunkManager.nextPotentialCenter = new Vector().copyFrom(args.pos).round();
                 world.checkPotential();
-            }
-            // if the player moved far enough, update the ground level estimation
-            if ((world.isEmptyQueue || world.groundLevelSkipCounter === 0) && 
-                world.prevGroundLevelPlayerPos && 
-                world.prevGroundLevelPlayerPos.distance(world.chunkManager.nextPotentialCenter) > LightConst.GROUND_BUCKET_SIZE
-            ) {
-                world.estimateGroundLevel();
             }
             break;
         }
