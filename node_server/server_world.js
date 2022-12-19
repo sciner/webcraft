@@ -745,7 +745,15 @@ export class ServerWorld {
                         // 1. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
+                            // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
+                            // b. check destroy block near uncertain stones
+                            if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                                let p = performance.now()
+                                chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
+                                console.log(performance.now() - p)
+                            }
+                            // c.
                             const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {

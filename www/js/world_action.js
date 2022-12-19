@@ -458,7 +458,8 @@ export class WorldAction {
                 list: [],
                 options: {
                     ignore_check_air: ignore_check_air,
-                    on_block_set: on_block_set
+                    on_block_set: on_block_set,
+                    on_block_set_radius: 1
                 }
             },
             play_sound:                 [],
@@ -746,6 +747,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
         console.error('empty e.pos');
         return actions;
     }
+
+    // set radius for onBlockSet method
+    actions.blocks.options.on_block_set_radius = 2;
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);

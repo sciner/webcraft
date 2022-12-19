@@ -587,6 +587,78 @@ export class ServerChunk {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
+    /**
+     * @param {Vector} item_pos 
+     * @param {*} item 
+     * @param {*} previous_item 
+     * @param {int} radius 
+     */
+    checkDestroyNearUncertainStones(item_pos, item, previous_item, radius) {
+
+        let actions;
+        const world = this.world;
+
+        //
+        const addBlock = (pos, item) => {
+            if(!actions) actions = new WorldAction(null, null, false, false);
+            const action_id = ServerClient.BLOCK_ACTION_MODIFY
+            actions.addBlocks([{pos, item, action_id}])
+        }
+
+        //
+        const check = (tblock, neighbour, previous_neighbour, min_solid_count = 5) => {
+            const require_support = tblock.material.support_style || tblock.material.style;
+            if(require_support == 'uncertain_stone') {
+                // определяем неопределенный камень
+                const item = {
+                    id: BLOCK.STONE.id
+                }
+                // количество сплошных блоков вокруг текущего блока
+                const solid_neightbours_count = tblock.tb.blockSolidNeighboursCount(tblock.vec.x, tblock.vec.y, tblock.vec.z)
+                // если блок прикрывал сплошной блок
+                if(solid_neightbours_count == 6 || (BLOCK.isSolidID(previous_neighbour.id) && solid_neightbours_count == min_solid_count)) {
+                    // 1. Если сейчас вокруг блока 5 сплошных блоков, а убрали сплошной,
+                    //    значит текущий блок только что был "вскрыт" и его можно превратить в руду)
+                    // 2. Если вокруг блока 6 сплошных, значит убрали блок в радиусе 2 блока от текущего и также нужно его определить сейчас,
+                    //    чтобы при дальнейшем продолжении раскопок в данном направлении блоки уже были определенными и не "мерцали"
+                    item.id = world.ore_generator.generate(tblock.posworld)
+                }
+                addBlock(tblock.posworld.clone(), item)
+            }
+        }
+
+        //
+        const checked_poses = new VectorCollector()
+        function process(pos, iters, previous_item, min_solid_count) {
+            const tblock = world.getBlock(pos);
+            if(tblock) {
+                const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+                const neighbours = tblock.getNeighbours(world, cache);
+                for(let side in neighbours) {
+                    if(side == 'pcnt') continue;
+                    const nb = neighbours[side];
+                    if(nb.id > 0) {
+                        if(!checked_poses.has(nb.posworld)) {
+                            checked_poses.set(nb.posworld, true)
+                            check(nb, tblock, previous_item, min_solid_count);
+                        }
+                    }
+                    if(iters > 1) {
+                        process(nb.posworld, iters - 1, nb, 6)
+                    }
+                }
+            }
+        }
+
+        process(item_pos, radius, previous_item, 5)
+
+        //
+        if(actions) {
+            world.actions_queue.add(null, actions);
+        }
+
+    }
+
     // On block set
     async onBlockSet(item_pos, item, previous_item) {
 
@@ -820,28 +892,6 @@ export class ServerChunk {
                     if(drop) {
                         return createDrop(tblock);
                     }
-                    break;
-                }
-                case 'uncertain_stone': {
-                    // определяем неопределенный камень
-                    const item = {
-                        id: BLOCK.STONE.id
-                    }
-                    // если блок прикрывал сплошной блок
-                    if(BLOCK.isSolidID(previous_neighbour.id)) {
-                        // и если сейчас вокруг блока 5 сплошных блоков, значит текущий блок только что был "вскрыт" и его можно превратить в руду
-                        const solid_neightbours_count = tblock.tb.blockSolidNeighboursCount(tblock.vec.x, tblock.vec.y, tblock.vec.z)
-                        if(solid_neightbours_count == 5) {
-                            item.id = this.world.ore_generator.generate(pos)
-                        }
-                    }
-                    const actions = new WorldAction(null, null, false, false);
-                    actions.addBlocks([{
-                        pos: pos.clone(),
-                        item: item,
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
-                    }]);
-                    world.actions_queue.add(null, actions);
                     break;
                 }
             }
