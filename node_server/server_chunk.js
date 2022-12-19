@@ -587,8 +587,8 @@ export class ServerChunk {
         return (this.getFluidValue(pos, y, z) & FLUID_TYPE_MASK) !== 0;
     }
 
-    // onBlockSet
-    async onBlockSet(item_pos, item) {
+    // On block set
+    async onBlockSet(item_pos, item, previous_item) {
 
         const tblock = this.world.getBlock(item_pos);
         if(tblock) {
@@ -597,7 +597,7 @@ export class ServerChunk {
             for(let side in neighbours) {
                 const nb = neighbours[side];
                 if(nb.id > 0) {
-                    this.onNeighbourChanged(nb, tblock);
+                    this.onNeighbourChanged(nb, tblock, previous_item);
                 }
             }
         }
@@ -634,8 +634,13 @@ export class ServerChunk {
 
     }
 
-    //
-    onNeighbourChanged(tblock, neighbour) {
+    /**
+     * @param {*} tblock 
+     * @param {*} neighbour 
+     * @param {*} previous_neighbour 
+     * @returns 
+     */
+    onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
         const world = this.world;
         
@@ -657,15 +662,15 @@ export class ServerChunk {
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
         const neighbourPos = neighbour.posworld;
+        const require_support = tblock.material.support_style || tblock.material.style;
+        const neighbour_destroyed = neighbour.id == 0
 
-        //
-        if(neighbour.id == 0) {
+        // Different behavior, depending on whether the neighbor was destroyed or created
+        if(neighbour_destroyed) {
             
             if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
                 return createDrop(tblock);
             }
-
-            const require_support = tblock.material.support_style || tblock.material.style;
 
             switch(require_support) {
                 case 'bottom': // not a block style, but a name for a common type of support
@@ -817,9 +822,35 @@ export class ServerChunk {
                     }
                     break;
                 }
+                case 'uncertain_stone': {
+                    // определяем неопределенный камень
+                    const item = {
+                        id: BLOCK.STONE.id
+                    }
+                    // если блок прикрывал сплошной блок
+                    if(BLOCK.isSolidID(previous_neighbour.id)) {
+                        // и если сейчас вокруг блока 5 сплошных блоков, значит текущий блок только что был "вскрыт" и его можно превратить в руду
+                        const solid_neightbours_count = tblock.tb.blockSolidNeighboursCount(tblock.vec.x, tblock.vec.y, tblock.vec.z)
+                        if(solid_neightbours_count == 5) {
+                            item.id = this.world.ore_generator.generate(pos)
+                        }
+                    }
+                    const actions = new WorldAction(null, null, false, false);
+                    actions.addBlocks([{
+                        pos: pos.clone(),
+                        item: item,
+                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    }]);
+                    world.actions_queue.add(null, actions);
+                    break;
+                }
             }
+
         } else {
-            switch(tblock.material.style) {
+
+            // Neighbour block created
+
+            switch(require_support) {
                 case 'cactus': {
                     // nesw only
                     if(neighbourPos.y == pos.y && !(neighbour.material.transparent && neighbour.material.light_power)) {
@@ -887,6 +918,21 @@ export class ServerChunk {
                             action_id: ServerClient.BLOCK_ACTION_MODIFY
                         }
                     ]);
+                    world.actions_queue.add(null, actions);
+                    break;
+                }
+                case 'uncertain_stone': {
+                    // заменяем неопределенный камень на просто камень,
+                    // потому что рядом с ним поставили какой-то блок
+                    const item = {
+                        id: BLOCK.STONE.id
+                    }
+                    const actions = new WorldAction(null, null, false, false);
+                    actions.addBlocks([{
+                        pos: pos.clone(),
+                        item: item,
+                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    }]);
                     world.actions_queue.add(null, actions);
                     break;
                 }

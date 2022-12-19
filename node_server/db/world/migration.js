@@ -852,6 +852,11 @@ export class DBWorldMigration {
             'ALTER TABLE drop_item DROP COLUMN is_deleted',
         ]});
 
+        migrations.push({version: 89, queries: [
+            `ALTER TABLE world ADD COLUMN "ore_seed" CHAR(36) default NULL`,
+            `UPDATE world SET ore_seed = (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))) WHERE ore_seed IS NULL`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

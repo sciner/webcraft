@@ -4,14 +4,15 @@ import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
-import {DensityParams, DENSITY_THRESHOLD, GENERATOR_OPTIONS, TerrainMapManager2, WATER_LEVEL} from "./terrain/manager.js";
+import { DensityParams, DENSITY_THRESHOLD, GENERATOR_OPTIONS, ORE_THRESHOLD, TerrainMapManager2, WATER_LEVEL } from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 import { Chunk } from "../../worker/chunk.js";
-import {NoiseFactory} from "./NoiseFactory.js";
+import { NoiseFactory } from "./NoiseFactory.js";
 import { TerrainMapCell } from "./terrain/map_cell.js";
 import { TerrainMap2 } from "./terrain/map.js";
+import { WorldClientOreGenerator } from "./client_ore_generator.js";
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -39,7 +40,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         super(seed, world_id, options, noise2d, null);
         this.tempAlea = al;
-        
+
+        this.ore_generator = new WorldClientOreGenerator(world_id);
+
         this.n3d = createNoise3D(al.double);
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
@@ -308,14 +311,23 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
 
                             // get block
-                            const {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
+                            let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
+
+                            if(block_id == BLOCK.STONE.id) {
+                                if(density < DENSITY_THRESHOLD + ORE_THRESHOLD) {
+                                    // generating a small amount of ore on the surface of the walls
+                                    block_id = this.ore_generator.generate(xyz);
+                                } else {
+                                    block_id = BLOCK.UNCERTAIN_STONE.id
+                                }
+                            }
 
                             // если это самый первый слой поверхности
                             if(not_air_count == 0) {
 
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
-                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"Vasya","dt":"2022-11-25T18:01:52.715Z"});
+                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
                                 }
 
                                 // если это над водой

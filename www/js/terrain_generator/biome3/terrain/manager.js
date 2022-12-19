@@ -16,6 +16,7 @@ export const TREE_MIN_Y_SPACE       = 5; // Минимальное число б
 export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
 export const WATER_LEVEL            = 80;
 export const DENSITY_THRESHOLD      = .6;
+export const ORE_THRESHOLD          = .025;
 
 let mountain_desert_mats = [];
 

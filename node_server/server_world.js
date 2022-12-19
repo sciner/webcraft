@@ -29,6 +29,7 @@ import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { WorldOreGenerator } from "./world/ore_generator.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -83,6 +84,10 @@ export class ServerWorld {
         this.info           = await this.db.getWorld(world_guid);
 
         await this.makeBuildingsWorld()
+
+        // Server ore generator
+        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed);
+        delete(this.info.ore_seed)
 
         //
         this.packet_reader  = new PacketReader();
@@ -217,8 +222,9 @@ export class ServerWorld {
         const SPAWN_DISTANCE = 16;
         const good_light_for_spawn = this.getLight() > 6;
         const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!good_world_for_spawn || !good_light_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn || !good_light_for_spawn) {
             return;
         }
         // находим игроков
@@ -669,6 +675,7 @@ export class ServerWorld {
                 const modified_chunks = new VectorCollector();
                 let all = [];
                 const create_block_list = [];
+                const previous_item = {id: 0}
                 for (let params of actions.blocks.list) {
                     params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
@@ -712,6 +719,7 @@ export class ServerWorld {
                         }
                         const tblock = chunk.tblocks.get(block_pos_in_chunk);
                         let oldId = tblock.id;
+                        previous_item.id = oldId
                         // call block change listeners
                         if (on_block_set) {
                             const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
@@ -737,7 +745,7 @@ export class ServerWorld {
                         // 1. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
-                            chunk.onBlockSet(block_pos.clone(), params.item);
+                            chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
                             const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {

@@ -804,11 +804,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
     // 3. Clone
     if(e.cloneBlock) {
         if(world_material && e.number == 1) {
-            if(world_material.name == 'TEST' && world_block.extra_data) {
-                console.log(world_block.extra_data);
-            } else {
-                actions.clone_block = e.pos;
-            }
+            actions.clone_block = e.pos;
         }
         return actions;
     }
