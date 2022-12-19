@@ -5,9 +5,9 @@ import { ServerClient } from "../../../www/js/server_client.js";
 const _rnd_pos = new Vector(0, 0, 0);
 const _rnd_pos_up = new Vector(0, 0, 0);
 
-//
+// True если блок пропускает свет
 function isLightOpacity(tblock) {
-    return tblock?.material?.transparent || false || tblock.id == BLOCK.TEST.id;
+    return !!tblock?.material?.transmits_light
 }
 
 // tickerRandomGrassBlock
