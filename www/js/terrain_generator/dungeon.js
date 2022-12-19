@@ -1,7 +1,7 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
-import { CHUNK_SIZE } from '../chunk_const.js';
+import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 
 const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
@@ -17,10 +17,10 @@ export class DungeonGenerator {
         // 8 попыток установки
         for(let n = 0; n < 8; n++) {
             _pos.fromFlatChunkIndex(Math.floor(random.double() * CHUNK_SIZE));
-            //if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
-            //   this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
-            //   break;
-           // }
+            if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
+               this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
+               break;
+            }
             if(this.checkPositionHole(chunk, _pos.x, _pos.y, _pos.z)) {
                this.genDungeonHole(chunk, random, _pos.x, _pos.y, _pos.z);
                break;
@@ -31,25 +31,53 @@ export class DungeonGenerator {
     /*
     * Данж заброшенный колодец
     */
-    genDungeonHole(chunk, alea, x, y, z, biome) {
-        const map = chunk.map;
-        console.log(map.cells[0].biome);
+    genDungeonHole(chunk, alea, x, y, z) {
+        const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
         const up = this.getBlock(chunk, x, y, z);
-        console.log('genDungeonHole: ' + up.posworld + ' ' + biome)
+        console.log('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
+        
         let block_well_1 = BLOCK.STONE_BRICKS;
         let block_well_2 = BLOCK.MOSSY_STONE_BRICKS;
         let block_well_3 = BLOCK.MOSSY_STONE_BRICKS;
-        
+        let block_well_4 = BLOCK.MOSSY_STONE_BRICKS;
+        if (biome.id == 35) {// савана
+            block_well_1 = BLOCK.END_STONE_BRICKS;
+            block_well_2 = BLOCK.SANDSTONE;
+            block_well_3 = BLOCK.CUT_SANDSTONE;
+            block_well_4 = BLOCK.CHISELED_SANDSTONE;
+        }
         // стенки верха (входа)
         this.genBox(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_1);
         this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 2, 7, 2, BLOCK.AIR);
         this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_2, 0.5);
         this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_3, 0.3);
         // стенки данжа
-        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_1);
-        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 7, 3, 7, BLOCK.AIR);
-        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_2, 0.5);
-        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_3, 0.3);
+        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_1);
+        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 8, 3, 8, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_3, 0.3);
+        this.genBoxNoAir(chunk, alea, x, y + 1, z, 10, 1, 10, block_well_4);
+        
+        //Декор
+        if (biome.id == 35) {// савана
+            this.setBlock(chunk, x + 1, y + 3, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
+            this.genBox(chunk, alea, x + 3, y + 8, z + 3, 1, 2, 1, block_well_1);
+            this.genBox(chunk, alea, x + 3, y + 8, z + 6, 1, 2, 1, block_well_1);
+            this.genBox(chunk, alea, x + 6, y + 8, z + 6, 1, 2, 1, block_well_1);
+            this.genBox(chunk, alea, x + 6, y + 8, z + 3, 1, 2, 1, block_well_1);
+            this.genBox(chunk, alea, x + 3, y + 10, z + 3, 4, 1, 4, block_well_1);
+        }
+        
+        //Спавнер
+        const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
+        this.setBlock(chunk, x + 8, y + 1, z + 8, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
+            type: mob,
+            skin: 'base',
+            max_ticks: 800
+        });
+        
+        // Сундук
+        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
         
        // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 5, block_well_1);
        // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 4, block_well_2, 0.5);
@@ -75,10 +103,10 @@ export class DungeonGenerator {
                 if(!middle || middle.id == 0) {
                     return false;
                 }
-             //   const bottom = this.getBlock(chunk, i + x, y + 4, j + z);
-             //   if(!bottom || bottom.id == 0) {
-              //      return false;
-              //  }
+                const bottom = this.getBlock(chunk, i + x, y + 4, j + z);
+                if(!bottom || bottom.id == 0) {
+                    return false;
+                }
             }
         }
          // Под основнием нет пустот
