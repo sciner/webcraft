@@ -1088,6 +1088,10 @@ export class Player {
 
     }
 
+    cancelAttackAnim() {
+        this.mineTime = 0;
+    }
+
     // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
     getUseItemRemainingTicks() {
         // this.mineTime = itsme.swingProgress;

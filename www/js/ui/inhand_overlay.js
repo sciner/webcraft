@@ -74,6 +74,7 @@ export class InHandOverlay {
         this.changeAnimation = true;
         this.changAnimationTime = 0;
 
+        this.wasEating = false;
     }
 
     reconstructInHandItem(targetId) {
@@ -408,6 +409,8 @@ export class InHandOverlay {
 
         return;
         */
+        
+        var isEating = false;
 
         // не смотрит в подзорную трубу
         if (!player.isScoping()) {
@@ -484,6 +487,7 @@ export class InHandOverlay {
                         case ItemUseAnimation.EAT:
                         case ItemUseAnimation.DRINK: {
                             this.applyFoodAnimation(modelMatrix, matInHand, pSwingProgress);
+                            isEating = true;
                             break;
                         }
                         case ItemUseAnimation.BLOCK: {
@@ -559,8 +563,9 @@ export class InHandOverlay {
 
                 } else {
                     // stop playing wrong animtion if there was an unfinished different animtion
-                    if ([ItemUseAnimation.EAT, ItemUseAnimation.DRINK].includes(matInHand.getUseAnimation())) {
-                        pSwingProgress = 1;
+                    if (this.wasEating) {
+                        player.cancelAttackAnim();
+                        pSwingProgress = 0;
                     }
 
                     // Java
@@ -591,6 +596,7 @@ export class InHandOverlay {
             // TODO: у нас нет стека матриц =(
             // modelMatrix.popPose();
         }
+        this.wasEating = isEating;
     }
 
     /**
