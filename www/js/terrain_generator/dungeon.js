@@ -17,12 +17,158 @@ export class DungeonGenerator {
         // 8 попыток установки
         for(let n = 0; n < 8; n++) {
             _pos.fromFlatChunkIndex(Math.floor(random.double() * CHUNK_SIZE));
-            if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
-               this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
+            //if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
+            //   this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
+            //   break;
+           // }
+            if(this.checkPositionHole(chunk, _pos.x, _pos.y, _pos.z)) {
+               this.genDungeonHole(chunk, random, _pos.x, _pos.y, _pos.z);
                break;
             }
         }
     }
+    
+    /*
+    * Данж заброшенный колодец
+    */
+    genDungeonHole(chunk, alea, x, y, z, biome) {
+        const map = chunk.map;
+        console.log(map.cells[0].biome);
+        const up = this.getBlock(chunk, x, y, z);
+        console.log('genDungeonHole: ' + up.posworld + ' ' + biome)
+        let block_well_1 = BLOCK.STONE_BRICKS;
+        let block_well_2 = BLOCK.MOSSY_STONE_BRICKS;
+        let block_well_3 = BLOCK.MOSSY_STONE_BRICKS;
+        
+        // стенки верха (входа)
+        this.genBox(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_1);
+        this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 2, 7, 2, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_3, 0.3);
+        // стенки данжа
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_1);
+        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 7, 3, 7, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_well_3, 0.3);
+        
+       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 5, block_well_1);
+       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 4, block_well_2, 0.5);
+       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 5, block_well_3, 0.3);
+        
+        
+        // Очищаем блоки под место установки
+        
+    }
+    // Проверка места установки данжа колодец
+    checkPositionHole(chunk, x, y, z) {
+        if ( x > 9 || x < 1 || z > 9 || z < 1) {
+            return false;
+        }
+        // Под основнием нет пустот
+        for (let i = 0; i <= 8; i++) {
+            for (let j = 0; j <= 8; j++) {
+                const up = this.getBlock(chunk, i + x, y, j + z);
+                if(!up || up.id == 0) {
+                    return false;
+                }
+                const middle = this.getBlock(chunk, i + x, y + 2, j + z);
+                if(!middle || middle.id == 0) {
+                    return false;
+                }
+             //   const bottom = this.getBlock(chunk, i + x, y + 4, j + z);
+             //   if(!bottom || bottom.id == 0) {
+              //      return false;
+              //  }
+            }
+        }
+         // Под основнием нет пустот
+        for (let i = 2; i <= 7; i++) {
+            for (let j = 2; j <= 7; j++) {
+                const air = this.getBlock(chunk, i + x, y + 8, j + z);
+                if(!air) {
+                    return false;
+                }
+                 if((air.id != 0 || air.fluid != 0) && air.material.style != 'planting') {
+                    return false;
+                }
+                const ground = this.getBlock(chunk, i + x, y + 7, j + z);
+                if(!ground || ground.id == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    
+    /*
+    * Вертикальный данж
+    */
+    genDungeonVertial(chunk, alea, x, y, z, biome) {
+        // Проверяем можно ли на это место поставить данж
+        if (!checkPosition()) {
+            return;
+        }
+
+        const block_well_1 = BLOCK.STONE_BRICKS;
+        const block_well_2 = BLOCK.MOSSY_STONE_BRICKS;
+        const block_well_3 = BLOCK.MOSSY_STONE_BRICKS;
+        
+        // стенки верха (входа)
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_1);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_3, 0.3);
+        
+        // стенки верха (входа)
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_1);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_3, 0.3);
+        
+        // Очищаем блоки под место установки
+        this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 2, 7, 2, BLOCK.AIR);
+    }
+    // Проверка места установки данжа
+    checkPositionVertical(chunk, x, y, z) {
+        //if ( x > 3 || x < 1 || z > 9 || z < 1) {
+        //    return false;
+        //}
+        // Под основнием нет пустот
+        for (let i = 0; i <= 8; i++) {
+            for (let j = 0; j <= 8; j++) {
+                const up = this.getBlock(chunk, i + x, y, j + z);
+                if(!up || up.id == 0) {
+                    return false;
+                }
+                const middle = this.getBlock(chunk, i + x, y + 2, j + z);
+                if(!middle || middle.id == 0) {
+                    return false;
+                }
+                const bottom = this.getBlock(chunk, i + x, y + 4, j + z);
+                if(!bottom || bottom.id == 0) {
+                    return false;
+                }
+            }
+        }
+        // У крыши есть пустоты
+        for(let i = 0; i < 8; i++) {
+            if (this.checkWellVerical(i + x, y + 8, z) || this.checkWellVerical(i + x, y + 8, z + 8) || this.checkWellVerical(x, y + 8, z + i) || this.checkWellVerical(x + 8, y + 8, z + i)) {
+                return true;
+            }
+        }
+    }
+    
+    // Проверям, что при возведении стены будет не менее 1 пустоты, размром с игрока
+    checkWellVerical(x, y, z) {
+        const top = this.getBlock(chunk, x, y + 1, z);
+        if (top && top.id == 0 && top.fluid == 0) {
+            const bottom = this.getBlock(chunk, x, y, z);
+            if (bottom && bottom.id == 0 && bottom.fluid == 0) {
+                    return true;
+            }
+        }
+    }
+    
+    
     
     genDung(chunk, alea, x, y, z) {
         
@@ -186,6 +332,7 @@ export class DungeonGenerator {
             }
         }
     }
+    
     
     setBlock(chunk, x, y, z, block_type, rotate, extra_data) {
         if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) { 
