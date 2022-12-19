@@ -44,7 +44,7 @@ export class Chat extends TextBox {
                 }
             }
         };
-        // 
+        //
         this.history = {
             list: [],
             draft: [],
@@ -145,7 +145,7 @@ export class Chat extends TextBox {
         // no need
         // document.exitPointerLock();
     }
-    
+
     close() {
         this.active = false;
         Qubatch.hud.refresh();
@@ -158,7 +158,7 @@ export class Chat extends TextBox {
         this.submit();
         this.active = false;
     }
-    
+
     submit() {
         if(!this.active) {
             return;
@@ -177,7 +177,7 @@ export class Chat extends TextBox {
                 case '/chunkborders': {
                     if(temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) { 
+                        if(['true', 'false'].includes(value)) {
                             Qubatch.world.chunkManager.setDebugGridVisibility(value == 'true');
                         }
                     } else {
@@ -189,7 +189,7 @@ export class Chat extends TextBox {
                 case '/mobborders': {
                     if(temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) { 
+                        if(['true', 'false'].includes(value)) {
                             Qubatch.world.mobs.setDebugGridVisibility(value == 'true');
                         }
                     } else {
@@ -198,10 +198,15 @@ export class Chat extends TextBox {
                     no_send = true;
                     break;
                 }
+                case '/export': {
+                    Qubatch.world.chunkManager.export.encode( Qubatch.render.camPos );
+                    no_send = true;
+                    break;
+                }
                 case '/blockinfo': {
                     if(temp.length && temp[0].trim().length > 0) {
                         const value = temp[0].toLowerCase();
-                        if(['true', 'false'].includes(value)) { 
+                        if(['true', 'false'].includes(value)) {
                             Qubatch.hud.draw_block_info = value == 'true';
                         }
                     } else {
@@ -212,7 +217,7 @@ export class Chat extends TextBox {
                 }
                 case '/deepdark': {
                     const value = (temp[0] || '').trim().toLowerCase();
-                    if(['on', 'off', 'auto'].includes(value)) { 
+                    if(['on', 'off', 'auto'].includes(value)) {
                         Qubatch.render.env.deepDarkMode = value;
                     } else {
                         this.messages.add(SYSTEM_NAME, '/deepdark (auto | on | off)');
@@ -287,7 +292,7 @@ export class Chat extends TextBox {
         if(this.active) {
             super.draw(hud.ctx, x, hud.height - top, hud.width - margin * 2, this.line_height);
         }
-    
+
         // Draw message history
         for(let m of this.messages.list) {
             let time_diff = now - m.time;
