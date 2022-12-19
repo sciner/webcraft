@@ -50,7 +50,7 @@ export default class packet_reader {
                 if(!same_results) {
                     // собрать патч, для мира игрока:
                     const patch_blocks = new VectorCollector();
-                    // 1. вложить в патчк реальные блоки на указанных игроком позициях изменённых юлоков
+                    // 1. вложить в патч реальные блоки на указанных игроком позициях изменённых блоков
                     for(let item of packet.data.actions.blocks.list) {
                         if('pos' in item) {
                             const pos = new Vector(item.pos);

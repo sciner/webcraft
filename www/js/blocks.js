@@ -510,23 +510,6 @@ export class BLOCK {
         return block.planting || block.id == this.AIR.id;
     }
 
-    // Стартовый игровой инвентарь
-    static getStartInventory() {
-        let blocks = [
-            Object.assign({count: 5}, this.RED_MUSHROOM),
-            Object.assign({count: 64}, this.SAND),
-            Object.assign({count: 6}, this.BOOKSHELF),
-            Object.assign({count: 20}, this.GLOWSTONE),
-            Object.assign({count: 4}, this.TEST)
-        ];
-        for(let key of Object.keys(blocks)) {
-            let b = blocks[key];
-            delete(b.texture);
-            blocks[key] = b;
-        }
-        return blocks;
-    }
-
     //
     static isRandomTickingBlock(block_id) {
         return !!BLOCK.fromId(block_id).random_ticker;
@@ -585,6 +568,9 @@ export class BLOCK {
     }
 
     static isSolid(block) {
+        if(block.id == 0) {
+            return false
+        }
         return block.style == 'default' &&
             !block.is_fluid &&
             !block.is_leaves &&
@@ -685,7 +671,7 @@ export class BLOCK {
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering;
         block.is_grass          = ['GRASS', 'TALL_GRASS'].includes(block.name);
-        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].indexOf(block.name) >= 0;
+        block.is_dirt           = ['GRASS_BLOCK', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
@@ -694,6 +680,7 @@ export class BLOCK {
         block.is_chest          = block.chest_slots > 0;
         block.readonly_chest_slots = block.readonly_chest_slots || 0;
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent));
+        block.transmits_light   = !block.is_dirt & (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
         // не переносить!
         if(block.is_leaves) {
             const beautiful_leaves = resource_pack?.manager?.settings?.beautiful_leaves;

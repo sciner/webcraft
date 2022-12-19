@@ -22,7 +22,7 @@ import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE_RTX, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { ChunkManager } from "./chunk_manager.js";
@@ -317,7 +317,7 @@ export class Renderer {
             }
 
             try {
-                if(!block.spawnable) {
+                if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
                 let drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);

@@ -269,7 +269,7 @@ export class World {
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 //
-                const tblock = Qubatch.world.getBlock(mod.pos);
+                const tblock = this.getBlock(mod.pos);
                 if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
                     const destroy_data = {
                         pos: mod.pos,
@@ -285,6 +285,8 @@ export class World {
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
                         Qubatch.render.meshes.effects.deleteBlockEmitter(mod.pos);
+                        // TODO: Что делать, если уничтожение блока делает видимым UNCERTAIN_STONE?
+                        // ведь он должен определиться на сервере
                         this.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }
