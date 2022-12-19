@@ -12,7 +12,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { COVER_STYLE_SIDES } from "./constant.js";
+import { COVER_STYLE_SIDES, NO_CREATABLE_BLOCKS, NO_DESTRUCTABLE_BLOCKS } from "./constant.js";
 
 const _createBlockAABB = new AABB();
 
@@ -323,7 +323,7 @@ function dropBlock(player, block, actions, force) {
     return [];
 }
 
-// DestroyBlocks
+// Destroy blocks
 class DestroyBlocks {
 
     /**
@@ -773,7 +773,6 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
 
     // 2. Destroy
     if(e.destroyBlock) {
-        const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
         // 1. Проверка выполняемых действий с блоками в мире
         for(let func of [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
             if(await func(e, world, pos, player, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
@@ -781,11 +780,10 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
         }
         // 2.
-        if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
+        if(!world_material || !NO_DESTRUCTABLE_BLOCKS.includes(world_material.name)) {
             const tblock = world.getBlock(pos);
             if(tblock?.id > 0) {
                 destroyBlocks.add(tblock, pos);
-                //
                 actions.decrement_instrument = {id: tblock.id};
                 if(!tblock.material.destroy_to_down) {
                     // Destroyed block
@@ -819,7 +817,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
-        if(mat_block && mat_block.deprecated) {
+        if(mat_block && (mat_block.deprecated || NO_CREATABLE_BLOCKS.includes(mat_block.name))) {
             console.error('mat_block.deprecated');
             return actions;
         }

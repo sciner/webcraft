@@ -1,6 +1,7 @@
 import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
+import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
@@ -94,7 +95,7 @@ export class InHandOverlay {
 
         const block = BLOCK.BLOCK_BY_ID[targetId];
 
-        if (!block || !block.spawnable) {
+        if (!block || (!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name))) {
             return;
         }
 

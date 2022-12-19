@@ -18,7 +18,7 @@ export default class emitter {
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);
         this.material       = resource_pack.getMaterial(this.material_key);
         this.ticks          = 0;
-        this.isArea         = args.area || false;
+        this.isArea         = args?.area ?? false;
     }
 
     /**

@@ -510,23 +510,6 @@ export class BLOCK {
         return block.planting || block.id == this.AIR.id;
     }
 
-    // Стартовый игровой инвентарь
-    static getStartInventory() {
-        let blocks = [
-            Object.assign({count: 5}, this.RED_MUSHROOM),
-            Object.assign({count: 64}, this.SAND),
-            Object.assign({count: 6}, this.BOOKSHELF),
-            Object.assign({count: 20}, this.GLOWSTONE),
-            Object.assign({count: 4}, this.TEST)
-        ];
-        for(let key of Object.keys(blocks)) {
-            let b = blocks[key];
-            delete(b.texture);
-            blocks[key] = b;
-        }
-        return blocks;
-    }
-
     //
     static isRandomTickingBlock(block_id) {
         return !!BLOCK.fromId(block_id).random_ticker;
