@@ -43,7 +43,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         this.ore_generator = new WorldClientOreGenerator(world_id);
 
-        this.n3d = createNoise3D(al.double);
+        this.n3d = createNoise3D(new alea(seed));
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
         // this._createBlockAABB = new AABB();
