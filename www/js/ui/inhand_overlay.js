@@ -483,8 +483,7 @@ export class InHandOverlay {
                         }
                         case ItemUseAnimation.EAT:
                         case ItemUseAnimation.DRINK: {
-                            this.applyEatTransform(modelMatrix, pPartialTicks, humanoidarm, matInHand);
-                            this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
+                            this.applyFoodAnimation(modelMatrix, matInHand, pSwingProgress);
                             break;
                         }
                         case ItemUseAnimation.BLOCK: {
@@ -559,6 +558,10 @@ export class InHandOverlay {
                     mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(j * -85.0))));
 
                 } else {
+                    // stop playing wrong animtion if there was an unfinished different animtion
+                    if ([ItemUseAnimation.EAT, ItemUseAnimation.DRINK].includes(matInHand.getUseAnimation())) {
+                        pSwingProgress = 1;
+                    }
 
                     // Java
                     //float f5 = -0.4F * Mth.sin(Mth.sqrt(p_109376_) * (float)Math.PI);
@@ -640,11 +643,13 @@ export class InHandOverlay {
     }
 
     /**
+    * Old animation - fast, looks bad.
     * @param {PoseStack} modelMatrix
     * @param {float} pPartialTicks
     * @param {HumanoidArm} hand
     * @param {ItemStack} matInHand
     */
+    /*
     applyEatTransform(modelMatrix, pPartialTicks, hand, matInHand) {
         let f = this.player.getUseItemRemainingTicks() - pPartialTicks + 1.0;
         let f1 = f / matInHand.getUseDuration();
@@ -671,6 +676,18 @@ export class InHandOverlay {
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Helpers.deg2rad(f3 * 10.0))));
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(i * f3 * 30.0))));
 
+    }
+    */
+
+    applyFoodAnimation(modelMatrix, matInHand, pSwingProgress) {
+        const duration = matInHand.getUseDuration();
+        const haslfPeriods = Math.round(6 * (duration / 1000));
+        const absSine = Math.abs(Math.sin(pSwingProgress * Math.PI * haslfPeriods));
+        const absSineWithStops = Math.max(absSine - 0.1, 0);
+        const fade = Math.pow(Math.min(1, Math.min(pSwingProgress, 1 - pSwingProgress) * 10), 0.5);
+        const trig = 1 - Math.pow(Math.max(pSwingProgress, 1 - pSwingProgress), 10);
+        mat4.translate(modelMatrix, modelMatrix, [fade * 1.8 * (1 - trig), 0, absSineWithStops * 0.2 - 0.6 * fade]);
+        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 * (1 + trig));
     }
 
     /**
