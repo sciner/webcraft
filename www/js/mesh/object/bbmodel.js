@@ -37,7 +37,7 @@ export class Mesh_Object_BBModel {
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
-        this.resource_pack  = Qubatch.world.block_manager.resource_pack_manager.get('bbmodel');
+        this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
 
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/regular/terrain/${model.name}`);
         this.vertices       = [];
@@ -82,8 +82,6 @@ export class Mesh_Object_BBModel {
         // mat4.rotate(this.matrix, this.matrix, rot, [0, 0, 1]);
         // mat4.scale(this.matrix, this.matrix, this.scale.toArray());
 
-        delta *= 25;
-        delta /= 1000;
         render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
     }

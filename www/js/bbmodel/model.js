@@ -39,6 +39,18 @@ export class BBModel_Model {
      */
     playAnimation(animation_name, dt) {
 
+        // reset all states
+        for(const [name, animation] of this.animations.entries()) {
+            for(let k in animation.animators) {
+                const animator = animation.animators[k];
+                const group = this.groups.get(animator.name);
+                group.animations = [];
+                group.rot.copyFrom(group.rot_orig)
+                group.updateLocalTransform()
+            }
+        }
+
+        //
         const animation = this.animations.get(animation_name);
 
         if(!animation) {
@@ -46,6 +58,27 @@ export class BBModel_Model {
         }
 
         const time = dt % animation.length;
+        const loop_mode = animation.loop;
+        const loop_delay = animation.loop_delay;
+
+        //
+        const calcKeyFrame = (keyframes, time) => {
+            let begin_keyframe_index = null;
+            for(let i = 0; i < keyframes.length; i++) {
+                const keyframe = keyframes[i];
+                if(time >= keyframe.time) {
+                    begin_keyframe_index = i;
+                }
+            }
+            if(begin_keyframe_index === null) {
+                begin_keyframe_index = keyframes.length - 1
+            }
+            const current_keyframe  = keyframes[begin_keyframe_index];
+            const next_keyframe     = keyframes[(begin_keyframe_index + 1) % keyframes.length];
+            const diff              = next_keyframe.time - current_keyframe.time;
+            const percent           = diff == 0 ? diff : (time - current_keyframe.time) / diff;
+            return {current_keyframe, next_keyframe, percent}
+        }
 
         for(let k in animation.animators) {
 
@@ -59,25 +92,25 @@ export class BBModel_Model {
                 //
                 for(const [channel_name, keyframes] of channels) {
 
-                    let begin_keyframe_index = null;
-                    for(let i = 0; i < keyframes.length; i++) {
-                        const keyframe = keyframes[i];
-                        if(time >= keyframe.time) {
-                            begin_keyframe_index = i;
+                    if(keyframes.length == 0) continue;
+
+                    const {current_keyframe, next_keyframe, percent} = calcKeyFrame(keyframes, time)
+
+                    if(!current_keyframe || !next_keyframe) continue
+                    const current_point = current_keyframe.data_points[0];
+                    const next_point = next_keyframe.data_points[0];
+                    const point = new Vector(0, 0, 0);
+
+                    switch(next_keyframe.interpolation) {
+                        case 'linear': {
+                            point.lerpFrom(current_point, next_point, percent);
+                            break;
+                        }
+                        case 'smooth':
+                        case 'step': {
+                            throw 'error_not_supported_keyframe_interpolation_method';
                         }
                     }
-
-                    const current_keyframe = keyframes[begin_keyframe_index];
-                    const next_keyframe = keyframes[begin_keyframe_index + 1];
-                    if(!next_keyframe || !current_keyframe) {
-                        continue;
-                    }
-
-                    const diff             = next_keyframe.time - current_keyframe.time;
-                    const percent          = (time - current_keyframe.time) / diff;
-                    const current_point    = current_keyframe.data_points[0];
-                    const next_point       = next_keyframe.data_points[0];
-                    const point            = new Vector(0, 0, 0).lerpFrom(current_point, next_point, percent);
 
                     group.animations.push({channel_name, point})
 
