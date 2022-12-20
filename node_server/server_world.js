@@ -658,11 +658,8 @@ export class ServerWorld {
             }
         }
         // Modify blocks
-        if (actions.blocks && actions.blocks.list) {
+        if(actions.blocks?.list) {
             this.updatedBlocksByListeners.length = 0;
-            let chunk_addr = new Vector(0, 0, 0);
-            let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
-            let chunk = null;
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
@@ -671,27 +668,29 @@ export class ServerWorld {
                 await this.db.TransactionBegin();
             }
             try {
-                // let pm = performance.now();
+                let chunk_addr = new Vector(0, 0, 0);
+                let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
+                let chunk = null;
                 const modified_chunks = new VectorCollector();
-                let all = [];
+                const all = [];
                 const create_block_list = [];
                 const previous_item = {id: 0}
                 for (let params of actions.blocks.list) {
                     params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
-                        modified_chunks.set(chunk_addr.clone(), true);
+                        modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
-                    // await this.db.blockSet(this, server_player, params);
-                    if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                    if(params.action_id != ServerClient.BLOCK_ACTION_MODIFY) {
                         create_block_list.push(params);
                     } else {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
+                    // 3.
                     if (chunk && chunk.tblocks) {
                         const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
@@ -735,20 +734,17 @@ export class ServerWorld {
                                 }
                             }
                         }
-                        // 3. Store in chunk tblocks
+                        // 4. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
-                        tblock.id = params.item.id;
-                        tblock.extra_data = params.item?.extra_data || null;
-                        tblock.entity_id = params.item?.entity_id || null;
-                        tblock.power = params.item?.power || null;
-                        tblock.rotate = params.item?.rotate || null;
-                        // 1. Store in modify list
+                        tblock.copyPropsFromPOJO(params.item);
+                        // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
                             // b. check destroy block near uncertain stones
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                                // Check uncertain stones
                                 chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
                             }
                             // c.
@@ -756,7 +752,7 @@ export class ServerWorld {
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
-                                    var res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
+                                    const res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);
                                     } else {
@@ -765,6 +761,7 @@ export class ServerWorld {
                                 }
                             }
                         }
+                        // 6. Trigger player
                         if (server_player) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
                                 PlayerEvent.trigger({
@@ -781,7 +778,7 @@ export class ServerWorld {
                             }
                         }
                     } else {
-                        // console.error('Chunk not found in pos', chunk_addr, params);
+                        // TODO: Chunk not found in pos
                     }
                 }
                 if(create_block_list.length > 0) {
@@ -792,9 +789,8 @@ export class ServerWorld {
                 if (use_tx) {
                     await this.db.TransactionCommit();
                 }
-                // console.log(performance.now() - pm);
-            } catch (e) {
-                console.log('error', e);
+            } catch(e) {
+                console.error('error', e);
                 if (use_tx) {
                     await this.db.TransactionRollback();
                 }

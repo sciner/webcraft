@@ -981,7 +981,7 @@ export class ServerChunk {
                     actions.addBlocks([{
                         pos: pos.clone(),
                         item: item,
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }]);
                     world.actions_queue.add(null, actions);
                     break;

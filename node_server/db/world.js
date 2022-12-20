@@ -586,7 +586,7 @@ export class DBWorld {
 
     // Change player game mode
     async changeGameMode(player, game_mode) {
-        const result = await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
+        return await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
             ':id':              player.session.user_id,
             ':game_mode':       game_mode
         });
