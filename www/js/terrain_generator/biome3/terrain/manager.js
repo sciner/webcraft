@@ -509,7 +509,8 @@ export class TerrainMapManager2 {
         }
 
         // 2. Create cluster
-        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord);
+        const map_manager = real_chunk.chunkManager.world.generator.maps
+        map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, map_manager);
 
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {

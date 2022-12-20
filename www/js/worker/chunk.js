@@ -79,7 +79,8 @@ export class Chunk {
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
-        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord) ?? null;
+        // 3D clusters
+        this.cluster        = chunkManager.world.generator.clusterManager?.getForCoord(this.coord, chunkManager.world.generator.maps) ?? null;
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,

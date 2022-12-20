@@ -9,10 +9,7 @@ import { impl as alea } from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 
 // Buildings
-import { Farmland } from "./building/farmland.js";
-import { WaterWell } from "./building/waterwell.js";
-import { StreetLight } from "./building/streetlight.js";
-import { BuildingBlocks } from "./building/building_blocks.js";
+import { building_classes } from "./building/all.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
@@ -32,7 +29,7 @@ export const getAheadMove = (dir) => {
 export class ClusterVilage extends ClusterBase {
 
     //
-    constructor(clusterManager, addr) {
+    constructor(clusterManager, addr, biome) {
 
         super(clusterManager, addr);
 
@@ -57,7 +54,7 @@ export class ClusterVilage extends ClusterBase {
                 fill_blocks_count: 0
             };
 
-            const {schema_options, building_palette_options} = this.initVilageOptions()
+            const {schema_options, building_palette_options} = this.initVilageOptions(biome)
 
             // Building palettes
             this.building_palettes = new BuildingPalettes(this, building_palette_options, BLOCK);
@@ -90,7 +87,7 @@ export class ClusterVilage extends ClusterBase {
     }
 
     //
-    initVilageOptions() {
+    initVilageOptions(biome) {
 
         const clusterManager = this.clusterManager;
 
@@ -112,23 +109,27 @@ export class ClusterVilage extends ClusterBase {
             // затем выбрать свою схему для наиболее часто встречаемого биома
             building_palette_options = {
                 crossroad: [
-                    {class: StreetLight, max_count: Infinity, chance: 1}
+                    {class: 'StreetLight', max_count: Infinity, chance: 1}
                 ],
                 required: [
-                    {class: WaterWell, max_count: 1, chance: 1},
-                    {class: Farmland, max_count: 1, chance: 1},
+                    {class: 'WaterWell', max_count: 1, chance: 1},
+                    {class: 'Farmland', max_count: 1, chance: 1},
                 ],
                 others: [
-                    {class: WaterWell,      max_count: 2,        chance: .1},
-                    {class: Farmland,       max_count: Infinity, chance: .2},
-                    {class: BuildingBlocks, max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', 'farmer_house', 'medium_house']},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .42, block_templates: ['tiny_mart']},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2', 'sand_house']},
+                    {class: 'WaterWell',      max_count: 2,        chance: .1},
+                    {class: 'Farmland',       max_count: Infinity, chance: .2},
+                    {class: 'BuildingBlocks', max_count: 1, chance: .25, block_templates: ['church', 'watch_tower']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .4, block_templates: ['e3290', 'nico', /*'farmer_house',*/ 'medium_house']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .42, block_templates: ['tiny_mart']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['domikder', 'domikkam', 'domikkam2'/*, 'sand_house'*/]},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
-                    {class: BuildingBlocks, max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house', 'tiny_house2']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['domsmall', 'tiny_house'/*, 'tiny_house2'*/]},
                 ]
             };
+
+            if(biome?.building_options) {
+                building_palette_options = {...building_palette_options, ...biome?.building_options}
+            }
 
         } else {
 
@@ -138,21 +139,33 @@ export class ClusterVilage extends ClusterBase {
             // для старых генераторов (biome2, ...)
             building_palette_options = {
                 crossroad: [
-                    {class: StreetLight, max_count: Infinity, chance: 1}
+                    {class: 'StreetLight', max_count: Infinity, chance: 1}
                 ],
                 required: [
-                    {class: WaterWell, max_count: 1, chance: 1},
-                    {class: Farmland, max_count: 1, chance: 1}
+                    {class: 'WaterWell', max_count: 1, chance: 1},
+                    {class: 'Farmland', max_count: 1, chance: 1}
                 ],
                 others: [
-                    {class: WaterWell, max_count: 2, chance: 0.12},
-                    {class: Farmland, max_count: Infinity, chance: 0.285},
-                    {class: BuildingBlocks, max_count: Infinity, chance: .7025, block_templates: ['medium_house']},
+                    {class: 'WaterWell', max_count: 2, chance: 0.12},
+                    {class: 'Farmland', max_count: Infinity, chance: 0.285},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: .7025, block_templates: ['medium_house']},
                     // TODO: в конце нужно оставлять самое маленькое по занимаемому размеру участка здание (специфика выборки в BuldingPalette.next)
-                    {class: BuildingBlocks, max_count: Infinity, chance: 1, block_templates: ['domsmall']},
+                    {class: 'BuildingBlocks', max_count: Infinity, chance: 1, block_templates: ['domsmall']},
                 ]
             };
 
+        }
+
+        // Replace class by name
+        for(let k in building_palette_options) {
+            for(let item of building_palette_options[k]) {
+                if (typeof item.class === 'string' || item.class instanceof String) {
+                    item.class = building_classes.get(item.class)
+                    if(!item.class) {
+                        throw 'error_invalid_building_class';
+                    }
+                }
+            }
         }
 
         return {

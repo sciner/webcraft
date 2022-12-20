@@ -468,4 +468,3 @@ function buildPermutationTable(random) {
     return p;
 }
 // exports.buildPermutationTable = buildPermutationTable;
-//# sourceMappingURL=simplex-noise.js.map

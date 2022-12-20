@@ -12,9 +12,22 @@ const GRASS_FREQUENCY       = 0.015;
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS; // new IndexedColor(82, 450, 0);
 const DEFAULT_WATER_COLOR = IndexedColor.WATER;
 
+const DESERT_BUILDINGS = {others: [
+    {class: 'WaterWell',      max_count: 3,        chance: .1},
+    {class: 'Farmland',       max_count: Infinity, chance: .2},
+    {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['sand_house']},
+]}
+
+const TAIGA_BUILDINGS = {others: [
+    {class: 'WaterWell',      max_count: 3,        chance: .1},
+    {class: 'Farmland',       max_count: Infinity, chance: .2},
+    {class: 'BuildingBlocks', max_count: Infinity, chance: .7, block_templates: ['farmer_house']},
+    {class: 'BuildingBlocks', max_count: Infinity, chance: 1., block_templates: ['tiny_house2']},
+]}
+
 export class Biome {
 
-    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap) {
+    constructor(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options) {
         this.id = id;
         this.title = title;
         this.temperature = temperature;
@@ -27,6 +40,7 @@ export class Biome {
         this.dirt_color = dirt_color;
         this.water_color = water_color;
         this.no_smooth_heightmap = no_smooth_heightmap;
+        this.building_options = building_options
     }
 
 }
@@ -61,7 +75,7 @@ export class Biomes {
         return (resp / 2 + .5) / div;
     }
 
-    addBiome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color) {
+    addBiome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, building_options) {
         // const id = this.list.length + 1;
         if(!dirt_layers) {
             dirt_layers = [
@@ -110,7 +124,7 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, temp);
+        const biome = new Biome(id, title, temp, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, no_smooth_heightmap, building_options);
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
@@ -158,9 +172,18 @@ export class Biomes {
                 {percent: .007, blocks: [{id: BLOCK.DEAD_BUSH.id}]},
                 {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
             ]
-        }, new IndexedColor(200, 510, 0), new IndexedColor(255, 255, 0));
-        this.addBiome(31, 'Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0));
-        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0));
+        }, new IndexedColor(200, 510, 0), new IndexedColor(255, 255, 0), TAIGA_BUILDINGS);
+        this.addBiome(31, 'Заснеженная холмистая тайга', -0.5, 0.4,  snow_dirt_layers, {
+            frequency: TREE_FREQUENCY / 4,
+            list: [
+                // {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+                {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.05, ...TREES.SPRUCE, height: {min: 6, max: 24}},
+                {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
+                {percent: 0.681 + 0.150, ...TREES.SPRUCE, height: {min: 6, max: 11}}
+            ]
+        }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
+        this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
         this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
@@ -314,7 +337,7 @@ export class Biomes {
                     {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             },
-            null
+            null, undefined, undefined, DESERT_BUILDINGS
         );
         this.addBiome(17, 'Холмистая пустыня', 2, 0,
             [
@@ -332,7 +355,7 @@ export class Biomes {
                     {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             },
-            null
+            null, undefined, undefined, DESERT_BUILDINGS
         );
         this.addBiome(130, 'Пустынные озера', 2, 0);
         this.addBiome(35, 'Саванна', 1.2, 0, undefined, {

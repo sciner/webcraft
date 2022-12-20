@@ -180,8 +180,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     //
     generateChunkData(chunk, seed, rnd) {
-        
-        const cluster                   = chunk.cluster;
+
         /**
          * @type {TerrainMap2}
          */
@@ -189,6 +188,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const xyz                       = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0);
+        const cluster                   = chunk.cluster; // 3D clusters
 
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
