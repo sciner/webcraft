@@ -1114,4 +1114,13 @@ export class TBlock {
     get is_fluid() {
         return this.id == 0 && this.fluid > 0;
     }
+
+    copyPropsFromPOJO(obj) {
+        this.id = obj.id;
+        this.extra_data = obj?.extra_data || null;
+        this.entity_id = obj?.entity_id || null;
+        this.power = obj?.power || null;
+        this.rotate = obj?.rotate || null;
+    }
+
 }
