@@ -601,7 +601,7 @@ export class ServerChunk {
         //
         const addBlock = (pos, item) => {
             if(!actions) actions = new WorldAction(null, null, false, false);
-            const action_id = ServerClient.BLOCK_ACTION_MODIFY
+            const action_id = ServerClient.BLOCK_ACTION_REPLACE
             actions.addBlocks([{pos, item, action_id}])
         }
 
@@ -981,7 +981,7 @@ export class ServerChunk {
                     actions.addBlocks([{
                         pos: pos.clone(),
                         item: item,
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        action_id: ServerClient.BLOCK_ACTION_REPLACE
                     }]);
                     world.actions_queue.add(null, actions);
                     break;
