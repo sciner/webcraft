@@ -18,7 +18,7 @@ export default function randomTicker(world, actions, world_light, tblock) {
         // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
         // console.log('--', p.toHash().replaceAll(',', ' '), `over: ${over_src_block?.material?.name}`, world_light, isLightOpacity(over_src_block));
         actions.addBlocks([
-            {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+            {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
         ]);
     } else if (world_light >= 9) {
         // возможность распространеия 3х5х3
@@ -34,7 +34,7 @@ export default function randomTicker(world, actions, world_light, tblock) {
             const over_block = world.getBlock(_rnd_pos_up.copyFrom(rnd_block.posworld).addScalarSelf(0, 1, 0));
             if(over_block && isLightOpacity(over_block)) {
                 actions.addBlocks([
-                    {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                    {pos: rnd_block.posworld.clone(), item: {id: tblock.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
                 ]);
             }
         }

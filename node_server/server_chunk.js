@@ -601,7 +601,7 @@ export class ServerChunk {
         //
         const addBlock = (pos, item) => {
             if(!actions) actions = new WorldAction(null, null, false, false);
-            const action_id = ServerClient.BLOCK_ACTION_MODIFY
+            const action_id = ServerClient.BLOCK_ACTION_REPLACE
             actions.addBlocks([{pos, item, action_id}])
         }
 

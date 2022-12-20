@@ -671,7 +671,7 @@ export class ServerWorld {
                 await this.db.TransactionBegin();
             }
             try {
-                let pm = performance.now();
+                // let pm = performance.now();
                 const modified_chunks = new VectorCollector();
                 let all = [];
                 const create_block_list = [];
@@ -693,7 +693,7 @@ export class ServerWorld {
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     if (chunk && chunk.tblocks) {
-                        const block_pos = new Vector(params.pos).floored();
+                        const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
                         cps.packets.push({
