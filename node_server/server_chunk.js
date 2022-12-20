@@ -631,7 +631,7 @@ export class ServerChunk {
         const checked_poses = new VectorCollector()
         function process(pos, iters, previous_item, min_solid_count) {
             const tblock = world.getBlock(pos);
-            if(tblock) {
+            if(tblock?.getNeighbours) {
                 const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
                 const neighbours = tblock.getNeighbours(world, cache);
                 for(let side in neighbours) {
@@ -694,9 +694,9 @@ export class ServerChunk {
                     await this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);
                     actions.addBlocks([
-                        {pos: item_pos, item: BLOCK.AIR},
-                        {pos: under1.posworld, item: BLOCK.AIR},
-                        {pos: under2.posworld, item: BLOCK.AIR}
+                        {pos: item_pos, item: {id: BLOCK.AIR.id}, destroy_block_id: item.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under1.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: under1?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY},
+                        {pos: under2.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: under2?.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}
                     ])
                     this.world.actions_queue.add(null, actions);
                 }
@@ -717,15 +717,20 @@ export class ServerChunk {
         const world = this.world;
         
         //
-        function createDrop(tblock) {
+        function createDrop(tblock, generate_destroy = false) {
             const pos = tblock.posworld;
             const actions = new WorldAction(null, world, false, true);
-            actions.addBlocks([
-                {pos: pos.clone(), item: BLOCK.AIR}
-            ]);
+            //
+            if(generate_destroy) {
+                actions.addBlocks([{pos: pos.clone(), item: {id: BLOCK.AIR.id}, destroy_block_id: tblock.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
+            } else {
+                actions.addBlocks([{pos: pos.clone(), item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+            }
+            //
             if (!tblock.material.tags.includes('no_drop')) {
                 actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
             }
+            //
             world.actions_queue.add(null, actions);
         }
 
@@ -741,7 +746,7 @@ export class ServerChunk {
         if(neighbour_destroyed) {
             
             if (tblock.id == BLOCK.SNOW.id && neighbourPos.y < pos.y) {
-                return createDrop(tblock);
+                return createDrop(tblock, true);
             }
 
             switch(require_support) {
@@ -891,6 +896,12 @@ export class ServerChunk {
                     //
                     if(drop) {
                         return createDrop(tblock);
+                    }
+                    break;
+                }
+                case 'planting': {
+                    if(neighbourPos.y < pos.y) {
+                        return createDrop(tblock, true);
                     }
                     break;
                 }

@@ -700,11 +700,13 @@ export class ServerWorld {
                             data: params
                         });
                         // 0. Play particle animation on clients
-                        if (!ignore_check_air && server_player) {
+                        if (!ignore_check_air) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
                                 if (params.destroy_block_id > 0) {
+                                    const except_players = [];
+                                    if(server_player) except_players.push(server_player)
                                     cps.custom_packets.push({
-                                        except_players: [server_player.session.user_id],
+                                        except_players,
                                         packets: [{
                                             name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
                                             data: {

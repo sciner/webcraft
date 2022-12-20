@@ -71,7 +71,7 @@ export class Brain extends FSMBrain {
                 actions.addBlocks([{
                     pos: this.nest.posworld, 
                     item: {
-                        id : BLOCK.CHICKEN_NEST.id,
+                        id: BLOCK.CHICKEN_NEST.id,
                         extra_data: {
                             eggs: this.nest.extra_data.eggs + 1
                         }

@@ -745,6 +745,9 @@ export class BLOCK {
         block.visible_for_ao = BLOCK.visibleForAO(block);
         block.light_power_number = BLOCK.getLightPower(block);
         block.interact_water = block.tags.includes('interact_water');
+        if(!block.support_style && block.planting) {
+            block.support_style = 'planting';
+        }
         // Append to collections
         if(replace_block) {
             original_props.push('resource_pack');

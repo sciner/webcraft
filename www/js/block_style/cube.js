@@ -207,6 +207,10 @@ export default class style {
             } else if(bmat.is_water && nmat.is_water) {
                 return false;
             } else if(nmat.is_solid && dir == DIRECTION.DOWN) {
+                if(bmat.layering) {
+                    if(bmat.extra_data?.point && bmat.extra_data?.point.y < .5) return false
+                    return true;
+                }
                 return false;
             } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
                 return false;

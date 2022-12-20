@@ -480,6 +480,9 @@ export class WorldAction {
     addBlocks(items) {
         for(let i = 0; i < items.length; i++) {
             const item = items[i];
+            if(!item.action_id) {
+                throw 'error_undefined_action_id';
+            }
             /*if(!item.item.extra_data && item.item.id > 0) {
                 const extra_data = BLOCK.makeExtraData(item.item, item.pos);
                 if(extra_data) {
@@ -792,7 +795,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             if(tblock?.id > 0) {
                 destroyBlocks.add(tblock, pos);
                 actions.decrement_instrument = {id: tblock.id};
-                if(!tblock.material.destroy_to_down) {
+                /*if(!tblock.material.destroy_to_down) {
                     // Destroyed block
                     pos = new Vector(pos);
                     // destroy plants over this block
@@ -801,6 +804,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                         destroyBlocks.add(block_over, pos);
                     }
                 }
+                */
             }
         }
         return actions;
@@ -1215,7 +1219,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
         }
     }
     extra_data.rot = 0;
-    actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     actions.decrement_extended = {
         mode: 'count',
         ignore_creative_game_mode: true
@@ -1237,7 +1241,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
                     }
                     actions.addBlocks([{
                         pos: new Vector(pos),
-                        item: {id: world_material.id, rotate: rotate, extra_data: extra_data},
+                        item: {id: world_material.id, rotate, extra_data},
                         action_id: ServerClient.BLOCK_ACTION_MODIFY
                     }]);
                     actions.decrement = true;
@@ -1258,7 +1262,7 @@ async function chSpawnmob(e, world, pos, player, world_block, world_material, ma
         extra_data.type = mat_block.spawn_egg.type;
         extra_data.skin = mat_block.spawn_egg.skin;
         extra_data.max_ticks = 800;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.MOB_SPAWN.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.MOB_SPAWN.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
         actions.decrement = true;
         return true;
     }
@@ -1339,7 +1343,7 @@ async function ejectJukeboxDisc(e, world, pos, player, world_block, world_materi
     pos = new Vector(pos);
     // Drop disc
     dropBlock(player, new FakeTBlock(disc_id, null, new Vector(pos), null, null, null, null, null, null), actions, false);
-    actions.addBlocks([{pos: pos.clone(), item: {id: world_material.id, rotate: rotate, extra_data: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    actions.addBlocks([{pos: pos.clone(), item: {id: world_material.id, rotate, extra_data: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     actions.stop_disc.push({pos: pos.clone()});
     return true;
 }
@@ -1354,7 +1358,7 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
     extra_data.pressed = !extra_data.pressed ? 1 : 0;
     if(extra_data && 'pressed' in extra_data) {
         pos = new Vector(pos);
-        actions.addBlocks([{pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: pos, item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos), except_players: [player.session.user_id]});
         actions.reset_mouse_actions = true;
         return true;
@@ -1446,7 +1450,7 @@ async function editSign(e, world, pos, player, world_block, world_material, mat_
                 var date = new Date();
                 extra_data.username = player.username;
                 extra_data.dt = date.toISOString();
-                actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+                actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             }
         }
     }
@@ -1478,7 +1482,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY}]);
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos), except_players: [player.session.user_id]});
         } else {
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.reset_mouse_actions = true;
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
@@ -1545,7 +1549,7 @@ async function deletePortal(e, world, pos, player, world_block, world_material, 
                 item: {
                     id: BLOCK.AIR.id
                 },
-                action_id: ServerClient.BLOCK_ACTION_MODIFY
+                action_id: ServerClient.BLOCK_ACTION_REPLACE
             });
         }
         actions.addBlocks(arr);
@@ -1871,7 +1875,7 @@ async function openFenceGate(e, world, pos, player, world_block, world_material,
     if(world_material.sound) {
         actions.addPlaySound({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
     }
-    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     return true;
 }
 
@@ -1894,7 +1898,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
         actions.addPlaySound({tag: world_material.sound, action: 'open', pos: new Vector(pos), except_players: [player.session.user_id]});
     }
     actions.reset_mouse_actions = true;
-    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
     // Если блок имеет пару (двери)
     if(world_material.has_head) {
         const head_pos = new Vector(world_material.has_head.pos);
@@ -1905,7 +1909,7 @@ async function openDoor(e, world, pos, player, world_block, world_material, mat_
         const block_connected = world.getBlock(connected_pos);
         if(block_connected.id == world_material.id) {
             block_connected.extra_data.opened = extra_data.opened;
-            actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: block_connected.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate, extra_data: block_connected.extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         }
     }
     return true;
@@ -1919,7 +1923,7 @@ async function removeFromPot(e, world, pos, player, world_block, world_material,
             const drop_item = extra_data?.item;
             drop_item.count = 1;
             delete(extra_data.item);
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
             // Create drop item
             actions.addDropItem({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [drop_item], force: true});
@@ -2077,7 +2081,7 @@ async function useTorch(e, world, pos, player, world_block, world_material, mat_
     if(world_material.name == 'CAMPFIRE' || world_material.style == 'candle') {
         extra_data = extra_data || {};
         extra_data.active = true;
-        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         return true;
     }
     return false;
@@ -2090,7 +2094,7 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
     }
     if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
         actions.decrement = true;
         if(mat_block.sound) {
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
@@ -2099,7 +2103,7 @@ async function useShovel(e, world, pos, player, world_block, world_material, mat
     }
     if(world_material.name == 'CAMPFIRE') {
         extra_data.active = false;
-        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: world_block.posworld.clone(), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         return true;
     }
     return false;
@@ -2112,7 +2116,7 @@ async function useHoe(e, world, pos, player, world_block, world_material, mat_bl
     }
     if(world_material.id == BLOCK.GRASS_BLOCK.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
         const extra_data = null;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
         actions.decrement = true;
         if(mat_block.sound) {
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
@@ -2198,7 +2202,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
     } else if (world_block?.material?.ticking?.type && extra_data) {
         if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {
             extra_data.bone = Math.random() < 0.5 ? 1 : 2;
-            actions.addBlocks([{pos: position, item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: position, item: {id: world_block.id, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.decrement = true;
             actions.addParticles([{type: 'villager_happy', pos: position}]);
             actions.addPlaySound({tag: mat_block.sound, action: 'place', position, except_players: [player.session.user_id]});
@@ -2273,7 +2277,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
     new_extra_data.height += layering.height;
     if(new_extra_data.height < 1) {
         // add part
-        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
     } else {
         if(layering.full_block_name) {
@@ -2282,7 +2286,7 @@ async function increaseLayering(e, world, pos, player, world_block, world_materi
             actions.addBlocks([{pos: new Vector(pos), item: {id: full_block.id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
             actions.addPlaySound({tag: full_block.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
         } else {
-            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+            actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
             actions.addPlaySound({tag: world_material.sound, action: 'place', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
     }
@@ -2304,7 +2308,7 @@ function addCandle(e, world, pos, player, world_block, world_material, mat_block
     }
     if(('candles' in extra_data) && extra_data.candles < 4) {
         extra_data.candles++;
-        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
         actions.reset_mouse_actions = true;
         actions.decrement = true;

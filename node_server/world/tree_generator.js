@@ -112,7 +112,7 @@ export class TreeGenerator {
             return [];
         }
         for(const [pos, item] of ubl.entries()) {
-            updated_blocks.push({pos: new Vector(pos), item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated_blocks.push({pos: new Vector(pos), item, action_id: ServerClient.BLOCK_ACTION_REPLACE});
         }
         return updated_blocks;
     }
