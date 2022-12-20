@@ -319,13 +319,6 @@ export class Chunk {
 
     }
 
-    isFilled(id) {
-        return (id >= 2 && id <= 3) ||
-            id == 9 || id == 56 || id == 73 ||
-            (id >= 14 && id <= 16) ||
-            (id >= 545 && id <= 550);
-    }
-
     isWater(id) {
         return id == 200 || id == 202;
     }
@@ -472,10 +465,10 @@ export class Chunk {
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
                         // blockIsClosed from typedBlocks
-                        if (this.isFilled(id)
-                            && this.isFilled(neib0) && this.isFilled(neib1)
-                            && this.isFilled(neib2) && this.isFilled(neib3)
-                            && this.isFilled(neib4) && this.isFilled(neib5)) {
+                        if (BLOCK.isSolidID(id)
+                            && BLOCK.isSolidID(neib0) && BLOCK.isSolidID(neib1)
+                            && BLOCK.isSolidID(neib2) && BLOCK.isSolidID(neib3)
+                            && BLOCK.isSolidID(neib4) && BLOCK.isSolidID(neib5)) {
                             empty = true;
                         } else {
                             // getNeighbours from typedBlocks

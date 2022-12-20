@@ -84,25 +84,27 @@ export class ServerPlayerDamage {
         }
         
         // урон он воды и удушения эффект подводное дыхание
-        if (!head.has_oxygen) {
-            this.oxygen_got_timer = 0;
-            this.oxygen_lost_timer++;
-            if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
-                this.oxygen_lost_timer = 0;
-                const resp_lvl = effects.getEffectLevel(Effect.RESPIRATION);
-                if (resp_lvl == 0) {
-                    player.oxygen_level =  Math.max(player.oxygen_level - 1, 0);
-                }
-                if (player.oxygen_level == 0) {
-                    damage++;
-                }
-            }
-        } else {
-            this.oxygen_lost_timer = 0;
-            this.oxygen_got_timer++;
-            if (this.oxygen_got_timer >= OXYGEN_GOT_TICKS) {
+        if (head.id >= 0) { // if it's a real block, not DUMMY
+            if (!head.has_oxygen) {
                 this.oxygen_got_timer = 0;
-                player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen.value);
+                this.oxygen_lost_timer++;
+                if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
+                    this.oxygen_lost_timer = 0;
+                    const resp_lvl = effects.getEffectLevel(Effect.RESPIRATION);
+                    if (resp_lvl == 0) {
+                        player.oxygen_level =  Math.max(player.oxygen_level - 1, 0);
+                    }
+                    if (player.oxygen_level == 0) {
+                        damage++;
+                    }
+                }
+            } else {
+                this.oxygen_lost_timer = 0;
+                this.oxygen_got_timer++;
+                if (this.oxygen_got_timer >= OXYGEN_GOT_TICKS) {
+                    this.oxygen_got_timer = 0;
+                    player.oxygen_level =  Math.min(player.oxygen_level + 1, ind_def.oxygen.value);
+                }
             }
         }
         

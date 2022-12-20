@@ -48,7 +48,11 @@ export class DBWorld {
         return await new DBWorld(conn, world).init();
     }
 
-    // Возвращает мир по его GUID либо создает и возвращает его
+    /**
+     * Возвращает мир по его GUID либо создает и возвращает его
+     * @param {string} world_guid 
+     * @returns 
+     */
     async getWorld(world_guid) {
         const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
@@ -59,6 +63,7 @@ export class DBWorld {
                 guid:           row.guid,
                 title:          row.title,
                 seed:           row.seed,
+                ore_seed:       row.ore_seed,
                 game_mode:      row.game_mode,
                 generator:      JSON.parse(row.generator),
                 pos_spawn:      JSON.parse(row.pos_spawn),
@@ -72,12 +77,13 @@ export class DBWorld {
         }
         // Insert new world to Db
         const world = await Qubatch.db.getWorld(world_guid);
-        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
+        await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode, ore_seed) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode, :ore_seed)', {
             ':dt':          unixTime(),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
             ':title':       world.title,
             ':seed':        world.seed,
+            ':ore_seed':    randomUUID(),
             ':generator':   JSON.stringify(world.generator),
             ':pos_spawn':   JSON.stringify(world.pos_spawn),
             ':game_mode':   world.game_mode
@@ -580,7 +586,7 @@ export class DBWorld {
 
     // Change player game mode
     async changeGameMode(player, game_mode) {
-        const result = await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
+        return await this.conn.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
             ':id':              player.session.user_id,
             ':game_mode':       game_mode
         });

@@ -74,8 +74,7 @@ export default class style {
         c_side[0] += (-.5 + 16/PPB) / TX_CNT;
         c_side[1] += (-.5 + 24/PPB) / TX_CNT;
 
-        const c_south = [...c_side];
-        const c_north = [...c_side];
+        const c_south_north = [...c_side];
 
         //
         matrix = mat4.create();
@@ -85,8 +84,7 @@ export default class style {
             c_east[0] += (-.5 + 16/PPB) / TX_CNT;
             c_east[1] += (-.5 + 24/PPB) / TX_CNT;
             c_up[0] -= ((1 - percent) * SIZE / PPB) / TX_CNT / 2;
-            c_south[0] -= ((1 - percent) * SIZE / PPB) / TX_CNT / 2;
-            c_north[0] += ((1 - percent) * SIZE / PPB) / TX_CNT / 2;
+            c_south_north[0] -= ((1 - percent) * SIZE / PPB) / TX_CNT / 2;
         }
 
         const aabb = style.computeAABB(block, true, true)[0];
@@ -101,8 +99,8 @@ export default class style {
             {
                 up:     new AABBSideParams(c_up, 0, 1, null, null, true),
                 down:   new AABBSideParams(c_down, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_south, 0, 1, null, null, true),
-                north:  new AABBSideParams(c_north, 0, 1, null, null, true),
+                south:  new AABBSideParams(c_south_north, 0, 1, null, null, true),
+                north:  new AABBSideParams(c_south_north, 0, 1, null, null, true),
                 west:   new AABBSideParams(c_side, 0, 1, null, null, true),
                 east:   new AABBSideParams(c_east, 0, 1, null, null, true),
             },

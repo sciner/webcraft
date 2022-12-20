@@ -1,6 +1,7 @@
 import glMatrix from "../../vendors/gl-matrix.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
+import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 
@@ -74,6 +75,7 @@ export class InHandOverlay {
         this.changeAnimation = true;
         this.changAnimationTime = 0;
 
+        this.wasEating = false;
     }
 
     reconstructInHandItem(targetId) {
@@ -94,7 +96,7 @@ export class InHandOverlay {
 
         const block = BLOCK.BLOCK_BY_ID[targetId];
 
-        if (!block || !block.spawnable) {
+        if (!block || (!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name))) {
             return;
         }
 
@@ -408,6 +410,8 @@ export class InHandOverlay {
 
         return;
         */
+        
+        var isEating = false;
 
         // не смотрит в подзорную трубу
         if (!player.isScoping()) {
@@ -483,8 +487,8 @@ export class InHandOverlay {
                         }
                         case ItemUseAnimation.EAT:
                         case ItemUseAnimation.DRINK: {
-                            this.applyEatTransform(modelMatrix, pPartialTicks, humanoidarm, matInHand);
-                            this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
+                            this.applyFoodAnimation(modelMatrix, matInHand, pSwingProgress);
+                            isEating = true;
                             break;
                         }
                         case ItemUseAnimation.BLOCK: {
@@ -559,6 +563,11 @@ export class InHandOverlay {
                     mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(j * -85.0))));
 
                 } else {
+                    // stop playing wrong animtion if there was an unfinished different animtion
+                    if (this.wasEating) {
+                        player.cancelAttackAnim();
+                        pSwingProgress = 0;
+                    }
 
                     // Java
                     //float f5 = -0.4F * Mth.sin(Mth.sqrt(p_109376_) * (float)Math.PI);
@@ -588,6 +597,7 @@ export class InHandOverlay {
             // TODO: у нас нет стека матриц =(
             // modelMatrix.popPose();
         }
+        this.wasEating = isEating;
     }
 
     /**
@@ -640,11 +650,13 @@ export class InHandOverlay {
     }
 
     /**
+    * Old animation - fast, looks bad.
     * @param {PoseStack} modelMatrix
     * @param {float} pPartialTicks
     * @param {HumanoidArm} hand
     * @param {ItemStack} matInHand
     */
+    /*
     applyEatTransform(modelMatrix, pPartialTicks, hand, matInHand) {
         let f = this.player.getUseItemRemainingTicks() - pPartialTicks + 1.0;
         let f1 = f / matInHand.getUseDuration();
@@ -671,6 +683,18 @@ export class InHandOverlay {
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.XP, Helpers.deg2rad(f3 * 10.0))));
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, quat.setAxisAngle(q, Vector.ZP, Helpers.deg2rad(i * f3 * 30.0))));
 
+    }
+    */
+
+    applyFoodAnimation(modelMatrix, matInHand, pSwingProgress) {
+        const duration = matInHand.getUseDuration();
+        const haslfPeriods = Math.round(6 * (duration / 1000));
+        const absSine = Math.abs(Math.sin(pSwingProgress * Math.PI * haslfPeriods));
+        const absSineWithStops = Math.max(absSine - 0.1, 0);
+        const fade = Math.pow(Math.min(1, Math.min(pSwingProgress, 1 - pSwingProgress) * 10), 0.5);
+        const trig = 1 - Math.pow(Math.max(pSwingProgress, 1 - pSwingProgress), 10);
+        mat4.translate(modelMatrix, modelMatrix, [fade * 1.8 * (1 - trig), 0, absSineWithStops * 0.2 - 0.6 * fade]);
+        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 * (1 + trig));
     }
 
     /**

@@ -1,5 +1,5 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, PLAYER_HEIGHT, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
@@ -191,7 +191,7 @@ export class PlayerModel extends MobModel {
 
         const block = BLOCK.fromId(id);
 
-        if (!block.spawnable) {
+        if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
             return;
         }
 

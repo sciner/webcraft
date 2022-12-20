@@ -186,8 +186,15 @@ export default class style {
         return;
     }
 
-    // Can draw face
-    static canDrawFace(block, neighbour, drawAllSides) {
+    /**
+     * Can draw face
+     * @param {*} block 
+     * @param {*} neighbour 
+     * @param {boolean} drawAllSides 
+     * @param {int} dir 
+     * @returns 
+     */
+    static canDrawFace(block, neighbour, drawAllSides, dir) {
         if(!neighbour) {
             return true;
         }
@@ -198,6 +205,10 @@ export default class style {
             if(block.id == neighbour.id && bmat.selflit) {
                 resp = false;
             } else if(bmat.is_water && nmat.is_water) {
+                return false;
+            } else if(nmat.is_solid && dir == DIRECTION.DOWN) {
+                return false;
+            } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
                 return false;
             }
         }
@@ -315,12 +326,12 @@ export default class style {
 
         //
         const drawAllSides = (width != 1 || height != 1) && !material.is_water;
-        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides);
-        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides);
-        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides);
-        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides);
-        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides);
-        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides);
+        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides, DIRECTION.UP);
+        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides, DIRECTION.DOWN);
+        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides, DIRECTION.SOUTH);
+        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides, DIRECTION.NORTH);
+        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides, DIRECTION.WEST);
+        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides, DIRECTION.EAST);
         if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
             return;
         }

@@ -227,18 +227,6 @@ export class TypedBlocks3 {
         return this.non_zero;
     }
 
-    // DIAMOND_ORE // 56
-    // REDSTONE_ORE // 73
-    // GOLD_ORE // 14
-    // IRON_ORE // 15
-    // COAL_ORE // 16
-    isFilled(id) {
-        return (id >= 2 && id <= 3) ||
-                id == 9 || id == 56 || id == 73 ||
-                (id >= 14 && id <= 16) ||
-                (id >= 545 && id <= 550);
-    }
-
     isWater(id) {
         return id == 200 || id == 202;
     }
@@ -253,9 +241,9 @@ export class TypedBlocks3 {
         const i_south = index - cz;
         const i_east = index + cx;
         const i_west = index - cx;
-        const is_filled = this.isFilled(id);
+        const is_solid = BLOCK.isSolidID(id);
         const is_water = false; // this.isWater(id);
-        if(is_filled || is_water) {
+        if(is_solid || is_water) {
             // assume stride16 is 1
             const id_up = this.id[i_up];
             const id_down = this.id[i_down];
@@ -263,13 +251,40 @@ export class TypedBlocks3 {
             const id_south = this.id[i_south];
             const id_west = this.id[i_west];
             const id_east = this.id[i_east];
-            if(is_filled) {
-                if(this.isFilled(id_up) && this.isFilled(id_down) && this.isFilled(id_south) && this.isFilled(id_north) && this.isFilled(id_west) && this.isFilled(id_east)) {
-                    return true;
-                }
+            if(BLOCK.isSolidID(id_up) && BLOCK.isSolidID(id_down) && BLOCK.isSolidID(id_south) &&
+                BLOCK.isSolidID(id_north) && BLOCK.isSolidID(id_west) && BLOCK.isSolidID(id_east)) {
+                return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Return saolid neighbours count
+     * 
+     * @param {int} x
+     * @param {int} y
+     * @param {int} z
+     * 
+     * @returns {int}
+     */
+    blockSolidNeighboursCount(x, y, z) {
+        const { cx, cy, cz, cw } = this.dataChunk;
+        const index = cx * x + cy * y + cz * z + cw;
+        const i_up = index + cy;
+        const i_down = index - cy;
+        const i_north = index + cz;
+        const i_south = index - cz;
+        const i_east = index + cx;
+        const i_west = index - cx;
+        let resp = 0;
+        if(this.id[i_up]) resp++
+        if(this.id[i_down]) resp++
+        if(this.id[i_north]) resp++
+        if(this.id[i_south]) resp++
+        if(this.id[i_west]) resp++
+        if(this.id[i_east]) resp++
+        return resp;
     }
 
     /**
@@ -1099,4 +1114,13 @@ export class TBlock {
     get is_fluid() {
         return this.id == 0 && this.fluid > 0;
     }
+
+    copyPropsFromPOJO(obj) {
+        this.id = obj.id;
+        this.extra_data = obj?.extra_data || null;
+        this.entity_id = obj?.entity_id || null;
+        this.power = obj?.power || null;
+        this.rotate = obj?.rotate || null;
+    }
+
 }

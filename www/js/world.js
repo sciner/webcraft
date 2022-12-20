@@ -269,7 +269,7 @@ export class World {
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 //
-                const tblock = Qubatch.world.getBlock(mod.pos);
+                const tblock = this.getBlock(mod.pos);
                 if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
                     const destroy_data = {
                         pos: mod.pos,

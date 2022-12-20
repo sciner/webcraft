@@ -439,17 +439,17 @@ export class Player {
         this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
 
         let bPos = e.pos;
-        // createBlock
+        // create block
         if(e.createBlock) {
             if(e.number > 1 && times < .02) {
                 return false;
             }
-        // cloneBlock
+        // clone block
         } else if(e.cloneBlock) {
             if(number > 1) {
                 return false;
             }
-        // destroyBlock
+        // destroy block
         } else if(e.destroyBlock) {
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
@@ -1086,6 +1086,10 @@ export class Player {
 
         return this.mineTime;
 
+    }
+
+    cancelAttackAnim() {
+        this.mineTime = 0;
     }
 
     // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации

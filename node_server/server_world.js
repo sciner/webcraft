@@ -29,6 +29,7 @@ import { GameRule } from "./game_rule.js";
 
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
+import { WorldOreGenerator } from "./world/ore_generator.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -83,6 +84,10 @@ export class ServerWorld {
         this.info           = await this.db.getWorld(world_guid);
 
         await this.makeBuildingsWorld()
+
+        // Server ore generator
+        this.ore_generator  = new WorldOreGenerator(this.info.ore_seed);
+        delete(this.info.ore_seed)
 
         //
         this.packet_reader  = new PacketReader();
@@ -217,8 +222,9 @@ export class ServerWorld {
         const SPAWN_DISTANCE = 16;
         const good_light_for_spawn = this.getLight() > 6;
         const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
+        const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!good_world_for_spawn || !good_light_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn || !good_light_for_spawn) {
             return;
         }
         // находим игроков
@@ -652,11 +658,8 @@ export class ServerWorld {
             }
         }
         // Modify blocks
-        if (actions.blocks && actions.blocks.list) {
+        if(actions.blocks?.list) {
             this.updatedBlocksByListeners.length = 0;
-            let chunk_addr = new Vector(0, 0, 0);
-            let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
-            let chunk = null;
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
@@ -665,28 +668,31 @@ export class ServerWorld {
                 await this.db.TransactionBegin();
             }
             try {
-                let pm = performance.now();
+                let chunk_addr = new Vector(0, 0, 0);
+                let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
+                let chunk = null;
                 const modified_chunks = new VectorCollector();
-                let all = [];
+                const all = [];
                 const create_block_list = [];
+                const previous_item = {id: 0}
                 for (let params of actions.blocks.list) {
                     params.item = this.block_manager.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if (!prev_chunk_addr.equal(chunk_addr)) {
-                        modified_chunks.set(chunk_addr.clone(), true);
+                        modified_chunks.set(chunk_addr, true);
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
-                    // await this.db.blockSet(this, server_player, params);
-                    if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                    if(params.action_id != ServerClient.BLOCK_ACTION_MODIFY) {
                         create_block_list.push(params);
                     } else {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
+                    // 3.
                     if (chunk && chunk.tblocks) {
-                        const block_pos = new Vector(params.pos).floored();
+                        const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
                         cps.packets.push({
@@ -712,6 +718,7 @@ export class ServerWorld {
                         }
                         const tblock = chunk.tblocks.get(block_pos_in_chunk);
                         let oldId = tblock.id;
+                        previous_item.id = oldId
                         // call block change listeners
                         if (on_block_set) {
                             const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
@@ -727,22 +734,25 @@ export class ServerWorld {
                                 }
                             }
                         }
-                        // 3. Store in chunk tblocks
+                        // 4. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
-                        tblock.id = params.item.id;
-                        tblock.extra_data = params.item?.extra_data || null;
-                        tblock.entity_id = params.item?.entity_id || null;
-                        tblock.power = params.item?.power || null;
-                        tblock.rotate = params.item?.rotate || null;
-                        // 1. Store in modify list
+                        tblock.copyPropsFromPOJO(params.item);
+                        // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item);
                         if (on_block_set) {
-                            chunk.onBlockSet(block_pos.clone(), params.item);
+                            // a.
+                            chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
+                            // b. check destroy block near uncertain stones
+                            if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                                // Check uncertain stones
+                                chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
+                            }
+                            // c.
                             const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
                             if (listeners) {
                                 for(let listener of listeners) {
                                     const oldMaterial = BLOCK.BLOCK_BY_ID[oldId];
-                                    var res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
+                                    const res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
                                     if (typeof res === 'number') {
                                         chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);
                                     } else {
@@ -751,6 +761,7 @@ export class ServerWorld {
                                 }
                             }
                         }
+                        // 6. Trigger player
                         if (server_player) {
                             if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
                                 PlayerEvent.trigger({
@@ -767,7 +778,7 @@ export class ServerWorld {
                             }
                         }
                     } else {
-                        // console.error('Chunk not found in pos', chunk_addr, params);
+                        // TODO: Chunk not found in pos
                     }
                 }
                 if(create_block_list.length > 0) {
@@ -778,9 +789,8 @@ export class ServerWorld {
                 if (use_tx) {
                     await this.db.TransactionCommit();
                 }
-                // console.log(performance.now() - pm);
-            } catch (e) {
-                console.log('error', e);
+            } catch(e) {
+                console.error('error', e);
                 if (use_tx) {
                     await this.db.TransactionRollback();
                 }

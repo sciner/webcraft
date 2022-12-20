@@ -379,6 +379,14 @@ export function decodeJsonGeometryTree(json, variant = null) {
                 continue;
             }
 
+            // TODO: Hmm...
+            if(json.format_version == '1.10.0') {
+                if(node.rotation && node.rotation[2] != 0) {
+                    node.bind_pose_rotation = node.rotation
+                    delete(node.rotation)
+                }
+            }
+
             // BlockBench-generated boundary-box cube.
             if(node.name === 'bb_main') {
                 continue;
