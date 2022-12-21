@@ -128,6 +128,7 @@ export class DungeonGenerator {
             skin: 'base',
             max_ticks: 800
         });
+        chunk.addTickingBlock(chunk.coord.offset(x + 5, y + 1, z + 5));
         
         if (!HIDE_DUNGEON) {
             this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 1, 3, block_wall_1);
@@ -215,12 +216,12 @@ export class DungeonGenerator {
         
         //Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
-        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
+        this.setBlock(chunk, x + 9, y + 1, z + 3, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',
             max_ticks: 800
         });
-        
+        chunk.addTickingBlock(chunk.coord.offset(x + 9, y + 1, z + 3));
     }
 
     checkPosition(chunk, x, y, z) {
