@@ -35,7 +35,8 @@ export class DungeonGenerator {
     */
     genDungeonHole(chunk, alea, x, y, z) {
         const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
-        
+        const up = this.getBlock(chunk, x, y, z);
+        console.log('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         // стандартные блоки
         let block_wall_1 = BLOCK.STONE_BRICKS;
         let block_wall_2 = BLOCK.MOSSY_STONE_BRICKS;
@@ -65,7 +66,10 @@ export class DungeonGenerator {
                 light = 2;
             }
         }
-        
+        if (!HIDE_DUNGEON) {
+            // очистка от травы верхушки
+            this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 3, 3, BLOCK.AIR);
+        }
         this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_1, 0.2);
         this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_2, 0.2);
         this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_1, 0.2);
@@ -84,8 +88,8 @@ export class DungeonGenerator {
         if (web) {
             for (let i = 1; i < 8; i++) {
                 for (let j = 1; j < 8; j++) {
-                    if ((j == 1 || i == 1 || j == 7 || i == 7) && (alea.double() > 0.8)) {
-                        this.setBlock(chunk, x + i, y + 3, z + j, BLOCK.COBWEB);
+                    if ((i == 7 || i == 1 || j == 7 || j == 1) && alea.double() > 0.8) {
+                        this.setBlock(chunk, x + i, y + 1, z + j, BLOCK.COBWEB);
                     }
                 }
             }
@@ -129,7 +133,7 @@ export class DungeonGenerator {
             this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 1, 3, block_wall_1);
             this.genBox(chunk, alea, x + 3, y + 10, z + 4, 1, 2, 1, block_wall_5);
             this.genBox(chunk, alea, x + 5, y + 10, z + 4, 1, 2, 1, block_wall_5);
-            this.genBox(chunk, alea, x + 3, y + 12, z + 3, 3, 1, 3, block_wall_6);
+            this.genBox(chunk, alea, x + 3, y + 12, z + 3, 3, 1, 3, block_wall_6, 1, {x:0, y:0, z:0}, {point:{x: 0.55, y: 0, z: 0}});
             this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
         }
     }
@@ -162,11 +166,11 @@ export class DungeonGenerator {
                 if(!air) {
                     return false;
                 }
-                 if((air.id != 0 || air.fluid != 0) && air.material.style != 'planting') {
+                 if((air.id != 0 || air.fluid != 0) && air.material.style != 'planting' && air.id != BLOCK.SNOW.id) {
                     return false;
                 }
                 const ground = this.getBlock(chunk, i + x, y + 8, j + z);
-                if(!ground || ground.id == 0) {
+                if(!ground || ground.id == 0 || ground.id == BLOCK.SNOW.id) {
                     return false;
                 }
             }
@@ -204,12 +208,18 @@ export class DungeonGenerator {
         
         // Декор
         this.deleteWall(chunk, alea, x, y, z);
-        
-        this.setBlock(chunk, 9 + x, y + 1, 3 + z, BLOCK.MOB_SPAWN);
         this.setBlock(chunk, x + 6, y + 3, z + 3, BLOCK.IRON_BARS);
         
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);
         this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
+        
+        //Спавнер
+        const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
+        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
+            type: mob,
+            skin: 'base',
+            max_ticks: 800
+        });
         
     }
 
@@ -297,14 +307,14 @@ export class DungeonGenerator {
         
     }
     
-    genBox(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1) {
+    genBox(chunk, alea, minX, minY, minZ, nX, nY, nZ, blocks = {id : 0}, chance = 1, rotate = null, extra_data = null) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
                 for (let z = minZ; z < nZ + minZ; ++z) {
                     if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
                         const is_chance = (chance == 1) ? true : alea.double() < chance;
                         if(is_chance) {
-                            chunk.tblocks.setBlockId(x, y, z, blocks.id);
+                            this.setBlock(chunk, x, y, z, blocks, rotate, extra_data);
                         }
                     }
                 }
@@ -336,11 +346,13 @@ export class DungeonGenerator {
                 for (let z = minZ; z < nZ + minZ; ++z) {
                     if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
                         const is_chance = (chance == 1) ? true : alea.double() < chance;
+                        const block = this.getBlock(chunk, x, y, z);
                         if (is_chance) {
-                            const block = this.getBlock(chunk, x, y, z);
                             if (block.id != 0) {
                                 chunk.tblocks.setBlockId(x, y, z, blocks.id);
                             }
+                        } else if (block.id == BLOCK.GRASS_BLOCK.id || block.id == BLOCK.SNOW_DIRT.id) {
+                            chunk.tblocks.setBlockId(x, y, z, BLOCK.DIRT.id);
                         }
                     }
                 }
