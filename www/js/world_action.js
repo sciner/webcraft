@@ -684,7 +684,7 @@ export class WorldAction {
                     }
                 } else {
                     this.addBlocks([
-                        {pos: pos.clone(), item: air, drop_blocks_chance}
+                        {pos: pos.clone(), item: air, action_id: ServerClient.BLOCK_ACTION_REPLACE}
                     ]);
                     extruded_blocks.set(pos, 'extruded');
                     createAutoDrop(block.tblock);
@@ -1735,7 +1735,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     // детонатация tnt
     if (!e.shiftKey && world_block.id == BLOCK.TNT.id) {
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
-        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_MODIFY}]);
+        actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
         return true;
     }
 
