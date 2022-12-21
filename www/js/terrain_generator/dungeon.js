@@ -6,6 +6,8 @@ import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
 
+const HIDE_DUNGEON = false;
+
 export class DungeonGenerator {
     
     constructor(seed) {
@@ -36,60 +38,179 @@ export class DungeonGenerator {
         const up = this.getBlock(chunk, x, y, z);
         console.log('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         
-        let block_well_1 = BLOCK.STONE_BRICKS;
-        let block_well_2 = BLOCK.MOSSY_STONE_BRICKS;
-        let block_well_3 = BLOCK.MOSSY_STONE_BRICKS;
-        let block_well_4 = BLOCK.MOSSY_STONE_BRICKS;
-        if (biome.id == 35) {// савана
-            block_well_1 = BLOCK.END_STONE_BRICKS;
-            block_well_2 = BLOCK.SANDSTONE;
-            block_well_3 = BLOCK.CUT_SANDSTONE;
-            block_well_4 = BLOCK.CHISELED_SANDSTONE;
-        }
-        // стенки верха (входа)
-        this.genBox(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_1);
-        this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 2, 7, 2, BLOCK.AIR);
-        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_2, 0.5);
-        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 4, 3, 4, block_well_3, 0.3);
-        // стенки данжа
-        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_1);
-        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 8, 3, 8, BLOCK.AIR);
-        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_2, 0.5);
-        this.genBoxNoAir(chunk, alea, x, y, z, 10, 5, 10, block_well_3, 0.3);
-        this.genBoxNoAir(chunk, alea, x, y + 1, z, 10, 1, 10, block_well_4);
+        // стандартные блоки
+        let block_wall_1 = BLOCK.STONE_BRICKS;
+        let block_wall_2 = BLOCK.MOSSY_STONE_BRICKS;
+        let block_wall_3 = BLOCK.MOSS_BLOCK;
+        let block_wall_4 = BLOCK.LODESTONE;
+        let block_wall_5 = BLOCK.DARK_OAK_FENCE;
+        let block_wall_6 = BLOCK.STONE_BRICK_SLAB;
         
-        //Декор
-        if (biome.id == 35) {// савана
-            this.setBlock(chunk, x + 1, y + 3, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
-            this.genBox(chunk, alea, x + 3, y + 8, z + 3, 1, 2, 1, block_well_1);
-            this.genBox(chunk, alea, x + 3, y + 8, z + 6, 1, 2, 1, block_well_1);
-            this.genBox(chunk, alea, x + 6, y + 8, z + 6, 1, 2, 1, block_well_1);
-            this.genBox(chunk, alea, x + 6, y + 8, z + 3, 1, 2, 1, block_well_1);
-            this.genBox(chunk, alea, x + 3, y + 10, z + 3, 4, 1, 4, block_well_1);
+        // Тип освещения
+        let light = alea.double() * 3 | 0;
+        let web = true;
+        let ice = false;
+        
+        if (biome.id == 30 || biome.id == 31 || biome.id == 26) {
+            ice = true;
         }
+        
+        // песок, как строительный материал
+        if (biome.id == 2 || biome.id == 36 || biome.id == 35) {
+            block_wall_1 = BLOCK.END_STONE_BRICKS;
+            block_wall_2 = BLOCK.CUT_SANDSTONE;
+            block_wall_3 = BLOCK.SAND;
+            block_wall_4 = BLOCK.CHISELED_SANDSTONE;
+            block_wall_5 = BLOCK.SANDSTONE_WALL;
+            block_wall_6 = BLOCK.SMOOTH_SANDSTONE_SLAB;
+            if (light == 1) {
+                light = 2;
+            }
+        }
+        
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_1, 0.2);
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_2, 0.2);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_1, 0.2);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, (!ice) ? block_wall_3 : BLOCK.ICE, 0.3);
+        
+        // свечи в стенах
+        if (light == 0) {
+            this.genBoxNoAir(chunk, alea, x, y + 2, z, 9, 2, 9, BLOCK.WHITE_CANDLE, 0.05);
+        }
+        
+        this.genBoxNoAir(chunk, alea, x, y + 1, z, 9, 1, 9, block_wall_4, 0.5);
+        this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 7, 3, 7, BLOCK.AIR);
+        // паутина
+        if (web) {
+            for (let i = 1; i < 8; i++) {
+                for (let j = 1; j < 8; j++) {
+                    if ((j == 1 || i == 1 || j == 7 || i == 7) && (alea.double() > 0.8)) {
+                        this.setBlock(chunk, x + i, y + 3, z + j, BLOCK.COBWEB);
+                    }
+                }
+            }
+        }
+        // светящийся лишайник
+        if (light == 1) {
+            for (let i = 1; i < 8; i++) {
+                for (let j = 1; j < 8; j++) {
+                    if (j == 4 && i == 4) {
+                        continue;
+                    }
+                    if (alea.double() > 0.8) {
+                        this.setBlock(chunk, x + i, y + 3, z + j, BLOCK.GLOW_LICHEN, {x: 0, y: 0, z: 0}, {
+                            down: true,
+                        });
+                    }
+                }
+            }
+        }
+        // факелы
+        if (light == 2) {
+            this.setBlock(chunk, x + 1, y + 3, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
+            this.setBlock(chunk, x + 7, y + 3, z + 7, BLOCK.TORCH, {x: 1, y: 0, z: 0});
+        }
+        
+        // Сундук
+        this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
         
         //Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
-        this.setBlock(chunk, x + 8, y + 1, z + 8, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
+        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',
             max_ticks: 800
         });
         
+        if (!HIDE_DUNGEON) {
+            this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 1, 3, block_wall_1);
+            this.genBox(chunk, alea, x + 3, y + 10, z + 4, 1, 2, 1, block_wall_5);
+            this.genBox(chunk, alea, x + 5, y + 10, z + 4, 1, 2, 1, block_wall_5);
+            this.genBox(chunk, alea, x + 3, y + 12, z + 3, 3, 1, 3, block_wall_6);
+            this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
+        }
+        
+        /*
+        
+        
+        
+        if (biome.id == 35 || biome.id == 2) {
+            block_wall_1 = BLOCK.END_STONE_BRICKS;
+            block_wall_2 = BLOCK.SMOOTH_SANDSTONE;
+            block_wall_3 = BLOCK.SAND;
+            block_wall_4 = BLOCK.CHISELED_SANDSTONE;
+        }
+        
+        if (biome.id == 26) {
+            block_wall_1 = BLOCK.ICE;
+            block_wall_2 = BLOCK.BLUE_ICE;
+            block_wall_3 = BLOCK.ICE;
+            block_wall_4 = BLOCK.BLUE_ICE;
+        }
+        
+        // стенки верха (входа)
+        this.genBox(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_1);
+        this.genBox(chunk, alea, x, y, z, 9, 5, 9, block_wall_1); 
+        this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 1, 7, 1, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x + 1, y + 1, z + 1, 7, 3, 7, BLOCK.AIR);
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x + 3, y + 5, z + 3, 3, 4, 3, block_wall_3, 0.1);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y, z, 9, 5, 9, block_wall_3, 0.3);
+        this.genBoxNoAir(chunk, alea, x, y + 1, z, 9, 1, 9, block_wall_4);
+        
+        // 36 - саванна
+        if (biome.id == 35 || biome.id == 2) {
+            this.setBlock(chunk, x + 1, y + 3, z + 1, BLOCK.TORCH, {x: 3, y: 0, z: 0});
+            this.genBox(chunk, alea, x + 3, y + 9, z + 4, 1, 2, 1, BLOCK.SANDSTONE_WALL);
+            this.genBox(chunk, alea, x + 5, y + 9, z + 4, 1, 2, 1, BLOCK.SANDSTONE_WALL);
+            this.genBox(chunk, alea, x + 3, y + 11, z + 4, 3, 1, 1, BLOCK.SMOOTH_SANDSTONE_SLAB);
+        }
+        // 36 - плато саванны
+        if (biome.id == 36) {
+            // свет
+            for (let i = 2; i < 8; i++) {
+                for (let j = 2; j < 8; j++) {
+                    if (j == 4 && i == 4) {
+                        continue;
+                    }
+                    if (alea.double() > 0.8) {
+                        this.setBlock(chunk, x + i, y + 3, z + j, BLOCK.GLOW_LICHEN, {x: 0, y: 0, z: 0}, {
+                            down: true,
+                        });
+                    }
+                }
+            }
+            // верхушка
+            this.genBox(chunk, alea, x + 3, y + 9, z + 4, 1, 2, 1, BLOCK.DARK_OAK_FENCE);
+            this.genBox(chunk, alea, x + 5, y + 9, z + 4, 1, 2, 1, BLOCK.DARK_OAK_FENCE);
+        }
+        
+        if (biome.id == 30 || biome.id == 13) {
+            this.genBoxNoAir(chunk, alea, x, y + 1, z, 9, 5, 9, BLOCK.ICE, 0.05);
+        }
+        
+        if (biome.id == 26) {
+            this.setBlock(chunk, x + 4, y + 1, z + 4, BLOCK.SEA_LANTERN);
+        }
+        
         // Сундук
-        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
+        this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
         
-       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 5, block_well_1);
-       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 4, block_well_2, 0.5);
-       // this.genBox(chunk, alea, x + 3, y + 8, z + 3, 5, 1, 5, block_well_3, 0.3);
-        
-        
-        // Очищаем блоки под место установки
-        
+        //Спавнер
+        const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
+        this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
+            type: mob,
+            skin: 'base',
+            max_ticks: 800
+        });
+        */
     }
     // Проверка места установки данжа колодец
     checkPositionHole(chunk, x, y, z) {
-        if ( x > 9 || x < 1 || z > 9 || z < 1) {
+        if ( x > 8 || x < 1 || z > 8 || z < 1) {
             return false;
         }
         // Под основнием нет пустот
@@ -112,14 +233,14 @@ export class DungeonGenerator {
          // Под основнием нет пустот
         for (let i = 2; i <= 7; i++) {
             for (let j = 2; j <= 7; j++) {
-                const air = this.getBlock(chunk, i + x, y + 8, j + z);
+                const air = this.getBlock(chunk, i + x, y + 9, j + z);
                 if(!air) {
                     return false;
                 }
                  if((air.id != 0 || air.fluid != 0) && air.material.style != 'planting') {
                     return false;
                 }
-                const ground = this.getBlock(chunk, i + x, y + 7, j + z);
+                const ground = this.getBlock(chunk, i + x, y + 8, j + z);
                 if(!ground || ground.id == 0) {
                     return false;
                 }
@@ -138,19 +259,19 @@ export class DungeonGenerator {
             return;
         }
 
-        const block_well_1 = BLOCK.STONE_BRICKS;
-        const block_well_2 = BLOCK.MOSSY_STONE_BRICKS;
-        const block_well_3 = BLOCK.MOSSY_STONE_BRICKS;
+        const block_wall_1 = BLOCK.STONE_BRICKS;
+        const block_wall_2 = BLOCK.MOSSY_STONE_BRICKS;
+        const block_wall_3 = BLOCK.MOSSY_STONE_BRICKS;
         
         // стенки верха (входа)
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_1);
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_2, 0.5);
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_3, 0.3);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_1);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_3, 0.3);
         
         // стенки верха (входа)
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_1);
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_2, 0.5);
-        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_well_3, 0.3);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_1);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_2, 0.5);
+        this.genBoxNoAir(chunk, alea, x, y + 7, z, 8, 3, 8, block_wall_3, 0.3);
         
         // Очищаем блоки под место установки
         this.genBoxNoAir(chunk, alea, x + 4, y + 4, z + 4, 2, 7, 2, BLOCK.AIR);
@@ -179,14 +300,14 @@ export class DungeonGenerator {
         }
         // У крыши есть пустоты
         for(let i = 0; i < 8; i++) {
-            if (this.checkWellVerical(i + x, y + 8, z) || this.checkWellVerical(i + x, y + 8, z + 8) || this.checkWellVerical(x, y + 8, z + i) || this.checkWellVerical(x + 8, y + 8, z + i)) {
+            if (this.checkwallVerical(i + x, y + 8, z) || this.checkwallVerical(i + x, y + 8, z + 8) || this.checkwallVerical(x, y + 8, z + i) || this.checkwallVerical(x + 8, y + 8, z + i)) {
                 return true;
             }
         }
     }
     
     // Проверям, что при возведении стены будет не менее 1 пустоты, размром с игрока
-    checkWellVerical(x, y, z) {
+    checkwallVerical(x, y, z) {
         const top = this.getBlock(chunk, x, y + 1, z);
         if (top && top.id == 0 && top.fluid == 0) {
             const bottom = this.getBlock(chunk, x, y, z);
