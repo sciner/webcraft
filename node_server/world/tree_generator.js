@@ -1,8 +1,9 @@
 import {Vector, VectorCollector} from "../../www/js/helpers.js";
 import {ServerClient} from "../../www/js/server_client.js";
+import {Default_Terrain_Generator} from '../../www/js/terrain_generator/default.js';
 
 // TreeGenerator
-export class TreeGenerator {
+export class TreeGenerator extends Default_Terrain_Generator {
 
     static _instance = null;
 
@@ -85,6 +86,9 @@ export class TreeGenerator {
             if(is_invalid_operation) {
                 return false;
             }
+            x += chunk.coord.x
+            y += chunk.coord.y
+            z += chunk.coord.z
             _temp_vec.set(x, y, z);
             let tblock = world.getBlock(_temp_vec);
             if(!tblock) {
@@ -103,9 +107,9 @@ export class TreeGenerator {
                 type: {...tree_type, style: tree_style}
             },
             chunk,
-            pos.x,
-            pos.y,
-            pos.z,
+            pos.x - chunk.coord.x,
+            pos.y - chunk.coord.y,
+            pos.z - chunk.coord.z,
             false
         );
         if(is_invalid_operation) {

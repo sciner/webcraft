@@ -146,7 +146,7 @@ export class Default_Terrain_Generator {
                 const ay = chunk.coord.y + y
                 const az = chunk.coord.z + z
                 tree.blocks.set(this._block_pos.set(ax, ay, az), block_type);
-                this.setBlock.bind(...arguments)
+                this.setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data)
             });
         } else if(first_time_generation) {
             // if first time calling plant for this tree
