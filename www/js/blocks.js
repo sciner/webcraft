@@ -736,7 +736,7 @@ export class BLOCK {
                                   !block.is_fluid &&
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
-        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.includes('no_drop_ao')) {
+        if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.style) || block.tags.includes('no_drop_ao')) {
             if(!this.ao_invisible_blocks.includes(block.id)) {
                 this.ao_invisible_blocks.push(block.id);
             }
