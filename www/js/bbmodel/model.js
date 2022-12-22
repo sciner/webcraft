@@ -2,6 +2,7 @@ import { IndexedColor, isScalar, Vector } from "../helpers.js";
 import { BBModel_Box } from "./box.js";
 import { BBModel_Child } from "./child.js";
 import { BBModel_Group } from "./group.js";
+import { EasingType } from "./easing_type.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
@@ -101,15 +102,21 @@ export class BBModel_Model {
                     const next_point = next_keyframe.data_points[0];
                     const point = new Vector(0, 0, 0);
 
-                    switch(next_keyframe.interpolation) {
-                        case 'linear': {
-                            point.lerpFrom(current_point, next_point, percent);
-                            break;
-                        }
-                        case 'smooth':
-                        case 'step': {
-                            throw 'error_not_supported_keyframe_interpolation_method';
-                        }
+                    let args;
+                    let func_name;
+
+                    if(next_keyframe.easing) {
+                        args = next_keyframe.easingArgs;
+                        func_name = next_keyframe.easing
+                    } else {
+                        func_name = next_keyframe.interpolation
+                    }
+
+                    const func = EasingType.get(next_keyframe.easing)
+                    if(func) {
+                        func(point, current_point, next_point, percent, args || [])
+                    } else {
+                        throw 'error_not_supported_keyframe_interpolation_method';
                     }
 
                     group.animations.push({channel_name, point})
