@@ -248,12 +248,12 @@ function makeDropItem(block, item) {
 
 /**
  * Drop block
- * 
- * @param {*} player 
- * @param {*} block 
- * @param { WorldAction } actions 
- * @param {*} force 
- * 
+ *
+ * @param {*} player
+ * @param {*} block
+ * @param { WorldAction } actions
+ * @param {*} force
+ *
  * @returns {object[]} dropped blocks
  */
 function dropBlock(player, block, actions, force) {
@@ -329,7 +329,7 @@ class DestroyBlocks {
     /**
      * @param { import("../../node_server/server_world.js").ServerWorld } world
      * @param { import("../../node_server/server_player.js").ServerPlayer } player
-     * @param { WorldAction } actions 
+     * @param { WorldAction } actions
      */
     constructor(world, player, actions) {
         this.cv         = new VectorCollector();
@@ -421,7 +421,7 @@ class DestroyBlocks {
             const dcount = existing_faces.length
             if(dcount > 1 && drop_items.length == 1) {
                 drop_items[0].count = dcount
-            }           
+            }
         }
     }
 
@@ -544,14 +544,14 @@ export class WorldAction {
 
     /**
      * Make explosion
-     * @param {Vector} vec_center 
-     * @param {float} rad 
-     * @param {boolean} add_particles 
-     * @param {float} drop_blocks_chance 
-     * @param {float} power 
+     * @param {Vector} vec_center
+     * @param {float} rad
+     * @param {boolean} add_particles
+     * @param {float} drop_blocks_chance
+     * @param {float} power
      */
     makeExplosion(vec_center, rad = 3, add_particles, drop_blocks_chance, power = .5) {
-        
+
         const world = this.#world;
         const air = { id: 0 };
         const block_pos = new Vector();
@@ -673,7 +673,7 @@ export class WorldAction {
                     if (Math.random() < 0.7) {
                         this.addBlocks([{
                             pos: pos.clone(),
-                            item: {id: BLOCK.AIR.id}, 
+                            item: {id: BLOCK.AIR.id},
                             destroy_block_id: block.tblock.id,
                             action_id: ServerClient.BLOCK_ACTION_DESTROY
                         }]);
@@ -719,8 +719,8 @@ export class WorldAction {
 
     /**
      * Set sitting
-     * @param {Vector} pos 
-     * @param {Vector} rotate 
+     * @param {Vector} pos
+     * @param {Vector} rotate
      */
     setSitting(pos, rotate) {
         this.sitting = {pos, rotate};
@@ -1313,7 +1313,7 @@ async function putInBucket(e, world, pos, player, world_block, world_material, m
                 added_to_bucket = true;
             }
             if(fluidType === FLUID_LAVA_ID) {
-                actions.addFluids([0, 0, 0, 0], e.fluidLeftTop);
+                actions.addFluids([0, 0, 0, 0], pos.fluidLeftTop);
                 const filled_bucket = BLOCK.fromName("LAVA_BUCKET");
                 const item = {
                     id: filled_bucket.id,
@@ -1368,19 +1368,19 @@ async function pressToButton(e, world, pos, player, world_block, world_material,
 
 /**
  * Sit down
- * @param {*} e 
- * @param {*} world 
- * @param {Vector} pos 
- * @param {*} player 
- * @param {*} world_block 
- * @param {*} world_material 
- * @param {*} mat_block 
- * @param {*} current_inventory_item 
- * @param {*} extra_data 
- * @param {Vector} rotate 
- * @param {*} replace_block 
- * @param {WorldAction} actions 
- * @returns 
+ * @param {*} e
+ * @param {*} world
+ * @param {Vector} pos
+ * @param {*} player
+ * @param {*} world_block
+ * @param {*} world_material
+ * @param {*} mat_block
+ * @param {*} current_inventory_item
+ * @param {*} extra_data
+ * @param {Vector} rotate
+ * @param {*} replace_block
+ * @param {WorldAction} actions
+ * @returns
  */
 async function sitDown(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(e.shiftKey) {
