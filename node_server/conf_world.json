@@ -30,7 +30,8 @@
         "npc",
         "zombie",
         "bee",
-        "parrot"
+        "parrot",
+        "skeleton"
     ],
     "tickers": [
         "bamboo",

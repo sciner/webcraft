@@ -168,22 +168,15 @@ export class Brain extends FSMBrain {
         const world = mob.getWorld();
         const items = [];
         const actions = new WorldAction();
-        const rnd_count_flesh = (Math.random() * 2) | 0;
-        if (rnd_count_flesh > 0) {
-            items.push({ id: BLOCK.ROTTEN_FLESH.id, count: rnd_count_flesh });
+        const rnd_count_bone = (Math.random() * 2) | 0;
+        if (rnd_count_bone > 0) {
+            items.push({ id: BLOCK.BONE.id, count: rnd_count_bone });
         }
-        if (Math.random() < 0.025) {
-            const drop = (Math.random() * 2) | 0;
-            switch (drop) {
-                case 0: items.push({ id: BLOCK.IRON_INGOT.id, count: 1 }); break;
-                case 1: items.push({ id: BLOCK.CARROT.id, count: 1 }); break;
-                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? BLOCK.POTATO.id : BLOCK.BACKED_POTATO.id, count: 1 }); break;
-            }
-        }
+ 
         if (items.length > 0) {
             actions.addDropItem({ pos: mob.pos, items: items, force: true });
         }
-        actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
+        actions.addPlaySound({ tag: 'madcraft:block.skeleton', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
     
