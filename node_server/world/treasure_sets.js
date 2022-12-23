@@ -69,7 +69,7 @@ export class Treasure_Sets {
         const rnd = new alea(world.seed + xyz.toHash());
 
         const kit = this.treasure_sets.get(set_name)
-        if(!kit) throw 'error_invalid_treasure_set_name'
+        if(!kit) throw `error_invalid_treasure_set_name|${set_name}`
         const items_kit = [...kit.items]
 
         //

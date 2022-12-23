@@ -145,6 +145,10 @@
         {
             "name": "cave_mines",
             "extends": "treasure_room"
+        },
+        {
+            "name": "building",
+            "extends": "default"
         }
     ]
 }

@@ -4,7 +4,7 @@ import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "../www/js/helpers.
 import { BLOCK } from "../www/js/blocks.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "../www/js/block_helpers.js";
 import { newTypedBlocks, TBlock } from "../www/js/typed_blocks3.js";
-import { WorldAction } from "../www/js/world_action.js";
+import { dropBlock, WorldAction } from "../www/js/world_action.js";
 import { COVER_STYLE_SIDES, NO_TICK_BLOCKS } from "../www/js/constant.js";
 import { compressWorldModifyChunk, decompressWorldModifyChunk } from "../www/js/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID } from "../www/js/fluid/FluidConst.js";
@@ -728,7 +728,7 @@ export class ServerChunk {
             }
             //
             if (!tblock.material.tags.includes('no_drop')) {
-                actions.addDropItem({ pos: pos.clone().addScalarSelf(.5, .5, .5), items: [{ id: tblock.id, count: 1 }], force: true });
+                dropBlock(null, tblock, actions, true)
             }
             //
             world.actions_queue.add(null, actions);

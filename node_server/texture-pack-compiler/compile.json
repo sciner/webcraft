@@ -1492,7 +1492,7 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.05},
+            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
             "texture": "block/grass.png",
             "texture_variants": [
                 "block/grass/grass1.png",
@@ -3538,11 +3538,14 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.75},
+            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
                 "texture": "block/tall_grass_top.png"
+            },
+            "material": {
+                "id": "plant"
             },
             "texture": {
                 "up": "block/tall_grass_top.png",
@@ -3570,11 +3573,7 @@
                     "down": "block/tall_grass/tall_grass5_bottom.png"
                 }
             ],
-            "material": {
-                "id": "plant"
-            },
             "tags": [
-                "no_drop",
                 "mask_biome"
             ]
         },
@@ -4457,7 +4456,7 @@
         {
             "id": 633,
             "name": "WHEAT",
-            "item": {"name": "food"},
+            "item": {"name": "ingridient"},
             "style": "extruder",
             "diagonal": true,
             "material": {
@@ -5252,7 +5251,7 @@
             "style": "extruder",
             "diagonal": true,
             "texture": "item/egg.png",
-            "item": {"name": "food"},
+            "item": {"name": "ingridient"},
             "material": {
                 "id": "food"
             },
@@ -6829,7 +6828,7 @@
             "diagonal": true,
             "texture": "item/sugar.png",
             "item": {
-                "name": "food"
+                "name": "ingridient"
             },
             "material": {
                 "id": "food"
