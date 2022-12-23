@@ -402,6 +402,27 @@ export class VectorCollector {
         return this.list.get(vec.x).get(vec.y).get(vec.z);
     }
 
+    // If the element exists, returns it. Otherwise sets it to the result of createFn().
+    getOrSet(vec, createFn) {
+        let byY = this.list.get(vec.x);
+        if (byY == null) {
+            byY = new Map();
+            this.list.set(vec.x, byY);
+        }
+        let byZ = byY.get(vec.y);
+        if (byZ == null) {
+            byZ = new Map();
+            byY.set(vec.y, byZ);
+        }
+        let v = byZ.get(vec.z);
+        if (v == null && !byZ.has(vec.z)) {
+            v = createFn(vec);
+            byZ.set(vec.z, v);
+            this.size++;
+        }
+        return v;
+    }
+
     delete(vec) {
         if(this.list?.get(vec.x)?.get(vec.y)?.delete(vec.z)) {
             this.size--;
@@ -887,6 +908,18 @@ export class Vector {
         return this;
     }
 
+    minSelf(vec) {
+        this.x = Math.min(this.x, vec.x);
+        this.y = Math.min(this.y, vec.y);
+        this.z = Math.min(this.z, vec.z);
+    }
+
+    maxSelf(vec) {
+        this.x = Math.max(this.x, vec.x);
+        this.y = Math.max(this.y, vec.y);
+        this.z = Math.max(this.z, vec.z);
+    }
+
     /**
      * @return {Vector}
      */
@@ -1014,6 +1047,13 @@ export class Vector {
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
+        return this;
+    }
+
+    setScalar(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
     }
 
@@ -2432,4 +2472,87 @@ export class SimpleQueue {
         }
     }
 
+}
+
+// A matrix that has indices in [minRow..(minRow + rows - 1), minCol..(minCol + cols - 1)]
+export class SimpleShiftedMatrix {
+
+    constructor(minRow, minCol, rows, cols, arrayClass = Array) {
+        this.minRow = minRow;
+        this.minCol = minCol;
+        this.rows = rows;
+        this.cols = cols;
+        this.rowsM1 = rows - 1;
+        this.colsM1 = cols - 1;
+        this.maxRow = minRow + rows - 1;
+        this.maxCol = minCol + cols - 1;
+        this.arr = new arrayClass(rows * cols);
+    }
+
+    fill(v) {
+        for(let i = 0; i < this.arr.size; i++) {
+            this.arr[i] = v;
+        }
+        return this;
+    }
+
+    get(row, col) {
+        row -= this.minRow;
+        col -= this.minCol;
+        if ((row | col | (this.rowsM1 - row) | (this.colsM1 - col)) < 0) {
+            throw new Error();
+        }
+        return this.arr[row * this.cols + col];
+    }
+
+    getOrDefault(row, col, def) {
+        row -= this.minRow;
+        col -= this.minCol;
+        if ((row | col | (this.rowsM1 - row) | (this.colsM1 - col)) < 0) {
+            return def;
+        }
+        return this.arr[row * this.cols + col];
+    }
+
+    set(row, col, v) {
+        row -= this.minRow;
+        col -= this.minCol;
+        if ((row | col | (this.rowsM1 - row) | (this.colsM1 - col)) < 0) {
+            throw new Error();
+        }
+        this.arr[row * this.cols + col] = v;
+        return v;
+    }
+
+    has(row, col) {
+        return ((row - this.minRow) | (col - this.minCol) | (this.maxRow - row) | (this.maxCol - col)) >= 0;
+    }
+
+    hasRow(row) {
+        return ((row - this.minRow) | (this.maxRow - row)) >= 0;
+    }
+
+    hasCol(col) {
+        return ((col - this.minCol) | (this.maxCol - col)) >= 0;
+    }
+
+    *entries() {
+        for(let i = 0; i < this.rows; i++) {
+            for(let j = 0; j < this.cols; j++) {
+                yield [i + this.minRow, j + this.minCol, this.arr[i * this.cols + j]];
+            }
+        }
+    }
+
+    toArrayOfArrays() {
+        let res = [];
+        for(let i = 0; i < this.rows; i++) {
+            let s = [];
+            for(let j = 0; j < this.cols; j++) {
+                s.push(this.arr[i * this.cols + j]);
+            }
+            res.push(s);
+        }
+        return res;
+    }
 }

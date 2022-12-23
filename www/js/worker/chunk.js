@@ -293,7 +293,7 @@ export class Chunk {
      * @param {*} extra_data 
      * @param {*} entity_id 
      * @param {*} power 
-     * @param {boolean} check_is_solid 
+     * @param {boolean} check_is_solid - if true, it prevents replacing solid blocks
      * @returns 
      */
     setBlockIndirect(x, y, z, block_id, rotate, extra_data, entity_id, power, check_is_solid = false) {
