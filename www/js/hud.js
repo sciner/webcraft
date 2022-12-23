@@ -421,9 +421,13 @@ export class HUD {
             if (this.draw_block_info && desc) {
                 this.block_text = 'Targeted block Id: ' + desc.block.id +
                     '\nName: ' + desc.material.name +
+                    '\nStyle: ' + desc.material.style +
                     '\nWorld pos.: ' + desc.worldPos.toString() +
                     '\nPos. in chunk: ' + desc.posInChunk.toString() +
                     '\nChunk addr.: ' + desc.chunkAddr.toString();
+                if (desc.material.ticking) {
+                    this.block_text += '\nTicking: ' + desc.material.ticking.type;
+                }
                 if (desc.block.rotate) {
                     this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
                 }

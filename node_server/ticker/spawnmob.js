@@ -18,7 +18,6 @@ export default class Ticker {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         const updated_blocks = [];
-        
         if (!extra_data?.type || !extra_data?.skin) {
             return;
         }
