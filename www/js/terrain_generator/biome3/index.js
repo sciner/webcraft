@@ -13,6 +13,7 @@ import { NoiseFactory } from "./NoiseFactory.js";
 import { TerrainMapCell } from "./terrain/map_cell.js";
 import { TerrainMap2 } from "./terrain/map.js";
 import { WorldClientOreGenerator } from "./client_ore_generator.js";
+import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // import { AABB } from '../../core/AABB.js';
 // import { CaveGenerator } from "../cave_generator.js";
@@ -50,7 +51,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this._createBlockAABB_second = new AABB();
         // this.temp_set_block = null;
         // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
-        // this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
+        this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
         // this.flying_islands = new FlyIslands(world, seed, world_id, {});
     }
@@ -186,8 +187,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
          */
         const map                       = chunk.map;
         const xyz                       = new Vector(0, 0, 0);
-        const density_params            = new DensityParams(0, 0, 0, 0, 0);
-        const over_density_params       = new DensityParams(0, 0, 0, 0, 0);
+        const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
+        const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
 
         //
@@ -278,8 +279,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     xyz.y = chunk.coord.y + y;
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
-                    this.maps.calcDensity(xyz, cell, density_params);
-                    let {d1, d2, d3, d4, density} = density_params;
+                    this.maps.calcDensity(xyz, cell, density_params, map);
+                    let {d1, d2, d3, d4, density, dcaves} = density_params;
 
                     //
                     if(density > DENSITY_THRESHOLD) {
@@ -303,7 +304,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // убираем баг с полосой земли на границах чанков по высоте
                             if(y == chunk.size.y - 1) {
                                 xyz.y++
-                                this.maps.calcDensity(xyz, cell, over_density_params);
+                                this.maps.calcDensity(xyz, cell, over_density_params, map);
                                 xyz.y--
                                 if(over_density_params.density > DENSITY_THRESHOLD) {
                                     not_air_count = 100;
@@ -400,31 +401,36 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         not_air_count = 0;
 
-                        // если это уровень воды
-                        if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
-                            let block_id = BLOCK.STILL_WATER.id;
-                            // поверхность воды
-                            if(xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                // если холодно, то рисуем рандомные льдины
-                                const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
-                                if(water_cap_ice > .12) {
-                                    block_id = BLOCK.ICE.id;
-                                    // в еще более рандомных случаях на льдине рисует пику
-                                    if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
-                                        const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
-                                        for(let ph = 0; ph < peekh; ph++) {
-                                            chunk.setBlockIndirect(x, y + ph, z, block_id);
+                        // чтобы в пещерах не было воды
+                        if(dcaves === 0) {
+
+                            // если это уровень воды
+                            if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
+                                let block_id = BLOCK.STILL_WATER.id;
+                                // поверхность воды
+                                if(xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
+                                    // если холодно, то рисуем рандомные льдины
+                                    const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+                                    if(water_cap_ice > .12) {
+                                        block_id = BLOCK.ICE.id;
+                                        // в еще более рандомных случаях на льдине рисует пику
+                                        if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                                            const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
+                                            for(let ph = 0; ph < peekh; ph++) {
+                                                chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                            }
                                         }
                                     }
                                 }
+                                chunk.setBlockIndirect(x, y, z, block_id);
                             }
-                            chunk.setBlockIndirect(x, y, z, block_id);
-                        }
 
-                        if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
-                            if(rnd.double() < .07) {
-                                chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
+                            if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
+                                if(rnd.double() < .07) {
+                                    chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
+                                }
                             }
+
                         }
 
                     }

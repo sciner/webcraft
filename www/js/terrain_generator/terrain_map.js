@@ -3,7 +3,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { DIRT_COLOR_NOISE_RANGE } from '../constant.js';
 import { IndexedColor, getChunkAddr, Vector, Helpers, VectorCollector } from '../helpers.js';
 import { BIOMES } from "./biomes.js";
-import { CaveGenerator } from './cave_generator.js';
+import { CaveGenerator, DEFAULT_CAVE_LAYERS } from './cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
 import { OreGenerator } from './ore_generator.js';
 
@@ -266,7 +266,7 @@ export class TerrainMapManager {
             }
         }
         this.maps_cache.set(chunk.addr, map);
-        map.caves = new CaveGenerator(chunk.coord, noisefn);
+        map.caves = new CaveGenerator(chunk.coord, noisefn, DEFAULT_CAVE_LAYERS);
         map.ores = new OreGenerator(this.seed, noisefn, this.noisefn3d, map);
 
         // console.log(`Actual maps count: ${this.maps_cache.size}`);

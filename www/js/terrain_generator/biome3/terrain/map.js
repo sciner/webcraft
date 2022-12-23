@@ -3,12 +3,14 @@ import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
 import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_THRESHOLD, DensityParams } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
+import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../../cave_generator.js";
 
 export class TerrainMap2 extends TerrainMap {
 
-    constructor(chunk, options) {
+    constructor(chunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+        this.caves = new CaveGenerator(chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
     }
 
     /**
@@ -92,7 +94,7 @@ export class TerrainMap2 extends TerrainMap {
         const xyz = new Vector(0, 0, 0);
         const map = this;
         const treeSearchSize = new Vector(1, CHUNK_SIZE_Y + 1, 1);
-        const density_params = new DensityParams(0, 0, 0, 0, 0);
+        const density_params = new DensityParams(0, 0, 0, 0, 0, 0);
 
         for(let i = 0; i < 8; i++) {
 
@@ -115,7 +117,7 @@ export class TerrainMap2 extends TerrainMap {
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = map.cluster.y_base + y;
                     const preset = manager.getPreset(xyz);
-                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset}, density_params);
+                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset}, density_params, map);
                     if(density > DENSITY_THRESHOLD) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
                             if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y + 1, z, biome)) {
