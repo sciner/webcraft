@@ -1,6 +1,7 @@
 import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -84,7 +85,7 @@ export class ServerPlayerDamage {
         }
         
         // урон он воды и удушения эффект подводное дыхание
-        if (head.id >= 0) { // if it's a real block, not DUMMY
+        if ((head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || head.id > 0) { // if it's a real block, not DUMMY
             if (!head.has_oxygen) {
                 this.oxygen_got_timer = 0;
                 this.oxygen_lost_timer++;
@@ -109,13 +110,14 @@ export class ServerPlayerDamage {
         }
         
         // огонь/лава с эффектом защиты от огня
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || legs.material.material.id == 'lava') {
+        const is_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || is_lava) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
                 const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
                 if (fire_res_lvl == 0) {
-                    damage = (legs.material.material.id == 'lava') ? damage + 4 : damage + 1;
+                    damage = is_lava ? damage + 4 : damage + 1;
                 }
             }
         } else {
