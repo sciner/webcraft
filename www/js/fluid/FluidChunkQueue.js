@@ -522,7 +522,8 @@ export class FluidChunkQueue {
                         }
                     }
                 }
-                if (srcCount >= 2 && ((neib[1] & FLUID_SOLID16) > 0 || (neib[1] & 15) === 0)) {
+                if (srcCount >= 2 && ((neib[1] & FLUID_SOLID16) > 0
+                    || (neib[1] & FLUID_TYPE_MASK === fluidType) && (neib[1] & 15) === 0)) {
                     supportLvl = 0;
                 }
                 if (lvl !== supportLvl) {
