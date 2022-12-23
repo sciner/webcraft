@@ -596,7 +596,7 @@ export class WorldChestManager {
                 {id: bm.fromName('DIAMOND_SWORD').id,   count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
                 {id: bm.fromName('LAVA_BUCKET').id,     count: [0, 0, 0, 1, 2]},
                 {id: bm.fromName('SOUL_SAND').id,       count: [0, 0, 0, 1, 2]},
-                {id: bm.fromName('TNT').id,             count: [0, 0, 10]},
+                {id: bm.fromName('TNT').id,             count: [0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10]},
                 {id: bm.fromName('JUKEBOX').id,         count: [0, 0, 0, 1]},
                 {id: bm.fromName('DIAMOND').id,         count: [0, 0, 0, 0, 1, 2]},
                 {id: bm.fromName('IRON_BARS').id,       count: [0, 0, 0, 2, 2, 4, 4, 8]},
