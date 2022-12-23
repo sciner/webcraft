@@ -495,6 +495,7 @@ export class FluidChunkQueue {
             // }
 
             let changed = emptied;
+            let srcCount = 0;
             if (!emptied && lvl > 0 && neibChunk[0]) {
                 // 1. if not source - check support
                 let supportLvl = 16;
@@ -510,6 +511,9 @@ export class FluidChunkQueue {
                             if (lowLvl < 8) {
                                 supportLvl = Math.min(supportLvl, lowLvl);
                             }
+                            if (neibLvl === 0) {
+                                srcCount++;
+                            }
                         }
                         if (!neibChunk[dir]) {
                             // we don't actually know!
@@ -517,6 +521,9 @@ export class FluidChunkQueue {
                             break;
                         }
                     }
+                }
+                if (srcCount >= 2 && ((neib[1] & FLUID_SOLID16) > 0 || (neib[1] & 15) === 0)) {
+                    supportLvl = 0;
                 }
                 if (lvl !== supportLvl) {
                     changed = true;
@@ -536,6 +543,7 @@ export class FluidChunkQueue {
                 moreThan = (lvl & 7) + lower;
                 goesSides = lvl === 0 || moreThan < 8 && (neib[1] & FLUID_SOLID16) > 0;
             }
+
             let flowMask = 0, emptyMask = 0, emptyBest = 0;
             let hasSideFlow = false;
             // 4 propagate to neibs
