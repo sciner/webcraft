@@ -8,11 +8,12 @@ const DELETE_BLOCK_ID = 199; // this block is automatically removed from the tem
 const MAX_EXTEND_TEMPLATE_FRONT = 2;
 const MAX_EXTEND_TEMPLATE_SIDE = 1;
 // The radius of "air craters" adeed around the porch tiles. It can be fractional.
-const PORCH_CRATER_RADIUS = 2.4;
+const PORCH_CRATER_RADIUS = 2;
 // Up to this radius, the floor of the air crater is flat. Starting from this radius,
 // the height starts to increase. To avoid blocking entrances near the roofs, it shuld
 // be at least 1.
-const PORCH_FLAT_CRATER_RADIUS = 1.4;
+const PORCH_FLAT_CRATER_RADIUS = 1;
+const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
 
 //
@@ -174,8 +175,11 @@ export class BuilgingTemplate {
     addAirMargins(all_blocks, min, bm) {
 
         function recFindPorch(x, prevFloorY, z) {
-            if (z >= door_pos.z || // don't search for a porch there
-                porch.getOrDefault(x, z, true) // if we have already visited it
+            if (// don't search for a porch there
+                z >= door_pos.z || x < door_pos.x - PORCH_MAX_HALF_WIDTH ||
+                x > door_pos.x + PORCH_MAX_HALF_WIDTH ||
+                // if we have already visited it
+                porch.getOrDefault(x, z, true)
             ) {
                 return;
             }
