@@ -223,15 +223,17 @@ export class ServerWorld {
         const good_light_for_spawn = this.getLight() > 6;
         const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
+        console.log(good_world_for_spawn + ' ' + auto_generate_mobs + ' ' + good_light_for_spawn);
         // не спавним мобов в мире-конструкторе и в дневное время
-        if(!auto_generate_mobs || !good_world_for_spawn || !good_light_for_spawn) {
+        if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
             return;
         }
+        console.log('good_world_for_spawn');
         // находим игроков
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
-                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie']);
+                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
                 if (mobs.length <= 4) {
                     // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
                     // выбираем рандомную позицию для спауна
@@ -250,9 +252,11 @@ export class ServerWorld {
                             // не спавним рядом с игроком
                             const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
+                                // тип мобов для спауна
+                                const type_mob = (Math.random() < 0.5) ? 'zombie' : 'skeleton'; 
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
                                 const params = {
-                                    type:       'zombie',
+                                    type:       type_mob,
                                     skin:       'base',
                                     pos:        spawn_pos,
                                     pos_spawn:  spawn_pos,
@@ -261,7 +265,7 @@ export class ServerWorld {
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);
-                                console.log('Auto spawn zombie pos spawn: ' + spawn_pos);
+                                console.log('Auto spawn ' + type_mob + ' pos spawn: ' + spawn_pos);
                             }
                         }
                     }
