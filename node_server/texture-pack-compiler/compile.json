@@ -4532,7 +4532,7 @@
             "id": 73,
             "name": "REDSTONE_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "REDSTONE", "count": 2, "chance": 1},
+            "drop_item": {"name": "REDSTONE_WIRE", "count": 2, "chance": 1},
             "texture": "block/redstone_ore.png",
             "material": {
                 "id": "stone"
@@ -7283,7 +7283,7 @@
             "id": 194,
             "name": "DEEPSLATE_REDSTONE_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "REDSTONE", "count": 2, "chance": 1},
+            "drop_item": {"name": "REDSTONE_WIRE", "count": 2, "chance": 1},
             "texture": "block/deepslate_redstone_ore.png",
             "material": {
                 "id": "stone"
