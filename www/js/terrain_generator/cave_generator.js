@@ -49,7 +49,7 @@ export class CaveGenerator {
     }
 
     // Return cave point
-    getPoint(xyz, map_cell, in_ocean) {
+    getPoint(xyz, map_cell, in_ocean, density_params) {
         const x = xyz.x - this.chunk_coord.x;
         const z = xyz.z - this.chunk_coord.z;
         for(let i = 0; i < this.layers.length; i++) {
@@ -65,7 +65,7 @@ export class CaveGenerator {
             }
             const dist = xyz.y - cell.y;
             const dens = cell.density
-            if(dist < -5 * dens || dist > 5 * dens) {
+            if(dist < -2 * dens || dist > (8 + density_params.d4 * 3) * dens) {
                 continue;
             }
             return cell.density;

@@ -4,7 +4,7 @@ import { BLOCK } from '../../blocks.js';
 import { alea, Default_Terrain_Generator } from "../default.js";
 import { MineGenerator } from "../mine/mine_generator.js";
 import { DungeonGenerator } from "../dungeon.js";
-import { DensityParams, DENSITY_THRESHOLD, GENERATOR_OPTIONS, ORE_THRESHOLD, TerrainMapManager2, WATER_LEVEL } from "./terrain/manager.js";
+import { DensityParams, DENSITY_THRESHOLD, GENERATOR_OPTIONS, UNCERTAIN_ORE_THRESHOLD, TerrainMapManager2, WATER_LEVEL } from "./terrain/manager.js";
 // import FlyIslands from "../flying_islands/index.js";
 import { ClusterManager } from "../cluster/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
@@ -301,114 +301,112 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                         */
 
-                        if(density > 0) {
+                        // убираем баг с полосой земли на границах чанков по высоте
+                        if(y == chunk.size.y - 1) {
+                            xyz.y++
+                            this.maps.calcDensity(xyz, cell, over_density_params, map);
+                            xyz.y--
+                            if(over_density_params.density > DENSITY_THRESHOLD) {
+                                not_air_count = 100;
+                            }
+                        }
 
-                            // убираем баг с полосой земли на границах чанков по высоте
-                            if(y == chunk.size.y - 1) {
-                                xyz.y++
-                                this.maps.calcDensity(xyz, cell, over_density_params, map);
-                                xyz.y--
-                                if(over_density_params.density > DENSITY_THRESHOLD) {
-                                    not_air_count = 100;
-                                }
+                        // get block
+                        let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
+
+                        if(block_id == BLOCK.STONE.id) {
+                            if(density < DENSITY_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
+                                // generating a small amount of ore on the surface of the walls
+                                block_id = this.ore_generator.generate(xyz);
+                            } else {
+                                block_id = BLOCK.UNCERTAIN_STONE.id
+                            }
+                        }
+
+                        // если это самый первый слой поверхности
+                        if(not_air_count == 0) {
+
+                            // random joke sign
+                            if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
+                                chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
                             }
 
-                            // get block
-                            let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
-
-                            if(block_id == BLOCK.STONE.id) {
-                                if(density < DENSITY_THRESHOLD + ORE_THRESHOLD) {
-                                    // generating a small amount of ore on the surface of the walls
-                                    block_id = this.ore_generator.generate(xyz);
-                                } else {
-                                    block_id = BLOCK.UNCERTAIN_STONE.id
-                                }
+                            if(rand_lava.double() < .005 && xyz.y < 75) {
+                                chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
                             }
 
-                            // если это самый первый слой поверхности
-                            if(not_air_count == 0) {
+                            // если это над водой
+                            if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
 
-                                // random joke sign
-                                if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
-                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
-                                }
+                                if(cluster_cell && !cluster_cell.building) {
 
-                                if(rand_lava.double() < .005 && xyz.y < 75) {
-                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
-                                }
-
-                                // если это над водой
-                                if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
-
-                                    if(cluster_cell && !cluster_cell.building) {
-
-                                        // прорисовка наземных блоков кластера
-                                        if(!cluster_drawed) {
-                                            cluster_drawed = true;
-                                            if(y < chunk.size.y - cluster_cell.height) {
-                                                if(Array.isArray(cluster_cell.block_id)) {
-                                                    for(let yy = 0; yy < cluster_cell.height; yy++) {
-                                                        chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
-                                                    }
-                                                } else {
-                                                    for(let yy = 0; yy < cluster_cell.height; yy++) {
-                                                        chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
-                                                    }
+                                    // прорисовка наземных блоков кластера
+                                    if(!cluster_drawed) {
+                                        cluster_drawed = true;
+                                        if(y < chunk.size.y - cluster_cell.height) {
+                                            if(Array.isArray(cluster_cell.block_id)) {
+                                                for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
+                                                }
+                                            } else {
+                                                for(let yy = 0; yy < cluster_cell.height; yy++) {
+                                                    chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
                                                 }
                                             }
-                                            if(cluster_cell.y_shift == 0) {
-                                                not_air_count++;
-                                                continue
-                                            }
                                         }
-
-                                    } else {
-
-                                        // шапка слоя земли (если есть)
-                                        if(y < chunk.size.y && dirt_layer.cap_block_id) {
-                                            chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id);
+                                        if(cluster_cell.y_shift == 0) {
+                                            not_air_count++;
+                                            continue
                                         }
+                                    }
 
-                                        // Plants and grass (растения и трава)
-                                        const {plant_blocks} = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
-                                        if(plant_blocks) {
-                                            for(let i = 0; i < plant_blocks.length; i++) {
-                                                const p = plant_blocks[i];
-                                                chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
-                                                // вообще не помню зачем это, но вроде нужная штука
-                                                //if(block.not_transparent) {
-                                                //    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
-                                                //}
-                                            }
+                                } else {
+
+                                    // шапка слоя земли (если есть)
+                                    if(y < chunk.size.y && dirt_layer.cap_block_id) {
+                                        chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id);
+                                    }
+
+                                    // Plants and grass (растения и трава)
+                                    const {plant_blocks} = cell.genPlantOrGrass(x, y, z, chunk.size, block_id, rnd, density_params);
+                                    if(plant_blocks) {
+                                        for(let i = 0; i < plant_blocks.length; i++) {
+                                            const p = plant_blocks[i];
+                                            chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
+                                            // вообще не помню зачем это, но вроде нужная штука
+                                            //if(block.not_transparent) {
+                                            //    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
+                                            //}
                                         }
+                                    }
 
-                                        // draw big stones
-                                        if(y < chunk.size.y - 2 && big_stone_density > .5) {
-                                            chunk.setBlockIndirect(x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
-                                            if(big_stone_density > .6) {
-                                                chunk.setBlockIndirect(x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
-                                            }
+                                    // draw big stones
+                                    if(y < chunk.size.y - 2 && big_stone_density > .5) {
+                                        chunk.setBlockIndirect(x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
+                                        if(big_stone_density > .6) {
+                                            chunk.setBlockIndirect(x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
                                         }
                                     }
                                 }
                             }
-
-                            //
-                            if(not_air_count == 0 && !cell.dirt_layer) {
-                                cell.dirt_layer = dirt_layer;
-                            }
-                            chunk.setBlockIndirect(x, y, z, block_id);
-
                         }
+
+                        //
+                        if(not_air_count == 0 && !cell.dirt_layer) {
+                            cell.dirt_layer = dirt_layer;
+                        }
+                        chunk.setBlockIndirect(x, y, z, block_id);
 
                         not_air_count++;
 
                     } else {
 
+                        const is_ceil = not_air_count > 0
+
                         not_air_count = 0;
 
                         // чтобы в пещерах не было воды
-                        if(dcaves === 0) {
+                        if(dcaves == 0) {
 
                             // если это уровень воды
                             if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
@@ -434,6 +432,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
                                 if(rnd.double() < .07) {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
+                                }
+                            }
+
+                        } else {
+
+                            // внутренность пещеры
+
+                            // потолок и часть стен
+                            if(is_ceil) {
+                                // если не песчаный
+                                if(!cell.biome.is_sand) {
+                                    if(d1 > .25) {
+                                        if(d3 > .25) {
+                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id);
+                                        }
+                                    }
                                 }
                             }
 

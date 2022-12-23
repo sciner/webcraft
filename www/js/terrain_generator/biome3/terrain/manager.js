@@ -9,14 +9,14 @@ import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
-export const TREE_BETWEEN_DIST      = 2; // минимальное расстояние между деревьями
-export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
-export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число деревьев в чанке
-export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
-export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
-export const WATER_LEVEL            = 80;
-export const DENSITY_THRESHOLD      = .6;
-export const ORE_THRESHOLD          = .025;
+export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
+export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
+export const MAX_TREES_PER_CHUNK        = 16; // Максимальное число деревьев в чанке
+export const TREE_MIN_Y_SPACE           = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
+export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для устновки дома
+export const WATER_LEVEL                = 80;
+export const DENSITY_THRESHOLD          = .6;
+export const UNCERTAIN_ORE_THRESHOLD    = .025;
 
 let mountain_desert_mats = [];
 
@@ -389,8 +389,8 @@ export class TerrainMapManager2 {
         }
 
         // Caves
-        if(density > DENSITY_THRESHOLD * 1.1) {
-            const caveDensity = map.caves.getPoint(xyz, cell, false);
+        if(density > DENSITY_THRESHOLD * 1.5) {
+            const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
                 res.dcaves = caveDensity
                 density = 0;
@@ -438,7 +438,7 @@ export class TerrainMapManager2 {
             // 2. select block in dirt layer
             block_id = dirt_layer.blocks[0];
             if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
-                block_id = dirt_layer.blocks[1];
+                block_id = dirt_layer.blocks[dirt_layer.blocks.length - 1];
             }
             const dirt_layer_blocks_count = dirt_layer.blocks.length;
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
