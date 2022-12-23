@@ -1,11 +1,11 @@
 import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
-import { alea } from "../../www/js/terrain_generator/default.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../../www/js/constant.js";
 import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
     INVENTORY_CHANGE_CLEAR_DRAG_ITEM, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
+import { Treasure_Sets } from "./treasure_sets.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
 const CHANGE_RESULT_FLAG_SECOND_CHEST = 2;
@@ -15,6 +15,7 @@ export class WorldChestManager {
 
     constructor(world) {
         this.world = world;
+        this.treasure_sets = new Treasure_Sets(world, config.treasure_chests)
     }
 
     /**
@@ -572,68 +573,7 @@ export class WorldChestManager {
 
     // Generate chest
     async generateChest(pos, rotate, params) {
-        // @todo Generate random treasure chest content
-        const rnd = new alea(this.world.seed + pos.toHash());
-        const slots = {};
-        const bm = this.world.block_manager;
-        const items_kit = [
-            {id: bm.fromName('IRON_INGOT').id,          count: [1, 1, 1, 1, 2, 2, 3, 5]},
-            {id: bm.fromName('WHEAT_SEEDS').id,         count: [0, 0, 1, 2, 3, 8]},
-            {id: bm.fromName('CARROT_SEEDS').id,        count: [0, 0, 0, 2, 2, 4, 4, 8]},
-            {id: bm.fromName('STONE_SWORD').id,         count: [0, 0, 0, 0, 0, 1]},
-            {id: bm.fromName('STONE_SHOVEL').id,        count: [0, 0, 0, 0, 1]},
-            {id: bm.fromName('BREAD').id,               count: [1, 1, 2]},
-            {id: bm.fromName('WHEAT').id,               count: [1, 1, 2, 2, 3]},
-            {id: bm.fromName('APPLE').id,               count: [0, 0, 0, 0, 1]},
-            {id: bm.fromName('OAK_SIGN').id,            count: [0, 0, 0, 1, 1, 2, 2, 3]},
-            {id: bm.fromName('COBBLESTONE').id,         count: [0, 0, 0, 4, 4, 8, 8, 16]},
-            {id: bm.fromName('MUSIC_DISC_3').id,        count: [0, 0, 1]},
-        ];
-        //
-        if(['treasure_room', 'cave_mines'].indexOf(params.source) >= 0) {
-            items_kit.push(...[
-                {id: bm.fromName('GOLD_INGOT').id,      count: [0, 0, 1, 1, 2, 2, 3, 3, 4]},
-                {id: bm.fromName('DIAMOND_SWORD').id,   count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
-                {id: bm.fromName('LAVA_BUCKET').id,     count: [0, 0, 0, 1, 2]},
-                {id: bm.fromName('SOUL_SAND').id,       count: [0, 0, 0, 1, 2]},
-                {id: bm.fromName('TNT').id,             count: [0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10]},
-                {id: bm.fromName('JUKEBOX').id,         count: [0, 0, 0, 1]},
-                {id: bm.fromName('DIAMOND').id,         count: [0, 0, 0, 0, 1, 2]},
-                {id: bm.fromName('IRON_BARS').id,       count: [0, 0, 0, 2, 2, 4, 4, 8]},
-                {id: bm.fromName('MUSIC_DISC_1').id,    count: [0, 0, 0, 1]},
-                {id: bm.fromName('MUSIC_DISC_2').id,    count: [0, 0, 0, 1]},
-                // MUSIC_DISC_3 removed, because it in regular generated chests
-                {id: bm.fromName('MUSIC_DISC_4').id,    count: [0, 0, 0, 1]},
-                {id: bm.fromName('MUSIC_DISC_5').id,    count: [0, 0, 0, 1]},
-                {id: bm.fromName('MUSIC_DISC_6').id,    count: [0, 0, 1]},
-                {id: bm.fromName('MUSIC_DISC_7').id,    count: [0, 0, 0, 1]},
-                {id: bm.fromName('MUSIC_DISC_8').id,    count: [0, 0, 0, 0, 0, 0, 1]},
-            ]);
-        }
-        //
-        if(pos.y > 500) {
-            items_kit.push(...[
-                {id: bm.fromName('PRISMARINE').id,      count: [0, 0, 2, 2, 4, 4, 6, 6, 8]},
-                {id: bm.fromName('SEA_LANTERN').id,     count: [0, 0, 1, 1, 2, 2, 3, 3, 4]},
-            ]);
-        }
-        //
-        for(let i = 0; i < DEFAULT_CHEST_SLOT_COUNT; i++) {
-            if(rnd.double() > .8) {
-                continue;
-            }
-            const kit_index = Math.floor(rnd.double() * items_kit.length);
-            const item = {...items_kit[kit_index]};
-            item.count = item.count[Math.floor(rnd.double() * item.count.length)];
-            if(item.count > 0) {
-                slots[i] = item;
-                const b = BLOCK.fromId(item.id);
-                if(b.power != 0) {
-                    item.power = b.power;
-                }
-            }
-        }
-
+        const slots = this.treasure_sets.generateSlots(this.world, pos, params.source, DEFAULT_CHEST_SLOT_COUNT)
         // create db params
         const resp = {
             action_id: ServerClient.BLOCK_ACTION_CREATE,
