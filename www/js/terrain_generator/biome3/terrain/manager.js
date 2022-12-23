@@ -72,13 +72,15 @@ export class DensityParams {
      * @param {float} d3
      * @param {float} d4
      * @param {float} density
+     * @param {float} dcaves
      */
-    set(d1, d2, d3, d4, density) {
+    set(d1, d2, d3, d4, density, dcaves) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
+        this.dcaves = dcaves || 0;
         return this;
     }
 
@@ -361,12 +363,13 @@ export class TerrainMapManager2 {
 
         if(h + under_earth_coeff < DENSITY_THRESHOLD) {
             if(density_params) {
-                return density_params.set(0, 0, 0, 0, 0);
+                return density_params.set(0, 0, 0, 0, 0, 0);
             }
             return ZeroDensity;
         }
 
         const res = density_params || new DensityParams(0, 0, 0, 0, 0, 0);
+        res.dcaves = 0;
 
         this.noise3d.fetchGlobal4(xyz, res);
         const {d1, d2, d3, d4} = res;
@@ -535,7 +538,7 @@ export class TerrainMapManager2 {
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
- 
+
                     xyz.y = map.cluster.y_base;
                     this.noise3d.generate4(xyz, doorSearchSize);
 
