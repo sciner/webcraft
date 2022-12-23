@@ -191,6 +191,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
 
+        const rand_lava = new alea('random_lava_source_' + this.seed);
+
         //
         const calcBigStoneDensity = (xyz, has_cluster) => {
             if(has_cluster) {
@@ -329,6 +331,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
                                     chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
+                                }
+
+                                if(rand_lava.double() < .005 && xyz.y < 75) {
+                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
                                 }
 
                                 // если это над водой
