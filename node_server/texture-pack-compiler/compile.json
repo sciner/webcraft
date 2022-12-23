@@ -1492,7 +1492,7 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
+            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.05},
             "texture": "block/grass.png",
             "texture_variants": [
                 "block/grass/grass1.png",
@@ -1507,7 +1507,6 @@
                 "id": "plant"
             },
             "tags": [
-                "no_drop",
                 "mask_biome"
             ]
         },
