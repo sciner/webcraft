@@ -1418,6 +1418,7 @@
             "id": 21,
             "name": "LAPIS_LAZULI_ORE",
             "sound": "madcraft:block.stone",
+            "drop_item": {"name": "LAPIS_LAZULI", "count": 1},
             "texture": "block/lapis_ore.png",
             "material": {
                 "id": "stone"
@@ -2584,6 +2585,7 @@
             "id": 129,
             "name": "EMERALD_ORE",
             "sound": "madcraft:block.stone",
+            "drop_item": {"name": "EMERALD", "count": 1},
             "material": {"id": "stone"},
             "texture": "block/emerald_ore.png",
             "tags": [
@@ -7413,6 +7415,7 @@
         {
             "id": 212,
             "name": "GOLD_NUGGET",
+            "piece_of": "GOLD_INGOT",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
@@ -8198,6 +8201,7 @@
         {
             "id": 796,
             "name": "IRON_NUGGET",
+            "piece_of": "IRON_INGOT",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
@@ -8418,6 +8422,138 @@
                 "id": "stone"
             },
             "texture": "block/stone.png"
+        },
+        {
+            "id": 1024,
+            "name": "COPPER_NUGGET",
+            "piece_of": "COPPER_INGOT",
+            "item": {"name": "nugget"},
+            "texture": "./textures/coper_ingot.png"
+        },
+        {
+            "id": 1025,
+            "name": "COAL_PIECE",
+            "piece_of": "COAL",
+            "item": {"name": "coal_piece"},
+            "fuel_time": 10,
+            "texture": "item/coal.png"
+        },
+        {
+            "id": 1026,
+            "name": "DIAMOND_SHARD",
+            "piece_of": "DIAMOND",
+            "item": {"name": "shard"},
+            "texture": "item/diamond.png"
+        },
+        {
+            "id": 1027,
+            "name": "POOR_GOLD_ORE",
+            "inherit": "GOLD_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "GOLD_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1028,
+            "name": "POOR_DEEPSLATE_GOLD_ORE",
+            "inherit": "DEEPSLATE_GOLD_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "GOLD_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1029,
+            "name": "POOR_IRON_ORE",
+            "inherit": "IRON_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "IRON_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1030,
+            "name": "POOR_DEEPSLATE_IRON_ORE",
+            "inherit": "DEEPSLATE_IRON_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "IRON_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1031,
+            "name": "POOR_COAL_ORE",
+            "inherit": "COAL_ORE",
+            "drop_item": {"name": "COAL_PIECE", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1032,
+            "name": "POOR_DIAMOND_ORE",
+            "inherit": "DIAMOND_ORE",
+            "drop_item": {"name": "DIAMOND_SHARD", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1033,
+            "name": "EMERALD",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "item/emerald.png"
+        },
+        {
+            "id": 1034,
+            "name": "EMERALD_SHARD",
+            "piece_of": "EMERALD",
+            "item": {"name": "shard"},
+            "texture": "item/emerald.png"
+        },
+        {
+            "id": 1035,
+            "name": "POOR_EMERALD_ORE",
+            "inherit": "EMERALD_ORE",
+            "drop_item": {"name": "EMERALD_SHARD", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1036,
+            "name": "LAPIS_LAZULI",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "item/lapis_lazuli.png"
+        },
+        {
+            "id": 1037,
+            "name": "LAPIS_LAZULI_SHARD",
+            "piece_of": "LAPIS_LAZULI",
+            "item": {"name": "shard"},
+            "texture": "item/lapis_lazuli.png"
+        },
+        {
+            "id": 1038,
+            "name": "POOR_LAPIS_LAZULI_ORE",
+            "inherit": "LAPIS_LAZULI_ORE",
+            "drop_item": {"name": "LAPIS_LAZULI_SHARD", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1039,
+            "name": "ANCIENT_DEBRIS",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "NETHERITE_SCRAP", "count": 2},
+            "texture": {
+                "up": "block/ancient_debris_side.png",
+                "side": "block/ancient_debris_side.png",
+                "down": "block/ancient_debris_side.png"
+            },
+            "material": {
+                "id": "netherite"
+            }
+        },
+        {
+            "id": 1040,
+            "name": "NETHERITE_SCRAP",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "netherite"
+            },
+            "texture": "item/netherite_scrap.png"
         }
     ]
 }

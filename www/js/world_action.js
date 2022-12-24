@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, getChunkAddr } from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -264,29 +264,31 @@ export function dropBlock(player, tblock, actions, force) {
         return [];
     }
 
-    if(tblock.material.drop_item) {
-        const drop_block = BLOCK.fromName(tblock.material.drop_item?.name);
+    const drop_item = tblock.material.drop_item;
+    if(drop_item) {
+        const drop_block = BLOCK.fromName(drop_item?.name);
         if(drop_block) {
-            if('chance' in tblock.material.drop_item) {
-                let count = tblock.material.drop_item.count;
-                if(count) {
-                    if(Math.random() <= tblock.material.drop_item.chance) {
-                        if(Array.isArray(count)) {
-                            // const rnd = (Math.random() * (max-min + 1) + min) | 0;
-                            let count_index = (Math.random() * count.length) | 0;
-                            count = count[count_index];
-                        }
-                        count = parseInt(count);
-                        if(count > 0) {
-                            const item = makeDropItem(tblock, {id: drop_block.id, count: count});
-                            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
-                            return [item]
-                        }
+            const chance = drop_item.chance ?? 1;
+            if(Math.random() < chance) {
+                let count = drop_item.count;
+                const min_max_count = drop_item.min_max_count;
+                if(count || min_max_count) {
+                    if(Array.isArray(count)) {
+                        let count_index = (Math.random() * count.length) | 0;
+                        count = count[count_index];
+                    } else if (min_max_count) {
+                        count = Mth.randomIntRange(min_max_count[0], min_max_count[1]);
+                    }
+                    count = parseInt(count);
+                    if(count > 0) {
+                        const item = makeDropItem(tblock, {id: drop_block.id, count: count});
+                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        return [item];
                     }
                 }
             }
         } else {
-            console.error('error_invalid_drop_item', tblock.material.drop_item);
+            console.error('error_invalid_drop_item', drop_item);
         }
     } else {
         const items = [];

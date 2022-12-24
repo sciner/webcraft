@@ -1569,74 +1569,6 @@
         }
     },
     {
-        "id": "9c90c653-b33a-4a02-b5bc-3d678dc49bce",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "I"
-        ],
-        "key": {
-            "I": {
-                "item": "madcraft:iron_ingot"
-            }
-        },
-        "result": {
-            "item": "madcraft:iron_nugget",
-            "count": 9
-        }
-    },
-    {
-        "id": "2c64deeb-bb04-41ae-b947-568ba0af1c92",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "NNN",
-            "NNN",
-            "NNN"
-        ],
-        "key": {
-            "N": {
-                "item": "madcraft:iron_nugget"
-            }
-        },
-        "result": {
-            "item": "madcraft:iron_ingot",
-            "count": 1
-        }
-    },
-    {
-        "id": "b21c237c-94f5-4f1d-a86d-4b0ebe32d437",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "I"
-        ],
-        "key": {
-            "I": {
-                "item": "madcraft:gold_ingot"
-            }
-        },
-        "result": {
-            "item": "madcraft:gold_nugget",
-            "count": 9
-        }
-    },
-    {
-        "id": "15c579bd-eda8-45c2-8910-ba220387e853",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "NNN",
-            "NNN",
-            "NNN"
-        ],
-        "key": {
-            "N": {
-                "item": "madcraft:gold_nugget"
-            }
-        },
-        "result": {
-            "item": "madcraft:gold_ingot",
-            "count": 1
-        }
-    },
-    {
         "id": "a96d9b22-487d-4178-ad0d-4ea0fdd3f493",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -1676,6 +1608,22 @@
         "result": {
             "item": "madcraft:chain",
             "count": 1
+        }
+    },
+    {
+        "id": "21157523-7ac7-4693-8fe3-d13d0cbcaf11",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "N"
+        ],
+        "key": {
+            "N": {
+                "item": "madcraft:netherite_block"
+            }
+        },
+        "result": {
+            "item": "madcraft:netherite_ingot",
+            "count": 9
         }
     }
 ]
