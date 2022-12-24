@@ -8,9 +8,9 @@ export const DEFAULT_CAVE_LAYERS = [
 ];
 
 export const BIOME3_CAVE_LAYERS = [
-    {y: 72, octave1: 28.4, octave2: 28.4, width: 0.42, height: 24, shift: 64000},
-    {y: 48, octave1: 32, octave2: 7.11, width: 0.42, height: 48, shift: 48000},
-    {y: 16, octave1: 32, octave2: 7.11, width: 0.42, height: 16, shift: 16000},
+    {y: 72, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 24, shift: 64000},
+    {y: 48, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 48, shift: 48000},
+    {y: 16, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 16000},
 ];
 
 export class CaveGenerator {
