@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, getChunkAddr } from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -267,14 +267,16 @@ export function dropBlock(player, tblock, actions, force) {
     if(tblock.material.drop_item) {
         const drop_block = BLOCK.fromName(tblock.material.drop_item?.name);
         if(drop_block) {
-            if('chance' in tblock.material.drop_item) {
-                let count = tblock.material.drop_item.count;
+            if('chance' in block.material.drop_item) {
+                let count = block.material.drop_item.count;
                 if(count) {
-                    if(Math.random() <= tblock.material.drop_item.chance) {
+                    if(Math.random() <= block.material.drop_item.chance) {
                         if(Array.isArray(count)) {
                             // const rnd = (Math.random() * (max-min + 1) + min) | 0;
                             let count_index = (Math.random() * count.length) | 0;
                             count = count[count_index];
+                        } else if (min_max_count) {
+                            count = Mth.randomIntRange(min_max_count[0], min_max_count[1]);
                         }
                         count = parseInt(count);
                         if(count > 0) {
@@ -311,8 +313,8 @@ export function dropBlock(player, tblock, actions, force) {
                 }
             }
         // default drop item
-        } else if(tblock.material.spawnable) {
-            items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
+        } else if(block.material.spawnable) {
+            items.push(makeDropItem(block, {id: block.id, count: 1}));
         }
         for(let item of items) {
             actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});

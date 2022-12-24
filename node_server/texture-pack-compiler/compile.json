@@ -7386,6 +7386,7 @@
         {
             "id": 212,
             "name": "GOLD_NUGGET",
+            "piece_of": "GOLD_INGOT",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
@@ -8171,6 +8172,7 @@
         {
             "id": 796,
             "name": "IRON_NUGGET",
+            "piece_of": "IRON_INGOT",
             "item": {"name": "nugget"},
             "style": "extruder",
             "material": {
@@ -8391,6 +8393,69 @@
                 "id": "stone"
             },
             "texture": "block/stone.png"
-        }
+        },
+        {
+            "id": 1024,
+            "name": "COPPER_NUGGET",
+            "piece_of": "COPPER_INGOT",
+            "item": {"name": "nugget"},
+            "texture": "./textures/coper_ingot.png"
+        },
+        {
+            "id": 1025,
+            "name": "COAL_PIECE",
+            "piece_of": "COAL",
+            "item": {"name": "coal_piece"},
+            "fuel_time": 10,
+            "texture": "item/coal.png"
+        },
+        {
+            "id": 1026,
+            "name": "DIAMOND_SHARD",
+            "piece_of": "DIAMOND",
+            "item": {"name": "shard"},
+            "style": "extruder",
+            "texture": "item/diamond.png"
+        },
+        {
+            "id": 1027,
+            "name": "POOR_GOLD_ORE",
+            "inherit": "GOLD_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "GOLD_NUGGET", "min_max_count": [1, 9], "chance": 1}
+        },
+        {
+            "id": 1028,
+            "name": "POOR_DEEPSLATE_GOLD_ORE",
+            "inherit": "DEEPSLATE_GOLD_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "GOLD_NUGGET", "min_max_count": [1, 9], "chance": 1}
+        },
+        {
+            "id": 1029,
+            "name": "POOR_IRON_ORE",
+            "inherit": "IRON_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "IRON_NUGGET", "min_max_count": [1, 9], "chance": 1}
+        },
+        {
+            "id": 1030,
+            "name": "POOR_DEEPSLATE_IRON_ORE",
+            "inherit": "DEEPSLATE_IRON_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "IRON_NUGGET", "min_max_count": [1, 9], "chance": 1}
+        },
+        {
+            "id": 1031,
+            "name": "POOR_COAL_ORE",
+            "inherit": "COAL_ORE",
+            "drop_item": {"name": "COAL_PIECE", "min_max_count": [1, 9], "chance": 1}
+        },
+        {
+            "id": 1032,
+            "name": "POOR_DIAMOND_ORE",
+            "inherit": "DIAMOND_ORE",
+            "drop_item": {"name": "DIAMOND_SHARD", "min_max_count": [1, 9], "chance": 1}
+        }        
     ]
 }

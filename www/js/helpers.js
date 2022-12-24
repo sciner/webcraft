@@ -179,6 +179,16 @@ export class Mth {
         const vToPower = Math.pow(Math.abs(v), narrowness) * v;
         return (vToPower + flatness * (v - vToPower)) * width;
     }
+
+    // generates from min to max, inclusive
+    static randomIntRange(min, max) {
+        return Math.random() * (max - min + 1) + min | 0;
+    }
+
+    // generates from 0 (inclusive) to max (exclusive)
+    static randomInt(maxExclusive) {
+        return Math.random() * maxExclusive | 0;
+    }
 }
 
 export class IvanArray {

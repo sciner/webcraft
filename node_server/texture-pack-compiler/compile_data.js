@@ -21,6 +21,8 @@ const START_SLOPE_ID            = 919;
 const START_CHAIR_ID            = 300;
 const START_STOOL_ID            = 320;
 
+const INHERIT_EXCLUDES = ['id', 'name', 'inherit'];
+
 const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*, 'WARPED'*/];
 
 // CompileData
@@ -50,6 +52,7 @@ export class CompileData {
     }
 
     async init() {
+        this.inheritAll();
         await this.initDiscs();
         this.initWool();
         this.initCarpets();
@@ -857,4 +860,37 @@ export class CompileData {
 
     }
 
+    /**
+     * Copies properties of one block to another, excluding 'id', 'name' and 'inherit'.
+     * If dstBlock already has a property, it won't be replaced.
+     * If dstBlock's property is null, it won't be replaced, and will be deleted.
+     */
+    inherit(dstBlock, srcBlockName) {
+        if (!srcBlockName) {
+            return;
+        }
+        dstBlock.inherit = '<circular dependency> ' + srcBlockName; // to detect circlular dependencies
+        const srcBlock = this.getBlock(srcBlockName);
+        if (!srcBlock) {
+            throw new Error(`Id=${dstBlock.id} "${dstBlock.name}" can't inherit from non-existing block "${srcBlockName}"`);
+        }
+        this.inherit(srcBlock, srcBlock.inherit);
+        const srcCopy = JSON.parse(JSON.stringify(srcBlock));
+        for(let key in srcCopy) {
+            if (!INHERIT_EXCLUDES.includes(key)) {
+                if (!(key in dstBlock)) {
+                    dstBlock[key] = srcCopy[key];
+                } else if (dstBlock[key] === null) {
+                    delete dstBlock[key];
+                }
+            }
+        }
+        delete dstBlock.inherit;
+    }
+
+    inheritAll() {
+        for(let block of this.blocks) {
+            this.inherit(block, block.piece_of ?? block.inherit);
+        }
+    }
 }
