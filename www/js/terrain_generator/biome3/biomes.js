@@ -41,6 +41,10 @@ export class Biome {
         this.water_color = water_color;
         this.no_smooth_heightmap = no_smooth_heightmap;
         this.building_options = building_options
+        // 
+        this.is_desert = title.toLowerCase().indexOf('пустын') >= 0
+        this.is_sand = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
+        this.is_taiga = title.toLowerCase().indexOf('тайга') >= 0
     }
 
 }

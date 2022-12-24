@@ -9,14 +9,14 @@ import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 
-export const TREE_BETWEEN_DIST      = 2; // минимальное расстояние между деревьями
-export const TREE_MARGIN            = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
-export const MAX_TREES_PER_CHUNK    = 16; // Максимальное число деревьев в чанке
-export const TREE_MIN_Y_SPACE       = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
-export const BUILDING_MIN_Y_SPACE   = 10; // Минимальное число блоков воздуха для устновки дома
-export const WATER_LEVEL            = 80;
-export const DENSITY_THRESHOLD      = .6;
-export const ORE_THRESHOLD          = .025;
+export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
+export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
+export const MAX_TREES_PER_CHUNK        = 16; // Максимальное число деревьев в чанке
+export const TREE_MIN_Y_SPACE           = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
+export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для устновки дома
+export const WATER_LEVEL                = 80;
+export const DENSITY_THRESHOLD          = .6;
+export const UNCERTAIN_ORE_THRESHOLD    = .025;
 
 let mountain_desert_mats = [];
 
@@ -55,13 +55,15 @@ export class DensityParams {
      * @param {float} d3
      * @param {float} d4
      * @param {float} density
+     * @param {float} dcaves
      */
-    constructor(d1, d2, d3, d4, density) {
+    constructor(d1, d2, d3, d4, density, dcaves = 0) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
+        this.dcaves = dcaves
     }
 
     /**
@@ -70,19 +72,21 @@ export class DensityParams {
      * @param {float} d3
      * @param {float} d4
      * @param {float} density
+     * @param {float} dcaves
      */
-    set(d1, d2, d3, d4, density) {
+    set(d1, d2, d3, d4, density, dcaves) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
+        this.dcaves = dcaves || 0;
         return this;
     }
 
 }
 
-const ZeroDensity = new DensityParams(0, 0, 0, 0, 0);
+const ZeroDensity = new DensityParams(0, 0, 0, 0, 0, 0);
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             80, // Ватер-линия
@@ -316,7 +320,7 @@ export class TerrainMapManager2 {
      * @param {?DensityParams} density_params
      * @returns
      */
-    calcDensity(xyz, cell, density_params = null) {
+    calcDensity(xyz, cell, density_params = null, map) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
@@ -359,12 +363,13 @@ export class TerrainMapManager2 {
 
         if(h + under_earth_coeff < DENSITY_THRESHOLD) {
             if(density_params) {
-                return density_params.set(0, 0, 0, 0, 0);
+                return density_params.set(0, 0, 0, 0, 0, 0);
             }
             return ZeroDensity;
         }
 
-        const res = density_params || new DensityParams(0, 0, 0, 0, 0);
+        const res = density_params || new DensityParams(0, 0, 0, 0, 0, 0);
+        res.dcaves = 0;
 
         this.noise3d.fetchGlobal4(xyz, res);
         const {d1, d2, d3, d4} = res;
@@ -381,6 +386,15 @@ export class TerrainMapManager2 {
             const river_vert_dist = WATER_LEVEL - xyz.y;
             const river_density = Math.max(percent, river_vert_dist / (10 * (1 - Math.abs(d3 / 2)) * (1 - percent_sqrt)) / Math.PI);
             density = Math.min(density, density * river_density + (d3 * .1) * percent_sqrt);
+        }
+
+        // Caves
+        if(density > DENSITY_THRESHOLD * 1.5) {
+            const caveDensity = map.caves.getPoint(xyz, cell, false, res);
+            if(caveDensity !== null) {
+                res.dcaves = caveDensity
+                density = 0;
+            }
         }
 
         res.density = density;
@@ -424,7 +438,7 @@ export class TerrainMapManager2 {
             // 2. select block in dirt layer
             block_id = dirt_layer.blocks[0];
             if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
-                block_id = dirt_layer.blocks[1];
+                block_id = dirt_layer.blocks[dirt_layer.blocks.length - 1];
             }
             const dirt_layer_blocks_count = dirt_layer.blocks.length;
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
@@ -478,15 +492,16 @@ export class TerrainMapManager2 {
             return cached;
         }
 
-        const value = 85;
-        const xyz = new Vector(0, 0, 0);
-        const _density_params = new DensityParams(0, 0, 0, 0, 0);
-
-        // Result map
-        const map = new TerrainMap2(chunk, GENERATOR_OPTIONS);
         if(!real_chunk.chunkManager) {
             debugger
         }
+
+        const value = 85;
+        const xyz = new Vector(0, 0, 0);
+        const _density_params = new DensityParams(0, 0, 0, 0, 0, 0);
+
+        // Result map
+        const map = new TerrainMap2(chunk, GENERATOR_OPTIONS, this.noise2d);
 
         const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
 
@@ -523,7 +538,7 @@ export class TerrainMapManager2 {
                     let free_height = 0;
                     const preset = this.getPreset(xyz);
                     const cell = {river_point, preset};
- 
+
                     xyz.y = map.cluster.y_base;
                     this.noise3d.generate4(xyz, doorSearchSize);
 
@@ -534,7 +549,7 @@ export class TerrainMapManager2 {
                         const biome = this.calcBiome(xyz);
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
-                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params);
+                            const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params, map);
                             if(density > DENSITY_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
@@ -556,8 +571,6 @@ export class TerrainMapManager2 {
         }
 
         this.maps_cache.set(chunk.addr, map);
-        // map.caves = new CaveGenerator(chunk.coord, noisefn);
-        // map.ores = new OreGenerator(this.seed, noisefn, this.noisefn3d, map);
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
 
         return map;

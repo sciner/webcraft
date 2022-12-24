@@ -223,12 +223,10 @@ export class ServerWorld {
         const good_light_for_spawn = this.getLight() > 6;
         const good_world_for_spawn = this.info.world_type_id != WORLD_TYPE_BUILDING_SCHEMAS;
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
-        console.log(good_world_for_spawn + ' ' + auto_generate_mobs + ' ' + good_light_for_spawn);
         // не спавним мобов в мире-конструкторе и в дневное время
         if(!auto_generate_mobs || !good_world_for_spawn || good_light_for_spawn) {
             return;
         }
-        console.log('good_world_for_spawn');
         // находим игроков
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {

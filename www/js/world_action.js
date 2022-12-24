@@ -248,30 +248,29 @@ function makeDropItem(block, item) {
 
 /**
  * Drop block
- *
  * @param {*} player
- * @param {*} block
+ * @param {*} tblock
  * @param { WorldAction } actions
- * @param {*} force
+ * @param {boolean} force
  *
  * @returns {object[]} dropped blocks
  */
-function dropBlock(player, block, actions, force) {
+export function dropBlock(player, tblock, actions, force) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
     }*/
-    if(block.material.tags.includes('no_drop')) {
+    if(tblock.material.tags.includes('no_drop')) {
         return [];
     }
 
-    if(block.material.drop_item) {
-        const drop_block = BLOCK.fromName(block.material.drop_item?.name);
+    if(tblock.material.drop_item) {
+        const drop_block = BLOCK.fromName(tblock.material.drop_item?.name);
         if(drop_block) {
-            if('chance' in block.material.drop_item) {
-                let count = block.material.drop_item.count;
+            if('chance' in tblock.material.drop_item) {
+                let count = tblock.material.drop_item.count;
                 if(count) {
-                    if(Math.random() <= block.material.drop_item.chance) {
+                    if(Math.random() <= tblock.material.drop_item.chance) {
                         if(Array.isArray(count)) {
                             // const rnd = (Math.random() * (max-min + 1) + min) | 0;
                             let count_index = (Math.random() * count.length) | 0;
@@ -279,25 +278,25 @@ function dropBlock(player, block, actions, force) {
                         }
                         count = parseInt(count);
                         if(count > 0) {
-                            const item = makeDropItem(block, {id: drop_block.id, count: count});
-                            actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                            const item = makeDropItem(tblock, {id: drop_block.id, count: count});
+                            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
                             return [item]
                         }
                     }
                 }
             }
         } else {
-            console.error('error_invalid_drop_item', block.material.drop_item);
+            console.error('error_invalid_drop_item', tblock.material.drop_item);
         }
     } else {
         const items = [];
         // check if seeds
-        if(block.material.seeds) {
+        if(tblock.material.seeds) {
             let result = null;
-            if(block.extra_data.complete) {
-                result = block.material.seeds.result?.complete;
+            if(tblock.extra_data.complete) {
+                result = tblock.material.seeds.result?.complete;
             } else {
-                result = block.material.seeds.result?.incomplete;
+                result = tblock.material.seeds.result?.incomplete;
             }
             if(result) {
                 for(let r of result) {
@@ -307,16 +306,16 @@ function dropBlock(player, block, actions, force) {
                         if(!result_block || result_block.id < 0) {
                             throw 'error_invalid_result_block|' + r.name;
                         }
-                        items.push(makeDropItem(block, {id: result_block.id, count: count}));
+                        items.push(makeDropItem(tblock, {id: result_block.id, count: count}));
                     }
                 }
             }
         // default drop item
-        } else if(block.material.spawnable) {
-            items.push(makeDropItem(block, {id: block.id, count: 1}));
+        } else if(tblock.material.spawnable) {
+            items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
         for(let item of items) {
-            actions.addDropItem({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
         }
         return items
     }

@@ -1,21 +1,28 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 
-const CAVE_LAYERS = [
-                        {y: 56, octave1: 28.4, octave2: 28.4, width: 0.12, height: 24, shift: 64000},
-                        {y: 32, octave1: 32, octave2: 7.11, width: 0.12, height: 48, shift: 48000},
-                        {y: 0, octave1: 32, octave2: 7.11, width: 0.12, height: 16, shift: 16000},
-                    ];
+export const DEFAULT_CAVE_LAYERS = [
+    {y: 56, octave1: 28.4, octave2: 28.4, width: 0.12, height: 24, shift: 64000},
+    {y: 32, octave1: 32, octave2: 7.11, width: 0.12, height: 48, shift: 48000},
+    {y: 0, octave1: 32, octave2: 7.11, width: 0.12, height: 16, shift: 16000},
+];
+
+export const BIOME3_CAVE_LAYERS = [
+    {y: 72, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 24, shift: 64000},
+    {y: 48, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 48, shift: 48000},
+    {y: 16, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 16000},
+];
 
 export class CaveGenerator {
 
-    constructor(chunk_coord, noisefn) {
+    constructor(chunk_coord, noisefn, cave_layers) {
 
+        this.cave_layers = cave_layers
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.layers = [];
 
-        for(let i = 0; i < CAVE_LAYERS.length; i++) {
-            const options = CAVE_LAYERS[i];
+        for(let i = 0; i < cave_layers.length; i++) {
+            const options = cave_layers[i];
             const layer = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
             for(let x = 0; x < CHUNK_SIZE_X; x++) {
                 for(let z = 0; z < CHUNK_SIZE_Z; z++) {
@@ -42,10 +49,10 @@ export class CaveGenerator {
     }
 
     // Return cave point
-    getPoint(xyz, map_cell, in_ocean) {
+    getPoint(xyz, map_cell, in_ocean, density_params) {
         const x = xyz.x - this.chunk_coord.x;
         const z = xyz.z - this.chunk_coord.z;
-        for(let i = 0; i < CAVE_LAYERS.length; i++) {
+        for(let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
             const cell = layer[z * CHUNK_SIZE_X + x];
             if(!cell) {
@@ -58,7 +65,7 @@ export class CaveGenerator {
             }
             const dist = xyz.y - cell.y;
             const dens = cell.density
-            if(dist < -5 * dens || dist > 5 * dens) {
+            if(dist < -2 * dens || dist > (8 + density_params.d4 * 3) * dens) {
                 continue;
             }
             return cell.density;

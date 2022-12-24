@@ -6,6 +6,7 @@ import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { DEFAULT_ATLAS_SIZE } from '../constant.js';
 
 const {mat3} = glMatrix;
 
@@ -89,7 +90,7 @@ export default class style {
 
         // Texture color multiplier
         // @todo from extra_data.signal
-        const lm                = new IndexedColor(1.5 / tx_cnt * 1024, (16.5 + 1 / 16) / tx_cnt * 1024, 0, 0);
+        const lm                = new IndexedColor(1.5 / tx_cnt * DEFAULT_ATLAS_SIZE, (16.5 + 1 / 16) / tx_cnt * DEFAULT_ATLAS_SIZE, 0, 0);
         const pp                = lm.pack();
         const posworld          = block.posworld;
 
