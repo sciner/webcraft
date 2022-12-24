@@ -30,6 +30,7 @@ import { GameRule } from "./game_rule.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
+import { ServerPlayerManager } from "./server_player_manager.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -110,7 +111,8 @@ export class ServerWorld {
         //
         this.weather        = Weather.CLEAR;
         //
-        this.players        = new Map(); // new PlayerManager(this);
+        this.playerManager  = new ServerPlayerManager(this);
+        this.players        = this.playerManager.list;
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         //
         await this.models.init();

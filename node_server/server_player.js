@@ -39,6 +39,18 @@ async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
 }
 
+// An adapter that allows using ServerPlayer and PlayerModel in the same way
+class ServerPlayerSharedProps {
+    constructor(player) {
+        this.p = player;
+    }
+
+    get isAlive()   { return this.p.live_level > 0; }
+    get user_id()   { return this.p.session.user_id; }
+    get pos()       { return this.p.state.pos; }
+    get sitting()   { return this.p.state.sitting; }
+}
+
 export class ServerPlayer extends Player {
 
     #forward;
@@ -81,6 +93,8 @@ export class ServerPlayer extends Player {
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
+
+        this.sharedProps = new ServerPlayerSharedProps(this);
     }
 
     init(init_info) {

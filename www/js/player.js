@@ -3,6 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
+import {PLAYER_DIAMETER} from "./constant.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -488,7 +489,7 @@ export class Player {
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
             const player = {
-                radius: 0.7,
+                radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
                 rotate: this.rotateDegree.clone(),

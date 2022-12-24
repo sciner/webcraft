@@ -1,13 +1,14 @@
 import {PlayerModel} from "./player_model.js";
 import {ServerClient} from "./server_client.js";
+import {AbstractPlayerManager} from "./abstract_player_manager.js";
 
-export class PlayerManager {
+export class PlayerManager extends AbstractPlayerManager {
 
     #world;
 	
     constructor(world) {
+        super(world)
         this.#world = world;
-        this.list = new Map();
     }
 
     init() {
