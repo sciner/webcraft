@@ -52,7 +52,7 @@ export class AbstractPlayerManager {
      */
      get(user_id) {
         if(!this.exists(user_id)) {
-            return null;
+            return null
         }
         return this.list.get(user_id)
     }
