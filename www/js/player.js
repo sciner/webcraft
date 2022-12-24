@@ -392,13 +392,10 @@ export class Player {
                 const cur_mat_id = this.inventory.current_item?.id;
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
-                    const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
-                    // putting items into a pot or a chest takes priority over using them
-                    const canInteractWithBlock = targetMaterial && (
-                        targetMaterial.tags.includes('pot') &&
-                        cur_mat.tags.includes("can_put_info_pot")
-                        || targetMaterial.can_interact_with_hand);
-                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style == 'planting') ? true : false; 
+                    const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_info_pot") || target_mat.can_interact_with_hand);
+                    if(!is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }

@@ -69,10 +69,8 @@ export class PickAt {
             return null;
         }
         // Get actual pick-at block
-        let pos = this.get(player.getEyePos(), null, 
-                player.game_mode.getPickatDistance(), player.forward, false
-                )?.point;
-        return pos ? this.world.getBlock(pos) : null;
+        const pos = this.get(player.getEyePos(), null, player.game_mode.getPickatDistance(), player.forward, true);
+        return pos ? this.world.getBlock(new Vector(pos)) : null;
     }
 
     // setEvent...

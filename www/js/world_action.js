@@ -851,10 +851,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 return actions;
             }
         }
-
+        
         // Другие действия с инструментами/предметами в руке
-        if(mat_block.item) {
-
+        if(mat_block.item && mat_block.style != 'planting') {
             // Use intruments
             for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
