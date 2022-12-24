@@ -5170,10 +5170,9 @@
             },
             "ticking": {
                 "type": "stage",
-                "max_stage": 3,
-                "times_per_stage": 4
+                "max_stage": 3
             },
-            "texture": "block/sweet_berry_bush_stage3.png",
+            "texture": "item/sweet_berries.png",
             "stage_textures": [
                 "block/sweet_berry_bush_stage0.png",
                 "block/sweet_berry_bush_stage1.png",
@@ -5182,6 +5181,11 @@
             ],
             "material": {
                 "id": "plant"
+            },
+            "item": {"name": "food"},
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
             }
         },
         {
@@ -5203,7 +5207,7 @@
             "sound": "madcraft:block.bone_meal",
             "item": {"name": "bone_meal"},
             "material": {
-                "id": "food"
+                "id": "bone"
             },
             "tags": [
                 "can_put_info_pot"
@@ -7058,21 +7062,44 @@
         {
             "id": 196,
             "name": "POTATO",
-            "style": "extruder",
+            "style": "planting",
+            "transparent": true,
             "diagonal": true,
             "texture": "item/potato.png",
+            "inventory_style": "extruder",
             "item": {"name": "food"},
             "coocked_item": {"name": "BAKED_POTATO", "count": 1},
             "material": {
-                "id": "food"
+                "id": "plant"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_info_pot",
+                "agriculture"
             ],
             "food": {
                 "amount": 1,
                 "saturation": 0.3
-            }
+            },
+            "seeds": {
+                "result": {
+                    "complete": [
+                        {"name": "POTATO", "count": {"min": 1, "max": 3}}
+                    ]
+                }
+            },
+            "extra_data": {
+                "stage": 0
+            },
+            "ticking": {
+                "type": "stage",
+                "max_stage": 3
+            },
+            "stage_textures": [
+                "block/potatoes_stage0.png",
+                "block/potatoes_stage1.png",
+                "block/potatoes_stage2.png",
+                "block/potatoes_stage3.png"
+            ]
         },
         {
             "id": 197,
