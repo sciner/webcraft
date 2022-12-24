@@ -14,9 +14,6 @@ import { TerrainMapCell } from "./terrain/map_cell.js";
 import { TerrainMap2 } from "./terrain/map.js";
 import { WorldClientOreGenerator } from "./client_ore_generator.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
-
-// import { AABB } from '../../core/AABB.js';
-// import { CaveGenerator } from "../cave_generator.js";
 // import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
