@@ -26,7 +26,7 @@ export default class Ticker {
         if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id && block.fluid == 0) {
             updated.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
         }
-        const infiniburn = block.id == BLOCK.NETHERRACK.id; //Бесконечное пламя
+        const infiniburn = (block.id == BLOCK.NETHERRACK.id || block.id == BLOCK.SOUL_SAND.id); //Бесконечное пламя
         if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
             return [{pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
         } else {
