@@ -268,7 +268,7 @@
                 "down": "block/warped_stem_top.png"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture_animations": {
@@ -289,7 +289,7 @@
                 "down": "block/crimson_stem_top.png"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture_animations": {
@@ -887,7 +887,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -906,7 +906,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -925,7 +925,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -944,7 +944,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -963,7 +963,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -982,7 +982,7 @@
             },
             "tags": [
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -998,7 +998,7 @@
             "tags": [
                 "no_drop",
                 "mask_biome",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "leaves"
             ]
         },
@@ -1008,7 +1008,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1022,7 +1022,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1036,7 +1036,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1050,7 +1050,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1064,7 +1064,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1078,7 +1078,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -1092,7 +1092,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "plank"
             ],
             "material": {
@@ -2145,7 +2145,7 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": {
                 "side": "block/brown_mushroom_block.png",
@@ -2160,7 +2160,7 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": {
                 "side": "block/red_mushroom_block.png",
@@ -2840,7 +2840,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -2861,7 +2861,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -2882,7 +2882,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -2903,7 +2903,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -2924,7 +2924,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -2945,7 +2945,7 @@
             },
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -3359,7 +3359,7 @@
                 "id": "plant"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": {
                 "up": "block/melon_top.png",
@@ -4118,7 +4118,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": "item/carrot.png",
             "food": {
@@ -4136,7 +4136,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 4,
@@ -4465,7 +4465,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": "item/wheat.png"
         },
@@ -4479,7 +4479,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 5,
@@ -4988,7 +4988,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "cake",
                 "no_drop_ao"
             ],
@@ -5019,7 +5019,7 @@
             "planting": false,
             "tags": [
                 "bamboo",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "no_drop_ao"
             ],
             "texture": {
@@ -5212,7 +5212,7 @@
                 "id": "bone"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ]
         },
         {
@@ -5226,7 +5226,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 4,
@@ -5244,7 +5244,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 2,
@@ -5262,7 +5262,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ]
         },
         {
@@ -5376,7 +5376,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 8,
@@ -5405,7 +5405,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 2,
@@ -5423,7 +5423,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 6,
@@ -5442,7 +5442,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 2,
@@ -5460,7 +5460,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 6,
@@ -5479,7 +5479,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 3,
@@ -5497,7 +5497,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 5,
@@ -5516,7 +5516,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 3,
@@ -5534,7 +5534,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 8,
@@ -5553,7 +5553,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 3,
@@ -5571,7 +5571,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 8,
@@ -5628,7 +5628,7 @@
                 "id": "plant"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 2,
@@ -5672,7 +5672,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5685,7 +5685,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5698,7 +5698,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5711,7 +5711,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5724,7 +5724,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5737,7 +5737,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5750,7 +5750,7 @@
             "sound": "madcraft:block.wood",
             "fuel_time": 16,
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "material": {
                 "id": "wood"
@@ -5764,7 +5764,7 @@
             "fuel_time": 16,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5784,7 +5784,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5804,7 +5804,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5824,7 +5824,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5844,7 +5844,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5864,7 +5864,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -5884,7 +5884,7 @@
             "can_rotate": true,
             "tags": [
                 "log",
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "material": {
@@ -6614,7 +6614,7 @@
                 "id": "bone"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -6840,7 +6840,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ]
         },
         {
@@ -6962,7 +6962,7 @@
                 "id": "stone"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -6988,7 +6988,7 @@
                 "id": "stone"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "rotate_by_pos_n_xyz"
             ],
             "texture": {
@@ -7075,7 +7075,7 @@
                 "id": "plant"
             },
             "tags": [
-                "can_put_info_pot",
+                "can_put_into_pot",
                 "agriculture"
             ],
             "food": {
@@ -7114,7 +7114,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 5,
@@ -7531,7 +7531,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "texture": "item/beetroot.png"
         },
@@ -7545,7 +7545,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 4,
@@ -8320,7 +8320,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 1,
@@ -8361,7 +8361,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 2,
@@ -8384,7 +8384,7 @@
                 "id": "food"
             },
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ],
             "food": {
                 "amount": 6,

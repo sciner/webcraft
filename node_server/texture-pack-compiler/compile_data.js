@@ -108,7 +108,7 @@ export class CompileData {
                 "mask_color": mask_color,
                 "tags": [
                     "wool",
-                    "can_put_info_pot",
+                    "can_put_into_pot",
                     "mask_color"
                 ]
             };
@@ -214,7 +214,7 @@ export class CompileData {
                 "coocked_item": {"name": color.toUpperCase() + '_GLAZED_TERRACOTTA', "count": 1},
                 "mask_color": mask_color,
                 "tags": [
-                    "can_put_info_pot",
+                    "can_put_into_pot",
                     "mask_color"
                 ]
             };
@@ -228,7 +228,7 @@ export class CompileData {
             "sound": "madcraft:block.stone",
             "texture": {"side": "block/terracotta.png"},
             "tags": [
-                "can_put_info_pot"
+                "can_put_into_pot"
             ]
         });
     }
@@ -292,7 +292,7 @@ export class CompileData {
                 },
                 "can_rotate": true,
                 "tags": [
-                    "can_put_info_pot"
+                    "can_put_into_pot"
                 ]
             };
             this.blocks.push(b);

@@ -1204,7 +1204,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
-                            mat_block.tags.includes('can_put_info_pot')
+                            mat_block.tags.includes('can_put_into_pot')
                         );
     if(!putIntoPot) {
         return false;
