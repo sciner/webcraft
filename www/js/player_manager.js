@@ -1,18 +1,16 @@
 import {PlayerModel} from "./player_model.js";
 import {ServerClient} from "./server_client.js";
+import {AbstractPlayerManager} from "./abstract_player_manager.js";
 
-export class PlayerManager {
+export class PlayerManager extends AbstractPlayerManager {
 
-    #world;
-	
     constructor(world) {
-        this.#world = world;
-        this.list = new Map();
+        super(world)
     }
 
     init() {
         // On server message
-        this.#world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_PLAYER_JOIN: {
                     this.add(cmd);
@@ -43,24 +41,11 @@ export class PlayerManager {
             type:           data.type || 'player',
         });
 
-        player.world = this.#world;
+        player.world = this.world;
 
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;
-    }
-
-    // getPlayer
-    get(id) {
-        if(!this.list.has(id)) {
-            return null;
-        }
-        return this.list.get(id);
-    }
-
-    // deletePlayer
-    delete(id) {
-        this.list.delete(id);
     }
 
     // setPlayerState

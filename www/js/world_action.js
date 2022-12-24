@@ -911,6 +911,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
+                    // player.radius = player's diameter
                     x_min: player.pos.x - player.radius / 2,
                     x_max: player.pos.x - player.radius / 2 + player.radius,
                     y_min: player.pos.y,
@@ -1414,15 +1415,24 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         if(on_ceil) sit_pos.y += .5;
     }
     //
-    if(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0) {
-        actions.reset_mouse_actions = true;
-        actions.setSitting(
-            sit_pos,
-            new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-        )
-        return true;
+    if(!(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0)) {
+        return false;
     }
-    return false;
+    // check if someone else is sitting
+    const above_sit_pos = sit_pos.clone();
+    above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
+    for(const [_, p] of world.players.eachContainingVec(above_sit_pos)) {
+        if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
+            return false;
+        }
+    }
+    // sit down
+    actions.reset_mouse_actions = true;
+    actions.setSitting(
+        sit_pos,
+        new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
+    )
+    return true;
 }
 
 // Нельзя ничего ставить поверх этого блока

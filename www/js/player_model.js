@@ -98,6 +98,19 @@ export class PlayerAnimation extends MobAnimation {
 
 }
 
+// An adapter that allows using ServerPlayer and PlayerModel in the same way
+class PlayerModelSharedProps {
+    constructor(playerModel) {
+        this.p = playerModel;
+    }
+
+    // We don't know if it's alive on the client, so we assume if the model exists, than it is
+    get isAlive()   { return true; }
+    get pos()       { return this.p.pos; }
+    get user_id()   { return this.p.id; }
+    get sitting()   { return this.p.sitting; }
+}
+
 export class PlayerModel extends MobModel {
 
     constructor(props) {
@@ -131,6 +144,7 @@ export class PlayerModel extends MobModel {
         this.swingProgressInt = 0;
         this.isSwingInProgress = false;
 
+        this.sharedProps = new PlayerModelSharedProps(this);
     }
 
     applyNetState(state) {

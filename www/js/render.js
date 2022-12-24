@@ -874,12 +874,12 @@ export class Renderer {
 
     // drawPlayers
     drawPlayers(delta) {
-        if(this.world.players.list.size < 1) {
+        if(this.world.players.count < 1) {
             return;
         }
         const defaultShader = this.defaultShader;
         defaultShader.bind();
-        for(let [id, player] of this.world.players.list) {
+        for(const [_, player] of this.world.players.all()) {
             if(player.itsMe()) {
                 if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                     continue;
@@ -1015,13 +1015,13 @@ export class Renderer {
             vertices.push(...player_vertices);
         };
         // draw players shadow
-        for(let player of Qubatch.world.players.list.values()) {
+        for(const [_, player] of world.players.all()) {
             const pos = player.pos.clone();
             appendPos(pos);
         }
         /*
         // draw drop items shadow
-        for(let drop_item of Qubatch.world.drop_items.list.values()) {
+        for(let drop_item of world.drop_items.list.values()) {
             const pos = drop_item.pos.clone();
             appendPos(pos);
         }

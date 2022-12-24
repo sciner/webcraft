@@ -30,6 +30,7 @@ import { GameRule } from "./game_rule.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
+import { ServerPlayerManager } from "./server_player_manager.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -110,7 +111,7 @@ export class ServerWorld {
         //
         this.weather        = Weather.CLEAR;
         //
-        this.players        = new Map(); // new PlayerManager(this);
+        this.players        = new ServerPlayerManager(this);
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         //
         await this.models.init();
@@ -228,7 +229,7 @@ export class ServerWorld {
             return;
         }
         // находим игроков
-        for (const player of this.players.values()) {
+        for (const [_, player] of this.players.all()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS_DEAD) {
                 // количество мобов одного типа в радусе спауна
                 const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['zombie', 'skeleton']);
@@ -340,7 +341,7 @@ export class ServerWorld {
             await this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
-            for(let player of this.players.values()) {
+            for(const [_, player] of this.players.all()) {
                 await player.tick(delta, this.ticks_stat.number);
             }
             this.ticks_stat.add('players');
@@ -384,7 +385,7 @@ export class ServerWorld {
     }
 
     save() {
-        for(let player of this.players.values()) {
+        for(const [_, player] of this.players.all()) {
             this.db.savePlayerState(player);
         }
     }
@@ -404,14 +405,14 @@ export class ServerWorld {
         await player.initQuests();
         player.initWaitingDataForSpawn();
         // 3. Insert to array
-        this.players.set(player.session.user_id, player);
+        this.players.list.set(player.session.user_id, player);
         // 4. Send about all other players
         const all_players_packets = [];
-        for (let c of this.players.values()) {
-            if (c.session.user_id != player.session.user_id) {
+        for (const [_, p] of this.players.all()) {
+            if (p.session.user_id != player.session.user_id) {
                 all_players_packets.push({
                     name: ServerClient.CMD_PLAYER_JOIN,
-                    data: c.exportState()
+                    data: p.exportState()
                 });
             }
         }
@@ -445,7 +446,7 @@ export class ServerWorld {
 
     // onLeave
     async onLeave(player) {
-        if (this.players.has(player?.session?.user_id)) {
+        if (this.players.exists(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
             await this.db.savePlayerState(player);
             player.onLeave();
@@ -467,7 +468,7 @@ export class ServerWorld {
      * @return {void}
      */
     sendAll(packets, except_players) {
-        for (let player of this.players.values()) {
+        for (const [_, player] of this.players.all()) {
             if (except_players && except_players.indexOf(player.session.user_id) >= 0) {
                 continue;
             }
@@ -497,8 +498,8 @@ export class ServerWorld {
 
     //
     sendUpdatedInfo() {
-        for(let p of this.players.values()) {
-            p.sendWorldInfo(true);
+        for(const [_, player] of this.players.all()) {
+            player.sendWorldInfo(true);
         }
     }
 

@@ -348,8 +348,8 @@ export class GameClass {
                     case KEY.F7: {
                         if(!e.down) {
                             this.render.testLightOn = !this.render.testLightOn;
-                            if(player.world.players.list.has(-1)) {
-                                player.world.players.list.delete(-1);
+                            if(player.world.players.exists(-1)) {
+                                player.world.players.delete(-1);
                             } else {
                                 const ghost = {
                                     "name": ServerClient.CMD_PLAYER_JOIN,
@@ -367,7 +367,7 @@ export class GameClass {
                                     "time": ~~(new Date())
                                 };
                                 player.world.players.add(ghost);
-                                player.world.players.list.get(-1).sneak = player.sneak;
+                                player.world.players.get(-1).sneak = player.sneak;
                             }
                         }
                         return true;

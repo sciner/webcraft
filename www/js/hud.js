@@ -483,7 +483,7 @@ export class HUD {
         if(draw_player_list) {
             this.text += '\nOnline:\n';
             let pcnt = 0;
-            for(let [id, p] of world.players.list) {
+            for(const [_, p] of world.players.all()) {
                 this.text += '🙎‍♂️' + p.username;
                 if(p.itsMe()) {
                     this.text += ' ⬅ YOU';
@@ -497,8 +497,8 @@ export class HUD {
                     break;
                 }
             }
-            if(world.players.list.size > ONLINE_MAX_VISIBLE_IN_F3) {
-                this.text += `+ ${world.players.list.size - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
+            if(world.players.count > ONLINE_MAX_VISIBLE_IN_F3) {
+                this.text += `+ ${world.players.count - ONLINE_MAX_VISIBLE_IN_F3} other(s)`;
             }
         }
 
