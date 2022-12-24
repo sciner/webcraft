@@ -405,11 +405,11 @@ export class ServerChunkManager {
     // Send command to server worker
     checkDestroyMap() {
         const world = this.world;
-        if(world.players.size == 0) {
+        if(world.players.count == 0) {
             return;
         }
         const players = [];
-        for (let [_, p] of world.players.entries()) {
+        for(const [_, p] of world.players.all()) {
             players.push({
                 pos:                p.state.pos,
                 chunk_addr:         getChunkAddr(p.state.pos.x, 0, p.state.pos.z),

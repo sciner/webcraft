@@ -44,7 +44,6 @@ export class World {
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
-        this.playerManager          = this.players;
         this.blockModifierListeners = [];
     }
 

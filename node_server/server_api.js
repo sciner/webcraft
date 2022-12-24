@@ -67,7 +67,7 @@ export class ServerAPI {
                 const resp = await Qubatch.db.MyWorlds(session.user_id);
                 for(let item of resp) {
                     const world = Qubatch.worlds.get(item.guid);
-                    item.players_online = world ? world.players.size : 0;
+                    item.players_online = world ? world.players.count : 0;
                 }
                 return resp;
             }
@@ -88,7 +88,7 @@ export class ServerAPI {
                 for(let world of Qubatch.worlds.values()) {
                     if(world.info) {
                         const info = {...world.info, players: []};
-                        for(let player of world.players.values()) {
+                        for(const [_, player] of world.players.all()) {
                             info.players.push({
                                 user_id: player.session.user_id,
                                 username: player.session.username,
