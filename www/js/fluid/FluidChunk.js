@@ -67,8 +67,12 @@ export class FluidChunk {
         this.updateID++;
         this.markDirtyMesh();
         if (this.queue) {
-            this.queue.pushTickIndex(index);
-            this.events.pushCoord(index, wx, wy, wz, value);
+            if (value) {
+                this.queue.pushTickIndex(index);
+                this.events.pushCoord(index, wx, wy, wz, value);
+            } else {
+                this.queue.pushAllNeibs(x, y, z);
+            }
         }
         if (safeAABB.contains(wx, wy, wz)) {
             return 0;
