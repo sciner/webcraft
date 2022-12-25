@@ -148,7 +148,7 @@ export class Brain extends FSMBrain {
             user_ids: [],
             list: [{
                 name: ServerClient.CMD_PLAY_SOUND,
-                data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
+                data: { tag: 'madcraft:block.player', action: 'hit', pos: mobPosCenter.clone() }
             }]
         };
         let damage = 0;

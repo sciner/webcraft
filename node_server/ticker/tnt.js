@@ -21,7 +21,7 @@ export default class Ticker {
             if (extra_data.fuse >= 8) {
                 const actions = new WorldAction(null, world, false, false);
                 actions.makeExplosion(pos, 3, true, 1/3, 6);
-                actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: pos });
+                actions.addPlaySound({ tag: 'madcraft:block.creeper', action: 'explode', pos: pos, maxDist: 48 });
                 world.actions_queue.add(null, actions);
             }
         } else {
