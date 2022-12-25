@@ -621,7 +621,7 @@ export class ServerChunk {
                     //    значит текущий блок только что был "вскрыт" и его можно превратить в руду)
                     // 2. Если вокруг блока 6 сплошных, значит убрали блок в радиусе 2 блока от текущего и также нужно его определить сейчас,
                     //    чтобы при дальнейшем продолжении раскопок в данном направлении блоки уже были определенными и не "мерцали"
-                    item.id = world.ore_generator.generate(tblock.posworld)
+                    item.id = world.ore_generator.generate(tblock.posworld, BLOCK.STONE.id)
                 }
                 addBlock(tblock.posworld.clone(), item)
             }

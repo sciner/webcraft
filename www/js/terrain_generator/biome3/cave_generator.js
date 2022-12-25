@@ -1,6 +1,6 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Helpers, Mth, Vector } from "../../helpers.js";
-import { DENSITY_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
+import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 72, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 24, shift: 64000},
@@ -57,15 +57,26 @@ export class CaveGenerator {
         return 1 - Math.cos(percent * Math.PI / 2)
     }
 
+    exp(percent) {
+        return Math.pow(2, 10 * (percent - 1))
+    }
+
     // Return cave point
     getPoint(xyz, map_cell, in_ocean, density_params) {
 
+        // Sponge caves
         const y_perc = (xyz.y - 20) / 60
         if(y_perc > -1 && y_perc < 1) {
-            const mul = this.easeInOut(1 - Math.abs(y_perc), this.sine)
+            const mul = this.easeInOut(1 - Math.abs(y_perc), this.exp)
             if(density_params.d1 * mul < -.3) {
-                if(density_params.d3 * .8 + density_params.d4 * .2 < 0) {
-                    return DENSITY_THRESHOLD + UNCERTAIN_ORE_THRESHOLD * .999
+                const sponge_cave_density = density_params.d3 * .8 + density_params.d4 * .2
+                if(sponge_cave_density < 0) {
+                    let densisiy = DENSITY_AIR_THRESHOLD // плотность воздуха
+                    if(sponge_cave_density > -0.1) {
+                        // плотность нужная для формирования легкого налета полезных ископаемых 
+                        densisiy += UNCERTAIN_ORE_THRESHOLD * .999
+                    }
+                    return densisiy
                 }
             }
         }

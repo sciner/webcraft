@@ -15,7 +15,7 @@ export const MAX_TREES_PER_CHUNK        = 16; // Максимальное чис
 export const TREE_MIN_Y_SPACE           = 5; // Минимальное число блоков воздуха для посадки любого типа дерева
 export const BUILDING_MIN_Y_SPACE       = 10; // Минимальное число блоков воздуха для устновки дома
 export const WATER_LEVEL                = 80;
-export const DENSITY_THRESHOLD          = .6;
+export const DENSITY_AIR_THRESHOLD      = .6; // всё что больше этого значения - камень
 export const UNCERTAIN_ORE_THRESHOLD    = .025;
 
 let mountain_desert_mats = [];
@@ -310,7 +310,7 @@ export class TerrainMapManager2 {
 
     getMaxY(cell) {
         const {relief, mid_level} = cell.preset;
-        return Math.max(0, (1 - DENSITY_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
+        return Math.max(0, (1 - DENSITY_AIR_THRESHOLD) * relief + mid_level * 2) + WATER_LEVEL;
     }
 
     /**
@@ -361,7 +361,8 @@ export class TerrainMapManager2 {
         const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        if(h + under_earth_coeff < DENSITY_THRESHOLD) {
+        // Если это блок воздуха
+        if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
             if(density_params) {
                 return density_params.set(0, 0, 0, 0, 0, 0);
             }
@@ -389,11 +390,12 @@ export class TerrainMapManager2 {
         }
 
         // Caves
-        if(density > DENSITY_THRESHOLD * 1.5) {
+        // если это камень, то попробуем в=превратить его в пещеру
+        if(density > DENSITY_AIR_THRESHOLD * 1.5) {
             const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
                 res.dcaves = caveDensity
-                density = 0 // caveDensity;
+                density = caveDensity;
             }
         }
 
@@ -556,7 +558,8 @@ export class TerrainMapManager2 {
                         for(let y = CHUNK_SIZE_Y - 1; y >= 0; y--) {
                             xyz.y = map.cluster.y_base + y + i * CHUNK_SIZE_Y;
                             const {d1, d2, d3, d4, density} = this.calcDensity(xyz, cell, _density_params, map);
-                            if(density > DENSITY_THRESHOLD) {
+                            // если это камень
+                            if(density > DENSITY_AIR_THRESHOLD) {
                                 if(free_height >= BUILDING_MIN_Y_SPACE) {
                                     // set Y for door
                                     building.setY(xyz.y + 1);
