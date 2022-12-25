@@ -710,6 +710,7 @@ export class BLOCK {
 
         block.is_simple_qube    = this.isSimpleQube(block);
         block.can_interact_with_hand = this.canInteractWithHand(block);
+        block.can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name)
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';

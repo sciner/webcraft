@@ -57,7 +57,7 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('birch', this.plantOak.bind(this)) // берёза
         this.tree_styles.set('oak', this.plantOak.bind(this)) // дуб
         this.tree_styles.set('wood', this.plantOak.bind(this)) // просто дерево
-        this.tree_styles.set('mushroom', this.plantMushroom.bind(this)) // гриб
+        this.tree_styles.set('red_mushroom', this.plantRedMushroom.bind(this)) // красный гриб
         this.tree_styles.set('brown_mushroom', this.plantBrownMushroom.bind(this)) // коричневый (плоский) гриб
         this.tree_styles.set('acacia', this.plantAcacia.bind(this)) // акация
         this.tree_styles.set('spruce', this.plantSpruce.bind(this)) // ель
@@ -129,7 +129,7 @@ export class Default_Terrain_Generator {
         const style_func = this.tree_styles.get(type.style)
 
         if(!style_func) {
-            throw 'error_undefined_tree_style';
+            throw `error_undefined_tree_style|${type.style}`;
         }
 
         const first_time_generation = !tree.blocks
@@ -476,8 +476,8 @@ export class Default_Terrain_Generator {
         }
     }
 
-    // Mushroom
-    plantMushroom(tree, chunk, x, y, z, setTreeBlock) {
+    // Red mushroom
+    plantRedMushroom(tree, chunk, x, y, z, setTreeBlock) {
 
         let ystart = y + tree.height;
 

@@ -27,7 +27,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
         const tree_type         = TreeGenerator.TREES[tree_style.toUpperCase()];
         const _temp_vec         = new Vector(0, 0, 0);
         if(!tree_type) {
-            throw 'error_invalid_tree_style';
+            throw `error_invalid_tree_style|${tree_style}`;
         }
         //
         const getMaxFreeHeight = () => {
@@ -44,7 +44,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
                             if(!near_block) {
                                 return -1;
                             }
-                            if(near_block.id > 0 && ['leaves', 'plant', 'dirt'].indexOf(near_block.material.material.id) < 0) {
+                            if(near_block.id > 0 && !near_block.material.can_replace_by_tree) {
                                 return resp_max_height;
                             }
                         }

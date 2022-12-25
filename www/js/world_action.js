@@ -2157,6 +2157,46 @@ async function useAxe(e, world, pos, player, world_block, world_material, mat_bl
 
 function growHugeMushroom(world, pos, world_material, actions) {
 
+    const min_max = [5, 7];
+    const height = Math.floor(Math.random() * (min_max[1] - min_max[0] + 1) + min_max[0]);
+    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
+    const particles = []
+
+    for(let y = 0; y < min_max[0]; y++) {
+        for(let dx = -0.5; dx <= 0.5; dx++) {
+            for(let dz = -0.5; dz <= 0.5; dz++) {
+                particles.push({
+                    type: 'villager_happy',
+                    pos: new Vector(pos).addScalarSelf(dx, y, dz)
+                });
+            }
+        }
+    }
+
+    actions.generateTree({
+        pos,
+        block: {
+            extra_data: {
+                style: isRed ? 'red_mushroom' : 'brown_mushroom',
+                height
+            }
+        }
+    });
+
+    actions.decrement_extended = {
+        mode: 'count',
+        ignore_creative_game_mode: true
+    };
+
+    actions.addPlaySound({
+        tag: world_material.sound,
+        action: 'place',
+        pos: new Vector(pos)
+    });
+
+    actions.addParticles(particles);
+
+    /*
     function isAirOrLeaves() {
         const mat = acc.materialOrNull;
         return mat && (mat.id === 0 || mat.tags.includes("leaves"));
@@ -2317,6 +2357,8 @@ outerLoop:
         pos: new Vector(pos)
     });
     actions.addParticles(particles);
+    */
+
 }
 
 // Use bone meal
