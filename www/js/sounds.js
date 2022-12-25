@@ -197,7 +197,7 @@ export class Sounds {
                     this.sound_sprite_main.pos( pos.x, pos.z, pos.y, track_id);
                 }
 
-                this.applySoundProps(track_id, estimatedVolume, track.props);
+                this.applySoundProps(track_id, track.props.volume, track.props);
             }
         }
 
