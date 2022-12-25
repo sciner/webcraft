@@ -2155,7 +2155,7 @@ async function useAxe(e, world, pos, player, world_block, world_material, mat_bl
     return false;
 }
 
-function growGiantMushroom(world, pos, world_material, actions) {
+function growHugeMushroom(world, pos, world_material, actions) {
 
     function isAirOrLeaves() {
         const mat = acc.materialOrNull;
@@ -2181,6 +2181,15 @@ function growGiantMushroom(world, pos, world_material, actions) {
     const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
     const freeWidth = isRed ? 5 : 7; // in Minecraft it's always 7, but 5 for red makes more sense
     const freeHalfWidth = freeWidth / 2 | 0;
+
+    // check soil
+    acc.y--;
+    const soilMat = acc.materialOrDUMMY;
+    if (![BLOCK.DIRT, BLOCK.COARSE_DIRT, BLOCK.GRASS_BLOCK, BLOCK.MOSS_BLOCK,
+        BLOCK.PODZOL, BLOCK.MYCELIUM].includes(soilMat)
+    ) {
+        return;
+    }
 
     // Check the free space for the stem.
     // We already know world_material at pos, and don't check it.
@@ -2219,7 +2228,7 @@ outerLoop:
         return; // there is no space even for the shortest mushroom
     }
 
-    const blocks = [];
+    const blocks = [], particles = [];
     // draw stem
     acc.setVec(pos);
     for(let i = 0; i < height; i++) {
@@ -2229,6 +2238,16 @@ outerLoop:
             item: { id: BLOCK.MUSHROOM_STEM.id },
             action_id: ServerClient.BLOCK_ACTION_CREATE
         });
+        if (i <= STEM_HEIGHT) {
+            for(let dx = -0.5; dx <= 0.5; dx++) {
+                for(let dz = -0.5; dz <= 0.5; dz++) {
+                    particles.push({
+                        type: 'villager_happy',
+                        pos: acc.posClone().addScalarSelf(dx, 0, dz)
+                    });
+                }
+            }
+        }
     }
     // determine the shape of teh canopy
     let mushroomBlockId, halfWidth, sideTop, sideBottom;
@@ -2297,6 +2316,7 @@ outerLoop:
         action: 'place',
         pos: new Vector(pos)
     });
+    actions.addParticles(particles);
 }
 
 // Use bone meal
@@ -2356,7 +2376,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
         return true;
     } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(world_material.id)) {
         // maybe pt it inside if (Qubatch.is_server) {
-        growGiantMushroom(world, pos, world_material, actions);
+        growHugeMushroom(world, pos, world_material, actions);
         return true;
     } else if (world_block?.material?.ticking?.type && extra_data) {
         if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {
