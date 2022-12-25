@@ -774,16 +774,15 @@ export class ServerChunk {
                 case 'torch': {
                     // nesw + bottom
                     let drop = false;
-                    if(rotx == 0 && neighbourPos.z < pos.z) {
-                        drop = true;
-                    } else if(rotx == 1 && neighbourPos.x > pos.x) {
-                        drop = true;
-                    } else if(rotx == 2 && neighbourPos.z > pos.z) {
-                        drop = true;
-                    } else if(rotx == 3 && neighbourPos.x < pos.x) {
-                        drop = true;
-                    } else if(neighbourPos.y < pos.y && roty == 1) {
-                        drop = true;
+                    if (roty == 0) {
+                        switch (rotx) {
+                            case 0: drop = neighbourPos.z < pos.z; break;
+                            case 1: drop = neighbourPos.x > pos.x; break;
+                            case 2: drop = neighbourPos.z > pos.z; break;
+                            case 3: drop = neighbourPos.x < pos.x; break;
+                        }
+                    } else if (roty == 1) {
+                        drop = neighbourPos.y < pos.y; 
                     }
                     if(drop) {
                         return createDrop(tblock);
