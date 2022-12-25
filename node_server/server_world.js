@@ -40,6 +40,7 @@ export class ServerWorld {
 
     constructor(block_manager) {
         this.temp_vec = new Vector();
+
         this.block_manager = block_manager;
         this.updatedBlocksByListeners = [];
     }
@@ -693,7 +694,7 @@ export class ServerWorld {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
 
-                    let isLoaded = chunk && chunk.load_state !== CHUNK_STATE_BLOCKS_GENERATED;
+                    let isLoaded = chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED;
                     if (chunk && !isLoaded) {
                         // TODO: wtf to do here? we are loading info from the database currently!
                         console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
