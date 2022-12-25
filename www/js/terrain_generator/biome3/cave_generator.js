@@ -1,5 +1,6 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
-import { Vector } from "../../helpers.js";
+import { Helpers, Mth, Vector } from "../../helpers.js";
+import { DENSITY_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 72, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 24, shift: 64000},
@@ -42,8 +43,33 @@ export class CaveGenerator {
 
     }
 
+    easeInOut(percent, func) {
+        let value
+        if (percent < 0.5) {
+            value = func(percent * 2) / 2
+        } else {
+            value = 1 - func((1 - percent) * 2) / 2
+        }
+        return value
+    }
+
+    sine(percent) {
+        return 1 - Math.cos(percent * Math.PI / 2)
+    }
+
     // Return cave point
     getPoint(xyz, map_cell, in_ocean, density_params) {
+
+        const y_perc = (xyz.y - 20) / 60
+        if(y_perc > -1 && y_perc < 1) {
+            const mul = this.easeInOut(1 - Math.abs(y_perc), this.sine)
+            if(density_params.d1 * mul < -.3) {
+                if(density_params.d3 * .8 + density_params.d4 * .2 < 0) {
+                    return DENSITY_THRESHOLD + UNCERTAIN_ORE_THRESHOLD * .999
+                }
+            }
+        }
+
         const x = xyz.x - this.chunk_coord.x;
         const z = xyz.z - this.chunk_coord.z;
         for(let i = 0; i < this.layers.length; i++) {

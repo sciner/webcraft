@@ -251,27 +251,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
-                // Calculate caves
-                /*
-                const cave_middle_level = 100;
-                const cave_amplitude = 16;
-                const cave_base_freq = 75
-                const cave_width = .25 / (cave_base_freq / 64);
-                const cave_rad = 4;
-                const caves = [];
-                for(let i = 0; i < 3; i++) {
-                    const shift = 10000 * i;
-                    const cave_x = xyz.x + shift;
-                    const cave_z = xyz.z + shift;
-                    const cave_density = Math.abs((this.noise2d(cave_x / cave_base_freq, cave_z / cave_base_freq)));
-                    if(cave_density < cave_width) {
-                        const cave_y_density = this.noise2d((cave_x + 10000) / 64, (cave_z + 10000) / 64);
-                        const cave_y_pos = cave_middle_level - (cave_amplitude * 1.5 * i) + cave_y_density * cave_amplitude;
-                        caves.push({cave_y_pos, cave_density});
-                    }
-                }
-                */
-
                 // Each y-column
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
 
@@ -283,20 +262,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     //
                     if(density > DENSITY_THRESHOLD) {
-
-                        // Remove caves
-                        /*
-                        if(density > DENSITY_THRESHOLD) { // + (xyz.y <= WATER_LEVEL ? d3 * 2 + 3 : 0)) {
-                            for(let cave of caves) {
-                                const cave_height = (1 - cave.cave_density / cave_width) * cave_rad;
-                                const y_diff = xyz.y - cave.cave_y_pos;
-                                const dynamic_cave_height = y_diff > 0 ? d4 * 15 : 0;
-                                if(Math.abs(y_diff) < cave_height + dynamic_cave_height) {
-                                    density = 0;
-                                }
-                            }
-                        }
-                        */
 
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
@@ -311,11 +276,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // get block
                         let {dirt_layer, block_id} = this.maps.getBlock(xyz, not_air_count, cell, density_params);
 
-                        if(block_id == BLOCK.STONE.id) {
+                        if([BLOCK.STONE.id, BLOCK.ANDESITE.id, BLOCK.DIORITE.id, BLOCK.GRANITE.id].includes(block_id)) {
                             if(density < DENSITY_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
                                 // generating a small amount of ore on the surface of the walls
-                                block_id = this.ore_generator.generate(xyz);
-                            } else {
+                                block_id = this.ore_generator.generate(xyz, block_id);
+                            } else if(block_id == BLOCK.STONE.id) {
                                 block_id = BLOCK.UNCERTAIN_STONE.id
                             }
                         }

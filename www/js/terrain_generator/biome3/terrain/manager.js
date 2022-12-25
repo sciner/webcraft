@@ -393,7 +393,7 @@ export class TerrainMapManager2 {
             const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
                 res.dcaves = caveDensity
-                density = 0;
+                density = 0 // caveDensity;
             }
         }
 
@@ -454,6 +454,12 @@ export class TerrainMapManager2 {
                 }
             }
 
+        }
+
+        if(block_id == BLOCK.STONE.id) {
+            if(d1 > .5) block_id = BLOCK.ANDESITE.id
+            if(d4 > .5) block_id = BLOCK.DIORITE.id
+            if(d3 > .55) block_id = BLOCK.GRANITE.id
         }
 
         return {dirt_layer, block_id};

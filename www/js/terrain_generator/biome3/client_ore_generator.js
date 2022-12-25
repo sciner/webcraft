@@ -31,7 +31,7 @@ export class WorldClientOreGenerator {
      * @param {Vector} pos 
      * @returns {int}
      */
-    generate(pos) {
+    generate(pos, default_block_id) {
         for(let i = 0; i < this.ores.length; i++) {
             const {y, height, scale, threshold, ore_block_id, noise_hi, noise_lo} = this.ores[i]
             if(height != Infinity && Math.abs(pos.y - y) > height) continue
@@ -43,7 +43,7 @@ export class WorldClientOreGenerator {
                 return ore_block_id
             }
         }
-        return BLOCK.STONE.id;
+        return default_block_id;
     }
 
 }
