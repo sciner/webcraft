@@ -1,5 +1,5 @@
 import { Resources } from "./resources.js";
-import { SOUND_MAX_DIST }  from "./constant.js";
+import { DEFAULT_SOUND_MAX_DIST }  from "./constant.js";
 
 export class Sounds {
     static VOLUME_MAP = {
@@ -19,7 +19,7 @@ export class Sounds {
         coneOuterAngle: 360,
         coneOuterGain: 0,
         distanceModel: 'inverse',
-        maxDistance: SOUND_MAX_DIST,
+        maxDistance: DEFAULT_SOUND_MAX_DIST,
         panningModel: 'HRTF',
         refDistance: 1,
         rolloffFactor: 1,
@@ -121,9 +121,9 @@ export class Sounds {
     }
 
     // [TODO we need get a proper sound]
-    voice_calculation(dist) {
+    voice_calculation(dist, maxDist) {
         // it's asumed that dist is always > max
-        return Math.max(0, 1 - (dist / SOUND_MAX_DIST));
+        return Math.max(0, 1 - (dist / maxDist));
     }
 
     //
@@ -146,7 +146,7 @@ export class Sounds {
      * @param {boolean} ignore_repeating 
      * @returns 
      */
-    play(tag, action, pos, ignore_repeating = false, loop = false) {
+    play(tag, action, pos, ignore_repeating = false, loop = false, maxDist = DEFAULT_SOUND_MAX_DIST) {
         const list = this.getTagActionList(tag, action)
 
         if(!list) {
@@ -182,7 +182,7 @@ export class Sounds {
             if (pos) {
                 const { lerpPos, forward } = this.#player;
                 const dist = lerpPos.distance(pos);
-                estimatedVolume *= this.voice_calculation(dist);
+                estimatedVolume *= this.voice_calculation(dist, maxDist);
             }
             
             // if volume ok, we can play sound 
@@ -197,7 +197,7 @@ export class Sounds {
                     this.sound_sprite_main.pos( pos.x, pos.z, pos.y, track_id);
                 }
 
-                this.applySoundProps(track_id, track.props.volume, track.props);
+                this.applySoundProps(track_id, estimatedVolume, track.props);
             }
         }
 

@@ -159,7 +159,8 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos);
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos, 
+                false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
