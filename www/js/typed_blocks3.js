@@ -1151,6 +1151,11 @@ const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
  */
 export class BlockAccessor {
 
+    /**
+     * @param {World} world
+     * @param {Vector} pos - optional. Some point near the area where the class will be
+     *   used. If it's provided, it slightly speeds up the access to the 1st block.
+     */
     constructor(world, pos = null) {
         this.chunkManager = world.chunkManager || world.chunks;
         this._tb = null;
@@ -1169,10 +1174,17 @@ export class BlockAccessor {
         }
     }
 
+    /**
+     * Allows a persistent refernce to the class to be used again.
+     * It solves the problem of the remembered chunk being unloaded.
+     */
     reset() {
         this._rebase(this.x, this.y, this.z);
     }
 
+    /**
+     * @returns {Int} world coordinate X of the current point.
+     */
     get x() {
         return this._tbCoord.x + this._relPos.x;
     }
@@ -1185,10 +1197,18 @@ export class BlockAccessor {
         return this._tbCoord.z + this._relPos.z;
     }
 
+    /**
+     * @returns {Vector} a clone of the current world position.
+     */
     posClone() {
         return this._relPos.clone().addSelf(this._tbCoord);
     }
 
+    /**
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - a signed 32-bit value based on the current world positon,
+     *      world seed and spice.
+     */
     deterministicRandomInt(spice = null) {
         const worldCompatibility = this.chunkManager.world ?? this.chunkManager.getWorld();
         let res = Vector.toIntHash(this.x, this.y, this.z) ^ worldCompatibility.info.seed;
@@ -1206,18 +1226,39 @@ export class BlockAccessor {
         return res;
     }
 
+    /**
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - an unsigned 31-bit value based on the current world positon,
+     *      world seed and spice.
+     */
     deterministicRandomUint(spice = null) {
         return this.deterministicRandomInt(spice) & 0x7FFFFFFF;
     }
 
+    /**
+     * @param {Int} min - the minium value (inclusive)
+     * @param {Int} max - the maximum value (inclusive)
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - a value from min to max, based on the current world positon,
+     *      world seed and spice.
+     */
     deterministicRandomRange(min, max, spice = null) {
         return this.deterministicRandomUint(spice) % (max - min + 1) + min;
     }
 
+    /**
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Double} - a value from 0 (inclusive) to 1 (exclusive), based on
+     *      the current world positon, world seed and spice.
+     */
     deterministicRandom(spice = null) {
         return this.deterministicRandomUint(spice) / 0x80000000;
     }
 
+    /**
+     * Sets the world coordinat X of the current position.
+     * @param {Int} x
+     */
     set x(x) {
         const rx = x - this._tbCoord.x;
         if ((rx | CHUNK_SIZE_X_M1 - rx) >= 0) { // if (rx >= 0 && rx <= CHUNK_SIZE_X_M1)
@@ -1248,6 +1289,13 @@ export class BlockAccessor {
         this._rebase(this.x, this.y, z);
     }
 
+    /**
+     * Sets the current world position.
+     * @param {Int} x
+     * @param {Int} y
+     * @param {Int} z
+     * @returns {BlockAccessor} this
+     */
     setXYZ(x, y, z) {
         let c = this.tblocksCoord;
         if (c !== null) {
@@ -1266,34 +1314,70 @@ export class BlockAccessor {
         return this;
     }
 
+    /**
+     * Sets the current world position.
+     * @param {Vector} vec
+     * @returns {BlockAccessor} this
+     */
     setVec(vec) {
         return this.setXYZ(vec.x, vec.y, vec.z);
     }
 
+    /**
+     * Adds to the coordinates of the current world position.
+     * @param {Int} dx
+     * @param {Int} dy
+     * @param {Int} dz
+     * @returns {BlockAccessor} this
+     */
     addXYZ(dx, dy, dz) {
         return this.setXYZ(this.x + dx, this.y + dy, this.z + dz);
     }
 
+    /**
+     * @returns {Int} id of the current block, or null if the chunk is not generated.
+     */
     get idOrNull() {
         return this.tblockOrNull?.id;
     }
 
+    /**
+     * @param {Any} def - the default value
+     * @returns {Int} id of the current block, or the default value if the chunk is not generated.
+     */
     idOr(def) {
         return this.tblockOrNull ? this.tblockOrNull.id : def;
     }
 
+    /**
+     * @returns {Object} the properties of the current block, or null if the chunk is not generated.
+     */
     get materialOrNull() {
         return this.tblockOrNull?.material;
     }
 
+    /**
+     * @returns {Object} the properties of the current block, or {@link BLOCK.DUMMY}
+     *      if the chunk is not generated.
+     */
     get materialOrDUMMY() {
         return this.tblockOrNull?.material ?? BLOCK.DUMMY;
     }
 
+    /**
+     * @param {Any} def - the default value
+     * @returns {Object} the properties of the current block, or the default value
+     *      if the chunk is not generated.
+     */
     materialOr(def) {
         return this.tblockOrNull?.material ?? def;
     }
 
+    /**
+     * @returns {TBlock} vurrent tblock, or chunkManager.DUMMY if the chunk is not generated.
+     *      Note: the same instance is reused and it can't rememberd for any prolonged time.
+     *      It's valid only unil the position changes.
+     */
     get tblockOrDummy() {
         return this.tblockOrNull ?? this.chunkManager.DUMMY;
     }
