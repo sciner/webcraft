@@ -2375,7 +2375,7 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
         }
         return true;
     } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(world_material.id)) {
-        // maybe pt it inside if (Qubatch.is_server) {
+        // maybe put it inside "if (Qubatch.is_server) {"
         growHugeMushroom(world, pos, world_material, actions);
         return true;
     } else if (world_block?.material?.ticking?.type && extra_data) {
