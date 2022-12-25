@@ -13,6 +13,7 @@ const {mat4, vec3, quat} = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
+const OLD_SKIN                      = false;
 
 export class Traversable {
 
@@ -46,6 +47,7 @@ export class Animable {
         this.pos;
         this.parts;
         this.animationScript;
+        
     }
 
 }
@@ -73,15 +75,15 @@ export class TraversableRenderer {
     }
 
     drawTraversed(node, parent, render, traversable) {
-
         if('visible' in node && !node.visible) {
             return;
         }
-
         if (!node.terrainGeometry) {
             return true;
         }
-
+        if (node.material && traversable.lightTex) {
+            node.material.lightTex = traversable.lightTex;
+        }
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || traversable.material,
@@ -494,15 +496,14 @@ export class MobModel extends NetworkPhysicObject {
         this.texture                    = null;
         this.material                   = null;
         this.raycasted                  = false;
-
         this.moving_timeout             = null;
-        this.texture                    = null;
         this.nametag                    = null;
         this.aniframe                   = 0;
         this.width                      = 0;
         this.height                     = 0;
         this.sneak                      = 0;
         this.body_rotate                = 0;
+        this.textures                   = new Map();
 
         Object.assign(this, props);
 
@@ -560,10 +561,10 @@ export class MobModel extends NetworkPhysicObject {
             // play punch
             Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
             // play mob cry
-            let tag = `madcraft:block.${this.type}`;
-            if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
-                Qubatch.sounds.play(tag, 'hurt');
-            }
+            //let tag = `madcraft:block.${this.type}`;
+            //if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
+            //    Qubatch.sounds.play(tag, 'hurt');
+            //}
             // make red
             this.tintColor.set(1, 0, 0, .3);
             setTimeout(() => {
@@ -678,7 +679,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        this.animator.update(delta, camPos, this, speed);
+       this.animator.update(delta, camPos, this, speed);
     }
 
     isDetonationStarted() {
@@ -815,14 +816,29 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        this.texture = render.renderBackend.createTexture({
+        const texture = render.renderBackend.createTexture({
             source: image,
             minFilter: 'nearest',
             magFilter: 'nearest',
             shared: true
         });
 
-        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture)
+        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(texture)
+    }
+    
+    /**
+     *
+     * @param {Renderer} render
+     * @param {ImageBitmap | Image} image
+     */
+    getTexture(render, image) {
+        const texture = render.renderBackend.createTexture({
+            source: image,
+            minFilter: 'nearest',
+            magFilter: 'nearest',
+            shared: true
+        });
+        return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
     }
 
     // Loads the player head model into a vertex buffer for rendering.
@@ -840,30 +856,52 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const asset = await Resources.getModelAsset(this.type);
-
         if (!asset) {
             console.log("Can't locate model for:", this.type);
             return null;
         }
 
         this.sceneTree = ModelBuilder.loadModel(asset);
-
         if (!this.sceneTree) {
             return null;
         }
+        if (!OLD_SKIN) { 
+            for (const title in asset.skins) {
+                const image = await asset.getSkin(title);
+                const texture = this.getTexture(render, image);
+                this.textures.set(title, texture);
+            }
+            if (this.type == 'zombie' || this.type == 'skeleton') {
+                const armor = await Resources.getModelAsset('armor');
+                for (const title in armor.skins) {
+                    const image = await armor.getSkin(title);
+                    const texture = this.getTexture(render, image);
+                    this.textures.set(title, texture);
+                }
+                // пока хардкор, но чисто для проверки производительности
+                const scene = ModelBuilder.loadModel(armor);
+                scene[0].children[1].material = this.textures.get('turtle_layer_1');
+                scene[0].children[0].material = this.textures.get('gold_layer_1');
+                scene[0].children[0].children[0].material = this.textures.get('iron_layer_1');
+                scene[0].children[0].children[1].material = this.textures.get('leather_layer_1');
+                scene[0].children[0].children[2].material = this.textures.get('diamond_layer_2');
+                scene[0].children[0].children[3].material = this.textures.get('chainmail_layer_1');
+                this.sceneTree.push(scene[0]);
+            }
+            this.material = this.textures.get('base');
+        } else {
+            this.skin = this.skin || asset.baseSkin;
 
-        this.skin = this.skin || asset.baseSkin;
+            if(!(this.skin in asset.skins)) {
+                console.warn("Can't locate skin: ", asset, this.skin)
+                this.skin = asset.baseSkin;
+            }
 
-        if(!(this.skin in asset.skins)) {
-            console.warn("Can't locate skin: ", asset, this.skin)
-            this.skin = asset.baseSkin;
+            const image = await asset.getSkin(this.skin);
+
+            this.loadTextures(render, image);
         }
-
-        const image = await asset.getSkin(this.skin);
-
-        this.loadTextures(render, image);
     }
-
 
     async loadPlayerModel(render) {
         if (this.sceneTree) {
