@@ -1,5 +1,5 @@
 import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
+import {BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
@@ -62,6 +62,9 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size);
+        
+        // Создания слота для армора
+        this.createArmorSlots(this.cell_size);
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom);
@@ -208,6 +211,19 @@ export class InventoryWindow extends BaseCraftWindow {
 
     getSlots() {
         return this.inventory_slots;
+    }
+    
+    createArmorSlots(sz, sx = 14, sy = 166) {
+        const ct = this;
+
+        sx *= this.zoom;
+        sy *= this.zoom;
+        console.log(this.zoom)
+
+        const lblSlotBoots = new CraftTableInventorySlot(16 * this.zoom, 124 * this.zoom, sz, sz, 'lblSlot36', null, '36', this, 36);
+        ct.add(lblSlotBoots);
+        ct.inventory_slots.push(lblSlotBoots);
+        
     }
 
 }
