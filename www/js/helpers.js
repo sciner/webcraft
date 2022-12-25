@@ -240,6 +240,12 @@ export function getChunkAddr(x, y, z, v = null) {
     return v;
 }
 
+export function chunkAddrToCoord(addr, result) {
+    result.x = addr.x * CHUNK_SIZE_X;
+    result.y = addr.y * CHUNK_SIZE_Y;
+    result.z = addr.z * CHUNK_SIZE_Z;
+}
+
 // VectorCollectorFlat...
 export class VectorCollectorFlat {
 

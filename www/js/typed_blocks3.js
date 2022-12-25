@@ -361,7 +361,6 @@ export class TypedBlocks3 {
     }
 
     getMaterial(vec) {
-        //TODO: are we sure that vec wont be modified?
         const { cx, cy, cz, cw } = this.dataChunk;
         const index = cx * vec.x + cy * vec.y + cz * vec.z + cw;
         return BLOCK.BLOCK_BY_ID[this.id[index]] || null;
@@ -790,7 +789,11 @@ export class TBlock {
         //TODO try remove third param
         this.tb = tb;
         this.vec = vec;
-        this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
+        this.index = index || NaN;
+
+        // Old code that used incorrect BLOCK.getIndex
+        // this.index = index || (this.vec ? BLOCK.getIndex(this.vec) : NaN);
+
         return this;
     }
 
@@ -1123,4 +1126,168 @@ export class TBlock {
         this.rotate = obj?.rotate || null;
     }
 
+}
+
+const CHUNK_SIZE_X_M1 = CHUNK_SIZE_X - 1;
+const CHUNK_SIZE_Y_M1 = CHUNK_SIZE_Y - 1;
+const CHUNK_SIZE_Z_M1 = CHUNK_SIZE_Z - 1;
+const tmp_BlockAccessor_Vector = new Vector();
+
+// See also BaseChunk.initSize()
+const CHUNK_PADING = 1;
+const CHUNK_OUTER_SIZE_X = CHUNK_SIZE_X + 2 * CHUNK_PADING;
+const CHUNK_OUTER_SIZE_Z = CHUNK_SIZE_Z + 2 * CHUNK_PADING;
+const CHUNK_CX = 1;
+const CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z;
+const CHUNK_CZ = CHUNK_OUTER_SIZE_X;
+const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
+
+/**
+ * A class that provides access to the world blocks in the same area
+ * on average as fast as the chunk does to its own blocks.
+ * 
+ * It caches the current chunk, so its instances can't be stored and reused
+ * for any prolonged time; it must be re-created, or rest by calling reset().
+ */
+export class BlockAccessor {
+
+    constructor(world, pos = null) {
+        this.chunkManager = world.chunkManager;
+        this._tb = null;
+
+        this._tmpCoord = new Vector(); // used for this._tbCoord when this._tb is absent
+        this._tbCoord = null; // TypedBlocks3.coord taht is present even if _tb == null
+
+        this._relPos = new Vector(0, 0, 0); // relative to this._tbCoord
+        this._tmpTBlock = new TBlock(null, this.relPos, 1);
+        this.tblockOrNull = null; // either this._tmpTBlock or null
+        
+        if (pos) {
+            this._rebase(pos.x, pos.y, pos.z);
+        } else {
+            this._rebase(0, 0, 0);
+        }
+    }
+
+    reset() {
+        this._rebase(this.x, this.y, this.z);
+    }
+
+    get x() {
+        return this._tbCoord.x + this._relPos.x;
+    }
+
+    get y() {
+        return this._tbCoord.y + this._relPos.y;
+    }
+
+    get z() {
+        return this._tbCoord.z + this._relPos.z;
+    }
+
+    posClone() {
+        return this._relPos.clone().addSelf(this._tbCoord);
+    }
+
+    set x(x) {
+        const rx = x - this._tbCoord.x;
+        if ((rx | CHUNK_SIZE_X_M1 - rx) >= 0) { // if (rx >= 0 && rx <= CHUNK_SIZE_X_M1)
+            this._tmpTBlock.index -= CHUNK_CX * (rx - this._relPos.x);
+            this._relPos.x = rx;
+            return;
+        }
+        this._rebase(x, this.y, this.z);
+    }
+
+    set y(y) {
+        const ry = y - this._tbCoord.y;
+        if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) { // if (ry >= 0 && ry <= CHUNK_SIZE_Y_M1)
+            this._tmpTBlock.index -= CHUNK_CY * (ry - this._relPos.y);
+            this._relPos.y = ry;
+            return;
+        }
+        this._rebase(this.x, y, this.z);
+    }
+
+    set z(z) {
+        const rz = z - this._tbCoord.z;
+        if ((rz | CHUNK_SIZE_Z_M1 - rz) >= 0) { // if (rz >= 0 && rz <= CHUNK_SIZE_Z_M1)
+            this._tmpTBlock.index -= CHUNK_CZ * (rz - this._relPos.z);
+            this._relPos.z = rz;
+            return;
+        }
+        this._rebase(this.x, this.y, z);
+    }
+
+    setXYZ(x, y, z) {
+        let c = this.tblocksCoord;
+        if (c !== null) {
+            // x and y are more likely to be outside the range, so check them together and first
+            const rx = x - this._tbCoord.x;
+            const rz = z - this._tbCoord.z;
+            if ((rx | rz | CHUNK_SIZE_X_M1 - rx | CHUNK_SIZE_Z_M1 - rz) >= 0) {
+                const ry = y - this._tbCoord.y;
+                if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) {
+                    this._setRelPos(rx, ry, rz);
+                    return this;
+                }
+            }
+        }
+        this._rebase(x, y, z);
+        return this;
+    }
+
+    setVec(vec) {
+        return this.setXYZ(vec.x, vec.y, vec.z);
+    }
+
+    addXYZ(dx, dy, dz) {
+        return this.setXYZ(this.x + dx, this.y + dy, this.z + dz);
+    }
+
+    get idOrNull() {
+        return this.tblockOrNull?.id;
+    }
+
+    idOr(def) {
+        return this.tblockOrNull ? this.tblockOrNull.id : def;
+    }
+
+    get materialOrNull() {
+        return this.tblockOrNull?.material;
+    }
+
+    get materialOrDUMMY() {
+        return this.tblockOrNull?.material ?? BLOCK.DUMMY;
+    }
+
+    materialOr(def) {
+        return this.tblockOrNull?.material ?? def;
+    }
+
+    get tblockOrDummy() {
+        return this.tblockOrNull ?? this.chunkManager.DUMMY;
+    }
+
+    _setRelPos(rx, ry, rz) {
+        this._relPos.setScalar(rx, ry, rz);
+        this.tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
+    }
+
+    _rebase(x, y, z) {
+        const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
+        // This accounts both for missing chunks, and for blocks not generated
+        this.tb = this.chunkManager.chunks.get(addr)?.tblocks;
+
+        if (this.tb) {
+            this.tbCoord = this.tb.coord;
+            this.tblockOrNull = this.tmpTBlock;
+            this.tblockOrNull.tb = this.tb;
+        } else {
+            chunkAddrToCoord(addr, this.tmpCoord);
+            this.tbCoord = this.tmpCoord;
+            this.tblockOrNull = null;
+        }
+        this._setRelPos(x - this.tbCoord.x, y - this.tbCoord.y, z - this.tbCoord.z);
+    }
 }

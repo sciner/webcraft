@@ -1,4 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
+import { BlockAccessor } from "./typed_blocks3.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -2154,6 +2155,120 @@ async function useAxe(e, world, pos, player, world_block, world_material, mat_bl
     return false;
 }
 
+function growGiantMushroom(world, pos, world_material, actions) {
+
+    function isAirOrLeaves() {
+        const mat = acc.materialOrNull;
+        return mat && (mat.id === 0 || mat.tags.includes("leaves"));
+    }
+
+    function addCanopySideBlock(ignoreSolid) {
+        const mat = acc.materialOrNull;
+        if (mat && (ignoreSolid || !mat.is_solid)) {
+            blocks.push({
+                pos: acc.posClone(),
+                item: { id: mushroomBlockId },
+                action_id: ServerClient.BLOCK_ACTION_CREATE
+            })
+        }
+    }
+
+    const STEM_HEIGHT = 4;
+    const acc = new BlockAccessor(world, pos);
+    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
+    const freeWidth = isRed ? 5 : 7; // in Minecraft it's always 7, but 5 for red makes more sense
+    const freeHalfWidth = freeWidth / 2 | 0;
+
+    // Check the free space for the stem.
+    // We assume that there is a mushroom at pos, and don't check it.
+    for(let i = 1; i < STEM_HEIGHT; i++) {
+        acc.y = pos.y + i;
+        if (!isAirOrLeaves()) {
+            return;
+        }
+    }
+
+    // randomize maximum height - exactly as in Minecraft
+    let maxHeight = Mth.randomIntRange(5, 7);
+    if (Math.random() < 0.5) {
+        maxHeight = 2 * maxHeight - 1;
+    }
+
+    // find the free space for the canopy
+    let height = STEM_HEIGHT + 1;
+outerLoop:
+    do {
+        acc.y = pos.y + height;
+        for(let dx = -freeHalfWidth; dx < freeHalfWidth; dx++) {
+            acc.x = pos.x + dx;
+            for(let dz = -freeHalfWidth; dz < freeHalfWidth; dz++) {
+                acc.z = pos.z + dz;
+                if (!isAirOrLeaves()) {
+                    break outerLoop;
+                }
+            }
+        }
+        height++;
+    } while (height <= maxHeight);
+    height--;
+    if (height == STEM_HEIGHT) {
+        return; // there is no space even for the shortest mushroom
+    }
+
+    const blocks = [];
+    // draw stem
+    acc.setVec(pos);
+    for(let i = 0; i < STEM_HEIGHT; i++) {
+        acc.y = pos.y + i;
+        blocks.push({
+            pos: acc.posClone(),
+            item: { id: BLOCK.MUSHROOM_STEM.id },
+            action_id: ServerClient.BLOCK_ACTION_CREATE
+        });
+    }
+    // determine the shape of teh canopy
+    let mushroomBlockId, halfWidth, sideTop, sideBottom;
+    if (isRed) {
+        mushroomBlockId = BLOCK.RED_MUSHROOM_BLOCK.id;
+        halfWidth = 2;
+        sideTop = height;
+        sideBottom = height;
+    } else {
+        mushroomBlockId = BLOCK.BROWN_MUSHROOM_BLOCK.id;
+        halfWidth = 1;
+        sideTop = height - 1;
+        sideBottom = height - 3;
+    }
+    // draw canopy top
+    acc.y = pos.y + height;
+    for(let dx = -halfWidth; dx < halfWidth; dx++) {
+        acc.x = pos.x + dx;
+        for(let dz = -halfWidth; dz < halfWidth; dz++) {
+            acc.z = pos.z + dz;
+            addCanopySideBlock(false);
+        }
+    }
+    // draw canopy sides
+    for(let dy = sideBottom; dy <= sideTop; dy++) {
+        acc.y = pos.y + height;
+        for(let d = -halfWidth; d < halfWidth; d++) {
+            // as in Micecraft, sides of the red mushroom don't replace solid blocks
+            acc.x = pos.x + d;
+            acc.z = pos.z - (halfWidth + 1);
+            addCanopySideBlock(isRed);
+            acc.z = pos.z + (halfWidth + 1);
+            addCanopySideBlock(isRed);
+
+            acc.z = pos.z + d;
+            acc.x = pos.x - (halfWidth + 1);
+            addCanopySideBlock(isRed);
+            acc.x = pos.x + (halfWidth + 1);
+            addCanopySideBlock(isRed);
+        }
+    }
+    actions.addBlocks(blocks);
+}
+
 // Use bone meal
 async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
@@ -2208,6 +2323,9 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
         if(mat_block.sound) {
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
         }
+        return true;
+    } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(pos, world_material.id)) {
+        growGiantMushroom(world, pos, world_material);
         return true;
     } else if (world_block?.material?.ticking?.type && extra_data) {
         if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {

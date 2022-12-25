@@ -230,16 +230,18 @@ export class BLOCK {
         return val + (material.visible_for_ao ? 128 : 0);
     }
 
-    // Return flat index of chunk block
-    static getIndex(x, y, z) {
-        if(x instanceof Vector || typeof x == 'object') {
-            y = x.y;
-            z = x.z;
-            x = x.x;
-        }
-        let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        return index;
-    }
+    // This method doens't account for padding, returns incorrect result and shouldn't be used
+
+    // // Return flat index of chunk block
+    // static getIndex(x, y, z) {
+    //     if(x instanceof Vector || typeof x == 'object') {
+    //         y = x.y;
+    //         z = x.z;
+    //         x = x.x;
+    //     }
+    //     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+    //     return index;
+    // }
 
     // Return new simplified item
     static convertItemToDBItem(item) {
