@@ -4643,7 +4643,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4667,7 +4668,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4691,7 +4693,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4715,7 +4718,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4739,7 +4743,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4763,7 +4768,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
