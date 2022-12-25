@@ -247,7 +247,7 @@ export class ServerChat {
                 const stat = {
                     mobs_count:     this.world.mobs.count(),
                     drop_items:     this.world.all_drop_items.size,
-                    players:        this.world.players.size,
+                    players:        this.world.players.count,
                     chunks:         this.world.chunkManager.all.size,
                     net_in:         this.world.network_stat.in.toLocaleString() + ` bytes (packets: ${this.world.network_stat.in_count})`,
                     net_out:        this.world.network_stat.out.toLocaleString() + ` bytes (packets: ${this.world.network_stat.out_count})`,

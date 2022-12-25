@@ -1,6 +1,7 @@
 import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
+import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -11,8 +12,8 @@ const OXYGEN_GOT_TICKS = 5;
 const POISON_TICKS = 25;
 const WITHER_TICKS = 40;
 const FOOD_LOST_TICKS = 80;
-const CACTUS_LOST_TICKS = 10;
-const CACTUS_PADDING_DAMAGE = 0.3;
+const PLANTING_LOST_TICKS = 10;
+const PLANTING_PADDING_DAMAGE = 0.3;
 
 export class ServerPlayerDamage {
     
@@ -27,7 +28,7 @@ export class ServerPlayerDamage {
         this.food_timer = 0;
         this.food_saturation_level = 0;
         this.food_exhaustion_level = 0;
-        this.cactus_lost_timer = 0;
+        this.planting_lost_timer = 0;
         this.instant_health_timer = 0;
         this.instant_damage_timer = 0;
     }
@@ -84,7 +85,7 @@ export class ServerPlayerDamage {
         }
         
         // урон он воды и удушения эффект подводное дыхание
-        if (head.id >= 0) { // if it's a real block, not DUMMY
+        if ((head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || head.id > 0) { // if it's a real block, not DUMMY
             if (!head.has_oxygen) {
                 this.oxygen_got_timer = 0;
                 this.oxygen_lost_timer++;
@@ -109,13 +110,14 @@ export class ServerPlayerDamage {
         }
         
         // огонь/лава с эффектом защиты от огня
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || legs.material.material.id == 'lava') {
+        const is_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || is_lava) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
                 const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
                 if (fire_res_lvl == 0) {
-                    damage = (legs.material.material.id == 'lava') ? damage + 4 : damage + 1;
+                    damage = is_lava ? damage + 4 : damage + 1;
                 }
             }
         } else {
@@ -148,21 +150,31 @@ export class ServerPlayerDamage {
             this.wither_timer = 0;
         }
         
-        // урон от кактуса
+        // урон от растений
+        const isDamagePlanting = (block) => {
+            if (block.id == BLOCK.CACTUS.id) {
+                return true;
+            }
+            if (block.id == BLOCK.SWEET_BERRY_BUSH.id && block?.extra_data?.stage == 3) {
+                return true;
+            }
+            return false;
+        }
         const east = world.getBlock(position.add(Vector.XN));
         const west = world.getBlock(position.add(Vector.XP));
         const north = world.getBlock(position.add(Vector.ZP));
         const south = world.getBlock(position.add(Vector.ZN));
         const down = world.getBlock(position.add(Vector.YN));
+        const inside = world.getBlock(position);
         const sub = player.state.pos.sub(position);
-        if  ((down.id == BLOCK.CACTUS.id) || (east.id == BLOCK.CACTUS.id && sub.x < CACTUS_PADDING_DAMAGE) || (west.id == BLOCK.CACTUS.id && sub.x > 1.0 - CACTUS_PADDING_DAMAGE) || (south.id == BLOCK.CACTUS.id && sub.z < CACTUS_PADDING_DAMAGE) || (north.id == BLOCK.CACTUS.id && sub.z > 1 - CACTUS_PADDING_DAMAGE)) {
-            this.cactus_lost_timer++;
-            if (this.cactus_lost_timer >= CACTUS_LOST_TICKS) {
-                this.cactus_lost_timer = 0;
+        if ((isDamagePlanting(inside)) || (isDamagePlanting(down)) || (isDamagePlanting(east) && sub.x < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(west) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE) || (isDamagePlanting(south) && sub.z < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(north) && sub.z > 1 - PLANTING_PADDING_DAMAGE)) {
+            this.planting_lost_timer++;
+            if (this.planting_lost_timer >= PLANTING_LOST_TICKS) {
+                this.planting_lost_timer = 0;
                 damage++;
             }
         } else {
-            this.cactus_lost_timer = CACTUS_LOST_TICKS;
+            this.planting_lost_timer = PLANTING_LOST_TICKS;
         }
         
         // моментальный урон

@@ -402,6 +402,8 @@ export class RecipeManager {
             });
         }
         //
+        this.addOrePieces(recipes);
+        //
         for(let item of recipes) {
             if(!('id' in item)) {
                 console.error(item);
@@ -417,6 +419,49 @@ export class RecipeManager {
         //
         this.group();
         callback();
+    }
+
+    addOrePieces(recipes) {
+        for (let piece of BLOCK.list.values()) {
+            if (!piece.piece_of) {
+                continue;
+            }
+            const pieceName = piece.name;
+            const ingotName = piece.piece_of;
+            const ingot = BLOCK[ingotName];
+            if (!ingot) {
+                continue;
+            }
+            recipes.push({
+                "id": this.md5s(ingotName + '_TO_' + pieceName),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "W"
+                ],
+                "key": {
+                    "W": { "item": "madcraft:" + ingotName.toLowerCase() }
+                },
+                "result": {
+                    "item": "madcraft:" + pieceName.toLowerCase(),
+                    "count": 9
+                }
+            }, {
+                "id": this.md5s(pieceName + '_TO_' + ingotName),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "WWW",
+                    "WWW",
+                    "WWW"
+                ],
+                "key": {
+                    "W": { "item": "madcraft:" + pieceName.toLowerCase() }
+                },
+                "result": {
+                    "item": "madcraft:" + ingotName.toLowerCase(),
+                    "count": 1
+                }
+            });
+        }
     }
 
     // Group

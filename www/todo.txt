@@ -7,7 +7,7 @@
 - bee_nest:
 - button:
 - cake:                   Это торт, который можно съесть
-- can_put_info_pot:       Может быть установлено в полено
+- can_put_into_pot:       Может быть установлено в горшок
 - can_set_on_wall:
 - carpet:
 - dirt:

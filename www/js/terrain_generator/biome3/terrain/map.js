@@ -3,7 +3,7 @@ import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
 import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_THRESHOLD, DensityParams } from "./manager.js";
 import { TerrainMap } from "../../terrain_map.js";
-import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../../cave_generator.js";
+import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../cave_generator.js";
 
 export class TerrainMap2 extends TerrainMap {
 

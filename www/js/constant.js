@@ -39,6 +39,8 @@ export const RENDER_EAT_FOOD_DURATION       = 1800;
 export const PLAYER_ZOOM                    = 1;
 export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
 export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
+export const PLAYER_DIAMETER                = 0.7;
+export const PLAYER_RADIUS                  = PLAYER_DIAMETER / 2;
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 

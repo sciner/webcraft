@@ -136,6 +136,16 @@ export class AABB {
         return this;
     }
 
+    setBottomHeightRadius(vec, height, radius) {
+        return this.set(
+            vec.x - radius,
+            vec.y,
+            vec.z - radius,
+            vec.x + radius,
+            vec.y + height,
+            vec.z + radius);
+    }
+
     setIntersect(aabb1, aabb2) {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);
@@ -190,6 +200,10 @@ export class AABB {
         return x >= this.x_min && x < this.x_max
             && y >= this.y_min && y < this.y_max
             && z >= this.z_min && z < this.z_max;
+    }
+
+    containsVec(vec) {
+        return this.contains(vec.x, vec.y, vec.z);
     }
 
     intersectsColumn(x, z, y, y2) {

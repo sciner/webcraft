@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, getChunkAddr } from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -264,29 +264,31 @@ export function dropBlock(player, tblock, actions, force) {
         return [];
     }
 
-    if(tblock.material.drop_item) {
-        const drop_block = BLOCK.fromName(tblock.material.drop_item?.name);
+    const drop_item = tblock.material.drop_item;
+    if(drop_item) {
+        const drop_block = BLOCK.fromName(drop_item?.name);
         if(drop_block) {
-            if('chance' in tblock.material.drop_item) {
-                let count = tblock.material.drop_item.count;
-                if(count) {
-                    if(Math.random() <= tblock.material.drop_item.chance) {
-                        if(Array.isArray(count)) {
-                            // const rnd = (Math.random() * (max-min + 1) + min) | 0;
-                            let count_index = (Math.random() * count.length) | 0;
-                            count = count[count_index];
-                        }
-                        count = parseInt(count);
-                        if(count > 0) {
-                            const item = makeDropItem(tblock, {id: drop_block.id, count: count});
-                            actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
-                            return [item]
-                        }
+            const chance = drop_item.chance ?? 1;
+            if(Math.random() < chance) {
+                let count = drop_item.count;
+                const min_max_count = drop_item.min_max_count;
+                if(count || min_max_count) {
+                    if(Array.isArray(count)) {
+                        let count_index = (Math.random() * count.length) | 0;
+                        count = count[count_index];
+                    } else if (min_max_count) {
+                        count = Mth.randomIntRange(min_max_count[0], min_max_count[1]);
+                    }
+                    count = parseInt(count);
+                    if(count > 0) {
+                        const item = makeDropItem(tblock, {id: drop_block.id, count: count});
+                        actions.addDropItem({pos: tblock.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
+                        return [item];
                     }
                 }
             }
         } else {
-            console.error('error_invalid_drop_item', tblock.material.drop_item);
+            console.error('error_invalid_drop_item', drop_item);
         }
     } else {
         const items = [];
@@ -851,10 +853,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 return actions;
             }
         }
-
+        
         // Другие действия с инструментами/предметами в руке
-        if(mat_block.item) {
-
+        if(mat_block.item && mat_block.style != 'planting') {
             // Use intruments
             for(let func of [useFlintAndSteel, useShovel, useHoe, useAxe, useBoneMeal]) {
                 if(await func(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
@@ -911,6 +912,7 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
+                    // player.radius = player's diameter
                     x_min: player.pos.x - player.radius / 2,
                     x_max: player.pos.x - player.radius / 2 + player.radius,
                     y_min: player.pos.y,
@@ -1202,7 +1204,7 @@ async function putIntoPot(e, world, pos, player, world_block, world_material, ma
                         (
                             item_frame ||
                             mat_block.planting ||
-                            mat_block.tags.includes('can_put_info_pot')
+                            mat_block.tags.includes('can_put_into_pot')
                         );
     if(!putIntoPot) {
         return false;
@@ -1414,15 +1416,24 @@ async function sitDown(e, world, pos, player, world_block, world_material, mat_b
         if(on_ceil) sit_pos.y += .5;
     }
     //
-    if(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0) {
-        actions.reset_mouse_actions = true;
-        actions.setSitting(
-            sit_pos,
-            new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
-        )
-        return true;
+    if(!(is_chair || is_stool || player.pos.distance(sit_pos) < 3.0)) {
+        return false;
     }
-    return false;
+    // check if someone else is sitting
+    const above_sit_pos = sit_pos.clone();
+    above_sit_pos.y += 0.5; // the actual sitting player pos may be slightly above sit_pos
+    for(const [_, p] of world.players.eachContainingVec(above_sit_pos)) {
+        if (p.sharedProps.user_id !== player.session.user_id && p.sharedProps.sitting) {
+            return false;
+        }
+    }
+    // sit down
+    actions.reset_mouse_actions = true;
+    actions.setSitting(
+        sit_pos,
+        new Vector(0, 0, rotate ? (rotate.x / 4) * -(2 * Math.PI) : 0)
+    )
+    return true;
 }
 
 // Нельзя ничего ставить поверх этого блока

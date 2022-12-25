@@ -39,6 +39,18 @@ async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
 }
 
+// An adapter that allows using ServerPlayer and PlayerModel in the same way
+class ServerPlayerSharedProps {
+    constructor(player) {
+        this.p = player;
+    }
+
+    get isAlive()   { return this.p.live_level > 0; }
+    get user_id()   { return this.p.session.user_id; }
+    get pos()       { return this.p.state.pos; }
+    get sitting()   { return this.p.state.sitting; }
+}
+
 export class ServerPlayer extends Player {
 
     #forward;
@@ -81,6 +93,8 @@ export class ServerPlayer extends Player {
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
+
+        this.sharedProps = new ServerPlayerSharedProps(this);
     }
 
     init(init_info) {
@@ -482,7 +496,7 @@ export class ServerPlayer extends Player {
         //
         const packets = [];
         const current_visible_players = new Map();
-        for(let player of this.world.players.values()) {
+        for(const [_, player] of this.world.players.all()) {
             const user_id = player.session.user_id;
             if(this.session.user_id == user_id) {
                 continue;
@@ -614,7 +628,7 @@ export class ServerPlayer extends Player {
             // teleport player to player
             let from_player = null;
             let to_player = null;
-            for(let player of world.players.values()) {
+            for(const [_, player] of world.players.all()) {
                 const username = player.session?.username?.toLowerCase();
                 if(username == params.p2p.from.toLowerCase()) {
                     from_player = player;

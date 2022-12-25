@@ -3,6 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
+import {PLAYER_DIAMETER} from "./constant.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -391,13 +392,10 @@ export class Player {
                 const cur_mat_id = this.inventory.current_item?.id;
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
-                    const targetMaterial = this.pickAt.getTargetBlock(this)?.material;
-                    // putting items into a pot or a chest takes priority over using them
-                    const canInteractWithBlock = targetMaterial && (
-                        targetMaterial.tags.includes('pot') &&
-                        cur_mat.tags.includes("can_put_info_pot")
-                        || targetMaterial.can_interact_with_hand);
-                    if(!canInteractWithBlock && this.startItemUse(cur_mat)) {
+                    const target_mat = this.pickAt.getTargetBlock(this)?.material;
+                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style == 'planting') ? true : false; 
+                    const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
+                    if(!is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
                 }
@@ -488,7 +486,7 @@ export class Player {
             this.mineTime = 0;
             const e_orig = JSON.parse(JSON.stringify(e));
             const player = {
-                radius: 0.7,
+                radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
                 rotate: this.rotateDegree.clone(),
