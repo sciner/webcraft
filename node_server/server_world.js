@@ -30,6 +30,7 @@ import { GameRule } from "./game_rule.js";
 import { WorldAction } from "../www/js/world_action.js";
 import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_template.js";
 import { WorldOreGenerator } from "./world/ore_generator.js";
+import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 
 // for debugging client time offset
@@ -252,7 +253,7 @@ export class ServerWorld {
                             const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
                                 // тип мобов для спауна
-                                const type_mob = (Math.random() < 0.5) ? 'zombie' : 'skeleton'; 
+                                const type_mob = (Math.random() < 0.5) ? 'zombie' : 'skeleton';
                                 spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
                                 const params = {
                                     type:       type_mob,
@@ -268,12 +269,12 @@ export class ServerWorld {
                             }
                         }
                     }
-                    
+
                 }
             }
         }
     }
-    
+
     // Update world wather
     updateWorldWeather() {
         const MIN_TIME_RAIN = 30;
@@ -558,7 +559,7 @@ export class ServerWorld {
 
     /**
      * Returns block on world pos, or null.
-     * @param {Vector} pos 
+     * @param {Vector} pos
      * @returns {object}
      */
     getBlock(pos, resultBlock = null) {
@@ -691,10 +692,16 @@ export class ServerWorld {
                     } else {
                         all.push(this.db.blockSet(this, server_player, params));
                     }
+
+                    let isLoaded = chunk && chunk.load_state !== CHUNK_STATE_BLOCKS_GENERATED;
+                    if (chunk && !isLoaded) {
+                        // TODO: wtf to do here? we are loading info from the database currently!
+                        console.log(`Potential problem with setting a block and loading chunk pos=${params.pos} item=${params.item}`);
+                    }
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     // 3.
-                    if (chunk && chunk.tblocks) {
+                    if (chunk && chunk.tblocks && isLoaded) {
                         const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
