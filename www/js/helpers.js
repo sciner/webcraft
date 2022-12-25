@@ -986,6 +986,17 @@ export class Vector {
         return this.x + ',' + this.y + ',' + this.z;
     }
 
+    static toIntHash(x, y, z) {
+        x *= 39749;
+        y *= 76871;
+        z *= 46049;
+        return x ^ (y << 21) ^ (y >> 11) ^ (z << 11) ^ (z >> 21);
+    }
+
+    toIntHash() {
+        return Vector.toIntHash(this.x, this.y, this.z);
+    }
+
     /**
      * @return {number}
      */
@@ -1420,10 +1431,10 @@ export let DIRECTION = {};
 export let DIRECTION_BIT = {};
     DIRECTION_BIT.UP    = 0;
     DIRECTION_BIT.DOWN  = 1;
-    DIRECTION_BIT.EAST  = 2;
-    DIRECTION_BIT.WEST  = 3;
-    DIRECTION_BIT.NORTH = 4;
-    DIRECTION_BIT.SOUTH = 5;
+    DIRECTION_BIT.EAST  = 2; // X increases
+    DIRECTION_BIT.WEST  = 3; // X decreases
+    DIRECTION_BIT.NORTH = 4; // Z increases
+    DIRECTION_BIT.SOUTH = 5; // Z decreases
 
 // Direction names
 export let DIRECTION_NAME = {};
@@ -1657,6 +1668,17 @@ export class StringHelpers {
         return ind >= 0
             ? [str.substring(0, ind), str.substring(ind + 1, str.length)]
             : [str];
+    }
+
+    // The same hash as used in Java: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+    static simpleHash(str) {
+        var hash = 0, i, chr;
+        if (str.length === 0) return hash;
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr | 0;
+        }
+        return hash;
     }
 }
 

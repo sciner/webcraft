@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, DIRECTION_BIT, Mth } from "./helpers.js";
 import { BlockAccessor } from "./typed_blocks3.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
@@ -2162,12 +2162,15 @@ function growGiantMushroom(world, pos, world_material, actions) {
         return mat && (mat.id === 0 || mat.tags.includes("leaves"));
     }
 
-    function addCanopySideBlock(ignoreSolid) {
+    function addCanopyBlock(ignoreSolid, dirMask) {
         const mat = acc.materialOrNull;
         if (mat && (ignoreSolid || !mat.is_solid)) {
             blocks.push({
                 pos: acc.posClone(),
-                item: { id: mushroomBlockId },
+                item: {
+                    id: mushroomBlockId,
+                    extra_data: { t: dirMask }
+                },
                 action_id: ServerClient.BLOCK_ACTION_CREATE
             })
         }
@@ -2180,7 +2183,7 @@ function growGiantMushroom(world, pos, world_material, actions) {
     const freeHalfWidth = freeWidth / 2 | 0;
 
     // Check the free space for the stem.
-    // We assume that there is a mushroom at pos, and don't check it.
+    // We already know world_material at pos, and don't check it.
     for(let i = 1; i < STEM_HEIGHT; i++) {
         acc.y = pos.y + i;
         if (!isAirOrLeaves()) {
@@ -2189,8 +2192,9 @@ function growGiantMushroom(world, pos, world_material, actions) {
     }
 
     // randomize maximum height - exactly as in Minecraft
-    let maxHeight = Mth.randomIntRange(5, 7);
-    if (Math.random() < 0.5) {
+    const spice = 238740 + world_material.id;
+    let maxHeight = acc.deterministicRandomRange(5, 7, spice);
+    if (acc.deterministicRandom(spice) < 0.5) {
         maxHeight = 2 * maxHeight - 1;
     }
 
@@ -2199,9 +2203,9 @@ function growGiantMushroom(world, pos, world_material, actions) {
 outerLoop:
     do {
         acc.y = pos.y + height;
-        for(let dx = -freeHalfWidth; dx < freeHalfWidth; dx++) {
+        for(let dx = -freeHalfWidth; dx <= freeHalfWidth; dx++) {
             acc.x = pos.x + dx;
-            for(let dz = -freeHalfWidth; dz < freeHalfWidth; dz++) {
+            for(let dz = -freeHalfWidth; dz <= freeHalfWidth; dz++) {
                 acc.z = pos.z + dz;
                 if (!isAirOrLeaves()) {
                     break outerLoop;
@@ -2218,7 +2222,7 @@ outerLoop:
     const blocks = [];
     // draw stem
     acc.setVec(pos);
-    for(let i = 0; i < STEM_HEIGHT; i++) {
+    for(let i = 0; i < height; i++) {
         acc.y = pos.y + i;
         blocks.push({
             pos: acc.posClone(),
@@ -2230,43 +2234,69 @@ outerLoop:
     let mushroomBlockId, halfWidth, sideTop, sideBottom;
     if (isRed) {
         mushroomBlockId = BLOCK.RED_MUSHROOM_BLOCK.id;
-        halfWidth = 2;
-        sideTop = height;
-        sideBottom = height;
-    } else {
-        mushroomBlockId = BLOCK.BROWN_MUSHROOM_BLOCK.id;
         halfWidth = 1;
         sideTop = height - 1;
         sideBottom = height - 3;
+    } else {
+        mushroomBlockId = BLOCK.BROWN_MUSHROOM_BLOCK.id;
+        halfWidth = 2;
+        sideTop = height;
+        sideBottom = height;
     }
     // draw canopy top
+    var dirMask;
     acc.y = pos.y + height;
-    for(let dx = -halfWidth; dx < halfWidth; dx++) {
+    for(let dx = -halfWidth; dx <= halfWidth; dx++) {
         acc.x = pos.x + dx;
-        for(let dz = -halfWidth; dz < halfWidth; dz++) {
+        for(let dz = -halfWidth; dz <= halfWidth; dz++) {
             acc.z = pos.z + dz;
-            addCanopySideBlock(false);
+            dirMask = 1 << DIRECTION_BIT.UP;
+            if (isRed) {
+                if (dx == -halfWidth)   dirMask |= 1 << DIRECTION_BIT.WEST;
+                if (dx == halfWidth)    dirMask |= 1 << DIRECTION_BIT.EAST;
+                if (dz == -halfWidth)   dirMask |= 1 << DIRECTION_BIT.SOUTH;
+                if (dz == halfWidth)    dirMask |= 1 << DIRECTION_BIT.NORTH;
+            }
+            addCanopyBlock(false, dirMask);
         }
     }
     // draw canopy sides
     for(let dy = sideBottom; dy <= sideTop; dy++) {
-        acc.y = pos.y + height;
-        for(let d = -halfWidth; d < halfWidth; d++) {
-            // as in Micecraft, sides of the red mushroom don't replace solid blocks
-            acc.x = pos.x + d;
-            acc.z = pos.z - (halfWidth + 1);
-            addCanopySideBlock(isRed);
-            acc.z = pos.z + (halfWidth + 1);
-            addCanopySideBlock(isRed);
-
+        acc.y = pos.y + dy;
+        const dirMaskY = (dy == sideTop) ? (1 << DIRECTION_BIT.UP) : 0;
+        // as in Micecraft, sides of the red mushroom don't replace solid blocks
+        for(let d = -halfWidth; d <= halfWidth; d++) {
             acc.z = pos.z + d;
+            dirMask = dirMaskY;
+            if (d == -halfWidth)    dirMask |= (1 << DIRECTION_BIT.SOUTH);
+            if (d == halfWidth)     dirMask |= (1 << DIRECTION_BIT.NORTH);
+
             acc.x = pos.x - (halfWidth + 1);
-            addCanopySideBlock(isRed);
+            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.WEST));
             acc.x = pos.x + (halfWidth + 1);
-            addCanopySideBlock(isRed);
+            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.EAST));
+
+            acc.x = pos.x + d;
+            dirMask = dirMaskY;
+            if (d == -halfWidth)    dirMask |= (1 << DIRECTION_BIT.WEST);
+            if (d == halfWidth)     dirMask |= (1 << DIRECTION_BIT.EAST);
+
+            acc.z = pos.z - (halfWidth + 1);
+            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.SOUTH));
+            acc.z = pos.z + (halfWidth + 1);
+            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.NORTH));
         }
     }
     actions.addBlocks(blocks);
+    actions.decrement_extended = {
+        mode: 'count',
+        ignore_creative_game_mode: true
+    };
+    actions.addPlaySound({
+        tag: world_material.sound,
+        action: 'place',
+        pos: new Vector(pos)
+    });
 }
 
 // Use bone meal
@@ -2324,8 +2354,9 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
         }
         return true;
-    } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(pos, world_material.id)) {
-        growGiantMushroom(world, pos, world_material);
+    } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(world_material.id)) {
+        // maybe pt it inside if (Qubatch.is_server) {
+        growGiantMushroom(world, pos, world_material, actions);
         return true;
     } else if (world_block?.material?.ticking?.type && extra_data) {
         if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {

@@ -1,4 +1,4 @@
-import { getChunkAddr, Vector } from "./helpers.js";
+import { getChunkAddr, Vector, StringHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
@@ -1152,14 +1152,14 @@ const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
 export class BlockAccessor {
 
     constructor(world, pos = null) {
-        this.chunkManager = world.chunkManager;
+        this.chunkManager = world.chunkManager || world.chunks;
         this._tb = null;
 
         this._tmpCoord = new Vector(); // used for this._tbCoord when this._tb is absent
         this._tbCoord = null; // TypedBlocks3.coord taht is present even if _tb == null
 
         this._relPos = new Vector(0, 0, 0); // relative to this._tbCoord
-        this._tmpTBlock = new TBlock(null, this.relPos, 1);
+        this._tmpTBlock = new TBlock(null, this._relPos, 1);
         this.tblockOrNull = null; // either this._tmpTBlock or null
         
         if (pos) {
@@ -1189,10 +1189,39 @@ export class BlockAccessor {
         return this._relPos.clone().addSelf(this._tbCoord);
     }
 
+    deterministicRandomInt(spice = null) {
+        const worldCompatibility = this.chunkManager.world ?? this.chunkManager.getWorld();
+        let res = Vector.toIntHash(this.x, this.y, this.z) ^ worldCompatibility.info.seed;
+        if (spice != null) {
+            if (typeof spice === 'number') {
+                // to account for bth integer and floating point
+                spice = spice | (spice * 1000000000);
+            } else if (typeof spice === 'string') {
+                spice = StringHelpers.simpleHash(spice);
+            } else {
+                throw Error(); // unsupported spice
+            }
+            res ^= (spice << 16) ^ (spice >> 16) ^ 243394093;
+        }
+        return res;
+    }
+
+    deterministicRandomUint(spice = null) {
+        return this.deterministicRandomInt(spice) & 0x7FFFFFFF;
+    }
+
+    deterministicRandomRange(min, max, spice = null) {
+        return this.deterministicRandomUint(spice) % (max - min + 1) + min;
+    }
+
+    deterministicRandom(spice = null) {
+        return this.deterministicRandomUint(spice) / 0x80000000;
+    }
+
     set x(x) {
         const rx = x - this._tbCoord.x;
         if ((rx | CHUNK_SIZE_X_M1 - rx) >= 0) { // if (rx >= 0 && rx <= CHUNK_SIZE_X_M1)
-            this._tmpTBlock.index -= CHUNK_CX * (rx - this._relPos.x);
+            this._tmpTBlock.index += CHUNK_CX * (rx - this._relPos.x);
             this._relPos.x = rx;
             return;
         }
@@ -1202,7 +1231,7 @@ export class BlockAccessor {
     set y(y) {
         const ry = y - this._tbCoord.y;
         if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) { // if (ry >= 0 && ry <= CHUNK_SIZE_Y_M1)
-            this._tmpTBlock.index -= CHUNK_CY * (ry - this._relPos.y);
+            this._tmpTBlock.index += CHUNK_CY * (ry - this._relPos.y);
             this._relPos.y = ry;
             return;
         }
@@ -1212,7 +1241,7 @@ export class BlockAccessor {
     set z(z) {
         const rz = z - this._tbCoord.z;
         if ((rz | CHUNK_SIZE_Z_M1 - rz) >= 0) { // if (rz >= 0 && rz <= CHUNK_SIZE_Z_M1)
-            this._tmpTBlock.index -= CHUNK_CZ * (rz - this._relPos.z);
+            this._tmpTBlock.index += CHUNK_CZ * (rz - this._relPos.z);
             this._relPos.z = rz;
             return;
         }
@@ -1271,23 +1300,24 @@ export class BlockAccessor {
 
     _setRelPos(rx, ry, rz) {
         this._relPos.setScalar(rx, ry, rz);
-        this.tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
+        this._tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
     }
 
     _rebase(x, y, z) {
         const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
+        const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
         // This accounts both for missing chunks, and for blocks not generated
-        this.tb = this.chunkManager.chunks.get(addr)?.tblocks;
+        this._tb = cliSrvCompatbility.get(addr)?.tblocks;
 
-        if (this.tb) {
-            this.tbCoord = this.tb.coord;
-            this.tblockOrNull = this.tmpTBlock;
-            this.tblockOrNull.tb = this.tb;
+        if (this._tb) {
+            this._tbCoord = this._tb.coord;
+            this.tblockOrNull = this._tmpTBlock;
+            this.tblockOrNull.tb = this._tb;
         } else {
-            chunkAddrToCoord(addr, this.tmpCoord);
-            this.tbCoord = this.tmpCoord;
+            chunkAddrToCoord(addr, this._tmpCoord);
+            this._tbCoord = this._tmpCoord;
             this.tblockOrNull = null;
         }
-        this._setRelPos(x - this.tbCoord.x, y - this.tbCoord.y, z - this.tbCoord.z);
+        this._setRelPos(x - this._tbCoord.x, y - this._tbCoord.y, z - this._tbCoord.z);
     }
 }
