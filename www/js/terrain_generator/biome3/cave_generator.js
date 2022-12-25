@@ -3,9 +3,9 @@ import { Helpers, Mth, Vector } from "../../helpers.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager.js";
 
 export const BIOME3_CAVE_LAYERS = [
-    {y: 72, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 24, shift: 64000},
-    {y: 48, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 48, shift: 48000},
-    {y: 16, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 16000},
+    {y: 76, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 16, shift: 64000},
+    {y: 60, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 48000},
+    {y: 44, octave1: 32 + 16, octave2: 7.11, width: 0.2, height: 16, shift: 16000},
 ];
 
 export class CaveGenerator {
@@ -31,7 +31,7 @@ export class CaveGenerator {
                     if(value > options.width) continue;
                     value = 1 - value / options.width;
                     // generate vertical position of worm
-                    const y = options.y + Math.sin(noisefn(ax / 128, az / 128)) * options.height;
+                    const y = options.y + Math.sin(noisefn(ax / 164, az / 164)) * options.height;
                     layer[z * CHUNK_SIZE_X + x] = {
                         density: value / 1.5, // density
                         y: y // vertical position
@@ -81,27 +81,24 @@ export class CaveGenerator {
             }
         }
 
-        const x = xyz.x - this.chunk_coord.x;
-        const z = xyz.z - this.chunk_coord.z;
+        const x = xyz.x - this.chunk_coord.x
+        const z = xyz.z - this.chunk_coord.z
         for(let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
             const cell = layer[z * CHUNK_SIZE_X + x];
             if(!cell) {
-                continue;
+                continue
             }
-            if(in_ocean && map_cell) {
-                if(cell.y > map_cell.value2 - 5) {
-                    return null;
-                }
-            }
-            const dist = xyz.y - cell.y;
+            const vert_dist = xyz.y - cell.y;
             const dens = cell.density
-            if(dist < -2 * dens || dist > (8 + density_params.d4 * 3) * dens) {
+            if(vert_dist < (-1 * (1 + density_params.d4 * 2)) * dens || vert_dist > (8 + density_params.d4 * 3) * dens) {
                 continue;
             }
-            return cell.density;
+            return DENSITY_AIR_THRESHOLD
         }
-        return null;
+
+        return DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD * .999
+
     }
 
 }

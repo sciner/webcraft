@@ -704,6 +704,7 @@ export class BLOCK {
         block.is_solid          = this.isSolid(block);
         block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
                                     block.tags.includes('stairs') ||
+                                    block.tags.includes('log') ||
                                     ['wall', 'pane'].includes(block.style);
 
         block.is_simple_qube    = this.isSimpleQube(block);
