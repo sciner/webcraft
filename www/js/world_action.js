@@ -909,7 +909,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Запрет установки блока на блоки, которые занимает игрок
-            if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
+            if (mat_block.passable == 0 && 
+                !(orientation.y == 0 && mat_block.tags.includes("can_set_on_wall"))
+            ) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     // player.radius = player's diameter
