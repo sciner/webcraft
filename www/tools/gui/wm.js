@@ -402,15 +402,21 @@ export class Window {
         ctx.textAlign       = this.style.textAlign.horizontal || 'left';
         ctx.textBaseline    = this.style.textAlign.vertical || 'top';
     }
-    setBackground(url, image_size_mode) {
-        let that = this;
-        let bg = new Image();
-        bg.onload = function(e) {
-            that.style.background.image = bg;
-            that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-            that.redraw();
+    setBackground(urlOrCanvas, image_size_mode) {
+        if (typeof urlOrCanvas == "string") {
+            let that = this;
+            let bg = new Image();
+            bg.onload = function(e) {
+                that.style.background.image = bg;
+                that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
+                that.redraw();
+            }
+            bg.src = urlOrCanvas;
+        } else {
+            this.style.background.image = urlOrCanvas;
+            this.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
+            this.redraw();
         }
-        bg.src = url;
     }
     setIconImage(url, image_size_mode) {
         const that = this;

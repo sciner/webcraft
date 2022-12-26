@@ -869,9 +869,6 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        if (!this.skin.file.startsWith(CLIENT_SKIN_ROOT)) {
-            this.skin.file = CLIENT_SKIN_ROOT + this.skin.file + '.png';
-        }
         this.type = PLAYER_SKIN_TYPES[this.skin.type];
 
         const asset = await Resources.getModelAsset(this.type);
