@@ -46,7 +46,7 @@
 					]
 				},
 				{
-					"name": "RightArm3",
+					"name": "RightArm",
 					"parent": "Body",
 					"pivot": [-5, 22, 0],
 					"cubes": [
@@ -56,7 +56,7 @@
 				},
 				{
 					"name": "RightArmItemPlace",
-					"parent": "RightArm3",
+					"parent": "RightArm",
 					"pivot": [-5.5, 12, -2],
 					"rotation": [90, 0, 0]
 				},

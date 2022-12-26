@@ -12,49 +12,49 @@
 			},
 			"bones": [
                 {
-					"name": "Head1",
+					"name": "Head",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0], "inflate": 0.1}
+						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0], "inflate": 0.6}
 					]
 				},
 				{
-					"name": "Body3",
+					"name": "Body",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16], "inflate": 0.1}
+						{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16], "inflate": 0.3}
 					]
 				},
 				{
-					"name": "RightLeg1",
-					"parent": "Body3",
-					"pivot": [1.9, 10, 0],
+					"name": "RightLeg",
+					"parent": "Body",
+					"pivot": [1.9, 12, 0],
 					"cubes": [
-						{"origin": [-0.1, 0, -2], "size": [4, 10, 4], "uv": [0, 16], "inflate": 0.1}
+						{"origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [0, 16], "inflate": 0.3}
 					]
 				},
 				{
-					"name": "LeftLeg1",
-					"parent": "Body3",
-					"pivot": [-1.9, 10, 0],
+					"name": "LeftLeg",
+					"parent": "Body",
+					"pivot": [-1.9, 12, 0],
 					"cubes": [
-						{"origin": [-3.9, 0, -2], "size": [4, 10, 4], "uv": [0, 16], "mirror": true, "inflate": 0.1}
+						{"origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 16], "mirror": true, "inflate": 0.3}
 					]
 				},
 				{
-					"name": "LeftArm1",
-					"parent": "Body3",
+					"name": "LeftArm",
+					"parent": "Body",
 					"pivot": [5, 22, 0],
 					"cubes": [
-						{"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [40, 16], "inflate": 0.1}
+						{"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [40, 16], "inflate": 0.3}
 					]
 				},
 				{
-					"name": "RightArm1",
-					"parent": "Body3",
+					"name": "RightArm",
+					"parent": "Body",
 					"pivot": [-5, 22, 0],
 					"cubes": [
-						{"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16], "mirror": true, "inflate": 0.1}
+						{"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16], "mirror": true, "inflate": 0.3}
 					]
 				}
 			]
