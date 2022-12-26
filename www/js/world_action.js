@@ -1,5 +1,5 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, DIRECTION_BIT, Mth } from "./helpers.js";
-import { BlockAccessor } from "./typed_blocks3.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
+    SpatialDeterministicRandom } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -2158,20 +2158,12 @@ async function useAxe(e, world, pos, player, world_block, world_material, mat_bl
 function growHugeMushroom(world, pos, world_material, actions) {
 
     const min_max = [5, 7];
-    const height = Math.floor(Math.random() * (min_max[1] - min_max[0] + 1) + min_max[0]);
-    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
-    const particles = []
-
-    for(let y = 0; y < min_max[0]; y++) {
-        for(let dx = -0.5; dx <= 0.5; dx++) {
-            for(let dz = -0.5; dz <= 0.5; dz++) {
-                particles.push({
-                    type: 'villager_happy',
-                    pos: new Vector(pos).addScalarSelf(dx, y, dz)
-                });
-            }
-        }
+    const spice = 3423433;
+    var height = SpatialDeterministicRandom.intRange(world, pos, min_max[0], min_max[1], spice);
+    if (SpatialDeterministicRandom.float(world, pos, spice) < 0.5) {
+        height = height * 2 - 1;
     }
+    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
 
     actions.generateTree({
         pos,
@@ -2179,7 +2171,8 @@ function growHugeMushroom(world, pos, world_material, actions) {
             extra_data: {
                 style: isRed ? 'red_mushroom' : 'brown_mushroom',
                 height
-            }
+            },
+            effects: true
         }
     });
 
@@ -2188,177 +2181,7 @@ function growHugeMushroom(world, pos, world_material, actions) {
         ignore_creative_game_mode: true
     };
 
-    actions.addPlaySound({
-        tag: world_material.sound,
-        action: 'place',
-        pos: new Vector(pos)
-    });
-
-    actions.addParticles(particles);
-
-    /*
-    function isAirOrLeaves() {
-        const mat = acc.materialOrNull;
-        return mat && (mat.id === 0 || mat.tags.includes("leaves"));
-    }
-
-    function addCanopyBlock(ignoreSolid, dirMask) {
-        const mat = acc.materialOrNull;
-        if (mat && (ignoreSolid || !mat.is_solid)) {
-            blocks.push({
-                pos: acc.posClone(),
-                item: {
-                    id: mushroomBlockId,
-                    extra_data: { t: dirMask }
-                },
-                action_id: ServerClient.BLOCK_ACTION_CREATE
-            })
-        }
-    }
-
-    const STEM_HEIGHT = 4;
-    const acc = new BlockAccessor(world, pos);
-    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
-    const freeWidth = isRed ? 5 : 7; // in Minecraft it's always 7, but 5 for red makes more sense
-    const freeHalfWidth = freeWidth / 2 | 0;
-
-    // check soil
-    acc.y--;
-    const soilMat = acc.materialOrDUMMY;
-    if (![BLOCK.DIRT, BLOCK.COARSE_DIRT, BLOCK.GRASS_BLOCK, BLOCK.MOSS_BLOCK,
-        BLOCK.PODZOL, BLOCK.MYCELIUM].includes(soilMat)
-    ) {
-        return;
-    }
-
-    // Check the free space for the stem.
-    // We already know world_material at pos, and don't check it.
-    for(let i = 1; i < STEM_HEIGHT; i++) {
-        acc.y = pos.y + i;
-        if (!isAirOrLeaves()) {
-            return;
-        }
-    }
-
-    // randomize maximum height - exactly as in Minecraft
-    const spice = 238740 + world_material.id;
-    let maxHeight = acc.deterministicRandomRange(5, 7, spice);
-    if (acc.deterministicRandom(spice) < 0.5) {
-        maxHeight = 2 * maxHeight - 1;
-    }
-
-    // find the free space for the canopy
-    let height = STEM_HEIGHT + 1;
-outerLoop:
-    do {
-        acc.y = pos.y + height;
-        for(let dx = -freeHalfWidth; dx <= freeHalfWidth; dx++) {
-            acc.x = pos.x + dx;
-            for(let dz = -freeHalfWidth; dz <= freeHalfWidth; dz++) {
-                acc.z = pos.z + dz;
-                if (!isAirOrLeaves()) {
-                    break outerLoop;
-                }
-            }
-        }
-        height++;
-    } while (height <= maxHeight);
-    height--;
-    if (height == STEM_HEIGHT) {
-        return; // there is no space even for the shortest mushroom
-    }
-
-    const blocks = [], particles = [];
-    // draw stem
-    acc.setVec(pos);
-    for(let i = 0; i < height; i++) {
-        acc.y = pos.y + i;
-        blocks.push({
-            pos: acc.posClone(),
-            item: { id: BLOCK.MUSHROOM_STEM.id },
-            action_id: ServerClient.BLOCK_ACTION_CREATE
-        });
-        if (i <= STEM_HEIGHT) {
-            for(let dx = -0.5; dx <= 0.5; dx++) {
-                for(let dz = -0.5; dz <= 0.5; dz++) {
-                    particles.push({
-                        type: 'villager_happy',
-                        pos: acc.posClone().addScalarSelf(dx, 0, dz)
-                    });
-                }
-            }
-        }
-    }
-    // determine the shape of teh canopy
-    let mushroomBlockId, halfWidth, sideTop, sideBottom;
-    if (isRed) {
-        mushroomBlockId = BLOCK.RED_MUSHROOM_BLOCK.id;
-        halfWidth = 1;
-        sideTop = height - 1;
-        sideBottom = height - 3;
-    } else {
-        mushroomBlockId = BLOCK.BROWN_MUSHROOM_BLOCK.id;
-        halfWidth = 2;
-        sideTop = height;
-        sideBottom = height;
-    }
-    // draw canopy top
-    var dirMask;
-    acc.y = pos.y + height;
-    for(let dx = -halfWidth; dx <= halfWidth; dx++) {
-        acc.x = pos.x + dx;
-        for(let dz = -halfWidth; dz <= halfWidth; dz++) {
-            acc.z = pos.z + dz;
-            dirMask = 1 << DIRECTION_BIT.UP;
-            if (isRed) {
-                if (dx == -halfWidth)   dirMask |= 1 << DIRECTION_BIT.WEST;
-                if (dx == halfWidth)    dirMask |= 1 << DIRECTION_BIT.EAST;
-                if (dz == -halfWidth)   dirMask |= 1 << DIRECTION_BIT.SOUTH;
-                if (dz == halfWidth)    dirMask |= 1 << DIRECTION_BIT.NORTH;
-            }
-            addCanopyBlock(false, dirMask);
-        }
-    }
-    // draw canopy sides
-    for(let dy = sideBottom; dy <= sideTop; dy++) {
-        acc.y = pos.y + dy;
-        const dirMaskY = (dy == sideTop) ? (1 << DIRECTION_BIT.UP) : 0;
-        // as in Micecraft, sides of the red mushroom don't replace solid blocks
-        for(let d = -halfWidth; d <= halfWidth; d++) {
-            acc.z = pos.z + d;
-            dirMask = dirMaskY;
-            if (d == -halfWidth)    dirMask |= (1 << DIRECTION_BIT.SOUTH);
-            if (d == halfWidth)     dirMask |= (1 << DIRECTION_BIT.NORTH);
-
-            acc.x = pos.x - (halfWidth + 1);
-            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.WEST));
-            acc.x = pos.x + (halfWidth + 1);
-            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.EAST));
-
-            acc.x = pos.x + d;
-            dirMask = dirMaskY;
-            if (d == -halfWidth)    dirMask |= (1 << DIRECTION_BIT.WEST);
-            if (d == halfWidth)     dirMask |= (1 << DIRECTION_BIT.EAST);
-
-            acc.z = pos.z - (halfWidth + 1);
-            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.SOUTH));
-            acc.z = pos.z + (halfWidth + 1);
-            addCanopyBlock(isRed, dirMask | (1 << DIRECTION_BIT.NORTH));
-        }
-    }
-    actions.addBlocks(blocks);
-    actions.decrement_extended = {
-        mode: 'count',
-        ignore_creative_game_mode: true
-    };
-    actions.addPlaySound({
-        tag: world_material.sound,
-        action: 'place',
-        pos: new Vector(pos)
-    });
-    actions.addParticles(particles);
-    */
-
+    actions.addParticles([{ type: 'villager_happy', pos: pos }]);
 }
 
 // Use bone meal

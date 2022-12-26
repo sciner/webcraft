@@ -1147,112 +1147,90 @@ const CHUNK_CW = CHUNK_PADING * (CHUNK_CX + CHUNK_CY + CHUNK_CZ);
  * on average as fast as the chunk does to its own blocks.
  * 
  * It caches the current chunk, so its instances can't be stored and reused
- * for any prolonged time; it must be re-created, or rest by calling reset().
+ * for any prolonged time; it must be re-created, or reset by calling init().
  */
 export class BlockAccessor {
 
     /**
      * @param {World} world
-     * @param {Vector} pos - optional. Some point near the area where the class will be
-     *   used. If it's provided, it slightly speeds up the access to the 1st block.
+     * @param {Vector, TBlock or BlockAccessor} initial - optional. Some point near the area
+     *   where the class will be used. If it's provided, it slightly speeds up initialization.
+     *   Passing {@link TBlock} or {@link BlockAccessor} is preferable.
      */
-    constructor(world, pos = null) {
+    constructor(world, initial = null) {
         this.chunkManager = world.chunkManager || world.chunks;
-        this._tb = null;
-
-        this._tmpCoord = new Vector(); // used for this._tbCoord when this._tb is absent
-        this._tbCoord = null; // TypedBlocks3.coord taht is present even if _tb == null
-
-        this._relPos = new Vector(0, 0, 0); // relative to this._tbCoord
-        this._tmpTBlock = new TBlock(null, this._relPos, 1);
-        this.tblockOrNull = null; // either this._tmpTBlock or null
-        
-        if (pos) {
-            this._rebase(pos.x, pos.y, pos.z);
+        if (initial instanceof BlockAccessor) {
+            this._tmpTbCoord = initial._tmpTbCoord.clone();
+            this._vec = initial._vec.clone();
+            this._tmpTBlock = new TBlock(initial._tmpTBlock._tb, this._vec, initial._tmpTBlock.index);
+            this._tbCoord = initial._tbCoord ? this._tmpTbCoord : null;
+            this.tblockOrNull = initial.tblockOrNull ? this._tmpTBlock : null;
         } else {
-            this._rebase(0, 0, 0);
+            this._tmpTbCoord = new Vector(); // used for this._tbCoord when this._tb is absent
+            if (initial instanceof TBlock) {
+                this._vec = initial.vec.clone();
+                this._tmpTBlock = new TBlock(initial.tb, this._vec, initial.index);
+                this._tbCoord = initial.tb.coord; // TypedBlocks3.coord taht is present even if _tb == null
+                this.tblockOrNull = this._tmpTBlock; // either this._tmpTBlock or null
+            } else {
+                this._vec = new Vector(); // relative to this._tbCoord
+                this._tmpTBlock = new TBlock(null, this._vec, 1);
+                if (initial) { // assume it to be a Vector-like object
+                    this._rebase(initial.x, initial.y, initial.z);
+                } else {
+                    this._rebase(0, 0, 0);
+                }
+            }
         }
     }
 
     /**
      * Allows a persistent refernce to the class to be used again.
      * It solves the problem of the remembered chunk being unloaded.
+     * 
+     * @param {Vector, TBlock or BlockAccessor} initial - optional. Some point near the area
+     *   where the class will be used. If it's provided, it slightly speeds up initialization.
+     *   Passing {@link TBlock} or {@link BlockAccessor} is preferable.
      */
-    reset() {
-        this._rebase(this.x, this.y, this.z);
+    init(initial = null) {
+        if (initial instanceof BlockAccessor) {
+            this._tmpTbCoord.copyFrom(initial._tmpTbCoord);
+            this._vec.copyFrom(initial._vec);
+            this._tmpTBlock.tb = initial._tb;
+            this._tbCoord = initial._tbCoord ? this._tmpTbCoord : null;
+            this.tblockOrNull = initial.tblockOrNull ? this._tmpTBlock : null;
+        } else if (initial instanceof TBlock) {
+            this._vec.copyFrom(initial.vec);
+            this._tmpTBlock.tb = initial.tb;
+            this._tbCoord = initial.tb.coord;
+            this.tblockOrNull = this._tmpTBlock;
+        } else if (initial) { // assume it to be a Vector-like object
+            this._rebase(initial.x, initial.y, initial.z);
+        } else {
+            this._rebase(0, 0, 0);
+        }
     }
 
     /**
      * @returns {Int} world coordinate X of the current point.
      */
     get x() {
-        return this._tbCoord.x + this._relPos.x;
+        return this._tbCoord.x + this._vec.x;
     }
 
     get y() {
-        return this._tbCoord.y + this._relPos.y;
+        return this._tbCoord.y + this._vec.y;
     }
 
     get z() {
-        return this._tbCoord.z + this._relPos.z;
+        return this._tbCoord.z + this._vec.z;
     }
 
     /**
      * @returns {Vector} a clone of the current world position.
      */
     posClone() {
-        return this._relPos.clone().addSelf(this._tbCoord);
-    }
-
-    /**
-     * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a signed 32-bit value based on the current world positon,
-     *      world seed and spice.
-     */
-    deterministicRandomInt(spice = null) {
-        const worldCompatibility = this.chunkManager.world ?? this.chunkManager.getWorld();
-        let res = Vector.toIntHash(this.x, this.y, this.z) ^ worldCompatibility.info.seed;
-        if (spice != null) {
-            if (typeof spice === 'number') {
-                // to account for bth integer and floating point
-                spice = spice | (spice * 1000000000);
-            } else if (typeof spice === 'string') {
-                spice = StringHelpers.simpleHash(spice);
-            } else {
-                throw Error(); // unsupported spice
-            }
-            res ^= (spice << 16) ^ (spice >> 16) ^ 243394093;
-        }
-        return res;
-    }
-
-    /**
-     * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - an unsigned 31-bit value based on the current world positon,
-     *      world seed and spice.
-     */
-    deterministicRandomUint(spice = null) {
-        return this.deterministicRandomInt(spice) & 0x7FFFFFFF;
-    }
-
-    /**
-     * @param {Int} min - the minium value (inclusive)
-     * @param {Int} max - the maximum value (inclusive)
-     * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Int} - a value from min to max, based on the current world positon,
-     *      world seed and spice.
-     */
-    deterministicRandomRange(min, max, spice = null) {
-        return this.deterministicRandomUint(spice) % (max - min + 1) + min;
-    }
-
-    /**
-     * @param {Int or String} spice - a value to change the result (optional)
-     * @returns {Double} - a value from 0 (inclusive) to 1 (exclusive), based on
-     *      the current world positon, world seed and spice.
-     */
-    deterministicRandom(spice = null) {
-        return this.deterministicRandomUint(spice) / 0x80000000;
+        return this._vec.clone().addSelf(this._tbCoord);
     }
 
     /**
@@ -1262,8 +1240,8 @@ export class BlockAccessor {
     set x(x) {
         const rx = x - this._tbCoord.x;
         if ((rx | CHUNK_SIZE_X_M1 - rx) >= 0) { // if (rx >= 0 && rx <= CHUNK_SIZE_X_M1)
-            this._tmpTBlock.index += CHUNK_CX * (rx - this._relPos.x);
-            this._relPos.x = rx;
+            this._tmpTBlock.index += CHUNK_CX * (rx - this._vec.x);
+            this._vec.x = rx;
             return;
         }
         this._rebase(x, this.y, this.z);
@@ -1272,8 +1250,8 @@ export class BlockAccessor {
     set y(y) {
         const ry = y - this._tbCoord.y;
         if ((ry | CHUNK_SIZE_Y_M1 - ry) >= 0) { // if (ry >= 0 && ry <= CHUNK_SIZE_Y_M1)
-            this._tmpTBlock.index += CHUNK_CY * (ry - this._relPos.y);
-            this._relPos.y = ry;
+            this._tmpTBlock.index += CHUNK_CY * (ry - this._vec.y);
+            this._vec.y = ry;
             return;
         }
         this._rebase(this.x, y, this.z);
@@ -1282,8 +1260,8 @@ export class BlockAccessor {
     set z(z) {
         const rz = z - this._tbCoord.z;
         if ((rz | CHUNK_SIZE_Z_M1 - rz) >= 0) { // if (rz >= 0 && rz <= CHUNK_SIZE_Z_M1)
-            this._tmpTBlock.index += CHUNK_CZ * (rz - this._relPos.z);
-            this._relPos.z = rz;
+            this._tmpTBlock.index += CHUNK_CZ * (rz - this._vec.z);
+            this._vec.z = rz;
             return;
         }
         this._rebase(this.x, this.y, z);
@@ -1383,7 +1361,7 @@ export class BlockAccessor {
     }
 
     _setRelPos(rx, ry, rz) {
-        this._relPos.setScalar(rx, ry, rz);
+        this._vec.setScalar(rx, ry, rz);
         this._tmpTBlock.index = rx * CHUNK_CX + ry * CHUNK_CY + rz * CHUNK_CZ + CHUNK_CW;
     }
 
@@ -1391,15 +1369,15 @@ export class BlockAccessor {
         const addr = getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
         const cliSrvCompatbility = this.chunkManager.chunks || this.chunkManager;
         // This accounts both for missing chunks, and for blocks not generated
-        this._tb = cliSrvCompatbility.get(addr)?.tblocks;
+        let tb = cliSrvCompatbility.get(addr)?.tblocks;
 
-        if (this._tb) {
-            this._tbCoord = this._tb.coord;
+        if (tb) {
+            this._tbCoord = tb.coord;
             this.tblockOrNull = this._tmpTBlock;
-            this.tblockOrNull.tb = this._tb;
+            this.tblockOrNull.tb = tb;
         } else {
-            chunkAddrToCoord(addr, this._tmpCoord);
-            this._tbCoord = this._tmpCoord;
+            chunkAddrToCoord(addr, this._tmpTbCoord);
+            this._tbCoord = this._tmpTbCoord;
             this.tblockOrNull = null;
         }
         this._setRelPos(x - this._tbCoord.x, y - this._tbCoord.y, z - this._tbCoord.z);

@@ -13,6 +13,7 @@ export default class Terrain_Generator extends Demo_Map {
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.world = world;
         this.setSeed(seed);
         this.dungeon = new DungeonGenerator(seed);
     }
@@ -124,7 +125,8 @@ export default class Terrain_Generator extends Demo_Map {
                 type = {"trunk": BLOCK.PRISMARINE.id, "leaves": null, "style": 'tundra_stone', "height": {"min": 2, "max": 2}};
             }
             const tree_height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-            this.plantTree({
+            this.plantTree(this.world,
+                {
                     "biome_code": "TROPICAL_SEASONAL_FOREST", "pos": tree_pos, "height": tree_height, "rad": 3,
                     type
                 },

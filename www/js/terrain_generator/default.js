@@ -3,6 +3,7 @@ import {BLOCK} from '../blocks.js';
 import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
+import { WorldAction } from "../world_action.js";
 
 export {alea, noise};
 
@@ -123,7 +124,7 @@ export class Default_Terrain_Generator {
     }
 
     // plantTree...
-    plantTree(tree, chunk, x, y, z, check_chunk_size = true) {
+    plantTree(world, tree, chunk, x, y, z, check_chunk_size = true) {
         
         const type = tree.type;
         const style_func = this.tree_styles.get(type.style)
@@ -141,7 +142,7 @@ export class Default_Terrain_Generator {
 
         if(!check_chunk_size) {
             // indirect write without seperate by chunks
-            return style_func(tree, chunk, x, y, z, (tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data) => {
+            return style_func(world, tree, chunk, x, y, z, (tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data) => {
                 const ax = chunk.coord.x + x
                 const ay = chunk.coord.y + y
                 const az = chunk.coord.z + z
@@ -150,7 +151,7 @@ export class Default_Terrain_Generator {
             });
         } else if(first_time_generation) {
             // if first time calling plant for this tree
-            style_func(tree, chunk, x, y, z, this.setTreeBlock.bind(this));
+            style_func(world, tree, chunk, x, y, z, this.setTreeBlock.bind(this));
         }
 
         const c = tree.chunks.get(chunk.addr)
@@ -219,7 +220,7 @@ export class Default_Terrain_Generator {
     }
 
     // Кактус
-    plantCactus(tree, chunk, x, y, z, setTreeBlock) {
+    plantCactus(world, tree, chunk, x, y, z, setTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = tree.type.trunk;
@@ -229,7 +230,7 @@ export class Default_Terrain_Generator {
     }
 
     // Бамбук
-    plantBamboo(tree, chunk, x, y, z, setTreeBlock) {
+    plantBamboo(world, tree, chunk, x, y, z, setTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = tree.type.trunk;
@@ -243,7 +244,7 @@ export class Default_Terrain_Generator {
     }
 
     // Пенёк
-    plantStump(tree, chunk, x, y, z, setTreeBlock) {
+    plantStump(world, tree, chunk, x, y, z, setTreeBlock) {
         const ystart = y + tree.height;
         // ствол
         this.temp_block.id = tree.type.trunk;
@@ -257,7 +258,7 @@ export class Default_Terrain_Generator {
     }
 
     // Tundra stone
-    plantTundraStone(tree, chunk, x, y, z, setTreeBlock) {
+    plantTundraStone(world, tree, chunk, x, y, z, setTreeBlock) {
         y--;
         const ystart = y + tree.height;
         // ствол
@@ -275,7 +276,7 @@ export class Default_Terrain_Generator {
     }
 
     // Акация
-    plantAcacia(tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
+    plantAcacia(world, tree, chunk, orig_x, orig_y, orig_z, setTreeBlock) {
         // let xyz = chunk.coord.add(new Vector(orig_x, orig_y, orig_z));
         // let random = new alea('tree' + xyz.toHash());
         let iterations = 0;
@@ -330,7 +331,7 @@ export class Default_Terrain_Generator {
     }
 
     // Ель
-    plantSpruce(tree, chunk, x, y, z, setTreeBlock) {
+    plantSpruce(world, tree, chunk, x, y, z, setTreeBlock) {
 
         let max_rad = 5;
         let ystart = y + tree.height;
@@ -391,7 +392,7 @@ export class Default_Terrain_Generator {
     }
 
     // Дуб, берёза
-    plantOak(tree, chunk, x, y, z, setTreeBlock) {
+    plantOak(world, tree, chunk, x, y, z, setTreeBlock) {
         let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
@@ -424,8 +425,32 @@ export class Default_Terrain_Generator {
         }
     }
 
+    addMushroomEffects(world, chunk, x, y, z, world_material, height) {
+        const pos = chunk.coord.clone().addScalarSelf(x, y, z);
+        height = Math.min(height, 4);
+        const particles = [];
+        for(let dy = 0; dy < height; dy++) {
+            for(let dx = -0.5; dx <= 0.5; dx++) {
+                for(let dz = -0.5; dz <= 0.5; dz++) {
+                    particles.push({
+                        type: 'villager_happy',
+                        pos: pos.clone().addScalarSelf(dx, dy, dz)
+                    });
+                }
+            }
+        }
+        const actions = new WorldAction();
+        actions.addParticles(particles);
+        actions.addPlaySound({
+            tag: world_material.sound,
+            action: 'place',
+            pos: pos
+        });
+        world.actions_queue.add(null, actions);
+    }
+
     // Brown mushroom
-    plantBrownMushroom(tree, chunk, x, y, z, setTreeBlock) {
+    plantBrownMushroom(world, tree, chunk, x, y, z, setTreeBlock) {
         let ystart = y + tree.height;
         // ствол
         for(let p = y; p < ystart; p++) {
@@ -474,10 +499,13 @@ export class Default_Terrain_Generator {
             }
             py--;
         }
+        if (tree.params?.effects) {
+            this.addMushroomEffects(world, chunk, x, y, z, BLOCK.BROWN_MUSHROOM, tree.height);
+        }
     }
 
     // Red mushroom
-    plantRedMushroom(tree, chunk, x, y, z, setTreeBlock) {
+    plantRedMushroom(world, tree, chunk, x, y, z, setTreeBlock) {
 
         let ystart = y + tree.height;
 
@@ -529,11 +557,13 @@ export class Default_Terrain_Generator {
             }
             py--;
         }
-
+        if (tree.params?.effects) {
+            this.addMushroomEffects(world, chunk, x, y, z, BLOCK.RED_MUSHROOM, tree.height);
+        }
     }
 
     // Тропическое дерево
-    plantJungle(tree, chunk, x, y, z, setTreeBlock) {
+    plantJungle(world, tree, chunk, x, y, z, setTreeBlock) {
         const TREE_HEIGHT = tree.height - 2 // рандомная высота дерева, переданная из генератора
         const ystart = y + TREE_HEIGHT
         const maxW = Math.floor(TREE_HEIGHT / 2)
@@ -656,7 +686,7 @@ export class Default_Terrain_Generator {
     }
 
     // Тестовое дерево
-    plantTestTree(tree, chunk, x, y, z, setTreeBlock) {
+    plantTestTree(world, tree, chunk, x, y, z, setTreeBlock) {
 
         const conus_rad = 16;
         const xyz2 = chunk.coord.add(new Vector(x, y, z));
@@ -683,7 +713,7 @@ export class Default_Terrain_Generator {
     }
 
     // Большой дуб
-    plantBigOak(tree, chunk, x, y, z, setTreeBlock) {
+    plantBigOak(world, tree, chunk, x, y, z, setTreeBlock) {
 
         const orig_y = y;
 

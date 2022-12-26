@@ -20,7 +20,15 @@ export class TreeGenerator extends Default_Terrain_Generator {
         return TreeGenerator._instance = new TreeGenerator();
     }
 
-    // Generate tree
+    /**
+     * Generates a tree.
+     * 
+     * @param {Object} m - the parameters. Some of its posible fields:
+     *  {
+     *      etra_data: { style, height },
+     *      effects
+     *  }
+     */
     async generateTree(world, world_chunk, pos, m) {
         const updated_blocks    = [];
         const tree_style        = m.extra_data.style.toLowerCase();
@@ -102,9 +110,11 @@ export class TreeGenerator extends Default_Terrain_Generator {
             return false;
         };
         this.plantTree(
+            world,
             {
                 height: tree_height,
-                type: {...tree_type, style: tree_style}
+                type: {...tree_type, style: tree_style},
+                params: m
             },
             chunk,
             pos.x - chunk.coord.x,

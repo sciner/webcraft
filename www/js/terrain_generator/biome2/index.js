@@ -24,6 +24,7 @@ export default class Terrain_Generator extends Demo_Map {
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.world = world;
         this.clusterManager = new ClusterManager(world.chunkManager, seed);
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
@@ -284,7 +285,7 @@ export default class Terrain_Generator extends Demo_Map {
                     }
                 }
 
-                this.plantTree(tree, chunk, x, y, z, true);
+                this.plantTree(this.world, tree, chunk, x, y, z, true);
 
             }
         }

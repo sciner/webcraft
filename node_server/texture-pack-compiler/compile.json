@@ -2145,7 +2145,8 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_into_pot"
+                "can_put_into_pot",
+                "cant_replace_by_tree"
             ],
             "texture": {
                 "side": "block/brown_mushroom_block.png",
@@ -2160,7 +2161,8 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_into_pot"
+                "can_put_into_pot",
+                "cant_replace_by_tree"
             ],
             "texture": {
                 "side": "block/red_mushroom_block.png",
@@ -2287,6 +2289,9 @@
             "material": {
                 "id": "dirt"
             },
+            "tags": [
+                "cant_replace_by_tree"
+            ],
             "texture": "block/mushroom_stem.png"
         },
         {
