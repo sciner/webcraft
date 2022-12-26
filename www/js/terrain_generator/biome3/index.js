@@ -350,7 +350,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 } else {
 
                                     // шапка слоя земли (если есть)
-                                    if(y < chunk.size.y && dirt_layer.cap_block_id) {
+                                    if(xyz.y > WATER_LEVEL && y < chunk.size.y && dirt_layer.cap_block_id) {
                                         chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id);
                                     }
 

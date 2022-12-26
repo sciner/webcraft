@@ -1,6 +1,7 @@
 import { Vector } from "../../helpers.js";
-import { alea, Default_Terrain_Generator } from "../default.js";
+import { alea } from "../default.js";
 import { DENSITY_AIR_THRESHOLD } from "./terrain/manager.js";
+import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 
 export class AquiferaParams {
 
@@ -24,7 +25,7 @@ export class Aquifera {
      */
     constructor(coord) {
         this.options = {
-            y: {min: 90, max: 100},
+            y: {min: 20, max: 70},
             rad: {min: 28, max: 48},
             chance: 1,
             rad_mul: 1.5
@@ -36,10 +37,11 @@ export class Aquifera {
         this.rand = new alea(`aquifera_rand_${this.addr.toHash()}`)
         this.is_empty = this.rand.double() > this.options.chance
         if(!this.is_empty) {
+            this.n3d = createNoise3D(new alea(`aquifera_` + this.addr.toHash()));
             const y = Math.floor(this.rand.double() * (this.options.y.max - this.options.y.min + 1) + this.options.y.min)
             this.pos = new Vector(this.coord.x + this.size.x/2, y, this.coord.z + this.size.z/2),
             this.rad = Math.floor(this.rand.double() * (this.options.rad.max - this.options.rad.min + 1) + this.options.rad.min)
-            this.block_id = this.rand.double() > .5 ? BLOCK.STILL_LAVA.id : BLOCK.STILL_WATER.id
+            this.block_id = this.rand.double() > .25 ? BLOCK.STILL_LAVA.id : BLOCK.STILL_WATER.id
         }
     }
 
@@ -67,8 +69,8 @@ export class Aquifera {
     calcInside(xyz, n3d, density_params, out_params) {
         const dify = xyz.y - this.pos.y
         let resp = false
-        const d5 = density_params.d3
-        // const d5 = n3d(xyz.x / 16, xyz.y / 16, xyz.z / 16)
+        // const d5 = density_params.d3
+        const d5 = this.n3d(xyz.x / 16, xyz.y / 16, xyz.z / 16)
         if(dify > -this.rad && dify < this.rad && dify < Math.abs(d5) * 3) {
             const abs_rad = (this.rad + d5 * 5)
             const aquifera_dist = this.pos.distance(xyz) / abs_rad

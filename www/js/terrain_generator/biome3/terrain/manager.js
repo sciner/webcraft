@@ -402,7 +402,7 @@ export class TerrainMapManager2 {
         }
 
         // Если это твердый камень, то попробуем превратить его в пещеру
-        const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .5 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
+        const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
         if(density > cave_density_threshold) {
             const caveDensity = map.caves.getPoint(xyz, cell, false, res);
             if(caveDensity !== null) {
