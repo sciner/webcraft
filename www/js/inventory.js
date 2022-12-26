@@ -181,7 +181,7 @@ export class Inventory {
         if(!this.current_item) {
             return;
         }
-        if(ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+        if(!ignore_creative_game_mode && this.player.game_mode.isCreative()) {
             return;
         }
         const current_item_material = this.block_manager.fromId(this.current_item.id);
@@ -209,7 +209,7 @@ export class Inventory {
         if(!this.current_item) {
             return;
         }
-        if(params.ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+        if(!params.ignore_creative_game_mode && this.player.game_mode.isCreative()) {
             return;
         }
         const current_item_material = this.block_manager.fromId(this.current_item.id);
