@@ -451,6 +451,11 @@ export class WorldAction {
             decrement_extended:         null,
             decrement_instrument:       false,
             increment:                  null,
+            /**
+             * If it's true, then decrement is executed in creative mode in the same way as in normal mode.
+             * It means "influence of the creative mode on the action" is ignored.
+             * It doesn't mean "action in creative mode" is ignored.
+             */
             ignore_creative_game_mode:  false,
             sitting:                    false,
             notify:                     notify,
@@ -2176,10 +2181,7 @@ function growHugeMushroom(world, pos, world_material, actions) {
         }
     });
 
-    actions.decrement_extended = {
-        mode: 'count',
-        ignore_creative_game_mode: true
-    };
+    actions.decrement_extended = { mode: 'count' };
 
     actions.addParticles([{ type: 'villager_happy', pos: pos }]);
 }
