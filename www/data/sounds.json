@@ -50,7 +50,7 @@
     {
         "type": "madcraft:block.player",
         "hit": [
-            "hit3"
+            "hit_3"
         ],
         "eat": [
             "eat_1",

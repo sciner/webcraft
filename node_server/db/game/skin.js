@@ -1,5 +1,6 @@
 import { Helpers, unixTime, md5 } from "../../../www/js/helpers.js";
-import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED } from "../../../www/js/constant.js";
+import { PLAYER_SKIN_TYPES, SKIN_RIGHTS_FREE, SKIN_RIGHTS_UPLOADED, 
+    CLIENT_SKIN_ROOT } from "../../../www/js/constant.js";
 import { Buffer } from 'node:buffer';
 import skiaCanvas from 'skia-canvas';
 import mkdirp from 'mkdirp';
@@ -86,6 +87,21 @@ export class DBGameSkins {
         });
     }
 
+    calcSkinFileNames(skin_id) {
+        const dir = UPLOAD_SKIN_DIR + ((skin_id / UPLOAD_SKINS_PER_DIR) | 0) + '/';
+        const file = dir + (skin_id | 0);
+        return {
+            file: file,
+            fullDir: SKIN_ROOT + dir,
+            fullFileName: SKIN_ROOT + file + '.png'
+        };
+    }
+
+    async saveSkinFile(skinFileNames, dataBuffer) {
+        await mkdirp(skinFileNames.fullDir);
+        await fs.promises.writeFile(skinFileNames.fullFileName, dataBuffer, 'binary');
+    }
+
     async upload(data, originalName, type, user_id) {
         if (!PLAYER_SKIN_TYPES[type]) {
             throw "error"; // this is not expected to happen
@@ -109,6 +125,15 @@ export class DBGameSkins {
 
         var skin_id;
         if (existingSkin) {
+            // Deal with an abnormal situation: the skin exists in DB, but its image 
+            // doesn't exist on the disk. Allow the image to be re-uploaded.
+            const skinFileNames = this.calcSkinFileNames(existingSkin.id);
+            const fileExists = await fs.promises.stat(skinFileNames.fullFileName).then(
+                () => true, () => false);
+            if (!fileExists) {
+                await this.saveSkinFile(skinFileNames, dataBuffer);
+            }
+
             // The same exact image was uploaded. TODO check ownership rights here
             if (existingSkin.rights !== SKIN_RIGHTS_UPLOADED) {
                 throw 'error_this_skin_already_exists';
@@ -139,18 +164,13 @@ export class DBGameSkins {
             }
             skin_id = result.lastID;
 
-            // set the file name based on skin_id
-            const dir = UPLOAD_SKIN_DIR + ((skin_id / UPLOAD_SKINS_PER_DIR) | 0) + '/'
-            const file = dir + (skin_id | 0);
-            await this.conn.run("UPDATE skin SET file = ? WHERE id = ?", [file, skin_id]);
+            const skinFileNames = this.calcSkinFileNames(skin_id);
+            await this.saveSkinFile(skinFileNames, dataBuffer);
+
+            await this.conn.run("UPDATE skin SET file = ? WHERE id = ?", [skinFileNames.file, skin_id]);
 
             // Add the skin to the user
-            this.addUserSkin(user_id, skin_id);
-
-            // save the skin file
-            await mkdirp(SKIN_ROOT + dir);
-            const fullFileName = SKIN_ROOT + file + '.png';
-            await fs.promises.writeFile(fullFileName, dataBuffer, 'binary');
+            await this.addUserSkin(user_id, skin_id);
         }
         return skin_id;
     }
@@ -167,10 +187,17 @@ export class DBGameSkins {
         const staticSkinsById = await this.staticSkinsPromise;
         const skin = staticSkinsById.get(skin_id);
         if (skin && skin.rights === SKIN_RIGHTS_FREE) {
+            if (!skin.file.endsWith('.png')) {
+                skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+            }
             return skin;
         }
         let row = await this.conn.get("SELECT id, file, type FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ? AND skin_id = ?", [user_id, skin_id]);
-        return row || staticSkinsById.get(DEFAULT_SKIN_ID);
+        row = row || staticSkinsById.get(DEFAULT_SKIN_ID);
+        if (!row.file.endsWith('.png')) {
+            row.file = CLIENT_SKIN_ROOT + row.file + '.png';
+        }
+        return row;
     }
 
 }

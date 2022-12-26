@@ -50,6 +50,28 @@
             "spawnable": false
         },
         {
+            "id": 218,
+            "name": "FLOOD_WATER",
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture": {
+                "side":"block/lava_still.png"
+            }
+        },
+        {
+            "id": 219,
+            "name": "FLOOD_LAVA",
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture": {
+                "side":"block/water_still.png"
+            }
+        },
+        {
             "id": 415,
             "name": "BUBBLE_COLUMN",
             "transparent": true,
@@ -2145,7 +2167,8 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_into_pot"
+                "can_put_into_pot",
+                "cant_replace_by_tree"
             ],
             "texture": {
                 "side": "block/brown_mushroom_block.png",
@@ -2160,7 +2183,8 @@
             },
             "tags": [
                 "mushroom_block",
-                "can_put_into_pot"
+                "can_put_into_pot",
+                "cant_replace_by_tree"
             ],
             "texture": {
                 "side": "block/red_mushroom_block.png",
@@ -2287,6 +2311,9 @@
             "material": {
                 "id": "dirt"
             },
+            "tags": [
+                "cant_replace_by_tree"
+            ],
             "texture": "block/mushroom_stem.png"
         },
         {
@@ -4643,7 +4670,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4667,7 +4695,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4691,7 +4720,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4715,7 +4745,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4739,7 +4770,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -4763,7 +4795,8 @@
             "tags": [
                 "sign",
                 "rotate_x16",
-                "no_drop_ao"
+                "no_drop_ao",
+                "can_set_on_wall"
             ],
             "material": {
                 "id": "wood"
@@ -7247,6 +7280,8 @@
             "transparent": true,
             "style": "cover",
             "can_rotate": true,
+            "planting": false,
+            "inventory_style": "extruder",
             "material": {
                 "id": "plant"
             },

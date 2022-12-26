@@ -3,7 +3,8 @@ import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX 
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
+    CHEST_INTERACTION_MARGIN_BLOCKS
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLEAR_DRAG_ITEM } from "../inventory.js";
@@ -373,4 +374,18 @@ export class BaseChestWindow extends Window {
         return this.chest.slots;
     }
 
+    onUpdate() {
+        super.onUpdate();
+        const maxDist = Qubatch.player.game_mode.getPickatDistance() + CHEST_INTERACTION_MARGIN_BLOCKS;
+        const eyePos = Qubatch.player.getEyePos();
+        const chestCenter = new Vector(this.info.pos).addScalarSelf(0.5, 0.5, 0.5);
+        const chestCenter2 = this.secondInfo
+            ? new Vector(this.secondInfo.pos).addScalarSelf(0.5, 0.5, 0.5)
+            : null;
+        if (eyePos.distance(chestCenter) > maxDist &&
+            (!chestCenter2 || eyePos.distance(chestCenter2) > maxDist)
+        ) {
+            this.hide();
+        }
+    }
 }

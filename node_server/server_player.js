@@ -523,6 +523,7 @@ export class ServerPlayer extends Player {
 
     // check indicators
     checkIndicators(tick) {
+
         if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
             return false;
         }
@@ -535,7 +536,7 @@ export class ServerPlayer extends Player {
                 // @todo добавить дергание
                 packets.push({
                     name: ServerClient.CMD_PLAY_SOUND,
-                    data: { tag: 'madcraft:block.player', action: 'hit', pos: null}
+                    data: { tag: 'madcraft:block.player', action: 'hit', pos: this.state.pos}
                 });
             }
             if(this.live_level == 0) {

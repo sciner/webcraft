@@ -15,7 +15,7 @@ export class WorldClientOreGenerator {
         const scale = 16
         const scale_less = 24
         const threshold = .74
-        const threshold_less = .9
+        const threshold_less = .85
         this.addOreLayer(20, 20,        scale_less, threshold_less, BLOCK.DIAMOND_ORE.id)
         this.addOreLayer(30, 30,        scale_less, threshold_less, BLOCK.GOLD_ORE.id)
         this.addOreLayer(50, 40,        scale, threshold, BLOCK.IRON_ORE.id)

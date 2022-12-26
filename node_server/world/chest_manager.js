@@ -2,7 +2,9 @@ import { getChunkAddr, Vector } from "../../www/js/helpers.js";
 import { ServerClient } from "../../www/js/server_client.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { InventoryComparator } from "../../www/js/inventory_comparator.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT } from "../../www/js/constant.js";
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_VISIBLE_SLOT_COUNT,
+    CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
+} from "../../www/js/constant.js";
 import { INVENTORY_CHANGE_SLOTS, INVENTORY_CHANGE_MERGE_SMALL_STACKS, 
     INVENTORY_CHANGE_CLEAR_DRAG_ITEM, INVENTORY_CHANGE_SHIFT_SPREAD } from "../../www/js/inventory.js";
 import { Treasure_Sets } from "./treasure_sets.js";
@@ -93,6 +95,17 @@ export class WorldChestManager {
             incorrectParams |= tblock.material.name !== 'CHEST' || 
                 tblock.posworld.distanceSqr(secondPos) !== 1;
         }
+
+        // check the distance to the chests
+        const maxDist = player.game_mode.getPickatDistance() +
+            CHEST_INTERACTION_MARGIN_BLOCKS + CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD;
+        const eyePos = player.getEyePos();
+        const chestCenter = new Vector(pos).addScalarSelf(0.5, 0.5, 0.5);
+        const chestCenter2 = secondPos
+            ? new Vector(secondPos).addScalarSelf(0.5, 0.5, 0.5)
+            : null;
+        incorrectParams |= eyePos.distance(chestCenter) > maxDist &&
+            (!chestCenter2 || eyePos.distance(chestCenter2) > maxDist);
 
         if (incorrectParams) {
             player.inventory.moveOrDropFromDragSlot();

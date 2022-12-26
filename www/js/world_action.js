@@ -1,4 +1,5 @@
-import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth } from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
+    SpatialDeterministicRandom } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock } from "./blocks.js";
@@ -450,6 +451,11 @@ export class WorldAction {
             decrement_extended:         null,
             decrement_instrument:       false,
             increment:                  null,
+            /**
+             * If it's true, then decrement is executed in creative mode in the same way as in normal mode.
+             * It means "influence of the creative mode on the action" is ignored.
+             * It doesn't mean "action in creative mode" is ignored.
+             */
             ignore_creative_game_mode:  false,
             sitting:                    false,
             notify:                     notify,
@@ -909,7 +915,9 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
             }
 
             // Запрет установки блока на блоки, которые занимает игрок
-            if(mat_block.passable == 0 && mat_block.tags.indexOf("can_set_on_wall") < 0) {
+            if (mat_block.passable == 0 && 
+                !(orientation.y == 0 && mat_block.tags.includes("can_set_on_wall"))
+            ) {
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     // player.radius = player's diameter
@@ -2154,6 +2162,32 @@ async function useAxe(e, world, pos, player, world_block, world_material, mat_bl
     return false;
 }
 
+function growHugeMushroom(world, pos, world_material, actions) {
+
+    const min_max = [5, 7];
+    const spice = 3423433;
+    var height = SpatialDeterministicRandom.intRange(world, pos, min_max[0], min_max[1], spice);
+    if (SpatialDeterministicRandom.float(world, pos, spice) < 0.5) {
+        height = height * 2 - 1;
+    }
+    const isRed = world_material.id === BLOCK.RED_MUSHROOM.id;
+
+    actions.generateTree({
+        pos,
+        block: {
+            extra_data: {
+                style: isRed ? 'red_mushroom' : 'brown_mushroom',
+                height
+            },
+            effects: true
+        }
+    });
+
+    actions.decrement_extended = { mode: 'count' };
+
+    actions.addParticles([{ type: 'villager_happy', pos: pos }]);
+}
+
 // Use bone meal
 async function useBoneMeal(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if(mat_block.item.name != 'bone_meal' || !world_material) {
@@ -2208,6 +2242,10 @@ async function useBoneMeal(e, world, pos, player, world_block, world_material, m
         if(mat_block.sound) {
             actions.addPlaySound({tag: mat_block.sound, action: 'place', pos: position, except_players: [player.session.user_id]});
         }
+        return true;
+    } else if([BLOCK.BROWN_MUSHROOM.id, BLOCK.RED_MUSHROOM.id].includes(world_material.id)) {
+        // maybe put it inside "if (Qubatch.is_server) {"
+        growHugeMushroom(world, pos, world_material, actions);
         return true;
     } else if (world_block?.material?.ticking?.type && extra_data) {
         if (world_block.material.ticking.type == 'stage' && !extra_data?.notick) {

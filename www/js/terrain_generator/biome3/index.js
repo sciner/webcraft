@@ -15,7 +15,6 @@ import { TerrainMap2 } from "./terrain/map.js";
 import { WorldClientOreGenerator } from "./client_ore_generator.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
 import { Biome } from "./biomes.js";
-import { Aquifera, AquiferaParams } from "./aquifera.js";
 // import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
@@ -41,6 +40,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noise2d = createNoise2D(al.double);
 
         super(seed, world_id, options, noise2d, null);
+        this.world = world;
         this.tempAlea = al;
 
         this.ore_generator = new WorldClientOreGenerator(world_id);
@@ -174,7 +174,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
-                this.plantTree(tree, chunk, x, y, z, true);
+                this.plantTree(this.world, tree, chunk, x, y, z, true);
 
             }
         }
@@ -319,6 +319,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                             // если это над водой
                             if(xyz.y > over_density_params.local_water_line) {
+
+                                // random joke sign
+                                if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
+                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
+                                }
 
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {

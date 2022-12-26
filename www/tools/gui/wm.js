@@ -402,15 +402,21 @@ export class Window {
         ctx.textAlign       = this.style.textAlign.horizontal || 'left';
         ctx.textBaseline    = this.style.textAlign.vertical || 'top';
     }
-    setBackground(url, image_size_mode) {
-        let that = this;
-        let bg = new Image();
-        bg.onload = function(e) {
-            that.style.background.image = bg;
-            that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
-            that.redraw();
+    setBackground(urlOrCanvas, image_size_mode) {
+        if (typeof urlOrCanvas == "string") {
+            let that = this;
+            let bg = new Image();
+            bg.onload = function(e) {
+                that.style.background.image = bg;
+                that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
+                that.redraw();
+            }
+            bg.src = urlOrCanvas;
+        } else {
+            this.style.background.image = urlOrCanvas;
+            this.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
+            this.redraw();
         }
-        bg.src = url;
     }
     setIconImage(url, image_size_mode) {
         const that = this;
@@ -799,6 +805,9 @@ export class Window {
 
         }
     }
+    onUpdate() {
+        // It's called every interation of the game loop for visible windows. Override it in the subclasses.
+    }
 }
 
 // Button
@@ -1145,6 +1154,13 @@ export class WindowManager extends Window {
         this._wm_tooltip.setText(text);
     }
 
+    // calls Window.onUpdate() for each visible window
+    updateVisibleWindows() {
+        const vw = this.getVisibleWindows();
+        for(var i = 0; i < vw.length; i++) {
+            vw[i].onUpdate();
+        }
+    }
 }
 
 export class VerticalLayout extends Window {

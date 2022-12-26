@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST} from "./constant.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -159,7 +159,8 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         window.playerTemp = this;
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
-            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos);
+            Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos, 
+                false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
             this.state.lies = false;
@@ -647,7 +648,7 @@ export class Player {
             //
             const pc               = this.getPlayerControl();
             this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
-            const applyControl = !this.state.sitting && !this.state.lies;
+            const applyControl = !this.state.sitting && !this.state.lies && this.controls.enabled;
             pc.controls.back       = applyControl && this.controls.back;
             pc.controls.forward    = applyControl && this.controls.forward;
             pc.controls.right      = applyControl && this.controls.right;

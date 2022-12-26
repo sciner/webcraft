@@ -230,16 +230,18 @@ export class BLOCK {
         return val + (material.visible_for_ao ? 128 : 0);
     }
 
-    // Return flat index of chunk block
-    static getIndex(x, y, z) {
-        if(x instanceof Vector || typeof x == 'object') {
-            y = x.y;
-            z = x.z;
-            x = x.x;
-        }
-        let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        return index;
-    }
+    // This method doens't account for padding, returns incorrect result and shouldn't be used
+
+    // // Return flat index of chunk block
+    // static getIndex(x, y, z) {
+    //     if(x instanceof Vector || typeof x == 'object') {
+    //         y = x.y;
+    //         z = x.z;
+    //         x = x.x;
+    //     }
+    //     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+    //     return index;
+    // }
 
     // Return new simplified item
     static convertItemToDBItem(item) {
@@ -709,6 +711,8 @@ export class BLOCK {
 
         block.is_simple_qube    = this.isSimpleQube(block);
         block.can_interact_with_hand = this.canInteractWithHand(block);
+        const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
+        block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
         //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';

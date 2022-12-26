@@ -613,20 +613,51 @@ export class Chunk {
                     }
                     ind++;
                 }
-        this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
-            addr: this.addr,
-            dataId: this.getDataTextureOffset(),
-            list: diff
-        }]);
+        if (diff.length > 0) {
+            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
+                addr: this.addr,
+                dataId: this.getDataTextureOffset(),
+                list: diff
+            }]);
+        }
+    }
+
+    applyDiffToLight(diffFluidType) {
+        const diff = [];
+        const {cw, outerSize } = this.dataChunk;
+        let tblock = null;
+        let v = new Vector();
+
+        for (let i = 0; i < diffFluidType.length; i++) {
+            const index = diffFluidType[i];
+            let tmp = index - cw;
+            let x = tmp % outerSize.x;
+            tmp -= x;
+            tmp /= outerSize.x;
+            let z = tmp % outerSize.z;
+            tmp -= z;
+            tmp /= outerSize.z;
+            let y = tmp;
+            v.set(x, y, z);
+            tblock = this.tblocks.get(v, tblock);
+            diff.push(x, y, z, tblock.lightSource);
+        }
+        if (diff.length > 0) {
+            this.chunkManager.postLightWorkerMessage(['setChunkBlock', {
+                addr: this.addr,
+                dataId: this.getDataTextureOffset(),
+                list: diff
+            }]);
+        }
     }
 
     setFluid(buf) {
         if (this.inited) {
             this.fluid.markDirtyMesh();
-            this.beginLightChanges();
-            this.fluid.loadDbBuffer(buf, false);
-            this.endLightChanges();
-            this.chunkManager.dataWorld.syncOuter(this);
+            let diffFluidType = [];
+            this.fluid.loadDbBuffer(buf, false, diffFluidType);
+            this.applyDiffToLight(diffFluidType);
+            this.chunkManager.fluidWorld.syncOuter(this.fluid);
         } else {
             this.fluid_buf = buf;
         }
@@ -634,10 +665,9 @@ export class Chunk {
 
     setFluidDelta(buf) {
         if (this.inited) {
-            this.beginLightChanges();
-            //TODO: make it diff!
-            this.fluid.applyDelta(buf, true);
-            this.endLightChanges();
+            let diffFluidType = [];
+            this.fluid.applyDelta(buf, true, diffFluidType);
+            this.applyDiffToLight(diffFluidType);
         } else {
             this.fluid_deltas.push(buf);
         }

@@ -77,4 +77,7 @@ export class PlayerManager extends AbstractPlayerManager {
     
     }
 
+    getMyself() {
+        return this.get(Qubatch.App.session.user_id);
+    }
 }
