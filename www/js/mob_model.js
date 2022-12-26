@@ -137,13 +137,13 @@ export class Animator {
 export class MobAnimator extends Animator {
 
     prepare(animable) {
-
+        console.log('MobAnimator extends Animator');
         const {
             sceneTree: trees,
             parts = {}
         } = animable;
 
-        for(let p of ['head', 'arm', 'leg', 'wing', 'body']) {
+        for(const p of ['head', 'arm', 'leg', 'wing', 'body']) {
             parts[p] = [];
         }
 
@@ -174,23 +174,40 @@ export class MobAnimator extends Animator {
 
             // humanoid case
             leg = tree.findNode('LeftLeg');
-            leg && legs.push(leg);
+           leg && legs.push(leg);
 
             // humanoid case
             leg = tree.findNode('RightLeg');
             leg && legs.push(leg);
+            
+            leg = tree.findNode('LeftLeg1');
+           leg && legs.push(leg);
 
             // humanoid case
+            leg = tree.findNode('RightLeg1');
+            leg && legs.push(leg);
+
+            // humanoid case
+            arm = tree.findNode('RightArm3');
+            arm && arms.push(arm);
+            arm = tree.findNode('LeftArm1');
+            arm && arms.push(arm);
+            
             arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
-
-            // humanoid case
-            arm = tree.findNode('RightArm');
+            
+            arm = tree.findNode('RightArm1');
             arm && arms.push(arm);
+            
+            
 
-            head = tree.findNode('head') || tree.findNode('Head');
+           head = tree.findNode('Head');
+           head && heads.push(head);
+            
+           head = tree.findNode('Head1');
+            head && heads.push(head);
 
-            parts['head'].push(...head ? [head] : []);
+            parts['head'].push(...heads);
             parts['arm'].push(...arms);
             parts['leg'].push(...legs);
             parts['wing'].push(...wings);
@@ -276,7 +293,7 @@ export class MobAnimation {
     head({
         part, index, delta, animable, camPos
     }) {
-        let {
+        const {
             yaw, pos, targetLook = 0
         } = animable;
 
@@ -307,7 +324,6 @@ export class MobAnimation {
     leg({
         part, index, aniangle, animable, isArm = 0
     }) {
-
         const x             = index % 2;
         const y             = index / 2 | 0;
         const sign          = x ^ y ? 1 : -1;
@@ -344,10 +360,10 @@ export class MobAnimation {
         if(isArm) {
             if(!isLeftArm && this.isSwingInProgress) {
                 // атака правой руки
-                this.setupArmOnAttackAnimation(rotate);
+                //this.setupArmOnAttackAnimation(rotate);
             } else if(!isSitting) {
                 // движение рук от дыхания
-                this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
+                //this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
             }
             // hands up if zombie
             if(isZombie) {
@@ -360,7 +376,6 @@ export class MobAnimation {
         quat.rotateX(part.quat, part.quat, rotate.x);
         quat.rotateY(part.quat, part.quat, rotate.y);
         quat.rotateZ(part.quat, part.quat, rotate.z);
-
         part.updateMatrix();
 
     }
@@ -827,7 +842,6 @@ export class MobModel extends NetworkPhysicObject {
     }
     
     /**
-     *
      * @param {Renderer} render
      * @param {ImageBitmap | Image} image
      */
@@ -840,7 +854,8 @@ export class MobModel extends NetworkPhysicObject {
         });
         return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
     }
-
+    
+    
     // Loads the player head model into a vertex buffer for rendering.
     /**
      *
@@ -850,11 +865,15 @@ export class MobModel extends NetworkPhysicObject {
         if (this.sceneTree) {
             return;
         }
+        console.log('loadModel');
+        
+        
 
         if (this.type.startsWith('player')) {
-            return await this.loadPlayerModel(render);
+            this.loadPlayerModel(render);
+           // return true; 
         }
-
+/*
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
             console.log("Can't locate model for:", this.type);
@@ -901,6 +920,29 @@ export class MobModel extends NetworkPhysicObject {
 
             this.loadTextures(render, image);
         }
+        */
+        this.animator.prepare(this);
+    }
+    
+    async loadArmor(render) {
+        const armor = await Resources.getModelAsset('armor');
+        if (!armor) {
+            console.log("Can't locate armor model");
+            return null;
+        } 
+        for (const title in armor.skins) {
+            const image = await armor.getSkin(title);
+            const texture = this.getTexture(render, image);
+            this.textures.set(title, texture);
+        }
+        const scene = ModelBuilder.loadModel(armor);
+                scene[0].children[1].material = this.textures.get('turtle_layer_1');
+                scene[0].children[0].material = this.textures.get('gold_layer_1');
+                scene[0].children[0].children[0].material = this.textures.get('gold_layer_1');
+                scene[0].children[0].children[1].material = this.textures.get('gold_layer_1');
+                scene[0].children[0].children[2].material = this.textures.get('diamond_layer_1');
+                scene[0].children[0].children[3].material = this.textures.get('chainmail_layer_1');
+                this.sceneTree.push(scene[0]);
     }
 
     async loadPlayerModel(render) {
@@ -920,11 +962,11 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-
+        await this.loadArmor(render);
         const image = await asset.getPlayerSkin(this.skin.file);
-        this.loadTextures(render, image);
-
-        return image; // it's used by PlayerModel for skin preview
+        this.material = this.getTexture(render, image);
+       this.animator.prepare(this);
+       console.log(this.sceneTree)
     }
 
     /**
@@ -935,7 +977,7 @@ export class MobModel extends NetworkPhysicObject {
         if (!tree) {
             return;
         }
-
+console.log('postLoad');
         this.animator.prepare(this);
     }
 

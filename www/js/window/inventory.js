@@ -1,8 +1,70 @@
 import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot} from "./base_craft_window.js";
+import {BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE 
+} from "../constant.js";
+
+class ArmorSlot extends CraftTableSlot {
+    constructor(x, y, s, id, ct) {
+        
+        super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
+
+        // Custom drawing
+        this.onMouseEnter = function() {
+            this.style.background.color = '#ffffff55';
+        }
+
+        this.onMouseLeave = function() {
+            this.style.background.color = '#00000000';
+        }
+
+        // Drag
+        this.onMouseDown = function(e) {
+            const targetItem  = this.getInventoryItem();
+            if(!targetItem || e.drag.getItem()) {
+                return;
+            }
+            this.setItem(null, e);
+            this.getInventory().setDragItem(this, targetItem, e.drag, this.width, this.height);
+        }
+        
+        this.onDrop = function(e) {
+            const dropData    = e.drag.getItem();
+            const targetItem  = this.getInventoryItem();
+            if(!dropData) {
+               return;
+            }
+            const item = BLOCK.fromId(dropData.item.id);
+            if (item.item.name != 'armor') {
+                return;
+            }
+            this.setItem(dropData.item, e);
+            if (targetItem) {
+                Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
+                dropData.item = targetItem;
+            } else {
+                this.getInventory().clearDragItem();
+            }
+        }
+    }
+    
+    draw(ctx, ax, ay) {
+        this.applyStyle(ctx, ax, ay);
+        const item = this.getInventoryItem();
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        super.draw(ctx, ax, ay);
+    }
+
+    getInventory() {
+        return this.ct.inventory;
+    }
+    
+    getInventoryItem() {
+        return this.ct.inventory.items[this.slot_index] || this.item;
+    }
+}
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
 const PLAYER_BOX_WIDTH = 98;
@@ -288,7 +350,7 @@ export class InventoryWindow extends BaseCraftWindow {
         sy *= this.zoom;
         console.log(this.zoom)
 
-        const lblSlotBoots = new CraftTableInventorySlot(16 * this.zoom, 124 * this.zoom, sz, sz, 'lblSlot36', null, '36', this, 36);
+        const lblSlotBoots = new ArmorSlot(16 * this.zoom, 16 * this.zoom, sz, 39, this);
         ct.add(lblSlotBoots);
         ct.inventory_slots.push(lblSlotBoots);
         
