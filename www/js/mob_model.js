@@ -942,29 +942,6 @@ export class MobModel extends NetworkPhysicObject {
         this.animator.prepare(this);
     }
     
-    async loadArmor(render) {
-        const armor = await Resources.getModelAsset('armor');
-        if (!armor) {
-            console.log("Can't locate armor model");
-            return null;
-        } 
-        for (const title in armor.skins) {
-            const image = await armor.getSkin(title);
-            const texture = this.getTexture(render, image);
-            this.textures.set(title, texture);
-        }
-        const scene = ModelBuilder.loadModel(armor);
-        //scene[0].visible = false;
-        scene[0].children[1].material = this.textures.get('gold_layer_1');
-        scene[0].children[0].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
-        scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
-        console.log(scene[0]);
-        this.sceneTree.push(scene[0]);
-    }
-
     async loadPlayerModel(render) {
         if (this.sceneTree) {
             return;
@@ -1005,6 +982,44 @@ export class MobModel extends NetworkPhysicObject {
         if(this.fire_mesh) {
             this.fire_mesh.destroy();
         }
+    }
+    
+    // загрузка текстур армора
+    async loadArmor(render) {
+        const armor = await Resources.getModelAsset('armor');
+        if (!armor) {
+            console.log("Can't locate armor model");
+            return null;
+        } 
+        for (const title in armor.skins) {
+            const image = await armor.getSkin(title);
+            const texture = this.getTexture(render, image);
+            this.textures.set(title, texture);
+        }
+        const scene = ModelBuilder.loadModel(armor);
+        //scene[0].visible = false;
+        scene[0].children[1].material = this.textures.get('gold_layer_1');
+        scene[0].children[0].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
+        scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
+        console.log(scene[0]);
+        this.sceneTree.push(scene[0]);
+    }
+    
+    // установка армора, хардкод, но всё равно потом будут переделываться
+    setArmor(ids) {
+        if (!this.sceneTree) {
+            return null;
+        }
+        this.sceneTree[1].children[0].visible = false;
+        this.sceneTree[1].children[1].visible = false;
+        this.sceneTree[1].children[1].children[0].visible = false;
+        this.sceneTree[1].children[1].children[1].visible = false;
+        this.sceneTree[1].children[1].children[2].visible = false;
+        this.sceneTree[1].children[1].children[3].visible = false;
+        
     }
 
 }
