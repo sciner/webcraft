@@ -149,6 +149,15 @@ export class BBModel_Compiler {
                                 case 'north': side = 'south'; break;
                                 case 'west': side = 'east'; break;
                                 case 'east': side = 'west'; break;
+                                case 'up': {
+                                    face.uv[3] *= -1
+                                    break;
+                                }
+                                case 'down': {
+                                    face.uv[2] *= -1
+                                    face.uv[3] *= -1
+                                    break;
+                                }
                             }
                             faces[side] = face;
                         }
