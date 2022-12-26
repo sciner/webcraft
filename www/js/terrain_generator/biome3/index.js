@@ -374,9 +374,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             } else {
 
                                 // рандомный блок лавы
-                                if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
-                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
-                                }
+                                //if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
+                                //    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
+                                //}
 
                             }
                         }
