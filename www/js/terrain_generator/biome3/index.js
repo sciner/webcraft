@@ -252,17 +252,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.noise3d.generate4(chunk.coord, sz);
         chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
 
-        const aquifera = new Aquifera(chunk.coord)
-        const aquifera_params = new AquiferaParams()
-
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
-
-                // Aquifera column
-                const has_aquifera_column = aquifera.hasColumn(xyz);
 
                 /**
                  * @type {TerrainMapCell}
@@ -287,19 +281,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     this.maps.calcDensity(xyz, cell, density_params, map);
-                    let {d1, d2, d3, d4, density, dcaves} = density_params;
-
-                    //
-                    let in_aquifera = false
-                    if(has_aquifera_column) {
-                        if(aquifera.calcInside(xyz, this.n3d, density_params, aquifera_params)) {
-                            if(aquifera_params.in_wall) {
-                                density = aquifera_params.density
-                            } else {
-                                in_aquifera = true
-                            }
-                        }
-                    }
+                    let {d1, d2, d3, d4, density, dcaves, in_aquifera, local_water_line} = density_params;
 
                     // Блоки камня
                     if(density > DENSITY_AIR_THRESHOLD) {
@@ -329,8 +311,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // если это самый первый слой поверхности
                         if(not_air_count == 0) {
 
+                            // нужно обязательно проверить ватерлинию над текущим блоком
+                            // (чтобы не сажать траву в аквиферах)
+                            xyz.y++
+                            this.maps.calcDensity(xyz, cell, over_density_params, map);
+                            xyz.y--
+
                             // если это над водой
-                            if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
+                            if(xyz.y > over_density_params.local_water_line) {
 
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
@@ -391,7 +379,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             } else {
 
                                 // рандомный блок лавы
-                                //if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
+                                //if((xyz.y < local_water_line - 5) && (rand_lava.double() < .0015)) {
                                 //    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
                                 //}
 
@@ -417,8 +405,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // чтобы в пещерах не было воды
                         if(dcaves == 0 || in_aquifera) {
 
-                            const local_water_line = in_aquifera ? aquifera.pos.y : GENERATOR_OPTIONS.WATER_LINE
-                            const local_fluid_block_id = in_aquifera ? aquifera.block_id : BLOCK.STILL_WATER.id
+                            const local_fluid_block_id = in_aquifera ? map.aquifera.block_id : BLOCK.STILL_WATER.id
 
                             // если это уровень воды
                             if(xyz.y <= local_water_line) {
@@ -467,7 +454,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 }
 
                                 // рандомный светящийся лишайник на потолке
-                                if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .015)) {
+                                if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.GLOW_LICHEN.id, null, {down: true, rotate: false});
                                 }
 

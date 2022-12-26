@@ -121,9 +121,13 @@ export class TerrainMap2 extends TerrainMap {
                     // если это камень
                     if(density > DENSITY_AIR_THRESHOLD) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
-                            if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y + 1, z, biome)) {
-                                if(this.trees.length == MAX_TREES_PER_CHUNK) {
-                                    break;
+                            xyz.y++
+                            manager.calcDensity(xyz, {river_point, preset}, density_params, map)
+                            if(xyz.y > density_params.local_water_line) {
+                                if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome)) {
+                                    if(this.trees.length == MAX_TREES_PER_CHUNK) {
+                                        break;
+                                    }
                                 }
                             }
                         }

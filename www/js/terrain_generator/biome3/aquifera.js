@@ -24,11 +24,12 @@ export class Aquifera {
      */
     constructor(coord) {
         this.options = {
-            y: {min: 20, max: 60},
+            y: {min: 90, max: 100},
             rad: {min: 28, max: 48},
             chance: 1,
             rad_mul: 1.5
         }
+        // WARNING: x and z of size must be a multiple of 16
         this.size = new Vector(128, 512, 128)
         this.addr = coord.clone().div(this.size).flooredSelf()
         this.coord = this.addr.mul(this.size)

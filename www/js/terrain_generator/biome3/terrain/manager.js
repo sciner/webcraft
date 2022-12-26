@@ -8,6 +8,7 @@ import { getAheadMove } from "../../cluster/vilage.js";
 import { Biomes } from "./../biomes.js";
 import { TerrainMap2 } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
+import { Aquifera, AquiferaParams } from "../aquifera.js";
 
 export const TREE_BETWEEN_DIST          = 2; // минимальное расстояние между деревьями
 export const TREE_MARGIN                = 3; // Минимальное расстояние от сгенерированной постройки до сгенерированного дерева
@@ -33,6 +34,8 @@ function initMats() {
     ];
 }
 
+const _aquifera_params = new AquiferaParams()
+
 //
 class RiverPoint {
 
@@ -56,14 +59,11 @@ export class DensityParams {
      * @param {float} d4
      * @param {float} density
      * @param {float} dcaves
+     * @param {boolean} in_aquifera
+     * @param {int} local_water_line
      */
-    constructor(d1, d2, d3, d4, density, dcaves = 0) {
-        this.d1 = d1;
-        this.d2 = d2;
-        this.d3 = d3;
-        this.d4 = d4;
-        this.density = density;
-        this.dcaves = dcaves
+    constructor(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
+        return this.set(d1, d2, d3, d4, density, dcaves, in_aquifera, local_water_line)
     }
 
     /**
@@ -73,15 +73,23 @@ export class DensityParams {
      * @param {float} d4
      * @param {float} density
      * @param {float} dcaves
+     * @param {boolean} in_aquifera
+     * @param {int} local_water_line
      */
-    set(d1, d2, d3, d4, density, dcaves) {
+    set(d1, d2, d3, d4, density, dcaves = 0, in_aquifera = false, local_water_line = WATER_LEVEL) {
         this.d1 = d1;
         this.d2 = d2;
         this.d3 = d3;
         this.d4 = d4;
         this.density = density;
         this.dcaves = dcaves || 0;
+        this.in_aquifera = !!in_aquifera
+        this.local_water_line = local_water_line ?? WATER_LEVEL
         return this;
+    }
+
+    reset() {
+        return this.set(0, 0, 0, 0, 0, 0);
     }
 
 }
@@ -314,15 +322,19 @@ export class TerrainMapManager2 {
     }
 
     /**
-     *
+     * Calculate totsl density in block and return all variables
+     * 
      * @param {Vector} xyz
      * @param {*} cell
      * @param {?DensityParams} density_params
-     * @returns
+     * 
+     * @returns {DensityParams}
      */
     calcDensity(xyz, cell, density_params = null, map) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
+
+        // TODO: GENERATOR_OPTIONS.WATER_LINE or WATER_LEVEL ?
 
         /*
         if(op.id == 'gori') {
@@ -364,7 +376,7 @@ export class TerrainMapManager2 {
         // Если это блок воздуха
         if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
             if(density_params) {
-                return density_params.set(0, 0, 0, 0, 0, 0);
+                return density_params.reset()
             }
             return ZeroDensity;
         }
@@ -399,8 +411,24 @@ export class TerrainMapManager2 {
             }
         }
 
+        // Aquifera
+        const has_aquifera_column = map.aquifera.hasColumn(xyz);
+        res.in_aquifera = false
+        if(has_aquifera_column) {
+            if(map.aquifera.calcInside(xyz, this.n3d, res, _aquifera_params)) {
+                if(_aquifera_params.in_wall) {
+                    density = _aquifera_params.density
+                } else {
+                    res.in_aquifera = true
+                }
+            }
+        }
+        res.local_water_line = res.in_aquifera ? map.aquifera.pos.y : WATER_LEVEL
+
+        // Total density
         res.density = density;
         return res;
+
     }
 
     /**
@@ -439,7 +467,7 @@ export class TerrainMapManager2 {
         } else {
             // 2. select block in dirt layer
             block_id = dirt_layer.blocks[0];
-            if(xyz.y < WATER_LEVEL && dirt_layer.blocks.length > 1) {
+            if(xyz.y < density_params.local_water_line && dirt_layer.blocks.length > 1) {
                 block_id = dirt_layer.blocks[dirt_layer.blocks.length - 1];
             }
             const dirt_layer_blocks_count = dirt_layer.blocks.length;
@@ -534,6 +562,8 @@ export class TerrainMapManager2 {
         // 2. Create cluster
         const map_manager = real_chunk.chunkManager.world.generator.maps
         map.cluster = real_chunk.chunkManager.world.generator.clusterManager.getForCoord(chunk.coord, map_manager);
+
+        map.aquifera = new Aquifera(chunk.coord)
 
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {
