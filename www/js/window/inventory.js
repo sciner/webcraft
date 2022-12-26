@@ -7,12 +7,13 @@ import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE,
 } from "../constant.js";
 
 class ArmorSlot extends CraftTableSlot {
+    
     constructor(x, y, s, id, ct) {
         
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
-
         // Custom drawing
-        this.onMouseEnter = function() {
+        this.onMouseEnter = function(e) {
+            console.log(e);
             this.style.background.color = '#ffffff55';
         }
 
@@ -37,7 +38,7 @@ class ArmorSlot extends CraftTableSlot {
                return;
             }
             const item = BLOCK.fromId(dropData.item.id);
-            if (item.item.name != 'armor') {
+            if (item?.item?.name != 'armor' || item.armor.slot != this.slot_index) {
                 return;
             }
             this.setItem(dropData.item, e);
@@ -64,6 +65,7 @@ class ArmorSlot extends CraftTableSlot {
     getInventoryItem() {
         return this.ct.inventory.items[this.slot_index] || this.item;
     }
+    
 }
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
@@ -343,17 +345,20 @@ export class InventoryWindow extends BaseCraftWindow {
         return this.inventory_slots;
     }
     
-    createArmorSlots(sz, sx = 14, sy = 166) {
+    createArmorSlots(sz) {
         const ct = this;
-
-        sx *= this.zoom;
-        sy *= this.zoom;
-        console.log(this.zoom)
-
-        const lblSlotBoots = new ArmorSlot(16 * this.zoom, 16 * this.zoom, sz, 39, this);
+        const lblSlotHead = new ArmorSlot(16 * this.zoom, 16 * this.zoom, sz, 39, this);
+        ct.add(lblSlotHead);
+        ct.inventory_slots.push(lblSlotHead);
+        const lblSlotChest = new ArmorSlot(16 * this.zoom, 50 * this.zoom, sz, 38, this);
+        ct.add(lblSlotChest);
+        ct.inventory_slots.push(lblSlotChest);
+        const lblSlotLeggs = new ArmorSlot(16 * this.zoom, 90 * this.zoom, sz, 37, this);
+        ct.add(lblSlotLeggs);
+        ct.inventory_slots.push(lblSlotLeggs);
+        const lblSlotBoots = new ArmorSlot(16 * this.zoom, 123 * this.zoom, sz, 36, this);
         ct.add(lblSlotBoots);
         ct.inventory_slots.push(lblSlotBoots);
-        
     }
 
 }
