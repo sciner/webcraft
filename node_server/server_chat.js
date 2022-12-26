@@ -255,9 +255,12 @@ export class ServerChat {
                     ticking_blocks: {total:0}
                 };
                 // ticking_blocks
+                const pos = new Vector();
                 for(let addr of this.world.chunks.ticking_chunks) {
                     const chunk = this.world.chunks.get(addr);
-                    for(let ticking_block of chunk.ticking_blocks.blocks.values()) {
+                    for(let flatIndex of chunk.ticking_blocks.blocks.values()) {
+                        pos.fromFlatChunkIndex(flatIndex).addSelf(chunk.coord);
+                        const ticking_block = chunk.getMaterial(pos);
                         const ttype = ticking_block.ticking.type;
                         if(!(ttype in stat.ticking_blocks)) {
                             stat.ticking_blocks[ttype] = 0;
