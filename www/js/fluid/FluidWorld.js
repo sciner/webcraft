@@ -11,6 +11,7 @@ import {
     OFFSET_FLUID,
     fluidBlockProps
 } from "./FluidConst.js";
+import {AABB} from "../core/AABB.js";
 
 export class FluidWorld {
     constructor(chunkManager) {
@@ -159,5 +160,58 @@ export class FluidWorld {
 
     isPosFluid(pos) {
         return this.isFluid(pos.x, pos.y, pos.z);
+    }
+
+    /**
+     * used by Chunk setFluid
+     * @param fluidChunk
+     * @param syncProps whether to sync props
+     */
+    syncOuter(fluidChunk, syncProps = false) {
+        const fluid = fluidChunk.uint16View;
+
+        const { portals, aabb, cx, cy, cz } = fluidChunk.dataChunk;
+        const cw = fluidChunk.dataChunk.shiftCoord;
+        const tempAABB = new AABB();
+
+        if (syncProps) {
+            fluidChunk.syncAllProps();
+        }
+        for (let i = 0; i < portals.length; i++) {
+            const portal = portals[i];
+            const other = portals[i].toRegion;
+            const otherView = other.uint16View;
+            const otherChunk = other.rev;
+            const otherFluid = otherChunk.fluid.uint16View;
+
+            const cx2 = other.cx;
+            const cy2 = other.cy;
+            const cz2 = other.cz;
+            const cw2 = other.shiftCoord;
+
+            let otherDirtyFluid = false;
+            tempAABB.setIntersect(aabb, portal.aabb);
+            for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
+                for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
+                    for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        if (otherFluid[ind2] !== fluid[ind]) {
+                            otherFluid[ind2] = fluid[ind];
+                            otherDirtyFluid = true;
+                        }
+                    }
+            tempAABB.setIntersect(other.aabb, portal.aabb);
+            for (let y = tempAABB.y_min; y < tempAABB.y_max; y++)
+                for (let z = tempAABB.z_min; z < tempAABB.z_max; z++)
+                    for (let x = tempAABB.x_min; x < tempAABB.x_max; x++) {
+                        const ind = x * cx + y * cy + z * cz + cw;
+                        const ind2 = x * cx2 + y * cy2 + z * cz2 + cw2;
+                        fluid[ind] = otherFluid[ind2];
+                    }
+            if (otherDirtyFluid) {
+                other.rev.fluid.markDirtyMesh();
+            }
+        }
     }
 }
