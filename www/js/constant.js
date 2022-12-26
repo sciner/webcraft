@@ -1,5 +1,7 @@
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
+// If more time than this has passed since the last update, player.update() is skipped.
+export const MAX_FPS_DELTA_PROCESSED        = 2000;
 export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 164.1;

@@ -9,7 +9,7 @@ import { Sounds } from "./sounds.js";
 import { Kb} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 
@@ -517,7 +517,7 @@ export class GameClass {
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
 
-        if(!this.hud.splash.loading) {
+        if(!this.hud.splash.loading && delta <= MAX_FPS_DELTA_PROCESSED) {
             if(!this.free_cam) {
                 player.update(delta);
             }
