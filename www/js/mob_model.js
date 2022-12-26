@@ -156,9 +156,7 @@ export class MobAnimator extends Animator {
             let head;
             let wing;
             
-            
-
-            /*for(let i = 0; i < 8; i ++) {
+            for(let i = 0; i < 8; i ++) {
                 leg = tree.findNode('leg' + i);
                 leg && legs.push(leg);
 
@@ -168,51 +166,30 @@ export class MobAnimator extends Animator {
                 wing = tree.findNode('wing' + i);
                 wing && wings.push(wing);
             }
-
-            // humanoid case
+            
             leg = tree.findNode('LeftLeg');
-           leg && legs.push(leg);
-
-            // humanoid case
+            leg && legs.push(leg);
+            
             leg = tree.findNode('RightLeg');
             leg && legs.push(leg);
             
-            leg = tree.findNode('LeftLeg1');
-           leg && legs.push(leg);
-
-            // humanoid case
-            leg = tree.findNode('RightLeg1');
-            leg && legs.push(leg);
-
-            // humanoid case
-            arm = tree.findNode('RightArm1');
-            arm && arms.push(arm);
-            
-            arm = tree.findNode('RightArm3');
-            arm && arms.push(arm); 
-            
-            arm = tree.findNode('LeftArm1');
+            arm = tree.findNode('RightArm');
             arm && arms.push(arm);
             
             arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
             
-
-           head = tree.findNode('Head');
-           head && heads.push(head);
-           
-           head = tree.findNode('head');
-           head && heads.push(head);
-            
-           head = tree.findNode('Head1');
+            head = tree.findNode('Head');
             head && heads.push(head);
-
+            
+            head = tree.findNode('head');
+            head && heads.push(head);
+            
             parts['head'].push(...heads);
             parts['arm'].push(...arms);
             parts['leg'].push(...legs);
             parts['wing'].push(...wings);
-            parts['body'].push(...[tree.findNode('Body')].filter(Boolean));
-            */
+            parts['body'].push(...[tree.findNode('Body')]);
         }
         
         animable.parts = parts;
@@ -361,10 +338,10 @@ export class MobAnimation {
         if(isArm) {
             if(!isLeftArm && this.isSwingInProgress) {
                 // атака правой руки
-                //this.setupArmOnAttackAnimation(rotate);
+                this.setupArmOnAttackAnimation(rotate);
             } else if(!isSitting) {
                 // движение рук от дыхания
-                //this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
+                this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
             }
             // hands up if zombie
             if(isZombie) {
@@ -457,7 +434,7 @@ export class MobAnimation {
     }
 
     arm(opts) {
-        opts.index += 2;
+        opts.index += 1;
         opts.isArm = 1;
         return this.leg(opts);
     }
@@ -554,7 +531,15 @@ export class MobModel extends NetworkPhysicObject {
         this.animator = new MobAnimator();
 
         this.animationScript = new MobAnimation();
-
+        
+        this.old = {
+           'helm': null,
+           'chest': null,
+           'legs': null,
+           'boots': null,
+           'skin': null
+        };
+        
     }
 
     get isRenderable() {
@@ -719,6 +704,22 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
+        
+        // смена скина для мобов
+        if (this.extra_data?.skin != this.old.skin) {
+            if (this.textures.has(this.extra_data.skin)) {
+                this.material = this.textures.get(this.extra_data.skin);
+            }
+            this.old.skin = this.extra_data.skin;
+        }
+        // шлем для армора
+        if (this.extra_data?.helm != this.old.helm) {
+            if (this.textures.has(this.extra_data.skin)) {
+                this.material = this.textures.get(this.extra_data.skin);
+            }
+            this.old.skin = this.extra_data.skin;
+        }
+        
 
         // If mob die
         if(this.isAlive() === false) {
@@ -884,11 +885,12 @@ export class MobModel extends NetworkPhysicObject {
             this.textures.set(title, texture);
         }
         
-        if (this.type == 'zombie' || this.type == 'skeleton') {
-            await this.loadArmor(render);
-        }
+       // if (this.type == 'zombie' || this.type == 'skeleton') {
+        //    await this.loadArmor(render);
+        //}
         
-        this.material = this.textures.get(this.skin);
+        this.old.skin = this.skin || asset.baseSkin;
+        this.material = this.textures.get(this.old.skin);
 /*
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
@@ -952,12 +954,14 @@ export class MobModel extends NetworkPhysicObject {
             this.textures.set(title, texture);
         }
         const scene = ModelBuilder.loadModel(armor);
+        //scene[0].visible = false;
         scene[0].children[1].material = this.textures.get('gold_layer_1');
         scene[0].children[0].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
         scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
+        console.log(scene[0]);
         this.sceneTree.push(scene[0]);
     }
 
@@ -994,7 +998,6 @@ export class MobModel extends NetworkPhysicObject {
         if (!tree) {
             return;
         }
-console.log('postLoad');
         this.animator.prepare(this);
     }
 
