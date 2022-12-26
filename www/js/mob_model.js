@@ -712,13 +712,21 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.old.skin = this.extra_data.skin;
         }
+        
+        if (render.player.inventory.items[39] != this.old.helm && this.sceneTree[1]) {
+            this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
+            this.sceneTree[1].children[1].visible = false;
+            this.sceneTree[1].children[0].visible = render.player.inventory.items[39]  ? true : false;
+            this.old.helm = render.player.inventory.items[39];
+        }
+        /*
         // шлем для армора
         if (this.extra_data?.helm != this.old.helm) {
             if (this.textures.has(this.extra_data.skin)) {
                 this.material = this.textures.get(this.extra_data.skin);
             }
             this.old.skin = this.extra_data.skin;
-        }
+        }*/
         
 
         // If mob die
@@ -997,14 +1005,14 @@ export class MobModel extends NetworkPhysicObject {
             this.textures.set(title, texture);
         }
         const scene = ModelBuilder.loadModel(armor);
-        //scene[0].visible = false;
+        /*scene[0].visible = false;
         scene[0].children[1].material = this.textures.get('gold_layer_1');
         scene[0].children[0].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
         scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
         scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
-        console.log(scene[0]);
+        console.log(scene[0]);*/
         this.sceneTree.push(scene[0]);
     }
     
@@ -1013,13 +1021,8 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-        this.sceneTree[1].children[0].visible = false;
+        this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
         this.sceneTree[1].children[1].visible = false;
-        this.sceneTree[1].children[1].children[0].visible = false;
-        this.sceneTree[1].children[1].children[1].visible = false;
-        this.sceneTree[1].children[1].children[2].visible = false;
-        this.sceneTree[1].children[1].children[3].visible = false;
-        
     }
 
 }
