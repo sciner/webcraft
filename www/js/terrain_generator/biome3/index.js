@@ -26,6 +26,24 @@ for(let i = 0; i < randoms.length; i++) {
 
 const BIG_STONE_DESNSITY = 0.6;
 
+class Aquifera {
+
+    constructor(coord) {
+        this.size = new Vector(64, 64, 64)
+        this.addr = coord.clone().div(this.size).flooredSelf()
+        this.coord = this.addr.mul(this.size)
+        this.rand = new alea(`aquifera_rand_${this.addr.toHash()}`)
+        this.is_empty = this.rand.double() < 0
+        if(!this.is_empty) {
+            this.pos = new Vector(this.coord.x + this.size.x/2, 14 + Math.round(Math.abs(this.rand.double()) * 36), this.coord.z + this.size.z/2),
+            this.rad = 28 + Math.abs(this.rand.double() * 12)
+            this.block_id = this.rand.double() > .5 ? BLOCK.STILL_LAVA.id : BLOCK.STILL_WATER.id
+        }
+
+    }
+
+}
+
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -251,11 +269,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.noise3d.generate4(chunk.coord, sz);
         chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
 
+        const aquifera = new Aquifera(chunk.coord)
+
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
 
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
+
+                // ce
+                let has_aquifera = !aquifera.is_empty;
+                if(has_aquifera) {
+                    const dfx = xyz.x - aquifera.pos.x
+                    const dfz = xyz.z - aquifera.pos.z
+                    has_aquifera = dfx > -aquifera.rad * 2.3 && dfx < aquifera.rad * 2.3 && dfz > -aquifera.rad * 2.3 && dfz < aquifera.rad * 2.3
+                }
 
                 // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
@@ -283,6 +311,24 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     this.maps.calcDensity(xyz, cell, density_params, map);
                     let {d1, d2, d3, d4, density, dcaves} = density_params;
+
+                    // 
+                    let in_aquifera = false
+                    if(has_aquifera) {
+                        const dfy = xyz.y - aquifera.pos.y
+                        if(dfy > -aquifera.rad && dfy < aquifera.rad && dfy < Math.abs(d4) * 3) {
+                            const d5 = this.n3d(xyz.x / 15, xyz.y / 15, xyz.z / 15)
+                            const ard = (aquifera.rad + d5 * 5)
+                            const aquifera_dist = aquifera.pos.distance(xyz) / ard
+                            if(aquifera_dist <= 1.75) {
+                                if(aquifera_dist > .7) {
+                                    density = DENSITY_AIR_THRESHOLD + .1
+                                } else {
+                                    in_aquifera = true
+                                }
+                            }
+                        }
+                    }
 
                     // Блоки камня
                     if(density > DENSITY_AIR_THRESHOLD) {
@@ -398,22 +444,27 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         not_air_count = 0;
 
                         // чтобы в пещерах не было воды
-                        if(dcaves == 0) {
+                        if(dcaves == 0 || in_aquifera) {
+
+                            const local_water_line = in_aquifera ? aquifera.pos.y : GENERATOR_OPTIONS.WATER_LINE
+                            const local_fluid_block_id = in_aquifera ? aquifera.block_id : BLOCK.STILL_WATER.id
 
                             // если это уровень воды
-                            if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
-                                let block_id = BLOCK.STILL_WATER.id;
+                            if(xyz.y <= local_water_line) {
+                                let block_id = local_fluid_block_id;
                                 // поверхность воды
-                                if(xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                    // если холодно, то рисуем рандомные льдины
-                                    const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
-                                    if(water_cap_ice > .12) {
-                                        block_id = BLOCK.ICE.id;
-                                        // в еще более рандомных случаях на льдине рисует пику
-                                        if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
-                                            const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
-                                            for(let ph = 0; ph < peekh; ph++) {
-                                                chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                if(xyz.y == local_water_line) {
+                                    if(local_fluid_block_id == BLOCK.STILL_WATER.id) {
+                                        // если холодно, то рисуем рандомные льдины
+                                        const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+                                        if(water_cap_ice > .12) {
+                                            block_id = BLOCK.ICE.id;
+                                            // в еще более рандомных случаях на льдине рисует пику
+                                            if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                                                const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
+                                                for(let ph = 0; ph < peekh; ph++) {
+                                                    chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                                }
                                             }
                                         }
                                     }
@@ -421,7 +472,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 chunk.setBlockIndirect(x, y, z, block_id);
                             }
 
-                            if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
+                            if(xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
                                 if(rnd.double() < .07) {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
                                 }
@@ -433,14 +484,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                             // потолок и часть стен
                             if(is_ceil) {
+
                                 // если не песчаный
                                 if(!cell.biome.is_sand) {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
-                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id);
+                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id)
+                                            continue
                                         }
                                     }
                                 }
+
+                                // рандомный светящийся лишайник на потолке
+                                if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .015)) {
+                                    chunk.setBlockIndirect(x, y, z, BLOCK.GLOW_LICHEN.id, null, {down: true, rotate: false});
+                                }
+
                             }
 
                         }
