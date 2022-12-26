@@ -8563,6 +8563,70 @@
         {
             "id": 275,
             "max_in_stack": 1,
+            "name": "LEATHER_HELMET",
+            "style": "extruder",
+            "texture": "item/leather_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 55,
+                "damage": 1
+            }
+        },
+        {
+            "id": 276,
+            "max_in_stack": 1,
+            "name": "CHAINMAIL_HELMET",
+            "style": "extruder",
+            "texture": "item/chainmail_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 165,
+                "damage": 2
+            }
+        },
+        {
+            "id": 277,
+            "max_in_stack": 1,
+            "name": "IRON_HELMET",
+            "style": "extruder",
+            "texture": "item/iron_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "iron"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 165,
+                "damage": 2
+            }
+        },
+        {
+            "id": 278,
+            "max_in_stack": 1,
+            "name": "DIAMOND_HELMET",
+            "style": "extruder",
+            "texture": "item/diamond_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "diamond"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 363,
+                "damage": 3
+            }
+        },
+        {
+            "id": 279,
+            "max_in_stack": 1,
             "name": "GOLDEN_HELMET",
             "style": "extruder",
             "texture": "item/golden_helmet.png",
@@ -8572,12 +8636,92 @@
             },
             "armor": {
                 "slot": 39,
-                "durability": 276,
-                "damage": 0
+                "durability": 77,
+                "damage": 2
             }
         },
         {
-            "id": 276,
+            "id": 280,
+            "max_in_stack": 1,
+            "name": "NETHERITE_HELMET",
+            "style": "extruder",
+            "texture": "item/netherite_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "netherite"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 407,
+                "damage": 3
+            }
+        },
+        {
+            "id": 281,
+            "max_in_stack": 1,
+            "name": "LEATHER_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/leather_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 80,
+                "damage": 3
+            }
+        },
+        {
+            "id": 282,
+            "max_in_stack": 1,
+            "name": "CHAINMAIL_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/chainmail_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 240,
+                "damage": 5
+            }
+        },
+        {
+            "id": 283,
+            "max_in_stack": 1,
+            "name": "IRON_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/iron_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "iron"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 240,
+                "damage": 6
+            }
+        },
+        {
+            "id": 284,
+            "max_in_stack": 1,
+            "name": "DIAMOND_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/diamond_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "diamond"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 528,
+                "damage": 8
+            }
+        },
+        {
+            "id": 285,
             "max_in_stack": 1,
             "name": "GOLDEN_CHESTPLATE",
             "style": "extruder",
@@ -8593,7 +8737,71 @@
             }
         },
         {
-            "id": 277,
+            "id": 286,
+            "max_in_stack": 1,
+            "name": "NETHERITE_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/netherite_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "netherite"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 592,
+                "damage": 8
+            }
+        },
+        {
+            "id": 287,
+            "max_in_stack": 1,
+            "name": "LEATHER_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/leather_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 37,
+                "durability": 80,
+                "damage": 2
+            }
+        },
+        {
+            "id": 288,
+            "max_in_stack": 1,
+            "name": "CHAINMAIL_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/chainmail_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 37,
+                "durability": 240,
+                "damage": 4
+            }
+        },
+        {
+            "id": 289,
+            "max_in_stack": 1,
+            "name": "IRON_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/iron_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "iron"
+            },
+            "armor": {
+                "slot": 37,
+                "durability": 240,
+                "damage": 5
+            }
+        },
+        {
+            "id": 290,
             "max_in_stack": 1,
             "name": "DIAMOND_LEGGINGS",
             "style": "extruder",
@@ -8604,25 +8812,42 @@
             },
             "armor": {
                 "slot": 37,
-                "durability": 495,
+                "durability": 528,
                 "damage": 6
             }
         },
         {
-            "id": 278,
+            "id": 291,
             "max_in_stack": 1,
-            "name": "NETHERITE_BOOTS",
+            "name": "GOLDEN_LEGGINGS",
             "style": "extruder",
-            "texture": "item/netherite_boots.png",
+            "texture": "item/golden_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "gold"
+            },
+            "armor": {
+                "slot": 37,
+                "durability": 112,
+                "damage": 3
+            }
+        },
+        {
+            "id": 292,
+            "max_in_stack": 1,
+            "name": "NETHERITE_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/netherite_leggings.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "netherite"
             },
             "armor": {
-                "slot": 36,
-                "durability": 481,
-                "damage": 3
+                "slot": 37,
+                "durability": 592,
+                "damage": 6
             }
         }
+        
     ]
 }
