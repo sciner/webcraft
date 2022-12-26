@@ -3,6 +3,10 @@ import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { skinview3d } from "../../vendors/skinview3d.bundle.js"
+
+const PLAYER_BOX_WIDTH = 98;
+const PLAYER_BOX_HEIGHT = 140;
 
 export class InventoryWindow extends BaseCraftWindow {
 
@@ -31,6 +35,9 @@ export class InventoryWindow extends BaseCraftWindow {
             }
         };
         this.style.background = {...this.style.background, ...options.background};
+
+        this.skinKey = null;
+        this.skinViewer = null; // lazy initialized if necessary
 
         // Get window by ID
         const ct = this;
@@ -69,6 +76,7 @@ export class InventoryWindow extends BaseCraftWindow {
         // Обработчик открытия формы
         this.onShow = function() {
             Qubatch.releaseMousePointer();
+            this.previewSkin();
         }
 
         // Обработчик закрытия формы
@@ -88,6 +96,8 @@ export class InventoryWindow extends BaseCraftWindow {
             }
             // Save inventory
             Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
+
+            this.skinViewer.renderPaused = true;
         }
 
         // Add labels to window
@@ -131,13 +141,71 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
+    previewSkin() {
+        const that = this;
+        function drawOneFrame() {
+            that.skinViewer.draw();
+            that.skinViewer.renderPaused = true;
+        }
+
+        if (!this.skinViewer) {
+            const animation = new skinview3d.WalkingAnimation();
+            animation.progress = 0.7;
+            animation.paused = true;
+            const skinViewer = new skinview3d.SkinViewer({
+                canvas: this.skinViewerCanvas,
+                width: this.skinViewerCanvas.width,
+                height: this.skinViewerCanvas.height,
+                animation: null
+            });
+            skinViewer.camera.position.x = 20;
+            skinViewer.camera.position.y = 15;
+            skinViewer.camera.position.z = 40;
+            skinViewer.zoom = 1;
+            skinViewer.fov = 30;
+            skinViewer.renderPaused = true;
+            this.skinViewer = skinViewer;
+        }
+        // set or reset the pose
+        this.skinViewer.animation = null;
+        const s = this.skinViewer.playerObject.skin;
+        s.leftArm.rotation.x = -0.2;
+        s.rightArm.rotation.x = 0.2;
+        s.leftLeg.rotation.x = 0.3;
+        s.rightLeg.rotation.x = -0.3;
+
+        const skin = Qubatch.render.player.state.skin;
+        const skinKey = skin.file + '_' + skin.type;
+        if (this.skinKey !== skinKey) {
+            this.skinKey = skinKey;
+            const model = skin.type ? 'slim' : 'default';
+            // use the cached skin image, if available
+            const img = Qubatch.world.players.getMyself()?.skinImage;
+            // it doesn't return a promise when an image is supplied
+            this.skinViewer.loadSkin(img || skin.file, {model})?.then(drawOneFrame);
+            if (img) {
+                drawOneFrame();
+            }
+        } else {
+            drawOneFrame();
+        }
+    }
+
     addPlayerBox() {
         const ct = this;
-        let lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom, 98 * this.zoom, 140 * this.zoom, 'lblPlayerBox', null, null);
-        if(Qubatch.skin.preview) {
-            lblPlayerBox.setBackground(Qubatch.skin.preview, 'stretch');
+        this.lblPlayerBox = new Label(52 * this.zoom, 16 * this.zoom,
+            PLAYER_BOX_WIDTH * this.zoom, PLAYER_BOX_HEIGHT * this.zoom,
+            'lblPlayerBox', null, null);
+
+        this.skinViewerCanvas = document.createElement('canvas');
+        this.skinViewerCanvas.width = PLAYER_BOX_WIDTH * this.zoom;
+        this.skinViewerCanvas.height = PLAYER_BOX_HEIGHT * this.zoom;
+        this.lblPlayerBox.setBackground(this.skinViewerCanvas, 'stretch');
+        this.lblPlayerBox.onMouseDown = () => {
+            this.skinViewer.animation = this.skinViewer.animation || new skinview3d.WalkingAnimation();
+            this.skinViewer.renderPaused = !this.skinViewer.renderPaused;
         }
-        ct.add(lblPlayerBox);
+        ct.add(this.lblPlayerBox);
     }
 
     // Recipes button

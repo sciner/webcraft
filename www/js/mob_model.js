@@ -835,7 +835,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         if (this.type.startsWith('player')) {
-            return this.loadPlayerModel(render);
+            return await this.loadPlayerModel(render);
         }
 
         const asset = await Resources.getModelAsset(this.type);
@@ -869,9 +869,6 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        if (!this.skin.file.startsWith(CLIENT_SKIN_ROOT)) {
-            this.skin.file = CLIENT_SKIN_ROOT + this.skin.file + '.png';
-        }
         this.type = PLAYER_SKIN_TYPES[this.skin.type];
 
         const asset = await Resources.getModelAsset(this.type);
@@ -887,6 +884,8 @@ export class MobModel extends NetworkPhysicObject {
 
         const image = await asset.getPlayerSkin(this.skin.file);
         this.loadTextures(render, image);
+
+        return image; // it's used by PlayerModel for skin preview
     }
 
     /**

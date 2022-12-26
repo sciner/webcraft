@@ -250,6 +250,13 @@ export class PlayerModel extends MobModel {
         return this.id == Qubatch.App.session.user_id;
     }
 
+    async loadPlayerModel(render) {
+        const img = await super.loadPlayerModel(render);
+        if (this.itsMe()) {
+            this.skinImage = img;
+        }
+    }
+
     postLoad(render, tree) {
         super.postLoad(tree);
         
