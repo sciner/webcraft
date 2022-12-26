@@ -137,12 +137,8 @@ export class Animator {
 export class MobAnimator extends Animator {
 
     prepare(animable) {
-        console.log('MobAnimator extends Animator');
-        const {
-            sceneTree: trees,
-            parts = {}
-        } = animable;
-
+        const { sceneTree: trees, parts = {} } = animable;
+        
         for(const p of ['head', 'arm', 'leg', 'wing', 'body']) {
             parts[p] = [];
         }
@@ -154,14 +150,15 @@ export class MobAnimator extends Animator {
 
         this.aniangle = 0;
 
-        for(let tree of trees) {
-
+        for(const tree of trees) {
             let leg;
             let arm;
             let head;
             let wing;
+            
+            
 
-            for(let i = 0; i < 8; i ++) {
+            /*for(let i = 0; i < 8; i ++) {
                 leg = tree.findNode('leg' + i);
                 leg && legs.push(leg);
 
@@ -188,20 +185,23 @@ export class MobAnimator extends Animator {
             leg && legs.push(leg);
 
             // humanoid case
-            arm = tree.findNode('RightArm3');
+            arm = tree.findNode('RightArm1');
             arm && arms.push(arm);
+            
+            arm = tree.findNode('RightArm3');
+            arm && arms.push(arm); 
+            
             arm = tree.findNode('LeftArm1');
             arm && arms.push(arm);
             
             arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
             
-            arm = tree.findNode('RightArm1');
-            arm && arms.push(arm);
-            
-            
 
            head = tree.findNode('Head');
+           head && heads.push(head);
+           
+           head = tree.findNode('head');
            head && heads.push(head);
             
            head = tree.findNode('Head1');
@@ -212,8 +212,9 @@ export class MobAnimator extends Animator {
             parts['leg'].push(...legs);
             parts['wing'].push(...wings);
             parts['body'].push(...[tree.findNode('Body')].filter(Boolean));
+            */
         }
-
+        
         animable.parts = parts;
     }
 
@@ -293,7 +294,7 @@ export class MobAnimation {
     head({
         part, index, delta, animable, camPos
     }) {
-        const {
+        let {
             yaw, pos, targetLook = 0
         } = animable;
 
@@ -864,14 +865,29 @@ export class MobModel extends NetworkPhysicObject {
         if (this.sceneTree) {
             return;
         }
-        console.log('loadModel');
         
-        
-
         if (this.type.startsWith('player')) {
             this.loadPlayerModel(render);
-           // return true; 
+            return; 
         }
+        
+        const asset = await Resources.getModelAsset(this.type);
+        if (!asset) {
+            console.log("Can't locate model for:", this.type);
+            return null;
+        }
+        this.sceneTree = ModelBuilder.loadModel(asset);
+        for (const title in asset.skins) {
+            const image = await asset.getSkin(title);
+            const texture = this.getTexture(render, image);
+            this.textures.set(title, texture);
+        }
+        
+        if (this.type == 'zombie' || this.type == 'skeleton') {
+            await this.loadArmor(render);
+        }
+        
+        this.material = this.textures.get(this.skin);
 /*
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
@@ -935,13 +951,13 @@ export class MobModel extends NetworkPhysicObject {
             this.textures.set(title, texture);
         }
         const scene = ModelBuilder.loadModel(armor);
-                scene[0].children[1].material = this.textures.get('turtle_layer_1');
-                scene[0].children[0].material = this.textures.get('gold_layer_1');
-                scene[0].children[0].children[0].material = this.textures.get('gold_layer_1');
-                scene[0].children[0].children[1].material = this.textures.get('gold_layer_1');
-                scene[0].children[0].children[2].material = this.textures.get('diamond_layer_1');
-                scene[0].children[0].children[3].material = this.textures.get('chainmail_layer_1');
-                this.sceneTree.push(scene[0]);
+        scene[0].children[1].material = this.textures.get('gold_layer_1');
+        scene[0].children[0].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
+        scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
+        scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
+        this.sceneTree.push(scene[0]);
     }
 
     async loadPlayerModel(render) {
@@ -964,11 +980,12 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-        await this.loadArmor(render);
         const image = await asset.getPlayerSkin(this.skin.file);
         this.material = this.getTexture(render, image);
-       this.animator.prepare(this);
-       console.log(this.sceneTree)
+        
+        await this.loadArmor(render);
+        
+        this.animator.prepare(this);
     }
 
     /**
