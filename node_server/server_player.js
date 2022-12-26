@@ -340,11 +340,11 @@ export class ServerPlayer extends Player {
             sneak:    this.state.sneak,
             sitting:  this.state.sitting,
             lies:     this.state.lies,
-            armors:   {
-                head: this.inventory.items[39], 
-                body: this.inventory.items[38],
-                legs: this.inventory.items[37],
-                boots: this.inventory.items[36],                
+            armor:   {
+                head: this.inventory.items[39]?.id, 
+                body: this.inventory.items[38]?.id,
+                legs: this.inventory.items[37]?.id,
+                boots: this.inventory.items[36]?.id,
             }
         };
     }

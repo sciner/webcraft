@@ -39,6 +39,7 @@ export class PlayerManager extends AbstractPlayerManager {
             skin:           data.skin,
             username:       data.username,
             type:           data.type || 'player',
+            armor:          data.armor
         });
 
         player.world = this.world;
@@ -62,11 +63,11 @@ export class PlayerManager extends AbstractPlayerManager {
         }
 
         player.distance = data.dist;
-
+        player.armor = data.armor;
         if(data.pos) {
             player.sitting = data.sitting;
             player.lies = data.lies;
-            player.armors = data.armors;
+            player.armor = data.armor;
             player.applyNetState({
                 pos: data.pos,
                 sneak: !!data.sneak,
