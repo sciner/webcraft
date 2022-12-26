@@ -19,7 +19,7 @@ export class FluidWorldQueue {
         this.preTick = 0;
 
         // constants
-        this.lavaSpeedSlow = 6; // 3
+        this.lavaSpeed = 6; // 3
         this.lavaLower = 2;
         this.fluidTickRate = 5; // 1
     }

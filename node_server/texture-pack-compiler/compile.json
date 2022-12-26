@@ -50,6 +50,28 @@
             "spawnable": false
         },
         {
+            "id": 218,
+            "name": "FLOOD_WATER",
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture": {
+                "side":"block/lava_still.png"
+            }
+        },
+        {
+            "id": 219,
+            "name": "FLOOD_LAVA",
+            "is_fluid": true,
+            "material": {
+                "id": "water"
+            },
+            "texture": {
+                "side":"block/water_still.png"
+            }
+        },
+        {
             "id": 415,
             "name": "BUBBLE_COLUMN",
             "transparent": true,

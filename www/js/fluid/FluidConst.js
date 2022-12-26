@@ -5,7 +5,7 @@ export const FLUID_LAVA_ID = 32;
 export const FLUID_TYPE_MASK = 48;
 export const FLUID_TYPE_SHIFT = 4;
 
-export const FLUID_UPDATE_FLAG = 64;
+export const FLUID_FLOOD_FLAG = 64;
 export const FLUID_GENERATED_FLAG = 128;
 
 // these flags should be returned by fluidBlockProps()
@@ -40,6 +40,12 @@ export function isFluidId(blockId) {
     }
     if (blockId == 170 || blockId == 171) {
         return FLUID_LAVA_ID;
+    }
+    if (blockId === 218) {
+        return FLUID_WATER_ID | FLUID_FLOOD_FLAG;
+    }
+    if (blockId === 219) {
+        return FLUID_LAVA_ID | FLUID_FLOOD_FLAG;
     }
     return 0;
 }
