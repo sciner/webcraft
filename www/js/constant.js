@@ -36,7 +36,7 @@ export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
 // If a player is farther away, the chest interaction is not accepted.
 // A client is expected to close the window before that.
 // It's only against cheaters who try to interact over huge distance.
-export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 3;
+export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
