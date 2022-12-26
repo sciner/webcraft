@@ -712,12 +712,13 @@ export class MobModel extends NetworkPhysicObject {
             this.old.skin = this.extra_data.skin;
         }
         
-        if (render.player.inventory.items[39] != this.old.helm && this.sceneTree[1]) {
+        if (this.armors && this.armors.head != this.old.head && this.sceneTree[1]) {
             this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
             this.sceneTree[1].children[1].visible = false;
-            this.sceneTree[1].children[0].visible = render.player.inventory.items[39]  ? true : false;
-            this.old.helm = render.player.inventory.items[39];
+            this.sceneTree[1].children[0].visible = this.armors.head  ? true : false;
+            this.old.head = this.armors.head;
         }
+        //console.log(this.armors)
         /*
         // шлем для армора
         if (this.extra_data?.helm != this.old.helm) {
