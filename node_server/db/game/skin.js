@@ -187,6 +187,9 @@ export class DBGameSkins {
         const staticSkinsById = await this.staticSkinsPromise;
         const skin = staticSkinsById.get(skin_id);
         if (skin && skin.rights === SKIN_RIGHTS_FREE) {
+            if (!skin.file.endsWith('.png')) {
+                skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+            }
             return skin;
         }
         let row = await this.conn.get("SELECT id, file, type FROM user_skin INER JOIN skin ON skin_id = skin.id WHERE user_id = ? AND skin_id = ?", [user_id, skin_id]);
