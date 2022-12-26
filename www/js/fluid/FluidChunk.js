@@ -206,9 +206,9 @@ export class FluidChunk {
         return this.savedBuffer = arr;
     }
 
-    loadDbBuffer(stateArr, fromDb) {
+    loadDbBuffer(stateArr, fromDb = false, diffFluidType = null) {
         const {cx, cy, cz, cw, size} = this.dataChunk;
-        const {uint8View} = this;
+        const {uint8View, parentChunk} = this;
         let arr = stateArr;
         const bounds = this._localBounds;
         let k = 0;
@@ -270,6 +270,11 @@ export class FluidChunk {
                     for (let x = 0; x < size.x; x++) {
                         //TODO: calc changed bounds here
                         let index = x * cx + y * cy + z * cz + cw;
+                        if (diffFluidType) {
+                            if (uint8View[index * FLUID_STRIDE + OFFSET_FLUID] > 0) {
+                                diffFluidType.push(index);
+                            }
+                        }
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = 0;
                     }
             }
@@ -292,6 +297,12 @@ export class FluidChunk {
                             }
                         }
                         let index = x * cx + y * cy + z * cz + cw;
+
+                        if (diffFluidType) {
+                            if ((uint8View[index * FLUID_STRIDE + OFFSET_FLUID] & FLUID_TYPE_MASK) !== (val & FLUID_TYPE_MASK)) {
+                                diffFluidType.push(index);
+                            }
+                        }
                         uint8View[index * FLUID_STRIDE + OFFSET_FLUID] = val;
                     }
             }
@@ -401,7 +412,7 @@ export class FluidChunk {
                 }
     }
 
-    applyDelta(deltaBuf, usePortals) {
+    applyDelta(deltaBuf, usePortals = false, diffFluidType = null) {
         const {cw, outerSize, pos, safeAABB, portals } = this.dataChunk;
 
         this.updateID++;
@@ -409,6 +420,9 @@ export class FluidChunk {
         for (let i = 0; i < deltaBuf.length; i += 3) {
             let ind = deltaBuf[i] + (deltaBuf[i + 1] << 8);
             let val = deltaBuf[i + 2];
+            if (diffFluidType && this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] !== val) {
+                diffFluidType.push(ind);
+            }
             this.uint8View[ind * FLUID_STRIDE + OFFSET_FLUID] = val;
 
             if (!usePortals) {
