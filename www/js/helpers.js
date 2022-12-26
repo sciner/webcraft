@@ -240,6 +240,12 @@ export function getChunkAddr(x, y, z, v = null) {
     return v;
 }
 
+export function chunkAddrToCoord(addr, result) {
+    result.x = addr.x * CHUNK_SIZE_X;
+    result.y = addr.y * CHUNK_SIZE_Y;
+    result.z = addr.z * CHUNK_SIZE_Z;
+}
+
 // VectorCollectorFlat...
 export class VectorCollectorFlat {
 
@@ -980,6 +986,17 @@ export class Vector {
         return this.x + ',' + this.y + ',' + this.z;
     }
 
+    static toIntHash(x, y, z) {
+        x *= 39749;
+        y *= 76871;
+        z *= 46049;
+        return x ^ (y << 21) ^ (y >> 11) ^ (z << 11) ^ (z >> 21);
+    }
+
+    toIntHash() {
+        return Vector.toIntHash(this.x, this.y, this.z);
+    }
+
     /**
      * @return {number}
      */
@@ -1414,10 +1431,10 @@ export let DIRECTION = {};
 export let DIRECTION_BIT = {};
     DIRECTION_BIT.UP    = 0;
     DIRECTION_BIT.DOWN  = 1;
-    DIRECTION_BIT.EAST  = 2;
-    DIRECTION_BIT.WEST  = 3;
-    DIRECTION_BIT.NORTH = 4;
-    DIRECTION_BIT.SOUTH = 5;
+    DIRECTION_BIT.EAST  = 2; // X increases
+    DIRECTION_BIT.WEST  = 3; // X decreases
+    DIRECTION_BIT.NORTH = 4; // Z increases
+    DIRECTION_BIT.SOUTH = 5; // Z decreases
 
 // Direction names
 export let DIRECTION_NAME = {};
@@ -1651,6 +1668,17 @@ export class StringHelpers {
         return ind >= 0
             ? [str.substring(0, ind), str.substring(ind + 1, str.length)]
             : [str];
+    }
+
+    // The same hash as used in Java: https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+    static hash(str) {
+        var hash = 0, i, chr;
+        if (str.length === 0) return hash;
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr | 0;
+        }
+        return hash;
     }
 }
 
@@ -2564,5 +2592,84 @@ export class SimpleShiftedMatrix {
             res.push(s);
         }
         return res;
+    }
+}
+
+/**
+ * Returns a random number based on world seed, block position, and some object.
+ */
+export class SpatialDeterministicRandom {
+   
+    /**
+     * @param {Vector-like} pos
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - a signed 32-bit value based on the current world positon,
+     *      world seed and spice.
+     */
+    static int32(world, pos, spice = null) {
+        let res = Vector.toIntHash(pos.x, pos.y, pos.z) ^ world.info.seed;
+        if (spice != null) {
+            if (typeof spice === 'number') {
+                // to account for bth integer and floating point
+                spice = spice | (spice * 1000000000);
+            } else if (typeof spice === 'string') {
+                spice = StringHelpers.hash(spice);
+            } else {
+                throw Error(); // unsupported spice
+            }
+            res ^= (spice << 16) ^ (spice >> 16) ^ 243394093;
+        }
+        return res;
+    }
+
+    /**
+     * Generates 31-bit unsigned int.
+     * @param {Vector-like} pos
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - an unsigned 31-bit value based on the current world positon,
+     *      world seed and spice.
+     */
+    static uint(world, pos, spice = null) {
+        return SpatialDeterministicRandom.int32(world, pos, spice) & 0x7FFFFFFF;
+    }
+
+    /**
+     * Generates a real number from 0 (inclisve) to 1 (exclusive).
+     * @param {Vector-like} pos
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Float} - a value from 0 (inclusive) to 1 (exclusive), based on
+     *      the current world positon, world seed and spice.
+     */
+    static float(world, pos, spice = null) {
+        return SpatialDeterministicRandom.uint(world, pos, spice) / 0x80000000;
+    }
+
+    /**
+     * Generates int number from 0 (inclusive) to max (exclusive).
+     * Note: the distribution is not uniform for very large numbers.
+     * 
+     * @param {Vector-like} pos
+     * @param {Int} max - the maximum value (exclusive)
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - a value from min to max, based on the current world positon,
+     *      world seed and spice.
+     */
+    static int(world, pos, max, spice = null) {
+        return SpatialDeterministicRandom.uint(world, pos, spice) % max;
+    }
+
+    /**
+     * Generates int in the given range.
+     * Note: the distribution is not uniform for very large numbers.
+     * 
+     * @param {Vector-like} pos
+     * @param {Int} min - the minium value (inclusive)
+     * @param {Int} max - the maximum value (inclusive)
+     * @param {Int or String} spice - a value to change the result (optional)
+     * @returns {Int} - a value from min to max, based on the current world positon,
+     *      world seed and spice.
+     */
+    static intRange(world, pos, min, max, spice = null) {
+        return SpatialDeterministicRandom.uint(world, pos, spice) % (max - min + 1) + min;
     }
 }

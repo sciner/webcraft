@@ -81,7 +81,8 @@ class TickingBlockManager {
 
     // deleteTickingBlock
     delete(pos_world) {
-        const pos_index = pos_world.getFlatIndexInChunk();
+        const vec = new Vector(pos_world)
+        const pos_index = vec.getFlatIndexInChunk();
         this.blocks.delete(pos_index);
         if(this.blocks.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);

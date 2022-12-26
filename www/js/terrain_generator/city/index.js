@@ -9,6 +9,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.world = world;
         this.setSeed(seed);
         // Init palette blocks
         this.blocks1 = [];
@@ -176,7 +177,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 this.setBlock(chunk, x, y, z, BLOCK.GRASS_BLOCK, false);
                             }
                         }
-                        this.plantTree({
+                        this.plantTree(this.world,
+                            {
                                 height: (aleaRandom.double() * 4 | 0) + 5,
                                 type: {
                                     style: 'wood',

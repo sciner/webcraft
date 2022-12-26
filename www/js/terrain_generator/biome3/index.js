@@ -40,6 +40,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noise2d = createNoise2D(al.double);
 
         super(seed, world_id, options, noise2d, null);
+        this.world = world;
         this.tempAlea = al;
 
         this.ore_generator = new WorldClientOreGenerator(world_id);
@@ -173,7 +174,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 */
 
-                this.plantTree(tree, chunk, x, y, z, true);
+                this.plantTree(this.world, tree, chunk, x, y, z, true);
 
             }
         }

@@ -12,6 +12,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(world, seed, world_id, options) {
         super(seed, world_id, options);
+        this.world = world;
         this.setSeed(seed);
         TREES.init();
     }
@@ -98,7 +99,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 const {tree_type, tree_height} = this.calcTreeOptions(chunk.addr);
 
-                this.plantTree(
+                this.plantTree(this.world,
                     {
                         // рандомная высота дерева
                         height: tree_height,
@@ -122,6 +123,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             const {tree_type, tree_height} = this.calcTreeOptions(addr);
 
                             this.plantTree(
+                                this.world,
                                 {
                                     // рандомная высота дерева
                                     height: tree_height,
