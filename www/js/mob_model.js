@@ -8,6 +8,7 @@ import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } fr
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import { Renderer } from "./render.js";
 import { CLIENT_SKIN_ROOT } from "./constant.js";
+import { BLOCK } from "./blocks.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -503,6 +504,7 @@ export class MobModel extends NetworkPhysicObject {
         this.type = props.type;
         this.skin = props.skin_id || props.skin;
 
+        console.log(props)
         /**
          * @type {SceneNode[]}
          */
@@ -532,14 +534,14 @@ export class MobModel extends NetworkPhysicObject {
 
         this.animationScript = new MobAnimation();
         
-        this.old = {
-           'helm': null,
-           'chest': null,
-           'legs': null,
-           'boots': null,
-           'skin': null
+
+        this.armor = null;
+        this.prev_armor = {
+            head: null, 
+            body: null,
+            legs: null,
+            boots: null,
         };
-        
     }
 
     get isRenderable() {
@@ -705,7 +707,9 @@ export class MobModel extends NetworkPhysicObject {
             return null;
         }
         
-        // смена скина для мобов
+        this.setArmor();
+        
+        /* смена скина для мобов
         if (this.extra_data?.skin != this.old.skin) {
             if (this.textures.has(this.extra_data.skin)) {
                 this.material = this.textures.get(this.extra_data.skin);
@@ -720,7 +724,7 @@ export class MobModel extends NetworkPhysicObject {
             this.old.head = this.armors.head;
         }
         //console.log(this.armors)
-        /*
+        
         // шлем для армора
         if (this.extra_data?.helm != this.old.helm) {
             if (this.textures.has(this.extra_data.skin)) {
@@ -1019,12 +1023,44 @@ export class MobModel extends NetworkPhysicObject {
     }
     
     // установка армора, хардкод, но всё равно потом будут переделываться
-    setArmor(ids) {
-        if (!this.sceneTree) {
-            return null;
+    setArmor() {
+        if (!this.sceneTree[1]) {
+            return;
         }
-        this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
-        this.sceneTree[1].children[1].visible = false;
+        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
+        
+  
+            if (armor.head != this.prev_armor.head) {
+                this.sceneTree[1].children[0].visible = false;
+                if (armor.head) {
+                    const item = BLOCK.fromId(armor.head);
+                    this.sceneTree[1].children[0].material = this.textures.get(item.material.id +'_layer_1');
+                    this.sceneTree[1].children[0].visible = true;
+                }
+                this.prev_armor.head = armor.head;
+            }
+            if (armor.body != this.prev_armor.body) {
+                this.sceneTree[1].children[1].visible = false;
+                this.sceneTree[1].children[1].children[2].visible = false;
+                this.sceneTree[1].children[1].children[3].visible = false;
+                if (armor.body) {
+                    const item = BLOCK.fromId(armor.body);
+                    this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+                    this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_1');
+                    this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_1');
+                    this.sceneTree[1].children[1].children[2].visible = true;
+                    this.sceneTree[1].children[1].children[3].visible = true;
+                    this.sceneTree[1].children[1].visible = true;
+                }
+                this.prev_armor.body = armor.body;
+            }
+            
+       // }
+        
+        
+        
+        //this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
+        //this.sceneTree[1].children[1].visible = false;
     }
 
 }
