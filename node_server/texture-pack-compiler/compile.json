@@ -8397,9 +8397,14 @@
             "name": "TURTLE_HELMET",
             "style": "extruder",
             "texture": "item/turtle_helmet.png",
-            "item": {"name": "powder"},
+            "item": {"name": "armor"},
             "material": {
                 "id": "powder"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 276,
+                "damage": 0
             }
         },
         {
@@ -8554,6 +8559,21 @@
                 "id": "netherite"
             },
             "texture": "item/netherite_scrap.png"
+        },
+        {
+            "id": 275,
+            "name": "GOLDEN_HELMET",
+            "style": "extruder",
+            "texture": "item/golden_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "gold"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 276,
+                "damage": 0
+            }
         }
     ]
 }
