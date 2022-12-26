@@ -29,6 +29,14 @@ export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = false;
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
+// It's added to pickatDistance on the client.
+// If a player is farther away, the chest window closes.
+export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
+// It's added to the value above on the server.
+// If a player is farther away, the chest interaction is not accepted.
+// A client is expected to close the window before that.
+// It's only against cheaters who try to interact over huge distance.
+export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 3;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;

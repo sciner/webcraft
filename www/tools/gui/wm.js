@@ -799,6 +799,9 @@ export class Window {
 
         }
     }
+    onUpdate() {
+        // It's called every interation of the game loop for visible windows. Override it in the subclasses.
+    }
 }
 
 // Button
@@ -1145,6 +1148,13 @@ export class WindowManager extends Window {
         this._wm_tooltip.setText(text);
     }
 
+    // calls Window.onUpdate() for each visible window
+    updateVisibleWindows() {
+        const vw = this.getVisibleWindows();
+        for(var i = 0; i < vw.length; i++) {
+            vw[i].onUpdate();
+        }
+    }
 }
 
 export class VerticalLayout extends Window {

@@ -517,13 +517,16 @@ export class GameClass {
         const tm      = performance.now();
         const delta   = this.hud.FPS.delta;
 
-        if(this.player.controls.enabled && !this.hud.splash.loading) {
+        if(!this.hud.splash.loading) {
             if(!this.free_cam) {
                 player.update(delta);
             }
         } else {
             player.lastUpdate = null;
         }
+
+        // Update visible winows, e.g. automaticaly close the chest window if the player is too far way.
+        this.hud.wm.updateVisibleWindows();
 
         // update a sounds after player update
         this.sounds.update();
