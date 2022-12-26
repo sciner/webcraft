@@ -223,6 +223,9 @@ export function buildFluidVertices(mesher, fluidChunk) {
                 }
                 const mat = fluidMaterials[fluidId];
                 if (!buffers[fluidId]) {
+                    if (!mat) {
+                        console.log('wtf');
+                    }
                     buffers[fluidId] = mesher.getInstanceBuffer(fluidChunk, mat.material_key);
                     buffers[fluidId].touch();
                 }
