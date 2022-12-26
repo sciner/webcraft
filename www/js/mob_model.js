@@ -1015,6 +1015,7 @@ export class MobModel extends NetworkPhysicObject {
         scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
         scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
         console.log(scene[0]);*/
+        console.log(scene[0]);
         this.sceneTree.push(scene[0]);
     }
     
