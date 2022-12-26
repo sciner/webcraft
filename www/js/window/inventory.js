@@ -143,6 +143,11 @@ export class InventoryWindow extends BaseCraftWindow {
 
     previewSkin() {
         const that = this;
+        function drawOneFrame() {
+            that.skinViewer.draw();
+            that.skinViewer.renderPaused = true;
+        }
+
         if (!this.skinViewer) {
             const animation = new skinview3d.WalkingAnimation();
             animation.progress = 0.7;
@@ -174,14 +179,15 @@ export class InventoryWindow extends BaseCraftWindow {
         if (this.skinKey !== skinKey) {
             this.skinKey = skinKey;
             const model = skin.type ? 'slim' : 'default';
-            this.skinViewer.loadSkin(skin.file, {model}).then(() => {
-                that.skinViewer.draw();
-                that.skinViewer.renderPaused = true;
-            });
+            // use the cached skin image, if available
+            const img = Qubatch.world.players.getMyself()?.skinImage;
+            // it doesn't return a promise when an image is supplied
+            this.skinViewer.loadSkin(img || skin.file, {model})?.then(drawOneFrame);
+            if (img) {
+                drawOneFrame();
+            }
         } else {
-            // reset the pose
-            that.skinViewer.draw();
-            that.skinViewer.renderPaused = true;
+            drawOneFrame();
         }
     }
 
