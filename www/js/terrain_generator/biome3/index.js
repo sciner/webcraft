@@ -15,6 +15,7 @@ import { TerrainMap2 } from "./terrain/map.js";
 import { WorldClientOreGenerator } from "./client_ore_generator.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
 import { Biome } from "./biomes.js";
+import { Aquifera, AquiferaParams } from "./aquifera.js";
 // import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
@@ -25,24 +26,6 @@ for(let i = 0; i < randoms.length; i++) {
 }
 
 const BIG_STONE_DESNSITY = 0.6;
-
-class Aquifera {
-
-    constructor(coord) {
-        this.size = new Vector(64, 64, 64)
-        this.addr = coord.clone().div(this.size).flooredSelf()
-        this.coord = this.addr.mul(this.size)
-        this.rand = new alea(`aquifera_rand_${this.addr.toHash()}`)
-        this.is_empty = this.rand.double() < 0
-        if(!this.is_empty) {
-            this.pos = new Vector(this.coord.x + this.size.x/2, 14 + Math.round(Math.abs(this.rand.double()) * 36), this.coord.z + this.size.z/2),
-            this.rad = 28 + Math.abs(this.rand.double() * 12)
-            this.block_id = this.rand.double() > .5 ? BLOCK.STILL_LAVA.id : BLOCK.STILL_WATER.id
-        }
-
-    }
-
-}
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -270,6 +253,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         chunk.timers.generate_noise3d = performance.now() - chunk.timers.generate_noise3d;
 
         const aquifera = new Aquifera(chunk.coord)
+        const aquifera_params = new AquiferaParams()
 
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -277,15 +261,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
 
-                // ce
-                let has_aquifera = !aquifera.is_empty;
-                if(has_aquifera) {
-                    const dfx = xyz.x - aquifera.pos.x
-                    const dfz = xyz.z - aquifera.pos.z
-                    has_aquifera = dfx > -aquifera.rad * 2.3 && dfx < aquifera.rad * 2.3 && dfz > -aquifera.rad * 2.3 && dfz < aquifera.rad * 2.3
-                }
-
-                // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
+                // Aquifera column
+                const has_aquifera_column = aquifera.hasColumn(xyz);
 
                 /**
                  * @type {TerrainMapCell}
@@ -312,20 +289,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     this.maps.calcDensity(xyz, cell, density_params, map);
                     let {d1, d2, d3, d4, density, dcaves} = density_params;
 
-                    // 
+                    //
                     let in_aquifera = false
-                    if(has_aquifera) {
-                        const dfy = xyz.y - aquifera.pos.y
-                        if(dfy > -aquifera.rad && dfy < aquifera.rad && dfy < Math.abs(d4) * 3) {
-                            const d5 = this.n3d(xyz.x / 15, xyz.y / 15, xyz.z / 15)
-                            const ard = (aquifera.rad + d5 * 5)
-                            const aquifera_dist = aquifera.pos.distance(xyz) / ard
-                            if(aquifera_dist <= 1.75) {
-                                if(aquifera_dist > .7) {
-                                    density = DENSITY_AIR_THRESHOLD + .1
-                                } else {
-                                    in_aquifera = true
-                                }
+                    if(has_aquifera_column) {
+                        if(aquifera.calcInside(xyz, this.n3d, density_params, aquifera_params)) {
+                            if(aquifera_params.in_wall) {
+                                density = aquifera_params.density
+                            } else {
+                                in_aquifera = true
                             }
                         }
                     }
@@ -420,9 +391,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             } else {
 
                                 // рандомный блок лавы
-                                if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
-                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
-                                }
+                                //if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
+                                //    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
+                                //}
 
                             }
                         }
