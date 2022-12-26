@@ -648,7 +648,7 @@ export class Player {
             //
             const pc               = this.getPlayerControl();
             this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
-            const applyControl = !this.state.sitting && !this.state.lies;
+            const applyControl = !this.state.sitting && !this.state.lies && this.controls.enabled;
             pc.controls.back       = applyControl && this.controls.back;
             pc.controls.forward    = applyControl && this.controls.forward;
             pc.controls.right      = applyControl && this.controls.right;

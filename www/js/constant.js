@@ -1,5 +1,7 @@
 export const GAME_ONE_SECOND                = 72;
 export const GAME_DAY_SECONDS               = 24000;
+// If more time than this has passed since the last update, player.update() is skipped.
+export const MAX_FPS_DELTA_PROCESSED        = 2000;
 export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 164.1;
@@ -29,6 +31,14 @@ export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = false;
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
+// It's added to pickatDistance on the client.
+// If a player is farther away, the chest window closes.
+export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
+// It's added to the value above on the server.
+// If a player is farther away, the chest interaction is not accepted.
+// A client is expected to close the window before that.
+// It's only against cheaters who try to interact over huge distance.
+export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
