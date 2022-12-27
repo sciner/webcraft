@@ -1504,6 +1504,10 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.reset_mouse_actions = true;
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
+        const server_player = world.players.get(player.session.user_id);
+        if (server_player.damage) {
+            server_player.setFoodLevel(world_material.food.amount, world_material.food.saturation)
+        }
     }
     return true;
 }
