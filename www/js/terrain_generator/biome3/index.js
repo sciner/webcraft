@@ -15,6 +15,7 @@ import { TerrainMap2 } from "./terrain/map.js";
 import { WorldClientOreGenerator } from "./client_ore_generator.js";
 import BottomCavesGenerator from "../bottom_caves/index.js";
 import { Biome } from "./biomes.js";
+import { AQUIFERA_UP_PADDING } from "./aquifera.js";
 // import BottomCavesGenerator from "../bottom_caves/index.js";
 
 // Randoms
@@ -162,15 +163,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
                 const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
 
-                /*
-                if(!tree.type.transparent_trunk) {
-                    const yu = y - 1;
-                    if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && (yu >= 0) && (yu < chunk.size.y)) {
-                        chunk.setBlockIndirect(x, yu, z, dirt_block_id, null, null);
+                // Replace grass_block with dirt under trees
+                if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
+                    const yu = y - 1
+                    if(yu >= 0 && yu < chunk.size.y) {
+                        const cell = m.getCell(tree.pos.x, tree.pos.z)
+                        if(!cell.is_sand && !tree.type.transparent_trunk) {
+                            chunk.setBlockIndirect(x, yu, z, BLOCK.DIRT.id)
+                        }
                     }
                 }
-                */
 
+                // Draw tree blocks into chunk
                 this.plantTree(this.world, tree, chunk, x, y, z, true);
 
             }
@@ -198,13 +202,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
      * @returns 
      */
     calcColumnNoiseSize(chunk) {
-        let maxY = WATER_LEVEL;
+        let maxY = WATER_LEVEL
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 const cell = chunk.map.cells[z * CHUNK_SIZE_X + x];
                 maxY = Math.max(maxY, this.maps.getMaxY(cell));
             }
         }
+        if(chunk.map.aquifera) {
+            maxY = Math.max(maxY, chunk.map.aquifera.pos.y + AQUIFERA_UP_PADDING)
+        }
+
         maxY = Math.ceil(maxY + 1e-3);
         const resp = chunk.size.clone();
         resp.y = Math.min(resp.y, Math.max(1, maxY - chunk.coord.y));

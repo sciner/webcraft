@@ -125,6 +125,17 @@ export class Biomes {
                 ]
             };
         }
+        //
+        if(trees?.list) {
+            for(let tree of trees.list) {
+                if(tree.trunk) {
+                    const trunk_block = BLOCK.fromId(tree.trunk)
+                    if(!trunk_block) throw 'invalid_trunk_block'
+                    tree.transparent_trunk = trunk_block.transparent
+                }
+            }
+        }
+        //
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR;
         water_color = water_color ?? DEFAULT_WATER_COLOR;
         const no_smooth_heightmap = true;

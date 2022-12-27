@@ -3,6 +3,8 @@ import { alea } from "../default.js";
 import { DENSITY_AIR_THRESHOLD } from "./terrain/manager.js";
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 
+export const AQUIFERA_UP_PADDING = 10
+
 export class AquiferaParams {
 
     constructor() {
@@ -83,7 +85,7 @@ export class Aquifera {
         //
         const dify = xyz.y - this.pos.y
         // const noise_add_y = Math.abs(d5) * 3
-        if(dify > -this.rad && dify < this.rad /*&& dify < noise_add_y */) {
+        if(dify > -this.rad && dify < AQUIFERA_UP_PADDING /*&& dify < noise_add_y */) {
             const d5 = dify < 5 ? this.n3d(xyz.x / 16, xyz.y / 16, xyz.z / 16) : 0
             const abs_rad = (this.rad + d5 * 5)
             const aquifera_dist = this.pos.distance(xyz) / abs_rad

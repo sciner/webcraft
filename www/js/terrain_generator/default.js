@@ -151,7 +151,6 @@ export class Default_Terrain_Generator {
             });
         } else if(first_time_generation) {
             // if first time calling plant for this tree
-            this.setTreeBlock(tree, chunk, x, y - 1, z, {id: 18}, true)
             style_func(world, tree, chunk, x, y, z, this.setTreeBlock.bind(this));
         }
 
