@@ -1,7 +1,7 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, Vector, chunkAddrToCoord } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -612,13 +612,14 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
 
-        // invalid state, chunk always should be presented
-        if (!newChunk) {
-            return;
+        if (newChunk) {
+            this.currentChunk = newChunk;
+            this.drawPos = newChunk.coord;
+        } else {
+            this.tmpDrawPos = this.tmpDrawPos ?? new Vector();
+            this.drawPos = this.tmpDrawPos;
+            chunkAddrToCoord(this.chunk_addr, this.drawPos);
         }
-
-        this.currentChunk = newChunk;
-        this.drawPos = newChunk.coord;
 
         let yaw = this.yaw;
         if(!('draw_yaw' in this)) {
