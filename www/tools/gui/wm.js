@@ -38,6 +38,7 @@ export class Window {
         this.onShow         = function() {};
         this.onMouseEnter   = function() {};
         this.create_time    = performance.now();
+        this.canBeOpenedWith = []; // allows this window to be opened even if some other windows are opened
         this.onMouseLeave   = () => {
             for(let w of this.list.values()) {
                 if(w.hover) {
@@ -384,6 +385,13 @@ export class Window {
         }
         return list;
     }
+    *visibleWindows() {
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                yield w;
+            }
+        }
+    }
     redraw() {
         if(!this.ctx) {
             return;
@@ -429,6 +437,11 @@ export class Window {
         icon.src = url;
     }
     show(args) {
+        for(let w of Qubatch.hud.wm.visibleWindows()) {
+            if (!this.canBeOpenedWith.includes(w.id) && !w.canBeOpenedWith.includes(this.id)) {
+                return;
+            }
+        }
         this.visible = true;
         this.resetHover();
         this.onShow(args);
@@ -1156,9 +1169,8 @@ export class WindowManager extends Window {
 
     // calls Window.onUpdate() for each visible window
     updateVisibleWindows() {
-        const vw = this.getVisibleWindows();
-        for(var i = 0; i < vw.length; i++) {
-            vw[i].onUpdate();
+        for(let w of this.visibleWindows()) {
+            w.onUpdate();
         }
     }
 }
