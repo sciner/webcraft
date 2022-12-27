@@ -48,13 +48,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.n3d = createNoise3D(new alea(seed));
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
-        // this._createBlockAABB = new AABB();
-        // this._createBlockAABB_second = new AABB();
-        // this.temp_set_block = null;
-        // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
         // this.flying_islands = new FlyIslands(world, seed, world_id, {});
+
     }
 
     async init() {
@@ -245,6 +242,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
+        if(chunk.addr.y < 0 || chunk.addr.y > 5) {
+            for(let x = 0; x < chunk.size.x; x++) {
+                for(let z = 0; z < chunk.size.z; z++) {
+                    for(let y = 0; y < chunk.size.y; y++) {
+                        chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id)
+                    }
+                }
+            }
+            return
+        }
+
         // generate densisiy values for column
         chunk.timers.generate_noise3d = performance.now();
         const sz = this.calcColumnNoiseSize(chunk)
@@ -257,8 +265,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 // абсолютные координаты в мире
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
-
-                // const river_tunnel = noise2d(xyz.x / 256, xyz.z / 256) / 2 + .5;
 
                 /**
                  * @type {TerrainMapCell}
@@ -283,7 +289,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     this.maps.calcDensity(xyz, cell, density_params, map);
-                    let {d1, d2, d3, d4, density, dcaves} = density_params;
+                    let {d1, d2, d3, d4, density, dcaves, in_aquifera, local_water_line} = density_params;
 
                     // Блоки камня
                     if(density > DENSITY_AIR_THRESHOLD) {
@@ -313,8 +319,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // если это самый первый слой поверхности
                         if(not_air_count == 0) {
 
+                            // нужно обязательно проверить ватерлинию над текущим блоком
+                            // (чтобы не сажать траву в аквиферах)
+                            xyz.y++
+                            this.maps.calcDensity(xyz, cell, over_density_params, map);
+                            xyz.y--
+
                             // если это над водой
-                            if(xyz.y > GENERATOR_OPTIONS.WATER_LINE) {
+                            if(xyz.y > over_density_params.local_water_line) {
+
+                                // random joke sign
+                                if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
+                                    chunk.setBlockIndirect(x, y + 1, z, BLOCK.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'       Hello,\r\n      World!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
+                                }
 
                                 // random joke sign
                                 if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
@@ -346,7 +363,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 } else {
 
                                     // шапка слоя земли (если есть)
-                                    if(y < chunk.size.y && dirt_layer.cap_block_id) {
+                                    if(xyz.y > WATER_LEVEL && y < chunk.size.y && dirt_layer.cap_block_id) {
                                         chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id);
                                     }
 
@@ -356,7 +373,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];
                                             chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
-                                            // вообще не помню зачем это, но вроде нужная штука
+                                            // замена блока травы на землю, чтобы потом это не делал тикер
                                             //if(block.not_transparent) {
                                             //    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
                                             //}
@@ -375,7 +392,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             } else {
 
                                 // рандомный блок лавы
-                                //if((xyz.y < WATER_LEVEL - 5) && (rand_lava.double() < .0015)) {
+                                //if((xyz.y < local_water_line - 5) && (rand_lava.double() < .0015)) {
                                 //    chunk.setBlockIndirect(x, y + 1, z, BLOCK.STILL_LAVA.id);
                                 //}
 
@@ -399,22 +416,26 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         not_air_count = 0;
 
                         // чтобы в пещерах не было воды
-                        if(dcaves == 0) {
+                        if(dcaves == 0 || in_aquifera) {
+
+                            const local_fluid_block_id = in_aquifera ? map.aquifera.block_id : BLOCK.STILL_WATER.id
 
                             // если это уровень воды
-                            if(xyz.y <= GENERATOR_OPTIONS.WATER_LINE) {
-                                let block_id = BLOCK.STILL_WATER.id;
+                            if(xyz.y <= local_water_line) {
+                                let block_id = local_fluid_block_id;
                                 // поверхность воды
-                                if(xyz.y == GENERATOR_OPTIONS.WATER_LINE) {
-                                    // если холодно, то рисуем рандомные льдины
-                                    const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
-                                    if(water_cap_ice > .12) {
-                                        block_id = BLOCK.ICE.id;
-                                        // в еще более рандомных случаях на льдине рисует пику
-                                        if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
-                                            const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
-                                            for(let ph = 0; ph < peekh; ph++) {
-                                                chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                if(xyz.y == local_water_line) {
+                                    if(local_fluid_block_id == BLOCK.STILL_WATER.id) {
+                                        // если холодно, то рисуем рандомные льдины
+                                        const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+                                        if(water_cap_ice > .12) {
+                                            block_id = BLOCK.ICE.id;
+                                            // в еще более рандомных случаях на льдине рисует пику
+                                            if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                                                const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
+                                                for(let ph = 0; ph < peekh; ph++) {
+                                                    chunk.setBlockIndirect(x, y + ph, z, block_id);
+                                                }
                                             }
                                         }
                                     }
@@ -422,7 +443,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 chunk.setBlockIndirect(x, y, z, block_id);
                             }
 
-                            if(xyz.y == GENERATOR_OPTIONS.WATER_LINE + 1 && cell.biome.title == 'Болото') {
+                            if(xyz.y == local_water_line + 1 && cell.biome.title == 'Болото') {
                                 if(rnd.double() < .07) {
                                     chunk.setBlockIndirect(x, y, z, BLOCK.LILY_PAD.id);
                                 }
@@ -434,14 +455,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                             // потолок и часть стен
                             if(is_ceil) {
+
                                 // если не песчаный
                                 if(!cell.biome.is_sand) {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
-                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id);
+                                            chunk.setBlockIndirect(x, y, z, BLOCK.MOSS_BLOCK.id)
+                                            continue
                                         }
                                     }
                                 }
+
+                                // рандомный светящийся лишайник на потолке
+                                if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
+                                    chunk.setBlockIndirect(x, y, z, BLOCK.GLOW_LICHEN.id, null, {down: true, rotate: false});
+                                }
+
                             }
 
                         }

@@ -188,7 +188,7 @@ export class Biomes {
             ]
         }, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
         this.addBiome(158, 'Заснеженная гористая тайга', -0.8, 0.4,   snow_dirt_layers, null, null, snow_grass, new IndexedColor(232, 510, 0), new IndexedColor(236, 249, 0), TAIGA_BUILDINGS);
-        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
+        this.addBiome(26, 'Заснеженный пляж', -0.05, 0.3,            [{blocks: [BLOCK.SANDSTONE.id, BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}, {blocks: [BLOCK.STONE.id], cap_block_id: BLOCK.SNOW.id}], null, null, snow_grass, undefined, new IndexedColor(170, 225, 0)); // SNOWY_BEACH
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
         // this.addBiome('Глубокий замерзший океан', 0.8, -0.1);
@@ -326,7 +326,7 @@ export class Biomes {
         this.addBiome(15, 'Грибной берег', 0.9, 1);
         this.addBiome(2, 'Пустыня', 2, 0,
             [
-                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id]},
+                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.STONE.id]},
                 {blocks: [BLOCK.STONE.id]}
             ],
             {

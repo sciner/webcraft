@@ -716,7 +716,7 @@ export class ServerChunk {
     onNeighbourChanged(tblock, neighbour, previous_neighbour) {
 
         const world = this.world;
-        
+
         //
         function createDrop(tblock, generate_destroy = false) {
             const pos = tblock.posworld;

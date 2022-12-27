@@ -7280,6 +7280,8 @@
             "transparent": true,
             "style": "cover",
             "can_rotate": true,
+            "planting": false,
+            "inventory_style": "extruder",
             "material": {
                 "id": "plant"
             },
