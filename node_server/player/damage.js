@@ -83,10 +83,11 @@ export class ServerPlayerDamage {
         if (hunger_lvl > 0) {
             this.addExhaustion(0.025 * hunger_lvl);
         }
-        
-        // урон он воды и удушения эффект подводное дыхание
+        // урон он воды и удушения эффект подводное дыханиеBLOCK.BUBBLE_COLUMN
         const is_asphyxiation = player.game_mode.current.asphyxiation;
-        if ((head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || (head.id > 0 && !head.has_oxygen) && is_asphyxiation) {
+        const is_bubble = head.id == BLOCK.BUBBLE_COLUMN.id;
+        const is_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        if ( is_water || (head.id > 0 && !head.has_oxygen) && !is_bubble && is_asphyxiation) {
             this.oxygen_got_timer = 0;
             this.oxygen_lost_timer++;
             if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
