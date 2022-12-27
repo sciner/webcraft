@@ -251,7 +251,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
-        if(chunk.addr.y < 0 || chunk.addr.y > 5) {
+        if(chunk.addr.y > 5) return
+
+        if(chunk.addr.y < 0) {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     for(let y = 0; y < chunk.size.y; y++) {
