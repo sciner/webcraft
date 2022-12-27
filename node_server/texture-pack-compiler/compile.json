@@ -469,6 +469,7 @@
             "id": 8,
             "name": "COBBLESTONE",
             "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "STONE", "count": 1},
             "material": {
                 "id": "cobblestone"
             },
@@ -1142,6 +1143,7 @@
             "name": "STONE",
             "sound": "madcraft:block.stone",
             "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},
+            "coocked_item": {"name": "SMOOTH_STONE", "count": 1},
             "material": {
                 "id": "stone"
             },
@@ -1170,6 +1172,7 @@
             "name": "SAND",
             "gravity": true,
             "sound": "madcraft:block.sand",
+            "coocked_item": {"name": "GLASS", "count": 1},
             "material": {
                 "id": "sand"
             },
