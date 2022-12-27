@@ -308,9 +308,9 @@ export class MobAnimation {
     }) {
         const x             = index % 2;
         const y             = index / 2 | 0;
-        const sign          = isArm ? -1 : x ^ y ? 1 : -1;
+        const sign          = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? 1 : -1;
         const ageInTicks    = performance.now() / 50;
-        const isLeftArm     = isArm && index % 2 == 0;
+        const isLeftArm     = isArm && index % 2 != 0;
         const isLeftLeg     = !isArm && index % 2 == 0;
         const itemInArm     = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
         const isZombie      = animable.type == 'zombie';
@@ -323,7 +323,7 @@ export class MobAnimation {
         }
 
         if(itemInArm) {
-            //aniangle = aniangle * .4 + Math.PI / 8;
+            aniangle = aniangle * .4 + Math.PI / 8;
         }
 
         if(isSitting) {
@@ -438,7 +438,6 @@ export class MobAnimation {
     }
 
     arm(opts) {
-        //opts.index += 3;
         opts.isArm = 1;
         return this.leg(opts);
     }
@@ -707,8 +706,6 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-        
-        
         
         this.setArmor();
         
