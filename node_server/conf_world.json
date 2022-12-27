@@ -127,7 +127,7 @@
             "items": [
                 {"name": "GOLD_INGOT",   "count": [0, 0, 1, 1, 2, 2, 3, 3, 4]},
                 {"name": "DIAMOND_SWORD","count": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
-                {"name": "LAVA_BUCKET",  "count": [0, 0, 0, 1, 2]},
+                {"name": "LAVA_BUCKET",  "count": [0, 0, 0, 1, 1]},
                 {"name": "SOUL_SAND",    "count": [0, 0, 0, 1, 2]},
                 {"name": "TNT",          "count": [0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10]},
                 {"name": "JUKEBOX",      "count": [0, 0, 0, 1]},

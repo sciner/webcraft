@@ -66,7 +66,7 @@ export class Treasure_Sets {
      */
     generateSlots(world, xyz, set_name, count) {
 
-        const rnd = new alea(world.seed + xyz.toHash());
+        const rnd = new alea(world.seed + new Vector(xyz).toHash());
 
         const kit = this.treasure_sets.get(set_name)
         if(!kit) throw `error_invalid_treasure_set_name|${set_name}`
