@@ -8891,6 +8891,102 @@
                 "durability": 592,
                 "damage": 6
             }
+        },
+        {
+            "id": 293,
+            "max_in_stack": 1,
+            "name": "LEATHER_BOOTS",
+            "style": "extruder",
+            "texture": "item/leather_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 65,
+                "damage": 1
+            }
+        },
+        {
+            "id": 294,
+            "max_in_stack": 1,
+            "name": "CHAINMAIL_BOOTS",
+            "style": "extruder",
+            "texture": "item/chainmail_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "leather"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 195,
+                "damage": 1
+            }
+        },
+        {
+            "id": 295,
+            "max_in_stack": 1,
+            "name": "IRON_BOOTS",
+            "style": "extruder",
+            "texture": "item/iron_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "iron"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 195,
+                "damage": 2
+            }
+        },
+        {
+            "id": 296,
+            "max_in_stack": 1,
+            "name": "DIAMOND_BOOTS",
+            "style": "extruder",
+            "texture": "item/diamond_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "diamond"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 429,
+                "damage": 3
+            }
+        },
+        {
+            "id": 297,
+            "max_in_stack": 1,
+            "name": "GOLDEN_BOOTS",
+            "style": "extruder",
+            "texture": "item/golden_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "gold"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 91,
+                "damage": 1
+            }
+        },
+        {
+            "id": 298,
+            "max_in_stack": 1,
+            "name": "NETHERITE_BOOTS",
+            "style": "extruder",
+            "texture": "item/netherite_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "netherite"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 481,
+                "damage": 3
+            }
         }
         
     ]
