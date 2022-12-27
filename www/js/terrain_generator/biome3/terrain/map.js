@@ -7,6 +7,11 @@ import { BIOME3_CAVE_LAYERS, CaveGenerator } from "../cave_generator.js";
 
 export class TerrainMap2 extends TerrainMap {
 
+    /**
+     * @type { import("../aquifera.js").Aquifera }
+     */
+    // aquifera
+        
     constructor(chunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);

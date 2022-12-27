@@ -326,7 +326,7 @@ export class Biomes {
         this.addBiome(15, 'Грибной берег', 0.9, 1);
         this.addBiome(2, 'Пустыня', 2, 0,
             [
-                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id]},
+                {blocks: [BLOCK.SAND.id, BLOCK.SANDSTONE.id, BLOCK.STONE.id]},
                 {blocks: [BLOCK.STONE.id]}
             ],
             {

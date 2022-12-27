@@ -48,13 +48,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.n3d = createNoise3D(new alea(seed));
 
         this.clusterManager = new ClusterManager(world.chunkManager, seed, 2);
-        // this._createBlockAABB = new AABB();
-        // this._createBlockAABB_second = new AABB();
-        // this.temp_set_block = null;
-        // this.OCEAN_BIOMES = ['OCEAN', 'BEACH', 'RIVER'];
         this.bottomCavesGenerator = new BottomCavesGenerator(seed, world_id, {});
         this.dungeon = new DungeonGenerator(seed);
         // this.flying_islands = new FlyIslands(world, seed, world_id, {});
+
     }
 
     async init() {
@@ -245,6 +242,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
+        if(chunk.addr.y < 0 || chunk.addr.y > 5) {
+            for(let x = 0; x < chunk.size.x; x++) {
+                for(let z = 0; z < chunk.size.z; z++) {
+                    for(let y = 0; y < chunk.size.y; y++) {
+                        chunk.setBlockIndirect(x, y, z, BLOCK.STONE.id)
+                    }
+                }
+            }
+            return
+        }
+
         // generate densisiy values for column
         chunk.timers.generate_noise3d = performance.now();
         const sz = this.calcColumnNoiseSize(chunk)
@@ -365,7 +373,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];
                                             chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
-                                            // вообще не помню зачем это, но вроде нужная штука
+                                            // замена блока травы на землю, чтобы потом это не делал тикер
                                             //if(block.not_transparent) {
                                             //    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
                                             //}

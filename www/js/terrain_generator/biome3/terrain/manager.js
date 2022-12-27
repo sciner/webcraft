@@ -326,11 +326,12 @@ export class TerrainMapManager2 {
      * 
      * @param {Vector} xyz
      * @param {*} cell
-     * @param {?DensityParams} density_params
+     * @param {?DensityParams} out_density_params
+     * @param {TerrainMap2} map
      * 
      * @returns {DensityParams}
      */
-    calcDensity(xyz, cell, density_params = null, map) {
+    calcDensity(xyz, cell, out_density_params = null, map) {
 
         const {relief, mid_level, radius, dist, dist_percent, op, density_coeff} = cell.preset;
 
@@ -366,6 +367,9 @@ export class TerrainMapManager2 {
         }
         */
 
+        // Aquifera
+        map.aquifera.calcInside(xyz, _aquifera_params)
+
         // waterfront/берег
         const under_waterline = xyz.y < WATER_LEVEL;
         const under_waterline_density = under_waterline ? 1.025 : 1; // немного пологая часть суши в части находящейся под водой в непосредственной близости к берегу
@@ -373,18 +377,32 @@ export class TerrainMapManager2 {
         const under_earth_coeff = under_earth_height > 0 ? Math.min(under_earth_height/64, 1) : 0
         const h = (1 - (xyz.y - mid_level * 2 - WATER_LEVEL) / relief) * under_waterline_density; // уменьшение либо увеличение плотности в зависимости от высоты над/под уровнем моря (чтобы выше моря суша стремилась к воздуху, а ниже уровня моря к камню)
 
-        // Если это блок воздуха
-        if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
-            if(density_params) {
-                return density_params.reset()
+        //
+        if(!_aquifera_params.inside) {
+            // Если это блок воздуха
+            if(h + under_earth_coeff < DENSITY_AIR_THRESHOLD) {
+                if(out_density_params) {
+                    return out_density_params.reset()
+                }
+                return ZeroDensity;
             }
-            return ZeroDensity;
         }
 
-        const res = density_params || new DensityParams(0, 0, 0, 0, 0, 0);
-        res.dcaves = 0;
-
+        //
+        const res = out_density_params || new DensityParams(0, 0, 0, 0, 0, 0);
+        res.reset()
         this.noise3d.fetchGlobal4(xyz, res);
+
+        // Check if inside aquifera
+        if(_aquifera_params.inside) {
+            res.in_aquifera = true
+            res.local_water_line = map.aquifera.pos.y
+            if(_aquifera_params.in_wall) {
+                res.density = _aquifera_params.density
+                return res
+            }
+        }
+
         const {d1, d2, d3, d4} = res;
 
         let density = (
@@ -410,20 +428,6 @@ export class TerrainMapManager2 {
                 density = caveDensity;
             }
         }
-
-        // Aquifera
-        const has_aquifera_column = map.aquifera.hasColumn(xyz);
-        res.in_aquifera = false
-        if(has_aquifera_column) {
-            if(map.aquifera.calcInside(xyz, this.n3d, res, _aquifera_params)) {
-                if(_aquifera_params.in_wall) {
-                    density = _aquifera_params.density
-                } else {
-                    res.in_aquifera = true
-                }
-            }
-        }
-        res.local_water_line = res.in_aquifera ? map.aquifera.pos.y : WATER_LEVEL
 
         // Total density
         res.density = density;
@@ -467,7 +471,8 @@ export class TerrainMapManager2 {
         } else {
             // 2. select block in dirt layer
             block_id = dirt_layer.blocks[0];
-            if(xyz.y < density_params.local_water_line && dirt_layer.blocks.length > 1) {
+            const local_water_line = WATER_LEVEL // density_params.local_water_line
+            if(xyz.y < local_water_line && dirt_layer.blocks.length > 1) {
                 block_id = dirt_layer.blocks[dirt_layer.blocks.length - 1];
             }
             const dirt_layer_blocks_count = dirt_layer.blocks.length;
