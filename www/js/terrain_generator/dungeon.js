@@ -128,7 +128,6 @@ export class DungeonGenerator {
             skin: 'base',
             max_ticks: 800
         });
-        chunk.addTickingBlock(chunk.coord.offset(x + 5, y + 1, z + 5));
         
         if (!HIDE_DUNGEON) {
             this.genBox(chunk, alea, x + 3, y + 9, z + 3, 3, 1, 3, block_wall_1);
@@ -214,14 +213,14 @@ export class DungeonGenerator {
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);
         this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
         
-        //Спавнер
+        // Спавнер
         const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
         this.setBlock(chunk, x + 9, y + 1, z + 3, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',
             max_ticks: 800
         });
-        chunk.addTickingBlock(chunk.coord.offset(x + 9, y + 1, z + 3));
+
     }
 
     checkPosition(chunk, x, y, z) {
@@ -363,11 +362,14 @@ export class DungeonGenerator {
     
     
     setBlock(chunk, x, y, z, block_type, rotate, extra_data) {
-        if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) { 
+        if (x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             const { tblocks } = chunk;
             tblocks.setBlockId(x, y, z, block_type.id);
             if(rotate || extra_data) {
                 tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data);
+            }
+            if(BLOCK.TICKING_BLOCKS.has(block_type.id)) {
+                chunk.addTickingBlock(chunk.coord.offset(x, y, z))
             }
         }
     }

@@ -193,6 +193,7 @@ export class BLOCK {
     static MASK_BIOME_BLOCKS        = [];
     static MASK_COLOR_BLOCKS        = [];
     static SOLID_BLOCK_ID           = [];
+    static TICKING_BLOCKS           = new Map();
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -719,6 +720,9 @@ export class BLOCK {
         }
         if(block.is_solid) {
             BLOCK.SOLID_BLOCK_ID.push(block.id)
+        }
+        if(block.ticking) {
+            BLOCK.TICKING_BLOCKS.set(block.id, block);
         }
         // Set default properties
         let default_properties = {

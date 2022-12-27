@@ -99,6 +99,9 @@ export class BuilgingTemplate {
         for(let block of this.blocks) {
             if(block.block_id > 0) {
                 block.mat = bm.fromId(block.block_id)
+                if(block.mat.is_chest) {
+                    block.extra_data = {slots: {}}
+                }
                 all_blocks.set(block.move, block)
             }
         }

@@ -61,6 +61,9 @@ export class ClusterBase {
             return false;
         }
         chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid);
+        if(BLOCK.TICKING_BLOCKS.has(block_id)) {
+            chunk.addTickingBlock(chunk.coord.offset(x, y, z));
+        }
         return true;
     }
 
