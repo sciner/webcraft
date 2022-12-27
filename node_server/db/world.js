@@ -192,14 +192,35 @@ export class DBWorld {
         // Find existing user record
         const row = await this.conn.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode, stats FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
-            const inventory = JSON.parse(row.inventory);
-            if(inventory.items.length < INVENTORY_SLOT_COUNT) {
-                inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));
+
+            const fixInventory = (inventory) => {
+                if(inventory.items.length < INVENTORY_SLOT_COUNT) {
+                    inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));
+                }
+                // fix list of items
+                for(let i in inventory.items) {
+                    const item = inventory.items[i]
+                    if(!item) continue
+                    const mat = world.block_manager.fromId(item.id)
+                    if(mat) {
+                        // fix items count
+                        if(item.count > mat.max_in_stack) {
+                            item.count = mat.max_in_stack
+                        }
+                    } else {
+                        // remove nonexistent items
+                        inventory.items[i] = null
+                    }
+                }
+                // Added new property
+                if(inventory.current.index2 === undefined) {
+                    inventory.current.index2 = -1;
+                }
+                return inventory
             }
-            // Added new property
-            if(inventory.current.index2 === undefined) {
-                inventory.current.index2 = -1;
-            }
+
+            const inventory = fixInventory(JSON.parse(row.inventory))
+
             const state = {
                 pos:                new Vector(JSON.parse(row.pos)),
                 pos_spawn:          new Vector(JSON.parse(row.pos_spawn)),

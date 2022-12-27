@@ -239,7 +239,7 @@ async function createPainting(e, world, pos) {
 
 //
 function makeDropItem(block, item) {
-    if(block.hasTag('bee_nest')) {
+    if(block.hasTag('drop_as_entity')) {
         item.extra_data = JSON.parse(JSON.stringify(block.extra_data));
         item.entity_id = block.entity_id || randomUUID();
         item.count = 1;

@@ -5014,6 +5014,7 @@
             "transparent": true,
             "can_rotate": true,
             "diagonal": true,
+            "max_in_stack": 1,
             "inventory": {
                 "style": "extruder",
                 "texture": "item/cake.png"
@@ -5026,6 +5027,7 @@
             "tags": [
                 "can_put_into_pot",
                 "cake",
+                "drop_as_entity",
                 "no_drop_ao"
             ],
             "texture": {
@@ -5643,6 +5645,7 @@
                 "type": "bee_nest"
             },
             "tags": [
+                "drop_as_entity",
                 "bee_nest"
             ],
             "extra_data": {
