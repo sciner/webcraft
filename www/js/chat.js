@@ -104,9 +104,11 @@ export class Chat extends TextBox {
                 if(cmd.data.text == 'pong') {
                     const elpapsed = Math.round((performance.now() - that.send_ping) * 1000) / 1000;
                     cmd.data.text += ` ${elpapsed} ms`;
+                } else {
+                    cmd.data.text = Lang[cmd.data.text];
                 }
             }
-            this.messages.add(cmd.data.username, Lang[cmd.data.text]);
+            this.messages.add(cmd.data.username, cmd.data.text);
         });
         // Restore sent history
         let hist = localStorage.getItem(`chat_history_${that.player.world.info.guid}`);
