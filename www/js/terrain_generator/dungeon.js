@@ -36,7 +36,7 @@ export class DungeonGenerator {
     genDungeonHole(chunk, alea, x, y, z) {
         const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
         const up = this.getBlock(chunk, x, y, z);
-        console.debug('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
+        // console.debug('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         // стандартные блоки
         let block_wall_1 = BLOCK.STONE_BRICKS;
         let block_wall_2 = BLOCK.MOSSY_STONE_BRICKS;
