@@ -70,7 +70,10 @@ export function Physics(mcData, fake_world, options) {
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        swimDownSpeed: 0.5,
+        swimDownDrag: {
+            down: 0.05,
+            maxDown: -0.5
+        },
         stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
@@ -668,8 +671,9 @@ export function Physics(mcData, fake_world, options) {
                     vel.y = -physics.flyingYSpeed;
                 }
             } else if (entity.isInWater || entity.isInLava) {
-                if (!entity.control.jump) {
-                    vel.y = -physics.swimDownSpeed;
+                const sdd = physics.swimDownDrag;
+                if (!entity.control.jump && vel.y > sdd.maxDown) {
+                    vel.y = Math.max(vel.y - sdd.down, sdd.maxDown);
                 }
             } else {
                 strafe *= physics.sneakSpeed
