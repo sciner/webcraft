@@ -234,18 +234,18 @@ export class GameClass {
                     }
                     // [F5] (Camera mode)
                     case KEY.F5: {
-                        if(hud.frmMainMenu.visible) {
-                            return false;
-                        }
+                       // if(hud.frmMainMenu.visible) {
+                       //     return false;
+                       // }
                         if(e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
                                 Qubatch.render.nextCameraMode();
                             }
                         }
-                        if(e.e_orig) {
-                            e.e_orig.preventDefault();
-                            e.e_orig.stopPropagation();
-                        }
+                       // if(e.e_orig) {
+                       //     e.e_orig.preventDefault();
+                       //     e.e_orig.stopPropagation();
+                       // }
                     }
                     // [F6]
                     case KEY.F6: {
