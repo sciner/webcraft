@@ -2,7 +2,7 @@ import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import {TextBox} from "./ui/textbox.js";
 
-const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
+const MESSAGE_SHOW_TIME         = 7000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
 const SYSTEM_NAME               = '<MadCraft>';
 
@@ -55,8 +55,9 @@ export class Chat extends TextBox {
                 this.reset();
             },
             save() {
+                debugger
                 const saved_arr = Array.from(this.list.slice(-64));
-                localStorage.setItem('chat_history', JSON.stringify(saved_arr));
+                localStorage.setItem(`chat_history_${that.player.world.info.guid}`, JSON.stringify(saved_arr));
             },
             clear() {
                 this.list = [];
@@ -108,7 +109,7 @@ export class Chat extends TextBox {
             this.messages.add(cmd.data.username, Lang[cmd.data.text]);
         });
         // Restore sent history
-        let hist = localStorage.getItem('chat_history');
+        let hist = localStorage.getItem(`chat_history_${that.player.world.info.guid}`);
         if(hist) {
             hist = JSON.parse(hist);
             if(Array.isArray(hist)) {
