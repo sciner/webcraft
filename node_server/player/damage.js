@@ -85,7 +85,8 @@ export class ServerPlayerDamage {
         }
         
         // урон он воды и удушения эффект подводное дыхание
-        if ((head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || head.id > 0) {
+        const is_asphyxiation = player.game_mode.current.asphyxiation;
+        if ((head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || (head.id > 0 && !head.has_oxygen) && is_asphyxiation) {
             this.oxygen_got_timer = 0;
             this.oxygen_lost_timer++;
             if (this.oxygen_lost_timer >= OXYGEN_LOST_TICKS) {
