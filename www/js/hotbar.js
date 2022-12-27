@@ -307,6 +307,8 @@ export class Hotbar {
                     );
                 }
             }
+            // рисуем иконки армора
+            this.drawArmor(hud);
         } else {
             // bar
             hud.ctx.drawImage(
@@ -338,8 +340,7 @@ export class Hotbar {
         }
         
         this.drawEffects(hud);
-        // рисуем иконки армора
-        this.drawArmor(hud);
+        
     }
     
     drawArmor(hud) {
@@ -354,13 +355,15 @@ export class Hotbar {
         if (damage == 0) {
             return;
         }
+        const sx = hud.width / 2 - 295 * this.zoom;
+        const sy = hud.height - 150 * this.zoom;
         for (let i = 1; i < 11; i++) {
             if (i > (damage + 0.5)) {
-                hud.ctx.drawImage(this.icons, 240, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom- 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+                hud.ctx.drawImage(this.icons, 240, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
             } else if (i > damage) {
-                hud.ctx.drawImage(this.icons, 260, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom- 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+                hud.ctx.drawImage(this.icons, 260, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
             }else {
-                hud.ctx.drawImage(this.icons, 300, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom - 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+                hud.ctx.drawImage(this.icons, 300, 0, 20, 20, i * 24 * this.zoom + sx, sy, this.zoom * 24, this.zoom * 24);
             } 
         }
     }    

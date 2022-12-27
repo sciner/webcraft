@@ -83,7 +83,7 @@ export class TraversableRenderer {
             return true;
         }
         if (node?.armor && !node.material) {
-            return;
+            return true;
         }
         if (node.material && traversable.lightTex) {
             node.material.lightTex = traversable.lightTex;
@@ -923,7 +923,7 @@ export class MobModel extends NetworkPhysicObject {
     
     // установка армора
     setArmor() {
-        if (!this.sceneTree[1] && (this.armor || this.extra_data?.armor)) {
+        if (!this.sceneTree[1]) {
             return;
         }
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
@@ -935,7 +935,6 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.head);
                 this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
             } else {
-                console.log("off");
                 this.sceneTree[1].children[0].material = null; 
             }
             this.prev.head = armor.head;
