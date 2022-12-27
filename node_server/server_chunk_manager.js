@@ -156,7 +156,9 @@ export class ServerChunkManager {
             }
         }
         for(let chunk of this.chunks_with_delayed_calls) {
-            chunk.executeDelayedCalls();
+            if (chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                chunk.executeDelayedCalls();
+            }
         }
         // 4.
         if(this.unloaded_chunk_addrs.length > 0) {
