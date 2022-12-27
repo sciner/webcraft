@@ -46,7 +46,7 @@ export class Aquifera {
         this.is_empty = this.rand.double() > this.options.chance
         if(!this.is_empty) {
             this.n3d = createNoise3D(new alea(`aquifera_` + this.addr.toHash()));
-            const y = 50 // Math.floor(this.rand.double() * (this.options.y.max - this.options.y.min + 1) + this.options.y.min)
+            const y = Math.floor(this.rand.double() * (this.options.y.max - this.options.y.min + 1) + this.options.y.min)
             this.pos = new Vector(this.coord.x + this.size.x/2, y, this.coord.z + this.size.z/2),
             this.rad = Math.floor(this.rand.double() * (this.options.rad.max - this.options.rad.min + 1) + this.options.rad.min)
             this.block_id = this.rand.double() > .25 ? BLOCK.STILL_LAVA.id : BLOCK.STILL_WATER.id
@@ -82,8 +82,9 @@ export class Aquifera {
         //}
         //
         const dify = xyz.y - this.pos.y
-        const d5 = this.n3d(xyz.x / 16, xyz.y / 16, xyz.z / 16)
-        if(dify > -this.rad && dify < this.rad && dify < Math.abs(d5) * 3) {
+        // const noise_add_y = Math.abs(d5) * 3
+        if(dify > -this.rad && dify < this.rad /*&& dify < noise_add_y */) {
+            const d5 = dify < 5 ? this.n3d(xyz.x / 16, xyz.y / 16, xyz.z / 16) : 0
             const abs_rad = (this.rad + d5 * 5)
             const aquifera_dist = this.pos.distance(xyz) / abs_rad
             if(aquifera_dist <= 1.0) {
