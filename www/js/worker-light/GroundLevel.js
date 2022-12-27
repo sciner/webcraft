@@ -207,7 +207,7 @@ export class WorldGroundLevel {
         const playerPos = this.chunkManager.nextPotentialCenter;
         if (playerPos && this.minLightYDirty) {
             this.groundLevelSkipCounter = (this.groundLevelSkipCounter + 1) % GROUND_SKIP_CHUNKS;
-            if (world.isEmptyQueue || this.groundLevelSkipCounter === 0) {
+            if (this.world.isEmptyQueue || this.groundLevelSkipCounter === 0) {
                 this.estimate(playerPos);
                 this.groundLevelSkipCounter = 0;
             }
