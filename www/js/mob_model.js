@@ -312,18 +312,14 @@ export class MobAnimation {
         const ageInTicks    = performance.now() / 50;
         const isLeftArm     = isArm && index % 2 != 0;
         const isLeftLeg     = !isArm && index % 2 == 0;
-        const itemInArm     = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
+        const itemInArm     = isArm;
         const isZombie      = animable.type == 'zombie';
         const isHumanoid    = animable.type.indexOf('player:') >= 0;
         const rotate        = new Vector(0, 0, 0);
         const isSitting     = animable.sitting; // isHumanoid;
 
         if(isZombie && isArm) {
-            aniangle /= 16;
-        }
-
-        if(itemInArm) {
-            aniangle = aniangle * .4 + Math.PI / 8;
+           aniangle /= 16;
         }
 
         if(isSitting) {
@@ -535,7 +531,6 @@ export class MobModel extends NetworkPhysicObject {
 
         this.animationScript = new MobAnimation();
         
-
         this.armor = null;
         this.prev = {
             head: null, 
@@ -585,11 +580,10 @@ export class MobModel extends NetworkPhysicObject {
         if (this.initialised) {
             return;
         }
-
         return this.loadModel(render).then(()=>{
                 this.initialised = true;
                 this.postLoad(render, this.sceneTree);
-            });
+        });
     }
 
     computeLocalPosAndLight(render, delta) {
@@ -707,17 +701,6 @@ export class MobModel extends NetworkPhysicObject {
             return null;
         }
         
-        this.setArmor();
-        
-        /* смена скина для мобов
-        if (this.extra_data?.skin != this.old.skin) {
-            if (this.textures.has(this.extra_data.skin)) {
-                this.material = this.textures.get(this.extra_data.skin);
-            }
-            this.old.skin = this.extra_data.skin;
-        }
-*/
-
         // If mob die
         if(this.isAlive() === false) {
             // first enter to this code
@@ -779,7 +762,11 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.detonation_started_info = null;
         }
-
+        
+        this.setArmor();
+        
+        this.setSkin();
+        
         // Draw in fire
         if((this.extra_data?.time_fire ?? 0) > 0) {
             this.drawInFire(render, delta);
@@ -894,7 +881,7 @@ export class MobModel extends NetworkPhysicObject {
             scene[0].children[1].armor = true;
             scene[0].children[1].children[0].armor = true;
             scene[0].children[1].children[1].armor = true;
-            scene[0].children[1].children[3].armor = true;
+            scene[0].children[1].children[2].armor = true;
             scene[0].children[1].children[3].armor = true;
             this.sceneTree[1] = scene[0];
         }
@@ -909,13 +896,22 @@ export class MobModel extends NetworkPhysicObject {
         if (!tree) {
             return;
         }
-        console.log('postload');
         this.animator.prepare(this);
     }
 
     onUnload() {
         if(this.fire_mesh) {
             this.fire_mesh.destroy();
+        }
+    }
+    
+    setSkin() {
+        if (this.extra_data?.skin != this.prev.skin) {
+            if (this.textures.has(this.extra_data.skin)) {
+                console.log(this.extra_data.skin);
+                this.material = this.textures.get(this.extra_data.skin);
+            }
+            this.prev.skin = this.extra_data.skin;
         }
     }
     

@@ -19,7 +19,6 @@
         ],
         "parent": "waist"
       },
-
       {
         "name": "waist",
         "pivot": [ 0.0, 12.0, 0.0 ]
@@ -37,7 +36,6 @@
         ],
         "parent": "body"
       },
-
       {
         "name": "hat",
         "pivot": [ 0.0, 24.0, 0.0 ],
