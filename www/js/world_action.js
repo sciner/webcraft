@@ -2385,6 +2385,7 @@ async function setFurnitureUpholstery(e, world, pos, player, world_block, world_
                 action_id: ServerClient.BLOCK_ACTION_MODIFY
             }]);
             actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
+            actions.decrement = true;
             return true;
         }
     }
