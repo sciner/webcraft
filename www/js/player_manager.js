@@ -39,7 +39,6 @@ export class PlayerManager extends AbstractPlayerManager {
             skin:           data.skin,
             username:       data.username,
             type:           data.type || 'player',
-            armor:          data.armor
         });
 
         player.world = this.world;

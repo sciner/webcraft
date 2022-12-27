@@ -82,6 +82,9 @@ export class TraversableRenderer {
         if (!node.terrainGeometry) {
             return true;
         }
+        if (node?.armor && !node.material) {
+            return;
+        }
         if (node.material && traversable.lightTex) {
             node.material.lightTex = traversable.lightTex;
         }
@@ -157,6 +160,12 @@ export class MobAnimator extends Animator {
             let head;
             let wing;
             
+            head = tree.findNode('Head');
+            head && heads.push(head);
+            
+            head = tree.findNode('head');
+            head && heads.push(head);
+            
             for(let i = 0; i < 8; i ++) {
                 leg = tree.findNode('leg' + i);
                 leg && legs.push(leg);
@@ -179,12 +188,6 @@ export class MobAnimator extends Animator {
             
             arm = tree.findNode('LeftArm');
             arm && arms.push(arm);
-            
-            head = tree.findNode('Head');
-            head && heads.push(head);
-            
-            head = tree.findNode('head');
-            head && heads.push(head);
             
             parts['head'].push(...heads);
             parts['arm'].push(...arms);
@@ -305,7 +308,7 @@ export class MobAnimation {
     }) {
         const x             = index % 2;
         const y             = index / 2 | 0;
-        const sign          = x ^ y ? 1 : -1;
+        const sign          = isArm ? -1 : x ^ y ? 1 : -1;
         const ageInTicks    = performance.now() / 50;
         const isLeftArm     = isArm && index % 2 == 0;
         const isLeftLeg     = !isArm && index % 2 == 0;
@@ -320,7 +323,7 @@ export class MobAnimation {
         }
 
         if(itemInArm) {
-            aniangle = aniangle * .4 + Math.PI / 8;
+            //aniangle = aniangle * .4 + Math.PI / 8;
         }
 
         if(isSitting) {
@@ -435,7 +438,7 @@ export class MobAnimation {
     }
 
     arm(opts) {
-        opts.index += 1;
+        //opts.index += 3;
         opts.isArm = 1;
         return this.leg(opts);
     }
@@ -504,7 +507,6 @@ export class MobModel extends NetworkPhysicObject {
         this.type = props.type;
         this.skin = props.skin_id || props.skin;
 
-        console.log(props)
         /**
          * @type {SceneNode[]}
          */
@@ -536,11 +538,12 @@ export class MobModel extends NetworkPhysicObject {
         
 
         this.armor = null;
-        this.prev_armor = {
+        this.prev = {
             head: null, 
             body: null,
-            legs: null,
-            boots: null,
+            leg: null,
+            boot: null,
+            skin: null
         };
     }
 
@@ -584,9 +587,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        return this
-            .loadModel(render)
-            .then(()=>{
+        return this.loadModel(render).then(()=>{
                 this.initialised = true;
                 this.postLoad(render, this.sceneTree);
             });
@@ -707,6 +708,8 @@ export class MobModel extends NetworkPhysicObject {
             return null;
         }
         
+        
+        
         this.setArmor();
         
         /* смена скина для мобов
@@ -716,23 +719,7 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.old.skin = this.extra_data.skin;
         }
-        
-        if (this.armors && this.armors.head != this.old.head && this.sceneTree[1]) {
-            this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
-            this.sceneTree[1].children[1].visible = false;
-            this.sceneTree[1].children[0].visible = this.armors.head  ? true : false;
-            this.old.head = this.armors.head;
-        }
-        //console.log(this.armors)
-        
-        // шлем для армора
-        if (this.extra_data?.helm != this.old.helm) {
-            if (this.textures.has(this.extra_data.skin)) {
-                this.material = this.textures.get(this.extra_data.skin);
-            }
-            this.old.skin = this.extra_data.skin;
-        }*/
-        
+*/
 
         // If mob die
         if(this.isAlive() === false) {
@@ -835,26 +822,6 @@ export class MobModel extends NetworkPhysicObject {
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
-
-    /**
-     *
-     * @param {Renderer} render
-     * @param {ImageBitmap | Image} image
-     */
-    loadTextures(render, image) {
-        if (this.texture) {
-            return;
-        }
-
-        const texture = render.renderBackend.createTexture({
-            source: image,
-            minFilter: 'nearest',
-            magFilter: 'nearest',
-            shared: true
-        });
-
-        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(texture)
-    }
     
     /**
      * @param {Renderer} render
@@ -881,102 +848,59 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
         
-        if (this.type.startsWith('player')) {
-            this.loadPlayerModel(render);
-            return; 
+        if (this.type == 'player') {
+            if (!this.skin.file.startsWith(CLIENT_SKIN_ROOT)) {
+                this.skin.file = CLIENT_SKIN_ROOT + this.skin.file + '.png';
+            }
+            this.type = PLAYER_SKIN_TYPES[this.skin.type];
         }
         
+        // загружеам ресурсы 
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
             console.log("Can't locate model for:", this.type);
             return null;
         }
-        this.sceneTree = ModelBuilder.loadModel(asset);
-        for (const title in asset.skins) {
-            const image = await asset.getSkin(title);
-            const texture = this.getTexture(render, image);
-            this.textures.set(title, texture);
-        }
-        
-       // if (this.type == 'zombie' || this.type == 'skeleton') {
-        //    await this.loadArmor(render);
-        //}
-        
-        this.old.skin = this.skin || asset.baseSkin;
-        this.material = this.textures.get(this.old.skin);
-/*
-        const asset = await Resources.getModelAsset(this.type);
-        if (!asset) {
-            console.log("Can't locate model for:", this.type);
-            return null;
-        }
-
         this.sceneTree = ModelBuilder.loadModel(asset);
         if (!this.sceneTree) {
             return null;
         }
-        if (!OLD_SKIN) { 
+ 
+        if (this.type == 'player:steve') {
+            const image = await asset.getPlayerSkin(this.skin.file);
+            this.material = this.getTexture(render, image);
+        } else {
+            // получаем все скины моба
             for (const title in asset.skins) {
                 const image = await asset.getSkin(title);
                 const texture = this.getTexture(render, image);
                 this.textures.set(title, texture);
             }
-            if (this.type == 'zombie' || this.type == 'skeleton') {
-                const armor = await Resources.getModelAsset('armor');
-                for (const title in armor.skins) {
-                    const image = await armor.getSkin(title);
-                    const texture = this.getTexture(render, image);
-                    this.textures.set(title, texture);
-                }
-                // пока хардкор, но чисто для проверки производительности
-                const scene = ModelBuilder.loadModel(armor);
-                scene[0].children[1].material = this.textures.get('turtle_layer_1');
-                scene[0].children[0].material = this.textures.get('gold_layer_1');
-                scene[0].children[0].children[0].material = this.textures.get('iron_layer_1');
-                scene[0].children[0].children[1].material = this.textures.get('leather_layer_1');
-                scene[0].children[0].children[2].material = this.textures.get('diamond_layer_2');
-                scene[0].children[0].children[3].material = this.textures.get('chainmail_layer_1');
-                this.sceneTree.push(scene[0]);
+            // загружем скин для моба
+            this.prev.skin = this.skin = this.skin || asset.baseSkin;
+            this.material = this.textures.get(this.skin); 
+        }
+        // если игрок зомби или скелет, загружаем броню для них
+        if (this.type == 'player:steve' || this.type == 'zombie' || this.type == 'skeleton') {
+            const armor = await Resources.getModelAsset('armor');
+            if (!armor) {
+                console.log("Can't locate armor model");
+                return null;
+            } 
+            for (const title in armor.skins) {
+                const image = await armor.getSkin(title);
+                const texture = this.getTexture(render, image);
+                this.textures.set(title, texture);
             }
-            this.material = this.textures.get('base');
-        } else {
-            this.skin = this.skin || asset.baseSkin;
-
-            if(!(this.skin in asset.skins)) {
-                console.warn("Can't locate skin: ", asset, this.skin)
-                this.skin = asset.baseSkin;
-            }
-
-            const image = await asset.getSkin(this.skin);
-
-            this.loadTextures(render, image);
+            const scene = ModelBuilder.loadModel(armor);
+            scene[0].children[0].armor = true;
+            scene[0].children[1].armor = true;
+            scene[0].children[1].children[0].armor = true;
+            scene[0].children[1].children[1].armor = true;
+            scene[0].children[1].children[3].armor = true;
+            scene[0].children[1].children[3].armor = true;
+            this.sceneTree[1] = scene[0];
         }
-        */
-        this.animator.prepare(this);
-    }
-    
-    async loadPlayerModel(render) {
-        if (this.sceneTree) {
-            return;
-        }
-
-        this.type = PLAYER_SKIN_TYPES[this.skin.type];
-
-        const asset = await Resources.getModelAsset(this.type);
-        if (!asset) {
-            console.log("Can't locate model for:", this.type);
-            return null;
-        }
-
-        this.sceneTree = ModelBuilder.loadModel(asset);
-        if (!this.sceneTree) {
-            return null;
-        }
-        const image = await asset.getPlayerSkin(this.skin.file);
-        this.material = this.getTexture(render, image);
-        
-        await this.loadArmor(render);
-        
         this.animator.prepare(this);
     }
 
@@ -988,6 +912,7 @@ export class MobModel extends NetworkPhysicObject {
         if (!tree) {
             return;
         }
+        console.log('postload');
         this.animator.prepare(this);
     }
 
@@ -997,70 +922,58 @@ export class MobModel extends NetworkPhysicObject {
         }
     }
     
-    // загрузка текстур армора
-    async loadArmor(render) {
-        const armor = await Resources.getModelAsset('armor');
-        if (!armor) {
-            console.log("Can't locate armor model");
-            return null;
-        } 
-        for (const title in armor.skins) {
-            const image = await armor.getSkin(title);
-            const texture = this.getTexture(render, image);
-            this.textures.set(title, texture);
-        }
-        const scene = ModelBuilder.loadModel(armor);
-        /*scene[0].visible = false;
-        scene[0].children[1].material = this.textures.get('gold_layer_1');
-        scene[0].children[0].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[0].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[1].material = this.textures.get('gold_layer_1');
-        scene[0].children[1].children[2].material = this.textures.get('diamond_layer_1');
-        scene[0].children[1].children[3].material = this.textures.get('chainmail_layer_1');
-        console.log(scene[0]);*/
-        console.log(scene[0]);
-        this.sceneTree.push(scene[0]);
-    }
-    
-    // установка армора, хардкод, но всё равно потом будут переделываться
+    // установка армора
     setArmor() {
-        if (!this.sceneTree[1]) {
+        if (!this.sceneTree[1] && (this.armor || this.extra_data?.armor)) {
             return;
         }
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
-        
-  
-            if (armor.head != this.prev_armor.head) {
-                this.sceneTree[1].children[0].visible = false;
-                if (armor.head) {
-                    const item = BLOCK.fromId(armor.head);
-                    this.sceneTree[1].children[0].material = this.textures.get(item.material.id +'_layer_1');
-                    this.sceneTree[1].children[0].visible = true;
-                }
-                this.prev_armor.head = armor.head;
+        if (!armor) {
+            return;
+        }
+        if (armor.head != this.prev.head) {
+            if (armor.head) {
+                const item = BLOCK.fromId(armor.head);
+                this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
+            } else {
+                console.log("off");
+                this.sceneTree[1].children[0].material = null; 
             }
-            if (armor.body != this.prev_armor.body) {
-                this.sceneTree[1].children[1].visible = false;
-                this.sceneTree[1].children[1].children[2].visible = false;
-                this.sceneTree[1].children[1].children[3].visible = false;
-                if (armor.body) {
-                    const item = BLOCK.fromId(armor.body);
-                    this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
-                    this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_1');
-                    this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_1');
-                    this.sceneTree[1].children[1].children[2].visible = true;
-                    this.sceneTree[1].children[1].children[3].visible = true;
-                    this.sceneTree[1].children[1].visible = true;
-                }
-                this.prev_armor.body = armor.body;
+            this.prev.head = armor.head;
+        }
+        if (armor.body != this.prev.body) {
+            if (armor.body) {
+                const item = BLOCK.fromId(armor.body);
+                this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+            } else {
+                this.sceneTree[1].children[1].material = null;
             }
-            
-       // }
-        
-        
-        
-        //this.sceneTree[1].children[0].material = this.textures.get('gold_layer_1');
-        //this.sceneTree[1].children[1].visible = false;
+            this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
+            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material; 
+            this.prev.body = armor.body;
+        }
+        if (armor.leg != this.prev.leg) {
+            if (armor.leg) {
+                const item = BLOCK.fromId(armor.leg);
+                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
+                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
+            } else {
+                this.sceneTree[1].children[1].children[2].material = null;
+                this.sceneTree[1].children[1].children[3].material = null;
+            }
+            this.prev.leg = armor.leg;
+        }
+        if (armor.boot != this.prev.boot) {
+            if (armor.boot) {
+                const item = BLOCK.fromId(armor.boot);
+                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_1');
+                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_1');
+            } else {
+                this.sceneTree[1].children[1].children[2].material = null;
+                this.sceneTree[1].children[1].children[3].material = null;
+            }
+            this.prev.boot = armor.boot;
+        }
     }
 
 }

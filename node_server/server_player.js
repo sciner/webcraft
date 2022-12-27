@@ -343,8 +343,8 @@ export class ServerPlayer extends Player {
             armor:   {
                 head: this.inventory.items[39]?.id, 
                 body: this.inventory.items[38]?.id,
-                legs: this.inventory.items[37]?.id,
-                boots: this.inventory.items[36]?.id,
+                leg: this.inventory.items[37]?.id,
+                boot: this.inventory.items[36]?.id,
             }
         };
     }

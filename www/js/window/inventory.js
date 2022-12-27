@@ -13,7 +13,6 @@ class ArmorSlot extends CraftTableSlot {
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
         // Custom drawing
         this.onMouseEnter = function(e) {
-            console.log(e);
             this.style.background.color = '#ffffff55';
         }
 
