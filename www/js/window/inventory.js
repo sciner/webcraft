@@ -1,10 +1,8 @@
-import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
-import {BLOCK} from "../blocks.js";
+import { Button, Label } from "../../tools/gui/wm.js";
+import { BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableSlot } from "./base_craft_window.js";
+import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE 
-} from "../constant.js";
+import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 
 class ArmorSlot extends CraftTableSlot {
     
@@ -278,16 +276,16 @@ export class InventoryWindow extends BaseCraftWindow {
     
     createArmorSlots(sz) {
         const ct = this;
-        const lblSlotHead = new ArmorSlot(16 * this.zoom, 16 * this.zoom, sz, 39, this);
+        const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
         ct.add(lblSlotHead);
         ct.inventory_slots.push(lblSlotHead);
-        const lblSlotChest = new ArmorSlot(16 * this.zoom, 50 * this.zoom, sz, 38, this);
+        const lblSlotChest = new ArmorSlot(16.5 * this.zoom, 52 * this.zoom, 32 * this.zoom, 38, this);
         ct.add(lblSlotChest);
         ct.inventory_slots.push(lblSlotChest);
-        const lblSlotLeggs = new ArmorSlot(16 * this.zoom, 90 * this.zoom, sz, 37, this);
+        const lblSlotLeggs = new ArmorSlot(16.5 * this.zoom, 88 * this.zoom, 32 * this.zoom, 37, this);
         ct.add(lblSlotLeggs);
         ct.inventory_slots.push(lblSlotLeggs);
-        const lblSlotBoots = new ArmorSlot(16 * this.zoom, 123 * this.zoom, sz, 36, this);
+        const lblSlotBoots = new ArmorSlot(16.5 * this.zoom, 123 * this.zoom, 32 * this.zoom, 36, this);
         ct.add(lblSlotBoots);
         ct.inventory_slots.push(lblSlotBoots);
     }

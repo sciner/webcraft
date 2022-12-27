@@ -213,10 +213,7 @@ export class ServerPlayer extends Player {
     
     // Нанесение урона игроку
     setDamage(val, src) {
-        if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
-            return false;
-        }
-        this.live_level = Math.max(this.live_level - val, 0);
+        this.damage.addDamage(val, src);
     }
 
     /**
