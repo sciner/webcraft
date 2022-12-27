@@ -1,4 +1,5 @@
 import {Vector} from "./helpers.js";
+import { BLOCK } from "./blocks.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -100,6 +101,9 @@ export class Hotbar {
         
         this.inventory_image = new Image();
         this.inventory_image.src = './media/gui/inventory2.png';
+        
+        this.icons = new Image();
+        this.icons.src = './media/icons.png';
     }
 
     get zoom() {
@@ -334,8 +338,32 @@ export class Hotbar {
         }
         
         this.drawEffects(hud);
+        // рисуем иконки армора
+        this.drawArmor(hud);
     }
     
+    drawArmor(hud) {
+        let damage = 0;
+        for (const id of [39, 38, 37, 36]) {
+            if (this.inventory.items[id]) {
+                const item = BLOCK.fromId(this.inventory.items[id].id);
+                damage += item.armor.damage;
+            }
+        }
+        damage /= 2;
+        if (damage == 0) {
+            return;
+        }
+        for (let i = 1; i < 11; i++) {
+            if (i > (damage + 0.5)) {
+                hud.ctx.drawImage(this.icons, 240, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom- 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+            } else if (i > damage) {
+                hud.ctx.drawImage(this.icons, 260, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom- 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+            }else {
+                hud.ctx.drawImage(this.icons, 300, 0, 20, 20, hud.width / 2 + i * 22 * this.zoom - 280 * this.zoom, this.zoom * 375, this.zoom * 24, this.zoom * 24);
+            } 
+        }
+    }    
     
     drawEffects(hud) {
         const player = this.inventory.player;

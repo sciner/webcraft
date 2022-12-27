@@ -215,12 +215,30 @@ export class ServerPlayerDamage {
         
         // сопротивление магическому и физическому урону
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE);
-        damage = Math.round(damage - damage * res_lvl * 0.2);
+        damage -= damage * res_lvl * 0.2;
+        
+        // армор
+        damage = Math.round((damage * (32 - this.getArmor())) / 32);
+        
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
     }
     
+    /*
+    * Получем армор от надетых прдметов
+    */
+    getArmor() {
+        const inventory = this.player.inventory;
+        let damage = 0;
+        for (const id of [39, 38, 37, 36]) {
+            if (inventory.items[id]) {
+                const item = BLOCK.fromId(inventory.items[id].id);
+                damage += item.armor.damage;
+            }
+        }
+        return damage;
+    }
     /*
     * добавления истощения
     * exhaustion - уровень истощения
