@@ -5025,6 +5025,10 @@
                 "cake",
                 "no_drop_ao"
             ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.4
+            },
             "texture": {
                 "up": "block/cake_top.png",
                 "side": "block/cake_side.png",
