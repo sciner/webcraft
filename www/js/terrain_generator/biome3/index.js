@@ -239,6 +239,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
+        const dirt_block_id             = BLOCK.DIRT.id
 
         const rand_lava = new alea('random_lava_source_' + this.seed);
 
@@ -373,15 +374,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         for(let i = 0; i < plant_blocks.length; i++) {
                                             const p = plant_blocks[i];
                                             chunk.setBlockIndirect(x, y + 1 + i, z, p.id, null, p.extra_data || null);
-                                            // замена блока травы на землю, чтобы потом это не делал тикер
-                                            //if(block.not_transparent) {
-                                            //    chunk.setBlockIndirect(pos.x, pos.y - chunk.coord.y + i - 1, pos.z, dirt_block_id, null, null);
-                                            //}
+                                        }
+                                        // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
+                                        if(plant_blocks[0].not_transparent) {
+                                            block_id = null
+                                            chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null);
                                         }
                                     }
 
                                     // draw big stones
                                     if(y < chunk.size.y - 2 && big_stone_density > .5) {
+                                        if(!cell.biome.is_sand) {
+                                            block_id = null
+                                            chunk.setBlockIndirect(x, y, z, dirt_block_id, null, null)
+                                        }
                                         chunk.setBlockIndirect(x, y + 1, z, BLOCK.MOSSY_COBBLESTONE.id);
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
                                             chunk.setBlockIndirect(x, y + 2, z, BLOCK.MOSSY_COBBLESTONE.id);
@@ -404,7 +410,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             cell.dirt_layer = dirt_layer;
                         }
 
-                        chunk.setBlockIndirect(x, y, z, block_id);
+                        if(block_id) {
+                            chunk.setBlockIndirect(x, y, z, block_id);
+                        }
                         not_air_count++;
 
                     } else {
