@@ -28,7 +28,18 @@ export default class Ticker {
             state.result_ticks = 0;
             state.result_percent = 0;
         }
-        if(state.fuel_time == 0) {
+        //
+        const product_slot = extra_data.slots[0]
+        // Check if need fuel
+        const checkNeedFuel = () => {
+            if(product_slot && product_slot.count > 0) {
+                const product_mat = BLOCK.fromId(product_slot.id);
+                return product_mat && product_mat.coocked_item && state.fuel_time == 0
+            }
+            return false
+        }
+        //
+        if(checkNeedFuel()) {
             const fuel_slot = extra_data.slots[1];
             if(fuel_slot) {
                 const fuel_mat = BLOCK.fromId(fuel_slot.id);
@@ -47,7 +58,6 @@ export default class Ticker {
         // cook
         let coocked = false;
         let fuel_used = false;
-        let product_slot = extra_data.slots[0];
         if(state.fuel_time > 0) {
             let result_slot = extra_data.slots[2];
             if(product_slot && product_slot.count > 0) {
