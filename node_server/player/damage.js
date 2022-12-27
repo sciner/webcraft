@@ -2,6 +2,7 @@ import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
+import { Player, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../../www/js/player.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -31,6 +32,7 @@ export class ServerPlayerDamage {
         this.planting_lost_timer = 0;
         this.instant_health_timer = 0;
         this.instant_damage_timer = 0;
+        this.damag = 0;
     }
     
     /*
@@ -51,7 +53,7 @@ export class ServerPlayerDamage {
         const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
         max_live += 2 * health_boost_lvl;
         
-        let damage = 0;
+        let damage = this.damage;
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
             this.food_exhaustion_level -= 4;
@@ -222,6 +224,18 @@ export class ServerPlayerDamage {
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
         }
+        
+        this.damage = 0;
+    }
+    
+    /* Нанесение урона игроку
+    */
+    addDamage(val, src) {
+        const player = this.player;
+        if(player.status !== PLAYER_STATUS_ALIVE || !player.game_mode.mayGetDamaged()) {
+            return false;
+        }
+        this.damage = val;
     }
     
     /*
