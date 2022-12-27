@@ -683,7 +683,7 @@ export class BLOCK {
         // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
         block.is_chest          = block.chest_slots > 0;
         block.readonly_chest_slots = block.readonly_chest_slots || 0;
-        block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent));
+        block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent)) || ['BUBBLE_COLUMN'].includes(block.name);
         block.transmits_light   = !block.is_dirt & (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
         // не переносить!
         if(block.is_leaves) {
