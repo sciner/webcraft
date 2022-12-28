@@ -402,7 +402,7 @@ export function Physics(mcData, fake_world, options) {
     }
 
     function isOnLadder(world, pos) {
-        const block = world.getBlock(pos)
+        const block = world.getBlock(pos.offset(0, 0.07, 0).floored());
         return (block && (block.type === ladderId || block.type === vineId))
     }
 
