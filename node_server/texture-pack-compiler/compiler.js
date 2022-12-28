@@ -1,6 +1,6 @@
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
-import { Spritesheet } from "./spritesheet.js";
+import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
 
 const BLOCK_NAMES = {
@@ -14,7 +14,6 @@ export class Compiler {
 
     constructor(options) {
         options.n_color = '#8080ff';
-        options.n_texture_id = '_n';
         this.spritesheets = new Map();
         // options.blockstates_dir = options.texture_pack_dir + '/assets/minecraft/blockstates';
         if(!Array.isArray(options.texture_pack_dir)) {
@@ -33,7 +32,11 @@ export class Compiler {
         this.initFlamable();
     }
 
-    // Return spritesheet file
+    /**
+     * Return spritesheet file
+     * @param {string} id 
+     * @returns {Spritesheet}
+     */
     getSpritesheet(id) {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
@@ -69,7 +72,11 @@ export class Compiler {
                 spritesheet.drawTexture(tex.texture, texture.x + shift, texture.y, texture.has_mask);
                 spritesheet.drawTexture(tex.texture, texture.x + shift, texture.y, texture.has_mask, 'difference');
             }
-            spritesheet.drawTexture(tex.n || this.default_n, texture.x, texture.y, false, null, null, this.options.n_texture_id);
+            // spritesheet.drawTexture(tex.n || this.default_n, texture.x, texture.y, false, null, null, this.options.n_texture_id);
+            for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                const key = suffix.key
+                await spritesheet.drawTexture(tex[key], texture.x, texture.y, false, null, null, `_${key}`);
+            }
         }
         try {
             await this.compileBlocks(this.compile_data.blocks);
@@ -158,6 +165,10 @@ export class Compiler {
                 }
 
                 const spritesheet_id = block.texture?.id ?? 'default';
+
+                /**
+                 * @type {Spritesheet}
+                 */
                 const spritesheet = this.getSpritesheet(spritesheet_id);
 
                 const opTextures = async (obj, texture_key) => {
@@ -223,12 +234,14 @@ export class Compiler {
                             const pos = spritesheet.findPlace(block, x_size, y_size);
                             tex = {
                                 img: img.texture,
-                                n: img.n || this.default_n,
                                 pos,
                                 has_mask,
                                 x_size,
                                 y_size
                             };
+                            for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                                tex[suffix.key] = img[suffix.key]
+                            }
                             spritesheet.textures.set(value, tex);
                             if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side') {
                                 spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
@@ -262,7 +275,11 @@ export class Compiler {
                                 spritesheet.drawTexture(img_glow, tex.pos.x, tex.pos.y + 1, has_mask);
                             } else {
                                 await spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, has_mask, null, has_mask ? compile?.overlay_mask : null, null, compile);
-                                await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                                // await spritesheet.drawTexture(tex.n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                                for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                                    const key = suffix.key
+                                    await spritesheet.drawTexture(tex[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`);
+                                }
                             }
                         }
     
@@ -355,7 +372,11 @@ export class Compiler {
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
                             spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y);
-                            spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                            // spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                            for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                                const key = suffix.key
+                                await spritesheet.drawTexture(img[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`);
+                            }
                         }
                     }
                     block.inventory.texture = {
@@ -375,7 +396,11 @@ export class Compiler {
                         if(!tex) {
                             tex = {pos: spritesheet.findPlace(block, 1, 1)};
                             spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y);
-                            spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                            // spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                            for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                                const key = suffix.key
+                                await spritesheet.drawTexture(img[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`);
+                            }
                             spritesheet.textures.set(value, tex);
                         }
                         block.stage_textures[i] = [tex.pos.x, tex.pos.y];
@@ -393,7 +418,11 @@ export class Compiler {
                             if(!tex) {
                                 tex = {pos: spritesheet.findPlace(block, 2, 1)};
                                 spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y, true);
-                                spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                                // spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
+                                for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
+                                    const key = suffix.key
+                                    await spritesheet.drawTexture(img[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`);
+                                }
                                 spritesheet.textures.set(value, tex);
                             }
                             block.redstone.textures[k][i] = [tex.pos.x, tex.pos.y];

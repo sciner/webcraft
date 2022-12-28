@@ -2,6 +2,33 @@ import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { generateNormalMap } from './normalmap.js';
 
+//
+export const DEFAULT_TEXTURE_SUFFIXES = [
+    {
+        key: 'n',
+        generator(texture) {
+            // Try to generate normalmap texture
+            const canvas = new skiaCanvas.Canvas(texture.width, texture.height);
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(texture, 0, 0);
+            return generateNormalMap(canvas, texture.width, texture.height)
+        }
+    },
+    {
+        key: 's',
+        empty: await skiaCanvas.loadImage('./textures/empty_s.png'),
+        generator(texture) {
+            // Try to generate normalmap texture
+            const canvas = new skiaCanvas.Canvas(texture.width, texture.height);
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(this.empty, 0, 0, this.empty.width, this.empty.height, 0, 0, texture.width, texture.height)
+            return canvas
+        }
+    }
+]
+
 // Spritesheet
 export class Spritesheet {
 
@@ -90,23 +117,25 @@ export class Spritesheet {
         return y * this.tx_cnt + x;
     }
 
-    // loadTextureImage
-    async loadTex(value, load_n = true) {
+    /**
+     * Load textures
+     * @param {string} value 
+     * @param {object[]} suffixes 
+     * @returns 
+     */
+    async loadTex(value, suffixes = DEFAULT_TEXTURE_SUFFIXES) {
         const resp = {
-            texture: await this._loadImageCanvas(value),
-            n: null,
+            texture: await this._loadImageCanvas(value)
         }
-        try {
-            if(load_n) {
-                resp.n = await this._loadImageCanvas(value.replace('.png', '_n.png'));
-            }
-        } catch(e) {
-            if(load_n && resp.texture) {
-                const temp = new skiaCanvas.Canvas(resp.texture.width, resp.texture.height);
-                const ctx = temp.getContext('2d');
-                ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(resp.texture, 0, 0);
-                resp.n = generateNormalMap(temp, resp.texture.width, resp.texture.height)
+        if(suffixes) {
+            for(let suffix of suffixes) {
+                const key = suffix.key
+                resp[key] = null
+                try {
+                    resp[key] = await this._loadImageCanvas(value.replace('.png', `_${key}.png`));
+                } catch(e) {
+                    resp[key] = suffix.generator(resp.texture)
+                }
             }
         }
         return resp;
@@ -180,7 +209,7 @@ export class Spritesheet {
                 ctx.globalCompositeOperation = 'difference';
                 ctx.drawImage(img, x * this.tx_sz, y * this.tx_sz, sw, sh);
                 ctx.globalCompositeOperation = 'source-over';
-                overlay_mask = (await this.loadTex(overlay_mask, false)).texture;
+                overlay_mask = (await this.loadTex(overlay_mask, [])).texture;
                 ctx.drawImage(overlay_mask, (x + 1) * this.tx_sz, y * this.tx_sz, sw, sh);
             } else {
                 ctx.globalCompositeOperation = 'difference';
