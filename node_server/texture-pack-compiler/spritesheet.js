@@ -1,5 +1,6 @@
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
+import { generateNormalMap } from './normalmap.js';
 
 // Spritesheet
 export class Spritesheet {
@@ -28,9 +29,25 @@ export class Spritesheet {
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
-            const filename = `/textures/${this.id}${subtexture_id}.png`;
-            resp.push(filename);
-            item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);
+
+            // if(this.id != 'default' || !subtexture_id) {
+                const filename = `/textures/${this.id}${subtexture_id}.png`;
+                resp.push(filename);
+                item.cnv.saveAsSync(`${this.options.output_dir}${filename}`);
+            //}
+
+            /*
+            // Auto generate normal map
+            if(this.id == 'default') {
+                if(subtexture_id) {
+                    // do nothing
+                } else {
+                    const filename_nmap = `/textures/${this.id}${subtexture_id}_n.png`;
+                    generateNormalMap(item.cnv, 32).saveAsSync(`${this.options.output_dir}${filename_nmap}`)
+                }
+            }
+            */
+
         }
         return resp;
     }
@@ -84,7 +101,13 @@ export class Spritesheet {
                 resp.n = await this._loadImageCanvas(value.replace('.png', '_n.png'));
             }
         } catch(e) {
-            // do nothing
+            if(load_n && resp.texture) {
+                const temp = new skiaCanvas.Canvas(resp.texture.width, resp.texture.height);
+                const ctx = temp.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(resp.texture, 0, 0);
+                resp.n = generateNormalMap(temp, resp.texture.width, resp.texture.height)
+            }
         }
         return resp;
     }
