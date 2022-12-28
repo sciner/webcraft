@@ -8,43 +8,31 @@ class FakeSlot extends Label {
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         super(x, y, w, h, id, null, null);
         this.ct = ct;
-        this.setSlotIndex(slot_index);
+        this.item_id = null;
+        
     }
-
+    
+    setItem(id) {
+        this.item_id = id;
+    }
+    
     //
     get tooltip() {
-       /* let resp = null;
-        let item = this.getItem();
-        if(item) {
-            if(item.id) {
-                const block = BLOCK.fromId(item.id);
-                if(block) {
-                    resp = block.name.replaceAll('_', ' ') + ` (#${item.id})`;
-                }
-            } else {
-
+        let resp = null;
+        if(this.item_id) {
+            const block = BLOCK.fromId(this.item_id);
+            if(block) {
+                resp = block.name.replaceAll('_', ' ') + ` (#${this.item_id})`;
             }
         }
         return resp;
-        */
     }
-
-    getIndex() {
-        return this.slot_index !== null ? this.slot_index : parseFloat(this.index);
-    }
-
+    
     // Draw slot
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
-       // let item = this.getItem();
-        //
-        //if(DRAW_SLOT_INDEX) {
-            ctx.fillStyle = '#00000022';
-            ctx.font = '32px Ubuntu';
-            ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4);
-        //}
-        //
-        this.drawItem(ctx, {id:32}, ax + this.x, ay + this.y, this.width, this.height);
+        this.style.background.color = this.item_id ? '#ff000055' : '#ff000000';
+        this.drawItem(ctx, this.item_id, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
 
@@ -56,11 +44,11 @@ class FakeSlot extends Label {
         if(!image || !item) {
             return;
         }
-
+        
         const size = image.width;
         const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
         const zoom = this.zoom;
-        const mat = BLOCK.fromId(item.id);
+        const mat = BLOCK.fromId(item);
 
         ctx.imageSmoothingEnabled = true;
 
@@ -78,45 +66,18 @@ class FakeSlot extends Label {
             dest_icon_size,
             dest_icon_size
         );
-
-        // 2. raw label
-        let font_size = 18;
-        const power_in_percent = mat?.item?.indicator == 'bar';
-        let label = item.count > 1 ? item.count : null;
-        let shift_y = 0;
-        if(!label && 'power' in item) {
-            if(power_in_percent) {
-                label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
-            } else {
-                label = null;
-            }
-            font_size = 12;
-            shift_y = -10;
-        }
-        if(label) {
-            ctx.textBaseline        = 'bottom';
-            ctx.textAlign           = 'right';
-            ctx.font                = Math.round(font_size * zoom) + 'px ' + UI_FONT;
-            ctx.fillStyle           = '#000000ff';
-            ctx.fillText(label, x + width + 2 * zoom, y + height + (2 + shift_y) * zoom);
-            ctx.fillStyle           = '#ffffffff';
-            ctx.fillText(label, x + width, y + height + (shift_y) * zoom);
-        }
-    }
-
-    setSlotIndex(index) {
-        this.slot_index = index;
     }
 
 }
 
 export class RecipeSlot extends Window {
 
-    constructor(x, y, w, h, id, title, text, recipe, block) {
+    constructor(x, y, w, h, id, title, text, recipe, block, ct) {
         super(x, y, w, h, id, title, text);
         //
         this.recipe = recipe;
         this.block = block;
+        this.ct = ct;
         
         //
         this.style.border.color = '#ffffffff';
@@ -129,11 +90,16 @@ export class RecipeSlot extends Window {
             this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
         }
         this.onMouseDown = function(e) {
-            console.log(e)
+            let key = e.target.recipe.pattern[0][0];
+            console.log(e.target.recipe.adaptivePattern[3].array_id);
+            
             if(!this.can_make) {
+                const adapter = e.target.recipe.adaptivePattern[3];
+                for (let i = 0; i < 6; i++) {//const id of e.target.recipe.adaptivePattern[3].array_id) {
+                    this.ct.fake_slots[i].setItem(adapter.array_id[i]);
+                }
                 return;
             }
-            
             for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
                     this.parent.craft_window.autoRecipe(recipe);
@@ -266,8 +232,19 @@ export class RecipeWindow extends Window {
         this.addPaginatorButtons();
         
         //constructor(x, y, w, h, id, title, text, ct, slot_index)
-        let lbl12 = new FakeSlot(294 * this.zoom, 12 * this.zoom, 30 * this.zoom, 30 * this.zoom, 444, 'lbl1', 'dcdc', this, 67);
-        ct.add(lbl12);
+        this.fake_slots = [];
+        this.fake_slots[0] = new FakeSlot(355 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 10, 'lbl1', 'dcdc', this, 61);
+        this.fake_slots[1] = new FakeSlot(390 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 11, 'lbl2', 'dcdc', this, 67);
+        this.fake_slots[2] = new FakeSlot(425 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 12, 'lbl22', 'dcdc', this, 67);
+        this.fake_slots[3] = new FakeSlot(355 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 13, 'lbl1', 'dcdc', this, 61);
+        this.fake_slots[4] = new FakeSlot(390 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 14, 'lbl2', 'dcdc', this, 67);
+        this.fake_slots[5] = new FakeSlot(425 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 15, 'lbl22', 'dcdc', this, 67);
+        ct.add(this.fake_slots[0]);
+        ct.add(this.fake_slots[1]);
+        ct.add(this.fake_slots[2]);
+        ct.add(this.fake_slots[3]);
+        ct.add(this.fake_slots[4]);
+        ct.add(this.fake_slots[5]);
 
     }
 
@@ -336,7 +313,7 @@ export class RecipeWindow extends Window {
             let recipe = list[index];
             let item_id = recipe.result.item_id;
             let block = BLOCK.fromId(item_id);
-            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + recipe.id, null, null, recipe, block);
+            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + recipe.id, null, null, recipe, block, this);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${item_id})`;
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
