@@ -56,7 +56,7 @@ export class DungeonGenerator {
         
         // песок, как строительный материал
         if (biome.id == 2 || biome.id == 36 || biome.id == 35) {
-            block_wall_1 = BLOCK.END_STONE_BRICKS;
+            block_wall_1 = BLOCK.WHITE_TERRACOTTA;
             block_wall_2 = BLOCK.CUT_SANDSTONE;
             block_wall_3 = BLOCK.SAND;
             block_wall_4 = BLOCK.CHISELED_SANDSTONE;
