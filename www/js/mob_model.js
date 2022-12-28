@@ -883,6 +883,7 @@ export class MobModel extends NetworkPhysicObject {
             scene[0].children[1].children[1].armor = true;
             scene[0].children[1].children[2].armor = true;
             scene[0].children[1].children[3].armor = true;
+            scene[0].children[1].children[4].armor = true;
             scene[0].children[1].children[2].children[0].armor = true;
             scene[0].children[1].children[3].children[0].armor = true;
             this.sceneTree[1] = scene[0];
@@ -951,9 +952,11 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.leg);
                 this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
                 this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
+                this.sceneTree[1].children[1].children[4].material = this.textures.get(item.material.id +'_layer_2');
             } else {
                 this.sceneTree[1].children[1].children[2].material = null;
                 this.sceneTree[1].children[1].children[3].material = null;
+                this.sceneTree[1].children[1].children[4].material = null;
             }
             this.prev.leg = armor.leg;
         }
