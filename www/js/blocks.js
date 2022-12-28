@@ -1108,8 +1108,8 @@ export class BLOCK {
         if(!material.passable && !material.planting) {
             switch(material.style) {
                 case 'ladder': {
-                    let cardinal_direction = b.getCardinalDirection();
-                    let width = 3/15.9;
+                    const cardinal_direction = b.getCardinalDirection();
+                    const width = 3/15.9;
                     shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
                     break;
                 }

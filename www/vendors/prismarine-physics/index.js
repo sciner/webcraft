@@ -1,11 +1,13 @@
-import { Vec3 } from "../../js/helpers.js";
+import { Vec3, Vector } from "../../js/helpers.js";
 import { Effect } from "../../js/block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
 import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../../js/constant.js";
+import { TBlock } from "../../js/typed_blocks3.js";
 
 const BLOCK_NOT_EXISTS = -2;
+const _ladder_check_tblock = new TBlock()
 
 function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
@@ -401,9 +403,27 @@ export function Physics(mcData, fake_world, options) {
         vel.z += forward * cos + strafe * sin
     }
 
-    function isOnLadder(world, pos) {
-        const block = world.getBlock(pos)
+    function isLadder(block) {
         return (block && (block.type === ladderId || block.type === vineId))
+    }
+
+    /**
+     * @param {*} world 
+     * @param {Vector} pos 
+     * @returns 
+     */
+    function isOnLadder(world, pos) {
+        const offset_value_y = .07
+        const _pos = pos.offset(0, offset_value_y, 0).flooredSelf()
+        const block = world.getBlock(_pos, _ladder_check_tblock)
+        let resp = isLadder(block)
+        // if block is opened trapdoor
+        if(!resp && block.tblock && block.tblock.material.tags.includes('trapdoor') && block.tblock.extra_data?.opened) {
+            // check under block
+            _pos.y--
+            resp = isLadder(world.getBlock(_pos))
+        }
+        return resp
     }
 
     function doesNotCollide(world, pos) {

@@ -55,9 +55,17 @@ class FakeWorld {
         this.chunkAddr = new Vector(0, 0, 0);
     }
 
-    // getBlock...
-    getBlock(pos) {
-        const { _pos, _localPos, tblock } = this;
+    /**
+     * Return block from real world
+     * @param {Vector} pos
+     * @param {?TBlock} tblock
+     * 
+     * @returns {FakeBlock}
+     */
+    getBlock(pos, tblock = null) {
+        const return_tblock = !!tblock
+        const { _pos, _localPos } = this;
+        tblock = tblock || this.tblock
         _pos.copyFrom(pos).flooredSelf();
         const chunk = this.world.chunkManager.getChunk(getChunkAddr(_pos, this.chunkAddr));
         if (!chunk) {
@@ -76,7 +84,8 @@ class FakeWorld {
             clonedPos = this._pos.clone();
             shapes = (id > 0) ? BLOCK.getShapes(this._pos, tblock, this.world, true, false) : shapesEmpty;
         }
-        return new FakeBlock(clonedPos, id, fluid, shapes);
+        if(!return_tblock) tblock = null
+        return new FakeBlock(clonedPos, id, fluid, shapes, tblock);
     }
 }
 
@@ -85,13 +94,15 @@ const fakeMatWater = { is_water : true }
 const fakeProps = {};
 const shapesEmpty = [];
 
-class FakeBlock {
-    constructor(pos, id, fluid, shapes) {
+export class FakeBlock {
+
+    constructor(pos, id, fluid, shapes, tblock) {
         this.position = pos;
         this.id = this.type = id;
         this.material = fakeMat;
         this.metadata = 0;
         this.shapes = shapes;
+        this.tblock = tblock
         if (id === 0 && fluid > 0) {
             const tp = (fluid & FLUID_TYPE_MASK);
             if (tp === FLUID_WATER_ID) {
