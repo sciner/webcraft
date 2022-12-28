@@ -5,11 +5,10 @@ import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
 class FakeSlot extends Label {
 
-    constructor(x, y, w, h, id, title, text, ct, slot_index) {
-        super(x, y, w, h, id, null, null);
+    constructor(x, y, sz, id, ct) {
+        super(x, y, sz, sz, id, null, null);
         this.ct = ct;
         this.item_id = null;
-        
     }
     
     setItem(id) {
@@ -30,6 +29,9 @@ class FakeSlot extends Label {
     
     // Draw slot
     draw(ctx, ax, ay) {
+        if (this.ct.craft_window.lblResultSlot.item) {
+            return;
+        }
         this.applyStyle(ctx, ax, ay);
         this.style.background.color = this.item_id ? '#ff000055' : '#ff000000';
         this.drawItem(ctx, this.item_id, ax + this.x, ay + this.y, this.width, this.height);
@@ -90,13 +92,17 @@ export class RecipeSlot extends Window {
             this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
         }
         this.onMouseDown = function(e) {
-            let key = e.target.recipe.pattern[0][0];
-            console.log(e.target.recipe.adaptivePattern[3].array_id);
-            
             if(!this.can_make) {
-                const adapter = e.target.recipe.adaptivePattern[3];
-                for (let i = 0; i < 6; i++) {//const id of e.target.recipe.adaptivePattern[3].array_id) {
-                    this.ct.fake_slots[i].setItem(adapter.array_id[i]);
+                const size = this.ct.craft_window.area.size.width;
+                const adapter = e.target.recipe.adaptivePattern[size];
+                if (adapter) {
+                    for (let i = 0; i < size * size; i++) {
+                        this.ct.fake_slots[i].setItem((i < adapter.array_id.length) ? adapter.array_id[i] : null);
+                    }
+                } else {
+                    for (let i = 0; i < size * size; i++) {
+                        this.ct.fake_slots[i].setItem(null);
+                    } 
                 }
                 return;
             }
@@ -226,25 +232,13 @@ export class RecipeWindow extends Window {
         this.onShow = () => {
             // Создание слотов
             this.createRecipes(this.cell_size);
+            this.addFakeSlots();
             this.paginator.update();
         };
 
         this.addPaginatorButtons();
         
-        //constructor(x, y, w, h, id, title, text, ct, slot_index)
-        this.fake_slots = [];
-        this.fake_slots[0] = new FakeSlot(355 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 10, 'lbl1', 'dcdc', this, 61);
-        this.fake_slots[1] = new FakeSlot(390 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 11, 'lbl2', 'dcdc', this, 67);
-        this.fake_slots[2] = new FakeSlot(425 * this.zoom, 106 * this.zoom, 32 * this.zoom, 32 * this.zoom, 12, 'lbl22', 'dcdc', this, 67);
-        this.fake_slots[3] = new FakeSlot(355 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 13, 'lbl1', 'dcdc', this, 61);
-        this.fake_slots[4] = new FakeSlot(390 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 14, 'lbl2', 'dcdc', this, 67);
-        this.fake_slots[5] = new FakeSlot(425 * this.zoom, 70 * this.zoom, 32 * this.zoom, 32 * this.zoom, 15, 'lbl22', 'dcdc', this, 67);
-        ct.add(this.fake_slots[0]);
-        ct.add(this.fake_slots[1]);
-        ct.add(this.fake_slots[2]);
-        ct.add(this.fake_slots[3]);
-        ct.add(this.fake_slots[4]);
-        ct.add(this.fake_slots[5]);
+        
 
     }
 
@@ -280,6 +274,20 @@ export class RecipeWindow extends Window {
             this.paginator.next();
         }
         ct.add(btnNext);
+    }
+    
+    addFakeSlots() {
+      //  const size = this.craft_window.area.size.width;
+        console.log(this);
+        const size = 3;
+        this.fake_slots = [];
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                const slot = new FakeSlot((354 + 36 * j) * this.zoom, (36 + 36 * i) * this.zoom, 31 * this.zoom, 'fake_' + i + '_' + j, this);
+                this.fake_slots.push(slot);
+                this.add(slot);
+            }
+        }
     }
 
     /**
