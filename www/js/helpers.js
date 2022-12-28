@@ -1012,7 +1012,7 @@ export class Vector {
     }
 
     offset(x, y, z) {
-        return this.add(new Vector(x, y, z));
+        return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
     /**
