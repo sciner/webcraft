@@ -1,8 +1,8 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableSlot } from "./base_craft_window.js";
+import { BaseCraftWindow, CraftTableRecipeSlot, CraftTableSlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
 
 class ArmorSlot extends CraftTableSlot {
     
@@ -51,6 +51,15 @@ class ArmorSlot extends CraftTableSlot {
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
         const item = this.getInventoryItem();
+        if(item) {
+            // fill background color
+            let x = ax + this.x;
+            let y = ay + this.y;
+            let w = this.width;
+            let h = this.height;
+            ctx.fillStyle = '#8f8d88ff';
+            ctx.fillRect(x, y, w, h);
+        }
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
