@@ -3,6 +3,113 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {Resources} from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
+class FakeSlot extends Label {
+
+    constructor(x, y, w, h, id, title, text, ct, slot_index) {
+        super(x, y, w, h, id, null, null);
+        this.ct = ct;
+        this.setSlotIndex(slot_index);
+    }
+
+    //
+    get tooltip() {
+       /* let resp = null;
+        let item = this.getItem();
+        if(item) {
+            if(item.id) {
+                const block = BLOCK.fromId(item.id);
+                if(block) {
+                    resp = block.name.replaceAll('_', ' ') + ` (#${item.id})`;
+                }
+            } else {
+
+            }
+        }
+        return resp;
+        */
+    }
+
+    getIndex() {
+        return this.slot_index !== null ? this.slot_index : parseFloat(this.index);
+    }
+
+    // Draw slot
+    draw(ctx, ax, ay) {
+        this.applyStyle(ctx, ax, ay);
+       // let item = this.getItem();
+        //
+        //if(DRAW_SLOT_INDEX) {
+            ctx.fillStyle = '#00000022';
+            ctx.font = '32px Ubuntu';
+            ctx.fillText(this.slot_index || '', ax + this.x + 4, ay + this.y + 4);
+        //}
+        //
+        this.drawItem(ctx, {id:32}, ax + this.x, ay + this.y, this.width, this.height);
+        super.draw(ctx, ax, ay);
+    }
+
+    // Draw item
+    drawItem(ctx, item, x, y, width, height) {
+        
+        const image = Qubatch.player.inventory.inventory_image;
+
+        if(!image || !item) {
+            return;
+        }
+
+        const size = image.width;
+        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
+        const zoom = this.zoom;
+        const mat = BLOCK.fromId(item.id);
+
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. Draw icon
+        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+        const dest_icon_size = 40 * zoom;
+        ctx.drawImage(
+            image,
+            icon.x,
+            icon.y,
+            icon.width,
+            icon.height,
+            x + width / 2 - dest_icon_size / 2,
+            y + height / 2 - dest_icon_size / 2,
+            dest_icon_size,
+            dest_icon_size
+        );
+
+        // 2. raw label
+        let font_size = 18;
+        const power_in_percent = mat?.item?.indicator == 'bar';
+        let label = item.count > 1 ? item.count : null;
+        let shift_y = 0;
+        if(!label && 'power' in item) {
+            if(power_in_percent) {
+                label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+            } else {
+                label = null;
+            }
+            font_size = 12;
+            shift_y = -10;
+        }
+        if(label) {
+            ctx.textBaseline        = 'bottom';
+            ctx.textAlign           = 'right';
+            ctx.font                = Math.round(font_size * zoom) + 'px ' + UI_FONT;
+            ctx.fillStyle           = '#000000ff';
+            ctx.fillText(label, x + width + 2 * zoom, y + height + (2 + shift_y) * zoom);
+            ctx.fillStyle           = '#ffffffff';
+            ctx.fillText(label, x + width, y + height + (shift_y) * zoom);
+        }
+    }
+
+    setSlotIndex(index) {
+        this.slot_index = index;
+    }
+
+}
+
 export class RecipeSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, recipe, block) {
@@ -10,6 +117,7 @@ export class RecipeSlot extends Window {
         //
         this.recipe = recipe;
         this.block = block;
+        
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
@@ -21,9 +129,11 @@ export class RecipeSlot extends Window {
             this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
         }
         this.onMouseDown = function(e) {
+            console.log(e)
             if(!this.can_make) {
                 return;
             }
+            
             for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
                     this.parent.craft_window.autoRecipe(recipe);
@@ -154,6 +264,10 @@ export class RecipeWindow extends Window {
         };
 
         this.addPaginatorButtons();
+        
+        //constructor(x, y, w, h, id, title, text, ct, slot_index)
+        let lbl12 = new FakeSlot(294 * this.zoom, 12 * this.zoom, 30 * this.zoom, 30 * this.zoom, 444, 'lbl1', 'dcdc', this, 67);
+        ct.add(lbl12);
 
     }
 
