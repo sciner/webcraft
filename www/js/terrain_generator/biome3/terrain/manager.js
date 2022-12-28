@@ -494,7 +494,7 @@ export class TerrainMapManager2 {
         if(block_id == BLOCK.STONE.id) {
             if(d1 > .5) block_id = BLOCK.ANDESITE.id
             if(d4 > .5) block_id = BLOCK.DIORITE.id
-            if(d3 > .55) block_id = BLOCK.GRANITE.id
+            if(d3 > .55 && xyz.y < WATER_LEVEL - d2 * 5) block_id = BLOCK.GRANITE.id
         }
 
         return {dirt_layer, block_id};

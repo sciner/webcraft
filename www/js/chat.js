@@ -55,7 +55,6 @@ export class Chat extends TextBox {
                 this.reset();
             },
             save() {
-                debugger
                 const saved_arr = Array.from(this.list.slice(-64));
                 localStorage.setItem(`chat_history_${that.player.world.info.guid}`, JSON.stringify(saved_arr));
             },

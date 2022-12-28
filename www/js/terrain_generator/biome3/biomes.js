@@ -341,7 +341,7 @@ export class Biomes {
                 {blocks: [BLOCK.STONE.id]}
             ],
             {
-                frequency: TREE_FREQUENCY / 5,
+                frequency: TREE_FREQUENCY / 10,
                 list: [
                     {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
                 ]

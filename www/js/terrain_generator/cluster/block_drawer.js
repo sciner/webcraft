@@ -1,4 +1,4 @@
-import { Vector } from "../../helpers.js";
+import { Vector, VectorCollector } from "../../helpers.js";
 
 //
 export class BlockDrawer {
@@ -11,17 +11,43 @@ export class BlockDrawer {
     }
 
     /**
-     * @param {*} cluster 
+     * @param { import("./base.js").ClusterBase } cluster
      * @param {*} chunk 
      */
     draw(cluster, chunk) {
         const pos = new Vector(0, 0, 0);
         const block_coord = this.object.pos.clone().subSelf(chunk.coord);
         const dir = this.object.direction;
+        const two2map = new VectorCollector()
+        const _pos2d = new Vector();
         for(let i = 0; i < this.list.length; i++) {
             const item = this.list[i];
             pos.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.mirror_x, this.mirror_z);
             cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid);
+            //
+            if(pos.x >= 0 && pos.y >= 0 && pos.z >= 0 && pos.x < chunk.size.x && pos.y < chunk.size.y && pos.z < chunk.size.z) {
+                _pos2d.copyFrom(pos)
+                _pos2d.y = 0
+                two2map.set(_pos2d, Math.max(two2map.get(_pos2d), pos.y))
+            }
+        }
+        // Remove grass in air over setted blocks
+        const BLOCK_AIR_ID = 0
+        if(two2map.size > 0) {
+            for(const [pos, y] of two2map.entries()) {
+                pos.y = y
+                while(true) {
+                    pos.y++
+                    if(pos.y >= chunk.size.y) {
+                        break
+                    }
+                    const over_block_id = cluster.getBlock(chunk, pos.x, pos.y, pos.z)
+                    if(![31, 572].includes(over_block_id)) {
+                        break
+                    }
+                    cluster.setBlock(chunk, pos.x, pos.y, pos.z, BLOCK_AIR_ID)
+                }
+            }
         }
     }
 
