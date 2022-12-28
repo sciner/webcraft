@@ -2,7 +2,7 @@ import { Effect } from "../../www/js/block_type/effect.js";
 import { BLOCK } from "../../www/js/blocks.js";
 import { Vector } from "../../www/js/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "../../www/js/fluid/FluidConst.js";
-import { Player, PLAYER_STATUS_DEAD, PLAYER_STATUS_WAITING_DATA, PLAYER_STATUS_ALIVE } from "../../www/js/player.js";
+import { PLAYER_STATUS_ALIVE } from "../../www/js/player.js";
 
 const INSTANT_DAMAGE_TICKS = 10;
 const INSTANT_HEALTH_TICKS = 10;
@@ -219,7 +219,7 @@ export class ServerPlayerDamage {
         damage -= damage * res_lvl * 0.2;
         
         // армор
-        damage = Math.round((damage * (32 - this.getArmor())) / 32);
+        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
         
         if (damage > 0) {
             player.live_level = Math.max(player.live_level - damage, 0);
@@ -237,21 +237,7 @@ export class ServerPlayerDamage {
         }
         this.damage = val;
     }
-    
-    /*
-    * Получем армор от надетых прдметов
-    */
-    getArmor() {
-        const inventory = this.player.inventory;
-        let damage = 0;
-        for (const id of [39, 38, 37, 36]) {
-            if (inventory.items[id]) {
-                const item = BLOCK.fromId(inventory.items[id].id);
-                damage += item.armor.damage;
-            }
-        }
-        return damage;
-    }
+
     /*
     * добавления истощения
     * exhaustion - уровень истощения

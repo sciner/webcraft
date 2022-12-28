@@ -1,6 +1,6 @@
-import {getChunkAddr, Helpers, Vector} from "./helpers.js";
+import { Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, 
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS } from "./constant.js";
 
 export const INVENTORY_CHANGE_NONE = 0;
 // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
@@ -423,6 +423,30 @@ export class Inventory {
             this.select(parseInt(k));
             return this.refresh(true);
         }
+    }
+
+    exportArmorState() {
+        return {
+            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id, 
+            body: this.items[PLAYER_ARMOR_SLOT_CHESTPLATE]?.id,
+            leg: this.items[PLAYER_ARMOR_SLOT_LEGGINGS]?.id,
+            boot: this.items[PLAYER_ARMOR_SLOT_BOOTS]?.id,
+        }
+    }
+    
+    /**
+     * Возвращает армор от надетых предметов
+     * @returns {int}
+     */
+    getArmorLevel() {
+        let resp = 0;
+        for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
+            if(this.items[slot_index]) {
+                const item = this.block_manager.fromId(this.items[slot_index].id);
+                resp += item.armor?.damage ?? 0;
+            }
+        }
+        return resp
     }
 
     /*
