@@ -1117,6 +1117,7 @@ export class Renderer {
         if(hotbar.last_damage_time && performance.now() - hotbar.last_damage_time < DAMAGE_TIME) {
             const percent = (performance.now() - hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
+            
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
             } else {

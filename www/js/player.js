@@ -183,6 +183,9 @@ export class Player {
             this.prevPos                        = new Vector(pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
+            if (this.indicators.live.value > cmd.data.indicators.live.value) {
+                Qubatch.hotbar.last_damage_time = performance.now();
+            }
             this.indicators = cmd.data.indicators;
             Qubatch.hud.refresh();
         });
