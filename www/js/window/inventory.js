@@ -1,78 +1,8 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot, CraftTableSlot } from "./base_craft_window.js";
+import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
-
-class ArmorSlot extends CraftTableSlot {
-    
-    constructor(x, y, s, id, ct) {
-        
-        super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
-        // Custom drawing
-        this.onMouseEnter = function(e) {
-            this.style.background.color = '#ffffff55';
-        }
-
-        this.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-        }
-
-        // Drag
-        this.onMouseDown = function(e) {
-            const targetItem  = this.getInventoryItem();
-            if(!targetItem || e.drag.getItem()) {
-                return;
-            }
-            this.setItem(null, e);
-            this.getInventory().setDragItem(this, targetItem, e.drag, this.width, this.height);
-        }
-        
-        this.onDrop = function(e) {
-            const dropData    = e.drag.getItem();
-            const targetItem  = this.getInventoryItem();
-            if(!dropData) {
-               return;
-            }
-            const item = BLOCK.fromId(dropData.item.id);
-            if (item?.item?.name != 'armor' || item.armor.slot != this.slot_index) {
-                return;
-            }
-            this.setItem(dropData.item, e);
-            if (targetItem) {
-                Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
-                dropData.item = targetItem;
-            } else {
-                this.getInventory().clearDragItem();
-            }
-        }
-    }
-    
-    draw(ctx, ax, ay) {
-        this.applyStyle(ctx, ax, ay);
-        const item = this.getInventoryItem();
-        if(item) {
-            // fill background color
-            let x = ax + this.x;
-            let y = ay + this.y;
-            let w = this.width;
-            let h = this.height;
-            ctx.fillStyle = '#8f8d88ff';
-            ctx.fillRect(x, y, w, h);
-        }
-        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
-        super.draw(ctx, ax, ay);
-    }
-
-    getInventory() {
-        return this.ct.inventory;
-    }
-    
-    getInventoryItem() {
-        return this.ct.inventory.items[this.slot_index] || this.item;
-    }
-    
-}
+import { INVENTORY_SLOT_SIZE } from "../constant.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
@@ -289,7 +219,7 @@ export class InventoryWindow extends BaseCraftWindow {
     getSlots() {
         return this.inventory_slots;
     }
-    
+
     createArmorSlots(sz) {
         const ct = this;
         const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
