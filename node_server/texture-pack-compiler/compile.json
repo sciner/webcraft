@@ -5013,7 +5013,6 @@
             "style": "cake",
             "transparent": true,
             "can_rotate": true,
-            "diagonal": true,
             "max_in_stack": 1,
             "inventory": {
                 "style": "extruder",
