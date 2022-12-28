@@ -1,8 +1,12 @@
 import { Button, Label } from "../../tools/gui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot, CraftTableSlot } from "./base_craft_window.js";
+import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
+import { skinview3d } from "../../vendors/skinview3d.bundle.js"
+
+const PLAYER_BOX_WIDTH = 98;
+const PLAYER_BOX_HEIGHT = 140;
 
 class ArmorSlot extends CraftTableSlot {
     
@@ -73,10 +77,6 @@ class ArmorSlot extends CraftTableSlot {
     }
     
 }
-import { skinview3d } from "../../vendors/skinview3d.bundle.js"
-
-const PLAYER_BOX_WIDTH = 98;
-const PLAYER_BOX_HEIGHT = 140;
 
 export class InventoryWindow extends BaseCraftWindow {
 
@@ -357,7 +357,7 @@ export class InventoryWindow extends BaseCraftWindow {
     getSlots() {
         return this.inventory_slots;
     }
-    
+
     createArmorSlots(sz) {
         const ct = this;
         const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
