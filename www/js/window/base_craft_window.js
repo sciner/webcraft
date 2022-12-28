@@ -628,6 +628,20 @@ export class ArmorSlot extends CraftTableInventorySlot {
         }
         */
 
+        const origOnDrop = this.onDrop.bind(this);
+
+        this.onDrop = function(e) {
+            const dropData = e.drag.getItem();
+            if(!dropData) {
+               return;
+            }
+            const mat = BLOCK.fromId(dropData.item.id)
+            if(mat?.item?.name != 'armor' || (mat.armor.slot != this.slot_index)) {
+                return;
+            }
+            return origOnDrop(e)
+        }
+
     }
     
     draw(ctx, ax, ay) {
