@@ -909,9 +909,8 @@ export class MobModel extends NetworkPhysicObject {
     }
     
     setSkin() {
-        if (this.extra_data?.skin != this.prev.skin) {
+        if (this?.extra_data?.skin && this.extra_data.skin != this.prev.skin) {
             if (this.textures.has(this.extra_data.skin)) {
-                console.log(this.extra_data.skin);
                 this.material = this.textures.get(this.extra_data.skin);
             }
             this.prev.skin = this.extra_data.skin;
