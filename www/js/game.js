@@ -234,6 +234,10 @@ export class GameClass {
                     }
                     // [F5] (Camera mode)
                     case KEY.F5: {
+                        if(e.down && e.ctrlKey) {
+                            location.reload()
+                            return false
+                        }
                         if(hud.frmMainMenu.visible) {
                             return false;
                         }
@@ -246,6 +250,7 @@ export class GameClass {
                             e.e_orig.preventDefault();
                             e.e_orig.stopPropagation();
                         }
+                        return true
                     }
                     // [F6]
                     case KEY.F6: {
