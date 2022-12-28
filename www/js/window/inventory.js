@@ -67,6 +67,11 @@ class ArmorSlot extends CraftTableSlot {
 
 export class InventoryWindow extends BaseCraftWindow {
 
+    /**
+     * 
+     * @param { import("../player_inventory.js").PlayerInventory } inventory
+     * @param {*} recipes 
+     */
     constructor(inventory, recipes) {
 
         super(10, 10, 352, 332, 'frmInventory', null, null);
@@ -150,6 +155,8 @@ export class InventoryWindow extends BaseCraftWindow {
                     slot.setItem(null);
                 }
             }
+            // Update player mob model
+            this.inventory.player.updateArmor()
             // Save inventory
             Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
         }

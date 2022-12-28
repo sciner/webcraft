@@ -1114,4 +1114,11 @@ export class Player {
         return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
     }
 
+    updateArmor() {
+        const model = this.getModel()
+        if(model) {
+            model.armor = this.inventory.exportArmorState()
+        }
+    }
+
 }

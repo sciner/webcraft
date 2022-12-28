@@ -1,5 +1,4 @@
 import {Vector} from "./helpers.js";
-import { BLOCK } from "./blocks.js";
 
 const MAX_NAME_SHOW_TIME = 2000;
 
@@ -344,13 +343,7 @@ export class Hotbar {
     }
     
     drawArmor(hud) {
-        let damage = 0;
-        for (const id of [39, 38, 37, 36]) {
-            if (this.inventory.items[id]) {
-                const item = BLOCK.fromId(this.inventory.items[id].id);
-                damage += item.armor.damage;
-            }
-        }
+        let damage = this.inventory.getArmorLevel()
         damage /= 2;
         if (damage == 0) {
             return;
