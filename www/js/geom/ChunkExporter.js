@@ -1,7 +1,7 @@
 import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {IvanArray} from "../helpers.js";
+import {chunkAddrToCoord, getChunkAddr, IvanArray} from "../helpers.js";
 
 
 export class ChunkExporter {
@@ -229,6 +229,9 @@ export class ChunkExporter {
         const terrain = this.terrain = new ExportGeometry16();
         terrain.palette = this.getPalette();
 
+        let localPos = new Vector();
+        chunkAddrToCoord(getChunkAddr(camPos), localPos);
+
         this.reset();
 
         const {poses} = this.chunkManager;
@@ -274,9 +277,9 @@ export class ChunkExporter {
                     mesh: meshIndex,
                     name: `chunk_${chunk.addr}`,
                     translation: [
-                        -(chunk.coord.x - camPos.x),
-                        (chunk.coord.y - camPos.y),
-                        (chunk.coord.z - camPos.z),
+                        (chunk.coord.x - localPos.x),
+                        (chunk.coord.z - localPos.z),
+                        (chunk.coord.y - localPos.y),
                     ]
                 }
                 outJson.nodes.push(node);

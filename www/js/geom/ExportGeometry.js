@@ -72,18 +72,17 @@ export class ExportGeometry16 extends BaseExportGeometry {
             //Y up
             //Z forward
 
-            //TODO: use our shader XYZ space instead?
-            const cx = -srcBuf[srcOffset + 0];
-            const cy = srcBuf[srcOffset + 2];
-            const cz = srcBuf[srcOffset + 1];
+            const cx = srcBuf[srcOffset + 0];
+            const cy = srcBuf[srcOffset + 1];
+            const cz = srcBuf[srcOffset + 2];
 
-            const dx0 = -srcBuf[srcOffset + 3];
-            const dy0 = srcBuf[srcOffset + 5];
-            const dz0 = srcBuf[srcOffset + 4];
+            const dx0 = srcBuf[srcOffset + 3];
+            const dy0 = srcBuf[srcOffset + 4];
+            const dz0 = srcBuf[srcOffset + 5];
 
-            const dx1 = -srcBuf[srcOffset + 6];
-            const dy1 = srcBuf[srcOffset + 8];
-            const dz1 = srcBuf[srcOffset + 7];
+            const dx1 = srcBuf[srcOffset + 6];
+            const dy1 = srcBuf[srcOffset + 7];
+            const dz1 = srcBuf[srcOffset + 8];
 
             const nx = dy0 * dz1 - dy1 * dz0;
             const ny = dz0 * dx1 - dz1 * dx0;
