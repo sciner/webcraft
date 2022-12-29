@@ -1,8 +1,7 @@
 import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {chunkAddrToCoord, getChunkAddr, IvanArray} from "../helpers.js";
-
+import {chunkAddrToCoord, getChunkAddr, Vector} from "../helpers.js";
 
 export class ChunkExporter {
 
@@ -109,7 +108,7 @@ export class ChunkExporter {
         this.promises.push(new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
                 resolve(blob.arrayBuffer().then((res) => {
-                    bvData.arrayBuffer = res;
+                    bvData.data = new Uint8Array(res);
                 }), {type: "image/png"});
             });
         }));
@@ -166,7 +165,7 @@ export class ChunkExporter {
 
     packGeom(bvData, exportGeometry) {
         const data = exportGeometry.pack();
-        bvData.arrayBuffer = data.buffer;
+        bvData.data = new Uint8Array(data.buffer);
         bvData.target = WEBGL_CONSTANTS.ARRAY_BUFFER;
         bvData.byteStride = exportGeometry.vertexStrideFloats * 4;
 
@@ -190,7 +189,7 @@ export class ChunkExporter {
             indices[j++] = i * 4 + 3;
         }
 
-        bvData.arrayBuffer = indices.buffer;
+        bvData.data = indices.buffer;
         bvData.target = WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER;
     }
 
@@ -291,8 +290,52 @@ export class ChunkExporter {
 
 
         return Promise.all(this.promises).then(() => {
-            console.log(this.outJson);
+            let sz = 0;
+            for (let i = 0; i < this.bufferViews.length; i++) {
+                const bvData = this.bufferViews[i];
+                bvData.json.byteOffset = sz;
+                bvData.json.byteLength = bvData.data.byteLength;
+                sz += bvData.json.byteLength;
+            }
+            sz += (4 - sz % 4) % 4;
+
+            let jsonStr = JSON.stringify(outJson);
+            let padCount = (4 - (jsonStr.length % 4));
+            if (padCount !== 4) {
+                let suffix = " ";
+                for (let i = 1; i < padCount; i++) {
+                    suffix += " ";
+                }
+                jsonStr += suffix;
+            }
+            let jsonChunk = new TextEncoder().encode(jsonStr);
+
+            let fileSize = GLB_HEADER_BYTES
+                + GLB_CHUNK_PREFIX_BYTES + jsonChunk.byteLength
+                + GLB_CHUNK_PREFIX_BYTES + sz;
+            let fileBin = new ArrayBuffer(fileSize);
+            let view = new DataView(fileBin);
+            view.setUint32(0, GLB_HEADER_MAGIC, true);
+            view.setUint32(4, GLB_VERSION, true);
+            view.setUint32(8, fileSize, true);
+
+            let offset = GLB_HEADER_BYTES;
+            view.setUint32(offset, GLB_CHUNK_TYPE_JSON, true);
+            view.setUint32(offset + 4, jsonChunk.byteLength, true);
+            offset += GLB_CHUNK_PREFIX_BYTES;
+            let uint8View = new Uint8Array(fileBin);
+            uint8View.set(jsonChunk, offset);
+            offset += jsonChunk.byteLength;
+            view.setUint32(offset, GLB_CHUNK_TYPE_BIN, true);
+            view.setUint32(offset, sz, true);
+            offset += GLB_CHUNK_PREFIX_BYTES;
+            for (let i = 0; i < this.bufferViews.length; i++) {
+                uint8View.set(this.bufferViews[i].data, offset + this.bufferViews[i].json.byteOffset);
+            }
+            // here we have it, GLB file
+            console.log(outJson);
             console.log(this.bufferViews);
+            console.log(uint8View);
         });
     }
 }
