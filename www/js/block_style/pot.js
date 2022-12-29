@@ -34,17 +34,14 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic) {
-        let aabb = new AABB();
-        aabb.set(
+        return [new AABB(
             0 + .5 - WIDTH / 2,
             0,
             0 + .5 - WIDTH / 2,
             0 + .5 + WIDTH / 2,
             0 + HEIGHT,
             0 + .5 + WIDTH / 2,
-        );
-        // aabb.pad(1/32)
-        return [aabb];
+        )]
     }
 
     // Build function

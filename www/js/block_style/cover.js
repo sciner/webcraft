@@ -17,38 +17,38 @@ export default class style {
         if (for_physic) {
             return [];
         }
-        const facets = [];
+        const shapes = [];
         if(block.extra_data) {
             if (block.extra_data.south) {
-                facets.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
+                shapes.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
             }
             if (block.extra_data.north) {
-                facets.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
+                shapes.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
             }
             if (block.extra_data.east) {
-                facets.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
+                shapes.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
             }
             if (block.extra_data.west) {
-                facets.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
+                shapes.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
             }
             if (block.extra_data.down) {
-                facets.push(new AABB().set(0, 0.9, 0, 1, 1, 1));
+                shapes.push(new AABB().set(0, 0.9, 0, 1, 1, 1));
             }
             if (block.extra_data.up) {
-                facets.push(new AABB().set(0, 0, 0, 1, 0.1, 1));
+                shapes.push(new AABB().set(0, 0, 0, 1, 0.1, 1));
             }
         } else if (block.rotate) {
             if (block.rotate.x == DIRECTION.SOUTH) {
-                facets.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
+                shapes.push(new AABB().set(0, 0, 0.9, 1, 1, 1));
             } else if (block.rotate.x == DIRECTION.NORTH) {
-                facets.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
+                shapes.push(new AABB().set(0, 0, 0, 1, 1, 0.1));
             } else if (block.rotate.x == DIRECTION.EAST) {
-                facets.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
+                shapes.push(new AABB().set(0, 0, 0, 0.1, 1, 1));
             } else if (block.rotate.x == DIRECTION.WEST) {
-                facets.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
+                shapes.push(new AABB().set(0.9, 0, 0, 1, 1, 1));
             }
         }
-        return facets;
+        return shapes;
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {

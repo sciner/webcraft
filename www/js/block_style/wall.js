@@ -1,6 +1,7 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import { TBlock } from '../typed_blocks3.js';
+import { AABB } from '../core/AABB.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;
@@ -15,8 +16,72 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['wall'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    /**
+     * @param {TBlock} tblock 
+     * @param {boolean} for_physic 
+     * @param {*} world 
+     * @param {*} neighbours 
+     * @param {boolean} expanded 
+     */
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const CENTER_WIDTH      = 8 / 16
+        const CONNECT_HEIGHT    = 14 / 16
+        const CONNECT_BOTTOM    = 0 / 16
+        const CONNECT_X         = 6 / 16
+        const CONNECT_Z         = 8 / 16
+        const height            = for_physic ? 1.5 : CONNECT_HEIGHT
+        const shapes            = []
+        //
+        let zconnects = 0
+        let xconnects = 0
+        //
+        let n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
+        // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        // South z--
+        if(BLOCK.canWallConnect(n.SOUTH)) {
+            shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z/2))
+            zconnects++
+        }
+        // North z++
+        if(BLOCK.canWallConnect(n.NORTH)) {
+            if(zconnects) {
+                shapes.pop()
+                shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1))
+            } else {
+                shapes.push(new AABB(.5-CONNECT_X/2, CONNECT_BOTTOM, .5+CONNECT_Z/2, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z))
+            }
+            zconnects++
+        }
+        // West x--
+        if(BLOCK.canWallConnect(n.WEST)) {
+            shapes.push(new AABB(0, CONNECT_BOTTOM, .5-CONNECT_X/2, CONNECT_Z/2, height, .5-CONNECT_X/2 + CONNECT_X))
+            xconnects++
+        }
+        // East x++
+        if(BLOCK.canWallConnect(n.EAST)) {
+            if(xconnects) {
+                shapes.pop();
+                shapes.push(new AABB(0, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X))
+            } else {
+                shapes.push(new AABB(1 - CONNECT_Z/2, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X))
+            }
+            xconnects++
+        }
+        if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
+            // do nothing
+        } else {
+            // Central
+            shapes.push(new AABB(
+                .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
+            ))
+        }
+        return shapes
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

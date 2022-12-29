@@ -44,7 +44,7 @@ export default class style {
         )
 
         if (!rotate || rotate.y) {
-            return aabb;
+            return [aabb];
         }
 
         const symRot = CubeSym.matrices[(rotate.x + 1) % 4];

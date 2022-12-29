@@ -16,6 +16,7 @@ export class BBModel_Child {
         this.rot = new Vector();
         this.matrix = mat4.create();
         this.visibility = true
+        this.orig_visibility = true
     }
 
     updateLocalTransform() {

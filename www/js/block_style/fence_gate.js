@@ -17,7 +17,7 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic) {
-        let aabb = new AABB();
+        const aabb = new AABB();
         const cardinal_direction = block.getCardinalDirection();
         if (!for_physic) {
             if (cardinal_direction == DIRECTION.WEST || cardinal_direction == DIRECTION.EAST) {

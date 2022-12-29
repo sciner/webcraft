@@ -32,7 +32,7 @@ export default class style {
         if(!for_physic) {
             aabb.pad(1/500);
         }
-        return [aabb];
+        return [aabb]
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

@@ -19,28 +19,28 @@ export default class style {
     }
     
     static computeAABB(block, for_physic) {
-        if (for_physic) {
-            return [];
+        const shapes = []
+        if(for_physic) {
+            return shapes
         }
-        const facets = [];
         if(block.extra_data) {
             if (block.extra_data.north) {
-                facets.push(new AABB().set(0, 0, 0.94, 1, 1, 1));
+                shapes.push(new AABB(0, 0, 0.94, 1, 1, 1))
             }
             if (block.extra_data.south) {
-                facets.push(new AABB().set(0, 0, 0, 1, 1, 0.06));
+                shapes.push(new AABB(0, 0, 0, 1, 1, 0.06))
             }
             if (block.extra_data.west) {
-                facets.push(new AABB().set(0, 0, 0, 0.06, 1, 1));
+                shapes.push(new AABB(0, 0, 0, 0.06, 1, 1))
             }
             if (block.extra_data.east) {
-                facets.push(new AABB().set(0.94, 0, 0, 1, 1, 1));
+                shapes.push(new AABB(0.94, 0, 0, 1, 1, 1))
             }
             if (block.extra_data.up) {
-                facets.push(new AABB().set(0, 0, 0, 1, 0.06, 1));
+                shapes.push(new AABB(0, 0, 0, 1, 0.06, 1))
             }
         }
-        return facets;
+        return shapes
     }
 
     // Build function

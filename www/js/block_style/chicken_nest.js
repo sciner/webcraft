@@ -22,7 +22,7 @@ export default class style {
     static computeAABB(block, for_physic) {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 0.13, 1);
-        return [aabb];
+        return [aabb]
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

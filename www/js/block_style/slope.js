@@ -22,13 +22,9 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['slope'],
-            func: this.func,
-            aabb: this.computeAABB
+            func: style.func,
+            aabb: stairs_style.computeAABB
         };
-    }
-
-    static computeAABB(block, for_physic) {
-        return [new AABB().set(0, 0, 0, 1, 1, 1)];
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {

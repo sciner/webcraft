@@ -26,18 +26,7 @@ export default class style {
         if (block?.extra_data?.is_head) {
             aabb.translate(0, -1, 0);
         }
-        return [aabb];
-        /*
-        const cd = block.getCardinalDirection();
-        const aabbs = [];
-        if (!block?.extra_data?.is_head) {
-            aabbs.push(new AABB().set(0.125, 0, 0.0625, 0.875, 0.69, 0.938).rotate(cd, pivot));
-            aabbs.push(new AABB().set(0.120, 0.69, 0.0625, 0.88, 1, 0.19).rotate(cd, pivot));
-        } else {
-            aabbs.push(new AABB().set(0.120, 0, 0.0625, 0.88, 0.64, 0.19).rotate(cd, pivot));
-        }
-        return aabbs;
-        */
+        return [aabb]
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

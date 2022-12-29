@@ -12,7 +12,10 @@
         {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "fence", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "pot", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -20,7 +23,7 @@
             "name": "BB_TORCH",
             "sound": "madcraft:block.wood",
             "_inventory_style": "extruder",
-            "inventory": {
+            "__inventory": {
                 "style": "bbmodel",
                 "texture": {
                     "id": "default",
@@ -55,12 +58,82 @@
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
                 "particles": [
                     {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]},
-                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.75}]}
+                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.25}]}
                 ]
             },
             "texture": {
                 "id": "torch",
                 "side": "block/torch.png"
+            }
+        },
+        {
+            "id": 1351,
+            "name": "BB_OAK_FENCE",
+            "sound": "madcraft:block.wood",
+            "style": "bbmodel",
+            "transparent": true,
+            "spawnable": false,
+            "material": {
+                "id": "wood"
+            },
+            "bb": {
+                "model": "fence",
+                "behavior": "fence"
+            },
+            "tags":[
+                "no_drop_ao"
+            ],
+            "texture": {
+                "id": "fence",
+                "side": "block/oak_fence.png"
+            }
+        },
+        {
+            "id": 1352,
+            "name": "BB_FLOWER_POT",
+            "style": "bbmodel",
+            "sound": "madcraft:block.stone",
+            "transparent": true,
+            "mining_time": 0,
+            "extra_data": {"item_id": null},
+            "tags": [
+                "pot",
+                "no_drop_ao"
+            ],
+            "material": {
+                "id": "stone"
+            },
+            "bb": {
+                "model": "pot",
+                "behavior": "pot"
+            },
+            "texture": {
+                "id": "pot",
+                "side": "block/flower_pot.png",
+                "down": "block/dirt.png"
+            }
+        },
+        {
+            "id": 1353,
+            "name": "BB_OAK_STAIRS",
+            "style": "bbmodel",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "stairs"
+            ],
+            "bb": {
+                "model": "stairs",
+                "behavior": "stairs",
+                "_rotate": {"type": "cardinal_direction"}
+            },
+            "texture": {
+                "id": "stairs",
+                "side": "block/oak_planks.png"
             }
         }
     ],
