@@ -6,6 +6,9 @@ import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } fr
 import { Label, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
+
 export class CraftTableSlot extends Label {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
@@ -590,11 +593,18 @@ export class ArmorSlot extends CraftTableInventorySlot {
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
         // Custom drawing
         this.onMouseEnter = function(e) {
-            this.style.background.color = '#ffffff55';
+            const dragItem = Qubatch.hud.wm.drag.getItem();
+            if (!dragItem || this.isValidDragItem(dragItem)) {
+                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED;
+            }
         }
 
-        this.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
+        const origOnMouseDown = this.onMouseDown.bind(this);
+
+        // Make the slot instantly highlighted when we take the item from it
+        this.onMouseDown = function(e) {
+            origOnMouseDown(e);
+            this.onMouseEnter(e);
         }
 
         /*
@@ -631,17 +641,19 @@ export class ArmorSlot extends CraftTableInventorySlot {
         const origOnDrop = this.onDrop.bind(this);
 
         this.onDrop = function(e) {
-            const dropData = e.drag.getItem();
-            if(!dropData) {
-               return;
+            const dragItem = e.drag.getItem();
+            if(this.isValidDragItem(dragItem)) {
+                return origOnDrop(e);
             }
-            const mat = BLOCK.fromId(dropData.item.id)
-            if(mat?.item?.name != 'armor' || (mat.armor.slot != this.slot_index)) {
-                return;
-            }
-            return origOnDrop(e)
         }
+    }
 
+    isValidDragItem(dragItem) {
+        if(!dragItem) {
+            return false;
+        }
+        const mat = BLOCK.fromId(dragItem.item.id);
+        return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index);
     }
     
     draw(ctx, ax, ay) {
@@ -653,7 +665,8 @@ export class ArmorSlot extends CraftTableInventorySlot {
             let y = ay + this.y;
             let w = this.width;
             let h = this.height;
-            ctx.fillStyle = '#8f8d88ff';
+            ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+                ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
             ctx.fillRect(x, y, w, h);
         }
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
