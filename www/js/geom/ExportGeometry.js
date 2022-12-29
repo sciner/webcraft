@@ -4,14 +4,14 @@ import {QUAD_FLAGS} from "../helpers.js";
 
 export class BaseExportGeometry {
     constructor({
-        vertexStrideFloats,
-        instanceStrideFloats
-    }) {
+                    vertexStrideFloats,
+                    instanceStrideFloats
+                }) {
         this.vertexStrideFloats = vertexStrideFloats;
         this.instanceStrideFloats = instanceStrideFloats;
         this.pool = new Worker05GeometryPool(null, {
             pageSize: 256,
-            pageCount: 100,
+            pageCount: 0,
             instanceSize: this.instanceStrideFloats,
         });
         this.size = 0;
@@ -27,7 +27,7 @@ export class BaseExportGeometry {
         for (let i = 0; i < pages.length; i++) {
             if (pages[i].filled === pages[i].sizeQuads) {
                 bigData.set(pages[i].data, ind * stride);
-            } if (pages[i].filled > 0) {
+            } else if (pages[i].filled > 0) {
                 bigData.set(pages[i].data.slice(0, pages[i].filled * stride), ind * stride);
             }
             ind += pages[i].filled;
@@ -51,6 +51,10 @@ export class BaseExportGeometry {
         this.lastPage = lastPage;
     }
 }
+
+const quadData = new Float32Array([
+    -.5, -.5, .5, -.5, .5, .5, -.5, .5
+]);
 
 export class ExportGeometry16 extends BaseExportGeometry {
     static options = {
@@ -84,9 +88,13 @@ export class ExportGeometry16 extends BaseExportGeometry {
             const dy1 = srcBuf[srcOffset + 7];
             const dz1 = srcBuf[srcOffset + 8];
 
-            const nx = dy0 * dz1 - dy1 * dz0;
-            const ny = dz0 * dx1 - dz1 * dx0;
-            const nz = dx0 * dy1 - dx1 * dy0;
+            let nx = dy0 * dz1 - dy1 * dz0;
+            let ny = dz0 * dx1 - dz1 * dx0;
+            let nz = dx0 * dy1 - dx1 * dy0;
+            const ndist = Math.hypot(nx, ny, nz);
+            nx /= ndist;
+            ny /= ndist;
+            nz /= ndist;
 
             const cu = srcBuf[srcOffset + 9];
             const cv = srcBuf[srcOffset + 10];
@@ -99,8 +107,14 @@ export class ExportGeometry16 extends BaseExportGeometry {
             // tangent
             let tx = dx0, ty = dy0, tz = dz0, tw = su * sv > 0 ? 1 : -1;
             if (su < 0) {
-                tx = -tx; ty = -ty; tz = -tz;
+                tx = -tx;
+                ty = -ty;
+                tz = -tz;
             }
+            let tdist = Math.hypot(tx, ty, tz);
+            tx /= tdist;
+            ty /= tdist;
+            tz /= tdist;
 
             if ((flags & QUAD_FLAGS.FLAG_MIR2_TEX) !== 0) {
                 // implement triangle rotate
@@ -114,13 +128,11 @@ export class ExportGeometry16 extends BaseExportGeometry {
                 color_mul = palette.buf[color_B * palette.width + color_R];
             }
 
-            const quadData = GeometryTerrain.quadBuf.data;
-
             for (let vert = 0; vert < 4; vert++) {
                 const s = quadData[vert * 2], t = quadData[vert * 2 + 1];
-                let x = cx + s * dx0 + t * dx0;
-                let y = cy + s * dy0 + t * dy0;
-                let z = cz + s * dz0 + t * dz0;
+                let x = cx + s * dx0 + t * dx1;
+                let y = cy + s * dy0 + t * dy1;
+                let z = cz + s * dz0 + t * dz1;
 
                 dstBuf[dstOffset + 0] = x;
                 dstBuf[dstOffset + 1] = y;
@@ -149,7 +161,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
 
     innerConvertFluid = (dstPage, dstOffset, srcPage, srcOffset, count) => {
         const {vertexStrideFloats, instanceStrideFloats} = this.options;
-        const { palette } = this;
+        const {palette} = this;
         const srcBuf = srcPage.data;
         const srcUint = srcPage.uint32Data;
         const dstBuf = dstPage.data;
@@ -184,7 +196,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
             this.innerConvertPage(geom, this.innerConvertTerrain);
         }
         this.currentChunk = null;
-   }
+    }
 
     pushFluidGeom(geom, chunk) {
         this.currentChunk = chunk;
@@ -214,14 +226,14 @@ export class ExportGeometry16 extends BaseExportGeometry {
         }
 
         this.attributes = [
-            {name: "POSITION", size: 3, json: Object.assign({ type: "VEC3"}, base) },
-            {name: "NORMAL", size: 3, json: Object.assign({ type: "VEC3"}, base) },
-            {name: "TANGENT", size: 4, json: Object.assign({ type: "VEC4"}, base) },
-            {name: "TEXCOORD_0", size: 2, json: Object.assign({ type: "VEC2"}, base) },
-            {name: "COLOR_0", size: 1, json: Object.assign({ type: "VEC4"}, norm) },
-            {name: "COLOR_1", size: 1, json: Object.assign({ type: "VEC4"}, norm) },
-            {name: "_FLAGS", size: 1, json: Object.assign({ type: "SCALAR"}, norm) },
-            {name: "_CHUNK_ID", size: 1, json: Object.assign({ type: "SCALAR"}, norm) },
+            {name: "POSITION", size: 3, json: Object.assign({type: "VEC3"}, base)},
+            {name: "NORMAL", size: 3, json: Object.assign({type: "VEC3"}, base)},
+            {name: "TANGENT", size: 4, json: Object.assign({type: "VEC4"}, base)},
+            {name: "TEXCOORD_0", size: 2, json: Object.assign({type: "VEC2"}, base)},
+            {name: "COLOR_0", size: 1, json: Object.assign({type: "VEC4"}, norm)},
+            {name: "COLOR_1", size: 1, json: Object.assign({type: "VEC4"}, norm)},
+            {name: "_FLAGS", size: 1, json: Object.assign({type: "SCALAR"}, base)},
+            {name: "_CHUNK_ID", size: 1, json: Object.assign({type: "SCALAR"}, base)},
         ]
     }
 }

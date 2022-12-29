@@ -202,7 +202,7 @@ export class ChunkExporter {
             indices[j++] = i * 4 + 3;
         }
 
-        bvData.data = indices.buffer;
+        bvData.data = new Uint8Array(indices.buffer);
         bvData.json.target = WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER;
     }
 
@@ -213,7 +213,7 @@ export class ChunkExporter {
 
         for (let i = 0; i < geom.attributes.length; i++) {
             const attr = Object.assign({start, stride: geom.vertexStrideFloats}, geom.attributes[i]);
-            attr.json = Object.assign({byteOffset: start * 4, count, bufferView: bvData.index, min: [0], max: [1]}, attr.json)
+            attr.json = Object.assign({byteOffset: start * 4, count, bufferView: bvData.index, min: [0, 0, 0, 0], max: [255, 255, 255, 255]}, attr.json)
             start += attr.size;
             primitiveAttributes[attr.name] = ind++;
             this.accessors.push(attr);
