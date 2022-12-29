@@ -52,6 +52,7 @@ export class CraftTable extends BaseCraftWindow {
         // onShow
         this.onShow = function() {
             Qubatch.releaseMousePointer();
+            this.setHelperSlots(null);
         }
 
         // Ширина / высота слота
@@ -65,6 +66,9 @@ export class CraftTable extends BaseCraftWindow {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(246 * this.zoom, 68 * this.zoom);
+        
+        // слоты (лабел) для подсказок
+        this.addHelpSlots();
 
         // Обработчик закрытия формы
         this.onHide = function() {
@@ -128,6 +132,7 @@ export class CraftTable extends BaseCraftWindow {
             let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
+            this.setHelperSlots(null);
         }
         ct.add(btnRecipes);
     }

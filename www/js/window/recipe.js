@@ -1,83 +1,12 @@
 import {BLOCK} from "../blocks.js";
-import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import {Resources} from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
-
-class HelpSlot extends Label {
-
-    constructor(x, y, sz, id, ct) {
-        super(x, y, sz, sz, id, null, null);
-        this.ct = ct;
-        this.item = null;
-        this.z = 1000;
-    }
-    
-    setItem(id) {
-        this.item = id;
-    }
-    
-    //
-    get tooltip() {
-        let resp = null;
-        if(this.item) {
-            const block = BLOCK.fromId(this.item_id);
-            if(block) {
-                resp = block.name.replaceAll('_', ' ') + ` (#${this.item_id})`;
-            }
-        }
-        return resp;
-    }
-    
-    // Draw slot
-    draw(ctx, ax, ay) {
-        if (this.ct.craft_window.lblResultSlot.item || !this.item) {
-            return;
-        }
-        this.applyStyle(ctx, ax, ay);
-        this.style.background.color = this.item ? '#ff000055' : '#ff000000';
-        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
-        super.draw(ctx, ax, ay);
-    }
-
-    // Draw item
-    drawItem(ctx, item, x, y, width, height) {
-        
-        const image = Qubatch.player.inventory.inventory_image;
-
-        if(!image || !item) {
-            return;
-        }
-        
-        const size = image.width;
-        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
-        const zoom = this.zoom;
-        const mat = BLOCK.fromId(item);
-
-        ctx.imageSmoothingEnabled = true;
-
-        // 1. Draw icon
-        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 40 * zoom;
-        ctx.drawImage(
-            image,
-            icon.x,
-            icon.y,
-            icon.width,
-            icon.height,
-            x + width / 2 - dest_icon_size / 2,
-            y + height / 2 - dest_icon_size / 2,
-            dest_icon_size,
-            dest_icon_size
-        );
-    }
-
-}
 
 export class RecipeSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, recipe, block, ct) {
         super(x, y, w, h, id, title, text);
-        this.z = 1000;
         //
         this.recipe = recipe;
         this.block = block;
@@ -94,18 +23,9 @@ export class RecipeSlot extends Window {
             this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
         }
         this.onMouseDown = function(e) {
+            this.ct.craft_window.setHelperSlots(null);
             if(!this.can_make) {
-                const size = this.ct.craft_window.area.size.width;
-                const adapter = e.target.recipe.adaptivePattern[size];
-                console.log(e.target.recipe)
-                if (adapter) {
-                    const s = size * size;
-                    for (let i = 0; i < s; i++) {
-                        this.ct.help_slots[i].setItem((i < adapter.array_id.length) ? adapter.array_id[i] : null);
-                    }
-                } else {
-                    this.ct.clearHelpSlots();
-                }
+                this.ct.craft_window.setHelperSlots(e.target.recipe);
                 return;
             }
             for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
@@ -160,7 +80,7 @@ export class RecipeSlot extends Window {
 
         // 
         if('inventory_icon_id' in item) {
-            let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
+            const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
             const dest_icon_size = 32 * this.zoom;
             ctx.drawImage(
                 inventory_image,
@@ -197,10 +117,24 @@ export class RecipeWindow extends Window {
 
         // Get window by ID
         const ct = this;
+        
+        const options = {
+            background: {
+                image: './media/gui/recipe_book.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 0,
+                    y: 0,
+                    width: 592,
+                    height: 668
+                }
+            }
+        };
+        ct.style.background = {...ct.style.background, ...options.background};
         ct.style.background.color = '#00000000';
-        ct.style.background.image_size_mode = 'stretch';
         ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/form-recipe.png');
+        ct.setBackground(options.background.image);
         ct.hide();
 
         let items_count = this.recipe_manager.crafting_shaped.grouped.length;
@@ -234,14 +168,12 @@ export class RecipeWindow extends Window {
         this.onShow = () => {
             // Создание слотов
             this.createRecipes(this.cell_size);
-            this.addHelpSlots();
             this.paginator.update();
         };
 
         this.addPaginatorButtons();
         
-        
-
+        this.addFinder();
     }
 
     // Запоминаем какое окно вызвало окно рецептов
@@ -278,24 +210,31 @@ export class RecipeWindow extends Window {
         ct.add(btnNext);
     }
     
-    addHelpSlots() {
-        const size = 3;//this?.craft_window?.area?.size?.width;
-        console.log(this.craft_window);
-        this.help_slots = [];
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
-                const slot = new HelpSlot((354 + 36 * j) * this.zoom, (36 - 36 * (2 - i)) * this.zoom, 31 * this.zoom, 'fake_' + i + '_' + j, this);
-                this.help_slots.push(slot);
-                this.add(slot);
-            }
-        }
+    addFinder() {
+        // Text editor
+        const txtSearch = new TextEdit(
+            50 * this.zoom,
+            26 * this.zoom,
+            110 * this.zoom,
+            22 * this.zoom,
+            'txtSearch1',
+            null,
+            'Type for search'
+        );
+        txtSearch.word_wrap              = false;
+        txtSearch.focused                = true;
+        txtSearch.max_length             = 100;
+        txtSearch.max_lines              = 1;
+        txtSearch.max_chars_per_line     = 20;
+        // style
+        txtSearch.style.color            = '#fff';
+        txtSearch.style.border.hidden    = true;
+        txtSearch.style.border.style     = 'inset';
+        txtSearch.style.font.size        *= this.zoom;
+        txtSearch.style.background.color = '#706f6cff';
+        this.add(txtSearch);
     }
     
-    clearHelpSlots() {
-        for (const slot of this.help_slots) {
-            slot.setItem(null);
-        }
-    }
 
     /**
     * Создание слотов

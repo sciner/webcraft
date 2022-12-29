@@ -482,7 +482,7 @@ export class Window {
                 visible_windows.push(w);
             }
         }
-        visible_windows.sort((a, b) => b.z - a.z);
+        visible_windows.sort((a, b) => a.z - b.z);
         for(let w of visible_windows) {
             let old_hover = w.hover;
             w.hover = false;
@@ -508,7 +508,7 @@ export class Window {
             }
         }
         if(entered.length + leaved.length > 0) {
-            // console.log(entered.length, leaved.length, entered[0]);
+             //console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
                 //if(entered[0]?.tooltip) {
                     // @todo possible bug

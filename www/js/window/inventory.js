@@ -1,5 +1,5 @@
 import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
+import {BaseCraftWindow, CraftTableRecipeSlot, HelpSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE } from "../constant.js";
@@ -73,10 +73,14 @@ export class InventoryWindow extends BaseCraftWindow {
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom);
         
+        // слоты (лабел) для подсказок
+        this.addHelpSlots();
+        
         // Обработчик открытия формы
         this.onShow = function() {
             Qubatch.releaseMousePointer();
             this.previewSkin();
+            this.setHelperSlots(null);
         }
 
         // Обработчик закрытия формы
@@ -218,6 +222,7 @@ export class InventoryWindow extends BaseCraftWindow {
             let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
+            this.setHelperSlots(null);
         }
         ct.add(btnRecipes);
     }
@@ -277,5 +282,5 @@ export class InventoryWindow extends BaseCraftWindow {
     getSlots() {
         return this.inventory_slots;
     }
-
+    
 }

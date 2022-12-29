@@ -7,6 +7,72 @@ import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } fr
 import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
+export class HelpSlot extends Label {
+
+    constructor(x, y, sz, id, ct) {
+        super(x, y, sz, sz, id, null, null);
+        this.ct = ct;
+        this.item = null;
+    }
+    
+    setItem(id) {
+        this.item = id;
+    }
+    
+    //
+    get tooltip() {
+        let resp = null;
+        if(this.item) {
+            const block = BLOCK.fromId(this.item);
+            if(block) {
+                resp = block.name.replaceAll('_', ' ') + ` (#${this.item})`;
+            }
+        }
+        return resp;
+    }
+    
+    // Draw slot
+    draw(ctx, ax, ay) {
+        this.applyStyle(ctx, ax, ay);
+        this.style.background.color = this.item ? '#ff000022' : '#ff000000';
+        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
+        super.draw(ctx, ax, ay);
+    }
+
+    // Draw item
+    drawItem(ctx, item, x, y, width, height) {
+        
+        const image = Qubatch.player.inventory.inventory_image;
+
+        if(!image || !item) {
+            return;
+        }
+        
+        const size = image.width;
+        const frame = size / INVENTORY_ICON_COUNT_PER_TEX;
+        const zoom = this.zoom;
+        const mat = BLOCK.fromId(item);
+
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. Draw icon
+        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+        const dest_icon_size = 40 * zoom;
+        ctx.drawImage(
+            image,
+            icon.x,
+            icon.y,
+            icon.width,
+            icon.height,
+            x + width / 2 - dest_icon_size / 2,
+            y + height / 2 - dest_icon_size / 2,
+            dest_icon_size,
+            dest_icon_size
+        );
+    }
+
+}
+
 export class CraftTableSlot extends Label {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
@@ -677,6 +743,36 @@ export class BaseCraftWindow extends Window {
             }
         } catch(e) {
             debugger
+        }
+    }
+    
+    // слоты помощи в крафте
+    addHelpSlots() {
+        const size = this.area.size.width;
+        const sx = size == 2 ? 195 : 59;
+        this.help_slots = [];
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (36 + 36 * i) * this.zoom, 31 * this.zoom, 'help_' + i + '_' + j, this);
+                this.help_slots.push(slot);
+                this.add(slot);
+            }
+        }
+    }
+    
+    // eпоказываем помощь
+    setHelperSlots(recipe) {
+        const size = this.area.size.width;
+        for (let i = 0; i < size * size; i++) {
+            this.help_slots[i].setItem(null);
+        }
+        if (recipe) {
+            const adapter = recipe.adaptivePattern[size];
+            if (adapter) {
+                for (let i = 0; i < adapter.array_id.length; i++) {
+                    this.help_slots[i + adapter.start_index].setItem(adapter.array_id[i]);
+                }
+            }
         }
     }
 
