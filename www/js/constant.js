@@ -37,7 +37,8 @@ export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
 // It's added to the value above on the server.
 // If a player is farther away, the chest interaction is not accepted.
 // A client is expected to close the window before that.
-// It's only against cheaters who try to interact over huge distance.
+// It serves 2 purposes: against cheaters who try to interact over huge distance,
+// and to have a margin of safety ehn checking one half of a double chest in sendChestToPlayers()
 export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)

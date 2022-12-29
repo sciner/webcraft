@@ -194,6 +194,7 @@ export class BLOCK {
     static MASK_COLOR_BLOCKS        = [];
     static SOLID_BLOCK_ID           = [];
     static TICKING_BLOCKS           = new Map();
+    static BLOCK_BY_ID              = [];
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -383,8 +384,8 @@ export class BLOCK {
         if(extra_data && 'facing' in extra_data) {
             extra_data.facing = BLOCK.getFacing(orientation.x);
         }
-        // is_chest
-        if(block.is_chest) {
+        // chest
+        if(block.chest) {
             setExtra('can_destroy', true);
             setExtra('slots', {});
         }
@@ -673,9 +674,14 @@ export class BLOCK {
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
         block.is_banner         = block.model_name == 'banner';
-        // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
-        block.is_chest          = block.chest_slots > 0;
-        block.readonly_chest_slots = block.readonly_chest_slots || 0;
+        if (block.chest) {
+            /* Properties:
+                slots: Int
+                readonly_slots: Int (default 0)
+                private: Boolean (default false)
+            */
+            block.chest.readonly_slots = block.chest.readonly_slots || 0;
+        }
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent)) || ['BUBBLE_COLUMN'].includes(block.name);
         block.transmits_light   = !block.is_dirt & (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
         // не переносить!

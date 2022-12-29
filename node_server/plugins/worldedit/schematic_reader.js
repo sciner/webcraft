@@ -98,7 +98,7 @@ export class SchematicReader {
                 if(!new_block) {
                     // read entity props
                     let readEntityProps = false;
-                    if(b.is_chest) {
+                    if(b.chest) {
                         readEntityProps = true;
                     } else if(b.is_sign) {
                         readEntityProps = true;
@@ -234,7 +234,7 @@ export class SchematicReader {
         if(b.item || b.model_name == 'extruder' || b.model_name == 'text') {
             return null;
         }
-        if(b.is_chest) {
+        if(b.chest) {
             new_block.extra_data = this.parseChestPropsExtraData(props);
         } else if(b.tags.includes('sign')) {
             new_block.extra_data = new_block.extra_data || null;
@@ -251,7 +251,7 @@ export class SchematicReader {
         };
         // block entities
         if(block.entities) {
-            if(b.is_chest) {
+            if(b.chest) {
                 const chest_extra_data = this.parseChestExtraData(block.entities, props);
                 if(chest_extra_data) {
                     new_block.extra_data = chest_extra_data;

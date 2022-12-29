@@ -7,8 +7,9 @@ import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_S
     CHEST_INTERACTION_MARGIN_BLOCKS
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
-    INVENTORY_CHANGE_CLEAR_DRAG_ITEM } from "../inventory.js";
-import { ChestHelpers } from "../block_helpers.js"
+    INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
+import { ChestHelpers, isBlockRoughlyWithinPickatRange } from "../block_helpers.js"
+import { Lang } from "../lang.js";
 
 export class BaseChestWindow extends Window {
 
@@ -24,7 +25,7 @@ export class BaseChestWindow extends Window {
         this.world      = inventory.player.world;
         this.server     = this.world.server;
         this.inventory  = inventory;
-        this.loading    = false;
+        this.firstLoading  = false;
         this.secondLoading = false;
 
         // Get window by ID
@@ -45,12 +46,15 @@ export class BaseChestWindow extends Window {
         
         this.lastChange = {
             type: INVENTORY_CHANGE_NONE,
-            // the slots are ignored when (type == INVENTORY_CHANGE_CLEAR_DRAG_ITEM)
+            // the slots are ignored when (type == INVENTORY_CHANGE_CLOSE_WINDOW)
             slotIndex: -1,
             slotInChest: false,
             slotPrevItem: null,
-            dragPrevItem: null
+            dragPrevItem: null,
+            prevInventory: null
         }
+        // A random number. If it's null, no confirmation is reqested when closing.
+        this.chestSessionId = null;
 
         this.blockModifierListener = (tblock) => {
             // If a chest was removed by the server
@@ -58,12 +62,13 @@ export class BaseChestWindow extends Window {
                 this.secondInfo && this.secondInfo.pos.equal(tblock.posworld) && 
                 tblock.id !== this.secondInfo.block_id
             ) {
-                this.hide(); // It also takes care of the dragged item.
+                this.hideAndSetupMousePointer(); // It also takes care of the dragged item.
             }
         };
 
         // Обработчик открытия формы
         this.onShow = function() {
+            this.chestSessionId = Math.random();
             this.lastChange.type = INVENTORY_CHANGE_NONE;
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
@@ -75,11 +80,13 @@ export class BaseChestWindow extends Window {
 
         // Обработчик закрытия формы
         this.onHide = function() {
-            this.lastChange.type = INVENTORY_CHANGE_CLEAR_DRAG_ITEM;
-            // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
-            // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
-            this.inventory.clearDragItem(true);
-            this.confirmAction();
+            if (this.chestSessionId != null) { // if the closing wasn't forced by the server
+                this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW;
+                // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
+                // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
+                this.inventory.clearDragItem(true);
+                this.confirmAction();
+            }
             if(options.sound.close) {
                 Qubatch.sounds.play(options.sound.close.tag, options.sound.close.action);
             }
@@ -94,6 +101,13 @@ export class BaseChestWindow extends Window {
         // Add listeners for server commands
         this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
             this.setData(cmd.data);
+        });
+
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_FORCE_CLOSE], (cmd) => {
+            if (this.visible && cmd.data.chestSessionId === this.chestSessionId) {
+                this.chestSessionId = null; // it prevents sending the closing request
+                this.hideAndSetupMousePointer();
+            }
         });
 
         // Add close button
@@ -121,12 +135,7 @@ export class BaseChestWindow extends Window {
                 case KEY.E:
                 case KEY.ESC: {
                     if(!down) {
-                        ct.hide();
-                        try {
-                            Qubatch.setupMousePointer(true);
-                        } catch(e) {
-                            console.error(e);
-                        }
+                        ct.hideAndSetupMousePointer();
                     }
                     return true;
                 }
@@ -163,6 +172,7 @@ export class BaseChestWindow extends Window {
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
+            lastChange.prevInventory = JSON.parse(JSON.stringify(Qubatch.player.inventory.items));
         }
 
         //
@@ -207,12 +217,14 @@ export class BaseChestWindow extends Window {
             return res;
         }
 
-        if (this.lastChange.type === INVENTORY_CHANGE_NONE) {
-            // We know that there is no change - a user action was analyzed and it does nothing.
+        if (this.lastChange.type === INVENTORY_CHANGE_NONE ||
+            this.lastChange.type === INVENTORY_CHANGE_SLOTS && !this.lastChange.slotInChest
+        ) {
             return;
         }
         // Here there may or may not be some change, described by this.lastChange or not.
         const params = {
+            chestSessionId:  this.chestSessionId,
             chest:           extractOneChest(true, this.info),
             inventory_slots: new Array(this.inventory.items.length),
             change:          { ...this.lastChange }
@@ -230,6 +242,8 @@ export class BaseChestWindow extends Window {
         }
         // Send to server
         this.server.ChestConfirm(params);
+        // Forget the previous inventory. If there are no changes, it won't be sent next time.
+        this.lastChange.prevInventory = null;
     }
 
     draw(ctx, ax, ay) {
@@ -237,22 +251,53 @@ export class BaseChestWindow extends Window {
         super.draw(ctx, ax, ay);
     }
 
+    get loading() {
+        return this.firstLoading || this.secondLoading;
+    }
+
     // Запрос содержимого сундука
     load(info, secondInfo = null) {
         let that = this;
-        this.lbl1.setText('LOADING...');
+        this.lbl1.setText(Lang['chest_loading']);
         this.clear();
+
+        // analyze the 1st chest
         this.info = info;
-        this.loading = true;
-        this.server.LoadChest(info);
+        const firstBlock = this.world.getBlock(info.pos);
+        this.firstLoading = firstBlock.material.chest.private;
+
+        // analyze an load the 2nd chest
         this.secondInfo = secondInfo;
-        this.secondLoading = secondInfo != null;
+        this.secondLoading = false;
         if (secondInfo) {
-            this.server.LoadChest(secondInfo);
+            const secondBlock = this.world.getBlock(secondInfo.pos);
+            this.secondLoading = secondBlock.chest.private;
+            if (this.secondLoading) {
+                this.server.LoadChest(secondInfo);
+            } else {
+                this.setLocalData(secondBlock);
+            }
         }
+
+        // load the 1st chest after the 2nd one was analyzed, so we "loading" getter works correctly
+        if (this.firstLoading) {
+            this.server.LoadChest(info);
+        } else {
+            this.setLocalData(firstBlock);
+        }
+
         setTimeout(function() {
             that.show();
         }, 50);
+    }
+
+    setLocalData(tblock) {
+        // see WorldChestManager.sendContentToPlayers()
+        this.setData({
+            pos:            tblock.posworld,
+            slots:          tblock.extra_data.slots,
+            state:          tblock.extra_data.state
+        });
     }
 
     // Пришло содержимое сундука от сервера
@@ -261,9 +306,9 @@ export class BaseChestWindow extends Window {
             return;
         }
         var isFirst = false;
-        const wasLoading = this.loading || this.secondLoading;
+        const wasLoading = this.loading;
         if (this.info.pos.equal(chest.pos)) {
-            this.loading = false;
+            this.firstLoading = false;
             this.state = chest?.state || null;
             isFirst = true;
         } else if (this.secondInfo && this.secondInfo.pos.equal(chest.pos)) {
@@ -273,8 +318,11 @@ export class BaseChestWindow extends Window {
             return;
         }
         //
-        if (wasLoading && !this.loading && !this.secondLoading) {
-            this.inventory.player.stopAllActivity();
+        if (!this.loading) {
+            if (wasLoading) {
+                // do we really need it?
+                this.inventory.player.stopAllActivity();
+            }
             this.lbl1.setText(this.options.title);
         }
         // copy data slots to the UI slots
@@ -310,8 +358,9 @@ export class BaseChestWindow extends Window {
     }
 
     /**
-    * Create chest slots
-    * @param int sz Ширина / высота слота
+    * Creates chest slots.
+    * @param {Array} slots_info - the array of {x, y} objects - slot positions on
+    *   the screen. It's the value retuned by {@link prepareSlots}
     */
     createSlots(slots_info) {
         const ct = this;
@@ -325,16 +374,15 @@ export class BaseChestWindow extends Window {
         };
         for(let i in slots_info) {
             const info = slots_info[i];
-            const readonly = !!info.readonly;
-            let lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null, readonly);
+            const options = {
+                readonly: info.readonly,
+                disableIfLoading: true,
+                onMouseEnterBackroundColor: '#ffffff33'
+            };
+            let lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, sz, sz,
+                'lblCraftChestSlot' + i, null, '' + i, this, null, options);
             lblSlot.index = i;
             lblSlot.is_chest_slot = true;
-            lblSlot.onMouseEnter = function() {
-                this.style.background.color = '#ffffff33';
-            }
-            lblSlot.onMouseLeave = function() {
-                this.style.background.color = '#00000000';
-            }
             this.chest.slots.push(lblSlot);
             ct.add(lblSlot);
         }
@@ -356,7 +404,8 @@ export class BaseChestWindow extends Window {
         let sx = 14 * this.zoom;
         let sy = (baseWindowH + (282 - 332))* this.zoom;
         for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
+                'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
@@ -364,7 +413,8 @@ export class BaseChestWindow extends Window {
         sx = 14 * this.zoom;
         sy = (baseWindowH + (166 - 332)) * this.zoom;
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
+                'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
@@ -376,16 +426,10 @@ export class BaseChestWindow extends Window {
 
     onUpdate() {
         super.onUpdate();
-        const maxDist = Qubatch.player.game_mode.getPickatDistance() + CHEST_INTERACTION_MARGIN_BLOCKS;
-        const eyePos = Qubatch.player.getEyePos();
-        const chestCenter = new Vector(this.info.pos).addScalarSelf(0.5, 0.5, 0.5);
-        const chestCenter2 = this.secondInfo
-            ? new Vector(this.secondInfo.pos).addScalarSelf(0.5, 0.5, 0.5)
-            : null;
-        if (eyePos.distance(chestCenter) > maxDist &&
-            (!chestCenter2 || eyePos.distance(chestCenter2) > maxDist)
+        if (!isBlockRoughlyWithinPickatRange(Qubatch.player, CHEST_INTERACTION_MARGIN_BLOCKS,
+            this.info.pos, this.secondInfo?.pos)
         ) {
-            this.hide();
+            this.hideAndSetupMousePointer();
         }
     }
 }

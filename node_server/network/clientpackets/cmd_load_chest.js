@@ -36,7 +36,7 @@ export default class packet_reader {
                     return false;
                 }
             } else {
-                await player.world.chests.sendContentToPlayers([player], pos);
+                await player.world.chests.sendContentToPlayers([player], chest);
                 return true;
             }
         }

@@ -149,14 +149,12 @@ export class CraftTable extends BaseCraftWindow {
             slots: [null, null, null, null, null, null, null, null, null]
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            const options = {
+                onMouseEnterBackroundColor: '#ffffff33'
+            };
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom), sz, sz,
+                'lblCraftRecipeSlot' + i, null, '' + i, this, null, options);
             lblSlot.is_craft_slot = true;
-            lblSlot.onMouseEnter = function() {
-                this.style.background.color = '#ffffff33';
-            }
-            lblSlot.onMouseLeave = function() {
-                this.style.background.color = '#00000000';
-            }
             ct.add(this.craft.slots[i] = lblSlot);
         }
     }

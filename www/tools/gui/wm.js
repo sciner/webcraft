@@ -454,6 +454,14 @@ export class Window {
             Qubatch.hud.prevDrawTime = 0;
         }
     }
+    hideAndSetupMousePointer() {
+        this.hide();
+        try {
+            Qubatch.setupMousePointer(true);
+        } catch(e) {
+            console.error(e);
+        }
+    }
     resetHover() {
         this.hover = false;
         for(let w of this.list.values()) {

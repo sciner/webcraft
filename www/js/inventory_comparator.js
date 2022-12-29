@@ -125,7 +125,7 @@ export class InventoryComparator {
 
     }
 
-    // compareSimpleItems...
+    // Returns true if two maps of simple items are equal.
     static compareSimpleItems(old_simple, new_simple) {
         let equal = new_simple.size == old_simple.size;
         if(equal) {
@@ -146,6 +146,62 @@ export class InventoryComparator {
         return equal;
     }
 
+    /**
+     * It creates a new array, where items from the first array are arranged exactly
+     * like in the second array.
+     * 
+     * The purpose of this method: it allows the client to as the server to
+     * freely move its inventory items, but it can't put any data drectly to
+     * the server inventory.
+     * 
+     * @param {Array} srcList - the items to be rearranged
+     * @param {Array} likeList - the items used to determine the arrangement.
+     * @returns {Array} the new list, or null if it's impossible.
+     */
+    static rearrangeLikeOtherList(srcList, likeList) {
+        // get the array of comparison keys of likeList
+        const result = [];
+        this.groupToSimpleItems(likeList, result);
+        if (srcList.length !== result.length) {
+            return null;
+        }
+
+        // get the source items grouped by key
+        const srcMap = this.groupToSimpleItems(srcList, null, true);
+
+        // replace the keys in the result with the source items
+        for (let i = 0; i < result.length; i++) {
+            const key = result[i];
+            if (key == null) {
+                continue;
+            }
+            const count = likeList[i].count;
+            if (count <= 0) {
+                return null;
+            }
+            const srcItem = srcMap.get(key);
+            if (srcItem == null) {
+                return null;
+            }
+            srcItem.count -= count;
+            if (srcItem.count < 0) {
+                return null;
+            }
+            let item;
+            if (srcItem.count) {
+                item = JSON.parse(JSON.stringify(srcItem));
+            } else {
+                // optimization: don't clone the last remaining item of this type
+                item = srcItem;
+                srcMap.delete(key);
+            }
+            item.count = likeList[i].count;
+            result[i] = item;
+        }
+        // check if the count matches
+        return srcMap.size ? null : result;
+    }
+
     // getRecipeManager
     static async getRecipeManager() {
         if(InventoryComparator.rm) {
@@ -156,15 +212,25 @@ export class InventoryComparator {
         return InventoryComparator.rm;
     }
 
-    //
-    static groupToSimpleItems(items) {
+    /**
+     * @param items
+     * @param {Array} outArrayOfKeys - if it's not null, it will return an array of keys
+     *  with the same indices as the source items.
+     * @param {Boolean} returnSourceItems - if it's true, the method return the cloned
+     *  source items with full data, instead of simple items.
+     */
+    static groupToSimpleItems(items, outArrayOfKeys = null, returnSourceItems = false) {
         const resp = new Map();
         const same_items = new Map();
+        if (outArrayOfKeys) {
+            outArrayOfKeys.length = 0;
+        }
         for(let item of items) {
             if(item) {
                 if('id' in item && 'count' in item) {
                     const b = BLOCK.fromId(item.id);
                     if(!b || b.id < 0) {
+                        outArrayOfKeys?.push(null);
                         continue;
                     }
                     const new_item = BLOCK.convertItemToInventoryItem(item, b);
@@ -173,9 +239,15 @@ export class InventoryComparator {
                     if(resp.has(key)) {
                         resp.get(key).count += new_item.count;
                     } else {
-                        resp.set(key, new_item);
+                        const mapValue = returnSourceItems ? JSON.parse(JSON.stringify(item)) : new_item;
+                        resp.set(key, mapValue);
                     }
+                    outArrayOfKeys?.push(key);
+                } else {
+                    outArrayOfKeys?.push(null);
                 }
+            } else {
+                outArrayOfKeys?.push(null);
             }
         }
         return resp;

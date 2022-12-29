@@ -129,8 +129,9 @@ export class DBWorld {
             let p1 = Math.round((performance.now() - p) * 1000) / 1000;
             p = performance.now();
             // save compressed
-            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
-                ':data_blob':  compressed,
+            await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
+                ':data_blob':  compressed.public,
+                ':private_data_blob':  compressed.private,
                 ':_rowid_':    row.rowid
             });
             let p2 = Math.round((performance.now() - p) * 1000) / 1000;
@@ -141,10 +142,21 @@ export class DBWorld {
     }
 
     //
-    async saveCompressedWorldModifyChunk(addr, compressed) {
-        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, has_data_blob) 
-          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob, 1)`, {
+    async saveCompressedWorldModifyChunk(addr, compressed, private_compressed) {
+        const row = await this.conn.get('SELECT _rowid_ AS rowid FROM world_modify_chunks WHERE x = ? AND y = ? AND z = ?', [addr.x, addr.y, addr.z]);
+        if (row) {
+            await this.conn.run(`UPDATE world_modify_chunks SET data_blob = :data_blob,
+              private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :rowid`, {
+                ':data_blob':           compressed,
+                ':private_data_blob':   private_compressed,
+                ':rowid':               row.rowid
+            });
+            return;
+        }
+        await this.conn.run(`INSERT OR REPLACE INTO world_modify_chunks (x, y, z, data, data_blob, private_data_blob, has_data_blob)
+          VALUES (:x, :y, :z, COALESCE((SELECT data FROM world_modify_chunks WHERE x = :x AND y = :y AND z = :z), NULL), :data_blob, :private_data_blob, 1)`, {
             ':data_blob':   compressed,
+            ':private_data_blob': private_compressed,
             ':x':           addr.x,
             ':y':           addr.y,
             ':z':           addr.z
@@ -430,10 +442,10 @@ export class DBWorld {
 
     // Load chunk modify list
     async loadChunkModifiers(addr) {
-        const resp = {obj: null, compressed: null};
+        const resp = {obj: null, compressed: null, private_compressed: null};
         await this.conn.each(`
                 SELECT CASE WHEN data_blob IS NULL THEN data ELSE data_blob END data,
-                    has_data_blob compressed
+                    private_data_blob, has_data_blob
                 FROM world_modify_chunks
                 WHERE x = :x AND y = :y AND z = :z`, {
             ':x': addr.x,
@@ -443,8 +455,9 @@ export class DBWorld {
             if(err) {
                 console.error(err);
             } else {
-                if(row.compressed == 1) {
+                if(row.has_data_blob) {
                     resp.compressed = row.data;
+                    resp.private_compressed = row.private_data_blob;
                 } else {
                     resp.obj = JSON.parse(row.data);
                 }
@@ -452,6 +465,10 @@ export class DBWorld {
         });
         if(resp.compressed) {
             resp.obj = decompressWorldModifyChunk(resp.compressed);
+            if (resp.private_compressed) {
+                const private_obj = decompressWorldModifyChunk(resp.private_compressed);
+                Object.assign(resp.obj, private_obj);
+            }
         }
         return resp;
     }

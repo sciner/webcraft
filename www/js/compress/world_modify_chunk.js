@@ -1,30 +1,28 @@
 import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.min.mjs';
+import { ObjectHelpers } from '../helpers.js';
+import { BLOCK } from '../blocks.js';
 
 const COL_D = '|';
 const ROW_D = '\t';
 
 const VERSION_1 = '1';
 
-/**
- * Compress chunk modifiers
- * @param {Object[]} json 
- * @param {boolean} need_to_gzip 
- * @returns 
- */
-export function compressWorldModifyChunk(json, need_to_gzip = true) {
-    let resp = [VERSION_1];
-    let prev_id = null;
-    let prev_index = null;
-    let prev_row = null;
-    for (let k in json) {
-        let item = json[k];
+class CompressedModifiersBuilder {
+    constructor() {
+        this.resp = [VERSION_1];
+        this.prev_id = null;
+        this.prev_index = null;
+        this.prev_row = null;
+    }
+
+    push(item, index) {
         let id = item.id;
-        let index = parseInt(k);
-        if (prev_id !== null) {
-            id -= prev_id;
+        if (this.prev_id !== null) {
+            id -= this.prev_id;
         }
-        if (prev_index !== null) {
-            index -= prev_index;
+        const originalIndex = index;
+        if (this.prev_index !== null) {
+            index -= this.prev_index;
         }
         let row = index + COL_D + id + COL_D;
         if (item.extra_data) {
@@ -34,21 +32,84 @@ export function compressWorldModifyChunk(json, need_to_gzip = true) {
         if (item.rotate) {
             row += JSON.stringify(item.rotate)
         };
-        if(row == prev_row) {
-            resp.push(null);
+        if(row == this.prev_row) {
+            this.resp.push(null);
         } else {
-            resp.push(row);
+            this.resp.push(row);
         }
-        prev_id = item.id;
-        prev_index = parseInt(k);
-        prev_row = row;
+        this.prev_id = item.id;
+        this.prev_index = originalIndex;
+        this.prev_row = row;
     }
-    resp = resp.join(ROW_D);
-    if(need_to_gzip) {
-        // Calling gzip method
-        resp = gzip(resp);
+
+    finish(returnEmpty, need_to_gzip) {
+        if (this.resp.length === 1 && !returnEmpty) {
+            return null;
+        }
+        let resp = this.resp.join(ROW_D);
+        if(need_to_gzip) {
+            // Calling gzip method
+            resp = gzip(resp);
+        }
+        return resp;
     }
-    return resp;
+}
+
+/**
+ * Compress chunk modifiers
+ * @param {Object[]} json 
+ * @param {boolean} need_to_gzip 
+ * @returns {Object} contains 2 fields:
+ *  "piblic" - compreseed modifiers that are sent to the client and contains:
+ *    - normal blocks;
+ *    - stripped-down versions of some special blocks, e.g. chests without slots.
+ *  "private" - optional, compreseed modifiers of special blocks with full prties.
+ */
+export function compressWorldModifyChunk(json, need_to_gzip = true) {
+    const resp          = new CompressedModifiersBuilder();
+    const private_resp  = new CompressedModifiersBuilder();
+    for (let k in json) {
+        const item = json[k];
+        const index = parseInt(k);
+        const mat = BLOCK.BLOCK_BY_ID[item.id];
+        if (mat?.chest?.private) {
+            const slots = item.extra_data?.slots;
+            if (slots) {
+                if (!ObjectHelpers.isEmpty(slots)) {
+                    private_resp.push(item, index);
+                }
+                // save to the public modifiers without slots.
+                // Delete them even if they are empty, so the client doesn't know even that.
+                delete item.extra_data.slots;
+                resp.push(item, index);
+                item.extra_data.slots = slots;
+                continue;
+            }
+        }
+        resp.push(item, index);
+    }
+    return {
+        public: resp.finish(true, need_to_gzip),
+        private: private_resp.finish(false, need_to_gzip)
+    };
+}
+
+/**
+ * If the item contains prvate fields, returns its shallow clone without such fields.
+ * Otherwise returns null.
+ */
+export function shallowCloneAndSanitizeIfPrivate(item) {
+    const mat = BLOCK.BLOCK_BY_ID[item.id];
+    if (mat?.chest?.private) {
+        const slots = item.extra_data?.slots;
+        if (slots) {
+            item = {...item};
+            item.extra_data = {...item.extra_data};
+            delete item.extra_data.slots;
+            return item;
+        }
+    }
+    return null;
 }
 
 /**

@@ -2261,6 +2261,16 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
     return matrix;
 }
 
+// maybe move other related methods here
+export class ObjectHelpers {
+    static isEmpty(obj) {
+        for (let key in obj) {
+            return false;
+        }
+        return true;
+    }
+}
+
 function toType(a) {
     // Get fine type (object, array, function, null, error, date ...)
     return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
