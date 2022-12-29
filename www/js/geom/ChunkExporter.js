@@ -46,8 +46,11 @@ export class ChunkExporter {
                     "wrapS": WEBGL_CONSTANTS.CLAMP_TO_EDGE,
                     "wrapT": WEBGL_CONSTANTS.CLAMP_TO_EDGE,
                 }
-            ]
-
+            ],
+            asset : {
+                generator : "Qubatch chunks glTF 2.0 exporter",
+                version : "2.0"
+            }
         }
         this.bufferViews = [];
         this.matMap = new Map();
@@ -224,10 +227,10 @@ export class ChunkExporter {
     }
 
     /**
-     * 
-     * @param {Vector} camPos 
-     * @param {string} name 
-     * @returns 
+     *
+     * @param {Vector} camPos
+     * @param {string} name
+     * @returns
      */
     encode(camPos = new Vector(), name) {
         // all floats will go here
@@ -326,22 +329,20 @@ export class ChunkExporter {
             view.setUint32(8, fileSize, true);
 
             let offset = GLB_HEADER_BYTES;
-            view.setUint32(offset, GLB_CHUNK_TYPE_JSON, true);
-            view.setUint32(offset + 4, jsonChunk.byteLength, true);
+            view.setUint32(offset, jsonChunk.byteLength, true);
+            view.setUint32(offset + 4, GLB_CHUNK_TYPE_JSON, true);
             offset += GLB_CHUNK_PREFIX_BYTES;
             let uint8View = new Uint8Array(fileBin);
             uint8View.set(jsonChunk, offset);
             offset += jsonChunk.byteLength;
-            view.setUint32(offset, GLB_CHUNK_TYPE_BIN, true);
             view.setUint32(offset, sz, true);
+            view.setUint32(offset + 4, GLB_CHUNK_TYPE_BIN, true);
             offset += GLB_CHUNK_PREFIX_BYTES;
             for (let i = 0; i < this.bufferViews.length; i++) {
                 uint8View.set(this.bufferViews[i].data, offset + this.bufferViews[i].json.byteOffset);
             }
             // here we have it, GLB file
-            console.log(outJson);
-            // console.log(this.bufferViews);
-            // console.log(uint8View);
+            this.reset();
             Helpers.downloadBlobPNG(new Blob([uint8View]), `${name}.glb`)
         });
     }
