@@ -199,6 +199,8 @@ export class Player {
         }, async (e) => {
             // onInterractMob
             const mob = Qubatch.world.mobs.get(e.interractMobID);
+            this.inMiningProcess = true;
+            this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
             if(mob) {
                 mob.punch(e);
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
