@@ -1,7 +1,7 @@
 import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {chunkAddrToCoord, getChunkAddr, Vector} from "../helpers.js";
+import {chunkAddrToCoord, getChunkAddr, Helpers, Vector} from "../helpers.js";
 
 export class ChunkExporter {
 
@@ -223,7 +223,13 @@ export class ChunkExporter {
         return ind;
     }
 
-    encode(camPos = new Vector()) {
+    /**
+     * 
+     * @param {Vector} camPos 
+     * @param {string} name 
+     * @returns 
+     */
+    encode(camPos = new Vector(), name) {
         // all floats will go here
         const terrain = this.terrain = new ExportGeometry16();
         terrain.palette = this.getPalette();
@@ -334,8 +340,9 @@ export class ChunkExporter {
             }
             // here we have it, GLB file
             console.log(outJson);
-            console.log(this.bufferViews);
-            console.log(uint8View);
+            // console.log(this.bufferViews);
+            // console.log(uint8View);
+            Helpers.downloadBlobPNG(new Blob([uint8View]), `${name}.glb`)
         });
     }
 }

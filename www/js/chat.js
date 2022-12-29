@@ -199,7 +199,8 @@ export class Chat extends TextBox {
                     break;
                 }
                 case '/export': {
-                    Qubatch.world.chunkManager.export.encode( Qubatch.render.camPos );
+                    const name = (temp[0] || '').trim() || Qubatch.world.info.title
+                    Qubatch.world.chunkManager.export.encode( Qubatch.render.camPos, name );
                     no_send = true;
                     break;
                 }
