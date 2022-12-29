@@ -369,7 +369,7 @@ export class ServerWorld {
             }
             // Auto spawn hostile mobs
             if(this.ticks_stat.number % 100 == 0) {
-                this.autoSpawnHostileMobs();
+               // this.autoSpawnHostileMobs();
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
             // Save fluids

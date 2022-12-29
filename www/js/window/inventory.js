@@ -1,8 +1,8 @@
-import {Button, Label} from "../../tools/gui/wm.js";
-import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
-import {BLOCK} from "../blocks.js";
+import { Button, Label } from "../../tools/gui/wm.js";
+import { ArmorSlot, BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE } from "../constant.js";
+import { INVENTORY_SLOT_SIZE, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
 import { skinview3d } from "../../vendors/skinview3d.bundle.js"
 
 const PLAYER_BOX_WIDTH = 98;
@@ -10,6 +10,11 @@ const PLAYER_BOX_HEIGHT = 140;
 
 export class InventoryWindow extends BaseCraftWindow {
 
+    /**
+     * 
+     * @param { import("../player_inventory.js").PlayerInventory } inventory
+     * @param {*} recipes 
+     */
     constructor(inventory, recipes) {
 
         super(10, 10, 352, 332, 'frmInventory', null, null);
@@ -69,6 +74,9 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // Создание слотов для инвентаря
         this.createInventorySlots(this.cell_size);
+        
+        // Создания слота для армора
+        this.createArmorSlots(this.cell_size);
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot(306 * this.zoom, 54 * this.zoom);
@@ -94,6 +102,8 @@ export class InventoryWindow extends BaseCraftWindow {
                     slot.setItem(null);
                 }
             }
+            // Update player mob model
+            this.inventory.player.updateArmor()
             // Save inventory
             Qubatch.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
 
@@ -276,6 +286,22 @@ export class InventoryWindow extends BaseCraftWindow {
 
     getSlots() {
         return this.inventory_slots;
+    }
+
+    createArmorSlots(sz) {
+        const ct = this;
+        const lblSlotHead = new ArmorSlot(16.5 * this.zoom, 16 * this.zoom, 32 * this.zoom, 39, this);
+        ct.add(lblSlotHead);
+        ct.inventory_slots.push(lblSlotHead);
+        const lblSlotChest = new ArmorSlot(16.5 * this.zoom, 52 * this.zoom, 32 * this.zoom, 38, this);
+        ct.add(lblSlotChest);
+        ct.inventory_slots.push(lblSlotChest);
+        const lblSlotLeggs = new ArmorSlot(16.5 * this.zoom, 88 * this.zoom, 32 * this.zoom, 37, this);
+        ct.add(lblSlotLeggs);
+        ct.inventory_slots.push(lblSlotLeggs);
+        const lblSlotBoots = new ArmorSlot(16.5 * this.zoom, 123 * this.zoom, 32 * this.zoom, 36, this);
+        ct.add(lblSlotBoots);
+        ct.inventory_slots.push(lblSlotBoots);
     }
 
 }

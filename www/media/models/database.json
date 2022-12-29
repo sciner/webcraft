@@ -1,5 +1,24 @@
 {
     "assets": {
+        "armor": {
+            "type": "json",
+            "geom": "json/armor.geo.json",
+            "baseSkin": "chainmail_layer_1",
+            "skins": {
+                "chainmail_layer_1": "textures/armor/chainmail_layer_1.png",
+                "chainmail_layer_2": "textures/armor/chainmail_layer_2.png",
+                "diamond_layer_1": "textures/armor/diamond_layer_1.png",
+                "diamond_layer_2": "textures/armor/diamond_layer_2.png",
+                "gold_layer_1": "textures/armor/gold_layer_1.png",
+                "gold_layer_2": "textures/armor/gold_layer_2.png",
+                "iron_layer_1": "textures/armor/iron_layer_1.png",
+                "iron_layer_2": "textures/armor/iron_layer_2.png",
+                "leather_layer_1": "textures/armor/leather_layer_1.png",
+                "leather_layer_2": "textures/armor/leather_layer_2.png",
+                "turtle_layer_1": "textures/armor/turtle_layer_1.png",
+                "netherite_layer_1": "textures/armor/netherite_layer_1.png"
+            }
+        },
 
         "goat": {
             "type": "json",
@@ -254,7 +273,8 @@
             "baseSkin": "base",
             "skins": {
                 "base": "textures/zombie/zombie.png"
-            }
+            },
+            "armor": true
         },
         "parrot": {
             "type": "json",
