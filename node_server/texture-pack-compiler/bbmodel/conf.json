@@ -12,7 +12,7 @@
         {"name": "mini_dragon", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "babochka", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "eset", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "torch", "shift": {"x": 8, "y": 0, "z": -8}}
+        {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -49,9 +49,15 @@
                 "can_set_on_wall",
                 "no_drop_ao"
             ],
-            "particles": [
-                {"type": "torch_flame", "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]}
-            ],
+            "bb": {
+                "model": "torch",
+                "behavior": "torch",
+                "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
+                "particles": [
+                    {"type": "torch_flame", "when": {"state": "floor"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.5}]},
+                    {"type": "torch_flame", "when": {"state": "wall"}, "pos": [{"x": 0.5, "y": 0.85, "z": 0.75}]}
+                ]
+            },
             "texture": {
                 "id": "torch",
                 "side": "block/torch.png"

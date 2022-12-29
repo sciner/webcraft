@@ -6,8 +6,9 @@ import { Resources } from '../resources.js';
 import { default as default_style } from '../block_style/default.js';
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 import { TBlock } from '../typed_blocks3.js';
+import { BBModel_Model } from '../bbmodel/model.js';
 
-const {mat4}    = glMatrix;
+const {mat4, vec3}    = glMatrix;
 const lm        = IndexedColor.WHITE;
 
 let models = null;
@@ -38,7 +39,11 @@ export default class style {
             return;
         }
 
-        const model = models.get(block.material.texture.id);
+        const bb = block.material.bb
+        /**
+         * @type {BBModel_Model}
+         */
+        const model = models.get(bb.model)
 
         if(!model) {
             return;
@@ -46,7 +51,65 @@ export default class style {
 
         matrix = mat4.create();
 
-        switch(block.getCardinalDirection()) {
+        style.applyBehavior(model, block, neighbours, matrix)
+
+        // const animation_name = 'walk';
+        // model.playAnimation(animation_name, performance.now() / 1000);
+        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
+
+        // Draw debug stand
+        // style.drawDebugStand(vertices, pos, lm, null);
+
+        // Add particles for block
+        style.addParticles(model, block, matrix)
+
+    }
+
+    /**
+     * @param {BBModel_Model} model 
+     * @param {TBlock} tblock 
+     * @param {*} neighbours 
+     * @param {*} matrix 
+     */
+    static applyBehavior(model, tblock, neighbours, matrix) {
+
+        const mat = tblock.material
+        const bb = mat.bb
+        const behavior = bb.behavior || bb.model
+        const rotate = tblock.rotate
+
+        model.resetBehaviorChanges()
+
+        switch(behavior) {
+            case 'torch': {
+                const on_wall = rotate && !rotate.y
+                model.setState(on_wall ? 'wall' : 'floor')
+                break
+            }
+        }
+
+        // Rotate
+        if(bb.rotate) {
+            if(!bb.rotate.when || style.checkWhen(model, tblock, bb.rotate.when)) {
+                switch(bb.rotate.type) {
+                    case 'cardinal_direction': {
+                        style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
+                        break
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * @param {BBModel_Model} model
+     * @param {*} matrix 
+     * @param {int} cd 
+     */
+    static rotateByCardinal4sides(model, matrix, cd) {
+        // model.model_rotate.set(0, cd * -(Math.PI / 2), 0)
+        switch(cd) {
             case DIRECTION.NORTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
@@ -57,40 +120,66 @@ export default class style {
                 mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
         }
-
-        // const animation_name = 'walk';
-        // model.playAnimation(animation_name, performance.now() / 1000);
-        model.draw(vertices, new Vector(x + .5, y, z + .5), lm, matrix);
-
-        // Draw debug stand
-        // style.drawDebugStand(vertices, pos, lm, null);
-
-        // Add particles for block
-        style.addParticles(block)
-
     }
 
     /**
-     * @param {TBlock} block 
+     * @param {BBModel_Model} model 
+     * @param {TBlock} tblock 
      * @returns 
      */
-    static addParticles(block) {
-        const mat = block.material
-        if(typeof worker == 'undefined' || !mat.particles) {
+    static addParticles(model, tblock, matrix) {
+        if(typeof worker == 'undefined') {
+            return
+        }
+        const mat = tblock.material
+        const particles = mat.bb?.particles
+        if(!particles) {
             return
         }
         //
-        for(let particle of mat.particles) {
-            const poses = [];
-            for(let pos of particle.pos) {
-                poses.push(block.posworld.clone().addSelf(pos))
+        for(let particle of particles) {
+            if(!particle.when || style.checkWhen(model, tblock, particle.when)) {
+                const poses = [];
+                for(let pos of particle.pos) {
+                    const p = new Vector(pos)
+                    p.x -= .5
+                    p.z -= .5
+                    let arr = p.toArray();
+                    vec3.transformMat4(arr, arr, matrix);
+                    // if(model.model_rotate.y != 0) {
+                    // }
+                    p.set(arr[0], arr[1], arr[2]);
+                    p.x += .5
+                    p.z += .5
+                    poses.push(p.addSelf(tblock.posworld))
+                }
+                worker.postMessage(['add_animated_block', {
+                    block_pos:  tblock.posworld,
+                    pos:        poses,
+                    type:       particle.type
+                }]);
             }
-            worker.postMessage(['add_animated_block', {
-                block_pos:  block.posworld,
-                pos:        poses,
-                type:       particle.type
-            }]);
         }
+    }
+
+    /**
+     * @param {BBModel_Model} model 
+     * @param {TBlock} tblock 
+     * @param {TBlock} when 
+     * @returns {boolean}
+     */
+    static checkWhen(model, tblock, when) {
+        for(let k in when) {
+            const condition_value = when[k]
+            switch(k) {
+                case 'state': {
+                    if(model.state != condition_value) {
+                        return false
+                    }
+                }
+            }
+        }
+        return true
     }
 
     // Stand

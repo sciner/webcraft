@@ -12,6 +12,7 @@ export class BBModel_Model {
 
     constructor(model) {
         this.model = model;
+        this.model_rotate = new Vector(0, 0, 0)
         this.elements = new Map();
         this.groups = new Map();
         this._group_stack = [];
@@ -273,7 +274,7 @@ export class BBModel_Model {
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
 
-        const bbGroup = new BBModel_Group(group.name, pivot, rot);
+        const bbGroup = new BBModel_Group(group.name, pivot, rot, group.visibility);
         bbGroup.updateLocalTransform();
         this.groups.set(group.name, bbGroup);
 
@@ -410,6 +411,43 @@ export class BBModel_Model {
 
         return resp;
 
+    }
+
+    /**
+     * @param {string} name 
+     */
+    hideGroup(name) {
+        const group = this.groups.get(name)
+        if(group) group.visibility = false
+    }
+
+    /**
+     * @param {string} name 
+     */
+    showGroup(name) {
+        const group = this.groups.get(name)
+        if(group) group.visibility = true
+    }
+
+    resetBehaviorChanges() {
+        // 1. reset state name
+        this.state = null
+        // 2. reset visibility
+        for(const [_, group] of this.root.children.entries()) {
+            group.visibility = group.orig_visibility
+        }
+        // 3. reset model rotate
+        this.model_rotate.set(0, 0, 0)
+    }
+
+    /**
+     * @param {string} name 
+     */
+    setState(name) {
+        this.state = name
+        for(const [_, group] of this.root.children.entries()) {
+            group.visibility = group.name == name
+        }
     }
 
 }
