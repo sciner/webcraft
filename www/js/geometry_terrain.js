@@ -77,6 +77,14 @@ export default class GeometryTerrain {
         this.customFlag = false;
     }
 
+    /**
+     * for compatibility with Worker05GeometryPage
+     * @returns {*|number}
+     */
+    get filled() {
+        return this.size;
+    }
+
     setVertices(vertices) {
         if (vertices instanceof ArrayBuffer) {
             this.data = new Float32Array(vertices);
