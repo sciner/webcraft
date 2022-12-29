@@ -5,6 +5,7 @@ import { Resources } from '../resources.js';
 
 import { default as default_style } from '../block_style/default.js';
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
+import { TBlock } from '../typed_blocks3.js';
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -64,6 +65,32 @@ export default class style {
         // Draw debug stand
         // style.drawDebugStand(vertices, pos, lm, null);
 
+        // Add particles for block
+        style.addParticles(block)
+
+    }
+
+    /**
+     * @param {TBlock} block 
+     * @returns 
+     */
+    static addParticles(block) {
+        const mat = block.material
+        if(typeof worker == 'undefined' || !mat.particles) {
+            return
+        }
+        //
+        for(let particle of mat.particles) {
+            const poses = [];
+            for(let pos of particle.pos) {
+                poses.push(block.posworld.clone().addSelf(pos))
+            }
+            worker.postMessage(['add_animated_block', {
+                block_pos:  block.posworld,
+                pos:        poses,
+                type:       particle.type
+            }]);
+        }
     }
 
     // Stand
