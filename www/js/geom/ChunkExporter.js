@@ -38,7 +38,7 @@ export class ChunkExporter {
             bufferViews: [],
             accessors: [],
             meshes: [],
-            nodes: [],
+            nodes: [{children: []}],
             samplers: [
                 {
                     "magFilter": WEBGL_CONSTANTS.NEAREST,
@@ -50,7 +50,17 @@ export class ChunkExporter {
             asset : {
                 generator : "Qubatch chunks glTF 2.0 exporter",
                 version : "2.0"
-            }
+            },
+            scene : 0,
+            scenes : [
+                {
+                    name : "Scene",
+                    nodes : [
+                        0
+                    ]
+                }
+            ],
+            buffers: [{ byteLength: 0, }]
         }
         this.bufferViews = [];
         this.matMap = new Map();
@@ -169,8 +179,8 @@ export class ChunkExporter {
     packGeom(bvData, exportGeometry) {
         const data = exportGeometry.pack();
         bvData.data = new Uint8Array(data.buffer);
-        bvData.target = WEBGL_CONSTANTS.ARRAY_BUFFER;
-        bvData.byteStride = exportGeometry.vertexStrideFloats * 4;
+        bvData.json.target = WEBGL_CONSTANTS.ARRAY_BUFFER;
+        bvData.json.byteStride = exportGeometry.vertexStrideFloats * 4;
 
         for (let i = 0; i < this.accessors.length; i++) {
             const attr = this.accessors[i];
@@ -193,7 +203,7 @@ export class ChunkExporter {
         }
 
         bvData.data = indices.buffer;
-        bvData.target = WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER;
+        bvData.json.target = WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER;
     }
 
     encodeTerrainAccessors(bvData, geom, start, count) {
@@ -257,6 +267,8 @@ export class ChunkExporter {
             if (chunk.vertices_length === 0) {
                 continue;
             }
+            let mesh = null;
+            let meshIndex = -1;
             for (let i = 0; i < chunk.verticesList.length; i++) {
                 let chunkVert = chunk.verticesList[i];
 
@@ -271,16 +283,25 @@ export class ChunkExporter {
                 const instances = (newSize - oldSize);
                 maxInstances = Math.max(instances, maxInstances);
 
-                const primitives = this.encodeTerrainAccessors(geomBvData, terrain, terrain.instanceStrideFloats * instances, instances * 4);
-                const mesh = {
-                    primitives,
+                const attributes = this.encodeTerrainAccessors(geomBvData, terrain,
+                    terrain.instanceStrideFloats * instances, instances * 4);
+                const primitive = {
+                    attributes,
                     indices: this.encodeIndexAccessor(indexBvData, instances),
                     material: mat.index,
                     mode: WEBGL_CONSTANTS.TRIANGLES,
                 }
-                const meshIndex = outJson.meshes.length;
-                outJson.meshes.push(mesh);
-
+                if (!mesh) {
+                    mesh = {
+                        primitives: [primitive]
+                    }
+                    meshIndex = outJson.meshes.length;
+                    outJson.meshes.push(mesh);
+                } else {
+                    mesh.primitives.push(primitive);
+                }
+            }
+            if (mesh) {
                 const node = {
                     mesh: meshIndex,
                     name: `chunk_${chunk.addr}`,
@@ -290,6 +311,8 @@ export class ChunkExporter {
                         (chunk.coord.y - localPos.y),
                     ]
                 }
+                const nodeIndex = outJson.nodes.length;
+                outJson.nodes[0].children.push(nodeIndex);
                 outJson.nodes.push(node);
             }
         }
@@ -307,6 +330,7 @@ export class ChunkExporter {
                 sz += bvData.json.byteLength;
             }
             sz += (4 - sz % 4) % 4;
+            outJson.buffers[0].byteLength = sz;
 
             let jsonStr = JSON.stringify(outJson);
             let padCount = (4 - (jsonStr.length % 4));
