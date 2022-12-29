@@ -14,7 +14,7 @@ export class ItemWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
-        this.chunksItemMergingQueue = new Map();
+        this.chunksItemMergingQueue = new Set();
     }
 
     /**
@@ -36,8 +36,10 @@ export class ItemWorld {
             drop_item.tick(delta);
         }
         if (ITEM_MERGE_RADIUS >= 0) {
-            for(let [_, chunk] of this.chunksItemMergingQueue) {
-                this.#mergeItems(chunk);
+            for(let chunk of this.chunksItemMergingQueue) {
+                if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                    this.#mergeItems(chunk);
+                }
             }
         }
         this.chunksItemMergingQueue.clear();

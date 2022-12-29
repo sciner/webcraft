@@ -108,7 +108,7 @@ export class DropItem {
                 const new_chunk = world.chunks.get(this.chunk_addr);
                 if(new_chunk) {
                     new_chunk.drop_items.set(this.entity_id, this);
-                    this.#prev_chunk_addr.clone(this.chunk_addr);
+                    this.#prev_chunk_addr.copyFrom(this.chunk_addr);
                 }
             }
             this.sendState();
@@ -117,7 +117,7 @@ export class DropItem {
                 this.motion = MOTION_JUST_STOPPED;
                 const chunk = this.getChunk();
                 if(chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
-                    this.#world.chunks.itemWorld.chunksItemMergingQueue.set(chunk.uniqId, chunk);
+                    this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
                 }
             } else {
                 this.motion = MOTION_STAYED;
