@@ -284,7 +284,7 @@ export class ChunkExporter {
                 maxInstances = Math.max(instances, maxInstances);
 
                 const attributes = this.encodeTerrainAccessors(geomBvData, terrain,
-                    terrain.instanceStrideFloats * instances, instances * 4);
+                    terrain.instanceStrideFloats * oldSize, instances * 4);
                 const primitive = {
                     attributes,
                     indices: this.encodeIndexAccessor(indexBvData, instances),
