@@ -549,27 +549,6 @@
         }
     },
     {
-        "id": "ef4f6528-b87e-40bd-9796-0c180d02fcfe",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "GD",
-            "DG"
-        ],
-        "key": {
-            "D": {
-                "item": "madcraft:grass_block"
-            },
-            "G": {
-                "item": "madcraft:gravel"
-            }
-        },
-        "result": {
-            "item": "madcraft:coarse_dirt",
-            "count": 2
-        }
-    },
-    {
         "id": "1d87a267-d3f5-4c60-930f-02c8f0197677",
         "type": "madcraft:crafting_shaped",
         "pattern": [

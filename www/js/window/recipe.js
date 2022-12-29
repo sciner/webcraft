@@ -3,22 +3,23 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {Resources} from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
-class FakeSlot extends Label {
+class HelpSlot extends Label {
 
     constructor(x, y, sz, id, ct) {
         super(x, y, sz, sz, id, null, null);
         this.ct = ct;
-        this.item_id = null;
+        this.item = null;
+        this.z = 1000;
     }
     
     setItem(id) {
-        this.item_id = id;
+        this.item = id;
     }
     
     //
     get tooltip() {
         let resp = null;
-        if(this.item_id) {
+        if(this.item) {
             const block = BLOCK.fromId(this.item_id);
             if(block) {
                 resp = block.name.replaceAll('_', ' ') + ` (#${this.item_id})`;
@@ -29,12 +30,12 @@ class FakeSlot extends Label {
     
     // Draw slot
     draw(ctx, ax, ay) {
-        if (this.ct.craft_window.lblResultSlot.item) {
+        if (this.ct.craft_window.lblResultSlot.item || !this.item) {
             return;
         }
         this.applyStyle(ctx, ax, ay);
-        this.style.background.color = this.item_id ? '#ff000055' : '#ff000000';
-        this.drawItem(ctx, this.item_id, ax + this.x, ay + this.y, this.width, this.height);
+        this.style.background.color = this.item ? '#ff000055' : '#ff000000';
+        this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
 
@@ -76,6 +77,7 @@ export class RecipeSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, recipe, block, ct) {
         super(x, y, w, h, id, title, text);
+        this.z = 1000;
         //
         this.recipe = recipe;
         this.block = block;
@@ -95,14 +97,14 @@ export class RecipeSlot extends Window {
             if(!this.can_make) {
                 const size = this.ct.craft_window.area.size.width;
                 const adapter = e.target.recipe.adaptivePattern[size];
+                console.log(e.target.recipe)
                 if (adapter) {
-                    for (let i = 0; i < size * size; i++) {
-                        this.ct.fake_slots[i].setItem((i < adapter.array_id.length) ? adapter.array_id[i] : null);
+                    const s = size * size;
+                    for (let i = 0; i < s; i++) {
+                        this.ct.help_slots[i].setItem((i < adapter.array_id.length) ? adapter.array_id[i] : null);
                     }
                 } else {
-                    for (let i = 0; i < size * size; i++) {
-                        this.ct.fake_slots[i].setItem(null);
-                    } 
+                    this.ct.clearHelpSlots();
                 }
                 return;
             }
@@ -232,7 +234,7 @@ export class RecipeWindow extends Window {
         this.onShow = () => {
             // Создание слотов
             this.createRecipes(this.cell_size);
-            this.addFakeSlots();
+            this.addHelpSlots();
             this.paginator.update();
         };
 
@@ -276,17 +278,22 @@ export class RecipeWindow extends Window {
         ct.add(btnNext);
     }
     
-    addFakeSlots() {
-      //  const size = this.craft_window.area.size.width;
-        console.log(this);
-        const size = 3;
-        this.fake_slots = [];
+    addHelpSlots() {
+        const size = 3;//this?.craft_window?.area?.size?.width;
+        console.log(this.craft_window);
+        this.help_slots = [];
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                const slot = new FakeSlot((354 + 36 * j) * this.zoom, (36 + 36 * i) * this.zoom, 31 * this.zoom, 'fake_' + i + '_' + j, this);
-                this.fake_slots.push(slot);
+                const slot = new HelpSlot((354 + 36 * j) * this.zoom, (36 - 36 * (2 - i)) * this.zoom, 31 * this.zoom, 'fake_' + i + '_' + j, this);
+                this.help_slots.push(slot);
                 this.add(slot);
             }
+        }
+    }
+    
+    clearHelpSlots() {
+        for (const slot of this.help_slots) {
+            slot.setItem(null);
         }
     }
 
