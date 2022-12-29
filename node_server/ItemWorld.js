@@ -14,7 +14,7 @@ export class ItemWorld {
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
-        this.chunksItemMergingQueue = new Map();
+        this.chunksItemMergingQueue = new Set();
     }
 
     /**
@@ -36,8 +36,10 @@ export class ItemWorld {
             drop_item.tick(delta);
         }
         if (ITEM_MERGE_RADIUS >= 0) {
-            for(let [_, chunk] of this.chunksItemMergingQueue) {
-                this.#mergeItems(chunk);
+            for(let chunk of this.chunksItemMergingQueue) {
+                if (chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
+                    this.#mergeItems(chunk);
+                }
             }
         }
         this.chunksItemMergingQueue.clear();
@@ -118,8 +120,17 @@ export class ItemWorld {
                     var t = dropItemA; dropItemA = dropItemB; dropItemB = t;
                 }
 
-                // delete dropItemA
+                // Rarely an item may have chunk = null. IDK how it happens. Just check it and don't merge.
                 const chunkA = dropItemA.getChunk();
+                if (!chunkA || chunkA.load_state !== CHUNK_STATE_BLOCKS_GENERATED) {
+                    continue;
+                }
+                const chunkB = dropItemB.getChunk();
+                if (!chunkB || chunkB.load_state !== CHUNK_STATE_BLOCKS_GENERATED) {
+                    continue;
+                }
+
+                // delete dropItemA
                 this.delete(dropItemA, chunkA);
                 const packetsA = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
@@ -137,7 +148,7 @@ export class ItemWorld {
                         pos:        dropItemB.pos
                     }
                 }];
-                dropItemB.getChunk().sendAll(packetsB, []);
+                chunkB.sendAll(packetsB, []);
 
                 if(dropItemA === this.#mergeableItems[dropItemI]) {
                     // We removed the outer loop item. It's an item with the pending merging check.

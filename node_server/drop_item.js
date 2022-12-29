@@ -117,7 +117,7 @@ export class DropItem {
                 this.motion = MOTION_JUST_STOPPED;
                 const chunk = this.getChunk();
                 if(chunk && chunk.load_state === CHUNK_STATE_BLOCKS_GENERATED) {
-                    this.#world.chunks.itemWorld.chunksItemMergingQueue.set(chunk.uniqId, chunk);
+                    this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
                 }
             } else {
                 this.motion = MOTION_STAYED;
