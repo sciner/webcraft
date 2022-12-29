@@ -108,7 +108,7 @@ export class DropItem {
                 const new_chunk = world.chunks.get(this.chunk_addr);
                 if(new_chunk) {
                     new_chunk.drop_items.set(this.entity_id, this);
-                    this.#prev_chunk_addr.clone(this.chunk_addr);
+                    this.#prev_chunk_addr.copyFrom(this.chunk_addr);
                 }
             }
             this.sendState();

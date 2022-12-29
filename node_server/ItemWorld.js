@@ -120,17 +120,8 @@ export class ItemWorld {
                     var t = dropItemA; dropItemA = dropItemB; dropItemB = t;
                 }
 
-                // Rarely an item may have chunk = null. IDK how it happens. Just check it and don't merge.
-                const chunkA = dropItemA.getChunk();
-                if (!chunkA || chunkA.load_state !== CHUNK_STATE_BLOCKS_GENERATED) {
-                    continue;
-                }
-                const chunkB = dropItemB.getChunk();
-                if (!chunkB || chunkB.load_state !== CHUNK_STATE_BLOCKS_GENERATED) {
-                    continue;
-                }
-
                 // delete dropItemA
+                const chunkA = dropItemA.getChunk();
                 this.delete(dropItemA, chunkA);
                 const packetsA = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
@@ -148,7 +139,7 @@ export class ItemWorld {
                         pos:        dropItemB.pos
                     }
                 }];
-                chunkB.sendAll(packetsB, []);
+                dropItemB.getChunk().sendAll(packetsB, []);
 
                 if(dropItemA === this.#mergeableItems[dropItemI]) {
                     // We removed the outer loop item. It's an item with the pending merging check.
