@@ -833,9 +833,6 @@ export class MobModel extends NetworkPhysicObject {
         }
         
         if (this.type == 'player') {
-            if (!this.skin.file.startsWith(CLIENT_SKIN_ROOT)) {
-                this.skin.file = CLIENT_SKIN_ROOT + this.skin.file + '.png';
-            }
             this.type = PLAYER_SKIN_TYPES[this.skin.type];
         }
         
@@ -850,13 +847,14 @@ export class MobModel extends NetworkPhysicObject {
             return null;
         }
  
-        if (this.type == 'player:steve') {
-            const image = await asset.getPlayerSkin(this.skin.file);
+        let image;
+        if (this.type.startsWith('player')) {
+            image = await asset.getPlayerSkin(this.skin.file);
             this.material = this.getTexture(render, image);
         } else {
             // получаем все скины моба
             for (const title in asset.skins) {
-                const image = await asset.getSkin(title);
+                image = await asset.getSkin(title);
                 const texture = this.getTexture(render, image);
                 this.textures.set(title, texture);
             }
