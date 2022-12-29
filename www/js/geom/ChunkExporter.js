@@ -31,6 +31,7 @@ export class ChunkExporter {
     }
 
     reset() {
+        const sqrt2 = Math.sqrt(2) / 2;
         this.outJson = {
             images: [],
             textures: [],
@@ -38,7 +39,10 @@ export class ChunkExporter {
             bufferViews: [],
             accessors: [],
             meshes: [],
-            nodes: [{children: []}],
+            nodes: [{
+                children: [],
+                rotation: [-sqrt2, 0, 0, sqrt2]
+            }],
             samplers: [
                 {
                     "magFilter": WEBGL_CONSTANTS.NEAREST,
@@ -147,7 +151,7 @@ export class ChunkExporter {
         matData = {
             json: {
                 name: key,
-                doubleSided: !!mat.cullFace,
+                doubleSided: !mat.cullFace,
                 alphaMode: mat.opaque ? "MASK" : "BLEND",
             },
             index: this.outJson.materials.length,
@@ -273,6 +277,9 @@ export class ChunkExporter {
                 let chunkVert = chunk.verticesList[i];
 
                 const rp = BLOCK.resource_pack_manager.list.get(chunkVert.resource_pack_id);
+                if (chunkVert.material_shader === 'fluid') {
+                    continue;
+                }
                 const mat = this.getOrCreateMaterial(rp, chunkVert.key);
                 if (!mat) {
                     continue;

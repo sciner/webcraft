@@ -198,7 +198,7 @@ export class Chat extends TextBox {
                     no_send = true;
                     break;
                 }
-                case '/export': {
+                case '/exportglb': {
                     const name = (temp[0] || '').trim() || Qubatch.world.info.title
                     Qubatch.world.chunkManager.export.encode( Qubatch.render.camPos, name );
                     no_send = true;

@@ -76,17 +76,17 @@ export class ExportGeometry16 extends BaseExportGeometry {
             //Y up
             //Z forward
 
-            const cx = srcBuf[srcOffset + 0];
-            const cy = srcBuf[srcOffset + 1];
-            const cz = srcBuf[srcOffset + 2];
+            let cx = srcBuf[srcOffset + 0];
+            let cy = srcBuf[srcOffset + 1];
+            let cz = srcBuf[srcOffset + 2];
 
-            const dx0 = srcBuf[srcOffset + 3];
-            const dy0 = srcBuf[srcOffset + 4];
-            const dz0 = srcBuf[srcOffset + 5];
+            let dx0 = srcBuf[srcOffset + 3];
+            let dy0 = srcBuf[srcOffset + 4];
+            let dz0 = srcBuf[srcOffset + 5];
 
-            const dx1 = srcBuf[srcOffset + 6];
-            const dy1 = srcBuf[srcOffset + 7];
-            const dz1 = srcBuf[srcOffset + 8];
+            let dx1 = srcBuf[srcOffset + 6];
+            let dy1 = srcBuf[srcOffset + 7];
+            let dz1 = srcBuf[srcOffset + 8];
 
             let nx = dy0 * dz1 - dy1 * dz0;
             let ny = dz0 * dx1 - dz1 * dx0;
