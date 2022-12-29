@@ -30,6 +30,10 @@ until some necessary data is loaded (e.g. the chunks around them to choose a saf
 export const PLAYER_STATUS_WAITING_DATA = 1;
 export const PLAYER_STATUS_ALIVE        = 2;
 
+const ATTACK_PROCESS_NONE = 0;
+const ATTACK_PROCESS_ONGOING = 1;
+const ATTACK_PROCESS_FINISHED = 2;
+
 // Creates a new local player manager.
 export class Player {
 
@@ -38,6 +42,7 @@ export class Player {
     constructor(options) {
         this.inMiningProcess = false;
         this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
         this.options = options;
         this.scale = PLAYER_ZOOM;
         this.current_state = {
@@ -199,6 +204,10 @@ export class Player {
         }, async (e) => {
             // onInterractMob
             const mob = Qubatch.world.mobs.get(e.interractMobID);
+            if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+            }
             if(mob) {
                 mob.punch(e);
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
@@ -382,6 +391,7 @@ export class Player {
     resetMouseActivity() {
         this.inMiningProcess = false;
         this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
         if(this.pickAt) {
             this.pickAt.resetProgress();
         }
@@ -1076,7 +1086,9 @@ export class Player {
     getAttackAnim(pPartialTicks, delta) {
 
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+        if(!this.inMiningProcess && !this.inItemUseProcess && 
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
             return 0;
         }
 
@@ -1084,6 +1096,9 @@ export class Player {
 
         if (this.mineTime >= 1) {
             this.mineTime = 0;
+            if (this.inAttackProcess === ATTACK_PROCESS_ONGOING) {
+                this.inAttackProcess = ATTACK_PROCESS_FINISHED;
+            }
         }
 
         return this.mineTime;
@@ -1097,7 +1112,9 @@ export class Player {
     // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
     getUseItemRemainingTicks() {
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+        if(!this.inMiningProcess && !this.inItemUseProcess && 
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
             return 0;
         }
         return this.inhand_animation_duration - (this.inhand_animation_duration * this.mineTime);
