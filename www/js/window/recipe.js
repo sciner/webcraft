@@ -3,7 +3,7 @@ import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
-const COLOR_RED = '#A17171';
+const COLOR_RED = '#A15151';
 
 export class RecipeSlot extends Window {
 

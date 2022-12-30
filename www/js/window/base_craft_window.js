@@ -37,7 +37,7 @@ export class HelpSlot extends Label {
             return;
         }
         this.applyStyle(ctx, ax, ay);
-        this.style.background.color = this.item ? '#ff000022' : '#ff000000';
+        this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
         this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }

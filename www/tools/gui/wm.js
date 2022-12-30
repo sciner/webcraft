@@ -818,6 +818,15 @@ export class Window {
 
         }
     }
+    // fill background color
+    fillBackground(ctx, ax, ay, color) {
+        ctx.fillStyle = color
+        let x = ax + this.x;
+        let y = ay + this.y;
+        let w = this.width;
+        let h = this.height;
+        ctx.fillRect(x, y, w, h);
+    }
     onUpdate() {
         // It's called every interation of the game loop for visible windows. Override it in the subclasses.
     }
