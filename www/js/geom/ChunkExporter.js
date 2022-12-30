@@ -2,6 +2,7 @@ import {ExportGeometry16} from "./ExportGeometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
 import {chunkAddrToCoord, getChunkAddr, Helpers, Vector} from "../helpers.js";
+import {ExportFluidHelper} from "../fluid/ExportFluidHelper.js";
 
 export class ChunkExporter {
 
@@ -41,7 +42,7 @@ export class ChunkExporter {
             meshes: [],
             nodes: [{
                 children: [],
-                rotation: [-sqrt2, 0, 0, sqrt2]
+                // rotation: [-sqrt2, 0, 0, sqrt2]
             }],
             samplers: [
                 {
@@ -71,6 +72,8 @@ export class ChunkExporter {
         this.texMap = new Map();
         this.promises = [];
         this.accessors = [];
+
+        this.fluidExporter = new ExportFluidHelper();
     }
 
     addBufferView() {
@@ -109,10 +112,16 @@ export class ChunkExporter {
         };
         this.texMap.set(texture, texData);
         let canvas = null
-        if (texture.source instanceof Image || texture.source instanceof ImageBitmap) {
+        if (texture.source instanceof Image
+            || texture.source instanceof ImageBitmap
+            || texture.source.getContext && texture.style.mipmap) {
             canvas = document.createElement('canvas');
             canvas.width = texture.source.width;
             canvas.height = texture.source.height;
+            if (texture.style.mipmap) {
+                canvas.width = texture.source.width / 2;
+                canvas.height = texture.source.height / 2;
+            }
             canvas.getContext('2d').drawImage(texture.source, 0, 0);
             // its an image
         } else if (texture.source.getContext) {
@@ -146,8 +155,8 @@ export class ChunkExporter {
         if (!mat) {
             return null;
         }
-        const tex = mat.texture || mat.shader.texture;
-        const tex_n = mat.texture_n || mat.shader.texture_n;
+        let tex = mat.texture || mat.shader.texture;
+        let tex_n = mat.texture_n || mat.shader.texture_n;
         matData = {
             json: {
                 name: key,
@@ -155,6 +164,13 @@ export class ChunkExporter {
                 alphaMode: mat.opaque ? "MASK" : "BLEND",
             },
             index: this.outJson.materials.length,
+            isFluid: !!mat.shader.fluidFlags,
+        }
+        if (matData.isFluid) {
+            tex = this.fluidExporter.createFluidTexture(mat.opaque, tex.source);
+            if (tex_n) {
+                tex_n = this.fluidExporter.createFluidTexture(mat.opaque, tex_n.source);
+            }
         }
         if (tex) {
             let num = this.getOrCreateTexture(tex).index;
@@ -250,6 +266,7 @@ export class ChunkExporter {
         // all floats will go here
         const terrain = this.terrain = new ExportGeometry16();
         terrain.palette = this.getPalette();
+        terrain.innerConvertFluid = this.fluidExporter.innerConvertFluid.bind(terrain);
 
         let localPos = new Vector();
         chunkAddrToCoord(getChunkAddr(camPos), localPos);
@@ -277,15 +294,16 @@ export class ChunkExporter {
                 let chunkVert = chunk.verticesList[i];
 
                 const rp = BLOCK.resource_pack_manager.list.get(chunkVert.resource_pack_id);
-                if (chunkVert.material_shader === 'fluid') {
-                    continue;
-                }
                 const mat = this.getOrCreateMaterial(rp, chunkVert.key);
                 if (!mat) {
                     continue;
                 }
                 const oldSize = terrain.size;
-                terrain.pushTerrainGeom(chunkVert.buffer, chunk);
+                if (mat.isFluid) {
+                    terrain.pushFluidGeom(chunkVert.buffer, chunk);
+                } else {
+                    terrain.pushTerrainGeom(chunkVert.buffer, chunk);
+                }
                 const newSize = terrain.size;
                 const instances = (newSize - oldSize);
                 maxInstances = Math.max(instances, maxInstances);
@@ -314,8 +332,8 @@ export class ChunkExporter {
                     name: `chunk_${chunk.addr}`,
                     translation: [
                         (chunk.coord.x - localPos.x),
-                        (chunk.coord.z - localPos.z),
                         (chunk.coord.y - localPos.y),
+                        -(chunk.coord.z - localPos.z),
                     ]
                 }
                 const nodeIndex = outJson.nodes.length;
