@@ -3156,7 +3156,8 @@
             "window": "frmBarrel",
             "is_entity": true,
             "chest": {
-                "slots": 27
+                "slots": 27,
+                "private": true
             },
             "transparent": true,
             "sound": "madcraft:block.barrel",

@@ -166,13 +166,13 @@ export class WorldChestManager {
                     name: ServerClient.CMD_CHEST_FORCE_CLOSE,
                     data: { chestSessionId: params.chestSessionId }
                 }]);
+            } else if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
+                player.currentChests = null;
             } else {
-                if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
-                    player.currentChests = null;
-                }
-                this.sendChestToPlayers(tblock, [player.session.user_id]);
+                // the player doesn't close the window, but he has some mistmatch, so send him also the correct chests
+                this.sendContentToPlayers([player], tblock);
                 if (secondTblock) {
-                    this.sendChestToPlayers(secondTblock, [player.session.user_id]);
+                    this.sendContentToPlayers([player], secondTblock);
                 }
             }
             throw error || 'error_incorrect_value';
@@ -595,7 +595,8 @@ export class WorldChestManager {
         if(!tblock || tblock.id < 0) {
             return false;
         }
-        if(tblock.material.name == 'ENDER_CHEST') {
+        const mat = tblock.material;
+        if(mat.name == 'ENDER_CHEST') {
             if(players.length == 1) {
                 const player = players[0];
                 const c = await player.loadEnderChest();
@@ -616,7 +617,7 @@ export class WorldChestManager {
                     console.error('error_ender_chest_empty_for_player');
                 }
             }
-        } else if (tblock.material.chest.private) {
+        } else if (mat.chest.private) {
             if(!tblock.extra_data || !tblock.extra_data.slots) {
                 return false;
             }

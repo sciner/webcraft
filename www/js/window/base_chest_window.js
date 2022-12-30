@@ -1,4 +1,5 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
+import { BLOCK } from "../blocks.js";
 import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
@@ -71,7 +72,10 @@ export class BaseChestWindow extends Window {
             // If a chest was removed by the server
             if (tblock.id !== targetInfo.block_id) {
                 this.hideAndSetupMousePointer(); // It also takes care of the dragged item.
-            } else if (!tblock.material.chest.private) {
+                return;
+            }
+            const mat = tblock.material;
+            if (!(mat.chest.private || mat.id === BLOCK.ENDER_CHEST.id)) {
                 this.setLocalData(tblock);
             }
         };
@@ -292,7 +296,8 @@ export class BaseChestWindow extends Window {
         info.chestSessionId = this.chestSessionId;
         this.info = info;
         const firstBlock = this.world.getBlock(info.pos);
-        this.firstLoading = firstBlock.material.chest.private;
+        const firstMat = firstBlock.material;
+        this.firstLoading = firstMat.chest.private || firstMat.id === BLOCK.ENDER_CHEST.id;
 
         // analyze an load the 2nd chest
         this.secondInfo = secondInfo;
@@ -300,7 +305,8 @@ export class BaseChestWindow extends Window {
         if (secondInfo) {
             secondInfo.chestSessionId = this.chestSessionId;
             const secondBlock = this.world.getBlock(secondInfo.pos);
-            this.secondLoading = secondBlock.material.chest.private;
+            const secondMat = secondBlock.material
+            this.secondLoading = secondMat.chest.private || secondMat.id === BLOCK.ENDER_CHEST.id;
 
             // Both chest requests send both positions to set player.currentChests properly
             secondInfo.otherPos = info.pos;
