@@ -1,6 +1,6 @@
-import {BLOCK} from "../blocks.js";
-import {Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
-import {Resources} from "../resources.js";
+import { BLOCK } from "../blocks.js";
+import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
+import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
 export class RecipeSlot extends Window {
@@ -11,7 +11,6 @@ export class RecipeSlot extends Window {
         this.recipe = recipe;
         this.block = block;
         this.ct = ct;
-        
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
@@ -111,6 +110,8 @@ export class RecipeWindow extends Window {
         this.items_per_page     = 20;
         this.index              = -1;
         this.recipe_manager     = recipe_manager;
+        this.filter_text        = null;
+        this.only_can           = false;
 
         // Ширина / высота слота
         this.cell_size = 50 * this.zoom;
@@ -137,13 +138,11 @@ export class RecipeWindow extends Window {
         ct.setBackground(options.background.image);
         ct.hide();
 
-        let items_count = this.recipe_manager.crafting_shaped.grouped.length;
-
         let that = this;
 
         // Paginator
         this.paginator = {
-            pages: Math.ceil(items_count / this.items_per_page),
+            pages: 0,
             page: 0,
             prev: function() {
                 this.page--;
@@ -154,6 +153,7 @@ export class RecipeWindow extends Window {
                 this.update();
             },
             update: function() {
+                this.pages = Math.ceil(that.items_count / that.items_per_page);
                 if(this.page < 0) {
                     this.page = this.pages - 1;
                 }
@@ -161,24 +161,59 @@ export class RecipeWindow extends Window {
                     this.page = 0;
                 }
                 that.lblPages.title = (this.page + 1) + ' / ' + this.pages;
-                that.createRecipes(that.cell_size);
+                that.createRecipes();
+                that.craft_window.setHelperSlots(null);
             }
         };
 
         this.onShow = () => {
             // Создание слотов
-            this.createRecipes(this.cell_size);
+            this.createRecipes();
             this.paginator.update();
         };
 
+        // кнопки пагинатора
         this.addPaginatorButtons();
         
+        // строка поиска
         this.addFinder();
+        
+        // кнопка доступные или все рецепты
+        this.addToggleButton();
     }
 
     // Запоминаем какое окно вызвало окно рецептов
     assignCraftWindow(w) {
         this.craft_window = w;
+    }
+    
+    addToggleButton() {
+        const self = this;
+        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null);
+         const options = {
+            background: {
+                image: './media/gui/recipe_book.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 719,
+                    y: 162,
+                    width: 106,
+                    height: 67
+                }
+            }
+        };
+        btnFilter.style.background = options.background;
+        btnFilter.style.border.hidden = true;
+        btnFilter.setBackground(options.background.image);
+        btnFilter.onMouseDown = function(e) {
+            self.only_can = !self.only_can;
+            this.style.background.sprite.x = self.only_can ? 608 : 719;
+            self.craft_window.setHelperSlots(null);
+            self.createRecipes();
+            self.paginator.update();
+        };
+        this.add(btnFilter);
     }
 
     // Paginator buttons
@@ -215,7 +250,7 @@ export class RecipeWindow extends Window {
         const txtSearch = new TextEdit(
             50 * this.zoom,
             26 * this.zoom,
-            110 * this.zoom,
+            160 * this.zoom,
             22 * this.zoom,
             'txtSearch1',
             null,
@@ -231,8 +266,14 @@ export class RecipeWindow extends Window {
         txtSearch.style.border.hidden    = true;
         txtSearch.style.border.style     = 'inset';
         txtSearch.style.font.size        *= this.zoom;
-        txtSearch.style.background.color = '#706f6cff';
+       // txtSearch.style.background.color = '#706f6cff';
         this.add(txtSearch);
+        
+        txtSearch.onChange = (text) => {
+            this.filter_text = text;
+            this.createRecipes();
+            this.paginator.update();
+        };
     }
     
 
@@ -240,40 +281,67 @@ export class RecipeWindow extends Window {
     * Создание слотов
     * @param int sz Ширина / высота слота
     */
-    createRecipes(sz) {
+    createRecipes() {
         const ct = this;
         if(ct.recipes) {
             for(let w of ct.recipes) {
                 this.delete(w.id);
             }
         }
+        const canMake = (recipe) => {
+            return Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0;
+        }
         //
-        let i           = 0;
-        let sx          = 22 * this.zoom;
-        let sy          = 62 * this.zoom;
-        let xcnt        = 5;
-        let list        = this.recipe_manager.crafting_shaped.grouped;
-        let min_index   = this.paginator.page * this.items_per_page;
-        let max_index   = min_index + this.items_per_page;
+        let i             = 0;
+        const sz          = this.cell_size;
+        const sx          = 22 * this.zoom;
+        const sy          = 62 * this.zoom;
+        const xcnt        = 5;
+        const list        = this.recipe_manager.crafting_shaped.grouped;
+        const min_index   = this.paginator.page * this.items_per_page;
+        const max_index   = min_index + this.items_per_page;
+        const size      = this.craft_window.area.size.width;
+        const filter_text = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
         this.recipes    = [];
-        //
-        for(let index in list) {
+        
+        const tmp_recipes = [];
+        for(const index in list) {
+            const recipe = list[index];
+            if (!canMake(recipe) && !this.only_can) {
+                continue;
+            }
+            if (!recipe.adaptivePattern[size]) {
+                continue;
+            }
+            const block = BLOCK.fromId(recipe.result.item_id);
+            if (this.filter_text) {
+                if (!block.name.replaceAll('_', ' ').includes(filter_text) && block.id != filter_text) {
+                    continue;
+                }
+            }
+            tmp_recipes.push(recipe);
+        }
+        
+        this.items_count = tmp_recipes.length;
+        
+        for (const index in tmp_recipes) {
             if(index < min_index) {
                 continue;
             }
             if(index >= max_index) {
                 continue;
             }
-            let recipe = list[index];
-            let item_id = recipe.result.item_id;
-            let block = BLOCK.fromId(item_id);
-            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + recipe.id, null, null, recipe, block, this);
-            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${item_id})`;
+            const recipe = tmp_recipes[index];
+            const id = recipe.result.item_id;
+            const block = BLOCK.fromId(id);
+            const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
+            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`;
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
             lblRecipe.update();
             i++;
         }
+        
     }
 
 }
