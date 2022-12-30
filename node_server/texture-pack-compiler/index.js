@@ -33,4 +33,4 @@ const bbcompiler = new BBModel_Compiler({
     texture_pack_dir:   options.texture_pack_dir,
 });
 await bbcompiler.init();
-await bbcompiler.run();
+await bbcompiler.run(compiler);

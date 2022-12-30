@@ -227,7 +227,7 @@ export default class style {
         let depth       = material.depth ? material.depth : width;
         const up_mat    = neighbours.UP ? neighbours.UP.material : null;
         // Ladder
-        if(material.style == 'ladder') {
+        if(material.model_name == 'ladder') {
             width = 1;
             height = 1;
             depth = 1;
@@ -348,12 +348,12 @@ export default class style {
 
             // Glass
             if(material.transparent && material.is_glass) {
-                if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.style == material.style) canDrawSOUTH = false;
-                if(neighbours.NORTH.material.is_glass && neighbours.NORTH.material.style == material.style) canDrawNORTH = false;
-                if(neighbours.WEST.material.is_glass && neighbours.WEST.material.style == material.style) canDrawWEST = false;
-                if(neighbours.EAST.material.is_glass && neighbours.EAST.material.style == material.style) canDrawEAST = false;
-                if(neighbours.UP.material.is_glass && neighbours.UP.material.style == material.style) canDrawUP = false;
-                if(neighbours.DOWN.material.is_glass && neighbours.DOWN.material.style == material.style) canDrawDOWN = false;
+                if(neighbours.SOUTH.material.is_glass && neighbours.SOUTH.material.model_name == material.model_name) canDrawSOUTH = false;
+                if(neighbours.NORTH.material.is_glass && neighbours.NORTH.material.model_name == material.model_name) canDrawNORTH = false;
+                if(neighbours.WEST.material.is_glass && neighbours.WEST.material.model_name == material.model_name) canDrawWEST = false;
+                if(neighbours.EAST.material.is_glass && neighbours.EAST.material.model_name == material.model_name) canDrawEAST = false;
+                if(neighbours.UP.material.is_glass && neighbours.UP.material.model_name == material.model_name) canDrawUP = false;
+                if(neighbours.DOWN.material.is_glass && neighbours.DOWN.material.model_name == material.model_name) canDrawDOWN = false;
             }
 
             if(material.draw_only_down) {

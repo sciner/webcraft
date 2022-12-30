@@ -608,7 +608,7 @@ export class ServerChunk {
 
         //
         const check = (tblock, neighbour, previous_neighbour, min_solid_count = 5) => {
-            const require_support = tblock.material.support_style || tblock.material.style;
+            const require_support = tblock.material.support_style || tblock.material.model_name;
             if(require_support == 'uncertain_stone') {
                 // определяем неопределенный камень
                 const item = {
@@ -740,7 +740,7 @@ export class ServerChunk {
         const rotx = tblock.rotate?.x;
         const roty = tblock.rotate?.y;
         const neighbourPos = neighbour.posworld;
-        const require_support = tblock.material.support_style || tblock.material.style;
+        const require_support = tblock.material.support_style || tblock.material.model_name;
         const neighbour_destroyed = neighbour.id == 0
 
         // Different behavior, depending on whether the neighbor was destroyed or created

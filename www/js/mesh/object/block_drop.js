@@ -34,9 +34,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         this.block_material = this.block.material;
 
         // draw_style
-        let draw_style = this.block_material.inventory_style
-            ? this.block_material.inventory_style 
-            : this.block_material.style;
+        let draw_style = this.block_material?.inventory_style ?? this.block_material.style;
         if('inventory' in this.block_material) {
             draw_style = this.block_material.inventory.style;
         }
@@ -230,7 +228,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Draw mesh group
         let mx = prePendMatrix ? tmpMatrix : this.modelMatrix
-        
+
         const mat = this.block.material
         if(mat.style == 'extruder') {
             const matrix = mat4.create()

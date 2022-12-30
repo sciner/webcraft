@@ -2,6 +2,7 @@ import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
+import { DEFAULT_TX_CNT } from '../../www/js/constant.js';
 
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
@@ -40,7 +41,7 @@ export class Compiler {
     getSpritesheet(id) {
         let spritesheet = this.spritesheets.get(id);
         if(!spritesheet) {
-            const tx_cnt = this.base_conf.textures[id].tx_cnt;
+            const tx_cnt = this.base_conf.textures[id]?.tx_cnt ?? DEFAULT_TX_CNT;
             spritesheet = new Spritesheet(id, tx_cnt, this.options.resolution, this.options);
             this.spritesheets.set(id, spritesheet);
         }
@@ -79,7 +80,7 @@ export class Compiler {
             }
         }
         try {
-            await this.compileBlocks(this.compile_data.blocks);
+            this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks);
             await this.export();
         } catch(e) {
             console.error(e);
@@ -132,14 +133,27 @@ export class Compiler {
         return item.cnv;
     }
 
+    makeModelName(block) {
+        if(!block.style) block.style = 'default'
+        block.model_name = block.bb?.model ?? (block.style || 'default')
+    }
+
     //
     async compileBlocks(blocks) {
+
         // Each all blocks from JSON file
         let dirt_image = null;
         let num_blocks = 0;
         let tmpCnv;
         let tmpContext;
+
+        const resp = []
+
         for(let block of blocks) {
+
+            if(!('id' in block)) continue
+
+            this.makeModelName(block)
 
             //
             block.tags = block.tags ?? [];
@@ -148,7 +162,7 @@ export class Compiler {
 
             // Auto add tags
             const tags = block.tags = block.tags || [];
-            if(['stairs'].indexOf(block.style) >= 0 || block.layering?.slab) {
+            if(['stairs'].indexOf(block.model_name) >= 0 || block.layering?.slab) {
                 block.tags.push('no_drop_ao');
             }
             if(tags.includes('log') && !block.coocked_item) {
@@ -433,7 +447,11 @@ export class Compiler {
                 delete(block.compile);
 
             }
+
+            resp.push(block)
         }
+
+        return resp
     }
 
     setFlammable(block_name, catch_chance_modifier, destroy_chance_modifier) {

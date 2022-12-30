@@ -320,11 +320,11 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                let drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
-                console.log('Error on', block.id, e);
+                console.log('Error on', block.id, draw_style, block, e);
                 return null;
             }
         }).filter(Boolean);

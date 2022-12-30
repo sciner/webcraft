@@ -166,7 +166,7 @@ export class DungeonGenerator {
                 if(!air) {
                     return false;
                 }
-                 if((air.id != 0 || air.fluid != 0) && air.material.style != 'planting' && air.id != BLOCK.SNOW.id) {
+                 if((air.id != 0 || air.fluid != 0) && air.material.model_name != 'planting' && air.id != BLOCK.SNOW.id) {
                     return false;
                 }
                 const ground = this.getBlock(chunk, i + x, y + 8, j + z);

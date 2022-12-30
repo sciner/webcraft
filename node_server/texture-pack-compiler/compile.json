@@ -2071,7 +2071,7 @@
             "texture": "block/birch_planks.png"
         },
         {
-            "id": 85,
+            "_id": 85,
             "name": "OAK_FENCE",
             "transparent": true,
             "style": "fence",
@@ -2637,7 +2637,7 @@
             "can_rotate": true
         },
         {
-            "id": 53,
+            "_id": 53,
             "name": "OAK_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.wood",
@@ -3064,7 +3064,7 @@
             "can_rotate": true
         },
         {
-            "id": 50,
+            "_id": 50,
             "name": "TORCH",
             "width": 0.125,
             "height": 0.625,
@@ -3092,7 +3092,7 @@
             "can_rotate": true
         },
         {
-            "id": 54,
+            "_id": 54,
             "name": "CHEST",
             "window": "frmChest",
             "width": 0.875,
@@ -3109,7 +3109,8 @@
             "texture": {
                 "id": "entity",
                 "side": "entity/chest/christmas.png",
-                "right": "entity/chest/christmas_left.png"
+                "left": "entity/chest/christmas_left.png",
+                "right": "entity/chest/christmas_right.png"
             }
         },
         {
@@ -4858,7 +4859,7 @@
             }
         },
         {
-            "id": 650,
+            "_id": 650,
             "name": "FLOWER_POT",
             "style": "pot",
             "sound": "madcraft:block.stone",

@@ -21,8 +21,8 @@
     ],
     "blocks": [
         {
-            "id": 1350,
-            "name": "BB_TORCH",
+            "id": 50,
+            "name": "TORCH",
             "sound": "madcraft:block.wood",
             "_inventory_style": "extruder",
             "__inventory": {
@@ -68,8 +68,8 @@
             }
         },
         {
-            "id": 1351,
-            "name": "BB_OAK_FENCE",
+            "id": 85,
+            "name": "OAK_FENCE",
             "sound": "madcraft:block.wood",
             "style": "bbmodel",
             "transparent": true,
@@ -85,12 +85,12 @@
             ],
             "texture": {
                 "id": "fence",
-                "side": "block/oak_fence.png"
+                "side": "block/oak_planks.png"
             }
         },
         {
-            "id": 1352,
-            "name": "BB_FLOWER_POT",
+            "id": 650,
+            "name": "FLOWER_POT",
             "style": "bbmodel",
             "sound": "madcraft:block.stone",
             "transparent": true,
@@ -114,8 +114,8 @@
             }
         },
         {
-            "id": 1353,
-            "name": "BB_OAK_STAIRS",
+            "id": 53,
+            "name": "OAK_STAIRS",
             "style": "bbmodel",
             "sound": "madcraft:block.wood",
             "can_rotate": true,
@@ -137,18 +137,18 @@
             }
         },
         {
-            "id": 1354,
-            "name": "BB_CHEST",
+            "id": 54,
+            "name": "CHEST",
             "window": "frmChest",
+            "support_style": "chest",
             "is_entity": true,
-            "transparent": true,
             "chest_slots": 27,
+            "transparent": true,
             "style": "bbmodel",
-            "max_in_stack": 1,
             "sound": "madcraft:block.chest",
             "can_rotate": true,
             "material": {
-                "id": "stone"
+                "id": "wood"
             },
             "bb": {
                 "model": "chest",

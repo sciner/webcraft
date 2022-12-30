@@ -3,6 +3,7 @@ import { Spritesheet } from "./spritesheet.js";
 
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
+import { Compiler } from "./compiler.js";
 
 export class BBModel_Compiler {
 
@@ -49,8 +50,11 @@ export class BBModel_Compiler {
         return id;
     }
 
-    //
-    async run() {
+    /**
+     * 
+     * @param {Compiler} compiler 
+     */
+    async run(compiler) {
         for(const [id, model] of this.models.entries()) {
             console.log(`BBModel ... ${id}`, model.elements.length);
             let els = 0;
@@ -178,7 +182,8 @@ export class BBModel_Compiler {
             delete(model.textures);
             fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model));
         }
-        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(this.conf.blocks, null, 4));
+        const blocks = await compiler.compileBlocks(this.conf.blocks)
+        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(blocks, null, 4));
         delete(this.conf.blocks);
         fs.writeFileSync(`${this.options.output_dir}/conf.json`, JSON.stringify(this.conf, null, 4));
     }

@@ -38,10 +38,11 @@ export default class style {
      * @returns {AABB[]}
      */
     static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model
-
         const styleVariant = BLOCK.styles.get(behavior);
+
         if(styleVariant?.aabb) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }
@@ -49,6 +50,7 @@ export default class style {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];
+
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
@@ -113,6 +115,20 @@ export default class style {
                 const on_wall = rotate && !rotate.y
                 model.state = on_wall ? 'wall' : 'floor'
                 model.hideAllExcept(model.state)
+                break
+            }
+            case 'chest': {
+                const type = tblock.extra_data?.type ?? null
+                const is_big = !!type
+                if(is_big) {
+                    if(type == 'left') {
+                        model.hideGroups(['small', 'big'])
+                    } else {
+                        model.hideGroups(['small'])
+                    }
+                } else {
+                    model.hideGroups(['big'])
+                }
                 break
             }
             case 'fence': {

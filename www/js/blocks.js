@@ -530,17 +530,17 @@ export class BLOCK {
                 group = 'doubleface';
             }
         } else
-        if((block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
+        if((block.tags.includes('alpha')) || ['thin'].includes(block.model_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(block.style == 'pane' || block.is_glass) {
+        } else if(block.model_name == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.tags.includes('doubleface') ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
                 'lectern'
-            ].includes(block.style)
+            ].includes(block.model_name)
             ) {
             group = 'doubleface';
         }
@@ -556,15 +556,10 @@ export class BLOCK {
         BLOCK.list_arr               = [];
     }
 
-    // parseBlockStyle...
-    static parseBlockStyle(block) {
-        return block.hasOwnProperty('style') ? block.style : 'default';
-    }
-
     // parseBlockTransparent...
     static parseBlockTransparent(block) {
         let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
-        if(block.style && block.style == 'stairs') {
+        if(block.model_name && block.model_name == 'stairs') {
             transparent = true;
         }
         return transparent;
@@ -574,7 +569,7 @@ export class BLOCK {
         if(block.id == 0) {
             return false
         }
-        return block.style == 'default' &&
+        return block.model_name == 'default' &&
             !block.is_fluid &&
             !block.transparent &&
             !block.is_leaves &&
@@ -653,8 +648,6 @@ export class BLOCK {
                 }
             }
         }
-        //
-        block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
         if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
@@ -679,7 +672,7 @@ export class BLOCK {
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
-        block.is_banner         = block.style == 'banner';
+        block.is_banner         = block.model_name == 'banner';
         // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
         block.is_chest          = block.chest_slots > 0;
         block.readonly_chest_slots = block.readonly_chest_slots || 0;
@@ -700,15 +693,15 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
-        block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style == 'planting';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.model_name == 'planting') || block.model_name == 'ladder' || block?.material?.id == 'glass';
+        block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.model_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_solid          = this.isSolid(block);
         block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
                                     block.tags.includes('stairs') ||
                                     block.tags.includes('log') ||
-                                    ['wall', 'pane'].includes(block.style);
+                                    ['wall', 'pane'].includes(block.model_name);
 
         block.is_simple_qube    = this.isSimpleQube(block);
         block.can_interact_with_hand = this.canInteractWithHand(block);
@@ -738,14 +731,14 @@ export class BLOCK {
             }
         }
         //
-        block.drop_if_unlinked  = block.style == 'torch';
+        block.drop_if_unlinked  = block.model_name == 'torch';
         block.can_auto_drop     = !block.previous_part &&
                                   !block.deprecated &&
                                   block.spawnable &&
                                   !block.is_fluid &&
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
-        if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.style) || block.tags.includes('no_drop_ao')) {
+        if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.model_name) || block.tags.includes('no_drop_ao')) {
             if(!this.ao_invisible_blocks.includes(block.id)) {
                 this.ao_invisible_blocks.push(block.id);
             }
@@ -803,7 +796,7 @@ export class BLOCK {
             block.is_button ||
             block.is_jukebox ||
             block.window ||
-            ['stool', 'chair'].includes(block.style);
+            ['stool', 'chair'].includes(block.model_name);
     }
 
     // Make material key
@@ -823,7 +816,7 @@ export class BLOCK {
             return false;
         }
         const is_slab = !!mat.is_layering;
-        const is_bed = mat.style == 'bed';
+        const is_bed = mat.model_name == 'bed';
         const is_dirt = mat.tags.includes('dirt');
         const is_carpet = mat.tags.includes('carpet');
         const is_farmland = mat.name.indexOf('FARMLAND') == 0;
@@ -1043,7 +1036,7 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        const style = block.material.bb?.model || block.material.style
+        const style = block.material.bb?.model || block.material.model_name
         return block.id > 0 &&
             (
                 !block.material.transparent ||
@@ -1061,9 +1054,7 @@ export class BLOCK {
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                block.material.style == 'wall' ||
-                block.material.style == 'pane' ||
-                block.material.style == 'fence'
+                ['wall', 'pane', 'fence'].includes(block.material.model_name)
             ) && (
                 block.material.material.id != 'leaves'
             );
@@ -1118,7 +1109,7 @@ export class BLOCK {
 
         if((!material.passable && !material.planting) || !for_physic) {
 
-            const styleVariant = BLOCK.styles.get(material.style);
+            const styleVariant = BLOCK.styles.get(material.model_name);
             if (styleVariant && styleVariant.aabb) {
                 shapes.push(...styleVariant.aabb(tblock, for_physic, world, neighbours, expanded))
             } else {
@@ -1169,25 +1160,25 @@ export class BLOCK {
                 b.sort_index = 98;
             } else if(b.material.id == 'plant') {
                 b.sort_index = 97;
-            } else if(b.style == 'planting') {
+            } else if(b.model_name == 'planting') {
                 b.sort_index = 96;
             } else if(b.item?.instrument_id) {
                 b.sort_index = 95;
-            } else if(b.style == 'stairs') {
+            } else if(b.model_name == 'stairs') {
                 b.sort_index = sortByMaterial(b, 94);
-            } else if(b.style == 'fence') {
+            } else if(b.model_name == 'fence') {
                 b.sort_index = sortByMaterial(b, 93);
-            } else if(b.style == 'door') {
+            } else if(b.model_name == 'door') {
                 b.sort_index = sortByMaterial(b, 92);
-            } else if(b.style == 'trapdoor') {
+            } else if(b.model_name == 'trapdoor') {
                 b.sort_index = sortByMaterial(b, 91);
-            } else if(b.style == 'bed') {
+            } else if(b.model_name == 'bed') {
                 b.sort_index = 90;
-            } else if(b.style == 'sign') {
+            } else if(b.model_name == 'sign') {
                 b.sort_index = 89;
-            } else if(b.style == 'wall') {
+            } else if(b.model_name == 'wall') {
                 b.sort_index = sortByMaterial(b, 88);
-            } else if(b.style == 'carpet') {
+            } else if(b.model_name == 'carpet') {
                 b.sort_index = 87;
             } else if(b.layering) {
                 b.sort_index = sortByMaterial(b, 86);
@@ -1195,7 +1186,7 @@ export class BLOCK {
                 b.sort_index = 85;
             } else if((b.width || b.height || b.depth) && !b.window && b.material.id != 'dirt') {
                 b.sort_index = 84;
-            } else if(b.style == 'default' || b.style == 'cube') {
+            } else if(b.model_name == 'default' || b.model_name == 'cube') {
                 b.sort_index = sortByMaterial(b, 83);
             } else {
                 b.sort_index = sortByMaterial(b, 101);
