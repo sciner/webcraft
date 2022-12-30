@@ -17,7 +17,10 @@
         {"name": "pot", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "shulker", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "anvil", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "tnt", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}}
     ],
     "blocks": [
         {
@@ -114,7 +117,7 @@
             }
         },
         {
-            "id": 53,
+            "_id": 53,
             "name": "OAK_STAIRS",
             "style": "bbmodel",
             "sound": "madcraft:block.wood",
@@ -162,7 +165,7 @@
         },
         {
             "id": 1370,
-            "name": "BB_MAGENTA_SHULKER",
+            "name": "MAGENTA_SHULKER",
             "window": "frmChest",
             "is_entity": true,
             "chest_slots": 27,
@@ -185,6 +188,91 @@
                 "id": "shulker",
                 "side": "block/oak_planks.png"
             }
+        },
+        {
+            "id": 195,
+            "transparent": true,
+            "name": "ANVIL",
+            "sound": "madcraft:block.stone",
+            "window": "frmAnvil",
+            "style": "bbmodel",
+            "can_rotate": true,
+            "material": {
+                "id": "iron"
+            },
+            "texture": {
+                "id": "anvil",
+                "up": "block/anvil_top.png",
+                "side": "block/anvil.png",
+                "north": "block/chipped_anvil_top.png",
+                "south": "block/damaged_anvil_top.png"
+            },
+            "bb": {
+                "model": "anvil",
+                "behavior": "anvil",
+                "rotate": {"type": "cardinal_direction"}
+            },
+            "extra_data": {
+                "damage": 0
+            },
+            "tags": [
+                "no_drop_ao"
+            ]
+        },
+        {
+            "id": 4,
+            "name": "TNT",
+            "sound": "madcraft:block.grass",
+            "style": "bbmodel",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "redstone": {},
+            "texture": {
+                "id": "tnt",
+                "up": "block/tnt_top.png",
+                "down": "block/tnt_bottom.png",
+                "side": "block/tnt_side.png"
+            },
+            "bb": {
+                "model": "tnt",
+                "behavior": "tnt"
+            },
+            "extra_data": {
+                "explode": false,
+                "fuse": 0
+            },
+            "ticking": {
+                "type": "tnt"
+            }
+        },
+        {
+            "id": 65,
+            "name": "LADDER",
+            "width": 0.0625,
+            "align": [
+                "back"
+            ],
+            "style": "bbmodel",
+            "transparent": true,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "id": "ladder",
+                "side": "block/ladder.png"
+            },
+            "tags": [
+                "ladder",
+                "can_set_on_wall"
+            ],
+            "bb": {
+                "model": "ladder",
+                "behavior": "ladder"
+            },
+            "can_rotate": true
         }
     ],
     "_blocks": [

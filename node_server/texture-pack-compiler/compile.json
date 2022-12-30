@@ -2637,7 +2637,7 @@
             "can_rotate": true
         },
         {
-            "_id": 53,
+            "id": 53,
             "name": "OAK_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.wood",
@@ -2838,7 +2838,7 @@
             }
         },
         {
-            "id": 4,
+            "_id": 4,
             "name": "TNT",
             "sound": "madcraft:block.grass",
             "material": {
@@ -3159,7 +3159,7 @@
             }
         },
         {
-            "id": 65,
+            "_id": 65,
             "name": "LADDER",
             "width": 0.0625,
             "align": [
@@ -7081,7 +7081,7 @@
             "texture": "block/shroomlight.png"
         },
         {
-            "id": 195,
+            "_id": 195,
             "transparent": true,
             "name": "ANVIL",
             "sound": "madcraft:block.stone",
