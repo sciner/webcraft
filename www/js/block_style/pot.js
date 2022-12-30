@@ -1,10 +1,11 @@
-import {DIRECTION, Vector} from '../helpers.js';
+import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import {BLOCK, FakeTBlock} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
+import { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -34,17 +35,14 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic) {
-        let aabb = new AABB();
-        aabb.set(
+        return [new AABB(
             0 + .5 - WIDTH / 2,
             0,
             0 + .5 - WIDTH / 2,
             0 + .5 + WIDTH / 2,
             0 + HEIGHT,
             0 + .5 + WIDTH / 2,
-        );
-        // aabb.pad(1/32)
-        return [aabb];
+        )]
     }
 
     // Build function
@@ -129,9 +127,31 @@ export default class style {
             new Vector(x, y, z)
         );
 
+        const emmited_blocks = style.emmitInpotBlock(x, y, z, block, pivot, matrix, biome, dirt_color)
+        if(emmited_blocks.length > 0) {
+            return emmited_blocks
+        }
+
+        return null
+
+    }
+
+    /**
+     * @param {int} x 
+     * @param {int} y 
+     * @param {int} z
+     * @param {TBlock} tblock 
+     * @param {*} pivot 
+     * @param {*} matrix 
+     * @param {*} biome 
+     * @param {IndexedColor} dirt_color 
+     * @returns 
+     */
+    static emmitInpotBlock(x, y, z, tblock, pivot, matrix, biome, dirt_color) {
+
         let flower_block_id = null;
-        if(block.extra_data && block.extra_data?.item?.id) {
-            flower_block_id = block.extra_data?.item.id;
+        if(tblock.extra_data && tblock.extra_data?.item?.id) {
+            flower_block_id = tblock.extra_data?.item.id;
         }
 
         if(flower_block_id) {
@@ -149,7 +169,7 @@ export default class style {
             return [fb];
         }
 
-        return null;
+        return []
 
     }
 

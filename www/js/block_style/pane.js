@@ -2,6 +2,8 @@ import { IndexedColor, Vector, DIRECTION, QUAD_FLAGS } from '../helpers.js';
 import { BLOCK } from "../blocks.js";
 import { default as default_style } from './default.js';
 import glMatrix from '../../vendors/gl-matrix-3.3.min.js';
+import { AABB } from '../core/AABB.js';
+import { TBlock } from '../typed_blocks3.js';
 
 const {mat4} = glMatrix;
 
@@ -11,8 +13,63 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['pane'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    /**
+     * @param {TBlock} tblock 
+     * @param {boolean} for_physic 
+     * @param {*} world 
+     * @param {*} neighbours 
+     * @param {boolean} expanded 
+     */
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const shapes = []
+        const height = 1
+        const w = 2/16
+        const w2 = w/2
+        //
+        const n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours);
+        // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        const con_s = BLOCK.canPaneConnect(n.SOUTH);
+        const con_n = BLOCK.canPaneConnect(n.NORTH);
+        const con_w = BLOCK.canPaneConnect(n.WEST);
+        const con_e = BLOCK.canPaneConnect(n.EAST);
+        let remove_center = con_s || con_n || con_w || con_e;
+        //
+        if(con_s && con_n) {
+            // remove_center = true;
+            shapes.push(new AABB(.5-w2, 0, 0, .5+w2, height, .5+.5));
+        } else {
+            // South z--
+            if(con_s) {
+                shapes.push(new AABB(.5-w2, 0, 0, .5+w2, height, .5+w2));
+            }
+            // North z++
+            if(con_n) {
+                shapes.push(new AABB(.5-w2,0, .5-w2, .5+w2, height, 1));
+            }
+        }
+        if(con_w && con_e) {
+            // remove_center = true;
+            shapes.push(new AABB(0, 0, .5-w2, 1, height, .5+w2));
+        } else {
+            // West x--
+            if(con_w) {
+                shapes.push(new AABB(0, 0, .5-w2, .5+w2, height, .5+w2));
+            }
+            // East x++
+            if(con_e) {
+                shapes.push(new AABB(.5-w2, 0, .5-w2, 1, height, .5+w2));
+            }
+        }
+        // Central
+        if(!remove_center) {
+            shapes.push(new AABB(.5-w2, 0, .5-w2, .5+w2, height, .5+w2));
+        }
+        return shapes
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

@@ -37,15 +37,14 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic) {
-        let aabb = new AABB();
-        aabb.set(
+        const aabb = new AABB(
             0 + .5 - WIDTH / 2,
             0,
             0 + .5 - WIDTH / 2,
             0 + .5 + WIDTH / 2,
             0 + HEIGHT,
             0 + .5 + WIDTH / 2,
-        );
+        )
         //
         const cardinal_direction = block.getCardinalDirection();
         const matrix = CubeSym.matrices[cardinal_direction];

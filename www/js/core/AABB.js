@@ -47,13 +47,13 @@ export const PLANES = {
 
 export class AABB {
 
-    constructor() {
-        this.x_min = 0;
-        this.y_min = 0;
-        this.z_min = 0;
-        this.x_max = 0;
-        this.y_max = 0;
-        this.z_max = 0;
+    constructor(xMin, yMin, zMin, xMax, yMax, zMax) {
+        this.x_min = xMin || 0
+        this.y_min = yMin || 0
+        this.z_min = zMin || 0
+        this.x_max = xMax || 0
+        this.y_max = yMax || 0
+        this.z_max = zMax || 0
     }
 
     reset() {

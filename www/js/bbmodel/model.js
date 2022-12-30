@@ -273,7 +273,7 @@ export class BBModel_Model {
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
 
-        const bbGroup = new BBModel_Group(group.name, pivot, rot);
+        const bbGroup = new BBModel_Group(group.name, pivot, rot, group.visibility);
         bbGroup.updateLocalTransform();
         this.groups.set(group.name, bbGroup);
 
@@ -410,6 +410,42 @@ export class BBModel_Model {
 
         return resp;
 
+    }
+
+    /**
+     * @param {string[]} name 
+     */
+    hideGroups(names) {
+        for(let group of this.root.children) {
+            if(names.includes(group.name)) {
+                group.visibility = false
+            }
+        }
+    }
+
+    resetBehaviorChanges() {
+        // 1. reset state name
+        this.state = null
+        // 2. reset visibility
+        for(let group of this.root.children) {
+            group.visibility = group.orig_visibility
+        }
+    }
+
+    /**
+     * @param {string} name 
+     */
+    setState(name) {
+        this.state = name
+    }
+
+    /**
+     * @param {string[]} except_list 
+     */
+    hideAllExcept(except_list) {
+        for(let group of this.root.children) {
+            group.visibility = except_list.includes(group.name)
+        }
     }
 
 }
