@@ -149,8 +149,8 @@ export class ExportGeometry16 extends BaseExportGeometry {
                 dstBuf[dstOffset + 11] = cv + t * sv;
                 dstUint[dstOffset + 12] = color_mul;
                 dstUint[dstOffset + 13] = color_add;
-                dstUint[dstOffset + 14] = flags;
-                dstUint[dstOffset + 15] = chunkId;
+                dstBuf[dstOffset + 14] = flags;
+                dstBuf[dstOffset + 15] = chunkId;
 
                 dstOffset += vertexStrideFloats;
             }
@@ -190,8 +190,21 @@ export class ExportGeometry16 extends BaseExportGeometry {
             return;
         }
         this.currentChunk = chunk;
-        for (let i = 0; i < geom.pages.length; i++) {
-            this.innerConvertPage(geom.pages[i], this.innerConvertFluid);
+        if (geom.glCounts) {
+            let tmpPage = {
+                filled: 0,
+                instanceSize: geom.baseGeometry.strideFloats,
+                data: geom.baseGeometry.data,
+                uint32Data: new Uint32Array(geom.baseGeometry.data.buffer),
+            }
+            for (let i = 0; i < geom.glCounts.length; i++) {
+                tmpPage.filled = geom.glCounts[i];
+                this.innerConvertPage(tmpPage, this.innerConvertFluid, geom.glOffsets[i]);
+            }
+        } else {
+            for (let i = 0; i < geom.pages.length; i++) {
+                this.innerConvertPage(geom.pages[i], this.innerConvertFluid);
+            }
         }
         this.currentChunk = null;
     }
