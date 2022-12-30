@@ -94,6 +94,7 @@ export class WorldChestManager {
 
         let error = null;
         let forceClose = false;
+        let changeApplied = 0;
 
         // load both chests at the same time
         const pos = params.chest.pos;
@@ -136,14 +137,21 @@ export class WorldChestManager {
             forceClose = true;
         }
 
-        // Allow the client to rearrange its inventory freely before the current change,
-        // as long as the quantities match. This allows a clinet to rearrange its inventory
-        // without sending commands, as long as it doesn't affect the chest.
-        if (params.change.prevInventory) {
+        const rearrangeInventoryAs = params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW
+            // Make sure the last inventry change made by the client isn't lost.
+            ? params.inventory_slots
+            // Allow the client to rearrange its inventory freely before the current change,
+            // as long as the quantities match. This allows a clinet to rearrange its inventory
+            // without sending commands, as long as it doesn't affect the chest.
+            : params.change.prevInventory;
+        if (rearrangeInventoryAs) {
             const rearrangedInventory = InventoryComparator.rearrangeLikeOtherList(
-                player.inventory.items, params.change.prevInventory);
+                player.inventory.items, rearrangeInventoryAs);
             if (rearrangedInventory) {
-                player.inventory.items = rearrangedInventory;
+                if (!InventoryComparator.listsExactEqual(player.inventory.items, rearrangedInventory)) {
+                    changeApplied |= CHANGE_RESULT_FLAG_INVENTORY;
+                    player.inventory.items = rearrangedInventory;
+                }
             } else {
                 error = 'error_inventory_mismatch';
             }
@@ -200,7 +208,7 @@ export class WorldChestManager {
         var cliCombinedChestSlots = combineChests(params.chest, params.secondChest);
 
         const oldSimpleInventory = InventoryComparator.groupToSimpleItems(player.inventory.items);
-        const changeApplied = this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
+        changeApplied |= this.applyClientChange(srvCombinedChestSlots, cliCombinedChestSlots, 
                 player.inventory.items, params.inventory_slots, params.change, player,
                 inputChestSlotsCount, secondPos != null);
         const inventoryEqual = InventoryComparator.listsExactEqual(
