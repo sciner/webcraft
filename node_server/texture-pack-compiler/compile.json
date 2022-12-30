@@ -3108,8 +3108,8 @@
             },
             "texture": {
                 "id": "entity",
-                "side": "entity/chest/normal.png",
-                "right": "entity/chest/normal_right.png"
+                "side": "entity/chest/christmas.png",
+                "right": "entity/chest/christmas_left.png"
             }
         },
         {

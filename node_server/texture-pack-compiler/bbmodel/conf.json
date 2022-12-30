@@ -15,7 +15,9 @@
         {"name": "torch", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "fence", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "pot", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "stairs", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "shulker", "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -36,7 +38,6 @@
             "passable": 1,
             "is_fire": true,
             "can_rotate": true,
-            "spawnable": false,
             "mining_time": 0,
             "light_power": {
                 "r": 253,
@@ -72,7 +73,6 @@
             "sound": "madcraft:block.wood",
             "style": "bbmodel",
             "transparent": true,
-            "spawnable": false,
             "material": {
                 "id": "wood"
             },
@@ -133,6 +133,56 @@
             },
             "texture": {
                 "id": "stairs",
+                "side": "block/oak_planks.png"
+            }
+        },
+        {
+            "id": 1354,
+            "name": "BB_CHEST",
+            "window": "frmChest",
+            "is_entity": true,
+            "transparent": true,
+            "chest_slots": 27,
+            "style": "bbmodel",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "bb": {
+                "model": "chest",
+                "behavior": "chest",
+                "rotate": {"type": "cardinal_direction"}
+            },
+            "texture": {
+                "id": "chest",
+                "side": "block/oak_planks.png"
+            }
+        },
+        {
+            "id": 1370,
+            "name": "BB_MAGENTA_SHULKER",
+            "window": "frmChest",
+            "is_entity": true,
+            "chest_slots": 27,
+            "style": "bbmodel",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "bb": {
+                "model": "shulker",
+                "behavior": "shulker",
+                "rotate": {"type": "six"}
+            },
+            "tags": [
+                "store_items_in_chest"
+            ],
+            "texture": {
+                "id": "shulker",
                 "side": "block/oak_planks.png"
             }
         }
