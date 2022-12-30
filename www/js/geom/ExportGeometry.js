@@ -35,11 +35,11 @@ export class BaseExportGeometry {
         return bigData;
     }
 
-    innerConvertPage(page, convertInstances, extraOffset) {
+    innerConvertPage(page, convertInstances, extraOffset = 0) {
         let offset = 0;
         let lastPage = this.lastPage;
-        while (offset < page.sizeQuads) {
-            const batchInstances = Math.min(page.sizeQuads - offset, lastPage.sizeQuads - lastPage.filled);
+        while (offset < page.filled) {
+            const batchInstances = Math.min(page.filled - offset, lastPage.sizeQuads - lastPage.filled);
             convertInstances(lastPage, lastPage.filled, page, offset + extraOffset, batchInstances);
             lastPage.filled += batchInstances;
             this.size += batchInstances;
@@ -64,7 +64,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
     innerConvertTerrain = (dstPage, dstOffset, srcPage, srcOffset, count) => {
         const {palette, vertexStrideFloats, instanceStrideFloats} = this;
         const srcBuf = srcPage.data;
-        const srcUint = srcPage.uint32Data;
+        const srcUint = srcPage.uint32Data || new Uint32Array(srcBuf.buffer);
         const dstBuf = dstPage.data;
         const dstUint = dstPage.uint32Data;
         dstOffset *= instanceStrideFloats;
@@ -77,16 +77,16 @@ export class ExportGeometry16 extends BaseExportGeometry {
             //Z forward
 
             let cx = srcBuf[srcOffset + 0];
-            let cy = srcBuf[srcOffset + 1];
-            let cz = srcBuf[srcOffset + 2];
+            let cy = srcBuf[srcOffset + 2];
+            let cz = -srcBuf[srcOffset + 1];
 
             let dx0 = srcBuf[srcOffset + 3];
-            let dy0 = srcBuf[srcOffset + 4];
-            let dz0 = srcBuf[srcOffset + 5];
+            let dy0 = srcBuf[srcOffset + 5];
+            let dz0 = -srcBuf[srcOffset + 4];
 
             let dx1 = srcBuf[srcOffset + 6];
-            let dy1 = srcBuf[srcOffset + 7];
-            let dz1 = srcBuf[srcOffset + 8];
+            let dy1 = srcBuf[srcOffset + 8];
+            let dz1 = -srcBuf[srcOffset + 7];
 
             let nx = dy0 * dz1 - dy1 * dz0;
             let ny = dz0 * dx1 - dz1 * dx0;
@@ -178,13 +178,13 @@ export class ExportGeometry16 extends BaseExportGeometry {
         if (geom.baseGeometry) {
             if (geom.glCounts) {
                 let tmpPage = {
-                    sizeQuads: 0,
+                    filled: 0,
                     instanceSize: geom.baseGeometry.strideFloats,
                     data: geom.baseGeometry.data,
                     uint32Data: new Uint32Array(geom.baseGeometry.data.buffer),
                 }
                 for (let i = 0; i < geom.glCounts.length; i++) {
-                    tmpPage.sizeQuads = geom.glCounts[i];
+                    tmpPage.filled = geom.glCounts[i];
                     this.innerConvertPage(tmpPage, this.innerConvertTerrain, geom.glOffsets[i]);
                 }
             } else {

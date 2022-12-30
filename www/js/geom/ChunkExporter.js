@@ -41,7 +41,7 @@ export class ChunkExporter {
             meshes: [],
             nodes: [{
                 children: [],
-                rotation: [-sqrt2, 0, 0, sqrt2]
+                // rotation: [-sqrt2, 0, 0, sqrt2]
             }],
             samplers: [
                 {
@@ -109,10 +109,16 @@ export class ChunkExporter {
         };
         this.texMap.set(texture, texData);
         let canvas = null
-        if (texture.source instanceof Image || texture.source instanceof ImageBitmap) {
+        if (texture.source instanceof Image
+            || texture.source instanceof ImageBitmap
+            || texture.source.getContext && texture.style.mipmap) {
             canvas = document.createElement('canvas');
             canvas.width = texture.source.width;
             canvas.height = texture.source.height;
+            if (texture.style.mipmap) {
+                canvas.width = texture.source.width / 2;
+                canvas.height = texture.source.height / 2;
+            }
             canvas.getContext('2d').drawImage(texture.source, 0, 0);
             // its an image
         } else if (texture.source.getContext) {
@@ -314,8 +320,8 @@ export class ChunkExporter {
                     name: `chunk_${chunk.addr}`,
                     translation: [
                         (chunk.coord.x - localPos.x),
-                        (chunk.coord.z - localPos.z),
                         (chunk.coord.y - localPos.y),
+                        -(chunk.coord.z - localPos.z),
                     ]
                 }
                 const nodeIndex = outJson.nodes.length;
