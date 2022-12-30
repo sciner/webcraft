@@ -239,7 +239,7 @@ export class BaseChestWindow extends Window {
         if (this.lastChange.type === INVENTORY_CHANGE_SLOTS && !this.lastChange.slotInChest) {
             const now = performance.now();
             this.maxDirtyTime = this.maxDirtyTime ?? now + MAX_DIRTY_INVENTORY_DURATION;
-            if (this.maxDirtyTime > now) {
+            if (this.loading || this.maxDirtyTime > now) {
                 return;
             }
         }
@@ -471,7 +471,7 @@ export class BaseChestWindow extends Window {
             this.info.pos, this.secondInfo?.pos)
         ) {
             this.hideAndSetupMousePointer();
-        } else if (this.maxDirtyTime && this.maxDirtyTime < performance.now()) {
+        } else if (!this.loading && this.maxDirtyTime && this.maxDirtyTime < performance.now()) {
             this.confirmAction();
         }
     }
