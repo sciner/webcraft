@@ -8,7 +8,7 @@ import {Label, Window} from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
 export class HelpSlot extends Label {
-
+    
     constructor(x, y, sz, id, ct) {
         super(x, y, sz, sz, id, null, null);
         this.ct = ct;
@@ -33,11 +33,12 @@ export class HelpSlot extends Label {
     
     // Draw slot
     draw(ctx, ax, ay) {
+        const COLOR_RED = '#A17171';
         if (this.ct.lblResultSlot.item) {
             return;
         }
         this.applyStyle(ctx, ax, ay);
-        this.style.background.color = this.item ? '#ff000022' : '#ff000000';
+        this.style.background.color = this.item ? COLOR_RED + '22' : '#00000000';
         this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
@@ -752,11 +753,12 @@ export class BaseCraftWindow extends Window {
     // слоты помощи в крафте
     addHelpSlots() {
         const size = this.area.size.width;
-        const sx = size == 2 ? 196 : 59;
+        const sx = (size == 2) ? 196 : 60.5;
+        const sy = (size == 2) ? 36 : 34.5;
         this.help_slots = [];
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (36 + 36 * i) * this.zoom, 31 * this.zoom, 'help_' + i + '_' + j, this);
+                const slot = new HelpSlot((sx + 36 * j) * this.zoom, (sy + 36 * i) * this.zoom, 32 * this.zoom, 'help_' + i + '_' + j, this);
                 this.help_slots.push(slot);
                 this.add(slot);
             }
