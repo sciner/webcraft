@@ -3,6 +3,8 @@ import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
 import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
 
+const COLOR_RED = '#A17171';
+
 export class RecipeSlot extends Window {
 
     constructor(x, y, w, h, id, title, text, recipe, block, ct) {
@@ -16,10 +18,10 @@ export class RecipeSlot extends Window {
         this.style.background.color = '#ffffff55';
         // Custom drawing
         this.onMouseEnter = function(e) {
-            this.style.background.color = this.can_make ? '#ffffffcc' : '#ff000077';
+            this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77';
         }
         this.onMouseLeave = function(e) {
-            this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
+            this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
         }
         this.onMouseDown = function(e) {
             this.ct.craft_window.setHelperSlots(null);
@@ -54,7 +56,7 @@ export class RecipeSlot extends Window {
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
-        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
+        this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
     }
 
     draw(ctx, ax, ay) {
@@ -160,7 +162,7 @@ export class RecipeWindow extends Window {
                 if(this.page >= this.pages) {
                     this.page = 0;
                 }
-                that.lblPages.title = (this.page + 1) + ' / ' + this.pages;
+                that.lblPages.title = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages;
                 that.createRecipes();
                 that.craft_window.setHelperSlots(null);
             }
@@ -196,7 +198,7 @@ export class RecipeWindow extends Window {
                 image_size_mode: 'sprite',
                 sprite: {
                     mode: 'stretch',
-                    x: 719,
+                    x: 608,
                     y: 162,
                     width: 106,
                     height: 67
@@ -208,7 +210,7 @@ export class RecipeWindow extends Window {
         btnFilter.setBackground(options.background.image);
         btnFilter.onMouseDown = function(e) {
             self.only_can = !self.only_can;
-            this.style.background.sprite.x = self.only_can ? 608 : 719;
+            this.style.background.sprite.x = self.only_can ? 719 : 608;
             self.craft_window.setHelperSlots(null);
             self.createRecipes();
             self.paginator.update();
@@ -307,7 +309,7 @@ export class RecipeWindow extends Window {
         const tmp_recipes = [];
         for(const index in list) {
             const recipe = list[index];
-            if (!canMake(recipe) && !this.only_can) {
+            if (!canMake(recipe) && this.only_can) {
                 continue;
             }
             if (!recipe.adaptivePattern[size]) {
