@@ -270,7 +270,8 @@
             ],
             "bb": {
                 "model": "ladder",
-                "behavior": "ladder"
+                "behavior": "ladder",
+                "rotate": {"type": "cardinal_direction"}
             },
             "can_rotate": true
         }
