@@ -832,7 +832,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
         
-        if (this.type == 'player') {
+        if (this.type.startsWith('player')) {
             this.type = PLAYER_SKIN_TYPES[this.skin.type];
         }
         
@@ -863,7 +863,7 @@ export class MobModel extends NetworkPhysicObject {
             this.material = this.textures.get(this.skin); 
         }
         // если игрок зомби или скелет, загружаем броню для них
-        if (this.type == 'player:steve' || this.type == 'zombie' || this.type == 'skeleton') {
+        if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
             const armor = await Resources.getModelAsset('armor');
             if (!armor) {
                 console.log("Can't locate armor model");
