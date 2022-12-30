@@ -1099,8 +1099,8 @@ export class BLOCK {
      * Return block shapes
      * 
      * @param {Vector} pos 
-     * @param {*} tblock 
-     * @param {*} world 
+     * @param { import("./typed_blocks3.js").TBlock } tblock
+     * @param { import("./world.js").World } world
      * @param {boolean} for_physic 
      * @param {boolean} expanded 
      * @param {*} neighbours 

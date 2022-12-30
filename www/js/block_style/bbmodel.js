@@ -1,11 +1,12 @@
 import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { BLOCK } from '../blocks.js';
+import { BLOCK, FakeTBlock } from '../blocks.js';
 import { Resources } from '../resources.js';
 
 import { default as default_style } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
+import { default as pot_style } from '../block_style/pot.js';
 
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 import { TBlock } from '../typed_blocks3.js';
@@ -69,7 +70,7 @@ export default class style {
         matrix = mat4.create();
         mat4.rotateY(matrix, matrix, Math.PI);
 
-        style.applyBehavior(model, block, neighbours, matrix)
+        const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color)
 
         // const animation_name = 'walk';
         // model.playAnimation(animation_name, performance.now() / 1000);
@@ -81,6 +82,12 @@ export default class style {
         // Add particles for block
         style.addParticles(model, block, matrix)
 
+        if(emmited_blocks.length > 0) {
+            return emmited_blocks
+        }
+
+        return null
+
     }
 
     /**
@@ -88,9 +95,12 @@ export default class style {
      * @param {TBlock} tblock 
      * @param {*} neighbours 
      * @param {*} matrix 
+     * @param {*} biome 
+     * @param {IndexedColor} dirt_color
      */
-    static applyBehavior(model, tblock, neighbours, matrix) {
+    static applyBehavior(model, tblock, neighbours, matrix, biome, dirt_color) {
 
+        const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
         const behavior = bb.behavior || bb.model
@@ -115,24 +125,20 @@ export default class style {
                 break
             }
             case 'pot': {
+                if(!(tblock instanceof FakeTBlock)) {
+                    emmited_blocks.push(...pot_style.emmitInpotBlock(tblock.vec.x, tblock.vec.y, tblock.vec.z, tblock, null, matrix, biome, dirt_color))
+                }
                 break
             }
             case 'stairs': {
 
-                const info = stairs_style.calculate(tblock, Vector.ZERO.clone(), neighbours)
-                const on_ceil = info.on_ceil
-                const cd = 0 // on_ceil ? 2 : 0 // tblock.getCardinalDirection()
-                const fix_rot = on_ceil ? Math.PI / 2 : 0
-
-                const s = (DIRECTION.SOUTH + cd) % 4
-                const e = (DIRECTION.EAST + cd) % 4
-                const n = (DIRECTION.NORTH + cd) % 4
-                const w = (DIRECTION.WEST + cd) % 4
-
-                const sw = info.sides[s]
-                const se = info.sides[e]
-                const en = info.sides[n]
-                const nw = info.sides[w]
+                const info      = stairs_style.calculate(tblock, Vector.ZERO.clone(), neighbours)
+                const on_ceil   = info.on_ceil
+                const fix_rot   = on_ceil ? Math.PI / 2 : 0
+                const sw        = info.sides[DIRECTION.SOUTH]
+                const se        = info.sides[DIRECTION.EAST]
+                const en        = info.sides[DIRECTION.NORTH]
+                const nw        = info.sides[DIRECTION.WEST]
 
                 // between
                 if(sw && se && !en && !nw) {
@@ -200,6 +206,8 @@ export default class style {
                 }
             }
         }
+
+        return emmited_blocks
 
     }
 
