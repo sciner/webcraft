@@ -58,12 +58,20 @@ export class BaseChestWindow extends Window {
         this.chestSessionId = null;
 
         this.blockModifierListener = (tblock) => {
+            let targetInfo;
+            const posworld = tblock.posworld;
+            if (this.info.pos.equal(posworld)) {
+                targetInfo = this.info;
+            } else if (this.secondInfo && this.secondInfo.pos.equal(posworld)) {
+                targetInfo = this.secondInfo;
+            } else {
+                return;
+            }
             // If a chest was removed by the server
-            if (this.info.pos.equal(tblock.posworld) && tblock.id !== this.info.block_id ||
-                this.secondInfo && this.secondInfo.pos.equal(tblock.posworld) && 
-                tblock.id !== this.secondInfo.block_id
-            ) {
+            if (tblock.id !== targetInfo.block_id) {
                 this.hideAndSetupMousePointer(); // It also takes care of the dragged item.
+            } else if (!tblock.material.chest.private) {
+                this.setLocalData(tblock);
             }
         };
 

@@ -574,10 +574,8 @@ export class WorldChestManager {
     }
 
     // Send block item
-    // @todo without slots
-    async sendItem(block_pos, chest) {
-        const chunk_addr = getChunkAddr(block_pos);
-        const chunk = this.world.chunks.get(chunk_addr);
+    async sendItem(chest) {
+        const chunk = this.world.chunks.get(chest.chunk_addr);
         if(chunk) {
             const item = {
                 id:         chest.id,
@@ -586,7 +584,7 @@ export class WorldChestManager {
             };
             const packets = [{
                 name: ServerClient.CMD_BLOCK_SET,
-                data: {pos: block_pos, item: item}
+                data: {pos: chest.posworld, item: item}
             }];
             chunk.sendAll(packets, []);
         }
@@ -618,7 +616,7 @@ export class WorldChestManager {
                     console.error('error_ender_chest_empty_for_player');
                 }
             }
-        } else {
+        } else if (tblock.material.chest.private) {
             if(!tblock.extra_data || !tblock.extra_data.slots) {
                 return false;
             }
@@ -634,6 +632,8 @@ export class WorldChestManager {
                 }];
                 player.sendPackets(packets);
             }
+        } else {
+            this.sendItem(tblock);
         }
         return true;
     }
