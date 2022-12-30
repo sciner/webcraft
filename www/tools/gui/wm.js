@@ -447,9 +447,10 @@ export class Window {
         this.onShow(args);
     }
     hide() {
+        const wasVisible = this.visible;
         this.visible = false;
         this.resetHover();
-        this.onHide();
+        this.onHide(wasVisible);
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
             Qubatch.hud.prevDrawTime = 0;
         }

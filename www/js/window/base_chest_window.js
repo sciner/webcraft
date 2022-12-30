@@ -1,4 +1,4 @@
-import { ArrayHelpers, Vector } from "../helpers.js";
+import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import { Button, Label, Window } from "../../tools/gui/wm.js";
 import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
@@ -27,6 +27,7 @@ export class BaseChestWindow extends Window {
         this.inventory  = inventory;
         this.firstLoading  = false;
         this.secondLoading = false;
+        this.timeout    = null;
 
         // Get window by ID
         const ct = this;
@@ -68,7 +69,6 @@ export class BaseChestWindow extends Window {
 
         // Обработчик открытия формы
         this.onShow = function() {
-            this.chestSessionId = Math.random();
             this.lastChange.type = INVENTORY_CHANGE_NONE;
             this.getRoot().center(this);
             Qubatch.releaseMousePointer();
@@ -79,7 +79,7 @@ export class BaseChestWindow extends Window {
         }
 
         // Обработчик закрытия формы
-        this.onHide = function() {
+        this.onHide = function(wasVisible) {
             if (this.chestSessionId != null) { // if the closing wasn't forced by the server
                 this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW;
                 // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
@@ -87,7 +87,7 @@ export class BaseChestWindow extends Window {
                 this.inventory.clearDragItem(true);
                 this.confirmAction();
             }
-            if(options.sound.close) {
+            if(wasVisible && options.sound.close) {
                 Qubatch.sounds.play(options.sound.close.tag, options.sound.close.action);
             }
             this.info = null; // disables AddCmdListener listeners 
@@ -104,9 +104,14 @@ export class BaseChestWindow extends Window {
         });
 
         this.server.AddCmdListener([ServerClient.CMD_CHEST_FORCE_CLOSE], (cmd) => {
-            if (this.visible && cmd.data.chestSessionId === this.chestSessionId) {
-                this.chestSessionId = null; // it prevents sending the closing request
-                this.hideAndSetupMousePointer();
+            if (cmd.data.chestSessionId === this.chestSessionId) {
+                if (this.visible) {
+                    this.chestSessionId = null; // it prevents sending the closing request
+                    this.hideAndSetupMousePointer();
+                } else {
+                    // it might be before the timer
+                    this.dontShowChestSessionId = this.chestSessionId;
+                }
             }
         });
 
@@ -172,7 +177,8 @@ export class BaseChestWindow extends Window {
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
             lastChange.dragPrevItem = dargItem ? { ...dargItem } : null;
-            lastChange.prevInventory = JSON.parse(JSON.stringify(Qubatch.player.inventory.items));
+            // We need only shallow copies of elements (to preserve count), but use the existing cloning method:
+            lastChange.prevInventory = ObjectHelpers.deepClone(Qubatch.player.inventory.items);
         }
 
         //
@@ -257,11 +263,17 @@ export class BaseChestWindow extends Window {
 
     // Запрос содержимого сундука
     load(info, secondInfo = null) {
+        if (this.timeout) { // a player is clicking too fast
+            return;
+        }
+
+        this.chestSessionId = Math.random();
         let that = this;
         this.lbl1.setText(Lang['chest_loading']);
         this.clear();
 
         // analyze the 1st chest
+        info.chestSessionId = this.chestSessionId;
         this.info = info;
         const firstBlock = this.world.getBlock(info.pos);
         this.firstLoading = firstBlock.material.chest.private;
@@ -270,8 +282,14 @@ export class BaseChestWindow extends Window {
         this.secondInfo = secondInfo;
         this.secondLoading = false;
         if (secondInfo) {
+            secondInfo.chestSessionId = this.chestSessionId;
             const secondBlock = this.world.getBlock(secondInfo.pos);
-            this.secondLoading = secondBlock.chest.private;
+            this.secondLoading = secondBlock.material.chest.private;
+
+            // Both chest requests send both positions to set player.currentChests properly
+            secondInfo.otherPos = info.pos;
+            info.otherPos = secondInfo.pos;
+
             if (this.secondLoading) {
                 this.server.LoadChest(secondInfo);
             } else {
@@ -286,9 +304,16 @@ export class BaseChestWindow extends Window {
             this.setLocalData(firstBlock);
         }
 
-        setTimeout(function() {
-            that.show();
-        }, 50);
+        if (this.loading) {
+            this.timeout = setTimeout(function() {
+                that.timeout = null;
+                if (that.dontShowChestSessionId !== that.chestSessionId) {
+                    that.show();
+                }
+            }, 50);
+        } else {
+            this.show();
+        }
     }
 
     setLocalData(tblock) {

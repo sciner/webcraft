@@ -1,6 +1,6 @@
-import {BLOCK, ITEM_INVENTORY_PROPS, ITEM_INVENTORY_KEY_PROPS} from "./blocks.js";
+import {BLOCK, ITEM_INVENTORY_PROPS_OBJ, ITEM_INVENTORY_KEY_PROPS} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
-import {deepEqualProps, deepEqualNestedProps} from "./helpers.js"
+import {ObjectHelpers} from "./helpers.js"
 
 export class InventoryComparator {
 
@@ -59,7 +59,7 @@ export class InventoryComparator {
 
     /** Compares lists exactly - item stacks must match. */
     static listsExactEqual(listA, listB) {
-        return deepEqualNestedProps(listA, listB, ITEM_INVENTORY_PROPS);
+        return ObjectHelpers.deepEqualCollectionElementProps(listA, listB, ITEM_INVENTORY_PROPS_OBJ);
     }
 
     /* Compares total quantities of each item, regardless of their invetory positions
@@ -136,7 +136,7 @@ export class InventoryComparator {
                     equal = false;
                     break;
                 }
-                if(!deepEqualProps(old_item, item, ITEM_INVENTORY_PROPS)) {
+                if(!ObjectHelpers.deepEqualObjectProps(old_item, item, ITEM_INVENTORY_PROPS_OBJ)) {
                     console.error('* Comparator not equal (new,old):', JSON.stringify([item, old_item], 2, null));
                     equal = false;
                     break;
@@ -156,7 +156,8 @@ export class InventoryComparator {
      * 
      * @param {Array} srcList - the items to be rearranged
      * @param {Array} likeList - the items used to determine the arrangement.
-     * @returns {Array} the new list, or null if it's impossible.
+     * @returns {Array} the new list with shallow clones of elements of srcList,
+     *  or null if it's impossible.
      */
     static rearrangeLikeOtherList(srcList, likeList) {
         // get the array of comparison keys of likeList
@@ -189,7 +190,7 @@ export class InventoryComparator {
             }
             let item;
             if (srcItem.count) {
-                item = JSON.parse(JSON.stringify(srcItem));
+                item = {...srcItem};
             } else {
                 // optimization: don't clone the last remaining item of this type
                 item = srcItem;
@@ -216,8 +217,8 @@ export class InventoryComparator {
      * @param items
      * @param {Array} outArrayOfKeys - if it's not null, it will return an array of keys
      *  with the same indices as the source items.
-     * @param {Boolean} returnSourceItems - if it's true, the method return the cloned
-     *  source items with full data, instead of simple items.
+     * @param {Boolean} returnSourceItems - if it's true, the method returns shallow clones
+     *  of the source items with full data, instead of simple items.
      */
     static groupToSimpleItems(items, outArrayOfKeys = null, returnSourceItems = false) {
         const resp = new Map();
@@ -236,11 +237,12 @@ export class InventoryComparator {
                     const new_item = BLOCK.convertItemToInventoryItem(item, b);
                     const key = InventoryComparator.makeItemCompareKey(same_items, new_item, b);
                     //
-                    if(resp.has(key)) {
-                        resp.get(key).count += new_item.count;
+                    const existingValue = resp.get(key);
+                    if(existingValue) {
+                        existingValue.count += new_item.count;
                     } else {
-                        const mapValue = returnSourceItems ? JSON.parse(JSON.stringify(item)) : new_item;
-                        resp.set(key, mapValue);
+                        const newValue = returnSourceItems ? {...item} : new_item;
+                        resp.set(key, newValue);
                     }
                     outArrayOfKeys?.push(key);
                 } else {

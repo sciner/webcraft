@@ -279,3 +279,19 @@ export class DelayedCalls {
 }
 
 const EMPTY_ARRAY = [];
+
+export class PacketHelpers {
+
+    /**
+     * Starts countdown of atemps and time for a packet.
+     * Returns true until the coundown ends. After that, returns false.
+     */
+    static waitInQueue(packet, ttl, maxAttempts = 2000000000) {
+        const now = performance.now();
+        if (!packet.attempts_count) {
+            packet.expiress = now + ttl;
+            packet.attempts_count = 0;
+        }
+        return ++packet.attempts_count <= maxAttempts && packet.expiress >= now;
+    }
+}

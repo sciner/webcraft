@@ -1788,6 +1788,15 @@ export class ArrayHelpers {
             toExcl = left;
         }
     }
+
+    // Returns Object whose keys are the array values, and values are the given value (true by default).
+    static valuesToObjectKeys(arr, value = true) {
+        const res = {};
+        for(let v of arr) {
+            res[v] = value;
+        }
+        return res;
+    }
 }
 
 // Helper methods for working with an object, an Array or a Map in the same way.
@@ -2263,9 +2272,150 @@ export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
 
 // maybe move other related methods here
 export class ObjectHelpers {
+
     static isEmpty(obj) {
         for (let key in obj) {
             return false;
+        }
+        return true;
+    }
+
+    // For now, it supports only plain objects, Array, primitives and Vector.
+    static deepClone(v) {
+        if (v == null) {
+            return v;
+        }
+        // Splitting this function into 3 increases(!) performance
+        // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
+        if (Array.isArray(v)) {
+            return this.deepCloneArray(v);
+        }
+        if (typeof v === 'object') {
+            return this.deepCloneObject(v);
+        }
+        return v;
+    }
+    
+    static deepCloneArray(v) {
+        const res = new Array(v.length);
+        for(let i = 0; i < v.length; i++) {
+            res[i] = this.deepClone(v[i]);
+        }
+        return res;
+    }
+    
+    static deepCloneObject(v) {
+        if (v instanceof Vector) {
+            return new Vector(v);
+        }
+        const res = {};
+        for(let key in v) {
+            // Don't check hasOwnProperty(key) here, because it's not checked anywhere.
+            // If something is added to Object.prototype, the entire project is screwed.
+            res[key] = this.deepClone(v[key]);
+        }
+        return res;
+    }
+
+    /**
+     * It deep compares own properties of the objects.
+     * It's not perfect (e.g. it doesn't distnguisgh between absence of a property and an undefined value),
+     * but it's good enough for real game use cases.
+     * 
+     * Maybe add support for Map, Set, primitive arrays.
+     */
+    static deepEqual(a, b) {
+        if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
+            return a === b;
+        }
+        return Array.isArray(a)
+            ? Array.isArray(b) && this.deepEqualArray(a, b)
+            : this.deepEqualObject(a, b);
+    }
+
+    static deepEqualArray(a, b) {
+        if (a.length !== b.length) {
+            return false;
+        }
+        for(let i = 0; i < a.length; i++) {
+            if (!this.deepEqual(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static deepEqualObject(a, b) {
+        for (let key in a) {
+            // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
+            // but for real game objects it seems unnecesssary.
+            if (!this.deepEqual(a[key], b[key])) {
+                return false;
+            }
+        }
+        for (let key in b) {
+            if (!(key in a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Deep compares the selected properties of two objects.
+     * For the nested objects, all properties are compared.
+     * @param {Object} propsObj - an object that has true-like values for properties being compared.
+     */
+    static deepEqualObjectProps(a, b, propsObj) {
+        if (a == null || b == null) {
+            return a === b;
+        }
+        if (typeof a !== 'object' || typeof b !== 'object') {
+            throw new Error('unsupported');
+        }
+        for (let key in a) {
+            if (propsObj[key] && !this.deepEqual(a[key], b[key])) {
+                return false;
+            }
+        }
+        for (let key in b) {
+            if (propsObj[key] && !(key in a)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Deep compares two objects or arrays, but for their elememnts {@link deepEqualObjectProps} is used.
+     */
+    static deepEqualCollectionElementProps(a, b, propsObj) {
+        if (a == null || b == null) {
+            return a === b;
+        }
+        if (Array.isArray(a)) {
+            if (!Array.isArray(b) || b.length !== a.length) {
+                return false;
+            }
+            for(let i = 0; i < a.length; i++) {
+                if (!this.deepEqualObjectProps(a[i], b[i], propsObj)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (a instanceof Map || a instanceof Set) {
+            throw new Error('unsupported'); // implement it if necessary
+        }
+        for (var key in a) {
+            if (!this.deepEqualObjectProps(a[key], b[key], propsObj)) {
+                return false;
+            }
+        }
+        for (var key in b) {
+            if (!(key in a)) {
+                return false;
+            }
         }
         return true;
     }
@@ -2274,64 +2424,6 @@ export class ObjectHelpers {
 function toType(a) {
     // Get fine type (object, array, function, null, error, date ...)
     return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
-}
-
-// Deep compares own properties of the two objects
-export function deepEqual(a, b) {
-    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
-        return a === b;
-    }
-    for (var key in a) {
-        // We could also check b.hasOwnProperty(key) - i.e. it's not in the prototype,
-        // but for real game objects it seems unnecesssary.
-        if (a.hasOwnProperty(key) && !deepEqual(a[key], b[key])) {
-            return false;
-        }
-    }
-    for (var key in b) {
-        if (b.hasOwnProperty(key) && !(key in a)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-// Deep compares selected properties of the two objects.
-// The filter affects only top-level properties.
-export function deepEqualProps(a, b, props) {
-    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
-        return a === b;
-    }
-    for (var key in a) {
-        if (props.indexOf(key) >= 0 && !deepEqual(a[key], b[key])) {
-            return false;
-        }
-    }
-    for (var key in b) {
-        if (props.indexOf(key) >= 0 && !(key in a)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-// Deep compares selected properties of the two objects, but for level-2 properties,
-// only the selected are compared. Useful for comparing lists of items.
-export function deepEqualNestedProps(a, b, props) {
-    if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
-        return a === b;
-    }
-    for (var key in a) {
-        if (a.hasOwnProperty(key) && !deepEqualProps(a[key], b[key], props)) {
-            return false;
-        }
-    }
-    for (var key in b) {
-        if (b.hasOwnProperty(key) && !(key in a)) {
-            return false;
-        }
-    }
-    return true;
 }
 
 function isDeepObject(obj) {

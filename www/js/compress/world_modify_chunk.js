@@ -75,9 +75,8 @@ export function compressWorldModifyChunk(json, need_to_gzip = true) {
         if (mat?.chest?.private) {
             const slots = item.extra_data?.slots;
             if (slots) {
-                if (!ObjectHelpers.isEmpty(slots)) {
-                    private_resp.push(item, index);
-                }
+                // Add it to private_resp even if the slots are empty, otherwise it'd have no slots property after uncompressing.
+                private_resp.push(item, index);
                 // save to the public modifiers without slots.
                 // Delete them even if they are empty, so the client doesn't know even that.
                 delete item.extra_data.slots;

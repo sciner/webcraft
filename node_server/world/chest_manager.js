@@ -22,14 +22,21 @@ export class WorldChestManager {
     }
 
     /**
-     * Returns a vaild chest by pos, or throws an exception
+     * Returns a vaild chest by pos, or throws an exception.
+     * Optionally, it can return null if the chunk is mising.
      * @param {Vector} pos
+     * @param {Boolean} nullIfNotLoaded - if it's true and the chunk is missing,
+     *      then instead of throwing an exception, it return null. The default is false.
      * @returns {TBlock} chest
      */
-    async get(pos) {
+    async get(pos, nullIfNotLoaded = false) {
         const tblock = this.world.getBlock(pos);
-        if(!tblock || tblock.id < 1) {
-            throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
+        if(!tblock || tblock.id < 0) {
+            if(nullIfNotLoaded) {
+                return null;
+            } else {
+                throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
+            }
         }
         if(!tblock.material?.chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
@@ -42,22 +49,25 @@ export class WorldChestManager {
     }
 
     /**
-     * Returns a vaild chest by pos, or null
      * @param {Vector} pos
-     * @returns Chest|null
+     * @returns {Object} {
+     *   chest: ?TBlock   // if the chest is loaded and valid
+     *   error: ?String   // otherwise
+     * }
      */
-    async getOrNull(pos) {
+    async getChestOrError(pos) {
         const tblock = this.world.getBlock(pos);
-        if (!tblock || tblock.id < 1 ||
-            !tblock.material?.chest || !tblock.extra_data
-        ) {
-            return null;
+        if (!tblock || tblock.id < 0) {
+            return { error: `error_chest_not_found|${pos.x},${pos.y},${pos.z}` };
+        }
+        if (!tblock.material?.chest || !tblock.extra_data) {
+            return { error: 'error_block_is_not_chest' };
         }
         if (tblock.extra_data.generate) {
             const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
             tblock.extra_data = params.item.extra_data;
         }
-        return tblock;
+        return { chest: tblock };
     }
 
     /**
@@ -87,20 +97,22 @@ export class WorldChestManager {
 
         // load both chests at the same time
         const pos = params.chest.pos;
-        const tblockPromise = this.getOrNull(pos);
+        const promise = this.getChestOrError(pos);
         var secondPos = null;
         var secondTblock = null;
         if (params.secondChest) {
             secondPos = params.secondChest.pos;
-            secondTblock = await this.getOrNull(secondPos);
+            const secondResult = await this.getChestOrError(secondPos);
+            secondTblock = secondResult?.chest;
             if (secondTblock == null || secondTblock.material.name !== 'CHEST') {
-                error = 'error_chest_not_found';
+                error = secondResult.error || 'error_block_is_not_chest';
                 forceClose = true;
             }
-        }            
-        const tblock = await tblockPromise;
+        }
+        const tblockResult = await promise;
+        const tblock = tblockResult?.chest;
         if (tblock == null) {
-            error = 'error_chest_not_found';
+            error = tblockResult.error;
             forceClose = true;
         }
         // if there are 2 chests, they must be of type CHEST, and touch each other
@@ -142,7 +154,10 @@ export class WorldChestManager {
             await player.inventory.refresh(true);
             if (forceClose) {
                 player.currentChests = null;
-                this.world.sendSelected([{ name: ServerClient.CMD_CHEST_FORCE_CLOSE, data: { chestSessionId: params.chestSessionId}}], [player.session.user_id]);
+                player.sendPackets([{ 
+                    name: ServerClient.CMD_CHEST_FORCE_CLOSE,
+                    data: { chestSessionId: params.chestSessionId }
+                }]);
             } else {
                 if (params.change.type === INVENTORY_CHANGE_CLOSE_WINDOW) {
                     player.currentChests = null;
@@ -630,11 +645,11 @@ export class WorldChestManager {
                         continue;
                     }
                 }
-                if (tblock.chest.private) {
+                if (tblock.material.chest.private) {
                     if (!p.currentChests) {
                         continue;
                     }
-                    const ind = p.currentChests.findIndex((it) => it.pos.equal(pos));
+                    const ind = p.currentChests.findIndex((it) => pos.equal(it));
                     if (ind < 0) {
                         continue;
                     }
