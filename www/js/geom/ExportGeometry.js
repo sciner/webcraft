@@ -17,6 +17,7 @@ export class BaseExportGeometry {
         this.size = 0;
         this.bigData = null;
         this.lastPage = this.pool.allocPage();
+        this.currentChunk = null;
     }
 
     pack() {
@@ -35,12 +36,12 @@ export class BaseExportGeometry {
         return bigData;
     }
 
-    innerConvertPage(page, convertInstances, extraOffset) {
+    innerConvertPage(page, convertInstances, extraOffset = 0) {
         let offset = 0;
         let lastPage = this.lastPage;
-        while (offset < page.sizeQuads) {
-            const batchInstances = Math.min(page.sizeQuads - offset, lastPage.sizeQuads - lastPage.filled);
-            convertInstances(lastPage, lastPage.filled, page, offset + extraOffset, batchInstances);
+        while (offset < page.filled) {
+            const batchInstances = Math.min(page.filled - offset, lastPage.sizeQuads - lastPage.filled);
+            convertInstances(lastPage, lastPage.filled, page, offset + extraOffset, batchInstances, this.currentChunk);
             lastPage.filled += batchInstances;
             this.size += batchInstances;
             offset += batchInstances;
@@ -61,15 +62,15 @@ export class ExportGeometry16 extends BaseExportGeometry {
         vertexStrideFloats: 16,
         instanceStrideFloats: 16 * 4,
     };
-    innerConvertTerrain = (dstPage, dstOffset, srcPage, srcOffset, count) => {
+    innerConvertTerrain = (dstPage, dstOffset, srcPage, srcOffset, count, currentChunk) => {
         const {palette, vertexStrideFloats, instanceStrideFloats} = this;
         const srcBuf = srcPage.data;
-        const srcUint = srcPage.uint32Data;
+        const srcUint = srcPage.uint32Data || new Uint32Array(srcBuf.buffer);
         const dstBuf = dstPage.data;
         const dstUint = dstPage.uint32Data;
         dstOffset *= instanceStrideFloats;
         srcOffset *= srcPage.instanceSize;
-        const chunkId = this.currentChunk ? this.currentChunk.getDataTextureOffset() : srcUint[srcOffset + 15];
+        const chunkId = currentChunk ?currentChunk.getDataTextureOffset() : srcUint[srcOffset + 15];
         for (let i = 0; i < count; i++) {
 
             //gltf space: X LEFT (reversed)
@@ -77,16 +78,16 @@ export class ExportGeometry16 extends BaseExportGeometry {
             //Z forward
 
             let cx = srcBuf[srcOffset + 0];
-            let cy = srcBuf[srcOffset + 1];
-            let cz = srcBuf[srcOffset + 2];
+            let cy = srcBuf[srcOffset + 2];
+            let cz = -srcBuf[srcOffset + 1];
 
             let dx0 = srcBuf[srcOffset + 3];
-            let dy0 = srcBuf[srcOffset + 4];
-            let dz0 = srcBuf[srcOffset + 5];
+            let dy0 = srcBuf[srcOffset + 5];
+            let dz0 = -srcBuf[srcOffset + 4];
 
             let dx1 = srcBuf[srcOffset + 6];
-            let dy1 = srcBuf[srcOffset + 7];
-            let dz1 = srcBuf[srcOffset + 8];
+            let dy1 = srcBuf[srcOffset + 8];
+            let dz1 = -srcBuf[srcOffset + 7];
 
             let nx = dy0 * dz1 - dy1 * dz0;
             let ny = dz0 * dx1 - dz1 * dx0;
@@ -148,8 +149,8 @@ export class ExportGeometry16 extends BaseExportGeometry {
                 dstBuf[dstOffset + 11] = cv + t * sv;
                 dstUint[dstOffset + 12] = color_mul;
                 dstUint[dstOffset + 13] = color_add;
-                dstUint[dstOffset + 14] = flags;
-                dstUint[dstOffset + 15] = chunkId;
+                dstBuf[dstOffset + 14] = flags;
+                dstBuf[dstOffset + 15] = chunkId;
 
                 dstOffset += vertexStrideFloats;
             }
@@ -159,32 +160,18 @@ export class ExportGeometry16 extends BaseExportGeometry {
         }
     }
 
-    innerConvertFluid = (dstPage, dstOffset, srcPage, srcOffset, count) => {
-        const {vertexStrideFloats, instanceStrideFloats} = this.options;
-        const {palette} = this;
-        const srcBuf = srcPage.data;
-        const srcUint = srcPage.uint32Data;
-        const dstBuf = dstPage.data;
-        const dstUint = dstPage.uint32Data;
-        dstOffset *= instanceStrideFloats;
-        srcOffset *= srcPage.instanceSize;
-        for (let i = 0; i < count; i++) {
-            //TODO: water
-        }
-    }
-
     pushTerrainGeom(geom, chunk) {
         this.currentChunk = chunk;
         if (geom.baseGeometry) {
             if (geom.glCounts) {
                 let tmpPage = {
-                    sizeQuads: 0,
+                    filled: 0,
                     instanceSize: geom.baseGeometry.strideFloats,
                     data: geom.baseGeometry.data,
                     uint32Data: new Uint32Array(geom.baseGeometry.data.buffer),
                 }
                 for (let i = 0; i < geom.glCounts.length; i++) {
-                    tmpPage.sizeQuads = geom.glCounts[i];
+                    tmpPage.filled = geom.glCounts[i];
                     this.innerConvertPage(tmpPage, this.innerConvertTerrain, geom.glOffsets[i]);
                 }
             } else {
@@ -199,9 +186,25 @@ export class ExportGeometry16 extends BaseExportGeometry {
     }
 
     pushFluidGeom(geom, chunk) {
+        if (!this.innerConvertFluid) {
+            return;
+        }
         this.currentChunk = chunk;
-        for (let i = 0; i < geom.pages.length; i++) {
-            this.innerConvertPage(geom.pages[i], this.innerConvertFluid);
+        if (geom.glCounts) {
+            let tmpPage = {
+                filled: 0,
+                instanceSize: geom.baseGeometry.strideFloats,
+                data: geom.baseGeometry.data,
+                uint32Data: new Uint32Array(geom.baseGeometry.data.buffer),
+            }
+            for (let i = 0; i < geom.glCounts.length; i++) {
+                tmpPage.filled = geom.glCounts[i];
+                this.innerConvertPage(tmpPage, this.innerConvertFluid, geom.glOffsets[i]);
+            }
+        } else {
+            for (let i = 0; i < geom.pages.length; i++) {
+                this.innerConvertPage(geom.pages[i], this.innerConvertFluid);
+            }
         }
         this.currentChunk = null;
     }
@@ -213,6 +216,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
             width: 0,
         }
         this.currentChunk = null;
+        this.innerConvertFluid = null;
 
         this.createAttributes()
     }
