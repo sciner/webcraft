@@ -4,7 +4,7 @@ import { CraftTableInventorySlot } from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS
+    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
@@ -28,6 +28,7 @@ export class BaseChestWindow extends Window {
         this.firstLoading  = false;
         this.secondLoading = false;
         this.timeout    = null;
+        this.maxDirtyTime  = null;
 
         // Get window by ID
         const ct = this;
@@ -231,10 +232,16 @@ export class BaseChestWindow extends Window {
             return res;
         }
 
-        if (this.lastChange.type === INVENTORY_CHANGE_NONE ||
-            this.lastChange.type === INVENTORY_CHANGE_SLOTS && !this.lastChange.slotInChest
-        ) {
+        if (this.lastChange.type === INVENTORY_CHANGE_NONE) {
             return;
+        }
+        // Delay sending changes that don't affect the chest.
+        if (this.lastChange.type === INVENTORY_CHANGE_SLOTS && !this.lastChange.slotInChest) {
+            const now = performance.now();
+            this.maxDirtyTime = this.maxDirtyTime ?? now + MAX_DIRTY_INVENTORY_DURATION;
+            if (this.maxDirtyTime > now) {
+                return;
+            }
         }
         // Here there may or may not be some change, described by this.lastChange or not.
         const params = {
@@ -258,6 +265,7 @@ export class BaseChestWindow extends Window {
         this.server.ChestConfirm(params);
         // Forget the previous inventory. If there are no changes, it won't be sent next time.
         this.lastChange.prevInventory = null;
+        this.maxDirtyTime = null;
     }
 
     draw(ctx, ax, ay) {
@@ -463,6 +471,8 @@ export class BaseChestWindow extends Window {
             this.info.pos, this.secondInfo?.pos)
         ) {
             this.hideAndSetupMousePointer();
+        } else if (this.maxDirtyTime && this.maxDirtyTime < performance.now()) {
+            this.confirmAction();
         }
     }
 }

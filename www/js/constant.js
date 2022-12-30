@@ -40,6 +40,8 @@ export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
 // It serves 2 purposes: against cheaters who try to interact over huge distance,
 // and to have a margin of safety ehn checking one half of a double chest in sendChestToPlayers()
 export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
+// The maximum time for which the client don't send inventory changes (used only in chest windows so far)
+export const MAX_DIRTY_INVENTORY_DURATION   = 5000;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
