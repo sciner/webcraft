@@ -82,7 +82,7 @@ export class RecipeSlot extends Window {
         // 
         if('inventory_icon_id' in item) {
             const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-            const dest_icon_size = 32 * this.zoom;
+            const dest_icon_size = 48 * this.zoom;
             ctx.drawImage(
                 inventory_image,
                 icon.x,

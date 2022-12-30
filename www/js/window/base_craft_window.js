@@ -752,7 +752,7 @@ export class BaseCraftWindow extends Window {
     // слоты помощи в крафте
     addHelpSlots() {
         const size = this.area.size.width;
-        const sx = size == 2 ? 195 : 59;
+        const sx = size == 2 ? 196 : 59;
         this.help_slots = [];
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
