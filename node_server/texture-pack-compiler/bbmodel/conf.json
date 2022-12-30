@@ -145,7 +145,10 @@
             "window": "frmChest",
             "support_style": "chest",
             "is_entity": true,
-            "chest_slots": 27,
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
             "transparent": true,
             "style": "bbmodel",
             "sound": "madcraft:block.chest",
@@ -168,7 +171,10 @@
             "name": "MAGENTA_SHULKER",
             "window": "frmChest",
             "is_entity": true,
-            "chest_slots": 27,
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
             "style": "bbmodel",
             "max_in_stack": 1,
             "sound": "madcraft:block.chest",
