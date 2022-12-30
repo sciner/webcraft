@@ -17,6 +17,7 @@ export class BaseExportGeometry {
         this.size = 0;
         this.bigData = null;
         this.lastPage = this.pool.allocPage();
+        this.currentChunk = null;
     }
 
     pack() {
@@ -40,7 +41,7 @@ export class BaseExportGeometry {
         let lastPage = this.lastPage;
         while (offset < page.filled) {
             const batchInstances = Math.min(page.filled - offset, lastPage.sizeQuads - lastPage.filled);
-            convertInstances(lastPage, lastPage.filled, page, offset + extraOffset, batchInstances);
+            convertInstances(lastPage, lastPage.filled, page, offset + extraOffset, batchInstances, this.currentChunk);
             lastPage.filled += batchInstances;
             this.size += batchInstances;
             offset += batchInstances;
@@ -61,7 +62,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
         vertexStrideFloats: 16,
         instanceStrideFloats: 16 * 4,
     };
-    innerConvertTerrain = (dstPage, dstOffset, srcPage, srcOffset, count) => {
+    innerConvertTerrain = (dstPage, dstOffset, srcPage, srcOffset, count, currentChunk) => {
         const {palette, vertexStrideFloats, instanceStrideFloats} = this;
         const srcBuf = srcPage.data;
         const srcUint = srcPage.uint32Data || new Uint32Array(srcBuf.buffer);
@@ -69,7 +70,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
         const dstUint = dstPage.uint32Data;
         dstOffset *= instanceStrideFloats;
         srcOffset *= srcPage.instanceSize;
-        const chunkId = this.currentChunk ? this.currentChunk.getDataTextureOffset() : srcUint[srcOffset + 15];
+        const chunkId = currentChunk ?currentChunk.getDataTextureOffset() : srcUint[srcOffset + 15];
         for (let i = 0; i < count; i++) {
 
             //gltf space: X LEFT (reversed)
@@ -159,20 +160,6 @@ export class ExportGeometry16 extends BaseExportGeometry {
         }
     }
 
-    innerConvertFluid = (dstPage, dstOffset, srcPage, srcOffset, count) => {
-        const {vertexStrideFloats, instanceStrideFloats} = this.options;
-        const {palette} = this;
-        const srcBuf = srcPage.data;
-        const srcUint = srcPage.uint32Data;
-        const dstBuf = dstPage.data;
-        const dstUint = dstPage.uint32Data;
-        dstOffset *= instanceStrideFloats;
-        srcOffset *= srcPage.instanceSize;
-        for (let i = 0; i < count; i++) {
-            //TODO: water
-        }
-    }
-
     pushTerrainGeom(geom, chunk) {
         this.currentChunk = chunk;
         if (geom.baseGeometry) {
@@ -199,6 +186,9 @@ export class ExportGeometry16 extends BaseExportGeometry {
     }
 
     pushFluidGeom(geom, chunk) {
+        if (!this.innerConvertFluid) {
+            return;
+        }
         this.currentChunk = chunk;
         for (let i = 0; i < geom.pages.length; i++) {
             this.innerConvertPage(geom.pages[i], this.innerConvertFluid);
@@ -213,6 +203,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
             width: 0,
         }
         this.currentChunk = null;
+        this.innerConvertFluid = null;
 
         this.createAttributes()
     }
