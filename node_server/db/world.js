@@ -683,7 +683,7 @@ export class DBWorld {
 
     //
     async updateChunks(address_list) {
-        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob, has_data_blob)
+        await this.conn.run(`INSERT INTO world_modify_chunks(x, y, z, data, data_blob, private_data_blob, has_data_blob)
         SELECT
             json_extract(value, '$.x') x,
             json_extract(value, '$.y') y,
@@ -706,6 +706,7 @@ export class DBWorld {
                     m.chunk_z = json_extract(value, '$.z')
                 ORDER BY m.id ASC
             ),
+            NULL,
             NULL,
             0
         FROM json_each(:address_list) addrs`, {
