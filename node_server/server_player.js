@@ -109,6 +109,9 @@ export class ServerPlayer extends Player {
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
+            if (this.game_mode.isCreative()) {
+                this.damage.restoreAll();
+            }
             await this.world.db.changeGameMode(this, mode.id);
             this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
             this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
