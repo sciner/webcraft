@@ -20,7 +20,8 @@
         {"name": "chest", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "anvil", "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "tnt", "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}}
+        {"name": "ladder", "shift": {"x": 8, "y": 0, "z": -8}},
+        {"name": "arm", "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {

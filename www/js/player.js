@@ -17,6 +17,7 @@ import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
 import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH } from "./fluid/FluidConst.js";
+import { PlayerArm } from "./player_arm.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -244,6 +245,8 @@ export class Player {
         //    pos.set(24.5, 4.5, 24.5);
         //    Qubatch.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
+
+        this.arm = new PlayerArm(this)
 
         return true;
     }

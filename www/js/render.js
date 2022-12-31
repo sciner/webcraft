@@ -841,13 +841,14 @@ export class Renderer {
 
     // addBBModel
     addBBModel(pos, bbname, rotate, animation_name) {
-        const model = Resources._bbmodels.get(bbname);
+        const model = Resources._bbmodels.get(bbname)
         if(!model) {
-            return false;
+            return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
-        bbmodel.setAnimation(animation_name);
-        this.meshes.add(bbmodel);
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        bbmodel.setAnimation(animation_name)
+        this.meshes.add(bbmodel)
+        return bbmodel
     }
 
     /**

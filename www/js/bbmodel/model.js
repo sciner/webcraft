@@ -116,7 +116,7 @@ export class BBModel_Model {
                     if(func) {
                         func(point, current_point, next_point, percent, args || [])
                     } else {
-                        throw 'error_not_supported_keyframe_interpolation_method';
+                        throw `error_not_supported_keyframe_interpolation_method|${next_keyframe.easing}`;
                     }
 
                     group.animations.push({channel_name, point})
