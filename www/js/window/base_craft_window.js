@@ -36,6 +36,11 @@ export class HelpSlot extends Label {
         if (this.ct.lblResultSlot.item) {
             return;
         }
+        for(const slot of this.ct.craft.slots) {
+            if (slot.item) {
+                return;
+            }
+        } 
         this.applyStyle(ctx, ax, ay);
         this.fillBackground(ctx, ax, ay, this.item ? '#ff000055' : '#ff000000')
         this.drawItem(ctx, this.item, ax + this.x, ay + this.y, this.width, this.height);
@@ -102,10 +107,14 @@ export class CraftTableSlot extends Label {
     }
 
     setItem(item) {
-        if(this.slot_index !== null) {
+        if(this.slot_index !== null) {   
             Qubatch.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
+            // @todo странная штука, но зато наслеуется
+            if (this.ct.area) {
+                this.ct.setHelperSlots(null);
+            }
         }
     }
 
@@ -352,6 +361,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(e.drag.getItem()) {
                 return;
             }
+            
             let dragItem = targetItem;
             // right button (divide to 2)
             if(e.button_id == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
@@ -764,7 +774,7 @@ export class BaseCraftWindow extends Window {
         }
     }
     
-    // eпоказываем помощь
+    // показываем помощь
     setHelperSlots(recipe) {
         const size = this.area.size.width;
         for (let i = 0; i < size * size; i++) {

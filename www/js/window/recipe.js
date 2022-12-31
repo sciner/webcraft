@@ -29,7 +29,7 @@ export class RecipeSlot extends Window {
                 this.ct.craft_window.setHelperSlots(e.target.recipe);
                 return;
             }
-            for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
+            for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
                     this.parent.craft_window.autoRecipe(recipe);
                     this.parent.paginator.update();
@@ -164,7 +164,6 @@ export class RecipeWindow extends Window {
                 }
                 that.lblPages.title = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages;
                 that.createRecipes();
-                that.craft_window.setHelperSlots(null);
             }
         };
 
@@ -211,7 +210,6 @@ export class RecipeWindow extends Window {
         btnFilter.onMouseDown = function(e) {
             self.only_can = !self.only_can;
             this.style.background.sprite.x = self.only_can ? 719 : 608;
-            self.craft_window.setHelperSlots(null);
             self.createRecipes();
             self.paginator.update();
         };
@@ -284,14 +282,20 @@ export class RecipeWindow extends Window {
     * @param int sz Ширина / высота слота
     */
     createRecipes() {
+        this.craft_window.setHelperSlots(null);
         const ct = this;
         if(ct.recipes) {
             for(let w of ct.recipes) {
                 this.delete(w.id);
             }
         }
-        const canMake = (recipe) => {
-            return Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0;
+        const canMake = (recipes) => {
+            for(const recipe of [recipes, ...recipes.subrecipes]) {
+                if(Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0) {
+                    return true
+                }
+            }
+            return false;
         }
         //
         let i             = 0;
@@ -316,7 +320,7 @@ export class RecipeWindow extends Window {
                 continue;
             }
             const block = BLOCK.fromId(recipe.result.item_id);
-            if (this.filter_text) {
+            if (filter_text) {
                 if (!block.name.replaceAll('_', ' ').includes(filter_text) && block.id != filter_text) {
                     continue;
                 }

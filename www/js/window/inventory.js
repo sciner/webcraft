@@ -105,7 +105,7 @@ export class InventoryWindow extends BaseCraftWindow {
         }
 
         // Add labels to window
-        let lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
+        const lbl1 = new Label(194 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.create);
         ct.add(lbl1);
 
         // Add close button
@@ -222,7 +222,6 @@ export class InventoryWindow extends BaseCraftWindow {
             let frmRecipe = Qubatch.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
             frmRecipe.toggleVisibility();
-            this.setHelperSlots(null);
         }
         ct.add(btnRecipes);
     }
@@ -237,9 +236,9 @@ export class InventoryWindow extends BaseCraftWindow {
             console.error('createCraftSlots() already created');
             return;
         }
-        let sx          = 194 * this.zoom;
-        let sy          = 34 * this.zoom;
-        let xcnt        = 2;
+        const sx          = 194 * this.zoom;
+        const sy          = 34 * this.zoom;
+        const xcnt        = 2;
         this.craft = {
             slots: [null, null, null, null]
         };
