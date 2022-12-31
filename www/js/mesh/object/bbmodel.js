@@ -28,10 +28,10 @@ export class Mesh_Object_BBModel {
             return;
         }
 
-        this.rotate         = rotate.clone();
+        this.rotate         = new Vector(rotate)
         this.life           = 1.0;
         this.chunk          = null;
-        this.apos           = pos.clone(); // absolute coord
+        this.apos           = new Vector(pos) // absolute coord
         this.chunk_addr     = getChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk

@@ -1,19 +1,18 @@
-import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
+import { DIRECTION, IndexedColor, mat4ToRotate, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BLOCK, FakeTBlock } from '../blocks.js';
 import { Resources } from '../resources.js';
+import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 
 import { default as default_style } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as fence_style } from '../block_style/fence.js';
 import { default as pot_style } from '../block_style/pot.js';
-
-import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js"
 import { TBlock } from '../typed_blocks3.js';
 import { BBModel_Model } from '../bbmodel/model.js';
 
-const {mat4, vec3}    = glMatrix;
-const lm        = IndexedColor.WHITE;
+const {mat4, vec3} = glMatrix;
+const lm = IndexedColor.WHITE;
 
 let models = null;
 Resources.loadBBModels().then((res) => {
@@ -72,6 +71,8 @@ export default class style {
         matrix = mat4.create();
         mat4.rotateY(matrix, matrix, Math.PI);
 
+        style.applyRotate(model, block, neighbours, matrix)
+
         const emmited_blocks = style.applyBehavior(model, block, neighbours, matrix, biome, dirt_color)
 
         // const animation_name = 'walk';
@@ -89,6 +90,25 @@ export default class style {
         }
 
         return null
+
+    }
+
+    static applyRotate(model, tblock, neighbours, matrix) {
+
+        const mat = tblock.material
+        const bb = mat.bb
+
+        // Rotate
+        if(bb.rotate) {
+            if(style.checkWhen(model, tblock, bb.rotate.when)) {
+                switch(bb.rotate.type) {
+                    case 'cardinal_direction': {
+                        style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
+                        break
+                    }
+                }
+            }
+        }
 
     }
 
@@ -120,6 +140,19 @@ export default class style {
             case 'chest': {
                 const type = tblock.extra_data?.type ?? null
                 const is_big = !!type
+
+                /*
+                if(typeof worker != 'undefined') {
+                    worker.postMessage(['add_bbmodel', {
+                        block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
+                        model:              model.name,
+                        animation_name:     null,
+                        extra_data:         tblock.extra_data,
+                        rotate:             mat4ToRotate(matrix)
+                    }]);
+                }
+                */
+
                 if(is_big) {
                     if(type == 'left') {
                         model.hideGroups(['small', 'big'])
@@ -129,6 +162,7 @@ export default class style {
                 } else {
                     model.hideGroups(['big'])
                 }
+
                 break
             }
             case 'fence': {
@@ -151,55 +185,41 @@ export default class style {
                 const info      = stairs_style.calculate(tblock, Vector.ZERO.clone(), neighbours)
                 const on_ceil   = info.on_ceil
                 const fix_rot   = on_ceil ? Math.PI / 2 : 0
-                const sw        = info.sides[DIRECTION.SOUTH]
-                const se        = info.sides[DIRECTION.EAST]
-                const en        = info.sides[DIRECTION.NORTH]
-                const nw        = info.sides[DIRECTION.WEST]
+                const sw        = !!info.sides[DIRECTION.SOUTH]
+                const se        = !!info.sides[DIRECTION.EAST]
+                const en        = !!info.sides[DIRECTION.NORTH]
+                const nw        = !!info.sides[DIRECTION.WEST]
 
-                // between
-                if(sw && se && !en && !nw) {
-                    mat4.rotateY(matrix, matrix, Math.PI)
-                    model.hideGroups(['inner', 'outer'])
-                } else if(en && se && !sw && !nw) {
-                    mat4.rotateY(matrix, matrix, Math.PI / 2)
-                    model.hideGroups(['inner', 'outer'])
-                } else if(!en && !se && sw && nw) {
-                    mat4.rotateY(matrix, matrix, -Math.PI / 2)
-                    model.hideGroups(['inner', 'outer'])
-                } else if(!sw && !se && en && nw) {
-                    model.hideGroups(['inner', 'outer'])
+                let rotY        = 0
+
+                const rules = [
+                    // between
+                    [0, 1, 1, 0, ['inner', 'outer'], Math.PI],
+                    [1, 1, 0, 0, ['inner', 'outer'], Math.PI / 2],
+                    [0, 0, 1, 1, ['inner', 'outer'], -Math.PI / 2],
+                    [1, 0, 0, 1, ['inner', 'outer'], 0],
+                    // outer
+                    [0, 1, 0, 0, ['between', 'inner'], Math.PI / 2 + fix_rot],
+                    [0, 0, 1, 0, ['between', 'inner'], Math.PI + fix_rot],
+                    [0, 0, 0, 1, ['between', 'inner'], -Math.PI / 2 + fix_rot],
+                    [1, 0, 0, 0, ['between', 'inner'], fix_rot],
+                    // inner
+                    [1, 1, 1, 0, ['between', 'outer'], Math.PI / 2 + fix_rot],
+                    [0, 1, 1, 1, ['between', 'outer'], Math.PI + fix_rot],
+                    [1, 0, 1, 1, ['between', 'outer'], -Math.PI / 2 + fix_rot],
+                    [1, 1, 0, 1, ['between', 'outer'], fix_rot],
+                ]
+
+                for(let rule of rules) {
+                    if(en == rule[0] && se == rule[1] && sw == rule[2] && nw == rule[3]) {
+                        model.hideGroups(rule[4])
+                        rotY = rule[5]
+                        break
+                    }
                 }
 
-                // outer
-                if(se && !sw && !en && !nw) {
-                    mat4.rotateY(matrix, matrix, Math.PI / 2 + fix_rot)
-                    model.hideGroups(['between', 'inner'])
-                } else if(!se && sw && !en && !nw) {
-                    mat4.rotateY(matrix, matrix, Math.PI + fix_rot)
-                    model.hideGroups(['between', 'inner'])
-                } else if(!se && !sw && !en && nw) {
-                    // only nw
-                    mat4.rotateY(matrix, matrix, -Math.PI / 2 + fix_rot) // + Math.PI/2
-                    model.hideGroups(['between', 'inner'])
-                } else if(!se && !sw && en && !nw) {
-                    // only en
-                    mat4.rotateY(matrix, matrix, fix_rot)
-                    model.hideGroups(['between', 'inner'])
-                }
-
-                // inner
-                if(!nw && se && sw && en) {
-                    mat4.rotateY(matrix, matrix, Math.PI / 2 + fix_rot)
-                    model.hideGroups(['between', 'outer'])
-                } else if(nw && se && sw && !en) {
-                    mat4.rotateY(matrix, matrix, Math.PI + fix_rot)
-                    model.hideGroups(['between', 'outer'])
-                } else if(nw && !se && sw && en) {
-                    mat4.rotateY(matrix, matrix, -Math.PI / 2 + fix_rot)
-                    model.hideGroups(['between', 'outer'])
-                } else if(nw && se && !sw && en) {
-                    mat4.rotateY(matrix, matrix, fix_rot)
-                    model.hideGroups(['between', 'outer'])
+                if(rotY) {
+                    mat4.rotateY(matrix, matrix, rotY)
                 }
 
                 if(on_ceil) {
@@ -208,18 +228,6 @@ export default class style {
                 }
 
                 break
-            }
-        }
-
-        // Rotate
-        if(bb.rotate) {
-            if(style.checkWhen(model, tblock, bb.rotate.when)) {
-                switch(bb.rotate.type) {
-                    case 'cardinal_direction': {
-                        style.rotateByCardinal4sides(model, matrix, tblock.getCardinalDirection())
-                        break
-                    }
-                }
             }
         }
 

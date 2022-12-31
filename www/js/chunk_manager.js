@@ -211,6 +211,10 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
+                case 'add_bbmodel': {
+                    Qubatch.render.addBBModel(new Vector(args.block_pos).addScalarSelf(.5, 0, .5), args.model, args.rotate, args.animation_name)
+                    break
+                }
                 case 'delete_animated_block': {
                     Qubatch.render.meshes.effects.deleteBlockEmitter(args);
                     break;
