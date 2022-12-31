@@ -258,4 +258,11 @@ export class ServerPlayerDamage {
         this.food_saturation_level = Math.min(this.food_saturation_level + food * saturation * 2, ind_def.food.value);
     }
     
+    restoreAll() {
+        const player = this.player;
+        const ind_def = player.world.getDefaultPlayerIndicators();
+        player.live_level   = ind_def.live.value;
+        player.food_level   = ind_def.food.value;
+        player.oxygen_level = ind_def.oxygen.value;
+    }
 }
