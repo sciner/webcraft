@@ -12,6 +12,7 @@ import { Tracker_Player } from "./tracker_player.js";
 import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
+import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
@@ -87,6 +88,8 @@ export class GameClass {
         }, 50);
         // Run render loop
         this.render.requestAnimationFrame(this.loop);
+        //
+        this.bbmodelDropPaste = new BBModel_DropPaste(this)
     }
 
     // Set the canvas the renderer uses for some input operations.
