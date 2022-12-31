@@ -118,7 +118,6 @@ export class Particle_Hand {
         if (prePendMatrix) {
             mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
         }
-
         render.renderBackend.drawMesh(
             this.buffer,
             this.material,

@@ -237,7 +237,9 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             mx = matrix
         }
 
-        this.mesh_group.draw(render, this.pos, mx, null);
+        // this.mesh_group.draw(render, this.pos, mx, null);
+        Qubatch.player.arm.mesh.draw(render, this.pos, mx, null);
+
     }
 
     destroy() {
