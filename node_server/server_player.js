@@ -188,10 +188,20 @@ export class ServerPlayer extends Player {
         if (EMULATED_PING) {
             await waitPing();
         }
-        this.world.network_stat.in += message.length;
-        this.world.network_stat.in_count++;
-        const packet = JSON.parse(message);
-        this.world.packet_reader.read(this, packet);
+        try {
+            this.world.network_stat.in += message.length;
+            this.world.network_stat.in_count++;
+            const packet = JSON.parse(message);
+            this.world.packet_reader.read(this, packet);
+        } catch(e) {
+            const packets = [{
+                name: ServerClient.CMD_ERROR,
+                data: {
+                    message: 'error_invalid_command'
+                }
+            }];
+            this.world.sendSelected(packets, [this.session.user_id], []);
+        }
     }
 
     // onLeave...

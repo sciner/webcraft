@@ -90,7 +90,7 @@ export class Mob {
     static async create(world, params) {
         const model = world.models.list.get(params.type);
         if(!model) {
-            throw `Can't locate model for: ${params.type}`;
+            throw `Can't locate model for create: ${params.type}`;
         }
         if(!(params.skin in model.skins)) {
             throw `Can't locate skin for: ${params.type}/${params.skin}`;

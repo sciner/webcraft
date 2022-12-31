@@ -143,7 +143,6 @@
         "error_invalid_command": {"en": "Error: invalid comand", "ru": "Ошибка: неверная команда", "fr": "", "es": "", "man": ""},
         "open_file": {"en": "Open file", "ru": "Отурыть файл", "fr": "", "es": "", "man": ""},
         "new_skin": {"en": "Upload skin", "ru": "Загрузить скин", "fr": "", "es": "", "man": ""},
-        "delete": {"en": "Delete", "ru": "Удалить", "fr": "", "es": "", "man": ""},
         "slim": {"en": "Slim", "ru": "Узкий", "fr": "", "es": "", "man": ""},
         "error_incorrect_image_format": {"en": "Imcorrect image format", "ru": "Неправильный формат изобаржения", "fr": "", "es": "", "man": ""},
         "error_skin_size_must_be_64": {"en": "The skin size must be 64x64", "ru": "Размер скина должен быть 64x64", "fr": "", "es": "", "man": ""},

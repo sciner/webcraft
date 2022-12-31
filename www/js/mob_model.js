@@ -839,7 +839,7 @@ export class MobModel extends NetworkPhysicObject {
         // загружеам ресурсы 
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
-            console.log("Can't locate model for:", this.type);
+            console.error("Can't locate model for loadModel:", this.type);
             return null;
         }
         this.sceneTree = ModelBuilder.loadModel(asset);
