@@ -112,7 +112,7 @@ export class BBModel_Model {
                         func_name = next_keyframe.interpolation
                     }
 
-                    const func = EasingType.get(next_keyframe.easing)
+                    const func = EasingType.get(func_name)
                     if(func) {
                         func(point, current_point, next_point, percent, args || [])
                     } else {

@@ -6,7 +6,6 @@
     },
     "name": "arm",
     "model_identifier": "",
-    "front_gui_light": false,
     "visible_box": [
         1,
         1,
@@ -469,7 +468,25 @@
             "visibility": true,
             "autouv": 0,
             "children": [
-                "07ddc990-2b5c-cb58-bcb1-58633378256c",
+                {
+                    "name": "bone4",
+                    "origin": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "color": 0,
+                    "uuid": "d35fd239-64d0-5380-49b0-01556d3e00dc",
+                    "export": true,
+                    "mirror_uv": false,
+                    "isOpen": true,
+                    "locked": false,
+                    "visibility": true,
+                    "autouv": 0,
+                    "children": [
+                        "07ddc990-2b5c-cb58-bcb1-58633378256c"
+                    ]
+                },
                 {
                     "name": "bone",
                     "origin": [
@@ -541,7 +558,7 @@
             "override": false,
             "length": 0.75,
             "snapping": 24,
-            "selected": true,
+            "selected": false,
             "saved": false,
             "anim_time_update": "",
             "blend_weight": "",
@@ -570,16 +587,16 @@
                             "channel": "rotation",
                             "data_points": [
                                 {
-                                    "x": 65.21473907087238,
-                                    "y": -26.878544989075635,
-                                    "z": -99.0965319187535
+                                    "x": 70.9088061374282,
+                                    "y": -14.11330008075629,
+                                    "z": -108.82677560314823
                                 }
                             ],
                             "uuid": "bf118661-d243-9703-5596-9852d38953ea",
-                            "time": 0.375,
+                            "time": 0.20833333333333334,
                             "color": -1,
                             "interpolation": "linear",
-                            "easing": "easeInCubic"
+                            "easing": "easeOutElastic"
                         },
                         {
                             "channel": "rotation",
@@ -614,13 +631,13 @@
                             "channel": "position",
                             "data_points": [
                                 {
-                                    "x": 10,
+                                    "x": 7,
                                     "y": 1,
                                     "z": 0
                                 }
                             ],
                             "uuid": "a8db41a6-f6aa-78eb-b615-896dd1460551",
-                            "time": 0.375,
+                            "time": 0.20833333333333334,
                             "color": 3,
                             "interpolation": "linear",
                             "easing": "easeInQuad"
@@ -641,11 +658,58 @@
                             "easing": "easeOutQuad"
                         }
                     ]
+                },
+                "d35fd239-64d0-5380-49b0-01556d3e00dc": {
+                    "name": "bone4",
+                    "type": "bone",
+                    "keyframes": [
+                        {
+                            "channel": "rotation",
+                            "data_points": [
+                                {
+                                    "x": "0",
+                                    "y": "0",
+                                    "z": "0"
+                                }
+                            ],
+                            "uuid": "73999b06-ef6d-22b0-6854-9e868799fe13",
+                            "time": 0,
+                            "color": -1,
+                            "interpolation": "linear"
+                        },
+                        {
+                            "channel": "rotation",
+                            "data_points": [
+                                {
+                                    "x": 0,
+                                    "y": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "uuid": "c3533508-4766-5251-05dd-637402a082f9",
+                            "time": 0.20833333333333334,
+                            "color": -1,
+                            "interpolation": "linear"
+                        },
+                        {
+                            "channel": "rotation",
+                            "data_points": [
+                                {
+                                    "x": 0,
+                                    "y": 0,
+                                    "z": 0
+                                }
+                            ],
+                            "uuid": "76f64c67-dfd9-51a1-1303-880dc03494b1",
+                            "time": 0.75,
+                            "color": -1,
+                            "interpolation": "linear"
+                        }
+                    ]
                 }
             }
         }
     ],
-    "display": {},
     "geckoSettings": {
         "formatVersion": 2,
         "modSDK": "Forge 1.12 - 1.16",
