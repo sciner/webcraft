@@ -53,7 +53,7 @@ export class ChunkManager {
 }
 
 export class LightWorld {
-    constructor() {
+    constructor(worker) {
         this.chunkManager = new ChunkManager(this);
         this.light = new LightQueue(this, {offset: 0, dirCount: 6});
         this.dayLight = new LightQueue(this,
@@ -71,7 +71,7 @@ export class LightWorld {
         this.defDayLight = adjustSrc(15);
         this.isEmptyQueue = true;
 
-        this.groundLevel = new WorldGroundLevel(this);
+        this.groundLevel = new WorldGroundLevel(this, worker);
     }
 
     getPotential(wx, wy, wz) {
