@@ -6185,7 +6185,8 @@
                 "texture": "item/soul_lantern.png"
             },
             "tags": [
-                "no_drop_ao"
+                "no_drop_ao",
+                "cant_place_on_wall"
             ],
             "material": {
                 "id": "stone"

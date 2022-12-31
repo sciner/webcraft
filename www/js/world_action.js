@@ -962,6 +962,11 @@ export async function doBlockAction(e, world, player, current_inventory_item) {
                 return actions;
             }
 
+            if(pos.n.y === 0 && mat_block.tags.includes('cant_place_on_wall')) {
+                console.error('cant_place_on_wall');
+                return actions;
+            }
+
             // Create block
             const new_item = {
                 id: mat_block.id,
