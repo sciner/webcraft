@@ -59,6 +59,8 @@ export class BBModel_DropPaste {
             e.preventDefault()
 
             const files = e.dataTransfer.files // array of all files
+            
+            const pos = player.lerpPos.clone()
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i]
@@ -117,13 +119,12 @@ export class BBModel_DropPaste {
                         /**
                          * @type {Vector}
                          */
-                        let pos = player.lerpPos.clone()
                         const animations = Array.from(model.animations.keys())
                         if(animations.length == 0) animations.push(null)
 
                         // Create meshes for each animation
                         for(const animation_name of animations) {
-                            pos = pos.clone().addScalarSelf(
+                            pos.addScalarSelf(
                                 Math.sin(player.rotate.z) * 2,
                                 0,
                                 Math.cos(player.rotate.z) * 2,
