@@ -839,15 +839,23 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    // addBBModel
-    addBBModel(pos, bbname, rotate, animation_name) {
-        const model = Resources._bbmodels.get(bbname);
+    /**
+     * 
+     * @param {Vector} pos 
+     * @param {string} bbname 
+     * @param {Vector} rotate 
+     * @param {string} animation_name 
+     * @param {string} key 
+     * @returns 
+     */
+    addBBModel(pos, bbname, rotate, animation_name, key) {
+        const model = Resources._bbmodels.get(bbname)
         if(!model) {
-            return false;
+            return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
-        bbmodel.setAnimation(animation_name);
-        this.meshes.add(bbmodel);
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        bbmodel.setAnimation(animation_name)
+        return this.meshes.add(bbmodel, key)
     }
 
     /**

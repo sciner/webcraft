@@ -205,6 +205,7 @@ export class BaseResourcePack {
 
             textureInfo.texture_n = texture;
         }
+
     }
 
     async initTextures(renderBackend, settings) {
@@ -226,7 +227,7 @@ export class BaseResourcePack {
     }
 
     genTextureStyle(image, settings, terrainBlockSize = DEFAULT_TX_SIZE) {
-        let terrainTexSize          = image.width;
+        let terrainTexSize = image.width;
         const style = new TerrainTextureUniforms();
         style.blockSize = terrainBlockSize / terrainTexSize;
         style.pixelSize = 1.0 / terrainTexSize;
