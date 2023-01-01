@@ -271,14 +271,15 @@ export class Inventory {
     // Возвращает список того, чего и в каком количестве не хватает
     // в текущем инвентаре по указанному списку
     hasResources(resources) {
-        let resp = [];
-        for(let resource of resources) {
-            let r = {
+        const resp = [];
+        for(const resource of resources) {
+            const r = {
                 item_id: resource.item_id,
                 count: resource.count
             };
             // Each all items in inventoryy
-            for(var item of this.items) {
+            for(let i = 0; i < 36; i++) {
+                const item = this.items[i];
                 if(!item) {
                     continue;
                 }
@@ -288,7 +289,7 @@ export class Inventory {
                     } else {
                         r.count -= item.count;
                     }
-                    if(r.count == 0) {
+                    if(r.count <= 0) {
                         break;
                     }
                 }

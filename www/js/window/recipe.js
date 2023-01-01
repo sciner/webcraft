@@ -1,30 +1,35 @@
-import {BLOCK} from "../blocks.js";
-import {Button, Label, Window} from "../../tools/gui/wm.js";
-import {Resources} from "../resources.js";
+import { BLOCK } from "../blocks.js";
+import { Button, Label, Window, TextEdit } from "../../tools/gui/wm.js";
+import { Resources } from "../resources.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
+
+const COLOR_RED = '#A15151';
 
 export class RecipeSlot extends Window {
 
-    constructor(x, y, w, h, id, title, text, recipe, block) {
+    constructor(x, y, w, h, id, title, text, recipe, block, ct) {
         super(x, y, w, h, id, title, text);
         //
         this.recipe = recipe;
         this.block = block;
+        this.ct = ct;
         //
         this.style.border.color = '#ffffffff';
         this.style.background.color = '#ffffff55';
         // Custom drawing
         this.onMouseEnter = function(e) {
-            this.style.background.color = this.can_make ? '#ffffffcc' : '#ff000077';
+            this.style.background.color = this.can_make ? '#ffffffcc' : COLOR_RED + '77';
         }
         this.onMouseLeave = function(e) {
-            this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
+            this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
         }
         this.onMouseDown = function(e) {
+            this.ct.craft_window.setHelperSlots(null);
             if(!this.can_make) {
+                this.ct.craft_window.setHelperSlots(e.target.recipe);
                 return;
             }
-            for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
+            for(const recipe of [this.recipe, ...this.recipe.subrecipes]) {
                 if(this.canMake(recipe)) {
                     this.parent.craft_window.autoRecipe(recipe);
                     this.parent.paginator.update();
@@ -51,7 +56,7 @@ export class RecipeSlot extends Window {
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
-        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
+        this.style.background.color = this.can_make ? '#ffffff55' : COLOR_RED + '55';
     }
 
     draw(ctx, ax, ay) {
@@ -76,8 +81,8 @@ export class RecipeSlot extends Window {
 
         // 
         if('inventory_icon_id' in item) {
-            let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-            const dest_icon_size = 32 * this.zoom;
+            const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
+            const dest_icon_size = 48 * this.zoom;
             ctx.drawImage(
                 inventory_image,
                 icon.x,
@@ -107,25 +112,39 @@ export class RecipeWindow extends Window {
         this.items_per_page     = 20;
         this.index              = -1;
         this.recipe_manager     = recipe_manager;
+        this.filter_text        = null;
+        this.only_can           = false;
 
         // Ширина / высота слота
         this.cell_size = 50 * this.zoom;
 
         // Get window by ID
         const ct = this;
+        
+        const options = {
+            background: {
+                image: './media/gui/recipe_book.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 0,
+                    y: 0,
+                    width: 592,
+                    height: 668
+                }
+            }
+        };
+        ct.style.background = {...ct.style.background, ...options.background};
         ct.style.background.color = '#00000000';
-        ct.style.background.image_size_mode = 'stretch';
         ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/form-recipe.png');
+        ct.setBackground(options.background.image);
         ct.hide();
-
-        let items_count = this.recipe_manager.crafting_shaped.grouped.length;
 
         let that = this;
 
         // Paginator
         this.paginator = {
-            pages: Math.ceil(items_count / this.items_per_page),
+            pages: 0,
             page: 0,
             prev: function() {
                 this.page--;
@@ -136,30 +155,65 @@ export class RecipeWindow extends Window {
                 this.update();
             },
             update: function() {
+                this.pages = Math.ceil(that.items_count / that.items_per_page);
                 if(this.page < 0) {
                     this.page = this.pages - 1;
                 }
                 if(this.page >= this.pages) {
                     this.page = 0;
                 }
-                that.lblPages.title = (this.page + 1) + ' / ' + this.pages;
-                that.createRecipes(that.cell_size);
+                that.lblPages.title = this.pages == 0 ? '0/0' : (this.page + 1) + ' / ' + this.pages;
+                that.createRecipes();
             }
         };
 
         this.onShow = () => {
             // Создание слотов
-            this.createRecipes(this.cell_size);
+            this.createRecipes();
             this.paginator.update();
         };
 
+        // кнопки пагинатора
         this.addPaginatorButtons();
-
+        
+        // строка поиска
+        this.addFinder();
+        
+        // кнопка доступные или все рецепты
+        this.addToggleButton();
     }
 
     // Запоминаем какое окно вызвало окно рецептов
     assignCraftWindow(w) {
         this.craft_window = w;
+    }
+    
+    addToggleButton() {
+        const self = this;
+        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', null);
+         const options = {
+            background: {
+                image: './media/gui/recipe_book.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 608,
+                    y: 162,
+                    width: 106,
+                    height: 67
+                }
+            }
+        };
+        btnFilter.style.background = options.background;
+        btnFilter.style.border.hidden = true;
+        btnFilter.setBackground(options.background.image);
+        btnFilter.onMouseDown = function(e) {
+            self.only_can = !self.only_can;
+            this.style.background.sprite.x = self.only_can ? 719 : 608;
+            self.createRecipes();
+            self.paginator.update();
+        };
+        this.add(btnFilter);
     }
 
     // Paginator buttons
@@ -190,45 +244,110 @@ export class RecipeWindow extends Window {
         }
         ct.add(btnNext);
     }
+    
+    addFinder() {
+        // Text editor
+        const txtSearch = new TextEdit(
+            50 * this.zoom,
+            26 * this.zoom,
+            160 * this.zoom,
+            22 * this.zoom,
+            'txtSearch1',
+            null,
+            'Type for search'
+        );
+        txtSearch.word_wrap              = false;
+        txtSearch.focused                = true;
+        txtSearch.max_length             = 100;
+        txtSearch.max_lines              = 1;
+        txtSearch.max_chars_per_line     = 20;
+        // style
+        txtSearch.style.color            = '#fff';
+        txtSearch.style.border.hidden    = true;
+        txtSearch.style.border.style     = 'inset';
+        txtSearch.style.font.size        *= this.zoom;
+       // txtSearch.style.background.color = '#706f6cff';
+        this.add(txtSearch);
+        
+        txtSearch.onChange = (text) => {
+            this.filter_text = text;
+            this.createRecipes();
+            this.paginator.update();
+        };
+    }
+    
 
     /**
     * Создание слотов
     * @param int sz Ширина / высота слота
     */
-    createRecipes(sz) {
+    createRecipes() {
+        this.craft_window.setHelperSlots(null);
         const ct = this;
         if(ct.recipes) {
             for(let w of ct.recipes) {
                 this.delete(w.id);
             }
         }
+        const canMake = (recipes) => {
+            for(const recipe of [recipes, ...recipes.subrecipes]) {
+                if(Qubatch.player.inventory.hasResources(recipe.need_resources).length == 0) {
+                    return true
+                }
+            }
+            return false;
+        }
         //
-        let i           = 0;
-        let sx          = 22 * this.zoom;
-        let sy          = 62 * this.zoom;
-        let xcnt        = 5;
-        let list        = this.recipe_manager.crafting_shaped.grouped;
-        let min_index   = this.paginator.page * this.items_per_page;
-        let max_index   = min_index + this.items_per_page;
+        let i             = 0;
+        const sz          = this.cell_size;
+        const sx          = 22 * this.zoom;
+        const sy          = 62 * this.zoom;
+        const xcnt        = 5;
+        const list        = this.recipe_manager.crafting_shaped.grouped;
+        const min_index   = this.paginator.page * this.items_per_page;
+        const max_index   = min_index + this.items_per_page;
+        const size      = this.craft_window.area.size.width;
+        const filter_text = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
         this.recipes    = [];
-        //
-        for(let index in list) {
+        
+        const tmp_recipes = [];
+        for(const index in list) {
+            const recipe = list[index];
+            if (!canMake(recipe) && this.only_can) {
+                continue;
+            }
+            if (!recipe.adaptivePattern[size]) {
+                continue;
+            }
+            const block = BLOCK.fromId(recipe.result.item_id);
+            if (filter_text) {
+                if (!block.name.replaceAll('_', ' ').includes(filter_text) && block.id != filter_text) {
+                    continue;
+                }
+            }
+            tmp_recipes.push(recipe);
+        }
+        
+        this.items_count = tmp_recipes.length;
+        
+        for (const index in tmp_recipes) {
             if(index < min_index) {
                 continue;
             }
             if(index >= max_index) {
                 continue;
             }
-            let recipe = list[index];
-            let item_id = recipe.result.item_id;
-            let block = BLOCK.fromId(item_id);
-            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + recipe.id, null, null, recipe, block);
-            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${item_id})`;
+            const recipe = tmp_recipes[index];
+            const id = recipe.result.item_id;
+            const block = BLOCK.fromId(id);
+            const lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + id, null, null, recipe, block, this);
+            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${id})`;
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
             lblRecipe.update();
             i++;
         }
+        
     }
 
 }
