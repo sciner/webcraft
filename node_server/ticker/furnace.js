@@ -122,7 +122,7 @@ export default class Ticker {
         // если что-то обновилось, то шлём это игрокам
         if(is_update) {
             updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
-            world.chests.sendChestToPlayers(v.pos.clone(), []);
+            world.chests.sendChestToPlayers(tblock, null);
         }
         return updated_blocks;
     }

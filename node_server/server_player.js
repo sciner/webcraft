@@ -93,6 +93,8 @@ export class ServerPlayer extends Player {
         this.effects                = new ServerPlayerEffects(this);
         this.damage                 = new ServerPlayerDamage(this);
         this.mining_time_old        = 0; // время последнего разрушения блока
+        // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
+        this.currentChests          = null;
 
         this.sharedProps = new ServerPlayerSharedProps(this);
     }
@@ -109,6 +111,9 @@ export class ServerPlayer extends Player {
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
+            if (this.game_mode.isCreative()) {
+                this.damage.restoreAll();
+            }
             await this.world.db.changeGameMode(this, mode.id);
             this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
             this.world.chat.sendSystemChatMessageToSelectedPlayers(`game_mode_changed_to|${mode.title}`, [this.session.user_id]);
@@ -188,10 +193,20 @@ export class ServerPlayer extends Player {
         if (EMULATED_PING) {
             await waitPing();
         }
-        this.world.network_stat.in += message.length;
-        this.world.network_stat.in_count++;
-        const packet = JSON.parse(message);
-        this.world.packet_reader.read(this, packet);
+        try {
+            this.world.network_stat.in += message.length;
+            this.world.network_stat.in_count++;
+            const packet = JSON.parse(message);
+            this.world.packet_reader.read(this, packet);
+        } catch(e) {
+            const packets = [{
+                name: ServerClient.CMD_ERROR,
+                data: {
+                    message: 'error_invalid_command'
+                }
+            }];
+            this.world.sendSelected(packets, [this.session.user_id], []);
+        }
     }
 
     // onLeave...
@@ -213,10 +228,7 @@ export class ServerPlayer extends Player {
     
     // Нанесение урона игроку
     setDamage(val, src) {
-        if(this.status !== PLAYER_STATUS_ALIVE || !this.game_mode.mayGetDamaged()) {
-            return false;
-        }
-        this.live_level = Math.max(this.live_level - val, 0);
+        this.damage.addDamage(val, src);
     }
 
     /**
@@ -339,7 +351,8 @@ export class ServerPlayer extends Player {
             hands:    this.state.hands,
             sneak:    this.state.sneak,
             sitting:  this.state.sitting,
-            lies:     this.state.lies
+            lies:     this.state.lies,
+            armor:    this.inventory.exportArmorState()
         };
     }
 

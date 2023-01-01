@@ -37,8 +37,11 @@ export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
 // It's added to the value above on the server.
 // If a player is farther away, the chest interaction is not accepted.
 // A client is expected to close the window before that.
-// It's only against cheaters who try to interact over huge distance.
+// It serves 2 purposes: against cheaters who try to interact over huge distance,
+// and to have a margin of safety ehn checking one half of a double chest in sendChestToPlayers()
 export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
+// The maximum time for which the client don't send inventory changes (used only in chest windows so far)
+export const MAX_DIRTY_INVENTORY_DURATION   = 5000;
 
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
@@ -55,6 +58,12 @@ export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
+
+// Player armor slots
+export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
+export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
+export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
+export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms

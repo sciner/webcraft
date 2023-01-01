@@ -447,11 +447,20 @@ export class Window {
         this.onShow(args);
     }
     hide() {
+        const wasVisible = this.visible;
         this.visible = false;
         this.resetHover();
-        this.onHide();
+        this.onHide(wasVisible);
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
             Qubatch.hud.prevDrawTime = 0;
+        }
+    }
+    hideAndSetupMousePointer() {
+        this.hide();
+        try {
+            Qubatch.setupMousePointer(true);
+        } catch(e) {
+            console.error(e);
         }
     }
     resetHover() {

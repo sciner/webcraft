@@ -320,11 +320,11 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                let drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
-                console.log('Error on', block.id, e);
+                console.log('Error on', block.id, draw_style, block, e);
                 return null;
             }
         }).filter(Boolean);
@@ -839,15 +839,23 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this, pos, rad));
     }
 
-    // addBBModel
-    addBBModel(pos, bbname, rotate, animation_name) {
-        const model = Resources._bbmodels.get(bbname);
+    /**
+     * 
+     * @param {Vector} pos 
+     * @param {string} bbname 
+     * @param {Vector} rotate 
+     * @param {string} animation_name 
+     * @param {string} key 
+     * @returns 
+     */
+    addBBModel(pos, bbname, rotate, animation_name, key) {
+        const model = Resources._bbmodels.get(bbname)
         if(!model) {
-            return false;
+            return false
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name);
-        bbmodel.setAnimation(animation_name);
-        this.meshes.add(bbmodel);
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name)
+        bbmodel.setAnimation(animation_name)
+        return this.meshes.add(bbmodel, key)
     }
 
     /**
@@ -1117,6 +1125,7 @@ export class Renderer {
         if(hotbar.last_damage_time && performance.now() - hotbar.last_damage_time < DAMAGE_TIME) {
             const percent = (performance.now() - hotbar.last_damage_time) / DAMAGE_TIME;
             let value = 0;
+            
             if(percent < .25) {
                 value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
             } else {

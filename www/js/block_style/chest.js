@@ -32,7 +32,7 @@ export default class style {
         if(!for_physic) {
             aabb.pad(1/500);
         }
-        return [aabb];
+        return [aabb]
     }
     
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
@@ -122,9 +122,9 @@ export default class style {
                         "up": {tx_cnt, "uv": [(58+88)/2/2, 52/2], "flag": flag, "texture": c},
                         "down": {tx_cnt, "uv": [(28+58)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                         "north": {tx_cnt, "uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                        "east":  {tx_cnt, "uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        "east":  {tx_cnt, "uv": [(0+28)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
                         "south": {tx_cnt, "uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                        "west":  {tx_cnt, "uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                        "west":  {tx_cnt, "uv": [(0+28)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
                     }
                 };
                 lid = [
@@ -136,9 +136,9 @@ export default class style {
                             "up": {tx_cnt, "uv": [(58+88)/2/2, 14/2], "flag": flag, "texture": c},
                             "down": {tx_cnt, "uv": [(28+58)/2/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                             "north": {tx_cnt, "uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // спереди
-                            "east":  {tx_cnt, "uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "east":  {tx_cnt, "uv": [(0+28)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                             "south": {tx_cnt, "uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                            "west":  {tx_cnt, "uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
+                            "west":  {tx_cnt, "uv": [(0+28)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
                         }
                     },
                     // замок
@@ -148,8 +148,8 @@ export default class style {
                         "faces": {
                             "up": {tx_cnt, "uv": [5/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                             "down": {tx_cnt, "uv": [3/2, 1/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
-                            "north": {tx_cnt, "uv": [5/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
-                            "south": {tx_cnt, "uv": [5/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "north": {tx_cnt, "uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // спереди
+                            "south": {tx_cnt, "uv": [1/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                             "west":  {tx_cnt, "uv": [7/2, 6/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // слева
                         }
                     }
@@ -164,9 +164,9 @@ export default class style {
                         "up": {tx_cnt, "uv": [(58+88)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                         "down": {tx_cnt, "uv": [(28+58)/2/2, 52/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                         "north": {tx_cnt, "uv": [(86+116)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
-                        "east":  {tx_cnt, "uv": [14/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
+                        "east":  {tx_cnt, "uv": [(0+28)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]}, // слева
                         "south": {tx_cnt, "uv": [(28+58)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                        "west":  {tx_cnt, "uv": [(58+86)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
+                        "west":  {tx_cnt, "uv": [(0+28)/2/2, 76/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]} // справа
                     }
                 };
                 lid = [
@@ -178,9 +178,9 @@ export default class style {
                             "up": {tx_cnt, "uv": [(58+88)/2/2, 14/2], "flag": flag, "texture": [c[0], c[1], -c[2], c[3]]},
                             "down": {tx_cnt, "uv": [(28+58)/2/2, 14/2], "flag": flag, "texture": c},
                             "north": {tx_cnt, "uv": [(86+116)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]}, // спереди
-                            "east":  {tx_cnt, "uv": [14/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
+                            "east":  {tx_cnt, "uv": [(0+28)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], c[2], -c[3]]},
                             "south": {tx_cnt, "uv": [(28+58)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]},
-                            "west":  {tx_cnt, "uv": [(58+86)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
+                            "west":  {tx_cnt, "uv": [(0+28)/2/2, 33/2], "flag": flag, "texture": [c[0], c[1], -c[2], -c[3]]} // справа
                         }
                     },
                     // замок

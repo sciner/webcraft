@@ -1,6 +1,7 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, shapePivot} from "../blocks.js";
+import { AABB } from '../core/AABB.js';
 
 // Люк
 export default class style {
@@ -8,8 +9,27 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['trapdoor'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const shapes = []
+        const cardinal_direction = tblock.getCardinalDirection()
+        const opened = BLOCK.isOpened(tblock)
+        const on_ceil = BLOCK.isOnCeil(tblock)
+        const sz = 3 / 16 // 15.9;
+        if(opened) {
+            shapes.push(new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot))
+        } else {
+            if(on_ceil) {
+                shapes.push(new AABB(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot))
+            } else {
+                shapes.push(new AABB(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot))
+            }
+        }
+        return shapes
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

@@ -11,8 +11,9 @@ export class BBModel_Group extends BBModel_Child {
      * @param {string} name
      * @param {Vector} pivot
      * @param {Vector} rot
+     * @param {boolean} visibility
      */
-    constructor(name, pivot, rot) {
+    constructor(name, pivot, rot, visibility = true) {
         super();
         this.name = name;
         this.children = [];
@@ -20,6 +21,8 @@ export class BBModel_Group extends BBModel_Child {
         this.rot = rot;
         this.rot_orig = rot.clone();
         this.animations = [];
+        this.visibility = !!visibility
+        this.orig_visibility = !!visibility
     }
 
     /**
@@ -45,6 +48,9 @@ export class BBModel_Group extends BBModel_Child {
         mat4.multiply(mx, mx, this.matrix);
 
         for(let part of this.children) {
+            if(!part.visibility) {
+                continue
+            }
             part.pushVertices(vertices, pos, lm, mx);
         }
     }

@@ -1,6 +1,8 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, shapePivot} from "../blocks.js";
+import { TBlock } from '../typed_blocks3.js';
+import { AABB } from '../core/AABB.js';
 
 const Z_FIGHT_ERROR = 1/200;
 
@@ -10,8 +12,27 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['door'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    /**
+     * @param {TBlock} tblock 
+     * @param {boolean} for_physic 
+     * @param {*} world 
+     * @param {*} neighbours 
+     * @param {boolean} expanded 
+     */
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        let cardinal_direction = CubeSym.dirAdd(tblock.getCardinalDirection(), CubeSym.ROT_Y2);
+        if(BLOCK.isOpened(tblock)) {
+            cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
+        }
+        const sz = 3 / 15.9;
+        return [
+            new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot)
+        ]
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

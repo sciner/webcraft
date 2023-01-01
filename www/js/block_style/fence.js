@@ -1,5 +1,6 @@
-import {DIRECTION, IndexedColor, ROTATE} from '../helpers.js';
-import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
+import { DIRECTION, IndexedColor, ROTATE } from '../helpers.js';
+import { BLOCK } from "../blocks.js";
+import { AABB } from '../core/AABB.js';
 
 // Забор
 export default class style {
@@ -7,8 +8,40 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['fence'],
-            func: this.func
+            func: this.func,
+            aabb: this.computeAABB
         };
+    }
+    
+    static computeAABB(tblock, for_physic, world, neighbours) {
+        const shapes = []
+        if(!world) {
+            console.error('error_empty_world_for_compute_aabb')
+            return shapes
+        }
+        const height = for_physic ? 1.5 : 1
+        //
+        const n = BLOCK.autoNeighbs(world.chunkManager, tblock.posworld, 0, neighbours)
+        // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        // South z--
+        if(BLOCK.canFenceConnect(n.SOUTH)) {
+            shapes.push(new AABB(.5-2/16, 5/16, 0, .5+2/16, height, .5+2/16))
+        }
+        // North z++
+        if(BLOCK.canFenceConnect(n.NORTH)) {
+            shapes.push(new AABB(.5-2/16, 5/16, .5-2/16, .5+2/16, height, 1))
+        }
+        // West x--
+        if(BLOCK.canFenceConnect(n.WEST)) {
+            shapes.push(new AABB(0, 5/16, .5-2/16, .5+2/16, height, .5+2/16))
+        }
+        // East x++
+        if(BLOCK.canFenceConnect(n.EAST)) {
+            shapes.push(new AABB(.5-2/16, 5/16, .5-2/16, 1, height, .5+2/16))
+        }
+        // Central
+        shapes.push(new AABB(.5-2/16, 0, .5-2/16, .5+2/16, height, .5+2/16))
+        return shapes
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

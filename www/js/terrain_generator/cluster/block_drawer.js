@@ -124,35 +124,4 @@ export class BlockDrawer {
         }
     }
 
-    /**
-     * @deprecated
-     * @param {*} bm 
-     * @param {*} direction 
-     * @param {*} blocks 
-     */
-    appendOwnBlocks(bm, direction, blocks) {
-        const rotn = [18, 22, 7, 13];
-        for(let block of blocks) {
-            const b = bm.fromId(block.block_id);
-            if(b.tags.includes('rotate_by_pos_n')) {
-                if(block.rotate.y == 0) {
-                    block.rotate.x = rotn[(rotn.indexOf(block.rotate.x) + direction) % 4];
-                } else {
-                    block.rotate.x = (block.rotate.x + direction) % 4;
-                }
-            } else if(
-                b.tags.includes('stairs') ||
-                b.tags.includes('ladder') ||
-                b.tags.includes('bed') ||
-                b.tags.includes('trapdoor') ||
-                ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door'].includes(b.style)
-            ) {
-                block.rotate.x = (block.rotate.x + direction) % 4;
-            } else if(['sign', 'armor_stand'].includes(b.style)) {
-                block.rotate.x = (block.rotate.x + direction + 2) % 4;
-            }
-            this.list.push(block)
-        }
-    }
-
 }

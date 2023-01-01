@@ -119,8 +119,9 @@ export class ChunkGroundLevel {
 
 export class WorldGroundLevel {
 
-    constructor(world) {
+    constructor(world, worker) {
         this.world = world;
+        this.worker = worker;
         this.chunkManager = world.chunkManager;
 
         this.groundLevelSkipCounter = 0;
@@ -286,6 +287,6 @@ export class WorldGroundLevel {
         }
         this.minLightYDirty = false;
         this.prevGroundLevelPlayerPos = playerPos;
-        worker.postMessage(['ground_level_estimated', groundLevel]);
+        this.worker.postMessage(['ground_level_estimated', groundLevel]);
     }
 }

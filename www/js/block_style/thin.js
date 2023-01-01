@@ -1,7 +1,9 @@
 import {DIRECTION, IndexedColor, NORMALS, QUAD_FLAGS, ROTATE} from '../helpers.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, shapePivot} from "../blocks.js";
 import { CubeSym } from '../core/CubeSym.js';
 import { WorldPortal } from '../portal.js';
+import { TBlock } from '../typed_blocks3.js';
+import { AABB } from '../core/AABB.js';
 
 // Панель
 export default class style {
@@ -9,8 +11,32 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['thin'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    /**
+     * @param {TBlock} tblock 
+     * @param {boolean} for_physic 
+     * @param {*} world 
+     * @param {*} neighbours 
+     * @param {boolean} expanded 
+     */
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const shapes = [] // x1 y1 z1 x2 y2 z2
+        const material = tblock.material
+        // F R B L
+        if(!(material.is_portal && for_physic)) {
+            let cardinal_direction = tblock.getCardinalDirection()
+            if(cardinal_direction == CubeSym.ROT_X) {
+                cardinal_direction = ROTATE.E
+            } if(cardinal_direction == CubeSym.ROT_Z) {
+                cardinal_direction = ROTATE.N
+            }
+            shapes.push(new AABB(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot))
+        }
+        return shapes
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

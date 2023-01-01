@@ -23,12 +23,17 @@ const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 const SNEAK_HEIGHT                      = .78; // in percent
 const SNEAK_CHANGE_PERIOD               = 150; // in msec
+const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at which moving animation is played
 
 export const PLAYER_STATUS_DEAD         = 0;
 /* A player with this status is alive, but doesn't move or interat with the world
 until some necessary data is loaded (e.g. the chunks around them to choose a safe spawn point). */
 export const PLAYER_STATUS_WAITING_DATA = 1;
 export const PLAYER_STATUS_ALIVE        = 2;
+
+const ATTACK_PROCESS_NONE = 0;
+const ATTACK_PROCESS_ONGOING = 1;
+const ATTACK_PROCESS_FINISHED = 2;
 
 // Creates a new local player manager.
 export class Player {
@@ -38,6 +43,7 @@ export class Player {
     constructor(options) {
         this.inMiningProcess = false;
         this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
         this.options = options;
         this.scale = PLAYER_ZOOM;
         this.current_state = {
@@ -183,6 +189,9 @@ export class Player {
             this.prevPos                        = new Vector(pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
+            if (this.indicators.live.value > cmd.data.indicators.live.value) {
+                Qubatch.hotbar.last_damage_time = performance.now();
+            }
             this.indicators = cmd.data.indicators;
             Qubatch.hud.refresh();
         });
@@ -196,6 +205,10 @@ export class Player {
         }, async (e) => {
             // onInterractMob
             const mob = Qubatch.world.mobs.get(e.interractMobID);
+            if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD;
+            }
             if(mob) {
                 mob.punch(e);
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
@@ -379,6 +392,7 @@ export class Player {
     resetMouseActivity() {
         this.inMiningProcess = false;
         this.inItemUseProcess = false;
+        this.inAttackProcess = ATTACK_PROCESS_NONE;
         if(this.pickAt) {
             this.pickAt.resetProgress();
         }
@@ -394,7 +408,7 @@ export class Player {
                 if(cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id);
                     const target_mat = this.pickAt.getTargetBlock(this)?.material;
-                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.style == 'planting') ? true : false; 
+                    const is_plant = (target_mat && (target_mat.id == BLOCK.FARMLAND.id || target_mat.id == BLOCK.FARMLAND_WET.id) && cur_mat?.model_name == 'planting') ? true : false; 
                     const canInteractWithBlock = target_mat && (target_mat.tags.includes('pot') && cur_mat.tags.includes("can_put_into_pot") || target_mat.can_interact_with_hand);
                     if(!is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
@@ -678,7 +692,9 @@ export class Player {
                 }
             }
             this.lerpPos.roundSelf(8);
-            this.moving     = !this.lerpPos.round(3).equal(this.posO.round(3)) && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
+            const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
+            this.moving     = this.lerpPos.distanceSqr(this.posO) > minMovingDist * minMovingDist
+                && (this.controls.back || this.controls.forward || this.controls.right || this.controls.left);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
             this.isOnLadder = pc.player_state.isOnLadder;
@@ -1073,7 +1089,9 @@ export class Player {
     getAttackAnim(pPartialTicks, delta) {
 
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+        if(!this.inMiningProcess && !this.inItemUseProcess && 
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
             return 0;
         }
 
@@ -1081,6 +1099,9 @@ export class Player {
 
         if (this.mineTime >= 1) {
             this.mineTime = 0;
+            if (this.inAttackProcess === ATTACK_PROCESS_ONGOING) {
+                this.inAttackProcess = ATTACK_PROCESS_FINISHED;
+            }
         }
 
         return this.mineTime;
@@ -1094,7 +1115,9 @@ export class Player {
     // TODO: хз что именно возвращать, возвращаю оставшееся время до конца текущей анимации
     getUseItemRemainingTicks() {
         // this.mineTime = itsme.swingProgress;
-        if(!this.inMiningProcess && !this.inItemUseProcess && this.mineTime == 0) {
+        if(!this.inMiningProcess && !this.inItemUseProcess && 
+            this.inAttackProcess !== ATTACK_PROCESS_ONGOING && this.mineTime == 0
+        ) {
             return 0;
         }
         return this.inhand_animation_duration - (this.inhand_animation_duration * this.mineTime);
@@ -1113,6 +1136,13 @@ export class Player {
         const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
         const cell_index = z * CHUNK_SIZE_X + x;
         return chunk.packedCells ? chunk.packedCells[cell_index * PACKED_CELL_LENGTH + 4] : 0;
+    }
+
+    updateArmor() {
+        const model = this.getModel()
+        if(model) {
+            model.armor = this.inventory.exportArmorState()
+        }
     }
 
 }

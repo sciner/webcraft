@@ -18,10 +18,10 @@ export default class style {
     }
 
     static computeAABB(block, for_physic) {
-        const aabbs = [];
+        const shapes = [];
         const height = for_physic ? 11/16 : 12/16;
-        aabbs.push(new AABB().set(0.125, 0, 0.125, 0.875, height, 0.875));
-        return aabbs;
+        shapes.push(new AABB().set(0.125, 0, 0.125, 0.875, height, 0.875));
+        return shapes;
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {

@@ -183,5 +183,15 @@ export class Brain extends FSMBrain {
     onPanic() {
         
     }
+    
+    onUse() {
+        this.mob.extra_data.skin = 'wither';
+        this.mob.extra_data.armor = {
+            head: 273, 
+            body: null,
+            leg: null,
+            boot: null,
+        };
+    }
 
 }

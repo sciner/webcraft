@@ -8,11 +8,13 @@ import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } fr
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import { Renderer } from "./render.js";
 import { CLIENT_SKIN_ROOT } from "./constant.js";
+import { BLOCK } from "./blocks.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
+const OLD_SKIN                      = false;
 
 export class Traversable {
 
@@ -46,6 +48,7 @@ export class Animable {
         this.pos;
         this.parts;
         this.animationScript;
+        
     }
 
 }
@@ -73,15 +76,18 @@ export class TraversableRenderer {
     }
 
     drawTraversed(node, parent, render, traversable) {
-
         if('visible' in node && !node.visible) {
             return;
         }
-
         if (!node.terrainGeometry) {
             return true;
         }
-
+        if (node?.armor && !node.material) {
+            return true;
+        }
+        if (node.material && traversable.lightTex) {
+            node.material.lightTex = traversable.lightTex;
+        }
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || traversable.material,
@@ -135,13 +141,9 @@ export class Animator {
 export class MobAnimator extends Animator {
 
     prepare(animable) {
-
-        const {
-            sceneTree: trees,
-            parts = {}
-        } = animable;
-
-        for(let p of ['head', 'arm', 'leg', 'wing', 'body']) {
+        const { sceneTree: trees, parts = {} } = animable;
+        
+        for(const p of ['head', 'arm', 'leg', 'wing', 'body']) {
             parts[p] = [];
         }
 
@@ -152,13 +154,18 @@ export class MobAnimator extends Animator {
 
         this.aniangle = 0;
 
-        for(let tree of trees) {
-
+        for(const tree of trees) {
             let leg;
             let arm;
             let head;
             let wing;
-
+            
+            head = tree.findNode('Head');
+            head && heads.push(head);
+            
+            head = tree.findNode('head');
+            head && heads.push(head);
+            
             for(let i = 0; i < 8; i ++) {
                 leg = tree.findNode('leg' + i);
                 leg && legs.push(leg);
@@ -169,32 +176,26 @@ export class MobAnimator extends Animator {
                 wing = tree.findNode('wing' + i);
                 wing && wings.push(wing);
             }
-
-            // humanoid case
+            
             leg = tree.findNode('LeftLeg');
             leg && legs.push(leg);
-
-            // humanoid case
+            
             leg = tree.findNode('RightLeg');
             leg && legs.push(leg);
-
-            // humanoid case
-            arm = tree.findNode('LeftArm');
-            arm && arms.push(arm);
-
-            // humanoid case
+            
             arm = tree.findNode('RightArm');
             arm && arms.push(arm);
-
-            head = tree.findNode('head') || tree.findNode('Head');
-
-            parts['head'].push(...head ? [head] : []);
+            
+            arm = tree.findNode('LeftArm');
+            arm && arms.push(arm);
+            
+            parts['head'].push(...heads);
             parts['arm'].push(...arms);
             parts['leg'].push(...legs);
             parts['wing'].push(...wings);
-            parts['body'].push(...[tree.findNode('Body')].filter(Boolean));
+            parts['body'].push(...[tree.findNode('Body')]);
         }
-
+        
         animable.parts = parts;
     }
 
@@ -305,25 +306,20 @@ export class MobAnimation {
     leg({
         part, index, aniangle, animable, isArm = 0
     }) {
-
         const x             = index % 2;
         const y             = index / 2 | 0;
-        const sign          = x ^ y ? 1 : -1;
+        const sign          = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? 1 : -1;
         const ageInTicks    = performance.now() / 50;
-        const isLeftArm     = isArm && index % 2 == 0;
+        const isLeftArm     = isArm && index % 2 != 0;
         const isLeftLeg     = !isArm && index % 2 == 0;
-        const itemInArm     = isArm && !!part?.children[0]?.children[0]?.terrainGeometry;
+        const itemInArm     = isArm;
         const isZombie      = animable.type == 'zombie';
         const isHumanoid    = animable.type.indexOf('player:') >= 0;
         const rotate        = new Vector(0, 0, 0);
         const isSitting     = animable.sitting; // isHumanoid;
 
         if(isZombie && isArm) {
-            aniangle /= 16;
-        }
-
-        if(itemInArm) {
-            aniangle = aniangle * .4 + Math.PI / 8;
+           aniangle /= 16;
         }
 
         if(isSitting) {
@@ -358,7 +354,6 @@ export class MobAnimation {
         quat.rotateX(part.quat, part.quat, rotate.x);
         quat.rotateY(part.quat, part.quat, rotate.y);
         quat.rotateZ(part.quat, part.quat, rotate.z);
-
         part.updateMatrix();
 
     }
@@ -439,7 +434,6 @@ export class MobAnimation {
     }
 
     arm(opts) {
-        opts.index += 2;
         opts.isArm = 1;
         return this.leg(opts);
     }
@@ -494,15 +488,14 @@ export class MobModel extends NetworkPhysicObject {
         this.texture                    = null;
         this.material                   = null;
         this.raycasted                  = false;
-
         this.moving_timeout             = null;
-        this.texture                    = null;
         this.nametag                    = null;
         this.aniframe                   = 0;
         this.width                      = 0;
         this.height                     = 0;
         this.sneak                      = 0;
         this.body_rotate                = 0;
+        this.textures                   = new Map();
 
         Object.assign(this, props);
 
@@ -537,7 +530,15 @@ export class MobModel extends NetworkPhysicObject {
         this.animator = new MobAnimator();
 
         this.animationScript = new MobAnimation();
-
+        
+        this.armor = null;
+        this.prev = {
+            head: null, 
+            body: null,
+            leg: null,
+            boot: null,
+            skin: null
+        };
     }
 
     get isRenderable() {
@@ -560,10 +561,10 @@ export class MobModel extends NetworkPhysicObject {
             // play punch
             Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
             // play mob cry
-            let tag = `madcraft:block.${this.type}`;
-            if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
-                Qubatch.sounds.play(tag, 'hurt');
-            }
+            //let tag = `madcraft:block.${this.type}`;
+            //if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
+            //    Qubatch.sounds.play(tag, 'hurt');
+            //}
             // make red
             this.tintColor.set(1, 0, 0, .3);
             setTimeout(() => {
@@ -579,13 +580,10 @@ export class MobModel extends NetworkPhysicObject {
         if (this.initialised) {
             return;
         }
-
-        return this
-            .loadModel(render)
-            .then(()=>{
+        return this.loadModel(render).then(()=>{
                 this.initialised = true;
                 this.postLoad(render, this.sceneTree);
-            });
+        });
     }
 
     computeLocalPosAndLight(render, delta) {
@@ -678,7 +676,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        this.animator.update(delta, camPos, this, speed);
+       this.animator.update(delta, camPos, this, speed);
     }
 
     isDetonationStarted() {
@@ -702,7 +700,7 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-
+        
         // If mob die
         if(this.isAlive() === false) {
             // first enter to this code
@@ -764,7 +762,11 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.detonation_started_info = null;
         }
-
+        
+        this.setArmor();
+        
+        this.setSkin();
+        
         // Draw in fire
         if((this.extra_data?.time_fire ?? 0) > 0) {
             this.drawInFire(render, delta);
@@ -804,27 +806,22 @@ export class MobModel extends NetworkPhysicObject {
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
-
+    
     /**
-     *
      * @param {Renderer} render
      * @param {ImageBitmap | Image} image
      */
-    loadTextures(render, image) {
-        if (this.texture) {
-            return;
-        }
-
-        this.texture = render.renderBackend.createTexture({
+    getTexture(render, image) {
+        const texture = render.renderBackend.createTexture({
             source: image,
             minFilter: 'nearest',
             magFilter: 'nearest',
             shared: true
         });
-
-        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture)
+        return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
     }
-
+    
+    
     // Loads the player head model into a vertex buffer for rendering.
     /**
      *
@@ -834,59 +831,62 @@ export class MobModel extends NetworkPhysicObject {
         if (this.sceneTree) {
             return;
         }
-
+        
         if (this.type.startsWith('player')) {
-            return await this.loadPlayerModel(render);
+            this.type = PLAYER_SKIN_TYPES[this.skin.type];
         }
-
-        const asset = await Resources.getModelAsset(this.type);
-
-        if (!asset) {
-            console.log("Can't locate model for:", this.type);
-            return null;
-        }
-
-        this.sceneTree = ModelBuilder.loadModel(asset);
-
-        if (!this.sceneTree) {
-            return null;
-        }
-
-        this.skin = this.skin || asset.baseSkin;
-
-        if(!(this.skin in asset.skins)) {
-            console.warn("Can't locate skin: ", asset, this.skin)
-            this.skin = asset.baseSkin;
-        }
-
-        const image = await asset.getSkin(this.skin);
-
-        this.loadTextures(render, image);
-    }
-
-
-    async loadPlayerModel(render) {
-        if (this.sceneTree) {
-            return;
-        }
-
-        this.type = PLAYER_SKIN_TYPES[this.skin.type];
-
+        
+        // загружеам ресурсы 
         const asset = await Resources.getModelAsset(this.type);
         if (!asset) {
-            console.log("Can't locate model for:", this.type);
+            console.error("Can't locate model for loadModel:", this.type);
             return null;
         }
-
         this.sceneTree = ModelBuilder.loadModel(asset);
         if (!this.sceneTree) {
             return null;
         }
-
-        const image = await asset.getPlayerSkin(this.skin.file);
-        this.loadTextures(render, image);
-
-        return image; // it's used by PlayerModel for skin preview
+ 
+        let image;
+        if (this.type.startsWith('player')) {
+            image = await asset.getPlayerSkin(this.skin.file);
+            this.material = this.getTexture(render, image);
+        } else {
+            // получаем все скины моба
+            for (const title in asset.skins) {
+                image = await asset.getSkin(title);
+                const texture = this.getTexture(render, image);
+                this.textures.set(title, texture);
+            }
+            // загружем скин для моба
+            this.prev.skin = this.skin = this.skin || asset.baseSkin;
+            this.material = this.textures.get(this.skin); 
+        }
+        // если игрок зомби или скелет, загружаем броню для них
+        if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
+            const armor = await Resources.getModelAsset('armor');
+            if (!armor) {
+                console.log("Can't locate armor model");
+                return null;
+            } 
+            for (const title in armor.skins) {
+                const image = await armor.getSkin(title);
+                const texture = this.getTexture(render, image);
+                this.textures.set(title, texture);
+            }
+            const scene = ModelBuilder.loadModel(armor);
+            scene[0].children[0].armor = true;
+            scene[0].children[1].armor = true;
+            scene[0].children[1].children[0].armor = true;
+            scene[0].children[1].children[1].armor = true;
+            scene[0].children[1].children[2].armor = true;
+            scene[0].children[1].children[3].armor = true;
+            scene[0].children[1].children[4].armor = true;
+            scene[0].children[1].children[2].children[0].armor = true;
+            scene[0].children[1].children[3].children[0].armor = true;
+            this.sceneTree[1] = scene[0];
+        }
+        this.animator.prepare(this);
     }
 
     /**
@@ -897,13 +897,76 @@ export class MobModel extends NetworkPhysicObject {
         if (!tree) {
             return;
         }
-
         this.animator.prepare(this);
     }
 
     onUnload() {
         if(this.fire_mesh) {
             this.fire_mesh.destroy();
+        }
+    }
+    
+    setSkin() {
+        if (this?.extra_data?.skin && this.extra_data.skin != this.prev.skin) {
+            if (this.textures.has(this.extra_data.skin)) {
+                this.material = this.textures.get(this.extra_data.skin);
+            }
+            this.prev.skin = this.extra_data.skin;
+        }
+    }
+    
+    // установка армора
+    setArmor() {
+        if (!this.sceneTree[1]) {
+            return;
+        }
+        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
+        if (!armor) {
+            return;
+        }
+        if (armor.head != this.prev.head) {
+            if (armor.head) {
+                const item = BLOCK.fromId(armor.head);
+                this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
+            } else {
+                this.sceneTree[1].children[0].material = null; 
+            }
+            this.prev.head = armor.head;
+        }
+        if (armor.body != this.prev.body) {
+            if (armor.body) {
+                const item = BLOCK.fromId(armor.body);
+                this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+            } else {
+                this.sceneTree[1].children[1].material = null;
+            }
+            this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
+            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material; 
+            this.prev.body = armor.body;
+        }
+        if (armor.leg != this.prev.leg) {
+            if (armor.leg) {
+                const item = BLOCK.fromId(armor.leg);
+                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
+                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
+                this.sceneTree[1].children[1].children[4].material = this.textures.get(item.material.id +'_layer_2');
+            } else {
+                this.sceneTree[1].children[1].children[2].material = null;
+                this.sceneTree[1].children[1].children[3].material = null;
+                this.sceneTree[1].children[1].children[4].material = null;
+            }
+            this.prev.leg = armor.leg;
+        }
+        if (armor.boot != this.prev.boot) {
+            if (armor.boot) {
+                const item = BLOCK.fromId(armor.boot);
+                this.sceneTree[1].children[1].children[2].children[0].material = this.textures.get(item.material.id +'_layer_1');
+                this.sceneTree[1].children[1].children[3].children[0].material = this.textures.get(item.material.id +'_layer_1');
+            } else {
+                this.sceneTree[1].children[1].children[2].children[0].material = null;
+                this.sceneTree[1].children[1].children[3].children[0].material = null;
+            }
+            this.prev.boot = armor.boot;
         }
     }
 

@@ -1604,5 +1604,289 @@
             "item": "madcraft:netherite_ingot",
             "count": 9
         }
+    },
+    {
+        "id": "7c0283eb-71aa-4d3e-a53b-355716196e0c",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:leather"
+            }
+        },
+        "result": {
+            "item": "madcraft:leather_helmet",
+            "count": 1
+        }
+    },
+    {
+        "id": "7640984d-b984-4427-b9f8-1fb5b72bacb5",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_helmet",
+            "count": 1
+        }
+    },
+    {
+        "id": "4d171ce7-0e57-4aef-8823-d20ad8d1e474",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:golden_helmet",
+            "count": 1
+        }
+    },
+    {
+        "id": "e8e7d2af-419e-43c6-9617-0dd1ac0db669",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_helmet",
+            "count": 1
+        }
+    },
+    {
+        "id": "b490927a-4f76-4380-8198-af64c5fb1528",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L L",
+            "LLL",
+            "LLL"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:leather"
+            }
+        },
+        "result": {
+            "item": "madcraft:leather_chestplate",
+            "count": 1
+        }
+    },
+    {
+        "id": "ef1360fc-c62f-490c-a796-9140a9bc2e6d",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L L",
+            "LLL",
+            "LLL"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_chestplate",
+            "count": 1
+        }
+    },
+    {
+        "id": "1250f933-211b-40b5-8edf-3af9f4b6418a",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L L",
+            "LLL",
+            "LLL"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:golden_chestplate",
+            "count": 1
+        }
+    },
+    {
+        "id": "f173ab40-10b1-418a-9b87-8ae37ffcf9b0",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L L",
+            "LLL",
+            "LLL"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_chestplate",
+            "count": 1
+        }
+    },
+    {
+        "id": "bd0af7c3-95d6-4f39-86c6-f003164e248e",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:leather"
+            }
+        },
+        "result": {
+            "item": "madcraft:leather_leggings",
+            "count": 1
+        }
+    },
+    {
+        "id": "39888413-a723-4093-995a-0edaf05063d9",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_leggings",
+            "count": 1
+        }
+    },
+    {
+        "id": "ab588c52-f276-48ef-9166-7718785c17f6",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:golden_leggings",
+            "count": 1
+        }
+    },
+    {
+        "id": "7374e991-856a-4d91-961c-809e1c8824de",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_leggings",
+            "count": 1
+        }
+    },
+    {
+        "id": "8d647555-c68f-40d7-8c3e-771ce6b88564",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:leather"
+            }
+        },
+        "result": {
+            "item": "madcraft:leather_boots",
+            "count": 1
+        }
+    },
+    {
+        "id": "89cf01e3-9f9c-4586-8dff-a94897f54657",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_boots",
+            "count": 1
+        }
+    },
+    {
+        "id": "596adc61-2b75-45bd-9d7c-a592703f729f",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:golden_boots",
+            "count": 1
+        }
+    },
+    {
+        "id": "ccdbd46d-c090-4721-9915-ef055506e765",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_boots",
+            "count": 1
+        }
     }
 ]

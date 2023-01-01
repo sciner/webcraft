@@ -60,6 +60,10 @@ async function preLoad () {
         BuilgingTemplate = module.BuilgingTemplate;
     });
 
+    await import('./resources.js').then(async module => {
+        await module.Resources.loadBBModels()
+    });
+
     // load font
     if(typeof process == 'undefined') {
     await import('../data/font.js').then(module => {

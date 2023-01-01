@@ -73,6 +73,19 @@ export class GeometryTerrain16 {
         this.customFlag = false;
     }
 
+    /**
+     * for compatibility with Worker05GeometryPage
+     * @returns {*|number}
+     */
+    get filled() {
+        return this.size;
+    }
+
+    get instanceSize() {
+        return this.strideFloats;
+    }
+
+
     createVao() {
         const {attribs, gl, stride} = this;
         this.vao = gl.createVertexArray();

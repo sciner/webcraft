@@ -32,6 +32,7 @@ import { BuilgingTemplate } from "../www/js/terrain_generator/cluster/building_t
 import { WorldOreGenerator } from "./world/ore_generator.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
+import { shallowCloneAndSanitizeIfPrivate } from "../www/js/compress/world_modify_chunk.js";
 
 // for debugging client time offset
 export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
@@ -245,7 +246,7 @@ export class ServerWorld {
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок
-                    if (under && (under.id != 0 || under.material.style == 'planting')) {
+                    if (under && (under.id != 0 || under.material.model_name == 'planting')) {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         // проверям что область для спауна это воздух или вода
@@ -369,7 +370,7 @@ export class ServerWorld {
             }
             // Auto spawn hostile mobs
             if(this.ticks_stat.number % 100 == 0) {
-                this.autoSpawnHostileMobs();
+               // this.autoSpawnHostileMobs();
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
             }
             // Save fluids
@@ -703,12 +704,20 @@ export class ServerWorld {
                     this.chunkBecameModified(chunk_addr);
                     // 3.
                     if (chunk && chunk.tblocks && isLoaded) {
+                        let sanitizedParams = params;
+                        const sanitizedItem = shallowCloneAndSanitizeIfPrivate(params.item);
+                        if (sanitizedItem) {
+                            // I'm not sure if params are used anywhere else, so shallow clone them to be safe.
+                            sanitizedParams = {...params};
+                            sanitizedParams.item = sanitizedItem;
+                        }
+
                         const block_pos = new Vector(params.pos).flooredSelf();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
                         cps.packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
-                            data: params
+                            data: sanitizedParams
                         });
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {

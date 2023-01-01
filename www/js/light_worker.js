@@ -137,7 +137,7 @@ async function initWorld() {
         await preLoad();
     }
 
-    world = new LightWorld();
+    world = new LightWorld(worker);
     world.light.setNormals(hasNormals);
     for (let item of msgQueue) {
         await onmessage(item);

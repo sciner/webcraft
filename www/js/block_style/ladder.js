@@ -1,6 +1,7 @@
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
-import {BLOCK} from "../blocks.js";
+import {BLOCK, shapePivot} from "../blocks.js";
+import { AABB } from '../core/AABB.js';
 
 // Лестница
 export default class style {
@@ -8,8 +9,17 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['ladder'],
+            aabb: style.computeAABB,
             func: this.func
         };
+    }
+
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const cardinal_direction = tblock.getCardinalDirection()
+        const width = 3 / 15.9
+        return [
+            new AABB(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot)
+        ]
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {

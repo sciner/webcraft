@@ -1,11 +1,13 @@
 import {BLOCK} from "../blocks.js";
 import { Helpers } from "../helpers.js";
 import { DRAW_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE 
-} from "../constant.js";
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import {Label, Window} from "../../tools/gui/wm.js";
+import { Label, Window } from "../../tools/gui/wm.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../chunk_const.js";
+
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55';
+const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF';
 
 export class HelpSlot extends Label {
 
@@ -333,24 +335,33 @@ export class CraftTableInventorySlot extends CraftTableSlot {
      * @param {Float} x - screen poition x
      * @param {Float} y - screen poition y
      * @param {BaseChestWindow} ct - parent window
+     * @param {Object} options - optonal parameters:
+     *  { readonly, onMouseEnterBackroundColor, disableIfLoading }
      */
-    constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
+    constructor(x, y, w, h, id, title, text, ct, slot_index, options = null) {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
 
-        this.readonly = readonly;
+        this.options = options || {};
 
         // Custom drawing
         this.onMouseEnter = function() {
-            this.style.background.color = '#ffffff55';
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
+            this.style.background.color = this.options.onMouseEnterBackroundColor ?? '#ffffff55';
         }
 
         this.onMouseLeave = function() {
+            // don't disable it if loading
             this.style.background.color = '#00000000';
         }
 
         // Drag
         this.onMouseDown = function(e) {
+            if (this.options.disableIfLoading && this.ct.loading) {
+                return;
+            }
             const that        = this;
             const player      = Qubatch.player;
             const targetItem  = this.getInventoryItem();
@@ -374,10 +385,20 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(e.shiftKey) {
                     switch(this.parent.id) {
                         case 'frmInventory': {
-                            let srcList = this.parent.inventory_slots; // player.inventory.items;
-                            let srcListFirstIndexOffset = this.slot_index < 9 ? 9 : 0;
-                            let targetList = this.slot_index < 9 ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, 9);
-                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            let srcList = this.parent.inventory_slots;
+                            if(!this.appendToSpecialList(targetItem, srcList)) {
+                                const ihsc = INVENTORY_HOTBAR_SLOT_COUNT
+                                let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
+                                let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
+                                if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
+                                    srcListFirstIndexOffset = 0
+                                    targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
+                                } else {
+                                    srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
+                                    targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
+                                }
+                                this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            }
                             if(targetItem.count == 0) {
                                 that.setItem(null, e);
                             }
@@ -389,6 +410,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         case 'frmEnderChest':
                         case 'frmFurnace':
                         case 'frmChargingStation': {
+                            if (this.ct.loading) {
+                                break; // prevent spreading to the slots that are not ready
+                            }
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
@@ -424,9 +448,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
 
         // if slot is readonly
-        if(!readonly) {
+        if(!this.readonly) {
             // Drop
             this.onDrop = function(e) {
+                if (this.options.disableIfLoading && this.ct.loading) {
+                    return;
+                }
                 let player      = Qubatch.player;
                 let that        = this;
                 let drag        = e.drag;
@@ -544,8 +571,39 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         this.getInventory().clearDragItem();
                     }
                 }
+                if (dropData.item.count === 0) {
+                    player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = null;
+                }
             }
         }
+    }
+
+    get readonly() {
+        return !!this.options.readonly;
+    }
+
+    /**
+     * Помещает предмет в список (например инвентарный)
+     * @param {*} srcItem Исходный слот для перемещения
+     * @param {*} target_list Итоговый  список слотов, куда нужно переместить исходный слот
+     */
+    appendToSpecialList(srcItem, target_list) {
+        if(srcItem.entity_id || srcItem.extra_data) {
+            return false
+        }
+        const srcBlock = BLOCK.fromId(srcItem.id)
+        // 0. Поиск специализированных слотов брони
+        for(let slot of target_list) {
+            if(slot instanceof ArmorSlot && srcBlock.armor && slot.slot_index == srcBlock.armor.slot) {
+                const item = slot.getItem();
+                if(!slot.readonly && !item) {
+                    slot.setItem({...srcItem})
+                    srcItem.count = 0
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     /**
@@ -562,21 +620,23 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         if(!srcItem.entity_id && !srcItem.extra_data) {
             const max_stack_count = BLOCK.fromId(srcItem.id).max_in_stack;
             // 1. проход в поисках подобного
-            for(let slot of target_list) {
-                if(slot instanceof CraftTableInventorySlot) {
-                    const item = slot.getItem();
-                    if(!slot.readonly && item && item.id == srcItem.id) {
-                        let free_count = max_stack_count - item.count;
-                        if(free_count > 0) {
-                            let count = Math.min(free_count, srcItem.count);
-                            srcItem.count -= count
-                            item.count += count;
-                            slot.setItem(item);
+            if(srcItem.count > 0) {
+                for(let slot of target_list) {
+                    if(slot instanceof CraftTableInventorySlot) {
+                        const item = slot.getItem();
+                        if(!slot.readonly && item && item.id == srcItem.id) {
+                            let free_count = max_stack_count - item.count;
+                            if(free_count > 0) {
+                                let count = Math.min(free_count, srcItem.count);
+                                srcItem.count -= count
+                                item.count += count;
+                                slot.setItem(item);
+                            }
                         }
+                    } else {
+                        console.error(slot);
+                        throw 'error_invalid_slot_type';
                     }
-                } else {
-                    console.error(slot);
-                    throw 'error_invalid_slot_type';
                 }
             }
         }
@@ -625,6 +685,103 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
         this.parent.checkRecipe(this.parent.area.size);
     }
 
+}
+
+export class ArmorSlot extends CraftTableInventorySlot {
+    
+    constructor(x, y, s, id, ct) {
+
+        super(x, y, s, s, 'lblSlot' + id, null, null, ct, id);
+        // Custom drawing
+        this.onMouseEnter = function(e) {
+            const dragItem = Qubatch.hud.wm.drag.getItem();
+            if (!dragItem || this.isValidDragItem(dragItem)) {
+                this.style.background.color = ARMOR_SLOT_BACKGROUND_HIGHLIGHTED;
+            }
+        }
+
+        const origOnMouseDown = this.onMouseDown.bind(this);
+
+        // Make the slot instantly highlighted when we take the item from it
+        this.onMouseDown = function(e) {
+            origOnMouseDown(e);
+            this.onMouseEnter(e);
+        }
+
+        /*
+        // Drag
+        this.onMouseDown = function(e) {
+            const targetItem  = this.getInventoryItem();
+            if(!targetItem || e.drag.getItem()) {
+                return;
+            }
+            this.setItem(null, e);
+            this.getInventory().setDragItem(this, targetItem, e.drag, this.width, this.height);
+        }
+
+        this.onDrop = function(e) {
+            const dropData    = e.drag.getItem();
+            const targetItem  = this.getInventoryItem();
+            if(!dropData) {
+               return;
+            }
+            const item = BLOCK.fromId(dropData.item.id);
+            if (item?.item?.name != 'armor' || item.armor.slot != this.slot_index) {
+                return;
+            }
+            this.setItem(dropData.item, e);
+            if (targetItem) {
+                Qubatch.player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = targetItem;
+                dropData.item = targetItem;
+            } else {
+                this.getInventory().clearDragItem();
+            }
+        }
+        */
+
+        const origOnDrop = this.onDrop.bind(this);
+
+        this.onDrop = function(e) {
+            const dragItem = e.drag.getItem();
+            if(this.isValidDragItem(dragItem)) {
+                return origOnDrop(e);
+            }
+        }
+    }
+
+    isValidDragItem(dragItem) {
+        if(!dragItem) {
+            return false;
+        }
+        const mat = BLOCK.fromId(dragItem.item.id);
+        return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index);
+    }
+    
+    draw(ctx, ax, ay) {
+        this.applyStyle(ctx, ax, ay);
+        const item = this.getInventoryItem();
+        if(item) {
+            // fill background color
+            let x = ax + this.x;
+            let y = ay + this.y;
+            let w = this.width;
+            let h = this.height;
+            ctx.fillStyle = this.style.background.color == ARMOR_SLOT_BACKGROUND_HIGHLIGHTED
+                ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#8f8d88ff';
+            ctx.fillRect(x, y, w, h);
+        }
+        this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
+        super.draw(ctx, ax, ay);
+    }
+
+    getInventory() {
+        return this.ct.inventory;
+    }
+    
+    getInventoryItem() {
+        return this.ct.inventory.items[this.slot_index] || this.item;
+    }
+    
 }
 
 export class BaseCraftWindow extends Window {

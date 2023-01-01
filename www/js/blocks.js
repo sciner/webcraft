@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, ArrayHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -16,11 +16,12 @@ export const POWER_NO                       = 0;
 export const ITEM_DB_PROPS                  = ['power', 'count', 'entity_id', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['power', 'extra_data'];
+export const ITEM_INVENTORY_PROPS_OBJ       = ArrayHelpers.valuesToObjectKeys(ITEM_INVENTORY_PROPS);
 
 export const LEAVES_TYPE = {NO: 0, NORMAL: 1, BEAUTIFUL: 2};
 
 let aabb = new AABB();
-let shapePivot = new Vector(.5, .5, .5);
+export const shapePivot = new Vector(.5, .5, .5);
 
 export let NEIGHB_BY_SYM = {};
 NEIGHB_BY_SYM[DIRECTION.FORWARD] = 'NORTH';
@@ -194,6 +195,7 @@ export class BLOCK {
     static MASK_COLOR_BLOCKS        = [];
     static SOLID_BLOCK_ID           = [];
     static TICKING_BLOCKS           = new Map();
+    static BLOCK_BY_ID              = [];
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -383,8 +385,8 @@ export class BLOCK {
         if(extra_data && 'facing' in extra_data) {
             extra_data.facing = BLOCK.getFacing(orientation.x);
         }
-        // is_chest
-        if(block.is_chest) {
+        // chest
+        if(block.chest) {
             setExtra('can_destroy', true);
             setExtra('slots', {});
         }
@@ -530,17 +532,17 @@ export class BLOCK {
                 group = 'doubleface';
             }
         } else
-        if((block.tags.includes('alpha')) || ['thin'].includes(block.style)) {
+        if((block.tags.includes('alpha')) || ['thin'].includes(block.model_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
-        } else if(block.style == 'pane' || block.is_glass) {
+        } else if(block.model_name == 'pane' || block.is_glass) {
             group = 'transparent';
         } else if(block.tags.includes('doubleface') ||
             [
                 'planting', 'chain', 'ladder', 'door', 'redstone', 'pot', 'lantern',
                 'azalea', 'bamboo', 'campfire', 'cocoa', 'item_frame', 'candle', 'rails', 'slope', 'cover',
                 'lectern'
-            ].includes(block.style)
+            ].includes(block.model_name)
             ) {
             group = 'doubleface';
         }
@@ -556,15 +558,10 @@ export class BLOCK {
         BLOCK.list_arr               = [];
     }
 
-    // parseBlockStyle...
-    static parseBlockStyle(block) {
-        return block.hasOwnProperty('style') ? block.style : 'default';
-    }
-
     // parseBlockTransparent...
     static parseBlockTransparent(block) {
         let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
-        if(block.style && block.style == 'stairs') {
+        if(block.model_name && block.model_name == 'stairs') {
             transparent = true;
         }
         return transparent;
@@ -574,7 +571,7 @@ export class BLOCK {
         if(block.id == 0) {
             return false
         }
-        return block.style == 'default' &&
+        return block.model_name == 'default' &&
             !block.is_fluid &&
             !block.transparent &&
             !block.is_leaves &&
@@ -653,8 +650,6 @@ export class BLOCK {
                 }
             }
         }
-        //
-        block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
         if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
@@ -679,10 +674,15 @@ export class BLOCK {
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
-        block.is_banner         = block.style == 'banner';
-        // is_chest is used for legacy code compatibility. Don't specify it in the config. Specify chest_slots nstead.
-        block.is_chest          = block.chest_slots > 0;
-        block.readonly_chest_slots = block.readonly_chest_slots || 0;
+        block.is_banner         = block.model_name == 'banner';
+        if (block.chest) {
+            /* Properties:
+                slots: Int
+                readonly_slots: Int (default 0)
+                private: Boolean (default false)
+            */
+            block.chest.readonly_slots = block.chest.readonly_slots || 0;
+        }
         block.has_oxygen        = !(block.is_fluid || (block.id > 0 && block.passable == 0 && !block.transparent)) || ['BUBBLE_COLUMN'].includes(block.name);
         block.transmits_light   = !block.is_dirt & (block.transparent || ['TEST', 'NUM1', 'NUM2'].includes(block.name)) // пропускает свет
         // не переносить!
@@ -700,15 +700,15 @@ export class BLOCK {
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door', 'rotate_by_pos_n'].indexOf(x) >= 0).length > 0;
         block.tx_cnt            = BLOCK.calcTxCnt(block);
         block.uvlock            = !('uvlock' in block) ? true : false;
-        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.style == 'planting') || block.style == 'ladder' || block?.material?.id == 'glass';
-        block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.style == 'planting';
+        block.invisible_for_cam = block.is_portal || block.passable > 0 || (block.material.id == 'plant' && block.model_name == 'planting') || block.model_name == 'ladder' || block?.material?.id == 'glass';
+        block.invisible_for_rain= block.is_grass || block.is_sapling || block.is_banner || block.model_name == 'planting';
         block.can_take_shadow   = BLOCK.canTakeShadow(block);
         block.random_rotate_up  = block.tags.includes('random_rotate_up');
         block.is_solid          = this.isSolid(block);
         block.is_solid_for_fluid= block.tags.includes('is_solid_for_fluid') ||
                                     block.tags.includes('stairs') ||
                                     block.tags.includes('log') ||
-                                    ['wall', 'pane'].includes(block.style);
+                                    ['wall', 'pane'].includes(block.model_name);
 
         block.is_simple_qube    = this.isSimpleQube(block);
         block.can_interact_with_hand = this.canInteractWithHand(block);
@@ -738,14 +738,14 @@ export class BLOCK {
             }
         }
         //
-        block.drop_if_unlinked  = block.style == 'torch';
+        block.drop_if_unlinked  = block.model_name == 'torch';
         block.can_auto_drop     = !block.previous_part &&
                                   !block.deprecated &&
                                   block.spawnable &&
                                   !block.is_fluid &&
                                   [31, 572].indexOf(block.id) < 0;
         // Add to ao_invisible_blocks list
-        if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.style) || block.tags.includes('no_drop_ao')) {
+        if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.model_name) || block.tags.includes('no_drop_ao')) {
             if(!this.ao_invisible_blocks.includes(block.id)) {
                 this.ao_invisible_blocks.push(block.id);
             }
@@ -803,7 +803,7 @@ export class BLOCK {
             block.is_button ||
             block.is_jukebox ||
             block.window ||
-            ['stool', 'chair'].includes(block.style);
+            ['stool', 'chair'].includes(block.model_name);
     }
 
     // Make material key
@@ -823,7 +823,7 @@ export class BLOCK {
             return false;
         }
         const is_slab = !!mat.is_layering;
-        const is_bed = mat.style == 'bed';
+        const is_bed = mat.model_name == 'bed';
         const is_dirt = mat.tags.includes('dirt');
         const is_carpet = mat.tags.includes('carpet');
         const is_farmland = mat.name.indexOf('FARMLAND') == 0;
@@ -1043,15 +1043,13 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
+        const style = block.material.bb?.model || block.material.model_name
         return block.id > 0 &&
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                block.material.style == 'fence' ||
-                block.material.style == 'fence_gate' ||
-                block.material.style == 'wall' ||
-                block.material.style == 'pane'
+                ['fence', 'fence_gate', 'wall', 'pane'].includes(style)
             ) && (
                 block.material.material.id != 'leaves'
             );
@@ -1063,9 +1061,7 @@ export class BLOCK {
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                block.material.style == 'wall' ||
-                block.material.style == 'pane' ||
-                block.material.style == 'fence'
+                ['wall', 'pane', 'fence'].includes(block.material.model_name)
             ) && (
                 block.material.material.id != 'leaves'
             );
@@ -1097,238 +1093,41 @@ export class BLOCK {
         }
     }
 
-    // getShapes
-    static getShapes(pos, b, world, for_physic, expanded, neighbours) {
-        let shapes = []; // x1 y1 z1 x2 y2 z2
-        const material = b.material;
+    /**
+     * Return block shapes
+     * 
+     * @param {Vector} pos 
+     * @param { import("./typed_blocks3.js").TBlock } tblock
+     * @param { import("./world.js").World } world
+     * @param {boolean} for_physic 
+     * @param {boolean} expanded 
+     * @param {*} neighbours 
+     * 
+     * @returns {array[]}
+     */
+    static getShapes(pos, tblock, world, for_physic, expanded, neighbours) {
+
+        const shapes = [] // x1 y1 z1 x2 y2 z2
+        const material = tblock.material
+
         if(!material) {
-            return shapes;
+            return shapes
         }
-        let f = !!expanded ? .001 : 0;
-        if(!material.passable && !material.planting) {
-            switch(material.style) {
-                case 'ladder': {
-                    const cardinal_direction = b.getCardinalDirection();
-                    const width = 3/15.9;
-                    shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
-                    break;
-                }
-                case 'fence': {
-                    let height = for_physic ? 1.5 : 1;
-                    //
-                    let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    // South z--
-                    if(this.canFenceConnect(n.SOUTH)) {
-                        shapes.push([.5-2/16, 5/16, 0, .5+2/16, height, .5+2/16]);
-                    }
-                    // North z++
-                    if(this.canFenceConnect(n.NORTH)) {
-                        shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, height, 1]);
-                    }
-                    // West x--
-                    if(this.canFenceConnect(n.WEST)) {
-                        shapes.push([0, 5/16, .5-2/16, .5+2/16, height, .5+2/16]);
-                    }
-                    // East x++
-                    if(this.canFenceConnect(n.EAST)) {
-                        shapes.push([.5-2/16, 5/16, .5-2/16, 1, height, .5+2/16]);
-                    }
-                    // Central
-                    shapes.push([
-                        .5-2/16, 0, .5-2/16,
-                        .5+2/16, height, .5+2/16
-                    ]);
-                    break;
-                }
-                case 'wall': {
-                    const CENTER_WIDTH      = 8 / 16;
-                    const CONNECT_HEIGHT    = 14 / 16;
-                    const CONNECT_BOTTOM    = 0 / 16;
-                    const CONNECT_X         = 6 / 16;
-                    const CONNECT_Z         = 8 / 16;
-                    const height            = for_physic ? 1.5 : CONNECT_HEIGHT;
-                    //
-                    let zconnects = 0;
-                    let xconnects = 0;
-                    //
-                    let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    // South z--
-                    if(this.canWallConnect(n.SOUTH)) {
-                        shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z/2]);
-                        zconnects++;
-                    }
-                    // North z++
-                    if(this.canWallConnect(n.NORTH)) {
-                        if(zconnects) {
-                            shapes.pop();
-                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1]);
-                        } else {
-                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, .5+CONNECT_Z/2, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z]);
-                        }
-                        zconnects++;
-                    }
-                    // West x--
-                    if(this.canWallConnect(n.WEST)) {
-                        shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_X/2, CONNECT_Z/2, height, .5-CONNECT_X/2 + CONNECT_X]);
-                        xconnects++;
-                    }
-                    // East x++
-                    if(this.canWallConnect(n.EAST)) {
-                        if(xconnects) {
-                            shapes.pop();
-                            shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X]);
-                        } else {
-                            shapes.push([1 - CONNECT_Z/2, CONNECT_BOTTOM, .5-CONNECT_X/2, 1, height, .5-CONNECT_X/2 + CONNECT_X]);
-                        }
-                        xconnects++;
-                    }
-                    if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
-                        // do nothing
-                    } else {
-                        // Central
-                        shapes.push([
-                            .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
-                            .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
-                        ]);
-                    }
-                    break;
-                }
-                case 'thin': {
-                    // F R B L
-                    if(!(material.is_portal && for_physic)) {
-                        let cardinal_direction = b.getCardinalDirection();
-                        if(cardinal_direction == CubeSym.ROT_X) {
-                            cardinal_direction = ROTATE.E;
-                        } if(cardinal_direction == CubeSym.ROT_Z) {
-                            cardinal_direction = ROTATE.N;
-                        }
-                        shapes.push(aabb.set(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot).toArray());
-                    }
-                    break;
-                }
-                case 'pane': {
-                    let height = 1;
-                    let w = 2/16;
-                    let w2 = w/2;
-                    //
-                    let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    let con_s = this.canPaneConnect(n.SOUTH);
-                    let con_n = this.canPaneConnect(n.NORTH);
-                    let con_w = this.canPaneConnect(n.WEST);
-                    let con_e = this.canPaneConnect(n.EAST);
-                    let remove_center = con_s || con_n || con_w || con_e;
-                    //
-                    if(con_s && con_n) {
-                        // remove_center = true;
-                        shapes.push([.5-w2, 0, 0, .5+w2, height, .5+.5]);
-                    } else {
-                        // South z--
-                        if(con_s) {
-                            shapes.push([.5-w2, 0, 0, .5+w2, height, .5+w2]);
-                        }
-                        // North z++
-                        if(con_n) {
-                            shapes.push([.5-w2,0, .5-w2, .5+w2, height, 1]);
-                        }
-                    }
-                    if(con_w && con_e) {
-                        // remove_center = true;
-                        shapes.push([0, 0, .5-w2, 1, height, .5+w2]);
-                    } else {
-                        // West x--
-                        if(con_w) {
-                            shapes.push([0, 0, .5-w2, .5+w2, height, .5+w2]);
-                        }
-                        // East x++
-                        if(con_e) {
-                            shapes.push([.5-w2, 0, .5-w2, 1, height, .5+w2]);
-                        }
-                    }
-                    // Central
-                    if(!remove_center) {
-                        shapes.push([.5-w2, 0, .5-w2, .5+w2, height, .5+w2]);
-                    }
-                    break;
-                }
-                case 'slope':
-                case 'stairs': {
-                    shapes.push(...StyleStairs.calculate(b, pos, neighbours, world.chunkManager).getShapes(new Vector(pos).multiplyScalar(-1), f));
-                    break;
-                }
-                case 'trapdoor': {
-                    let cardinal_direction = b.getCardinalDirection();
-                    let opened = this.isOpened(b);
-                    let on_ceil = this.isOnCeil(b);
-                    let sz = 3 / 16; // 15.9;
-                    if(opened) {
-                        shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    } else {
-                        if(on_ceil) {
-                            shapes.push(aabb.set(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                        } else {
-                            shapes.push(aabb.set(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                        }
-                    }
-                    break;
-                }
-                case 'door': {
-                    let cardinal_direction = CubeSym.dirAdd(b.getCardinalDirection(), CubeSym.ROT_Y2);
-                    if(this.isOpened(b)) {
-                        cardinal_direction = CubeSym.dirAdd(cardinal_direction, b.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
-                    }
-                    let sz = 3 / 15.9;
-                    shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    break;
-                }
-                default: {
-                    const styleVariant = BLOCK.styles.get(material.style);
-                    if (styleVariant && styleVariant.aabb) {
-                        shapes.push(
-                            ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
-                        );
-                    } else {
-                        debugger
-                        console.error('Deprecated');
-                    }
-                    break;
-                }
+
+        if((!material.passable && !material.planting) || !for_physic) {
+
+            const styleVariant = BLOCK.styles.get(material.style);
+            if (styleVariant && styleVariant.aabb) {
+                shapes.push(...styleVariant.aabb(tblock, for_physic, world, neighbours, expanded))
+            } else {
+                debugger
+                console.error('Deprecated');
             }
-        } else {
-            if(!for_physic) {
-                const styleVariant = BLOCK.styles.get(material.style);
-                if (styleVariant && styleVariant.aabb) {
-                    let aabbs = styleVariant.aabb(b);
-                    if(!Array.isArray(aabbs)) {
-                        aabbs = [aabbs];
-                    }
-                    shapes.push(
-                        ...aabbs.map(aabb => aabb.toArray())
-                    );
-                } else {
-                    switch(material.style) {
-                        /*case 'sign': {
-                            let hw = (4/16) / 2;
-                            let sign_height = 1;
-                            shapes.push([
-                                .5-hw, 0, .5-hw,
-                                .5+hw, sign_height, .5+hw
-                            ]);
-                            break;
-                        }*/
-                        case 'planting': {
-                            let hw = (12/16) / 2;
-                            let h = 12/16;
-                            shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
-                            break;
-                        }
-                    }
-                }
-            }
+
         }
-        return shapes;
+
+        return shapes.map(aabb => aabb.toArray())
+
     }
 
     //
@@ -1368,25 +1167,25 @@ export class BLOCK {
                 b.sort_index = 98;
             } else if(b.material.id == 'plant') {
                 b.sort_index = 97;
-            } else if(b.style == 'planting') {
+            } else if(b.model_name == 'planting') {
                 b.sort_index = 96;
             } else if(b.item?.instrument_id) {
                 b.sort_index = 95;
-            } else if(b.style == 'stairs') {
+            } else if(b.model_name == 'stairs') {
                 b.sort_index = sortByMaterial(b, 94);
-            } else if(b.style == 'fence') {
+            } else if(b.model_name == 'fence') {
                 b.sort_index = sortByMaterial(b, 93);
-            } else if(b.style == 'door') {
+            } else if(b.model_name == 'door') {
                 b.sort_index = sortByMaterial(b, 92);
-            } else if(b.style == 'trapdoor') {
+            } else if(b.model_name == 'trapdoor') {
                 b.sort_index = sortByMaterial(b, 91);
-            } else if(b.style == 'bed') {
+            } else if(b.model_name == 'bed') {
                 b.sort_index = 90;
-            } else if(b.style == 'sign') {
+            } else if(b.model_name == 'sign') {
                 b.sort_index = 89;
-            } else if(b.style == 'wall') {
+            } else if(b.model_name == 'wall') {
                 b.sort_index = sortByMaterial(b, 88);
-            } else if(b.style == 'carpet') {
+            } else if(b.model_name == 'carpet') {
                 b.sort_index = 87;
             } else if(b.layering) {
                 b.sort_index = sortByMaterial(b, 86);
@@ -1394,7 +1193,7 @@ export class BLOCK {
                 b.sort_index = 85;
             } else if((b.width || b.height || b.depth) && !b.window && b.material.id != 'dirt') {
                 b.sort_index = 84;
-            } else if(b.style == 'default' || b.style == 'cube') {
+            } else if(b.model_name == 'default' || b.model_name == 'cube') {
                 b.sort_index = sortByMaterial(b, 83);
             } else {
                 b.sort_index = sortByMaterial(b, 101);

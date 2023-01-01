@@ -12,6 +12,7 @@ import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE_NO } from "./constant.js";
+import {ChunkExporter} from "./geom/ChunkExporter.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -121,6 +122,7 @@ export class ChunkManager {
             }
         };
 
+        this.export = new ChunkExporter(this);
     }
 
     get lightmap_count() {
@@ -209,6 +211,10 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
+                case 'add_bbmodel': {
+                    Qubatch.render.addBBModel(new Vector(args.block_pos).addScalarSelf(.5, 0, .5), args.model, args.rotate, args.animation_name)
+                    break
+                }
                 case 'delete_animated_block': {
                     Qubatch.render.meshes.effects.deleteBlockEmitter(args);
                     break;
@@ -283,8 +289,8 @@ export class ChunkManager {
 
     /**
      * С сервера пришла вода, ее нужно передать чанку, либо куда нить записать если его пока нет
-     * @param {Vector} addr 
-     * @param {Uint8Array} fluid 
+     * @param {Vector} addr
+     * @param {Uint8Array} fluid
      */
     setChunkFluid(addr, fluid) {
         const chunk = this.getChunkForSetData(addr);
@@ -296,8 +302,8 @@ export class ChunkManager {
     }
 
     /**
-     * @param {Vector} addr 
-     * @param {Uint8Array} fluidDelta 
+     * @param {Vector} addr
+     * @param {Uint8Array} fluidDelta
      */
     setChunkFluidDelta(addr, fluidDelta) {
         const chunk = this.getChunkForSetData(addr);
@@ -307,8 +313,8 @@ export class ChunkManager {
     }
 
     /**
-     * @param {Vector} addr 
-     * @returns 
+     * @param {Vector} addr
+     * @returns
      */
     getChunkForSetData(addr) {
         const chunk = this.getChunk(addr);
@@ -330,7 +336,7 @@ export class ChunkManager {
     }
 
     /**
-     * @param {int} value 
+     * @param {int} value
      */
     setRenderDist(value) {
         this.#world.server.setRenderDist(value);
@@ -369,7 +375,7 @@ export class ChunkManager {
         if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
 
-            const msg = { 
+            const msg = {
                 pos: player.pos,
                 chunk_render_dist: player.state.chunk_render_dist
             };
@@ -460,8 +466,8 @@ export class ChunkManager {
      * Draw level chunks
      * @param { import("./render.js").Renderer } render
      * @param { import("./base_resource_pack.js").BaseResourcePack } resource_pack
-     * @param {boolean} transparent 
-     * @returns 
+     * @param {boolean} transparent
+     * @returns
      */
     draw(render, resource_pack, transparent) {
         if(!this.worker_inited || !this.nearby) {
@@ -749,7 +755,7 @@ export class ChunkManager {
         let all_blocks = BLOCK.getAll();
         const set_block_list = [];
         for(let mat of all_blocks) {
-            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.style)) {
+            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.model_name)) {
                 if(mat.name != 'BEDROCK') {
                     continue;
                 }
@@ -763,7 +769,7 @@ export class ChunkManager {
                 id:         mat.id,
                 extra_data: null
             };
-            if(mat.is_chest) {
+            if(mat.chest) {
                 item.extra_data = { can_destroy: true, slots: {} };
             } else if(mat.tags.includes('sign')) {
                 item.extra_data = {

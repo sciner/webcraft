@@ -2,7 +2,7 @@ import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
 import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH } from "./FluidConst.js";
 
-const fluidMaterials = [];
+export const fluidMaterials = [];
 
 class FluidMaterial {
     constructor(block) {

@@ -99,7 +99,7 @@ export class BuilgingTemplate {
         for(let block of this.blocks) {
             if(block.block_id > 0) {
                 block.mat = bm.fromId(block.block_id)
-                if(block.mat.is_chest) {
+                if(block.mat.chest) {
                     block.extra_data = {slots: {}}
                 }
                 all_blocks.set(block.move, block)
@@ -114,7 +114,7 @@ export class BuilgingTemplate {
             const markAsCheckSolid = (pos) => {
                 const block = all_blocks.get(pos)
                 if(block && block.block_id > 0) {
-                    if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.style)) {
+                    if(!block.mat.is_solid && !['bed', 'door'].includes(block.mat.model_name)) {
                         // если это не сплошной, то разрешаем его заменять сплошным блоком ландшафта
                         // (если такой будет на этой позиции)
                         block.check_is_solid = true
@@ -402,22 +402,22 @@ export class BuilgingTemplate {
                 delete(block.mat);
             }
 
-            if(['bed'].includes(mat.style)) {
+            if(['bed'].includes(mat.model_name)) {
                 rot2(block);
 
             } else if(mat.tags.includes('rotate_x8')) {
                 rotx8(block);
 
-            } else if(['sign'].includes(mat.style)) {
+            } else if(['sign'].includes(mat.model_name)) {
                 rot4(block);
 
             } else if(mat.tags.includes('rotate_by_pos_n')) {
                 rot1(block);
 
-            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.style)) {
+            } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.model_name)) {
                 rot2(block);
 
-            } else if(['armor_stand'].includes(mat.style)) {
+            } else if(['armor_stand'].includes(mat.model_name)) {
                 rot3(block);
 
             } else if(mat.can_rotate && block.rotate) {

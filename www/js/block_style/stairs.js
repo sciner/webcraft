@@ -14,8 +14,16 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['stairs'],
-            func: this.func
+            func: style.func,
+            aabb: style.computeAABB
         };
+    }
+
+    static computeAABB(tblock, for_physic, world, neighbours, expanded) {
+        const f = !!expanded ? .001 : 0;
+        return style
+            .calculate(tblock, tblock.posworld, neighbours, world.chunkManager)
+            .getShapes(new Vector(tblock.posworld).multiplyScalar(-1), f)
     }
 
     // Return calculated info
@@ -115,12 +123,12 @@ export default class style {
                     return this.shapes;
                 }
                 this.shapes = [];
-                const temp = new AABB();
                 for(let aabb of this.aabbs) {
+                    const temp = new AABB();
                     temp.copyFrom(aabb)
                         .translate(translate.x, translate.y, translate.z)
                         .expand(expand_value, expand_value, expand_value)
-                    this.shapes.push(temp.toArray());
+                    this.shapes.push(temp/*.toArray()*/);
                 }
                 return this.shapes;
             }
